@@ -62,7 +62,7 @@ jobs:
           Write-Output "Home directory: $HOME"
 
       - name: Setup Node.js (if needed)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
