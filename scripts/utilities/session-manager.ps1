@@ -311,8 +311,49 @@ function Get-SessionHealth {
     return $true
 }
 
+function Invoke-SelfImprovingPipeline {
+    Write-Status "Running self-improving pipeline..."
+
+    # Step 1: usage-tracker — record session usage metrics
+    $usageTracker = Join-Path $repoRoot 'scripts\skills\usage-tracker.ps1'
+    if (Test-Path $usageTracker) {
+        $null = & $usageTracker -Action record -SkillName 'session-manager' -Outcome 'success' -TokensUsed 0 2>&1
+        Write-Info "Usage metrics recorded"
+    }
+
+    # Step 2: skill-nudge — check for nudges based on usage patterns
+    $nudgeScript = Join-Path $repoRoot 'scripts\skills\skill-nudge.ps1'
+    if (Test-Path $nudgeScript) {
+        $nudgeOut = & $nudgeScript 2>&1
+        Write-Info "Skill nudges: $($nudgeOut | Out-String).Trim()"
+    }
+
+    # Step 3: skill-auto-patch — auto-patch SKILL.md known issues
+    $patchScript = Join-Path $repoRoot 'scripts\skills\skill-auto-patch.ps1'
+    if (Test-Path $patchScript) {
+        $patchOut = & $patchScript 2>&1
+        Write-Info "Skill auto-patch: $($patchOut | Out-String).Trim()"
+    }
+
+    # Step 4: validate-configs — verify all JSON configs
+    $validateScript = Join-Path $repoRoot 'scripts\utilities\validate-configs.ps1'
+    if (Test-Path $validateScript) {
+        $null = & $validateScript 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Info "Config validation: PASS"
+        } else {
+            Write-Warn "Config validation: FAIL (non-blocking)"
+        }
+    }
+
+    Write-Status "Self-improving pipeline completed"
+}
+
 function End-Session {
     Write-Status "Ending session..."
+
+    # Self-improving pipeline (usage-tracker → skill-nudge → skill-auto-patch)
+    Invoke-SelfImprovingPipeline
 
     $enforcerScript = Join-Path $repoRoot 'scripts\adaptive\auto-norm-enforcer.ps1'
     if (Test-Path $enforcerScript) {

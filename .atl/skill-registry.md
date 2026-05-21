@@ -1,167 +1,171 @@
 # Skill Registry
 
-**Auto-generated** | **Skills**: 132
+**Auto-generated** | **Skills**: 134
 
-**Delegator use only.** Sub-agents receive compact rules pre-digested in launch prompt. Orchestrator
-reads this registry to resolve skill->agent mappings and inject compact rules.
+**Delegator use only.** Sub-agents receive compact rules pre-digested in launch prompt.
+Orchestrator reads this registry to resolve skill->agent mappings and inject compact rules.
 
 ## Summary
 
-| Agent                         | Skills |
-| ----------------------------- | ------ |
-| BA - Analysis                 | 7      |
-| BUS-TELE - Telemetry          | 1      |
-| DEV - Code                    | 35     |
-| DOC - Documentation           | 10     |
-| FINANCE - Finance             | 1      |
-| GOV - Governance              | 24     |
-| HR - Talent                   | 1      |
-| LEGAL - Legal                 | 1      |
-| MKT - Marketing               | 6      |
-| OPS - DevOps                  | 11     |
-| PREMORTEM - Risk              | 1      |
-| QA - Testing                  | 16     |
-| SAD - Design                  | 13     |
-| SALES - Sales                 | 2      |
-| SESSION - Session             | 2      |
-| CODEGRAPH - Code Intelligence | 1      |
+| Agent | Skills |
+|-------|--------|
+| BA - Analysis | 7 |
+| BUS-TELE - Telemetry | 1 |
+| CODEGRAPH | 1 |
+| DEV - Code | 35 |
+| DOC - Documentation | 10 |
+| FINANCE - Finance | 1 |
+| GATEWAY | 1 |
+| GOV - Governance | 24 |
+| HR - Talent | 1 |
+| LEGAL - Legal | 1 |
+| MKT - Marketing | 6 |
+| OPS - DevOps | 11 |
+| PREMORTEM - Risk | 1 |
+| QA - Testing | 16 |
+| SAD - Design | 13 |
+| SALES - Sales | 2 |
+| SESSION - Session | 2 |
+| *(unassigned)* | 7 |
 
 ## Skill-Agent Mapping
 
-| Agent                         | Skill                            | Trigger                                                                          |
-| ----------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| CODEGRAPH - Code Intelligence | codegraph-skill                  | "codegraph", "code graph", "symbol search", "call graph", "impact analysis", ... |
-| BA - Analysis                 | backlog-management-skill         | "backlog", "triage", "roadmap", "feature intake"                                 |
-| BA - Analysis                 | business                         |                                                                                  |
-| BA - Analysis                 | customer-success-manager         | "customer success", "retention", "churn", "health score", "NPS", "customer he... |
-| BA - Analysis                 | customer-support-lead            | "customer support", "ticket triage", "escalation", "knowledge base", "SLA", "... |
-| BA - Analysis                 | data-analyst                     | "data analysis", "SQL query", "dashboard", "visualization", "insights", "repo... |
-| BA - Analysis                 | product-manager                  | "product management", "roadmap", "PRD", "user story", "backlog", "GTM", "prod... |
-| BA - Analysis                 | project-manager                  | "project management", "agile", "sprint", "risk register", "stakeholder", "Gantt" |
-| BUS-TELE - Telemetry          | business-telemetry-skill         | "telemetry", "metrics", "management report", "roi analysis"                      |
-| DEV - Code                    | ai-sdk-5-skill                   | "AI SDK", "AI SDK 5", "streamText", "generateText", "AI provider"                |
-| DEV - Code                    | android-architecture-skill       | Use when implementing MVVM, clean architecture, dependency injection with Hil... |
-| DEV - Code                    | android-jetpack-compose-skill    | Use when building Android UIs with Jetpack Compose, managing state with remem... |
-| DEV - Code                    | android-kotlin-coroutines-skill  | When implementing async logic in Android Kotlin code with coroutines or flow     |
-| DEV - Code                    | android-kotlin-skill             | When working on Android Kotlin source files                                      |
-| DEV - Code                    | angular-spa-skill                | "Angular", "Angular component", "Angular service", "Angular signal", "Angular... |
-| DEV - Code                    | backend-engineer                 | "backend", "API", "database", "microservice", "REST", "GraphQL", "server-side"   |
-| DEV - Code                    | daily-workflow                   | "daily check", "daily workflow", "morning routine", "start day", "daily tasks"   |
-| DEV - Code                    | django-drf-skill                 | "Django", "Django REST Framework", "DRF", "ViewSet", "Serializer", "APIView"     |
-| DEV - Code                    | firecrawl-web-skill              | "web scrape", "extract data", "crawl website", "markdown", "screenshot", "web... |
-| DEV - Code                    | flutter-skill                    | When working on Flutter/Dart code                                                |
-| DEV - Code                    | frontend-engineer                | "frontend", "React component", "UI implementation", "responsive", "state mana... |
-| DEV - Code                    | git-workflow-skill               | Use when managing git branches, commits, pull requests, merge conflicts, or g... |
-| DEV - Code                    | golang-api-skill                 | "Go API", "Go backend", "REST endpoint Go", "Go JSON", "Go SPA", "Go HTTP han... |
-| DEV - Code                    | ios-swift-development            | Creating native iOS applications with optimal performance                        |
-| DEV - Code                    | ios-swiftui-patterns-skill       | Use when building SwiftUI views, managing state with @State/@Binding/@Observa... |
-| DEV - Code                    | karpathy-guidelines              | When writing code, refactoring, or implementing features                         |
-| DEV - Code                    | mcp-skill                        | "MCP", "Model Context Protocol", "MCP server", "MCP tool", "MCP resource"        |
-| DEV - Code                    | mobile-app-debugging             | App crashes on mobile                                                            |
-| DEV - Code                    | mobile-developer                 | "mobile app", "iOS", "Android", "React Native", "Flutter", "mobile UI", "app ... |
-| DEV - Code                    | nextjs-15-skill                  | "Next                                                                            |
-| DEV - Code                    | project-scaffolding-skill        | Use when creating projects, scaffolding code, bootstrapping workspaces, apply... |
-| DEV - Code                    | react-19-skill                   | "React", "React 19", "useActionState", "useFormStatus", "React Compiler"         |
-| DEV - Code                    | react-native-skill               | When working on React Native mobile app code                                     |
-| DEV - Code                    | script-governance-skill          | script, automation, hook, startup, auto-init, orchestrator script, powershell... |
-| DEV - Code                    | script-runtime-engineering-skill | "bash script", "shell script", "powershell script", "hook", "script parse err... |
-| DEV - Code                    | shellcheck-standards-skill       | "bash", "shell", "shellcheck", "bash script"                                     |
-| DEV - Code                    | tailwind-4-skill                 | "Tailwind", "Tailwind CSS", "cn()", "className", "tailwind-4", "frontend", "U... |
-| DEV - Code                    | technical-debt-skill             | "technical debt", "debt audit", "refactor", "code smell", "anti-pattern", "cl... |
-| DEV - Code                    | typescript-skill                 | "TypeScript", "interface", "type", "generic", "utility types", "typescript st... |
-| DEV - Code                    | ui-mobile-skill                  | When building mobile UI components                                               |
-| DEV - Code                    | web-performance-optimization     | Slow page load times                                                             |
-| DEV - Code                    | work-unit-commits                | implementation, commit splitting, chained PRs, or keeping tests and docs with... |
-| DEV - Code                    | zod-4-skill                      | "Zod", "schema validation", "input validation", "type safety"                    |
-| DEV - Code                    | zustand-5-skill                  | "Zustand", "state management", "store", "useStore", "persistence"                |
-| DOC - Documentation           | cognitive-doc-design             | when writing guides, READMEs, RFCs, onboarding docs, architecture docs, or re... |
-| DOC - Documentation           | content-output-skill             | "post", "twitter", "linkedin", "redes", "social", "marketing", "promocionar",... |
-| DOC - Documentation           | docs-alignment-skill             | "docs", "documentation", "update docs", "doc sync"                               |
-| DOC - Documentation           | documentation-governance         | creating or updating README, ARCHITECTURE, setup guides, code reviews, script... |
-| DOC - Documentation           | humanizador-skill                | "humaniza este texto", "humanize this text", "make it sound natural", "remove... |
-| DOC - Documentation           | optimizador-prompts-skill        | "mejora este prompt", "conviértelo en un prompt", "ordena esta idea", "hazme ... |
-| DOC - Documentation           | presentaciones-visuales-skill    | "crea una presentación", "convierte esto en slides", "deck", "diapositivas", ... |
-| DOC - Documentation           | reporting-skill                  | "informe", "report", "reporte", "mtricas", "metrics", "dashboard", "gerencia"... |
-| DOC - Documentation           | visual-content-skill             | "ascii", "diagram", "mermaid", "visual", "presentacion", "slide", "logo", "gr... |
-| DOC - Documentation           | web-artifacts-builder-skill      | "web artifact", "html component", "interactive demo", "prototype", "single pa... |
-| FINANCE - Finance             | finance-financial-analyst        | "financial model", "forecast", "scenario analysis", "variance", "budget", "ca... |
-| GOV - Governance              | \_semantic-skill-matcher         | "semantic match", "find skill", "skill routing", "embeddings", "Context7"        |
-| GOV - Governance              | adaptive-mode-orchestrator       |                                                                                  |
-| GOV - Governance              | adaptive-orchestrator            | enforce norms, learn norms, validate documentation placement, check adaptive ... |
-| GOV - Governance              | auto-delegation-router           | task routing, subagent delegation, auto-routing, agent selection                 |
-| GOV - Governance              | chained-pr                       | when a PR would exceed 400 changed lines, when planning chained PRs, stacked ... |
-| GOV - Governance              | comment-writer                   | PR feedback, issue replies, reviews, Slack messages, or GitHub comments          |
-| GOV - Governance              | commit-hygiene-skill             | "commit", "conventional commit", "commit message", "commit hygiene"              |
-| GOV - Governance              | config-risk-analyzer             | "config-risk-analyze", "validate-config", "check-config-integrity"               |
-| GOV - Governance              | cross-workspace-sync             | User mentions "sync workspaces" or "sincronizar workspaces"                      |
-| GOV - Governance              | gentle-vanguard-audit-skill      | 'audit gentle-vanguard', 'validate docs', 'sweep project', 'check links', 'fi... |
-| GOV - Governance              | gentle-vanguard-manager-skill    | 'auto-update', 'self-update', 'update skill', 'sync workspace', 'maintenance'... |
-| GOV - Governance              | gitflow-orchestrator-skill       | gitflow, git, branch, workflow, git hooks                                        |
-| GOV - Governance              | guardian-fallback-skill          | "fallback", "guardian", "assist", "cerrar", "completar tarea", " blocker"        |
-| GOV - Governance              | incident-response-plan           | Security breach detection                                                        |
-| GOV - Governance              | judgment-day                     | "judgment day", "judgment-day", "dual review", "juzgar"                          |
-| GOV - Governance              | multi-agent-registry             | delegate task, specialized agent, sub-agent routing, dispatch agent              |
-| GOV - Governance              | project-orchestrator-skill       | session start, project setup, orchestration, repository governance, iniciar s... |
-| GOV - Governance              | security-expert-skill            | "security", "vulnerability", "secrets", "auth", "jwt"                            |
-| GOV - Governance              | security-skill                   | "security", "authentication", "authorization", "vulnerability", "OWASP", "XSS... |
-| GOV - Governance              | self-diagnosis-skill             | no terminaste, incompleto, dejaste a la mitad, no completaste, te esta bloque... |
-| GOV - Governance              | skill-creator-skill              | "create skill", "new skill", "add agent instructions", "document patterns", "... |
-| GOV - Governance              | skill-factory-skill              | "create skill", "new skill", "sync skills", "update instructions"                |
-| GOV - Governance              | sync-automation                  |                                                                                  |
-| GOV - Governance              | workflow-orchestrator            | 'workflow', 'flujo de trabajo', multi-step automation, scheduled tasks, error... |
-| HR - Talent                   | hr-talent-acquisition            | "hiring", "recruiting", "interview", "candidate", "onboarding", "job descript... |
-| LEGAL - Legal                 | legal-compliance-officer         | "compliance", "GDPR", "HIPAA", "policy", "audit", "regulatory", "privacy"        |
-| MKT - Marketing               | brand-guide-skill                | "brand", "brand guide", "brand identity", "branding", "voice", "tone", "visua... |
-| MKT - Marketing               | content-strategist               | "content strategy", "editorial calendar", "SEO", "blog post", "content audit"... |
-| MKT - Marketing               | marketing-content-writer         | "write blog post", "copywriting", "blog article", "content writing", "storyte... |
-| MKT - Marketing               | marketing-growth-hacker          | "growth hacking", "user acquisition", "viral loop", "A/B testing", "funnel op... |
-| MKT - Marketing               | seo-audit-skill                  | "SEO", "audit SEO", "meta tags", "structured data", "sitemap", "robots           |
-| MKT - Marketing               | seo-specialist                   | "SEO", "keyword research", "technical SEO", "site audit", "backlinks", "SERP"    |
-| OPS - DevOps                  | backup-orchestrator              | User mentions "backup strategy" or "estrategia de backup"                        |
-| OPS - DevOps                  | devops-sre                       | "SRE", "incident response", "monitoring", "on-call", "automation", "scalabili... |
-| OPS - DevOps                  | docker-devops-skill              | Use when working with Docker, Kubernetes, CI/CD pipelines, or deployment conf... |
-| OPS - DevOps                  | incident-response-skill          | incident", "alert", "response", "recovery", "emergency                           |
-| OPS - DevOps                  | kubernetes-deployment            | Container orchestration and management                                           |
-| OPS - DevOps                  | monitoring-aggregator            | User mentions "analyze metrics" or "analizar mtricas"                            |
-| OPS - DevOps                  | observability-skill              | "observability", "monitoring", "tracing", "metrics", "logs", "alert", "OpenTe... |
-| OPS - DevOps                  | operations-manager               | "operations", "process improvement", "vendor management", "SOP", "resource pl... |
-| OPS - DevOps                  | parallel-execution-limits        | User mentions "parallel execution", "ejecucin paralela", or "execution limits"   |
-| OPS - DevOps                  | release-management-skill         | release, changelog, version bump, ship, cut release, release notes, hotfix, d... |
-| OPS - DevOps                  | terraform-infrastructure         | Cloud infrastructure provisioning                                                |
-| PREMORTEM - Risk              | premortem-skill                  | "premortem esto", "premortem mi", "ejecuta un premortem", "que podria matar e... |
-| QA - Testing                  | bdd-scenarios-skill              | Use when writing effective BDD scenarios including acceptance criteria, edge ... |
-| QA - Testing                  | branch-pr                        | When creating a pull request, opening a PR, or preparing changes for review      |
-| QA - Testing                  | code-review-orchestrator-skill   | code review, review all, quality check, orchestrator, full review, check code... |
-| QA - Testing                  | github-pr-skill                  | When creating PRs, writing PR descriptions, or using gh CLI for pull requests    |
-| QA - Testing                  | go-testing                       | When writing Go tests, using teatest, or adding test coverage                    |
-| QA - Testing                  | issue-creation                   | When creating a GitHub issue, reporting a bug, or requesting a feature           |
-| QA - Testing                  | playwright-skill                 | When writing E2E tests - Page Objects, selectors, MCP workflow                   |
-| QA - Testing                  | pretool-format-hook-skill        | "auto-format", "pretool", "format hook", "format before save"                    |
-| QA - Testing                  | pytest-skill                     | When writing Python tests - fixtures, mocking, markers                           |
-| QA - Testing                  | quality-skill                    | code review, linting, formatting enforcement, PR preparation                     |
-| QA - Testing                  | security-pentester               | "pentest", "vulnerability scan", "security audit", "OWASP", "exploit", "burp ... |
-| QA - Testing                  | testing-coverage-skill           | "test", "testing", "coverage", "spec", "unit test"                               |
-| QA - Testing                  | testing-evidence-qa              | "evidence QA", "screenshot test", "visual testing", "QA certification", "prod... |
-| QA - Testing                  | testing-skill                    | Use when writing tests, setting up test coverage, choosing test frameworks, o... |
-| QA - Testing                  | testing-strategy-skill           | testing strategy, test pyramid, what to test, coverage target, unit test, int... |
-| QA - Testing                  | verificador-datos-skill          | "verifica este texto", "comprueba si esto es verdad", "revisa si hay errores"... |
-| SAD - Design                  | api-design-skill                 | Use when designing REST APIs, GraphQL schemas, or API contracts. Triggers: "d... |
-| SAD - Design                  | architecture-governance          | "architecture", "project structure", "ADR"                                       |
-| SAD - Design                  | cloud-agent-connector-skill      | "cloud agent", "bedrock", "difi", "external model", "api connection", "invoke... |
-| SAD - Design                  | context-engineering-skill        | context pack, compact start, session handoff, token efficiency, context budge... |
-| SAD - Design                  | data-scientist                   | "machine learning", "ML model", "data science", "prediction", "classification... |
-| SAD - Design                  | database-nosql-skill             | "MongoDB", "Redis", "NoSQL", "document database", "caching", "cache"             |
-| SAD - Design                  | database-relational-skill        | "PostgreSQL", "MySQL", "SQL", "database", "SQLAlchemy", "migration", "transac... |
-| SAD - Design                  | design-md                        | "DESIGN                                                                          |
-| SAD - Design                  | design-ui-designer               | "UI design", "component library", "design system", "pixel-perfect", "interfac... |
-| SAD - Design                  | design-ux-researcher             | "UX research", "user testing", "usability", "user behavior", "persona", "jour... |
-| SAD - Design                  | distributed-tracing-skill        | tracing, telemetry, distributed, correlation, span                               |
-| SAD - Design                  | fireworks-tech-graph             | Use when the user wants to create any technical diagram - architecture, data ... |
-| SAD - Design                  | game-designer                    | "game design", "game mechanics", "balance", "player experience", "level desig... |
-| SALES - Sales                 | sales-account-executive          | "enterprise sales", "deal negotiation", "pipeline", "account management", "sa... |
-| SALES - Sales                 | sales-outbound-strategist        | "outbound sales", "cold outreach", "prospecting", "ICP", "sequence", "buyer p... |
-| SESSION - Session             | post-session-learning-skill      | "post-session", "learning", "auto-aprendizaje", "improvement proposals", "mej... |
-| SESSION - Session             | session-workflow-skill           | "guardar sesion", "continuar", "estado", "pr", "push", "review", "auditar"       |
+| Agent | Skill | Trigger |
+|-------|-------|--------|
+| (unassigned) | codegraph-skill | "codegraph", "code graph", "symbol search", "call graph", "impact analysis", ... |
+| (unassigned) | multi-platform-gateway |  |
+| (unassigned) | usage-metrics | "usage metrics", "skill usage", "effectiveness", "failure pattern", "auto-nudge" |
+| BA - Analysis | backlog-management-skill | "backlog", "triage", "roadmap", "feature intake" |
+| BA - Analysis | business |  |
+| BA - Analysis | customer-success-manager | "customer success", "retention", "churn", "health score", "NPS", "customer he... |
+| BA - Analysis | customer-support-lead | "customer support", "ticket triage", "escalation", "knowledge base", "SLA", "... |
+| BA - Analysis | data-analyst | "data analysis", "SQL query", "dashboard", "visualization", "insights", "repo... |
+| BA - Analysis | product-manager | "product management", "roadmap", "PRD", "user story", "backlog", "GTM", "prod... |
+| BA - Analysis | project-manager | "project management", "agile", "sprint", "risk register", "stakeholder", "Gantt" |
+| BUS-TELE - Telemetry | business-telemetry-skill | "telemetry", "metrics", "management report", "roi analysis" |
+| DEV - Code | ai-sdk-5-skill | "AI SDK", "AI SDK 5", "streamText", "generateText", "AI provider" |
+| DEV - Code | android-architecture-skill | Use when implementing MVVM, clean architecture, dependency injection with Hil... |
+| DEV - Code | android-jetpack-compose-skill | Use when building Android UIs with Jetpack Compose, managing state with remem... |
+| DEV - Code | android-kotlin-coroutines-skill | When implementing async logic in Android Kotlin code with coroutines or flow |
+| DEV - Code | android-kotlin-skill | When working on Android Kotlin source files |
+| DEV - Code | angular-spa-skill | "Angular", "Angular component", "Angular service", "Angular signal", "Angular... |
+| DEV - Code | backend-engineer | "backend", "API", "database", "microservice", "REST", "GraphQL", "server-side" |
+| DEV - Code | daily-workflow | "daily check", "daily workflow", "morning routine", "start day", "daily tasks" |
+| DEV - Code | django-drf-skill | "Django", "Django REST Framework", "DRF", "ViewSet", "Serializer", "APIView" |
+| DEV - Code | firecrawl-web-skill | "web scrape", "extract data", "crawl website", "markdown", "screenshot", "web... |
+| DEV - Code | flutter-skill | When working on Flutter/Dart code |
+| DEV - Code | frontend-engineer | "frontend", "React component", "UI implementation", "responsive", "state mana... |
+| DEV - Code | git-workflow-skill | Use when managing git branches, commits, pull requests, merge conflicts, or g... |
+| DEV - Code | golang-api-skill | "Go API", "Go backend", "REST endpoint Go", "Go JSON", "Go SPA", "Go HTTP han... |
+| DEV - Code | ios-swift-development | Creating native iOS applications with optimal performance |
+| DEV - Code | ios-swiftui-patterns-skill | Use when building SwiftUI views, managing state with @State/@Binding/@Observa... |
+| DEV - Code | karpathy-guidelines | When writing code, refactoring, or implementing features |
+| DEV - Code | mcp-skill | "MCP", "Model Context Protocol", "MCP server", "MCP tool", "MCP resource" |
+| DEV - Code | mobile-app-debugging | App crashes on mobile |
+| DEV - Code | mobile-developer | "mobile app", "iOS", "Android", "React Native", "Flutter", "mobile UI", "app ... |
+| DEV - Code | nextjs-15-skill | "Next |
+| DEV - Code | project-scaffolding-skill | Use when creating projects, scaffolding code, bootstrapping workspaces, apply... |
+| DEV - Code | react-19-skill | "React", "React 19", "useActionState", "useFormStatus", "React Compiler" |
+| DEV - Code | react-native-skill | When working on React Native mobile app code |
+| DEV - Code | script-governance-skill | script, automation, hook, startup, auto-init, orchestrator script, powershell... |
+| DEV - Code | script-runtime-engineering-skill | "bash script", "shell script", "powershell script", "hook", "script parse err... |
+| DEV - Code | shellcheck-standards-skill | "bash", "shell", "shellcheck", "bash script" |
+| DEV - Code | tailwind-4-skill | "Tailwind", "Tailwind CSS", "cn()", "className", "tailwind-4", "frontend", "U... |
+| DEV - Code | technical-debt-skill | "technical debt", "debt audit", "refactor", "code smell", "anti-pattern", "cl... |
+| DEV - Code | typescript-skill | "TypeScript", "interface", "type", "generic", "utility types", "typescript st... |
+| DEV - Code | ui-mobile-skill | When building mobile UI components |
+| DEV - Code | web-performance-optimization | Slow page load times |
+| DEV - Code | work-unit-commits | implementation, commit splitting, chained PRs, or keeping tests and docs with... |
+| DEV - Code | zod-4-skill | "Zod", "schema validation", "input validation", "type safety" |
+| DEV - Code | zustand-5-skill | "Zustand", "state management", "store", "useStore", "persistence" |
+| DOC - Documentation | cognitive-doc-design | when writing guides, READMEs, RFCs, onboarding docs, architecture docs, or re... |
+| DOC - Documentation | content-output-skill | "post", "twitter", "linkedin", "redes", "social", "marketing", "promocionar",... |
+| DOC - Documentation | docs-alignment-skill | "docs", "documentation", "update docs", "doc sync" |
+| DOC - Documentation | documentation-governance | creating or updating README, ARCHITECTURE, setup guides, code reviews, script... |
+| DOC - Documentation | humanizador-skill | "humaniza este texto", "humanize this text", "make it sound natural", "remove... |
+| DOC - Documentation | optimizador-prompts-skill | "mejora este prompt", "conviértelo en un prompt", "ordena esta idea", "hazme ... |
+| DOC - Documentation | presentaciones-visuales-skill | "crea una presentación", "convierte esto en slides", "deck", "diapositivas", ... |
+| DOC - Documentation | reporting-skill | "informe", "report", "reporte", "mtricas", "metrics", "dashboard", "gerencia"... |
+| DOC - Documentation | visual-content-skill | "ascii", "diagram", "mermaid", "visual", "presentacion", "slide", "logo", "gr... |
+| DOC - Documentation | web-artifacts-builder-skill | "web artifact", "html component", "interactive demo", "prototype", "single pa... |
+| FINANCE - Finance | finance-financial-analyst | "financial model", "forecast", "scenario analysis", "variance", "budget", "ca... |
+| GOV - Governance | _semantic-skill-matcher | "semantic match", "find skill", "skill routing", "embeddings", "Context7" |
+| GOV - Governance | adaptive-mode-orchestrator |  |
+| GOV - Governance | adaptive-orchestrator | enforce norms, learn norms, validate documentation placement, check adaptive ... |
+| GOV - Governance | auto-delegation-router | task routing, subagent delegation, auto-routing, agent selection |
+| GOV - Governance | chained-pr | when a PR would exceed 400 changed lines, when planning chained PRs, stacked ... |
+| GOV - Governance | comment-writer | PR feedback, issue replies, reviews, Slack messages, or GitHub comments |
+| GOV - Governance | commit-hygiene-skill | "commit", "conventional commit", "commit message", "commit hygiene" |
+| GOV - Governance | config-risk-analyzer | "config-risk-analyze", "validate-config", "check-config-integrity" |
+| GOV - Governance | cross-workspace-sync | User mentions "sync workspaces" or "sincronizar workspaces" |
+| GOV - Governance | gentle-vanguard-audit-skill | 'audit gentle-vanguard', 'validate docs', 'sweep project', 'check links', 'fi... |
+| GOV - Governance | gentle-vanguard-manager-skill | 'auto-update', 'self-update', 'update skill', 'sync workspace', 'maintenance'... |
+| GOV - Governance | gitflow-orchestrator-skill | gitflow, git, branch, workflow, git hooks |
+| GOV - Governance | guardian-fallback-skill | "fallback", "guardian", "assist", "cerrar", "completar tarea", " blocker" |
+| GOV - Governance | incident-response-plan | Security breach detection |
+| GOV - Governance | judgment-day | "judgment day", "judgment-day", "dual review", "juzgar" |
+| GOV - Governance | multi-agent-registry | delegate task, specialized agent, sub-agent routing, dispatch agent |
+| GOV - Governance | project-orchestrator-skill | session start, project setup, orchestration, repository governance, iniciar s... |
+| GOV - Governance | security-expert-skill | "security", "vulnerability", "secrets", "auth", "jwt" |
+| GOV - Governance | security-skill | "security", "authentication", "authorization", "vulnerability", "OWASP", "XSS... |
+| GOV - Governance | self-diagnosis-skill | 'no terminaste, incompleto, dejaste a la mitad, no completaste, te esta bloqu... |
+| GOV - Governance | skill-creator-skill | "create skill", "new skill", "add agent instructions", "document patterns", "... |
+| GOV - Governance | skill-factory-skill | "create skill", "new skill", "sync skills", "update instructions" |
+| GOV - Governance | sync-automation |  |
+| GOV - Governance | workflow-orchestrator | 'workflow', 'flujo de trabajo', multi-step automation, scheduled tasks, error... |
+| HR - Talent | hr-talent-acquisition | "hiring", "recruiting", "interview", "candidate", "onboarding", "job descript... |
+| LEGAL - Legal | legal-compliance-officer | "compliance", "GDPR", "HIPAA", "policy", "audit", "regulatory", "privacy" |
+| MKT - Marketing | brand-guide-skill | "brand", "brand guide", "brand identity", "branding", "voice", "tone", "visua... |
+| MKT - Marketing | content-strategist | "content strategy", "editorial calendar", "SEO", "blog post", "content audit"... |
+| MKT - Marketing | marketing-content-writer | "write blog post", "copywriting", "blog article", "content writing", "storyte... |
+| MKT - Marketing | marketing-growth-hacker | "growth hacking", "user acquisition", "viral loop", "A/B testing", "funnel op... |
+| MKT - Marketing | seo-audit-skill | "SEO", "audit SEO", "meta tags", "structured data", "sitemap", "robots |
+| MKT - Marketing | seo-specialist | "SEO", "keyword research", "technical SEO", "site audit", "backlinks", "SERP" |
+| OPS - DevOps | backup-orchestrator | User mentions "backup strategy" or "estrategia de backup" |
+| OPS - DevOps | devops-sre | "SRE", "incident response", "monitoring", "on-call", "automation", "scalabili... |
+| OPS - DevOps | docker-devops-skill | Use when working with Docker, Kubernetes, CI/CD pipelines, or deployment conf... |
+| OPS - DevOps | incident-response-skill | incident", "alert", "response", "recovery", "emergency |
+| OPS - DevOps | kubernetes-deployment | Container orchestration and management |
+| OPS - DevOps | monitoring-aggregator | User mentions "analyze metrics" or "analizar mtricas" |
+| OPS - DevOps | observability-skill | "observability", "monitoring", "tracing", "metrics", "logs", "alert", "OpenTe... |
+| OPS - DevOps | operations-manager | "operations", "process improvement", "vendor management", "SOP", "resource pl... |
+| OPS - DevOps | parallel-execution-limits | User mentions "parallel execution", "ejecucin paralela", or "execution limits" |
+| OPS - DevOps | release-management-skill | release, changelog, version bump, ship, cut release, release notes, hotfix, d... |
+| OPS - DevOps | terraform-infrastructure | Cloud infrastructure provisioning |
+| PREMORTEM - Risk | premortem-skill | "premortem esto", "premortem mi", "ejecuta un premortem", "que podria matar e... |
+| QA - Testing | bdd-scenarios-skill | Use when writing effective BDD scenarios including acceptance criteria, edge ... |
+| QA - Testing | branch-pr | When creating a pull request, opening a PR, or preparing changes for review |
+| QA - Testing | code-review-orchestrator-skill | code review, review all, quality check, orchestrator, full review, check code... |
+| QA - Testing | github-pr-skill | When creating PRs, writing PR descriptions, or using gh CLI for pull requests |
+| QA - Testing | go-testing | When writing Go tests, using teatest, or adding test coverage |
+| QA - Testing | issue-creation | When creating a GitHub issue, reporting a bug, or requesting a feature |
+| QA - Testing | playwright-skill | When writing E2E tests - Page Objects, selectors, MCP workflow |
+| QA - Testing | pretool-format-hook-skill | "auto-format", "pretool", "format hook", "format before save" |
+| QA - Testing | pytest-skill | When writing Python tests - fixtures, mocking, markers |
+| QA - Testing | quality-skill | code review, linting, formatting enforcement, PR preparation |
+| QA - Testing | security-pentester | "pentest", "vulnerability scan", "security audit", "OWASP", "exploit", "burp ... |
+| QA - Testing | testing-coverage-skill | "test", "testing", "coverage", "spec", "unit test" |
+| QA - Testing | testing-evidence-qa | "evidence QA", "screenshot test", "visual testing", "QA certification", "prod... |
+| QA - Testing | testing-skill | Use when writing tests, setting up test coverage, choosing test frameworks, o... |
+| QA - Testing | testing-strategy-skill | testing strategy, test pyramid, what to test, coverage target, unit test, int... |
+| QA - Testing | verificador-datos-skill | "verifica este texto", "comprueba si esto es verdad", "revisa si hay errores"... |
+| SAD - Design | api-design-skill | Use when designing REST APIs, GraphQL schemas, or API contracts. Triggers: "d... |
+| SAD - Design | architecture-governance | "architecture", "project structure", "ADR" |
+| SAD - Design | cloud-agent-connector-skill | "cloud agent", "bedrock", "difi", "external model", "api connection", "invoke... |
+| SAD - Design | context-engineering-skill | context pack, compact start, session handoff, token efficiency, context budge... |
+| SAD - Design | data-scientist | "machine learning", "ML model", "data science", "prediction", "classification... |
+| SAD - Design | database-nosql-skill | "MongoDB", "Redis", "NoSQL", "document database", "caching", "cache" |
+| SAD - Design | database-relational-skill | "PostgreSQL", "MySQL", "SQL", "database", "SQLAlchemy", "migration", "transac... |
+| SAD - Design | design-md | "DESIGN |
+| SAD - Design | design-ui-designer | "UI design", "component library", "design system", "pixel-perfect", "interfac... |
+| SAD - Design | design-ux-researcher | "UX research", "user testing", "usability", "user behavior", "persona", "jour... |
+| SAD - Design | distributed-tracing-skill | tracing, telemetry, distributed, correlation, span |
+| SAD - Design | fireworks-tech-graph | Use when the user wants to create any technical diagram - architecture, data ... |
+| SAD - Design | game-designer | "game design", "game mechanics", "balance", "player experience", "level desig... |
+| SALES - Sales | sales-account-executive | "enterprise sales", "deal negotiation", "pipeline", "account management", "sa... |
+| SALES - Sales | sales-outbound-strategist | "outbound sales", "cold outreach", "prospecting", "ICP", "sequence", "buyer p... |
+| SESSION - Session | post-session-learning-skill | "post-session", "learning", "auto-aprendizaje", "improvement proposals", "mej... |
+| SESSION - Session | session-workflow-skill | "guardar sesion", "continuar", "estado", "pr", "push", "review", "auditar" |
 
 ## Compact Rules by Agent
 
@@ -210,6 +214,12 @@ Delegators copy matching blocks into sub-agent prompts under Project Standards (
 - Analyze:: Determine the `Efficiency_Score` based on token usage vs. successful judgment.
 - Append:: Add a new row to `docs/management/telemetry-master.csv`.
 - Report:: If significant anomalies are found (e.g., high tokens, repeated failures), add a note
+
+### CODEGRAPH
+
+#### codegraph-skill
+
+- No compact rules extracted
 
 ### DEV - Code
 
@@ -435,9 +445,15 @@ Delegators copy matching blocks into sub-agent prompts under Project Standards (
 - Use consistent time periods (monthly vs quarterly) across all statements
 - Never bury bad scenarios — decision-makers need realism
 
+### GATEWAY
+
+#### multi-platform-gateway
+
+- No compact rules extracted
+
 ### GOV - Governance
 
-#### \_semantic-skill-matcher
+#### _semantic-skill-matcher
 
 - Use `context7_query-docs` for additional context
 - Never return a skill with score <0.5 (too weak)
@@ -857,23 +873,15 @@ Delegators copy matching blocks into sub-agent prompts under Project Standards (
 
 - Classify: the diagram type (see Diagram Types below)
 - Extract structure: — identify layers, nodes, edges, flows, and semantic groups from user
-  description
 - Plan layout: — apply the layout rules for the diagram type
 - Load style reference: — always load `references/style-1-flat-icon.md` unless user specifies
-  another; load the matching `references/style-N.md` for exact color tokens and SVG patterns
 - Map nodes to shapes: — use Shape Vocabulary below
 - Check icon needs: — load `references/icons.md` for known products
 - Write SVG: with adaptive strategy (see SVG Generation Strategy below)
-- Validate: : Run `python3 -c "import xml.etree.ElementTree as ET; ET.parse('file.svg')"` to check
-  XML syntax
+- Validate: : Run `python3 -c "import xml.etree.ElementTree as ET; ET.parse('file.svg')"` to
 - Export PNG: : Use `cairosvg` (recommended). See **SVG → PNG Conversion** section below for full
-  method comparison
 - Report: the generated file paths
-- (Optional) Visual self-review: — if your runtime can read images, load the exported PNG back and
-  inspect it. Syntactic validity does not guarantee visual correctness: arrows may cross through
-  component interiors, labels may collide with lifelines or other labels, boxes may overlap,
-  alt-frame text may sit on top of a message, or a legend may cover content. If you see any of
-  these, revise the SVG and re-export; repeat until the rendered image is clean. Common fixes:
+- (Optional) Visual self-review: — if your runtime can read images, load the exported PNG back
 
 #### game-designer
 
@@ -902,31 +910,29 @@ Delegators copy matching blocks into sub-agent prompts under Project Standards (
 - MUST create todowrite at session start
 - MUST save session summary via mem_save after significant work
 - MUST coordinate with project-orchestrator for technical guidance
+- MUST run self-improving pipeline during session close (steps 10-11 in NORMATIVAS-SESSION.md 2.4)
+- MUST check gateway inbox before session close if auto-inbox disabled
 
-### CODEGRAPH - Code Intelligence
+### *(Unassigned Skills)*
 
-#### codegraph-skill
+#### usage-metrics
 
-- Use `codegraph_context` before modifying any file to understand impact radius
-- Use `codegraph_affected` to find transitively affected test files
-- Trust CodeGraph results — don't re-verify with grep/read
-- Sync index after major refactors (`codegraph sync`)
-- Re-index on branch switch with significant changes (`codegraph index`)
+- No compact rules extracted
 
 ## Project Conventions
 
-| File                           | Path                                                              |
-| ------------------------------ | ----------------------------------------------------------------- |
-| docs/AGENTS.md                 | C:\Workspace_local\gentle-vanguard\docs\AGENTS.md                 |
-| CLAUDE.md                      | C:\Workspace_local\gentle-vanguard\CLAUDE.md                      |
-| .cursorrules                   | C:\Workspace_local\gentle-vanguard\.cursorrules                   |
-| config/orchestrator.json       | C:\Workspace_local\gentle-vanguard\config\orchestrator.json       |
-| config/auto-delegation.json    | C:\Workspace_local\gentle-vanguard\config\auto-delegation.json    |
-| config/model-routing.json      | C:\Workspace_local\gentle-vanguard\config\model-routing.json      |
-| rules/DELEGATION-RULES.md      | C:\Workspace_local\gentle-vanguard\rules\DELEGATION-RULES.md      |
+| File | Path |
+|------|------|
+| docs/AGENTS.md | C:\Workspace_local\gentle-vanguard\docs\AGENTS.md |
+| CLAUDE.md | C:\Workspace_local\gentle-vanguard\CLAUDE.md |
+| .cursorrules | C:\Workspace_local\gentle-vanguard\.cursorrules |
+| config/orchestrator.json | C:\Workspace_local\gentle-vanguard\config\orchestrator.json |
+| config/auto-delegation.json | C:\Workspace_local\gentle-vanguard\config\auto-delegation.json |
+| config/model-routing.json | C:\Workspace_local\gentle-vanguard\config\model-routing.json |
+| rules/DELEGATION-RULES.md | C:\Workspace_local\gentle-vanguard\rules\DELEGATION-RULES.md |
 | rules/DEVELOPMENT-STANDARDS.md | C:\Workspace_local\gentle-vanguard\rules\DEVELOPMENT-STANDARDS.md |
-| openspec/config.yaml           | C:\Workspace_local\gentle-vanguard\openspec\config.yaml           |
+| openspec/config.yaml | C:\Workspace_local\gentle-vanguard\openspec\config.yaml |
 
 ---
+*Auto-generated by build-skill-registry.ps1*
 
-_Auto-generated by build-skill-registry.ps1_

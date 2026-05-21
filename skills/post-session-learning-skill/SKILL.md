@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: gv version: '1.0'
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task, EngramMemSave
+  allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task, EngramMemSave
 ---
 
 # Post-Session Learning Skill
@@ -24,7 +24,7 @@ AFTER completing significant work, before or during session closure:
 ### Step 1 — Collect Session Data
 
 ```powershell
-pwsh -NoProfile -File scripts/utilities/post-session-learning.ps1
+pwsh -NoProfile -File scripts/utilities/session-learning-capture.ps1 -Trigger close
 ```
 
 This script reads:
@@ -33,6 +33,25 @@ This script reads:
 - Recent engram session summary — what was accomplished
 - Git log for the session — files changed, patterns
 - Past improvement proposals — what was already identified
+
+### Step 1b — Update Skill Usage Metrics
+
+```powershell
+pwsh -NoProfile -File scripts/skills/usage-tracker.ps1
+pwsh -NoProfile -File scripts/skills/usage-tracker.ps1 -Nudge
+```
+
+Scans all registered skills and initializes or updates `.session/skill-usage/*.json` files.
+The `-Nudge` flag checks for auto-nudge conditions (3+ failures, declining success rate).
+
+### Step 1c — Generate Skill Nudges
+
+```powershell
+pwsh -NoProfile -File scripts/skills/skill-nudge.ps1 -SessionDir ".session"
+```
+
+Reads usage metrics, identifies skills with failure patterns in the current session,
+and generates structured nudge JSON files in `.session/skill-nudges/`.
 
 ### Step 2 — Analyze for Gaps
 
@@ -71,6 +90,16 @@ For each identified gap, create a structured proposal saved to
 - **Queue**: If severity is `medium`/`high`, save for user review
 - **Already fixed**: If proposal matches a previous one that was applied, skip
 
+### Step 4b — Auto-Apply Skill Patches
+
+```powershell
+pwsh -NoProfile -File scripts/skills/skill-auto-patch.ps1 -AutoApply
+```
+
+Reads `.session/skill-nudges/*.json` for pending nudge recommendations.
+Appends a "## Known Issues" section to the skill's SKILL.md for urgent or repeated failures.
+Use `-Report` flag for a dry run without applying.
+
 ### Step 5 — Save Learnings
 
 ```powershell
@@ -82,11 +111,16 @@ engram_mem_save -title "Learning: {key finding}" -type "learning"
 
 - **Session close**: Run automatically during session closure (step between summary and end)
 - **Manual trigger**: User can run `gv learning` to analyze current session anytime
-- **Proposal executor**: Run `gv learning apply` to auto-execute pending proposals (scaffold skills,
-  patch configs)
+- **Proposal executor**: Run `gv learning apply` to auto-execute pending proposals (scaffold skills, patch configs)
 - **Auto mode**: `gv learning auto` runs analysis + auto-applies low-severity proposals in one step
 - **PR mode**: `gv learning auto-pr` auto-applies + creates a git branch and commit with changes
 - **Startup check**: At session start, check `.local/improvement-proposals/` for pending items
+
+## Command Flow
+
+```
+session-learning-capture.ps1  →  usage-tracker.ps1  →  skill-nudge.ps1  →  skill-auto-patch.ps1  →  mem_save
+```
 
 ## Output Files
 
@@ -94,3 +128,5 @@ engram_mem_save -title "Learning: {key finding}" -type "learning"
 | ------------------------------------------------- | ------------------------------------ |
 | `.local/improvement-proposals/*.json`             | Structured improvement proposals     |
 | `.local/improvement-proposals/learning-log.jsonl` | Append-only log of all learning runs |
+| `.session/skill-usage/*.json`                     | Per-skill usage metrics              |
+| `.session/skill-nudges/*.json`                    | Auto-generated nudge recommendations |

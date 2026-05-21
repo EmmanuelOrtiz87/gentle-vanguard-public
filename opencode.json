@@ -416,6 +416,13 @@
       "session/**"
     ]
   },
+      "tools": {
+        "bash": true,
+        "readFile": true,
+        "writeFile": true,
+        "editFile": true,
+        "listFiles": true
+    },
   "permission": {
     "read": "allow",
     "glob": "allow",

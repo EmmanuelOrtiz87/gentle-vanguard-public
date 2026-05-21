@@ -1,31 +1,16 @@
 <#
 .SYNOPSIS
-    Pre-process user input for trigger detection
+    Pre-process user input — canonical delegation to real implementation
 .DESCRIPTION
-    Analyzes user input to detect skill triggers and automation hooks
-.PARAMETER UserInput
-    The user input to analyze
-.PARAMETER WorkspaceRoot
-    Root path of the workspace
+    Delegates to scripts/utilities/pre-process-input.ps1 (418-line full implementation).
+    This file is a compatibility shim for any code that references the WORKFLOW-ORCHESTRATION/ path.
 #>
 param(
     [string]$UserInput,
     [string]$WorkspaceRoot = "."
 )
 
-$triggers = @{
-    "sdd" = @("sdd init", "sdd propose", "spec", "specs")
-    "session" = @("session", "sesion", "start session")
-    "validation" = @("validate", "validar", "check")
-}
-
-foreach ($key in $triggers.Keys) {
-    foreach ($trigger in $triggers[$key]) {
-        if ($UserInput -match [regex]::Escape($trigger)) {
-            Write-Output "SKILL: $key"
-            exit 0
-        }
-    }
-}
-
-Write-Output "No trigger detected"
+$realScript = Join-Path $PSScriptRoot '..' 'pre-process-input.ps1'
+$realScript = Resolve-Path $realScript -ErrorAction Stop
+& $realScript -UserInput $UserInput -WorkspaceRoot $WorkspaceRoot
+exit $LASTEXITCODE

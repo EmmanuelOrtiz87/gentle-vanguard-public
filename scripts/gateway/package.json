@@ -1,0 +1,13 @@
+{
+  "name": "gentle-vanguard-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "puppeteer": "^18.2.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "1.34.0"
+  }
+}

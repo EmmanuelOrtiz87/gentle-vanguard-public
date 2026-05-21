@@ -21,11 +21,14 @@ technical decisions.
 - MUST create todowrite at session start
 - MUST save session summary via mem_save after significant work
 - MUST coordinate with project-orchestrator for technical guidance
+- MUST run self-improving pipeline during session close (usage-tracker → skill-nudge → skill-auto-patch)
 
 ## Notes
 
 - **Session start** (`inicia sesion` / `start session`) is handled by the canonical startup protocol
   defined in `CLAUDE.md` (Phase A + Phase B). This skill handles all other session commands.
+- **Self-improving pipeline**: at session close, run usage-tracker → skill-nudge → skill-auto-patch
+  to maintain skill health and auto-fix failure patterns.
 
 ## Decision Gates
 

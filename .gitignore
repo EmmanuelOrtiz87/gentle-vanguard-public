@@ -167,4 +167,10 @@ keys/
 *.lib
 
 docs/REFERENCE-AUDIT-*.md 
-rules/NORMATIVAS-REFERENCE-*.md 
+rules/NORMATIVAS-REFERENCE-*.md
+
+# WhatsApp Web cache (generated runtime data)
+.wwebjs_cache/
+
+# Deprecated configs with potential secrets
+config/deprecated/ 

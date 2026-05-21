@@ -95,7 +95,9 @@ Session ID pattern: `session-YYYY-MM-DD-XX` (e.g., `session-2026-05-10-01`)
 7. **MUST** create `todowrite` for tracking work
 8. **SHOULD** run `scripts/utilities/agent-verify.ps1` to validate state
 9. **MUST** report startup summary to user in compact block (peak hour, session ID, workspace state)
-10. **SHOULD** review Watchtower output (autostart Phase 10) for any issues detected
+10. **MUST** run `mem_search "lessons learned"` and incorporate recent observations into working
+    state
+11. **SHOULD** review Watchtower output (autostart Phase 10) for any issues detected
 
 ### 2.3 Active Session
 
@@ -124,12 +126,23 @@ When closing a session:
 3. **MUST** update `NEXT_SESSION_GUIDE.md` with current state
 4. **SHOULD** run `git status` to verify clean state
 5. **SHOULD** validate configs with `validate-configs.ps1`
-6. **MUST** call `engram_mem_session_end` to mark session complete
+6. **MUST** call `engram_mem_session_end` (built-in tool, NOT a standalone script) to mark session
+   complete in Engram. Only available from tool-capable clients (OpenCode, Claude Code, Cline). Do
+   NOT attempt to call from PowerShell.
 7. **MUST** detect concurrent active sessions and close by explicit `SessionId` when count > 1
 8. **MUST** run `scripts/utilities/session-learning-capture.ps1 -Trigger close` to capture session
    lessons
 9. **SHOULD** run `scripts/utilities/self-diagnosis-autonomous.ps1 -Depth quick` to detect issues
    for next session
+10. **SHOULD** run the Self-Improving Pipeline (usage-tracker → skill-nudge → skill-auto-patch):
+    ```powershell
+    pwsh -NoProfile -File scripts/skills/usage-tracker.ps1
+    pwsh -NoProfile -File scripts/skills/usage-tracker.ps1 -Nudge
+    pwsh -NoProfile -File scripts/skills/skill-nudge.ps1
+    pwsh -NoProfile -File scripts/skills/skill-auto-patch.ps1 -AutoApply
+    ```
+    Updates skill usage metrics, detects failure patterns, and auto-applies patches for
+    urgent/repeated issues.
 
 #### Concurrent Session Safety (MANDATORY)
 

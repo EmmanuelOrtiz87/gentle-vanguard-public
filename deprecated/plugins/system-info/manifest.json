@@ -1,0 +1,7 @@
+{
+  "title": "System Info",
+  "description": "OS diagnostics: hostname, memory, CPU, uptime, load average",
+  "version": "1.0.0",
+  "author": "gentle-vanguard",
+  "tools": ["plugin_system_info"]
+}

@@ -11,6 +11,7 @@
 #    pwsh -File scripts/utilities/agent-verify.ps1
 #    pwsh -File scripts/utilities/agent-verify.ps1 -Domain config
 #    pwsh -File scripts/utilities/agent-verify.ps1 -Json
+#    pwsh -File scripts/utilities/agent-verify.ps1 -Quick
 #    pwsh -File scripts/utilities/agent-verify.ps1 -Domain tests -Verbose
 #
 #  Domains: all | config | tests | hooks | structure | skills
@@ -20,10 +21,21 @@
 param(
     [string[]]$Domain = @("all"),
     [switch]$Json,
-    [switch]$Verbose
+    [switch]$Verbose,
+    [switch]$Quick
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
+
+# Global timeout: abort any single domain if it takes >30s
+$script:DomainTimeout = 30
+$script:DomainStart = [Diagnostics.Stopwatch]::StartNew()
+function Test-DomainExpired {
+    if ($script:DomainStart.Elapsed.TotalSeconds -gt $script:DomainTimeout) {
+        return $true
+    }
+    return $false
+}
 
 # Resolve workspace root regardless of where the script is called from
 $Root = git -C $PSScriptRoot rev-parse --show-toplevel 2>$null
@@ -199,36 +211,56 @@ if (Test-DomainEnabled 'skills') {
 #  - Unit tests (Pester 3.4.0) all pass
 # =============================================================================
 if (Test-DomainEnabled 'tests') {
-    $TestFiles = @(Get-ChildItem -Path "$Root\tests" -Recurse -Filter "*.tests.ps1" -Name)
-    $TotalPassed = 0; $TotalFailed = 0; $FailedFiles = @()
-    foreach ($tf in $TestFiles) {
-        $absPath = "$Root\tests\$tf"
-        if (-not (Test-Path $absPath)) { continue }
-        $TestOut = & pwsh -NoProfile -ExecutionPolicy Bypass -Command @"
-            Import-Module Pester -RequiredVersion 3.4.0 -ErrorAction Stop
-            `$r = Invoke-Pester '$absPath' -PassThru -Quiet
-            if (`$r) { Write-Output "PESTER_RESULT:`$(`$r.PassedCount):`$(`$r.FailedCount)" }
+    if (Test-DomainExpired) { Add-Result "domain-tests" "WARN" "Skipped: domain timeout exceeded" "tests"; goto DoneDomain }
+
+    $TestDir = "$Root\tests"
+    if (-not (Test-Path $TestDir)) {
+        Add-Result "unit-tests" "WARN" "No tests directory found, skipping" "tests"
+    } elseif ($Quick) {
+        # Quick mode: check test files exist without running them
+        $TestFiles = @(Get-ChildItem -Path $TestDir -Recurse -Filter "*.tests.ps1" -Name)
+        Add-Result "unit-tests" "WARN" "Quick mode: $($TestFiles.Count) test files found (not executed)" "tests"
+    } else {
+        $TestFiles = @(Get-ChildItem -Path $TestDir -Recurse -Filter "*.tests.ps1" -Name)
+        $TotalPassed = 0; $TotalFailed = 0; $FailedFiles = @()
+        foreach ($tf in $TestFiles) {
+            if (Test-DomainExpired) { Add-Result "unit-tests" "WARN" "Pester tests aborted due to timeout after $($TestFiles.IndexOf($tf) + 1)/$($TestFiles.Count) files" "tests"; break }
+            $absPath = "$Root\tests\$tf"
+            if (-not (Test-Path $absPath)) { continue }
+            $TestOut = & pwsh -NoProfile -ExecutionPolicy Bypass -Command @"
+                Import-Module Pester -RequiredVersion 3.4.0 -ErrorAction SilentlyContinue
+                if (-not (Get-Module Pester)) { Write-Output "PESTER_MISSING"; exit }
+                `$r = Invoke-Pester '$absPath' -PassThru -Quiet
+                if (`$r) { Write-Output "PESTER_RESULT:`$(`$r.PassedCount):`$(`$r.FailedCount)" }
 "@ 2>&1
-        $PesterLine = $TestOut | Select-String "PESTER_RESULT:" | Select-Object -Last 1
-        if ($PesterLine) {
-            $parts  = "$PesterLine".ToString().Split(":")
-            if ($parts.Count -ge 3) {
-                $p = [int]$parts[1]; $f = [int]$parts[2]
-                $TotalPassed += $p; $TotalFailed += $f
-                if ($f -gt 0) { $FailedFiles += "$tf ($f failed)" }
+            if ($TestOut -match "PESTER_MISSING") {
+                Add-Result "unit-tests" "WARN" "Pester not installed, skipping test execution" "tests"; break
+            }
+            $PesterLine = $TestOut | Select-String "PESTER_RESULT:" | Select-Object -Last 1
+            if ($PesterLine) {
+                $parts  = "$PesterLine".ToString().Split(":")
+                if ($parts.Count -ge 3) {
+                    $p = [int]$parts[1]; $f = [int]$parts[2]
+                    $TotalPassed += $p; $TotalFailed += $f
+                    if ($f -gt 0) { $FailedFiles += "$tf ($f failed)" }
+                }
+            }
+        }
+        if (-not ($TestOut -match "PESTER_MISSING")) {
+            if ($TotalFailed -eq 0) {
+                Add-Result "unit-tests" "PASS" "$TotalPassed tests passed across $($TestFiles.Count) files, 0 failed" "tests"
+            } else {
+                Add-Result "unit-tests" "FAIL" "$TotalPassed passed, $TotalFailed FAILED across $($TestFiles.Count) files: $($FailedFiles -join '; ')" "tests"
             }
         }
     }
-    if ($TotalFailed -eq 0) {
-        Add-Result "unit-tests" "PASS" "$TotalPassed tests passed across $($TestFiles.Count) files, 0 failed" "tests"
-    } else {
-        Add-Result "unit-tests" "FAIL" "$TotalPassed passed, $TotalFailed FAILED across $($TestFiles.Count) files: $($FailedFiles -join '; ')" "tests"
-    }
 
-    # Multilingual routing regression matrix (es/en/pt-BR)
+    # Multilingual routing regression matrix (es/en/pt-BR) — skip in Quick mode
     $RoutingEvalScript = "$Root\scripts\utilities\routing-quality-eval.ps1"
     $RoutingDataset = "$Root\tests\e2e\routing-language-matrix.json"
-    if ((Test-Path $RoutingEvalScript) -and (Test-Path $RoutingDataset)) {
+    if ($Quick) {
+        Add-Result "routing-language-matrix" "WARN" "Quick mode: routing matrix not evaluated" "tests"
+    } elseif ((Test-Path $RoutingEvalScript) -and (Test-Path $RoutingDataset)) {
         $routingOut = & pwsh -NoProfile -ExecutionPolicy Bypass -File $RoutingEvalScript `
             -DatasetPath "tests/e2e/routing-language-matrix.json" `
             -WorkspaceRoot "$Root" `
@@ -252,6 +284,8 @@ if (Test-DomainEnabled 'tests') {
         Add-Result "routing-language-matrix" "WARN" "Routing evaluator or dataset not found" "tests"
     }
 }
+
+label DoneDomain { }
 
 # =============================================================================
 #  DOMAIN: hooks

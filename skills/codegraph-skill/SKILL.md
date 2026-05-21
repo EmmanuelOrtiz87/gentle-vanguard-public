@@ -139,3 +139,34 @@ Spring, Gin, Axum, ASP.NET, Vapor, React Router, SvelteKit.
 - Repository: https://github.com/colbymchenry/codegraph
 - License: MIT
 - Version: 0.7.9
+
+## Known Issues
+
+### MCP Server Timeouts
+
+**Error types observed**: timeout ("MCP server not responding", "Connection refused")
+
+**Root cause**: CodeGraph MCP server must be running before tools can be called. If the server
+failed to start or was not yet initialized, tool calls will time out.
+
+**Mitigation protocol**:
+
+1. **Pre-flight check**: Before calling any CodeGraph MCP tool, run `codegraph_status` first. If
+   it returns an error or times out, the MCP server is not ready.
+2. **Retry logic**: If a tool call fails with a timeout error:
+   - Wait 2 seconds
+   - Run `codegraph_status` to verify MCP connectivity
+   - If status returns OK, retry the original call (max 2 retries)
+   - If status fails, run the autostart sync script first:
+     `pwsh -File scripts/utilities/codegraph-sync-autostart.ps1`
+3. **Health check**: Run `codegraph_status | codegraph_files` as a connection canary before
+   starting any complex exploration. If both return, MCP is healthy.
+4. **Index rebuild fallback**: If retries and autostart sync both fail, run `codegraph index` to
+   rebuild the index from scratch, then retry.
+
+**Expected behavior after fix**:
+- First call to any CodeGraph tool may return slow (~3-5s if server needs to initialize)
+- Subsequent calls should be <500ms
+- If timeouts persist despite retries, run the index rebuild
+
+> Auto-documented by skill-auto-patch.ps1 on 2026-05-21. Retry protocol added on 2026-05-21.

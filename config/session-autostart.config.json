@@ -157,6 +157,30 @@
         "args": "-Scope full -Quiet",
         "required": false,
         "description": "Auto-collect metrics after session start for live dashboard"
+      },
+      {
+        "id": "post-autostart-summary",
+        "enabled": true,
+        "script": "scripts/utilities/post-autostart-summary.ps1",
+        "args": "-TimeZone \"Argentina Standard Time\" -PeakStart 9 -PeakEnd 15 -Region \"Argentina\"",
+        "required": false,
+        "description": "Generate startup-summary.json with peak hour, session ID, workspace state"
+      },
+      {
+        "id": "skill-usage-scan",
+        "enabled": true,
+        "script": "scripts/skills/usage-tracker.ps1",
+        "args": "",
+        "required": false,
+        "description": "Inicializa/escanea métricas de uso de skills al inicio de sesion"
+      },
+      {
+        "id": "skill-nudge-check",
+        "enabled": false,
+        "script": "scripts/skills/skill-nudge.ps1",
+        "args": "-Report",
+        "required": false,
+        "description": "Reporta nudges pendientes de skills al inicio (desactivado por defecto, corre al cerrar)"
       }
     ],
 
