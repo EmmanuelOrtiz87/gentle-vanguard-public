@@ -9,6 +9,49 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.20.0] - 2026-05-21 - Core Autonomy & Deprecation Cleanup
+
+### Added
+
+- **CLAUDE.md Phase B step 10**: `mem_search "lessons learned"` — mandatory startup knowledge
+  loading. Sessions now inherit learnings from previous sessions.
+- **rules/AUTO-CONTRIBUTION.md**: Protocol for agent self-modification — what changes are permitted
+  vs forbidden, with before/after validation workflow.
+- **Skill registry auto-rebuild**: `scripts/utilities/build-skill-registry.ps1` — auto-maintains
+  `.atl/skill-registry.md` (134 skills, 17 agent groups).
+- **CodeGraph integration**: Index freshness check at startup, post-modification sync, CI
+  validation, metrics tracker.
+
+### Changed
+
+- **Deprecation strategy**: Gateway (Telegram/Discord/WhatsApp), RPC server, plugin system, and
+  multi-platform-gateway skill moved to `deprecated/`. 25+ files preserved for reference, zero
+  functional loss.
+- **NORMATIVAS-SESSION.md**: Gateway inbox steps removed from close protocol. Self-improving
+  pipeline (usage-tracker → skill-nudge → skill-auto-patch) retained as core.
+- **session-autostart.config.json**: Gateway-inbox-check step removed.
+- **session-manager.ps1**: Invoke-GatewayCleanup removed from End-Session.
+- **config/auto-delegation.json**: GATEWAY agent routing removed.
+- **config/gateway.json** → `config/deprecated/` (contains secrets, gitignored).
+- **README badges**: Version bumped to 2.20.0.
+
+### Fixed
+
+- **Karpathy enforcer**: Missing `param()` block caused silent delegation failure. Added
+  `[ValidateSet]` parameter block + proper routing to `scripts/adaptive/`.
+- **pre-process-input stub**: `WORKFLOW-ORCHESTRATION/pre-process-input.ps1` was a 31-line stub.
+  Replaced with wrapper that delegates to `utilities/pre-process-input.ps1` (418 lines).
+
+### Deprecated
+
+- **Gateway multi-platform**: `scripts/gateway/`, `scripts/rpc/`, `plugins/`,
+  `skills/multi-platform-gateway/` — moved to `deprecated/`. The gateway serves a different use case
+  (external agent for multi-platform messaging) and does not contribute to core agent autonomy.
+- **Plugin system**: Async ESM plugin loader (`plugin-loader.js`), dynamic tool routing, demo plugin
+  (system-info). Implemented, tested, then deprecated — premature before core autonomy is solid.
+- **Feedback loop**: JSONL feedback store, API endpoints, trend analysis. Deprecated with plugin
+  system since it was designed for the gateway agent, not the core orchestrator.
+
 ## [2.19.0] - 2026-05-18 - Brand Identity & Visual System
 
 ### Added

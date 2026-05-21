@@ -9,9 +9,9 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
 
 jobs:
   test:
@@ -101,3 +101,4 @@ jobs:
           name: test-results
           path: tests/results/
           retention-days: 14
+

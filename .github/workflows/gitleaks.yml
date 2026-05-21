@@ -11,9 +11,9 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -60,3 +60,4 @@ jobs:
         with:
           sarif_file: ${{ steps.gitleaks.outputs.sarif }}
           category: gitleaks
+

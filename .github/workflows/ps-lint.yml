@@ -11,12 +11,12 @@ concurrency:
 # Triggers: any PS1 change on protected branches or PRs.
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - '**/*.ps1'
       - '.github/workflows/ps-lint.yml'
   pull_request:
-    branches: [develop, main]
+    branches: [main]
     paths:
       - '**/*.ps1'
       - '.github/workflows/ps-lint.yml'
@@ -140,3 +140,4 @@ jobs:
             exit 1
           }
           exit 0
+

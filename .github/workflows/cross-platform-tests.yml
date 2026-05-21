@@ -2,9 +2,9 @@ name: Cross-Platform Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
     - cron: '0 2 * * *' # Daily at 2 AM UTC / 23:00 GMT-3 (Argentina timezone)
 
@@ -259,3 +259,4 @@ jobs:
           if command -v prettier &> /dev/null; then
             prettier --check "**/*.{json,md,yml}" --ignore-path .prettierignore
           fi
+

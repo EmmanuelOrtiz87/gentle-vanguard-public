@@ -11,9 +11,9 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   schedule:
     - cron: '30 16 * * 0' # Weekly on Sunday at 13:30 GMT-3 (16:30 UTC)
 
@@ -91,3 +91,4 @@ jobs:
           name: sbom
           path: sbom-cyclonedx.json
           retention-days: 90
+
