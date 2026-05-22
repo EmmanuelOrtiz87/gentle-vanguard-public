@@ -1645,7 +1645,30 @@ window.addEventListener('load', () => {
 });
 
 function exportDashboardPdf() {
-  window.print();
+  var baseUrl = window.location.origin;
+  if (baseUrl.indexOf('localhost') >= 0 || baseUrl.indexOf('127.0.0.1') >= 0) {
+    fetch(baseUrl + '/api/export/pdf')
+      .then(function(r) {
+        if (!r.ok) throw new Error('Server PDF failed (HTTP ' + r.status + ')');
+        return r.blob();
+      })
+      .then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'dashboard-' + new Date().toISOString().slice(0, 10) + '.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch(function(e) {
+        console.warn('Server PDF unavailable, falling back to print dialog:', e.message);
+        window.print();
+      });
+  } else {
+    window.print();
+  }
 }
 
 function exportDashboardPng() {

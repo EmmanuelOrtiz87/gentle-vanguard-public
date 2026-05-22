@@ -25,7 +25,7 @@ param(
     [switch]$Quick
 )
 
-$ErrorActionPreference = 'SilentlyContinue'
+$ErrorActionPreference = 'Continue'
 
 # Global timeout: abort any single domain if it takes >30s
 $script:DomainTimeout = 30
