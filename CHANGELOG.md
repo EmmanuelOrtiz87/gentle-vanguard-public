@@ -9,6 +9,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.21.0] - 2026-05-23 - Context Optimization & Token Efficiency
+
+### Added
+
+- **Context compression pipeline**: CLAUDE.md −79%, AGENTS.md −75%, NORMATIVES.md −92%, INTER-AGENT-COMMUNICATION.md −68%, behavior-prompts.json −70%
+- **10 compressed SKILL.md files**: ui-mobile, cross-workspace-sync, monitoring-aggregator, parallel-execution-limits, fireworks-tech-graph, flutter, android-kotlin, android-architecture, android-jetpack-compose, backup-orchestrator (~5,200→~1,420 lines total)
+- **8 new files**: docs/QUICK-COMMANDS.md, 6 NORMATIVAS-*.md (architecture, config, devops, docs, enforcement, git), 10 skills/*/references/patterns.md
+- **SHA256-based pre-process cache**: `.session/preprocess-trigger-cache.json` eliminates rescan of 132 skills + 1.8K auto-delegation.json per invocation
+- **Input guard thresholds**: softThresholdPct 70%, hardThresholdPct 90% in context-efficiency.json
+- **Output token guard**: max 200 tokens non-code, tool output truncation rules in CLAUDE.md
+- **Behavior prompt compression**: JSON schema examples replaced with config file references
+
+### Changed
+
+- **pre-compact-hook.ps1**: Compression ratio 0.90→0.60 for aggressive context preservation
+- **auto-delegation.json**: Deduplicated BA keywords 105→80 (−24%)
+- **token-display-config.json**: showAfterEachResponse false, turnInterval 5
+- **opencode.json**: sliding-window 10 turns, threshold 8000, summarization enabled
+- **Subagent delegation**: minimal context constraint (CLAUDE.md rule #9)
+
+### Documentation
+
+- **CONTEXT-ENGINEERING.md**: v1.3.0 with compaction params, SHA256 cache, input guard
+- **NORMATIVAS-SESSION.md**: v1.2.0 with compression and context efficiency sections
+- **AGENTS.md**: Key References table updated with all new files
+- **NORMATIVES.md**: Converted to index with links to 6 new NORMATIVAS-*.md files
+
 ## [2.20.0] - 2026-05-21 - Core Autonomy & Deprecation Cleanup
 
 ### Added
