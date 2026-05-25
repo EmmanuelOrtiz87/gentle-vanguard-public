@@ -50,11 +50,13 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path '.\scripts\utilities\agent-verify.ps1')) {
-            Write-Output "::warning::agent-verify.ps1 not found — skipping agent verification"
+            Write-Output "::warning::agent-verify.ps1 not found - skipping agent verification"
             exit 0
           }
-          $json = .\scripts\utilities\agent-verify.ps1 -Json
-          $result = $json | ConvertFrom-Json
+          $raw = .\scripts\utilities\agent-verify.ps1 -Json 2>&1
+          $jsonStr = ($raw | Out-String).Trim()
+          $jsonStr = $jsonStr.Substring($jsonStr.IndexOf('{'))
+          $result = $jsonStr | ConvertFrom-Json
           Write-Host "agent-verify result: $($result.result)"
           Write-Host "Total: $($result.summary.total) | Passed: $($result.summary.passed) | Failed: $($result.summary.failed) | Warnings: $($result.summary.warnings)"
           foreach ($check in $result.checks) {
@@ -67,7 +69,7 @@ jobs:
             exit 1
           }
           if ($result.summary.failed -gt 0) {
-            Write-Output "::warning::agent-verify has $($result.summary.failed) failure(s) — check logs for details"
+            Write-Output "::warning::agent-verify has $($result.summary.failed) failure(s) - check logs for details"
           }
           Write-Host "agent-verify: PASS (warnings: $($result.summary.warnings))"
 

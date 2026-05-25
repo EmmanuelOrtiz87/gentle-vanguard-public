@@ -13,15 +13,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **481/481 tests passing** — 30 pre-existing failures resolved across 5 test suites (gateway, plugins, karpathy, skill-registry, engram-doctor)
-- **Gateway infraestructura**: 18 archivos creados (gateway-manager.ps1, config/gateway.json, gateway.js, adapters telegram/discord/whatsapp, agent module, SKILL.md)
+- **481/481 tests passing** — 30 pre-existing failures resolved across 5 test suites (gateway,
+  plugins, karpathy, skill-registry, engram-doctor)
+- **Gateway infraestructura**: 18 archivos creados (gateway-manager.ps1, config/gateway.json,
+  gateway.js, adapters telegram/discord/whatsapp, agent module, SKILL.md)
 - **Plugin ejemplo**: `plugins/example-hello-world/` con `plugin.json` + `hello-world.ps1`
-- **Guideas Karpathy**: Añadidas (Think, Simplicity, Goal-Driven) al wrapper `scripts/utilities/karpathy-enforcer.ps1`
+- **Guideas Karpathy**: Añadidas (Think, Simplicity, Goal-Driven) al wrapper
+  `scripts/utilities/karpathy-enforcer.ps1`
 - **Skill registry**: Reasignados codegraph-skill y usage-metrics de unassigned → CODEGRAPH/GOV
 - **engram doctor --json**: Stripeo ANSI + extracción JSON para manejar banner de update en stderr
-- **secret-vault.ps1**: Fix `Save-SecretMeta` — removido type constraint `[hashtable]` que causaba crash en rotate/breach-response con PSCustomObject de `Get-SecretMeta`
-- **encryption-manager.ps1**: Añadido dispatch `switch ($Action)`, fix overload `GetBytes($key)` → `GetBytes(32)`, guard idempotente para no sobrescribir keys existentes
-- **privacy-sanitizer.ps1**: Fix quoting `$BLOCKED_PATTERNS.envVars` (doble → single) para evitar expansión PS
+- **secret-vault.ps1**: Fix `Save-SecretMeta` — removido type constraint `[hashtable]` que causaba
+  crash en rotate/breach-response con PSCustomObject de `Get-SecretMeta`
+- **encryption-manager.ps1**: Añadido dispatch `switch ($Action)`, fix overload `GetBytes($key)` →
+  `GetBytes(32)`, guard idempotente para no sobrescribir keys existentes
+- **privacy-sanitizer.ps1**: Fix quoting `$BLOCKED_PATTERNS.envVars` (doble → single) para evitar
+  expansión PS
 
 ### Documentation
 
@@ -33,10 +39,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Context compression pipeline**: CLAUDE.md −79%, AGENTS.md −75%, NORMATIVES.md −92%, INTER-AGENT-COMMUNICATION.md −68%, behavior-prompts.json −70%
-- **10 compressed SKILL.md files**: ui-mobile, cross-workspace-sync, monitoring-aggregator, parallel-execution-limits, fireworks-tech-graph, flutter, android-kotlin, android-architecture, android-jetpack-compose, backup-orchestrator (~5,200→~1,420 lines total)
-- **8 new files**: docs/QUICK-COMMANDS.md, 6 NORMATIVAS-*.md (architecture, config, devops, docs, enforcement, git), 10 skills/*/references/patterns.md
-- **SHA256-based pre-process cache**: `.session/preprocess-trigger-cache.json` eliminates rescan of 132 skills + 1.8K auto-delegation.json per invocation
+- **Context compression pipeline**: CLAUDE.md −79%, AGENTS.md −75%, NORMATIVES.md −92%,
+  INTER-AGENT-COMMUNICATION.md −68%, behavior-prompts.json −70%
+- **10 compressed SKILL.md files**: ui-mobile, cross-workspace-sync, monitoring-aggregator,
+  parallel-execution-limits, fireworks-tech-graph, flutter, android-kotlin, android-architecture,
+  android-jetpack-compose, backup-orchestrator (~5,200→~1,420 lines total)
+- **8 new files**: docs/QUICK-COMMANDS.md, 6 NORMATIVAS-_.md (architecture, config, devops, docs,
+  enforcement, git), 10 skills/_/references/patterns.md
+- **SHA256-based pre-process cache**: `.session/preprocess-trigger-cache.json` eliminates rescan of
+  132 skills + 1.8K auto-delegation.json per invocation
 - **Input guard thresholds**: softThresholdPct 70%, hardThresholdPct 90% in context-efficiency.json
 - **Output token guard**: max 200 tokens non-code, tool output truncation rules in CLAUDE.md
 - **Behavior prompt compression**: JSON schema examples replaced with config file references
@@ -54,7 +65,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **CONTEXT-ENGINEERING.md**: v1.3.0 with compaction params, SHA256 cache, input guard
 - **NORMATIVAS-SESSION.md**: v1.2.0 with compression and context efficiency sections
 - **AGENTS.md**: Key References table updated with all new files
-- **NORMATIVES.md**: Converted to index with links to 6 new NORMATIVAS-*.md files
+- **NORMATIVES.md**: Converted to index with links to 6 new NORMATIVAS-\*.md files
 
 ## [2.20.0] - 2026-05-21 - Core Autonomy & Deprecation Cleanup
 

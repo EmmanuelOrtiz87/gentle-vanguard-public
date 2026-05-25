@@ -2,17 +2,20 @@
 
 ## Overview
 
-This project contains **135 skills**. Of these, **86 exceed** the recommended size limits (1000 tokens / 150 lines). However, **most of these are legitimately large** and exempt from size restrictions.
+This project contains **135 skills**. Of these, **86 exceed** the recommended size limits (1000
+tokens / 150 lines). However, **most of these are legitimately large** and exempt from size
+restrictions.
 
 ### Optimization Status (2026-05-22)
 
-| Phase | Status | Details |
-|-------|--------|---------|
-| **Phase 1** | ✅ Complete | Created `references/` structure in 53 skills |
-| **Phase 2** | ✅ Complete | Added reference links to 10 SKILL.md files |
-| **Phase 3** | 📋 Future | Extract large sections to reduce SKILL.md size |
+| Phase       | Status      | Details                                        |
+| ----------- | ----------- | ---------------------------------------------- |
+| **Phase 1** | ✅ Complete | Created `references/` structure in 53 skills   |
+| **Phase 2** | ✅ Complete | Added reference links to 10 SKILL.md files     |
+| **Phase 3** | 📋 Future   | Extract large sections to reduce SKILL.md size |
 
 **Current State:**
+
 - **73 skills** now have `references/` directory (54% of total)
 - **19 skills** were already optimized
 - **53 skills** optimized in Phase 1
@@ -24,6 +27,7 @@ This project contains **135 skills**. Of these, **86 exceed** the recommended si
 The following skill categories are expected to exceed standard limits:
 
 ### 1. Framework Skills (Expected: 1000-5000+ tokens)
+
 - `flutter-skill` - Complete Flutter framework documentation
 - `android-kotlin-skill` - Android development with Kotlin
 - `android-jetpack-compose-skill` - Jetpack Compose UI framework
@@ -47,6 +51,7 @@ The following skill categories are expected to exceed standard limits:
 - `firecrawl-web-skill` - Web scraping
 
 ### 2. Orchestrator Skills (Expected: 2000-7000+ tokens)
+
 - `fireworks-tech-graph` - Technical diagram generation (7143 tokens)
 - `project-orchestrator-skill` - Master orchestrator
 - `backup-orchestrator` - Backup management
@@ -59,6 +64,7 @@ The following skill categories are expected to exceed standard limits:
 - `judgment-day` - Dual review system
 
 ### 3. Domain Expert Skills (Expected: 1000-3000 tokens)
+
 - `ui-mobile-skill` - Mobile UI patterns
 - `content-output-skill` - Content generation
 - `chained-pr` - PR chaining workflow
@@ -88,6 +94,7 @@ The following skill categories are expected to exceed standard limits:
 ### For New Skills
 
 1. **Use `references/` directory** for large content:
+
    ```
    skills/my-skill/
    ├── SKILL.md (core instructions only, <150 lines)
@@ -123,6 +130,7 @@ Skills can be optimized incrementally:
    - Configuration tables
 
 2. **Create references/ structure**:
+
    ```powershell
    # Example for flutter-skill
    references/
@@ -146,6 +154,7 @@ pwsh -NoProfile -File scripts/utilities/check-skill-sizes.ps1
 ```
 
 Expected output:
+
 - **86 skills exceed limits** (this is OK)
 - Most are framework/orchestrator skills
 - Only optimize if skill is NOT a framework/orchestrator
@@ -153,11 +162,13 @@ Expected output:
 ## When to Optimize
 
 ### Must Optimize
+
 - Utility skills >150 lines
 - Simple skills with bloat
 - Duplicate content across skills
 
 ### Can Remain Large
+
 - Framework documentation (Flutter, React, etc.)
 - Orchestrator skills
 - Complex domain experts
