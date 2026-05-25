@@ -153,17 +153,75 @@ if (-not (Test-Path $configPath)) {
     Write-InfoMsg "Existing configuration respected: config/workspace.config.json"
 }
 
-Write-Step "Step 4: Configuring Git Hooks..."
+Write-Step "Step 4: Installing Lefthook + Git Hooks..."
 if (Test-Path (Join-Path $workspaceRoot ".git")) {
-    # Set Git to look for hooks in our versioned directory instead of .git/hooks
-    git config core.hooksPath scripts/git-hooks
-    Write-Success "Git hooks path set to 'scripts/git-hooks'."
+    # Remove old-style hooksPath if set (we use lefthook now, not scripts/git-hooks/)
+    $oldHooksPath = git config --local core.hooksPath 2>$null
+    if ($oldHooksPath) {
+        git config --local --unset core.hooksPath
+        Write-InfoMsg "Removed legacy core.hooksPath ($oldHooksPath). Lefthook manages hooks now."
+    }
+
+    # Install lefthook via npm if not present
+    $lefthookCmd = Get-Command lefthook -ErrorAction SilentlyContinue
+    if (-not $lefthookCmd) {
+        Write-InfoMsg "Lefthook not found. Installing via npm..."
+        try {
+            npm install -g lefthook 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Lefthook installed globally via npm."
+            } else {
+                # Fallback: npx
+                Write-InfoMsg "Global install failed, trying npx..."
+            }
+        } catch {
+            Write-InfoMsg "npm install failed, will use npx."
+        }
+    } else {
+        Write-Success "Lefthook already installed: $(lefthook version 2>&1)"
+    }
+
+    # Run lefthook install to register hooks
+    try {
+        $lefthookResult = & lefthook install 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Lefthook hooks installed (pre-commit, commit-msg, pre-push, post-commit, post-merge)."
+        } else {
+            Write-ErrorMsg "Lefthook install failed: $lefthookResult"
+        }
+    } catch {
+        Write-InfoMsg "Trying npx lefthook install..."
+        try {
+            $npxResult = & npx lefthook install 2>&1
+            Write-Success "Lefthook hooks installed via npx."
+        } catch {
+            Write-ErrorMsg "Could not install lefthook hooks. Run 'npx lefthook install' manually."
+        }
+    }
 } else {
     Write-InfoMsg "Not a Git repository. Skipping hook configuration."
 }
 
+Write-Step "Step 4b: Scheduled Task — CodeGraph Auto-Sync..."
+try {
+    $taskName = "Gentle-Vanguard-CodeGraph-Sync"
+    $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    if (-not $existing) {
+        $taskScript = Resolve-Path (Join-Path $workspaceRoot "scripts/utilities/codegraph-sync-autostart.ps1")
+        $action = New-ScheduledTaskAction -Execute "pwsh.exe" -Argument "-NoProfile -NoLogo -NonInteractive -File `"$taskScript`""
+        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date "08:00") -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration ([TimeSpan]::FromDays(30))
+        $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Force
+        Write-Success "Scheduled task '$taskName' created (syncs CodeGraph every hour)."
+    } else {
+        Write-Success "Scheduled task '$taskName' already exists."
+    }
+} catch {
+    Write-InfoMsg "Could not create scheduled task (requires admin). Optional — hooks handle sync on every commit/merge."
+}
+
 if ($InstallGitHubRunner) {
-    Write-Step "Step 4b: Installing optional GitHub self-hosted runner..."
+    Write-Step "Step 4c: Installing optional GitHub self-hosted runner..."
     $runnerInstaller = Join-Path $workspaceRoot 'scripts/utilities/DEPLOYMENT/install-github-runner.ps1'
     if (-not (Test-Path $runnerInstaller)) {
         Write-ErrorMsg "Runner installer not found: $runnerInstaller"
@@ -189,6 +247,9 @@ $report = @{
     }
     Go  = if (Get-Command go -ErrorAction SilentlyContinue) { "PASS" } elseif (Get-Command engram -ErrorAction SilentlyContinue) { "WARN: Not installed (Engram available)" } else { "FAIL" }
     Engram = if (Get-Command engram -ErrorAction SilentlyContinue) { "PASS" } else { "FAIL" }
+    Lefthook = if (Get-Command lefthook -ErrorAction SilentlyContinue) { "PASS" } else { "FAIL" }
+    "CodeGraph Hooks" = if (Test-Path (Join-Path $workspaceRoot ".git\hooks\post-commit")) { "PASS" } else { "FAIL" }
+    "CodeGraph Task" = if (Get-ScheduledTask -TaskName "Gentle-Vanguard-CodeGraph-Sync" -ErrorAction SilentlyContinue) { "PASS" } else { "INFO: Not installed (optional)" }
     Config = if (Test-Path $configPath) { "PASS" } else { "FAIL" }
 }
 

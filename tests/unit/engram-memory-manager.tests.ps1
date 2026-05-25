@@ -39,8 +39,12 @@ Describe "Engram CLI - Unit Tests" {
 
     Context "Health and Diagnostics" {
         It "engram doctor returns valid JSON" {
-            $raw = & $script:engram doctor --json 2>&1 | Out-String
-            $parsed = $raw | ConvertFrom-Json -ErrorAction Stop
+            $raw = & $script:engram doctor --json 2>&1
+            $stripped = $raw -replace '\x1b\[[0-9;]*m', ''
+            $combined = $stripped -join "`n"
+            $start = $combined.IndexOf('{')
+            $jsonStr = $combined.Substring($start)
+            $parsed = $jsonStr | ConvertFrom-Json -ErrorAction Stop
             $parsed | Should Not BeNullOrEmpty
         }
 

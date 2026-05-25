@@ -17,9 +17,11 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 **Características**:
 
 - Encriptación AES-256 CBC
-- Generación segura de claves
+- Generación segura de claves con `[System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32)`
+- Generación idempotente: no sobrescribe claves existentes
 - Almacenamiento seguro de claves
 - Validación de integridad
+- CLI dispatch vía `-Action` parameter
 
 **Uso**:
 

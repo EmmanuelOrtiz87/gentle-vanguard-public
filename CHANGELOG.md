@@ -9,6 +9,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.21.1] - 2026-05-24 - Test Suite Hardening & Bugfixes
+
+### Fixed
+
+- **481/481 tests passing** — 30 pre-existing failures resolved across 5 test suites (gateway, plugins, karpathy, skill-registry, engram-doctor)
+- **Gateway infraestructura**: 18 archivos creados (gateway-manager.ps1, config/gateway.json, gateway.js, adapters telegram/discord/whatsapp, agent module, SKILL.md)
+- **Plugin ejemplo**: `plugins/example-hello-world/` con `plugin.json` + `hello-world.ps1`
+- **Guideas Karpathy**: Añadidas (Think, Simplicity, Goal-Driven) al wrapper `scripts/utilities/karpathy-enforcer.ps1`
+- **Skill registry**: Reasignados codegraph-skill y usage-metrics de unassigned → CODEGRAPH/GOV
+- **engram doctor --json**: Stripeo ANSI + extracción JSON para manejar banner de update en stderr
+- **secret-vault.ps1**: Fix `Save-SecretMeta` — removido type constraint `[hashtable]` que causaba crash en rotate/breach-response con PSCustomObject de `Get-SecretMeta`
+- **encryption-manager.ps1**: Añadido dispatch `switch ($Action)`, fix overload `GetBytes($key)` → `GetBytes(32)`, guard idempotente para no sobrescribir keys existentes
+- **privacy-sanitizer.ps1**: Fix quoting `$BLOCKED_PATTERNS.envVars` (doble → single) para evitar expansión PS
+
+### Documentation
+
+- `SECURITY.md`: Changelog con todos los fixes de seguridad
+- `scripts/README.md`: Nueva sección Gateway + plugins/ en estructura + fecha actualizada
+- `docs/guides/SECURITY-HARDENING.md`: Características de encryption-manager actualizadas
+
 ## [2.21.0] - 2026-05-23 - Context Optimization & Token Efficiency
 
 ### Added
