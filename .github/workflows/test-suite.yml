@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
 
@@ -94,9 +94,22 @@ jobs:
           .\scripts\testing\check-i18n.ps1 -FailOnMissing:$false
           Write-Host "i18n validation completed"
 
+      - name: Generate Test Results
+        if: always()
+        shell: pwsh
+        run: |
+          $null = New-Item -ItemType Directory -Path "tests/results" -Force
+          @{
+            workflow = "test-suite"
+            timestamp = (Get-Date -AsUTC -Format 'o')
+            triggered_by = "${{ github.sha }}"
+            status = if ($LASTEXITCODE -eq 0) { "PASS" } else { "FAIL" }
+          } | ConvertTo-Json | Out-File "tests/results/test-suite-result.json" -Encoding UTF8
+          Write-Host "Test results saved to tests/results/test-suite-result.json"
+
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: test-results
           path: tests/results/

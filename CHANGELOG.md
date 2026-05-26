@@ -9,6 +9,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.22.0] - 2026-05-25 - Token Notification Auto-Hook & Bugfixes
+
+### Added
+
+- **Token Notification Auto-Hook**: Automatic token consumption display every turn via `pre-process-input.ps1` hook — no agent intervention required
+- **`/notif` command system**: Master toggle (`on/off`), individual toggles per type (`token`, `context`, `cost`, `accumulated`, `compact`), status display, all persistent across sessions via `.session/token-display-config.json`
+- **Compact mode**: Toggle between compact box display and verbose format with `/notif compact`
+- **Cost estimation per model**: `Get-EstimatedCost` reads real per-1K rates from `config/provider-costs.json`, falls back to $3/$15 per M tokens
+- **README documentation**: Full Token Notification Auto-Hook section with command table, architecture diagram, and component reference
+
+### Fixed
+
+- **Compact toggle**: `-Enable/-Disable -Type compact` and `toggle -Type compact` now correctly modify `$config.compactMode` instead of silently falling through `Update-IndividualToggle` (which lacked a "compact" case)
+- **Master toggle missing compactMode**: `/notif on`/`/notif toggle` now also sets `$config.compactMode`, not just individualToggles
+- **Banner literal-text bug**: Replaced backtick-escaped expression with proper `$padding = " " * (41 - $label.Length)` — no more raw `$((35-...))` displayed
+- **Double-toggle bug**: Removed redundant `& $tokenNotifier -Action toggle` from `toggle-token-display.ps1` — the notifier's `Toggle-Display` was re-toggling `$config.enabled` after `Save-Config`, undoing the intended change
+- **Notifier leaked boolean**: Removed `return $config.enabled` from `Toggle-Display` which leaked `True`/`False` to stdout
+- **Notifier banner alignment**: Replaced if/else ENABLED/DISABLED padding with proper `$padding` calculation
+- **Bulk path fix**: 40+ scripts had fragile `Join-Path $root 'config'` path-detection pattern — changed to `config\orchestrator.json` to prevent false detection of `scripts/utilities/CONFIG/` as project root
+
+### Documentation
+
+- `README.md`: Added Token Notification Auto-Hook section, bumped v2.21.0 → v2.22.0, updated Project Status and Context Optimization tables
+- `docs/AGENTS.md`: Full command table with `/notif compact on/off`, architecture description
+- `CLAUDE.md`: Rule #6 updated with all individual toggle commands
+
 ## [2.21.1] - 2026-05-24 - Test Suite Hardening & Bugfixes
 
 ### Fixed
