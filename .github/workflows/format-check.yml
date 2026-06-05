@@ -19,19 +19,13 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: 24
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
       - name: Install and check formatting
-        shell: bash
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f package.json ]; then
-            npm install
-          else
-            echo "::warning::No package.json or package-lock.json found — skipping format check"
-            exit 0
-          fi
-          npm run format:check
+        run: pnpm install --frozen-lockfile && pnpm format:check
 

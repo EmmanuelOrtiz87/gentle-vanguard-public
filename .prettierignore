@@ -13,4 +13,5 @@ config/lefthook.yml
 
 # Third-party / generated
 package-lock.json
+pnpm-lock.yaml
 node_modules/
