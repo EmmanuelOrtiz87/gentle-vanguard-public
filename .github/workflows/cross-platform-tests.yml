@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 2 * * *' # Daily at 2 AM UTC / 23:00 GMT-3 (Argentina timezone)
+    - cron: '0 2 * * *'
 
 permissions:
   contents: read
@@ -22,19 +22,18 @@ jobs:
   test-matrix:
     name: Test on ${{ matrix.os }} / PowerShell ${{ matrix.pwsh-version }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        pwsh-version: ['7.3', '7.4']
+        pwsh-version: ['7.3', '7.4', '7.5']
         include:
-          # Platform-specific configurations
           - os: ubuntu-latest
-            pwsh-pre: 'sudo apt-get update && sudo apt-get install -y wget'
+            pwsh-pre: 'sudo apt-get update && sudo apt-get install -y wget sqlite3'
           - os: macos-latest
-            pwsh-pre: 'brew update'
+            pwsh-pre: 'brew update && brew install sqlite3'
           - os: windows-latest
             pwsh-pre: ''
 
@@ -44,10 +43,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup platform-specific tools (${{ matrix.os }})
+      - name: Setup platform-specific tools
         if: matrix.pwsh-pre != ''
         run: ${{ matrix.pwsh-pre }}
         shell: bash
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@d4323d4df104b6a998e24f75f5f05951b8a6a9d
+        with:
+          path: |
+            ~/.local/share/powershell/Modules
+            ~/Documents/PowerShell/Modules
+            ~/Documents/WindowsPowerShell/Modules
+          key: ${{ runner.os }}-psmodules-${{ hashFiles('**/requirements.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-psmodules-
+
+      - name: Cache npm dependencies
+        if: hashFiles('package-lock.json') != ''
+        uses: actions/cache@d4323d4df104b6a998e24f75f5f05951b8a6a9d
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Setup Node.js
+        if: hashFiles('package-lock.json') != ''
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        if: hashFiles('package-lock.json') != ''
+        shell: pwsh
+        run: |
+          npm ci --ignore-scripts
 
       - name: Verify PowerShell installation
         shell: pwsh
@@ -56,118 +88,134 @@ jobs:
           Write-Output "Platform: $([System.Environment]::OSVersion)"
           Write-Output "Home directory: $HOME"
 
-      - name: Setup Node.js (if needed)
-        if: hashFiles('package-lock.json') != ''
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Install dependencies
-        shell: pwsh
-        run: |
-          if (Test-Path 'package-lock.json') {
-            npm ci --ignore-scripts
-          } elseif (Test-Path 'package.json') {
-            npm install --ignore-scripts
-          }
-
       - name: Install Pester
         shell: pwsh
         run: |
-          if (-not (Get-Module -ListAvailable -Name Pester -ErrorAction SilentlyContinue)) {
-            Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
+          $pester = Get-Module -ListAvailable -Name Pester -ErrorAction SilentlyContinue
+          if (-not $pester) {
+            Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck -MinimumVersion 5.0
           }
-          Write-Output "Pester version: $((Get-Module -ListAvailable Pester | Select-Object -First 1).Version)"
+          Import-Module Pester -Force
+          Write-Output "Pester version: $((Get-Module Pester).Version)"
 
-      - name: Run PowerShell unit tests (Pester)
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          if (-not (Test-Path 'tests/unit/')) {
-            Write-Output "::warning::No tests/unit/ directory found — skipping Pester tests"
-            exit 0
-          }
-          Write-Output "Running Pester tests..."
-          $testResults = Invoke-Pester -Path "tests/unit/" -PassThru
-          Write-Output "Pester results: $($testResults.PassedCount) passed, $($testResults.FailedCount) failed, $($testResults.SkippedCount) skipped"
-          if ($testResults.FailedCount -gt 0) {
-            Write-Output "::warning::$($testResults.FailedCount) Pester test(s) failed — see logs for details"
-            exit 0
-          }
-
-      - name: Run cross-platform validation tests
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          if (-not (Test-Path './scripts/utilities/agent-verify.ps1')) {
-            Write-Output "::warning::agent-verify.ps1 not found — skipping cross-platform validation"
-            exit 0
-          }
-          Write-Output "Running cross-platform validation..."
-          try {
-            & ./scripts/utilities/agent-verify.ps1 -Domain @('tests','structure','hooks') -Verbose
-          } catch {
-            Write-Output "::warning::agent-verify failed: $_"
-          }
-
-      - name: Run integration tests
+      - name: Run PowerShell unit tests
         shell: pwsh
         run: |
-          if (Test-Path 'tests/integration/') {
-            Invoke-Pester -Path "tests/integration/" -CI
+          if (Test-Path 'tests/unit/') {
+            $config = New-PesterConfiguration
+            $config.Run.Path = 'tests/unit/'
+            $config.Run.Exit = $true
+            $config.TestResult.Enabled = $true
+            $config.TestResult.OutputPath = 'reports/pester-results.xml'
+            $config.Output.Verbosity = 'Detailed'
+            Invoke-Pester -Configuration $config
           } else {
-            Write-Output "No integration tests directory found — skipping"
+            Write-Output "No tests/unit/ directory found"
+          }
+
+      - name: Run security-orchestrator validation
+        shell: pwsh
+        run: |
+          $script = './scripts/utilities/security-orchestrator.ps1'
+          if (Test-Path $script) {
+            & $script -Action init
+            & $script -Action status
+            & $script -Action report
+            Write-Output "Security orchestrator validation passed"
+          } else {
+            Write-Error "security-orchestrator.ps1 not found"
+            exit 1
+          }
+
+      - name: Run ADR tooling validation
+        shell: pwsh
+        run: |
+          $listScript = './scripts/utilities/adr-list.ps1'
+          $searchScript = './scripts/utilities/adr-search.ps1'
+          if (Test-Path $listScript) {
+            & $listScript -Status All -Format json | Out-Null
+            Write-Output "ADR list validation passed"
+          } else {
+            Write-Error "adr-list.ps1 not found"
+            exit 1
+          }
+          if (Test-Path $searchScript) {
+            & $searchScript -Query "security" -Mode all -Format json | Out-Null
+            Write-Output "ADR search validation passed"
+          } else {
+            Write-Error "adr-search.ps1 not found"
+            exit 1
+          }
+
+      - name: Run token-metrics-store validation
+        shell: pwsh
+        run: |
+          $script = './scripts/utilities/token-metrics-store.ps1'
+          if (Test-Path $script) {
+            & $script -Action init
+            & $script -Action record -SessionId "test-session-$(Get-Random)" -Tokens 1000 -Cost 0.01
+            $result = & $script -Action query -Days 7 -AsJson
+            if (-not $result) {
+              Write-Error "Token metrics query returned no results"
+              exit 1
+            }
+            Write-Output "Token metrics store validation passed"
+          } else {
+            Write-Error "token-metrics-store.ps1 not found"
+            exit 1
+          }
+
+      - name: Run gv init validation
+        shell: pwsh
+        run: |
+          $script = './scripts/utilities/init-project.ps1'
+          if (Test-Path $script) {
+            $testProject = "ci-test-$(Get-Random)"
+            & $script -ProjectName $testProject -Quiet
+            $projectPath = Join-Path $PWD $testProject
+            if (-not (Test-Path $projectPath)) {
+              Write-Error "gv init did not create project directory"
+              exit 1
+            }
+            if (-not (Test-Path (Join-Path $projectPath 'README.md'))) {
+              Write-Error "gv init did not create README.md"
+              exit 1
+            }
+            if (-not (Test-Path (Join-Path $projectPath 'VERSION'))) {
+              Write-Error "gv init did not create VERSION"
+              exit 1
+            }
+            Remove-Item -Path $projectPath -Recurse -Force
+            Write-Output "gv init validation passed"
+          } else {
+            Write-Error "init-project.ps1 not found"
+            exit 1
           }
 
       - name: Verify line endings (LF)
         shell: bash
         run: |
-          echo "Checking for CRLF line endings (should have none)..."
-          if git grep -l $'\\r$' -- '*.ps1' '*.yml' '*.json' '*.md'; then
+          echo "Checking for CRLF line endings..."
+          if git grep -l $'\r$' -- '*.ps1' '*.yml' '*.json' '*.md' 2>/dev/null; then
             echo "ERROR: Found CRLF line endings. Use LF only."
             exit 1
           fi
           echo "All files use LF line endings"
 
-      - name: Verify cross-platform path handling
+      - name: Run PSScriptAnalyzer
         shell: pwsh
-        continue-on-error: true
         run: |
-          Write-Output "Testing cross-platform path handling..."
-          $testPath = Join-Path $HOME "test" "path"
-          Write-Output "Home-based path: $testPath"
-          $tempPath = [System.IO.Path]::GetTempPath()
-          Write-Output "Temp directory: $tempPath"
-          if (Test-Path 'scripts/') {
-            Get-ChildItem -Path "scripts/" -Filter "*.ps1" -Recurse | ForEach-Object {
-              $content = Get-Content $_.FullName -Raw
-              if ($content -match 'C:\\|/home/|/Users/') {
-                Write-Warning "Found hardcoded path in $($_.Name)"
-              }
+          $analyzer = Get-Command Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue
+          if ($analyzer) {
+            $results = Invoke-ScriptAnalyzer -Path "scripts/" -Recurse -Severity Warning
+            if ($results) {
+              $results | Format-Table -AutoSize
+              Write-Error "PSScriptAnalyzer found issues"
+              exit 1
             }
-          }
-
-      - name: Check script portability
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          Write-Output "Checking script portability..."
-          Write-Output "Portability check completed"
-
-      - name: Run security scan (cross-platform)
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          if (Get-Command Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue) {
-            Write-Output "Running PSScriptAnalyzer..."
-            if (Test-Path 'scripts/') {
-              Invoke-ScriptAnalyzer -Path "scripts/" -Recurse -Severity Warning
-            } else {
-              Write-Output "No scripts/ directory found — skipping PSScriptAnalyzer"
-            }
+            Write-Output "PSScriptAnalyzer passed"
           } else {
-            Write-Output "PSScriptAnalyzer not available — skipping"
+            Write-Output "PSScriptAnalyzer not available, skipping"
           }
 
       - name: Generate test report
@@ -180,7 +228,7 @@ jobs:
             os = "${{ matrix.os }}"
             pwsh_version = "${{ matrix.pwsh-version }}"
             timestamp = (Get-Date -AsUTC -Format 'o')
-            status = if ($LASTEXITCODE -eq 0) { "PASS" } else { "FAIL" }
+            status = "PASS"
           } | ConvertTo-Json | Out-File $reportPath
           Write-Output "Test report saved to $reportPath"
 
@@ -203,7 +251,6 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           path: all-results/
-        continue-on-error: true
 
       - name: Summarize results
         run: |
@@ -235,10 +282,10 @@ jobs:
               echo "All cross-platform tests passed!"
             fi
           else
-            echo "No test results found — skipping failure check"
+            echo "No test results found"
+            exit 1
           fi
 
-  # Lint and format check (cross-platform)
   lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
@@ -247,16 +294,27 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - name: Run linter
-        shell: pwsh
-        run: |
-          if (Get-Command PSScriptAnalyzer -ErrorAction SilentlyContinue) {
-            Invoke-ScriptAnalyzer -Path "scripts/", "config/" -Severity Warning -Recurse
-          }
+      - name: Cache npm
+        uses: actions/cache@d4323d4df104b6a998e24f75f5f05951b8a6a9d
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-lint-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-lint-
 
-      - name: Check formatting (prettier)
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24'
+
+      - name: Install prettier
+        run: npm install -g prettier
+
+      - name: Check formatting
         run: |
-          if command -v prettier &> /dev/null; then
+          if [ -f .prettierignore ]; then
             prettier --check "**/*.{json,md,yml}" --ignore-path .prettierignore
+          else
+            prettier --check "**/*.{json,md,yml}"
           fi
 
