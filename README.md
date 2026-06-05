@@ -3,35 +3,33 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.26.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.2.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
   <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
   <img src="https://img.shields.io/badge/Agents-18-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
-  <img src="https://img.shields.io/badge/Skills-135-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
-  <img src="https://img.shields.io/badge/Workflows-26-A855F7?style=flat-square&labelColor=0D1117" alt="Workflows">
+  <img src="https://img.shields.io/badge/Skills-386-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
 </p>
 
 <p align="center">
   <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard-public">GitHub</a>
   &nbsp;·&nbsp;
-  <a href="docs/">Documentation</a>
+  <a href="docs/getting-started/README.md">Getting Started</a>
   &nbsp;·&nbsp;
   <a href="../../releases">Releases</a>
   &nbsp;·&nbsp;
-  <a href="SECURITY.md">Security</a>
+  <a href="docs/SECURITY.md">Security</a>
 </p>
 
 <p align="center">
-  <strong>AI-powered development orchestrator · 18 agents · 135 skills · 10 tool-compatible</strong><br>
-  <em>Tool-agnostic · SDD Lifecycle · Judgment Day · Persistent memory</em>
+  <strong>AI-powered development orchestrator · 18 agents · 386 skills · 10 tool-compatible</strong><br>
+  <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security</em>
 </p>
 
-> _"Construyendo el puente definitivo entre la alta ingeniería de software y la estrategia
-> corporativa."_
+> _"Building the definitive bridge between high-end software engineering and corporate strategy."_
 
-Born from a simple observation: AI-assisted coding works, but without structure it's chaotic.
+Born from a simple observation: AI-assisted coding works, but without structure it is chaotic.
 Gentle-Vanguard gives you an orchestration layer that routes tasks to specialized agents, enforces
 standards, tracks every token, and remembers what you did last session.
 
@@ -39,174 +37,106 @@ standards, tracks every token, and remembers what you did last session.
 
 ## What It Solves
 
-| Problem                         | How Gentle-Vanguard Solves It                                   |
-| ------------------------------- | --------------------------------------------------------------- |
-| AI code quality varies wildly   | Multi-layer validation gates catch issues before commit         |
-| No session-to-session memory    | Persistent memory system recalls decisions across sessions      |
-| Token waste from wrong models   | Cost-aware router assigns optimal model per task type           |
-| Unstructured AI workflows       | SDD lifecycle enforces spec-driven development                  |
-| Disconnected tool sessions      | Session manager tracks context with crash recovery              |
-| No AI cost visibility           | Dashboard with token trends and per-agent analytics             |
-| One-size AI responses           | 15+ specialized agents with role-specific profiles              |
-| Locked into one AI tool         | Runtime detection adapts to 10+ coding tools seamlessly         |
+| Problem                       | How Gentle-Vanguard Solves It                              |
+| ----------------------------- | ---------------------------------------------------------- |
+| AI code quality varies wildly | Multi-layer validation gates catch issues before commit    |
+| No session-to-session memory  | Persistent memory system recalls decisions across sessions |
+| Token waste from wrong models | Cost-aware router assigns optimal model per task type      |
+| Unstructured AI workflows     | SDD lifecycle enforces spec-driven development             |
+| Disconnected tool sessions    | Session manager tracks context with crash recovery         |
+| No AI cost visibility         | Dashboard with token trends and per-agent analytics        |
+| One-size AI responses         | 18 specialized agents with role-specific profiles          |
 
 ---
 
-## Architecture
-
-```mermaid
-flowchart LR
-    YOU[You] -->|request| PP[Router]
-    PP --> ORC[Orchestrator]
-    ORC -->|inline| INLINE[Direct]
-    ORC -->|complex| SDD[SDD Lifecycle]
-    SDD --> BA[BA → SAD → DEV → QA]
-    BA --> SKILLS[Skills]
-    DEV --> SKILLS
-    QA --> SKILLS
-    SKILLS --> MEM[Memory]
-```
-
-### 5-Layer Architecture
-
-| Layer              | Role                  | Components                                          |
-| ------------------ | --------------------- | --------------------------------------------------- |
-| **1. Agents**      | Task delegation       | Orchestrator + specialized sub-agents               |
-| **2. Commands**    | CLI entry points      | `gv` CLI, pre-process router                        |
-| **3. MCP Servers** | Protocol bridge       | MCP protocol for skill communication                |
-| **4. Skills**      | Specialized execution | 135+ skills across all domains                      |
-| **5. Memory**      | Persistent context    | Cross-session memory with hot/warm/cold tiers       |
-
----
-
-## Agent Ecosystem
-
-| Agent     | Role                    |
-| --------- | ----------------------- |
-| BA        | Requirements & analysis |
-| SAD       | System design           |
-| DEV       | Code generation         |
-| QA        | Testing & validation    |
-| OPS       | Deployment & CI/CD      |
-| GOV       | Compliance & audit      |
-| DOC       | Technical docs          |
-| SESSION   | Session management      |
-| PREMORTEM | Risk assessment         |
-| FINANCE   | Financial modeling      |
-| LEGAL     | Regulatory compliance   |
-| MKT       | Marketing & SEO         |
-| SALES     | Pipeline management     |
-| HR        | Talent acquisition      |
-
-> 18 specialized agents orchestrated by a central router. Each agent has an optimized model profile (fast/cheap, strong-reasoning, or strong-coding) assigned per role.
-
----
-
-## Key Features
-
-- **18 specialized agents** with role-specific model routing
-- **135+ on-demand skills** across frontend, backend, DevOps, security, testing, business
-- **Persistent cross-session memory** with conflict detection and auto-reconciliation
-- **Cost-aware model router** — assigns optimal model per task type
-- **SDD lifecycle** — Spec-Driven Development with per-phase quality gates
-- **Multi-layer governance** — adversarial review, pre-commit hooks, CI/CD enforcement
-- **100% local-first** — no required external services
-- **Cross-platform** — Windows, macOS, Linux
-- **10 tool-compatible** — OpenCode, Claude Code, Cline, Cursor, Windsurf, and more
-- **Token optimization stack** — compression, caching, model cost reduction
-- **Feedback Loop** — rate-driven tool improvement with auto-apply of low-rated actions
-- **Proactive Delivery** — daily/status digests with health, feedback trends, and proposals
-- **CLI** with 50+ subcommands
-
----
-
-## Skill Catalog
-
-| Category              | Count | Examples                              |
-| --------------------- | ----- | ------------------------------------- |
-| Frontend/Mobile       | 25    | React, Angular, Next.js, Flutter      |
-| Backend               | 5     | Go, Django, API Design, Databases     |
-| DevOps/Infra          | 8     | Docker, Kubernetes, Terraform         |
-| Security & Governance | 8     | Security audit, adversarial review    |
-| Testing/QA            | 8     | Playwright, pytest, BDD               |
-| Content/Marketing     | 14    | SEO, content strategy, visual design  |
-| Business              | 14    | Finance, sales, HR, legal             |
-| Git/Workflow          | 9     | Branch/PR management, release         |
-| Core/Orchestration    | 15    | SDD lifecycle, session mgmt, routing  |
-| Other                 | 40    | Scaffolding, incident response, risk  |
-
----
-
-## Quick Install
-
-### Windows — One-Click
-
-[Download Gentle-Vanguard.exe](https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases) — NSIS installer, AES-256 encrypted.
+## Quick Start
 
 ```powershell
-# Run as Administrator, then verify:
-gv health
+# Download latest release
+# https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
+
+# Run
+./gentle-vanguard-3.2.0.exe -Dashboard
 ```
 
-### Any Platform — Git Clone
+Or use the portable version:
 
 ```powershell
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
-cd gentle-vanguard-public
-pwsh -File scripts/bootstrap.ps1
+# Extract and run
+./gentle-vanguard.exe -Dashboard -Portable
 ```
 
 ---
 
-## Requirements
+## Installation
 
-| Requirement | Version       | Required?   | Notes            |
-| ----------- | ------------- | ----------- | ---------------- |
-| PowerShell  | 7+            | Yes         | Core runtime     |
-| Git         | 2.30+         | Yes         | Version control  |
-| Windows     | 10/11         | Optional    | Full support     |
-| macOS       | 13+           | Optional    | Full support     |
-| Linux       | Ubuntu 22.04+ | Optional    | Full support     |
-| RAM         | 4 GB min      | Recommended | 8 GB recommended |
+### System Requirements
+
+- **OS**: Windows 10/11, Linux (Ubuntu 22.04+), macOS 14+
+- **PowerShell**: 7.4+
+- **Memory**: 4 GB RAM minimum
+- **Disk**: 500 MB free
+
+### Step-by-Step
+
+1. Download the latest `.exe` from
+   [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
+2. Run the executable — the installer will set up all dependencies
+3. Launch with `./gentle-vanguard-3.2.0.exe -Dashboard`
+4. Open `http://localhost:3000` in your browser
 
 ---
 
-## CI/CD Pipeline (16 Workflows)
+## Architecture Overview
 
-Automated validation across quality gates, security scanning, testing, and reporting — triggered on PRs, pushes, scheduled intervals, or tags.
+```
+┌──────────────────────────────────────────────────┐
+│                   USER LAYER                      │
+│         (CLI · Dashboard · IDE Integration)       │
+├──────────────────────────────────────────────────┤
+│               ORCHESTRATION LAYER                 │
+│    pre-process-input → trigger → agent dispatch   │
+├──────────────────────────────────────────────────┤
+│                   AGENT LAYER                     │
+│    BA · SAD · DEV · QA · OPS · GOV · DOC · more  │
+├──────────────────────────────────────────────────┤
+│                    SKILL LAYER                    │
+│    386 on-demand skills (web, mobile, security…)  │
+├──────────────────────────────────────────────────┤
+│                  MEMORY LAYER                     │
+│     Engram persistent memory (hot/warm/cold)      │
+└──────────────────────────────────────────────────┘
+```
 
 ---
 
-## Defensive Patterns
+## New in v3.2.0 — CopilotKit Native Patterns
 
-All scripts follow standardized patterns for robustness and security: strict error handling, validated parameters, no hardcoded paths, SHA256 integrity baselines, and BOM-free UTF-8 encoding.
+- **Agent Chat**: Conversational interface with 6 agents, @mentions autocomplete, suggested actions
+- **AG-UI Protocol**: 7 interactive UI hints from agents (metric, datatable, chart, diff, form,
+  list, alert)
+- **Human-in-the-Loop**: 4-mode approval modal with auto-detection
+- **Task Control**: Real-time agent task monitoring with quick dispatch
+- **Session Timeline**: Visual event timeline with expandable payloads
+- **Session Persistence**: Chat history saved across restarts
+- **Shared State Bridge**: Event bus connected to dashboard via WebSocket
 
 ---
 
 ## Documentation
 
-| Resource           | Link                                                       |
-| ------------------ | ---------------------------------------------------------- |
-| Getting Started    | [docs/getting-started/](docs/getting-started/)             |
-| Installation Guide | [docs/reference/FOUNDATION-INSTALLER.md](docs/reference/FOUNDATION-INSTALLER.md) |
-| Architecture       | [docs/architecture/README.md](docs/architecture/README.md) |
-| Full Index         | [docs/](docs/)                                             |
-
----
-
-## Security
-
-AES-256 encryption for secrets, API keys, and sensitive configs. See [SECURITY.md](SECURITY.md).
+- [Getting Started](docs/getting-started/README.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [Stack Setup](docs/getting-started/STACK-SETUP.md)
+- [Changelog](CHANGELOG.md)
+- [Examples](docs/EXAMPLES.md)
 
 ---
 
 ## License
 
-[MIT](LICENSE)
+MIT © 2026 Emmanuel Ortiz
 
 ---
 
-<p align="center">
-  <strong>Gentle-Vanguard v2.26.0</strong><br>
-  <em>Local-First · Total Privacy · Production Ready</em>
-</p>
+_Gentle-Vanguard v3.2.0 — Don't let your mellow hustle be faded_
