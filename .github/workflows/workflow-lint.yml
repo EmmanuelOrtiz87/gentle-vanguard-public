@@ -9,11 +9,11 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - '.github/workflows/**'
   pull_request:
-    branches: [develop, main]
+    branches: [main]
     paths:
       - '.github/workflows/**'
   workflow_dispatch:
@@ -31,3 +31,4 @@ jobs:
         uses: reviewdog/action-actionlint@v1
         with:
           fail_level: any
+

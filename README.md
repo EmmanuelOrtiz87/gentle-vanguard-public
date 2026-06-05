@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
+  <img src="https://raw.githubusercontent.com/EmmanuelOrtiz87/gentle-vanguard-public/main/docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
 </p>
 
 <p align="center">
@@ -7,183 +7,136 @@
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
+  <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
   <img src="https://img.shields.io/badge/Agents-18-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
   <img src="https://img.shields.io/badge/Skills-386-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
-  <img src="https://img.shields.io/badge/Workflows-27-A855F7?style=flat-square&labelColor=0D1117" alt="Workflows">
 </p>
 
 <p align="center">
-  <a href="docs/AGENTS.md">Agent Bootstrap</a> &nbsp;·&nbsp;
-  <a href="docs/AGENTS.md#mandatory-startup-sequence">Startup</a> &nbsp;·&nbsp;
-  <a href="docs/QUICK-COMMANDS.md">Quick Commands</a> &nbsp;·&nbsp;
-  <a href="rules/DELEGATION-RULES.md">Delegation</a> &nbsp;·&nbsp;
-  <a href="rules/NORMATIVES.md">Normatives</a> &nbsp;·&nbsp;
-  <a href="docs/MANIFESTO.md">Manifesto</a> &nbsp;·&nbsp;
-  <a href="CHANGELOG.md">Changelog</a>
+  <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard-public">GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="docs/getting-started/README.md">Getting Started</a>
+  &nbsp;·&nbsp;
+  <a href="../../releases">Releases</a>
+  &nbsp;·&nbsp;
+  <a href="docs/SECURITY.md">Security</a>
 </p>
 
 <p align="center">
   <strong>AI-powered development orchestrator · 18 agents · 386 skills · 10 tool-compatible</strong><br>
-  <em>Tool-agnostic · SDD Lifecycle · Hashline · Team Mode · Skill MCPs · Feedback Loop · Proactive Delivery · Persistent memory</em>
+  <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security</em>
 </p>
 
-> _"Construyendo el puente definitivo entre la alta ingeniería de software y la estrategia
-> corporativa."_ — [Read the Manifesto](docs/MANIFESTO.md)
+> _"Building the definitive bridge between high-end software engineering and corporate strategy."_
+
+Born from a simple observation: AI-assisted coding works, but without structure it is chaotic.
+Gentle-Vanguard gives you an orchestration layer that routes tasks to specialized agents, enforces
+standards, tracks every token, and remembers what you did last session.
 
 ---
 
-## What is Gentle-Vanguard?
+## What It Solves
 
-A full AI orchestration layer that gives structure, memory, and governance to AI-assisted
-development across any coding tool (OpenCode, Claude Code, Cline, Cursor, Windsurf, Codex, Copilot,
-Continue.dev, Antigravity).
-
-### Stack Architecture
-
-```
-Layer 5: AGENTS     — 18 agents (BA, SAD, DEV, QA, OPS, GOV, DOC, etc.)
-Layer 4: COMMANDS   — gv.ps1, pre-process-input.ps1, detect-tool.ps1
-Layer 3: MCP        — skill-server.ts (MCP protocol), mcp-bridge.ps1
-Layer 2: SKILLS     — 386 skills (SDD, security, web, mobile, AI/ML, etc.)
-Layer 1: MEMORY     — Engram persistent memory (tools/engram.exe)
-```
-
-### Core Capabilities
-
-- **Intelligent Routing**: `pre-process-input.ps1` → trigger matching → agent dispatch (inline,
-  delegate, or SDD)
-- **18 Specialized Agents**: Each with narrow role, model profile, and delegation rules
-- **386 On-Demand Skills**: Angular, React, Next.js, Go, Django, Python, TypeScript, Docker, K8s,
-  Playwright, Security, API Design
-- **Persistent Memory**: Engram — decisions, bugs, and patterns across sessions with hot/warm/cold
-  tiers
-- **Cost-Aware Router**: Fast/cheap, strong-reasoning, or strong-coding profiles per agent
-- **SDD Lifecycle**: BA explore → SAD design → DEV implement → QA verify
-- **Governance**: 7D validation, judgment-day adversarial review, pre-commit hooks, 27 CI/CD
-  workflows
-- **Session Management**: 10-phase autostart, orphan cleanup, token budget tracking
-- **Proactive Security**: AES-256 encryption, TruffleHog scanning, Gitleaks integration
-- **Auto-Delegation**: ML-based routing with 80%+ direct, 60%+ confirmation threshold
-- **Fine-Tuning**: LoRA adapters for BA and DEV agents
-- **Adaptive Profiles**: Auto-detect tool and adjust config per tool capabilities
-
----
-
-## Latest Release: v3.2.0
-
-**Download**:
-[gentle-vanguard-3.2.0.exe](https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/download/v3.2.0/gentle-vanguard-3.2.0.exe)
-
-### New in v3.2.0 — CopilotKit Native Patterns
-
-- **Agent Chat** (`/agents`): Conversational interface with 6 agents, @mentions autocomplete,
-  suggested actions
-- **AG-UI Protocol**: 7 interactive UI hints from agent responses (metric, datatable, chart, diff,
-  form, list, alert)
-- **Human-in-the-Loop**: 4-mode modal (confirmation, selection, form, review) with auto-detection
-- **Task Control** (`/tasks`): Real-time agent task monitoring with status icons and quick dispatch
-- **Session Timeline** (`/timeline`): Visual event timeline with expandable JSON payloads
-- **Session Persistence**: Chat history saved across restarts
-- **Shared State Bridge**: Event bus connected to dashboard via WebSocket
-- **No CopilotKit dependency**: All patterns implemented natively over MCP
+| Problem                       | How Gentle-Vanguard Solves It                              |
+| ----------------------------- | ---------------------------------------------------------- |
+| AI code quality varies wildly | Multi-layer validation gates catch issues before commit    |
+| No session-to-session memory  | Persistent memory system recalls decisions across sessions |
+| Token waste from wrong models | Cost-aware router assigns optimal model per task type      |
+| Unstructured AI workflows     | SDD lifecycle enforces spec-driven development             |
+| Disconnected tool sessions    | Session manager tracks context with crash recovery         |
+| No AI cost visibility         | Dashboard with token trends and per-agent analytics        |
+| One-size AI responses         | 18 specialized agents with role-specific profiles          |
 
 ---
 
 ## Quick Start
 
 ```powershell
-# Clone the repo
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
-cd gentle-vanguard
+# Download latest release
+# https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
 
-# Run the bootstrap
-./gentle-vanguard.ps1 -Dashboard
-
-# Or use the session start pipeline
-pwsh -NoProfile -File scripts/utilities/session-start-optimized.ps1
+# Run
+./gentle-vanguard-3.2.0.exe -Dashboard
 ```
+
+Or use the portable version:
+
+```powershell
+# Extract and run
+./gentle-vanguard.exe -Dashboard -Portable
+```
+
+---
+
+## Installation
+
+### System Requirements
+
+- **OS**: Windows 10/11, Linux (Ubuntu 22.04+), macOS 14+
+- **PowerShell**: 7.4+
+- **Memory**: 4 GB RAM minimum
+- **Disk**: 500 MB free
+
+### Step-by-Step
+
+1. Download the latest `.exe` from
+   [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
+2. Run the executable — the installer will set up all dependencies
+3. Launch with `./gentle-vanguard-3.2.0.exe -Dashboard`
+4. Open `http://localhost:3000` in your browser
+
+---
+
+## Architecture Overview
+
+```
+┌──────────────────────────────────────────────────┐
+│                   USER LAYER                      │
+│         (CLI · Dashboard · IDE Integration)       │
+├──────────────────────────────────────────────────┤
+│               ORCHESTRATION LAYER                 │
+│    pre-process-input → trigger → agent dispatch   │
+├──────────────────────────────────────────────────┤
+│                   AGENT LAYER                     │
+│    BA · SAD · DEV · QA · OPS · GOV · DOC · more  │
+├──────────────────────────────────────────────────┤
+│                    SKILL LAYER                    │
+│    386 on-demand skills (web, mobile, security…)  │
+├──────────────────────────────────────────────────┤
+│                  MEMORY LAYER                     │
+│     Engram persistent memory (hot/warm/cold)      │
+└──────────────────────────────────────────────────┘
+```
+
+---
+
+## New in v3.2.0 — CopilotKit Native Patterns
+
+- **Agent Chat**: Conversational interface with 6 agents, @mentions autocomplete, suggested actions
+- **AG-UI Protocol**: 7 interactive UI hints from agents (metric, datatable, chart, diff, form,
+  list, alert)
+- **Human-in-the-Loop**: 4-mode approval modal with auto-detection
+- **Task Control**: Real-time agent task monitoring with quick dispatch
+- **Session Timeline**: Visual event timeline with expandable payloads
+- **Session Persistence**: Chat history saved across restarts
+- **Shared State Bridge**: Event bus connected to dashboard via WebSocket
 
 ---
 
 ## Documentation
 
-- [Agent Bootstrap](docs/AGENTS.md) — workspace init, tool detection, startup sequence
-- [Architecture](docs/reference/ARCHITECTURE.md) — system design, component relationships
-- [Quick Commands](docs/QUICK-COMMANDS.md) — CLI reference
-- [Delegation Rules](rules/DELEGATION-RULES.md) — agent dispatch and routing
-- [Normatives](rules/NORMATIVES.md) — governance standards index
-- [Stack Status](docs/STACK-STATUS-REPORT.md) — component health and automation status
 - [Getting Started](docs/getting-started/README.md)
-- [Roadmap](docs/ROADMAP.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [Stack Setup](docs/getting-started/STACK-SETUP.md)
 - [Changelog](CHANGELOG.md)
-
-### Reference Documentation
-
-| Area                | Path                                      |
-| ------------------- | ----------------------------------------- |
-| Architecture        | `docs/reference/ARCHITECTURE.md`          |
-| Agent Architecture  | `docs/reference/SUBAGENT-ARCHITECTURE.md` |
-| Skill Organization  | `docs/reference/SKILL-ORGANIZATION.md`    |
-| Token Tracking      | `docs/reference/REAL-TOKEN-TRACKING.md`   |
-| Context Engineering | `rules/CONTEXT-ENGINEERING.md`            |
-| Model Routing       | `config/model-routing.json`               |
-| Auto-Delegation     | `config/auto-delegation.json`             |
-| SDD Config          | `openspec/config.yaml`                    |
-
----
-
-## Project Structure
-
-```
-gentle-vanguard/
-├── apps/                   # Applications (web-dashboard, API)
-├── build/                  # Build artifacts (compiled, protected, public)
-├── client/                 # Client modules
-├── config/                 # Centralized configuration
-├── deprecated/             # Deprecated components
-├── dist/                   # Distribution artifacts
-├── docs/                   # Documentation
-│   ├── AGENTS.md           # Agent bootstrap
-│   ├── reference/          # Technical reference
-│   ├── getting-started/    # Onboarding guides
-│   └── supplementary/      # Supplementary materials
-├── hooks/                  # Custom hooks
-├── rules/                  # Normatives and standards (60 rules)
-├── scripts/                # PowerShell scripts
-│   ├── adaptive/           # Adaptive learning and enforcement
-│   ├── core/               # Core bootstrap
-│   ├── utilities/          # Utility scripts
-│   ├── security/           # Security tools
-│   └── monitoring/         # Monitoring and metrics
-├── skills/                 # MCP skills (386)
-├── reports/                # Generated reports
-└── tests/                  # Tests
-    ├── unit/               # Unit tests
-    └── go-tests/           # Go tests
-```
-
----
-
-## Normatives & Standards
-
-This project is governed by [60 normatives](rules/NORMATIVES.md) covering:
-
-- **Architecture** — NORMATIVAS-ARCHITECTURE.md
-- **Code** — NORMATIVAS-CODIGO.md
-- **Configuration** — NORMATIVAS-CONFIG.md, NORMATIVAS-CONFIG-SAFETY.md
-- **Documentation** — NORMATIVAS-DOCS.md
-- **Security** — NORMATIVAS-AI-SAFETY.md, NORMATIVAS-SOC2.md, NORMATIVAS-GDPR.md
-- **DevOps** — NORMATIVAS-DEVOPS.md
-- **Performance** — NORMATIVAS-PERFORMANCE.md
-- **Error Handling** — NORMATIVAS-ERROR-HANDLING.md
-- **Enforcement** — NORMATIVAS-ENFORCEMENT.md
-- **And more**: Cross-platform, Disaster Recovery, Incident Management, etc.
-
-Enforcement is layered: pre-response hook (every turn), pre-commit hooks (Lefthook), CI/CD (27
-workflows), and adaptive enforcement (session start/close).
+- [Examples](docs/EXAMPLES.md)
 
 ---
 
 ## License
 
 MIT © 2026 Emmanuel Ortiz
+
+---
+
+_Gentle-Vanguard v3.2.0 — Don't let your mellow hustle be faded_
