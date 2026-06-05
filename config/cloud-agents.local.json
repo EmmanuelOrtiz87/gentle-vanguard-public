@@ -1,9 +1,0 @@
-{
-  "providers": {
-    "custom": {
-      "enabled": true,
-      "endpoint": "https://vxhfmjrvbh.execute-api.us-east-1.amazonaws.com/prod/api/agents/18",
-      "api_key_env": "agent_custom_apikey"
-    }
-  }
-}

@@ -82,7 +82,6 @@ Write-Host "└─────────────────────�
 if ($WithCoverage) {
     $coverageConfigPath = Join-Path $testDir "coverage-config.json"
     $coverageOutDir = Join-Path $testDir "coverage"
-    $coverageReportPath = Join-Path $coverageOutDir "coverage-report.xml"
 
     if (-not (Test-Path $coverageOutDir)) {
         New-Item -ItemType Directory -Path $coverageOutDir -Force | Out-Null

@@ -9,7 +9,7 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - 'scripts/**'
       - 'docs/**'
@@ -18,7 +18,7 @@ on:
       - '.github/workflows/script-governance.yml'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [develop, main]
+    branches: [main]
     paths:
       - 'scripts/**'
       - 'docs/**'
@@ -94,3 +94,4 @@ jobs:
             exit 0
           }
           powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\diagnostics\agent-process-alert.ps1 -WindowHours 24 -EmitGitHubAnnotations
+

@@ -2,9 +2,9 @@ name: Cross-Platform Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
     - cron: '0 2 * * *'
 
@@ -317,3 +317,4 @@ jobs:
           else
             prettier --check "**/*.{json,md,yml}"
           fi
+
