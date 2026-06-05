@@ -9,9 +9,9 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
 
 jobs:
   prettier:
@@ -28,3 +28,4 @@ jobs:
           cache: 'pnpm'
       - name: Install and check formatting
         run: pnpm install --frozen-lockfile && pnpm format:check
+
