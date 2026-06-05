@@ -1,871 +1,954 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gentle-Vanguard · Platform Overview</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-  :root {
-    --gv-primary: #00BFFF;
-    --gv-primary-light: #4DCFFF;
-    --gv-primary-dark: #0055BB;
-    --gv-accent: #A855F7;
-    --gv-accent-teal: #06B6D4;
-    --gv-bg: #0D1117;
-    --gv-surface: #1A2035;
-    --gv-surface-icon: #2A2D3A;
-    --gv-circuit: #1A3050;
-    --gv-text: #FFFFFF;
-    --gv-text-brand: #00BFFF;
-    --gv-text-muted: #6B7280;
-    --gv-border: #1E3A5F;
-    --gv-success: #22C55E;
-    --gv-warning: #F59E0B;
-    --gv-error: #EF4444;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--gv-bg); color: var(--gv-text); overflow: hidden; height: 100vh; user-select: none; }
-  .slides-wrapper { display: flex; transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); height: 100vh; will-change: transform; }
-  .slide { min-width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4vw 6vw; position: relative; overflow-y: auto; }
-  .slide::-webkit-scrollbar { width: 6px; }
-  .slide::-webkit-scrollbar-track { background: transparent; }
-  .slide::-webkit-scrollbar-thumb { background: rgba(0,191,255,0.2); border-radius: 3px; }
-  .slide::-webkit-scrollbar-thumb:hover { background: rgba(0,191,255,0.35); }
-  .slide::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(0,191,255,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(168,85,247,0.04) 0%, transparent 50%); pointer-events: none; }
-  .slide::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,191,255,0.25), transparent); }
-  .slide-inner { max-width: 1200px; width: 100%; position: relative; z-index: 1; }
-  h1 { font-family: 'Orbitron', monospace; font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800; letter-spacing: 0.08em; line-height: 1.05; }
-  h2 { font-family: 'Orbitron', monospace; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.4em; text-transform: uppercase; }
-  h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 600; color: var(--gv-primary); margin-bottom: 0.4em; }
-  .subtitle { font-size: clamp(0.95rem, 1.8vw, 1.3rem); color: var(--gv-text-muted); font-weight: 400; line-height: 1.65; }
-  .tag { display: inline-block; background: rgba(0,191,255,0.1); color: var(--gv-primary); padding: 0.3em 1.2em; border-radius: 100px; font-size: 0.75rem; font-weight: 600; margin-bottom: 1em; border: 1px solid rgba(0,191,255,0.15); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'Orbitron', monospace; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
-  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
-  .card { background: rgba(255,255,255,0.025); border: 1px solid rgba(0,191,255,0.06); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(12px); transition: all 0.3s; }
-  .card:hover { border-color: rgba(0,191,255,0.25); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,191,255,0.06); }
-  .card .num { font-size: 2rem; font-weight: 800; color: var(--gv-primary); line-height: 1; margin-bottom: 0.3rem; font-family: 'Orbitron', monospace; }
-  .card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
-  .card p { font-size: 0.83rem; color: var(--gv-text-muted); line-height: 1.55; }
-  .badge { display: inline-block; padding: 0.2em 0.7em; border-radius: 6px; font-size: 0.68rem; font-weight: 600; margin-right: 0.3em; }
-  .badge-green { background: rgba(34,197,94,0.12); color: var(--gv-success); border: 1px solid rgba(34,197,94,0.15); }
-  .badge-yellow { background: rgba(245,158,11,0.12); color: var(--gv-warning); border: 1px solid rgba(245,158,11,0.15); }
-  .badge-red { background: rgba(239,68,68,0.12); color: var(--gv-error); border: 1px solid rgba(239,68,68,0.15); }
-  .badge-blue { background: rgba(0,191,255,0.12); color: var(--gv-primary); border: 1px solid rgba(0,191,255,0.15); }
-  .badge-purple { background: rgba(168,85,247,0.12); color: var(--gv-accent); border: 1px solid rgba(168,85,247,0.15); }
-  .badge-cyan { background: rgba(6,182,212,0.12); color: var(--gv-accent-teal); border: 1px solid rgba(6,182,212,0.15); }
-  .badge-rose { background: rgba(244,63,94,0.12); color: #fb7185; border: 1px solid rgba(244,63,94,0.15); }
-  .badge-gray { background: rgba(107,114,128,0.1); color: var(--gv-text-muted); border: 1px solid rgba(107,114,128,0.12); }
-  .nav-arrows { position: fixed; bottom: 2rem; right: 2rem; z-index: 100; display: flex; gap: 0.5rem; }
-  .nav-arrows button { width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(0,191,255,0.08); background: rgba(255,255,255,0.02); color: var(--gv-text); font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(12px); transition: all 0.25s; display: flex; align-items: center; justify-content: center; }
-  .nav-arrows button:hover { background: rgba(0,191,255,0.15); border-color: rgba(0,191,255,0.35); transform: scale(1.05); }
-  .nav-arrows button:active { transform: scale(0.95); }
-  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--gv-primary), var(--gv-accent), var(--gv-accent-teal)); z-index: 100; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-  .slide-counter { position: fixed; bottom: 2rem; left: 2rem; z-index: 100; font-size: 0.78rem; color: var(--gv-text-muted); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0.08em; font-family: 'Orbitron', monospace; }
-  .gradient-text { background: linear-gradient(135deg, var(--gv-primary), var(--gv-primary-light), var(--gv-accent), var(--gv-accent-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; background-size: 300% 300%; animation: gradientShift 6s ease-in-out infinite; }
-  @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-  .hero-icon { font-size: 3.5rem; margin-bottom: 0.5rem; display: inline-block; animation: float 4s ease-in-out infinite; }
-  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-  .list { list-style: none; }
-  .list li { padding: 0.35rem 0; padding-left: 1.5rem; position: relative; font-size: 0.88rem; color: #d1d5db; line-height: 1.5; }
-  .list li::before { content: '▸'; position: absolute; left: 0; color: var(--gv-primary); }
-  .flow-row { display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap; }
-  .flow-step { background: rgba(0,191,255,0.06); border: 1px solid rgba(0,191,255,0.12); padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.72rem; font-weight: 600; color: var(--gv-primary); letter-spacing: 0.04em; }
-  .flow-arrow { color: var(--gv-primary); font-size: 1rem; }
-  .stat-row { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin: 1rem 0; }
-  .stat { text-align: center; padding: 0.8rem 1.2rem; }
-  .stat-value { font-family: 'Orbitron', monospace; font-size: 2.8rem; font-weight: 700; color: var(--gv-primary); font-variant-numeric: tabular-nums; letter-spacing: 0.05em; }
-  .stat-label { font-size: 0.78rem; color: var(--gv-text-muted); margin-top: 0.2rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  th { text-align: left; padding: 0.5rem 0.7rem; color: var(--gv-text-muted); font-weight: 500; border-bottom: 1px solid rgba(0,191,255,0.08); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }
-  td { padding: 0.5rem 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.025); }
-  tr:hover td { background: rgba(255,255,255,0.015); }
-  .col-agents { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-  .agent-tag { background: rgba(0,191,255,0.06); border: 1px solid rgba(0,191,255,0.1); padding: 0.2rem 0.65rem; border-radius: 4px; font-size: 0.62rem; color: var(--gv-primary); font-weight: 600; letter-spacing: 0.06em; font-family: 'Orbitron', monospace; }
-  .quote { font-style: italic; color: var(--gv-text-muted); font-size: 1.1rem; border-left: 3px solid rgba(0,191,255,0.35); padding-left: 1.5rem; margin: 1rem 0; }
-  @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .slide { padding: 5vw 4vw; } .stat-value { font-size: 2rem; } }
-  .orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; opacity: 0.4; }
-  .orb-1 { width: 400px; height: 400px; background: var(--gv-primary); top: -10%; right: -5%; animation: orbFloat 12s ease-in-out infinite; }
-  .orb-2 { width: 300px; height: 300px; background: var(--gv-accent); bottom: -5%; left: -5%; animation: orbFloat 15s ease-in-out infinite reverse; }
-  .orb-3 { width: 200px; height: 200px; background: var(--gv-accent-teal); top: 50%; left: 50%; animation: orbFloat 10s ease-in-out infinite; }
-  @keyframes orbFloat { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-30px) scale(1.1); } 66% { transform: translate(-20px,20px) scale(0.9); } }
-  .counter-num { font-family: 'Orbitron', monospace; font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--gv-primary), var(--gv-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 0.05em; }
-  .ring-container { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
-  .ring { position: relative; width: 120px; height: 120px; }
-  .ring svg { transform: rotate(-90deg); }
-  .ring circle { fill: none; stroke-width: 6; }
-  .ring .bg { stroke: rgba(255,255,255,0.03); }
-  .ring .fg { stroke: var(--gv-primary); stroke-linecap: round; transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-  .ring .fg.purple { stroke: var(--gv-accent); }
-  .ring .fg.cyan { stroke: var(--gv-accent-teal); }
-  .ring .fg.green { stroke: var(--gv-success); }
-  .ring .fg.rose { stroke: #fb7185; }
-  .ring-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
-  .ring-label span { font-family: 'Orbitron', monospace; display: block; font-size: 1.4rem; font-weight: 700; color: #e2e2e8; letter-spacing: 0.04em; }
-  .ring-label small { font-size: 0.6rem; color: var(--gv-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-  .divider { width: 60px; height: 3px; background: linear-gradient(90deg, var(--gv-primary), transparent); margin: 0.6rem 0 1rem 0; border-radius: 3px; }
-  .feature-icon { font-size: 1.8rem; margin-bottom: 0.5rem; display: block; }
-  .timeline { position: relative; padding: 1rem 0; }
-  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--gv-primary), transparent); }
-  .tl-item { padding-left: 2rem; position: relative; margin-bottom: 1rem; }
-  .tl-item::before { content: ''; position: absolute; left: 0; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--gv-primary); border: 3px solid var(--gv-bg); }
-  .tl-item .tl-title { font-weight: 600; font-size: 0.9rem; color: #e2e2e8; }
-  .tl-item .tl-desc { font-size: 0.78rem; color: var(--gv-text-muted); }
-  .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(0,191,255,0.05); border-radius: 20px; padding: 2rem; backdrop-filter: blur(16px); }
-  .glass:hover { border-color: rgba(0,191,255,0.18); }
-  .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; }
-  .pipe-step { padding: 0.5rem 0.8rem; font-size: 0.7rem; font-weight: 500; background: rgba(0,191,255,0.05); border: 1px solid rgba(0,191,255,0.08); color: var(--gv-primary); }
-  .pipe-step:first-child { border-radius: 8px 0 0 8px; }
-  .pipe-step:last-child { border-radius: 0 8px 8px 0; }
-  .pipe-step + .pipe-step { border-left: 0; }
-  .pipe-arrow { color: var(--gv-primary); font-size: 0.8rem; margin: 0 0.15rem; }
-  .cat-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .cat-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.65rem; font-weight: 600; background: rgba(0,191,255,0.06); border: 1px solid rgba(0,191,255,0.08); color: var(--gv-primary); }
-  .cat-badge.dev { background: rgba(34,197,94,0.06); border-color: rgba(34,197,94,0.1); color: var(--gv-success); }
-  .cat-badge.qa { background: rgba(6,182,212,0.06); border-color: rgba(6,182,212,0.1); color: var(--gv-accent-teal); }
-  .cat-badge.ops { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.1); color: var(--gv-warning); }
-  .cat-badge.gov { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.1); color: var(--gv-error); }
-  .cat-badge.doc { background: rgba(168,85,247,0.06); border-color: rgba(168,85,247,0.1); color: var(--gv-accent); }
-  .cat-badge.biz { background: rgba(0,191,255,0.06); border-color: rgba(0,191,255,0.1); color: var(--gv-primary); }
-  .cat-badge.pm { background: rgba(244,63,94,0.06); border-color: rgba(244,63,94,0.1); color: #fb7185; }
-  .highlight-box { background: linear-gradient(135deg, rgba(0,191,255,0.06), rgba(168,85,247,0.03)); border: 1px solid rgba(0,191,255,0.1); border-radius: 16px; padding: 1.5rem; }
-  .compare-bar { display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0; }
-  .compare-bar .label { width: 80px; font-size: 0.8rem; color: var(--gv-text-muted); text-align: right; }
-  .compare-bar .track { flex: 1; height: 20px; background: rgba(255,255,255,0.025); border-radius: 10px; overflow: hidden; }
-  .compare-bar .fill { height: 100%; border-radius: 10px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-  .compare-bar .fill.old { background: rgba(107,114,128,0.25); }
-  .compare-bar .fill.new { background: linear-gradient(90deg, var(--gv-primary), var(--gv-accent)); }
-  .compare-bar .pct { width: 50px; font-size: 0.85rem; font-weight: 700; color: var(--gv-primary); font-family: 'Orbitron', monospace; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gentle-Vanguard v3.2.0 · Platform Overview</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+      :root {
+        --gv-primary: #00bfff;
+        --gv-primary-light: #4dcfff;
+        --gv-primary-dark: #0055bb;
+        --gv-accent: #a855f7;
+        --gv-accent-teal: #06b6d4;
+        --gv-bg: #0d1117;
+        --gv-surface: #1a2035;
+        --gv-surface-icon: #2a2d3a;
+        --gv-circuit: #1a3050;
+        --gv-text: #ffffff;
+        --gv-text-brand: #00bfff;
+        --gv-text-muted: #6b7280;
+        --gv-border: #1e3a5f;
+        --gv-success: #22c55e;
+        --gv-warning: #f59e0b;
+        --gv-error: #ef4444;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--gv-bg);
+        color: var(--gv-text);
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+      .slides-wrapper {
+        display: flex;
+        transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        min-height: 100vh;
+        will-change: transform;
+      }
+      .slide {
+        min-width: 100vw;
+        min-height: 100vh;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 2rem;
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .slide::-webkit-scrollbar {
+        width: 8px;
+      }
+      .slide::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+      }
+      .slide::-webkit-scrollbar-thumb {
+        background: rgba(0, 191, 255, 0.3);
+        border-radius: 4px;
+      }
+      .slide::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 191, 255, 0.5);
+      }
+      .slide::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 20% 50%, rgba(0, 191, 255, 0.06) 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.04) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      .slide-inner {
+        max-width: 1200px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        padding: 2rem 0;
+      }
+      h1 {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 5vw, 4rem);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+      }
+      h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+      }
+      h3 {
+        font-size: clamp(1rem, 2vw, 1.3rem);
+        font-weight: 600;
+        color: var(--gv-primary);
+        margin-bottom: 0.5rem;
+      }
+      .subtitle {
+        font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+        color: var(--gv-text-muted);
+        font-weight: 400;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+      .tag {
+        display: inline-block;
+        background: rgba(0, 191, 255, 0.1);
+        color: var(--gv-primary);
+        padding: 0.4em 1.2em;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(0, 191, 255, 0.15);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-family: 'Orbitron', monospace;
+      }
+      .version-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--gv-primary), var(--gv-accent));
+        color: white;
+        padding: 0.5em 1em;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-family: 'Orbitron', monospace;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.2rem;
+        margin: 2rem 0;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(0, 191, 255, 0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        word-wrap: break-word;
+      }
+      .card:hover {
+        border-color: rgba(0, 191, 255, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(0, 191, 255, 0.1);
+      }
+      .card .num {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--gv-primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        font-family: 'Orbitron', monospace;
+      }
+      .card h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .card p {
+        font-size: 0.9rem;
+        color: var(--gv-text-muted);
+        line-height: 1.6;
+      }
+      .nav-dots {
+        position: fixed;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        z-index: 1000;
+      }
+      .nav-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(0, 191, 255, 0.2);
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .nav-dot.active {
+        background: var(--gv-primary);
+        border-color: var(--gv-primary-light);
+        transform: scale(1.2);
+      }
+      .nav-dot:hover {
+        background: rgba(0, 191, 255, 0.5);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--gv-primary), var(--gv-primary-dark));
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 191, 255, 0.3);
+      }
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--gv-primary);
+        color: var(--gv-primary);
+      }
+      .btn-secondary:hover {
+        background: rgba(0, 191, 255, 0.1);
+      }
+      .feature-list {
+        list-style: none;
+        padding: 0;
+      }
+      .feature-list li {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid rgba(0, 191, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+      .feature-list li::before {
+        content: '→';
+        color: var(--gv-primary);
+        font-weight: bold;
+      }
+      .pillar-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .pillar-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(0, 191, 255, 0.1);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      }
+      .pillar-card .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .pillar-card h4 {
+        color: var(--gv-primary);
+        margin-bottom: 0.5rem;
+      }
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+      }
+      .comparison-table th,
+      .comparison-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gv-border);
+      }
+      .comparison-table th {
+        color: var(--gv-primary);
+        font-weight: 600;
+        font-family: 'Orbitron', monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+      }
+      .comparison-table td {
+        color: var(--gv-text-muted);
+      }
+      .comparison-table .metric-before {
+        color: var(--gv-error);
+        font-weight: 600;
+      }
+      .comparison-table .metric-after {
+        color: var(--gv-success);
+        font-weight: 600;
+      }
+      .arch-flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+      }
+      .arch-box {
+        background: rgba(0, 191, 255, 0.05);
+        border: 1px solid rgba(0, 191, 255, 0.15);
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        text-align: center;
+        min-width: 120px;
+      }
+      .arch-box h5 {
+        color: var(--gv-primary);
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 0.3rem;
+      }
+      .arch-box p {
+        font-size: 0.85rem;
+        color: var(--gv-text-muted);
+      }
+      .arch-arrow {
+        color: var(--gv-primary);
+        font-size: 1.5rem;
+        font-weight: 300;
+      }
+      @media (max-width: 768px) {
+        .slide {
+          padding: 1rem;
+        }
+        .slide-inner {
+          padding: 1rem 0;
+        }
+        .grid-2,
+        .grid-3,
+        .grid-4,
+        .pillar-grid {
+          grid-template-columns: 1fr;
+        }
+        .nav-dots {
+          right: 1rem;
+        }
+        h1 {
+          font-size: 1.8rem;
+        }
+        h2 {
+          font-size: 1.4rem;
+        }
+        .arch-flow {
+          flex-direction: column;
+        }
+        .arch-arrow {
+          transform: rotate(90deg);
+        }
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 1rem;
+        }
+        .card .num {
+          font-size: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav-dots" id="navDots"></div>
 
-<div class="progress-bar" id="progressBar"></div>
-<div class="slide-counter" id="slideCounter">01 / 18</div>
-<div class="nav-arrows">
-  <button onclick="prevSlide()" id="prevBtn" title="Anterior">&#8592;</button>
-  <button onclick="nextSlide()" id="nextBtn" title="Siguiente">&#8594;</button>
-</div>
-
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="orb orb-3"></div>
-
-<div class="slides-wrapper" id="slidesWrapper">
-
-<!-- ===== SLIDE 1: PORTADA ===== -->
-<div class="slide">
-  <div class="slide-inner" style="text-align:center">
-    <div class="hero-icon">&#9889;</div>
-    <h1 class="gradient-text">GENTLE-VANGUARD</h1>
-    <p class="subtitle" style="font-size:clamp(1.3rem,2.8vw,2rem);margin-top:0.4em;font-weight:300;letter-spacing:0.04em">Plataforma de Ingenier&iacute;a Aumentada con IA</p>
-    <p class="subtitle" style="font-size:clamp(0.9rem,1.4vw,1.1rem);margin-top:1.5em;max-width:800px;margin-left:auto;margin-right:auto">
-      Agentes inteligentes &middot; Skills modulares &middot; Ciclo SDD &middot; Memoria persistente &middot; Juicio Dual &middot; Observabilidad
-    </p>
-    <div style="margin-top:2rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
-      <span class="tag">Tool-Agnostic</span>
-      <span class="tag">OpenCode First</span>
-      <span class="tag">18 Agentes</span>
-      <span class="tag">386 Skills</span>
-      <span class="tag">27 Workflows</span>
-      <span class="tag">29 Quality Gates</span>
-    </div>
-    <div class="stat-row" style="margin-top:2.5rem">
-      <div class="stat"><div class="stat-value">v2.30.0</div><div class="stat-label">Versi&oacute;n actual</div></div>
-      <div class="stat"><div class="stat-value">10</div><div class="stat-label">Herramientas</div></div>
-      <div class="stat"><div class="stat-value">60</div><div class="stat-label">Normativas</div></div>
-      <div class="stat"><div class="stat-value">80+</div><div class="stat-label">Tests suites</div></div>
-    </div>
-    <p style="margin-top:3rem;font-size:0.75rem;color:var(--gv-text-muted);letter-spacing:0.15em;font-family:'Orbitron',monospace">JUNIO 2026 &middot; v2.30.0</p>
-  </div>
-</div>
-
-<!-- ===== SLIDE 2: QUE ES ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">VISI&Oacute;N</span>
-    <h2>&iquest;Qu&eacute; es Gentle-Vanguard?</h2>
-    <p class="subtitle">Una plataforma agn&oacute;stica de ingenier&iacute;a de software asistida por IA que orquesta agentes especializados, skills reutilizables y ciclos de calidad automatizados para transformar ideas en c&oacute;digo validado.</p>
-    <div class="grid-3" style="margin-top:1.5rem">
-      <div class="card">
-        <div class="feature-icon">&#127760;</div>
-        <h4>Multi-Herramienta</h4>
-        <p>Compatible con 10 herramientas AI. Se adapta autom&aacute;ticamente seg&uacute;n el runtime detectado (opencode, claude-code, cursor, windsurf, cline, continue.dev, codex, copilot, antigravity, claude-generic).</p>
-      </div>
-      <div class="card">
-        <div class="feature-icon">&#128221;</div>
-        <h4>Desarrollo Guiado por Specs</h4>
-        <p>SDD Lifecycle: INIT &rarr; EXPLORE &rarr; PROPOSE &rarr; SPEC &rarr; TASKS &rarr; DESIGN &rarr; APPLY &rarr; VERIFY &rarr; ARCHIVE. Cada fase ejecutada por el agente &oacute;ptimo con gates de calidad.</p>
-      </div>
-      <div class="card">
-        <div class="feature-icon">&#129504;</div>
-        <h4>Memoria y Mejora Continua</h4>
-        <p>Engram memory system persiste decisiones, bugs y patrones entre sesiones. Post-session learning, self-healing autom&aacute;tico y reference system para continuidad cross-session.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 3: ARQUITECTURA ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">ARQUITECTURA</span>
-    <h2>Vista General del Sistema</h2>
-    <div class="grid-2" style="margin-top:1.5rem">
-      <div class="card">
-        <h4>&#9889; Core Engine</h4>
-        <ul class="list">
-          <li>Detecta herramienta en uso (10 perfiles)</li>
-          <li>Router autom&aacute;tico de intenciones &rarr; agente</li>
-          <li>Orquestador de sesiones con estado</li>
-          <li>Sistema de plugins y hooks pre/post</li>
-          <li>Multi-tool validator + pre-commit hooks</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4>&#128736; Sistema de Skills</h4>
-        <ul class="list">
-           <li>386 skills instalados + sem&aacute;ntica</li>
-          <li>Registry automantenido + YAML frontmatter</li>
-          <li>Directorios de skills categorizados</li>
-          <li>Desde infra hasta marketing y legal</li>
-          <li>Skill Factory para scaffolding autom&aacute;tico</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4>&#128202; Memoria y Datos</h4>
-        <ul class="list">
-          <li>Engram: memoria persistente entre sesiones</li>
-          <li>Session manager con crash recovery</li>
-          <li>Track de tokens y costos por sesi&oacute;n</li>
-          <li>Session Summary Reference System</li>
-          <li>Backup autom&aacute;tico con verify de integridad</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4>&#9881; Calidad y Automatizaci&oacute;n</h4>
-        <ul class="list">
-          <li>29 quality gates en pipeline CI/CD</li>
-           <li>27 workflows GitHub Actions</li>
-          <li>Judgment Day: revisi&oacute;n dual adversarial</li>
-          <li>SDD Gate: bloquea PR sin spec validado</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 4: SDD LIFECYCLE ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">METODOLOG&Iacute;A</span>
-    <h2>SDD Lifecycle</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Spec-Driven Development: cada feature nace de un spec, pasa por dise&ntilde;o, implementaci&oacute;n y verificaci&oacute;n</p>
-    <div class="flow-row" style="margin-bottom:1.5rem">
-      <span class="flow-step">INIT</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">EXPLORE</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">PROPOSE</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">SPEC</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">TASKS</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">DESIGN</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">APPLY</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">VERIFY</span><span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">ARCHIVE</span>
-    </div>
-    <div class="grid-4">
-      <div class="card"><span class="feature-icon">&#128269;</span><h4>EXPLORE</h4><p>Agente BA descubre necesidades, restricciones y criterios de &eacute;xito.</p></div>
-      <div class="card"><span class="feature-icon">&#128221;</span><h4>SPEC</h4><p>Documento de especificaci&oacute;n estructurado con casos de uso.</p></div>
-      <div class="card"><span class="feature-icon">&#127912;</span><h4>DESIGN</h4><p>Arquitectura: componentes, API, base de datos, flujos.</p></div>
-      <div class="card"><span class="feature-icon">&#128187;</span><h4>APPLY</h4><p>Implementaci&oacute;n con skills espec&iacute;ficos por stack.</p></div>
-    </div>
-    <div class="highlight-box" style="margin-top:0.8rem;text-align:center;padding:0.8rem">
-      <span style="font-size:1.2rem">&#9889; </span>
-      <span style="font-size:0.8rem;color:var(--gv-text-muted)"><strong>SDD Gate</strong> bloquea PRs a main sin spec validado &middot; <strong>Quality Gates</strong> en cada etapa &middot; <strong>SDD Pipeline</strong> ejecutable automatizado</span>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 5: PROMPT OPTIMIZATION FRAMEWORK ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">OPTIMIZACI&Oacute;N</span>
-    <h2>Prompt Optimization Framework</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Reducci&oacute;n de tokens en system prompts sin p&eacute;rdida de calidad &mdash; 98% de reducci&oacute;n, 5-8x menos en costos de API</p>
-    <div class="grid-2" style="margin-top:1rem">
-      <div class="card" style="display:flex;flex-direction:column;justify-content:center">
-        <h4 style="font-size:1.1rem">Impacto en System Prompts</h4>
-        <div class="compare-bar">
-          <span class="label">Antes</span>
-          <div class="track"><div class="fill old" style="width:100%"></div></div>
-          <span class="pct">4,103 tok</span>
+    <div class="slides-wrapper" id="slidesWrapper">
+      <!-- Slide 1: Title -->
+      <div class="slide">
+        <div
+          class="slide-inner"
+          style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh"
+        >
+          <div class="version-badge">v3.2.0</div>
+          <div class="tag">AI-Powered Development Orchestrator</div>
+          <h1>GENTLE-VANGUARD</h1>
+          <p class="subtitle">
+            18 Agents · 386 Skills · OpenTelemetry Tracing · Skill Marketplace<br />
+            Tool-agnostic · SDD Lifecycle · Persistent Memory<br />
+            <em
+              >"Building the definitive bridge between software engineering and corporate
+              strategy."</em
+            >
+          </p>
+          <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap">
+            <a
+              href="https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/download/v3.2.0/gentle-vanguard-3.2.0.exe"
+              class="btn"
+              >Download v3.2.0</a
+            >
+            <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" class="btn btn-secondary"
+              >View on GitHub</a
+            >
+          </div>
         </div>
-        <div class="compare-bar">
-          <span class="label">Despu&eacute;s</span>
-          <div class="track"><div class="fill new" style="width:2.2%"></div></div>
-          <span class="pct">89 tok</span>
-        </div>
-        <div class="compare-bar">
-          <span class="label">Ahorro</span>
-          <div class="track"><div class="fill" style="width:100%;background:linear-gradient(90deg,var(--gv-success),var(--gv-accent-teal))"></div></div>
-          <span class="pct" style="color:var(--gv-success)">98%</span>
-        </div>
-        <p style="font-size:0.75rem;color:var(--gv-text-muted);margin-top:0.5rem">System prompts comprimidos, con cach&eacute; SHA256 y hot-reload</p>
       </div>
-      <div class="card">
-        <h4>Mecanismo</h4>
-        <ul class="list">
-          <li>Compresi&oacute;n de normativas v&iacute;a pre-compact hook</li>
-          <li>Cach&eacute; SHA256 con TTL 30min (-33-41% latencia)</li>
-          <li>Lazy loading de secciones no cr&iacute;ticas</li>
-          <li>Memory tiering: Hot &rarr; Warm &rarr; Cold</li>
-          <li>Pre-process-input hook con cache de respuestas</li>
-          <li>Handoff compression para subagentes</li>
-          <li>Modelo qwen-3.6-plus (4x m&aacute;s barato)</li>
-        </ul>
-      </div>
-    </div>
-    <div class="highlight-box" style="margin-top:0.8rem;text-align:center;padding:0.7rem">
-      <span style="font-size:1rem">&#9889; </span>
-      <span style="font-size:0.8rem;color:var(--gv-text-muted)"><strong>8 reglas</strong> en NORMATIVA-OPTIMIZATION-STACK &middot; Health check autom&aacute;tico &middot; Verify script dedicado</span>
-    </div>
-  </div>
-</div>
 
-<!-- ===== SLIDE 6: SKILLS SYSTEM ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">SKILLS</span>
-    <h2>Sistema Modular de Skills</h2>
-    <p class="subtitle" style="margin-bottom:1rem">386 skills instalados, registry auto-generado, ML router para asignaci&oacute;n inteligente</p>
-    <div class="stat-row" style="margin-bottom:1.2rem">
-      <div class="stat"><div class="stat-value">386</div><div class="stat-label">Skills instalados</div></div>
-      <div class="stat"><div class="stat-value">65+</div><div class="stat-label">Directorios</div></div>
-      <div class="stat"><div class="stat-value">18</div><div class="stat-label">Agentes destino</div></div>
-      <div class="stat"><div class="stat-value">0</div><div class="stat-label">Sin asignar</div></div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <h4>&#128736; T&eacute;cnicos</h4>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge dev">DEV</span> react-19, nextjs-15, tailwind-4, golang-api, django-drf, flutter, android-kotlin, ios-swiftui, typescript, zod, mcp-skill
-        </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge qa">QA</span> playwright, pytest, testing-strategy, testing-coverage, verificador-datos
-        </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge ops">OPS</span> docker-devops, kubernetes-deployment, terraform, observability, incident-response
-        </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge gov">GOV</span> judgment-day, security, comment-writer, self-diagnosis, gitflow-orchestrator
-        </div>
-        <div class="cat-row">
-          <span class="cat-badge doc">DOC</span> documentation-governance, humanizador, presentaciones-visuales, optimizador-prompts
+      <!-- Slide 2: The Silent Problem -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">The Problem</div>
+          <h2>The Silent Problem</h2>
+          <p class="subtitle">AI-assisted coding works, but without structure it is chaotic.</p>
+          <div class="grid-2">
+            <div class="card">
+              <h4>Environment Fragmentation</h4>
+              <p>Different configurations between developers. Hours wasted on setup.</p>
+            </div>
+            <div class="card">
+              <h4>Slow Onboarding</h4>
+              <p>Days lost installing tools and configuring environments for new team members.</p>
+            </div>
+            <div class="card">
+              <h4>Documentation Decay</h4>
+              <p>Technical documentation quickly becomes outdated without automated enforcement.</p>
+            </div>
+            <div class="card">
+              <h4>Security Risks</h4>
+              <p>Secret leaks, misconfigured tools, and inconsistent security practices.</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <h4>&#128200; Negocio y Gesti&oacute;n</h4>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge biz">MKT</span> marketing-content-writer, growth-hacker, content-strategist, seo-audit
+
+      <!-- Slide 3: The Solution & 3 Pillars -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">The Solution</div>
+          <h2>An Abstraction Layer That Unifies Development</h2>
+          <p class="subtitle">
+            "We don't just build code, we build a platform to scale engineering."
+          </p>
+          <div class="pillar-grid">
+            <div class="pillar-card">
+              <div class="icon">⚡</div>
+              <h4>Automation</h4>
+              <p style="color: var(--gv-text-muted); font-size: 0.9rem">
+                Repetitive processes eliminated. Pre-commit hooks, CI/CD, auto-enforcement.
+              </p>
+            </div>
+            <div class="pillar-card">
+              <div class="icon">🛡️</div>
+              <h4>Quality</h4>
+              <p style="color: var(--gv-text-muted); font-size: 0.9rem">
+                Embedded security and validation. 7D review, Judgment Day gates.
+              </p>
+            </div>
+            <div class="pillar-card">
+              <div class="icon">🧠</div>
+              <h4>AI-Ready</h4>
+              <p style="color: var(--gv-text-muted); font-size: 0.9rem">
+                Optimized for AI Agents. Engram memory, skill MCPs, adaptive profiles.
+              </p>
+            </div>
+          </div>
         </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge biz">SALES</span> sales-account-executive, sales-outbound-strategist
+      </div>
+
+      <!-- Slide 4: Platform Stats -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Platform Stats</div>
+          <h2>At a Glance</h2>
+          <div class="grid-4">
+            <div class="card">
+              <div class="num">18</div>
+              <h4>Agents</h4>
+              <p>Specialized AI agents</p>
+            </div>
+            <div class="card">
+              <div class="num">386</div>
+              <h4>Skills</h4>
+              <p>On-demand capabilities</p>
+            </div>
+            <div class="card">
+              <div class="num">27</div>
+              <h4>Workflows</h4>
+              <p>CI/CD automations</p>
+            </div>
+            <div class="card">
+              <div class="num">10</div>
+              <h4>Tools</h4>
+              <p>IDE integrations</p>
+            </div>
+          </div>
+          <div class="grid-4">
+            <div class="card">
+              <div class="num">60</div>
+              <h4>Normatives</h4>
+              <p>Governance standards</p>
+            </div>
+            <div class="card">
+              <div class="num">298</div>
+              <h4>Scripts</h4>
+              <p>AES-256 encrypted</p>
+            </div>
+            <div class="card">
+              <div class="num">7</div>
+              <h4>Layers</h4>
+              <p>Full stack depth</p>
+            </div>
+            <div class="card">
+              <div class="num">100%</div>
+              <h4>Agnostic</h4>
+              <p>Works with any tool</p>
+            </div>
+          </div>
         </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge biz">FINANCE</span> finance-financial-analyst
+      </div>
+
+      <!-- Slide 5: Architecture -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Architecture</div>
+          <h2>5-Layer Stack</h2>
+          <div class="arch-flow">
+            <div class="arch-box">
+              <h5>Layer 5</h5>
+              <p>Agents<br /><small>18 specialized agents</small></p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box">
+              <h5>Layer 4</h5>
+              <p>Commands<br /><small>gv.ps1, pre-process</small></p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box">
+              <h5>Layer 3</h5>
+              <p>MCP<br /><small>skill-server, bridge</small></p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box">
+              <h5>Layer 2</h5>
+              <p>Skills<br /><small>386 skills</small></p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box">
+              <h5>Layer 1</h5>
+              <p>Memory<br /><small>Engram persistent</small></p>
+            </div>
+          </div>
+          <div style="margin-top: 2rem">
+            <ul class="feature-list">
+              <li><strong>Tool-Agnostic:</strong> Works with 10 IDEs — zero vendor lock-in</li>
+              <li><strong>SDD Lifecycle:</strong> BA → SAD → DEV → QA enforcement</li>
+              <li><strong>Engram Memory:</strong> Hot/warm/cold tiers across sessions</li>
+              <li><strong>Cost-aware Router:</strong> Optimal model per task type</li>
+              <li><strong>Governance:</strong> 7D validation, Judgment Day review</li>
+            </ul>
+          </div>
         </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge biz">HR</span> hr-talent-acquisition
+      </div>
+
+      <!-- Slide 6: Tool-Agnostic Orchestration -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Hidden Layer #1</div>
+          <h2>Tool-Agnostic Orchestration</h2>
+          <p class="subtitle">10 Tools, 1 Stack — Zero Vendor Lock-In</p>
+          <div class="grid-3">
+            <div class="card">
+              <h4>OpenCode</h4>
+              <p>Native support with full MCP integration</p>
+            </div>
+            <div class="card">
+              <h4>Claude Code</h4>
+              <p>Full profile with Engram bridge</p>
+            </div>
+            <div class="card">
+              <h4>Cline</h4>
+              <p>Skill emulation + memory via .clinerules</p>
+            </div>
+            <div class="card">
+              <h4>Cursor</h4>
+              <p>Adaptive profile with .cursorrules</p>
+            </div>
+            <div class="card">
+              <h4>Windsurf</h4>
+              <p>Auto-detected and configured</p>
+            </div>
+            <div class="card">
+              <h4>Codex</h4>
+              <p>CLI-based with skill loading</p>
+            </div>
+            <div class="card">
+              <h4>Continue.dev</h4>
+              <p>Open-source IDE integration</p>
+            </div>
+            <div class="card">
+              <h4>Copilot</h4>
+              <p>GitHub ecosystem integration</p>
+            </div>
+            <div class="card">
+              <h4>Antigravity</h4>
+              <p>Dedicated adaptive profile</p>
+            </div>
+          </div>
+          <p style="text-align: center; margin-top: 1rem; color: var(--gv-text-muted)">
+            <code>detect-tool.ps1</code> auto-detects which tool is running and loads the right
+            config
+          </p>
         </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge biz">LEGAL</span> legal-compliance-officer
+      </div>
+
+      <!-- Slide 7: SDD Lifecycle + Judgment Day -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Hidden Layers #3 & #4</div>
+          <h2>SDD Lifecycle + 7D Validation</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h4>BA Explore</h4>
+              <p>
+                Business analysis and requirement gathering. Understands the problem before coding.
+              </p>
+            </div>
+            <div class="card">
+              <h4>SAD Design</h4>
+              <p>System architecture design. Creates specs that drive implementation.</p>
+            </div>
+            <div class="card">
+              <h4>DEV Implement</h4>
+              <p>Code generation following strict TDD. Each phase has model routing.</p>
+            </div>
+            <div class="card">
+              <h4>QA Verify</h4>
+              <p>Automated testing and validation gates before any merge.</p>
+            </div>
+          </div>
+          <div class="card" style="margin-top: 1rem">
+            <h4>Judgment Day — 7D Validation</h4>
+            <p>
+              No code ships without passing all 7 dimensions: Security · Performance · Readability ·
+              Maintainability · Testability · Documentation · Architecture
+            </p>
+            <p style="margin-top: 0.5rem; color: var(--gv-text-muted)">
+              393+ unit tests · 16 verification gates · Pre-commit hooks · TruffleHog scanning
+            </p>
+          </div>
         </div>
-        <div class="cat-row" style="margin-bottom:0.6rem">
-          <span class="cat-badge pm">BA</span> data-analyst, product-manager, project-manager, backlog-management
+      </div>
+
+      <!-- Slide 8: Auto-Delegation + Session Lifecycle -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Hidden Layers #5 & #6</div>
+          <h2>Auto-Delegation & Session Lifecycle</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h4>ML-Powered Routing</h4>
+              <p>
+                Config/auto-delegation.json maps keywords to skills and agents. Every message is
+                pre-processed and routed automatically.
+              </p>
+              <ul class="feature-list" style="margin-top: 1rem">
+                <li>80%+ direct routing confidence</li>
+                <li>60%+ confirmation threshold</li>
+                <li>BA explore fallback for ambiguous input</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4>Session Autostart</h4>
+              <p>
+                10-phase initialization: health check, tool detection, orphan cleanup, session init,
+                engram policy, optimization, skill registry, plugins, adaptive profiles.
+              </p>
+              <ul class="feature-list" style="margin-top: 1rem">
+                <li>Orphan detection and cleanup</li>
+                <li>Token budget tracking</li>
+                <li>Watchtower health check</li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <div class="cat-row">
-          <span class="cat-badge pm">PRE</span> premortem-skill, codegraph-skill
+      </div>
+
+      <!-- Slide 9: Security & Governance -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Hidden Layer #7</div>
+          <h2>Security & Governance</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h4>AES-256 Encryption</h4>
+              <p>
+                298 scripts encrypted. Zero plain-text scripts in public repo. Master key required
+                to decrypt.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Proactive Scanning</h4>
+              <p>
+                TruffleHog pre-commit hook scans for secrets. Gitleaks CI integration. Trivy
+                dependency scanning.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Multi-Layer Enforcement</h4>
+              <p>
+                Pre-response hook (every turn), pre-commit hooks (Lefthook), CI/CD (27 workflows),
+                adaptive enforcement.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Compliance Ready</h4>
+              <p>SOC2, GDPR frameworks documented. SBOM generation. Security audit trail.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 10: ROI Impact -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">Business Impact</div>
+          <h2>ROI Impact</h2>
+          <table class="comparison-table">
+            <tr>
+              <th>Metric</th>
+              <th>Before Gentle-Vanguard</th>
+              <th>After Gentle-Vanguard</th>
+            </tr>
+            <tr>
+              <td>Time on technical bureaucracy</td>
+              <td class="metric-before">~30%</td>
+              <td class="metric-after">~5%</td>
+            </tr>
+            <tr>
+              <td>Time on customer value delivery</td>
+              <td class="metric-before">~70%</td>
+              <td class="metric-after">~95%</td>
+            </tr>
+            <tr>
+              <td>New workstation setup</td>
+              <td class="metric-before">Hours to days</td>
+              <td class="metric-after">Single command</td>
+            </tr>
+            <tr>
+              <td>Documentation freshness</td>
+              <td class="metric-before">Manual, stale</td>
+              <td class="metric-after">Auto-generated</td>
+            </tr>
+            <tr>
+              <td>Security incident detection</td>
+              <td class="metric-before">Reactive</td>
+              <td class="metric-after">Proactive, pre-commit</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Slide 11: New in v3.1.0 -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">What's New</div>
+          <h2>v3.1.0 Features</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h4>Dashboard v4</h4>
+              <p>
+                OpenTelemetry tracing visualization with E2E traceability across all agents and
+                skills.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Skill Marketplace</h4>
+              <p>
+                Publishing, rating, and review system for skills. Community-driven extension
+                ecosystem.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Interactive Documentation</h4>
+              <p>Guided tutorials with progress tracking. Learn the stack step by step.</p>
+            </div>
+            <div class="card">
+              <h4>Performance Optimizations</h4>
+              <p>Code splitting with lazy loading and manual chunks for faster load times.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 12: v3.2.0 CopilotKit Native Patterns -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">What's New</div>
+          <h2>v3.2.0 CopilotKit Patterns</h2>
+          <p class="subtitle">5 patrones nativos sobre MCP — sin dependencia externa</p>
+          <div class="grid-2">
+            <div class="card">
+              <h4>Agent Chat Interface</h4>
+              <p>
+                Chat conversacional con 6 agentes, @mentions autocomplete, suggested actions,
+                historial persistente.
+              </p>
+            </div>
+            <div class="card">
+              <h4>AG-UI Protocol</h4>
+              <p>
+                7 hints renderizables (metric, datatable, chart, diff, form, list, alert) desde
+                respuestas de agentes via MCP.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Human-in-the-Loop</h4>
+              <p>
+                Modal de 4 modos (confirmación, selección, formulario, revisión) con detección
+                automática por keywords.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Shared State Bridge</h4>
+              <p>
+                Event bus → WebSocket → Dashboard en 3 canales (history, event, tasks) con polling
+                cada 3s.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Task Control & Timeline</h4>
+              <p>
+                Monitoreo de tareas activas con dispatch quick-action y timeline visual de eventos
+                expandible.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Session Persistence</h4>
+              <p>
+                Sesiones guardadas en disco y cargadas al startup. Historial accesible desde
+                sidebar.
+              </p>
+            </div>
+          </div>
+          <div style="margin-top: 2rem; text-align: center">
+            <a
+              href="https://github.com/EmmanuelOrtiz87/gentle-vanguard/blob/main/CHANGELOG.md"
+              class="btn"
+              >Full Changelog</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 12: Roadmap -->
+      <div class="slide">
+        <div
+          class="slide-inner"
+          style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh"
+        >
+          <div class="tag">Roadmap</div>
+          <h2>What's Next</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h4>Community Skills</h4>
+              <p>
+                Expansion of the Workspace-Skills library with community contributions and
+                validation.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Global Health Dashboard</h4>
+              <p>Real-time project health metrics across all repositories and teams.</p>
+            </div>
+            <div class="card">
+              <h4>CI/CD Expansion</h4>
+              <p>
+                Docker validation, integration tests in containerized environments, auto-update.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Auto-Update</h4>
+              <p>Launcher checks remote version and prompts for upgrade automatically.</p>
+            </div>
+          </div>
+          <div style="margin-top: 2rem; text-align: center">
+            <p class="subtitle">18 Agents · 386 Skills · 10 Tools · 27 Workflows · 60 Normatives</p>
+            <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" class="btn">GitHub</a>
+          </div>
         </div>
       </div>
     </div>
-    <div style="margin-top:0.7rem;text-align:center">
-      <span class="badge badge-blue">Skill Factory</span>
-      <span class="badge badge-blue">MCP Skill Server (143+ skills)</span>
-      <span class="badge badge-blue">ML Router (TF-IDF, ~400ms)</span>
-      <span class="badge badge-blue">Registry auto-generado</span>
-    </div>
-  </div>
-</div>
 
-<!-- ===== SLIDE 7: CAPACIDADES NATIVAS ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">CAPACIDADES</span>
-    <h2>Capacidades Nativas del Stack</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Funcionalidades integradas en el n&uacute;cleo de la plataforma &mdash; sin dependencias externas</p>
-    <div class="grid-2" style="margin-top:1rem">
-      <div class="card">
-        <div class="feature-icon">&#9879;</div>
-        <h4>Hashline</h4>
-        <p>Sistema de verificaci&oacute;n de integridad para configuraciones y artefactos. Garantiza que los archivos no hayan sido modificados fuera del pipeline. Hash + verify autom&aacute;tico en cada sesi&oacute;n.</p>
-        <p style="margin-top:0.5rem"><span class="badge badge-blue">Integrity</span><span class="badge badge-blue">Verify</span><span class="badge badge-blue">Auto-audit</span></p>
-      </div>
-      <div class="card">
-        <div class="feature-icon">&#128101;</div>
-        <h4>Team Mode</h4>
-        <p>Orquestaci&oacute;n multi-agente en paralelo. Divide tareas por skill, lanza subagentes simult&aacute;neos con PowerShell, sintetiza resultados. Coordinaci&oacute;n centralizada con routing v&iacute;a MCP.</p>
-        <p style="margin-top:0.5rem"><span class="badge badge-purple">Parallel</span><span class="badge badge-purple">Multi-agent</span><span class="badge badge-purple">Coordinated</span></p>
-      </div>
-      <div class="card">
-        <div class="feature-icon">&#128736;</div>
-        <h4>Skill MCP Server</h4>
-        <p>143+ skills expuestos como servidores MCP. Protocolo JSON-RPC estandarizado con 3 tools (list_skills, get_skill, search_skills). Compilaci&oacute;n autom&aacute;tica v&iacute;a lefthook pre-commit.</p>
-        <p style="margin-top:0.5rem"><span class="badge badge-cyan">MCP</span><span class="badge badge-cyan">JSON-RPC</span><span class="badge badge-cyan">TypeScript</span></p>
-      </div>
-      <div class="card">
-        <div class="feature-icon">&#128200;</div>
-        <h4>CodeGraph + LSP/AST</h4>
-        <p>Integraci&oacute;n con CodeGraph para an&aacute;lisis de c&oacute;digo profundo (588 nodos, 1197 edges). Language Server Protocol y Abstract Syntax Trees para refactors inteligentes y navegaci&oacute;n de c&oacute;digo.</p>
-        <p style="margin-top:0.5rem"><span class="badge badge-green">CodeGraph</span><span class="badge badge-green">AST</span><span class="badge badge-green">LSP</span></p>
-      </div>
-    </div>
-  </div>
-</div>
+    <script>
+      let currentSlide = 0;
+      const totalSlides = 13;
+      const wrapper = document.getElementById('slidesWrapper');
+      const navDots = document.getElementById('navDots');
 
-<!-- ===== SLIDE 8: DASHBOARD ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">OBSERVABILIDAD</span>
-    <h2>Dashboard &amp; Observabilidad</h2>
-    <p class="subtitle" style="margin-bottom:1rem">M&eacute;tricas en tiempo real con i18n, tooltips, exportaci&oacute;n y auto-refresh &mdash; completamente implementado</p>
-    <div class="grid-3" style="margin-top:0.5rem">
-      <div class="glass">
-        <div style="font-size:2rem;margin-bottom:0.3rem">&#127760;</div>
-        <h4 style="font-size:0.9rem">i18n Multi-idioma</h4>
-        <p style="font-size:0.78rem;color:var(--gv-text-muted)">Espa&ntilde;ol, Ingl&eacute;s, Portugu&eacute;s &mdash; switch en vivo sin recargar</p>
-      </div>
-      <div class="glass">
-        <div style="font-size:2rem;margin-bottom:0.3rem">&#128200;</div>
-        <h4 style="font-size:0.9rem">M&eacute;tricas en Tiempo Real</h4>
-        <p style="font-size:0.78rem;color:var(--gv-text-muted)">Tokens, sesiones, git stats, health status. Cards con tooltips y datos en vivo.</p>
-      </div>
-      <div class="glass">
-        <div style="font-size:2rem;margin-bottom:0.3rem">&#128260;</div>
-        <h4 style="font-size:0.9rem">Auto-refresh + Export</h4>
-        <p style="font-size:0.78rem;color:var(--gv-text-muted)">Actualizaci&oacute;n peri&oacute;dica automatizada. Exportaci&oacute;n a PDF y PNG.</p>
-      </div>
-    </div>
-    <div style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
-      <span class="badge badge-blue">reportes/dashboard.html</span>
-      <span class="badge badge-blue">reportes/dashboard-v2/</span>
-      <span class="badge badge-blue">reportes/sla-dashboard.html</span>
-    </div>
-    <div class="highlight-box" style="margin-top:0.8rem;text-align:center;padding:0.7rem">
-      <span style="font-size:1rem">&#9989; </span>
-      <span style="font-size:0.78rem;color:var(--gv-text-muted)">Dashboard CI en GitHub Actions &middot; auto-refresh semanal y mensual &middot; Dashboard v2 funcional con todas las capacidades</span>
-    </div>
-  </div>
-</div>
+      for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        navDots.appendChild(dot);
+      }
 
-<!-- ===== SLIDE 9: MEMORIA Y SESIONES ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">PERSISTENCIA</span>
-    <h2>Sesiones y Memoria</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Cada interacci&oacute;n ocurre dentro de una sesi&oacute;n con estado. La memoria cruza sesiones.</p>
-    <div class="grid-2">
-      <div class="card">
-        <h4>&#128337; Ciclo de Sesi&oacute;n</h4>
-        <div class="flow-row" style="margin-top:0.6rem;font-size:0.7rem">
-          <span class="flow-step">INACTIVE</span><span class="flow-arrow">&rarr;</span>
-          <span class="flow-step">STARTING</span><span class="flow-arrow">&rarr;</span>
-          <span class="flow-step badge-green">ACTIVE</span><span class="flow-arrow">&rarr;</span>
-          <span class="flow-step">CLOSING</span><span class="flow-arrow">&rarr;</span>
-          <span class="flow-step">CLOSED</span>
-        </div>
-        <ul class="list" style="margin-top:0.6rem">
-          <li>Session ID &uacute;nico: session-YYYY-MM-DD-XX</li>
-          <li>Pre-process input con cache SHA256</li>
-          <li>Token tracking y costo por sesi&oacute;n</li>
-          <li>Session Summary Reference System</li>
-          <li>Auto-generaci&oacute;n de NEXT_SESSION_GUIDE.md</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4>&#128214; Engram Memory System</h4>
-        <ul class="list">
-          <li>Persiste decisiones, bugs, patrones, configs</li>
-          <li>B&uacute;squeda sem&aacute;ntica entre sesiones</li>
-          <li>Tipos: decision, architecture, bugfix, pattern, discovery</li>
-          <li>Post-session learning + gap analysis</li>
-          <li>Self-healing post-watchtower</li>
-          <li>Backup autom&aacute;tico con verify semanal</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+      const dots = document.querySelectorAll('.nav-dot');
 
-<!-- ===== SLIDE 10: AGENTES ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">AGENTES</span>
-    <h2>18 Agentes Especializados</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Cada uno con modelo asignado, temperatura, presets de seguridad y evidencia requerida + ML router para asignaci&oacute;n inteligente</p>
-    <div class="col-agents" style="justify-content:center;margin-bottom:1.2rem">
-      <span class="agent-tag">ORCHESTRATOR</span><span class="agent-tag">BA</span><span class="agent-tag">SAD</span><span class="agent-tag">DEV</span><span class="agent-tag">QA</span>
-      <span class="agent-tag">OPS</span><span class="agent-tag">GOV</span><span class="agent-tag">DOC</span><span class="agent-tag">MKT</span>
-      <span class="agent-tag">SALES</span><span class="agent-tag">FINANCE</span><span class="agent-tag">HR</span><span class="agent-tag">LEGAL</span>
-      <span class="agent-tag">SESSION</span><span class="agent-tag">PREMORTEM</span>
-      <span class="agent-tag">EXPLORE</span><span class="agent-tag">GENERAL</span><span class="agent-tag">SDD-*</span>
-    </div>
-    <div class="grid-3">
-      <div class="card"><span class="feature-icon">&#128269;</span><h4>BA &middot; Business Analysis</h4><p>Exploraci&oacute;n de requerimientos, SDD EXPLORE. Modelo r&aacute;pido y econ&oacute;mico.</p></div>
-      <div class="card"><span class="feature-icon">&#127912;</span><h4>SAD &middot; System Architecture</h4><p>Dise&ntilde;o de sistemas, API contracts. Modelo de razonamiento fuerte.</p></div>
-      <div class="card"><span class="feature-icon">&#128187;</span><h4>DEV &middot; Development</h4><p>Implementaci&oacute;n y c&oacute;digo. 30+ skills t&eacute;cnicos por stack.</p></div>
-      <div class="card"><span class="feature-icon">&#9989;</span><h4>QA &middot; Quality Assurance</h4><p>Validaci&oacute;n cross-workspace, testing. Playwright, pytest, cobertura.</p></div>
-      <div class="card"><span class="feature-icon">&#128737;</span><h4>GOV &middot; Governance</h4><p>Judgment Day, security, compliance. Revisi&oacute;n adversarial dual.</p></div>
-      <div class="card"><span class="feature-icon">&#128214;</span><h4>DOC &middot; Documentation</h4><p>Docs, presentaciones, humanizaci&oacute;n. Modelo r&aacute;pido y econ&oacute;mico.</p></div>
-    </div>
-  </div>
-</div>
+      function goToSlide(n) {
+        currentSlide = n;
+        wrapper.style.transform = `translateX(-${n * 100}vw)`;
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === n);
+        });
+      }
 
-<!-- ===== SLIDE 11: TOOL COMPATIBILITY ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">COMPATIBILIDAD</span>
-    <h2>Soporte Multi-Herramienta</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">10 herramientas detectadas por runtime &mdash; 4 con skill tool nativo, 6 con perfil adaptivo</p>
-    <table>
-      <tr><th>Herramienta</th><th>Skill Tool</th><th>Mem Tools</th><th>Optimizaci&oacute;n</th></tr>
-      <tr><td><strong>opencode</strong> (baseline)</td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">Perfil dedicado</span></td></tr>
-      <tr><td><strong>claude-code</strong></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">Perfil dedicado</span></td></tr>
-      <tr><td><strong>continue-dev</strong></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">Perfil dedicado</span></td></tr>
-      <tr><td><strong>cursor</strong></td><td><span class="badge badge-yellow">Emulado</span></td><td><span class="badge badge-yellow">Emulado</span></td><td><span class="badge badge-yellow">v1.1 + inline skill emulation</span></td></tr>
-      <tr><td><strong>windsurf</strong></td><td><span class="badge badge-yellow">Emulado</span></td><td><span class="badge badge-yellow">Emulado</span></td><td><span class="badge badge-yellow">v1.2 + engram paths</span></td></tr>
-      <tr><td><strong>cline</strong></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-yellow">Adaptivo (compartido)</span></td></tr>
-      <tr><td><strong>codex</strong></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-yellow">Comparte perfil</span></td></tr>
-      <tr><td><strong>copilot</strong></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-yellow">Comparte perfil</span></td></tr>
-      <tr><td><strong>antigravity</strong></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-gray">NO</span></td><td><span class="badge badge-yellow">Perfil m&iacute;nimo</span></td></tr>
-      <tr><td><strong>claude-generic</strong></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-green">SI</span></td><td><span class="badge badge-yellow">Fallback sin optimizar</span></td></tr>
-    </table>
-    <p style="font-size:0.75rem;color:var(--gv-text-muted);margin-top:0.6rem"><span class="badge badge-cyan">Multi-tool config validator</span> unifica perfiles entre herramientas &middot; MCP bridge para herramientas sin skill tool nativo</p>
-  </div>
-</div>
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) {
+          goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
+          goToSlide(currentSlide - 1);
+        }
+      });
 
-<!-- ===== SLIDE 12: JUDGMENT DAY ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">CALIDAD</span>
-    <h2>Judgment Day</h2>
-    <p class="subtitle" style="margin-bottom:0.8rem">Protocolo de revisi&oacute;n dual adversarial. Dos jueces AI ciegos eval&uacute;an en paralelo, sintetizan, ofrecen fix cycle y re-eval&uacute;an.</p>
-    <div class="flow-row" style="margin-bottom:1.2rem;font-size:0.75rem">
-      <span class="flow-step">Juez A</span>
-      <span class="flow-step" style="border-color:rgba(168,85,247,0.25);background:rgba(168,85,247,0.08)">Juez B</span>
-      <span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">S&iacute;ntesis</span>
-      <span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">Fix Cycle</span>
-      <span class="flow-arrow">&rarr;</span>
-      <span class="flow-step">Re-Juicio</span>
-      <span class="flow-arrow">&rarr;</span>
-      <span class="flow-step badge-green">APPROVED</span>
-      <span class="flow-arrow" style="color:var(--gv-error)">&rarr;</span>
-      <span class="flow-step badge-red">ESCALATED</span>
-    </div>
-    <div class="grid-3">
-      <div class="card"><h4>&#9888; Ejecuci&oacute;n Autom&aacute;tica</h4>
-        <ul class="list">
-          <li>Pre-push hook: juzga cambios antes de push</li>
-          <li>Pre-merge-commit: juzga antes de merge PR</li>
-          <li>GitHub Actions: semanal (lun 10:00 ART)</li>
-          <li>Evento session.ended tambi&eacute;n lo dispara</li>
-        </ul>
-      </div>
-      <div class="card"><h4>&#128220; Reglas Duras</h4>
-        <ul class="list">
-          <li>Max 2 iteraciones de fix</li>
-          <li>Nunca declarar APPROVED si hay CRITICALs</li>
-          <li>Preservar posiciones minoritarias</li>
-          <li>Detectar sycophancy (cambio sin evidencia)</li>
-        </ul>
-      </div>
-      <div class="card"><h4>&#127919; Gobernanza</h4>
-        <ul class="list">
-          <li>Bloquea merge si judgment falla</li>
-          <li>Labels auto: approved/failed/pending</li>
-          <li>Coordina con CI pipeline</li>
-          <li>Reporta al event bus</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+      let touchStartX = 0;
+      document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+      });
 
-<!-- ===== SLIDE 13: QUALITY GATES ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">CALIDAD</span>
-    <h2>29 Quality Gates + 27 Workflows</h2>
-    <p class="subtitle" style="margin-bottom:1.2rem">Validaciones autom&aacute;ticas en cada etapa del ciclo de vida &mdash; 7 etapas, 29 gates, 27 workflows CI/CD</p>
-    <div class="grid-4">
-      <div class="card"><h4><span class="badge badge-blue">Pre-Commit</span></h4>
-        <ul class="list"><li>Hook scripts</li><li>JSON validator pre-call</li><li>Linting b&aacute;sico</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-blue">Build</span></h4>
-        <ul class="list"><li>SDD Gate</li><li>Script governance</li><li>Plugin validation</li><li>Multi-tool validator</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-blue">Test</span></h4>
-        <ul class="list"><li>67 test suites (Pester 5.x)</li><li>Routing language matrix</li><li>Cross-workspace validation</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-purple">Quality</span></h4>
-        <ul class="list"><li>Agent verify (16 checks)</li><li>Validate configs (71 JSONs)</li><li>Skill references integrity</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-purple">Security</span></h4>
-        <ul class="list"><li>Gitleaks scan</li><li>Security workflow</li><li>Token budget monitoring</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-purple">Governance</span></h4>
-        <ul class="list"><li>Judgment Day</li><li>SDD validation</li><li>Override abuse audit</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-cyan">CI/CD</span></h4>
-        <ul class="list">        <li>27 workflows GitHub Actions</li><li>Cross-platform tests</li><li>Dashboard auto-refresh</li></ul>
-      </div>
-      <div class="card"><h4><span class="badge badge-cyan">Post-Merge</span></h4>
-        <ul class="list"><li>Release validation</li><li>Homologation checks</li><li>Sync public repos</li></ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 14: PIPELINE CI/CD ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">AUTOMATIZACI&Oacute;N</span>
-    <h2>Pipeline CI/CD</h2>
-    <p class="subtitle" style="margin-bottom:1rem">27 workflows de GitHub Actions para validaci&oacute;n continua &mdash; todos operativos</p>
-    <div class="grid-3">
-      <div class="card"><h4>autonomous-validation.yml</h4><p>Push a develop + PR + semanal. Validaci&oacute;n integral, plugins, cross-workspace.</p></div>
-      <div class="card"><h4>gentle-vanguard-quality-gate.yml</h4><p>Push y PR a develop/main. Quality gates completos.</p></div>
-      <div class="card"><h4>security-scan.yml</h4><p>Escaneo de seguridad automatizado.</p></div>
-      <div class="card"><h4>gitleaks.yml</h4><p>Detecci&oacute;n de secrets en el c&oacute;digo.</p></div>
-      <div class="card"><h4>script-governance.yml</h4><p>Gobernanza de scripts PowerShell.</p></div>
-      <div class="card"><h4>sdd-gate.yml</h4><p>Valida specs SDD en PRs a protected branches.</p></div>
-      <div class="card"><h4>dashboard-ci.yml</h4><p>CI para dashboard v2 con validaci&oacute;n de m&eacute;tricas.</p></div>
-      <div class="card"><h4>dashboard-auto-refresh.yml</h4><p>Auto-refresh de m&eacute;tricas semanal y mensual.</p></div>
-      <div class="card"><h4>+19 workflows</h4><p>Cross-platform tests, format-check, labeler, release, ps-lint, workflow-lint, monthly-report, sync-public, test-suite, skill-scan, coverage, commitlint, markdown-lint, python-quality, js-ts-quality, npm-audit, stale, openapi-validate, maintenance-scheduled.</p></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 15: MCP + INTEGRACIONES ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">INFRAESTRUCTURA</span>
-    <h2>MCP Server &amp; Integraciones</h2>
-    <p class="subtitle" style="margin-bottom:1rem">Servicios MCP estandarizados y pol&iacute;ticas de seguridad en toda la plataforma</p>
-    <div class="grid-2">
-      <div class="card">
-        <h4>&#127760; MCP Skill Server</h4>
-        <p style="margin-bottom:0.8rem">143+ skills como servicios MCP estandarizados. Exposici&oacute;n via protocolo JSON-RPC.</p>
-        <ul class="list">
-          <li>3 tools: <strong>list_skills</strong>, <strong>get_skill</strong>, <strong>search_skills</strong></li>
-          <li>Resources: <strong>skill://registry</strong> + <strong>skill://{name}</strong></li>
-          <li>Compila con <code>pnpm tsc</code> &mdash; 0 errores, 0 warnings</li>
-          <li>Registrado en <code>opencode.json#mcp.skill-server</code></li>
-          <li><span class="badge badge-green">TESTED</span> JSON-RPC tools/list/tools/call funcional</li>
-          <li>CodeGraph + Engram tambi&eacute;n como servidores MCP</li>
-        </ul>
-        <p style="margin-top:0.5rem;font-size:0.7rem;color:var(--gv-text-muted)"><code>scripts/mcp/skill-server.ts</code> &rarr; TypeScript &rarr; <code>@modelcontextprotocol/sdk v1.29</code></p>
-      </div>
-      <div class="card">
-        <h4>&#128274; pnpm + --ignore-scripts</h4>
-        <p style="margin-bottom:0.8rem">Migraci&oacute;n completa de npm a pnpm v11.1.1 con pol&iacute;tica de seguridad estricta.</p>
-        <ul class="list">
-          <li><span class="badge badge-green">133</span> paquetes instalados en 5.5s</li>
-          <li><span class="badge badge-green">0</span> scripts de postinstall ejecutados</li>
-          <li><code>package.json</code>: packageManager + engines.pnpm</li>
-          <li><code>rules/NORMATIVA-PNPM-SECURITY.md</code> &mdash; 5 reglas obligatorias</li>
-          <li><code>lefthook.yml</code>: pre-commit <code>pnpm build:mcp</code> autom&aacute;tico</li>
-        </ul>
-        <p style="margin-top:0.5rem;font-size:0.7rem;color:var(--gv-warning)">&#9888; Supply-chain risk mitigation &mdash; --ignore-scripts es pol&iacute;tica permanente</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 16: ESTADO ACTUAL ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">ROADMAP</span>
-    <h2>Estado Actual v2.30.0</h2>
-    <p class="subtitle" style="margin-bottom:1rem">Homologaci&oacute;n completada &mdash; todas las capacidades activas y verificadas</p>
-    <div class="grid-2">
-      <div class="card">
-        <h4><span class="badge badge-green">100%</span> Homologado</h4>
-        <ul class="list">
-          <li>Detect tool + routing autom&aacute;tico (10 perfiles)</li>
-          <li>SDD Lifecycle completo (9 fases con pipeline ejecutable)</li>
-          <li>Judgment Day con hooks + CI + GitHub Actions semanal</li>
-          <li>Session lifecycle con Engram + backup autom&aacute;tico</li>
-          <li>29 quality gates funcionales en 7 etapas</li>
-           <li>27 GitHub Actions workflows operativos</li>
-           <li>ML Router TF-IDF + Engram RAG (vector index 1,289 docs)</li>
-           <li>Fine-tuning LoRA (2 adapters: BA, DEV) con pipeline CI semanal</li>
-           <li>Dashboard v3 (Chart.js, 9 secciones, WCAG 2.1 AA)</li>
-           <li>MCP Bridge universal multi-tool</li>
-           <li>Stack Status Report completo (docs/STACK-STATUS-REPORT.md)</li>
-          <li>Agent verify (16/16 checks pass)</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4><span class="badge badge-green">IMPLEMENTADO</span> Stack Completo</h4>
-        <ul class="list">
-          <li><span class="badge badge-green">DONE</span> Prompt Optimization Framework (-98% tokens, 5-8x ahorro)</li>
-          <li><span class="badge badge-green">DONE</span> Dashboard v2 con i18n + tooltips + export</li>
-          <li><span class="badge badge-green">DONE</span> Hashline, Team Mode, Skill MCPs, CodeGraph</li>
-          <li><span class="badge badge-green">DONE</span> Session Summary Reference System</li>
-          <li><span class="badge badge-green">DONE</span> MCP Skill Server + Skill Factory</li>
-          <li><span class="badge badge-green">DONE</span> pnpm security migration (--ignore-scripts)</li>
-          <li><span class="badge badge-green">DONE</span> SDD Pipeline ejecutable (9 fases)</li>
-          <li><span class="badge badge-green">DONE</span> JSON Validator + Tool Config Safety</li>
-          <li><span class="badge badge-green">DONE</span> lefthook pre-commit: pnpm build:mcp autom&aacute;tico</li>
-          <li><span class="badge badge-green">DONE</span> Optimization Stack (8 reglas, health check)</li>
-          <li><span class="badge badge-green">DONE</span> ML Router TF-IDF (387 skills, 1,070 t&eacute;rminos, ~400ms)</li>
-          <li><span class="badge badge-green">DONE</span> Engram RAG (vector index 1,289 docs x 7,317 t&eacute;rminos)</li>
-          <li><span class="badge badge-green">DONE</span> Dashboard v3 Chart.js (6 factory methods, 10 gr&aacute;ficos)</li>
-          <li><span class="badge badge-green">DONE</span> MCP Bridge universal multi-tool (cursor, windsurf, cline)</li>
-          <li><span class="badge badge-green">DONE</span> Fine-tuning LoRA (BA/DEV, pipeline CI semanal auto-prune)</li>
-          <li><span class="badge badge-green">DONE</span> Self-maintenance layer (threshold detector + auto-prune)</li>
-          <li><span class="badge badge-green">DONE</span> Skill Recommendation Engine (context-analyzer + skill-recommender)</li>
-          <li><span class="badge badge-green">DONE</span> Multi-repo Orchestration alpha</li>
-          <li><span class="badge badge-green">DONE</span> Auto-architecture docs (Mermaid diagrams desde CodeGraph)</li>
-          <li><span class="badge badge-green">DONE</span> Stack Status Report (docs/STACK-STATUS-REPORT.md)</li>
-          <li><span class="badge badge-gray">N/A</span> Skill tool nativo para cline/cursor/windsurf: limitaci&oacute;n de herramienta (MCP bridge disponible)</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 17: PLAN DE TRABAJO ===== -->
-<div class="slide">
-  <div class="slide-inner">
-    <span class="tag">FUTURO</span>
-    <h2>Plan de Trabajo &mdash; Pr&oacute;ximos Releases</h2>
-    <p class="subtitle" style="margin-bottom:1rem">Traditional: <code>docs/ROADMAP.md</code> &mdash; Prioridades identificadas post-audit v2.26.0</p>
-    <div class="grid-2">
-      <div class="card">
-        <h4>&#128640; Corto Plazo (v2.27.0 - v2.28.0)</h4>
-        <ul class="list">
-          <li><span class="badge badge-green">DONE</span> <strong>Auto-delegation router con ML</strong> &mdash; TF-IDF n-gram router activo (~400ms)</li>
-          <li><span class="badge badge-green">DONE</span> <strong>Engram RAG pipeline con vectores</strong> &mdash; TF-IDF vector index activo</li>
-          <li><span class="badge badge-green">DONE</span> <strong>Dashboard v3</strong> &mdash; Chart.js integrado, 9 secciones</li>
-          <li><span class="badge badge-green">DONE</span> <strong>MCP nativo multi-tool</strong> &mdash; MCP Bridge universal operativo</li>
-          <li><span class="badge badge-green">DONE</span> Skill factory auto-generativa</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h4>&#127919; Mediano/Largo Plazo (v2.31.0+)</h4>
-        <ul class="list">
-          <li><span class="badge badge-green">DONE</span> <strong>Agentes con fine-tuning por dominio</strong> &mdash; 2 adapters (BA, DEV) activos</li>
-          <li><span class="badge badge-green">DONE</span> <strong>Auto-documentaci&oacute;n de arquitectura</strong> &mdash; Mermaid diag. desde CodeGraph</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Multi-repo orchestration production-ready</strong> &mdash; Alpha stage actual</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Auto-norm learner autom&aacute;tico</strong> &mdash; Hoy es manual (bajo demanda)</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Benchmarking automatizado de skills</strong> &mdash; Suite de benchmarks para medir calidad y performance de cada skill</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Observabilidad distribuida cross-session</strong> &mdash; Trazabilidad extremo a extremo entre sesiones y herramientas</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Auto-update launcher</strong> &mdash; Mecanismo de actualizaci&oacute;n autom&aacute;tica del stack</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Secretlint pre-commit</strong> &mdash; Planificado para v2.31.0</li>
-          <li><span class="badge badge-yellow">PENDING</span> <strong>Coverage reporting (Pester CodeCoverage)</strong> &mdash; Planificado</li>
-        </ul>
-      </div>
-    </div>
-    <div class="highlight-box" style="margin-top:0.8rem;text-align:center;padding:0.7rem">
-      <span style="font-size:1rem">&#128196; </span>
-      <span style="font-size:0.78rem;color:var(--gv-text-muted)">Plan detallado en <strong>docs/ROADMAP.md</strong> &middot; Priorizaci&oacute;n basada en impacto vs esfuerzo &middot; Release cada 2-3 semanas</span>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SLIDE 18: CIERRE ===== -->
-<div class="slide">
-  <div class="slide-inner" style="text-align:center">
-    <div class="hero-icon">&#9889;</div>
-    <h1 class="gradient-text">GENTLE-VANGUARD</h1>
-    <p class="subtitle" style="font-size:clamp(1.3rem,2.5vw,1.8rem);margin-top:0.4em">El sistema operativo para ingenier&iacute;a con IA</p>
-    <div class="stat-row" style="margin-top:2rem">
-      <div class="stat"><div class="stat-value">10</div><div class="stat-label">Herramientas</div></div>
-      <div class="stat"><div class="stat-value">18</div><div class="stat-label">Agentes</div></div>
-      <div class="stat"><div class="stat-value">386</div><div class="stat-label">Skills</div></div>
-      <div class="stat"><div class="stat-value">29</div><div class="stat-label">Quality Gates</div></div>
-      <div class="stat"><div class="stat-value">27</div><div class="stat-label">Workflows</div></div>
-      <div class="stat"><div class="stat-value">60</div><div class="stat-label">Normativas</div></div>
-    </div>
-    <div class="quote" style="max-width:600px;margin:1.5rem auto">
-      &ldquo;Tool-agn&oacute;stico, modular, auto-mejorable. No importa qu&eacute; herramienta AI uses &mdash; Gentle-Vanguard se adapta.&rdquo;
-    </div>
-    <p style="font-size:0.8rem;color:var(--gv-text-muted);margin-top:1rem">
-      <span class="badge badge-blue">OpenCode</span>
-      <span class="badge badge-blue">Claude Code</span>
-      <span class="badge badge-blue">Cursor</span>
-      <span class="badge badge-blue">Windsurf</span>
-      <span class="badge badge-blue">Cline</span>
-      <span class="badge badge-blue">Continue.dev</span>
-      <span class="badge badge-blue">Codex</span>
-      <span class="badge badge-blue">Copilot</span>
-      <span class="badge badge-blue">Antigravity</span>
-      <span class="badge badge-blue">Claude Generic</span>
-    </p>
-    <p style="font-size:0.7rem;color:var(--gv-text-muted);margin-top:2rem;letter-spacing:0.15em;font-family:'Orbitron',monospace">JUNIO 2026 &middot; v2.30.0 &middot; gentle-vanguard</p>
-  </div>
-</div>
-
-</div>
-
-<script>
-let current = 0;
-const wrapper = document.getElementById('slidesWrapper');
-const slides = document.querySelectorAll('.slide');
-const total = slides.length;
-const progress = document.getElementById('progressBar');
-const counter = document.getElementById('slideCounter');
-
-function pad(n) { return n < 10 ? '0' + n : n; }
-
-function update() {
-  wrapper.style.transform = 'translateX(-' + (current * 100) + 'vw)';
-  progress.style.width = ((current + 1) / total * 100) + '%';
-  counter.textContent = pad(current + 1) + ' / ' + pad(total);
-  document.getElementById('prevBtn').style.opacity = current === 0 ? '0.25' : '1';
-  document.getElementById('nextBtn').style.opacity = current === total - 1 ? '0.25' : '1';
-}
-
-function nextSlide() { if (current < total - 1) { current++; update(); } }
-function prevSlide() { if (current > 0) { current--; update(); } }
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextSlide(); }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
-  if (e.key === 'Home') { current = 0; update(); }
-  if (e.key === 'End') { current = total - 1; update(); }
-});
-
-let touchStart = 0;
-document.addEventListener('touchstart', function(e) { touchStart = e.touches[0].clientX; });
-document.addEventListener('touchend', function(e) {
-  const diff = touchStart - e.changedTouches[0].clientX;
-  if (Math.abs(diff) > 50) { diff > 0 ? nextSlide() : prevSlide(); }
-});
-
-let wheelTimeout = false;
-document.addEventListener('wheel', function(e) {
-  if (wheelTimeout) return;
-  wheelTimeout = true;
-  setTimeout(function() { wheelTimeout = false; }, 800);
-  if (e.deltaY > 0) nextSlide();
-  else prevSlide();
-});
-
-update();
-</script>
-</body>
+      document.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0 && currentSlide < totalSlides - 1) {
+            goToSlide(currentSlide + 1);
+          } else if (diff < 0 && currentSlide > 0) {
+            goToSlide(currentSlide - 1);
+          }
+        }
+      });
+    </script>
+  </body>
 </html>

@@ -1,7 +1,0 @@
-﻿interface:
-  display_name: 'Documentation Governance'
-  short_description: 'Standardize project docs, reviews, and script comments'
-  default_prompt:
-    'Use this skill when creating or updating documentation, code reviews, setup guides, README
-    files, or script comments. Keep the output in English, use numbered steps when order matters,
-    enumerate the relevant files and scripts, and remove stale references or duplicate guidance.'

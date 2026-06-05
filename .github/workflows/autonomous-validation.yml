@@ -9,9 +9,9 @@ concurrency:
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   schedule:
     - cron: '0 13 * * 1' # Weekly on Monday at 10:00 GMT-3 (13:00 UTC)
 
@@ -87,3 +87,4 @@ jobs:
         with:
           name: validation-report
           path: .session/reports/
+

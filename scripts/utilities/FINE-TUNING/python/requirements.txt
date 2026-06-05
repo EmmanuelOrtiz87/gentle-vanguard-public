@@ -1,9 +1,0 @@
-# LoRA fine-tuning dependencies (optional — only for actual training)
-# Install: pip install -r requirements.txt
-unsloth>=2024.5
-transformers>=4.38
-torch>=2.2
-datasets>=2.18
-accelerate>=0.27
-trl>=0.8
-sentencepiece>=0.2
