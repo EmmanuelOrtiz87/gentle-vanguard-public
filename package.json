@@ -17,6 +17,7 @@
     "format:fix": "pnpm prettier --write \"**/*.{md,json,yml,yaml}\" ",
     "prepare": "pnpm lefthook install",
     "coverage": "c8 --reporter=text --reporter=lcov --reporter=html node --test \"tests/**/*.spec.js\"",
+    "secretlint": "secretlint \"**/*.{json,yml,yaml,md,env,toml,xml}\" --secretlintrc .secretlintrc.json",
     "build:mcp": "pnpm tsc",
     "build:mcp:watch": "pnpm tsc --watch",
     "mcp:start": "node dist/scripts/mcp/skill-server.js",
@@ -31,6 +32,7 @@
     "postinstall": "pnpm build:mcp"
   },
   "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "^9.0.0",
     "@types/node": "^25.9.1",
     "@typescript-eslint/eslint-plugin": "^8.30.0",
     "@typescript-eslint/parser": "^8.30.0",
@@ -39,9 +41,11 @@
     "eslint": "^8.57.0",
     "lefthook": "^2.1.8",
     "prettier": "^3.0.0",
+    "secretlint": "^9.0.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
   }
 }
