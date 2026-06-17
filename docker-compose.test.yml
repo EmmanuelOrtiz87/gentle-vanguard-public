@@ -21,6 +21,67 @@ services:
     networks:
       - gv-test-network
 
+  dashboard-test:
+    image: node:20-alpine
+    container_name: gv-dashboard-test
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/apps/web-dashboard
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm vitest run --reporter verbose"
+    networks:
+      - gv-test-network
+
+  mcp-test:
+    image: node:20-alpine
+    container_name: gv-mcp-test
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command:
+      sh -c "npm install -g pnpm && pnpm install && pnpm vitest run tests/unit/mcp/ --reporter
+      verbose"
+    networks:
+      - gv-test-network
+
+  integration-test:
+    image: node:20-alpine
+    container_name: gv-integration-test
+    depends_on:
+      - dashboard-test
+      - mcp-test
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command:
+      sh -c "npm install -g pnpm && pnpm install && pnpm vitest run tests/integration/ --reporter
+      verbose --coverage"
+    networks:
+      - gv-test-network
+
+  lint-test:
+    image: node:20-alpine
+    container_name: gv-lint-test
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm lint && pnpm format:check"
+    networks:
+      - gv-test-network
+
+  security-scan:
+    image: aquasec/trivy:latest
+    container_name: gv-security-scan
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /workspace
+    command: >
+      sh -c " trivy fs --severity HIGH,CRITICAL --exit-code 0 /workspace && apk add --no-cache git
+      && git clone https://github.com/gitleaks/gitleaks /tmp/gitleaks && /tmp/gitleaks/gitleaks
+      detect --source /workspace --config /workspace/.gitleaks.toml --no-git -v "
+    networks:
+      - gv-test-network
+
 networks:
   gv-test-network:
     driver: bridge
