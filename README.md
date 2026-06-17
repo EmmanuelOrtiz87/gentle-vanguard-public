@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.2.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.3.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
@@ -17,7 +17,7 @@
   &nbsp;·&nbsp;
   <a href="docs/getting-started/README.md">Getting Started</a>
   &nbsp;·&nbsp;
-  <a href="../../releases">Releases</a>
+  <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases">Releases</a>
   &nbsp;·&nbsp;
   <a href="docs/SECURITY.md">Security</a>
 </p>
@@ -35,7 +35,7 @@ standards, tracks every token, and remembers what you did last session.
 
 ---
 
-## What It Solves
+## 🎯 What It Solves
 
 | Problem                       | How Gentle-Vanguard Solves It                              |
 | ----------------------------- | ---------------------------------------------------------- |
@@ -49,14 +49,14 @@ standards, tracks every token, and remembers what you did last session.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```powershell
 # Download latest release
 # https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
 
 # Run
-./gentle-vanguard-3.2.0.exe -Dashboard
+./gentle-vanguard-3.3.0.exe -Dashboard
 ```
 
 Or use the portable version:
@@ -68,75 +68,123 @@ Or use the portable version:
 
 ---
 
-## Installation
+## 📦 Installation
 
 ### System Requirements
 
-- **OS**: Windows 10/11, Linux (Ubuntu 22.04+), macOS 14+
-- **PowerShell**: 7.4+
-- **Memory**: 4 GB RAM minimum
-- **Disk**: 500 MB free
+| Requirement    | Minimum                                         |
+| -------------- | ----------------------------------------------- |
+| **OS**         | Windows 10/11, Linux (Ubuntu 22.04+), macOS 14+ |
+| **PowerShell** | 7.4+                                            |
+| **Memory**     | 4 GB RAM                                        |
+| **Disk**       | 500 MB free                                     |
 
 ### Step-by-Step
 
 1. Download the latest `.exe` from
    [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
 2. Run the executable — the installer will set up all dependencies
-3. Launch with `./gentle-vanguard-3.2.0.exe -Dashboard`
+3. Launch with `./gentle-vanguard-3.3.0.exe -Dashboard`
 4. Open `http://localhost:3000` in your browser
 
 ---
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
+```mermaid
+graph TB
+    subgraph User["👤 User Layer"]
+        CLI[CLI]
+        DASH[Dashboard]
+        IDE[IDE Integration]
+    end
+
+    subgraph Orchestrator["🎯 Orchestration Layer"]
+        INPUT[pre-process-input]
+        TRIGGER[Trigger System]
+        DISPATCH[Agent Dispatch]
+    end
+
+    subgraph Agents["🤖 Agent Layer"]
+        BA[BA - Business Analyst]
+        SAD[SAD - Architect]
+        DEV[DEV - Developer]
+        QA[QA - Tester]
+        OPS[OPS - DevOps]
+        GOV[GOV - Governance]
+    end
+
+    subgraph Skills["⚡ Skill Layer"]
+        SKILLS[386 On-Demand Skills]
+    end
+
+    subgraph Memory["🧠 Memory Layer"]
+        ENGRAM[Persistent Memory]
+    end
+
+    User --> Orchestrator
+    Orchestrator --> Agents
+    Agents --> Skills
+    Agents --> Memory
 ```
-┌──────────────────────────────────────────────────┐
-│                   USER LAYER                      │
-│         (CLI · Dashboard · IDE Integration)       │
-├──────────────────────────────────────────────────┤
-│               ORCHESTRATION LAYER                 │
-│    pre-process-input → trigger → agent dispatch   │
-├──────────────────────────────────────────────────┤
-│                   AGENT LAYER                     │
-│    BA · SAD · DEV · QA · OPS · GOV · DOC · more  │
-├──────────────────────────────────────────────────┤
-│                    SKILL LAYER                    │
-│    386 on-demand skills (web, mobile, security…)  │
-├──────────────────────────────────────────────────┤
-│                  MEMORY LAYER                     │
-│     Engram persistent memory (hot/warm/cold)      │
-└──────────────────────────────────────────────────┘
-```
 
 ---
 
-## New in v3.2.0 — CopilotKit Native Patterns
+## ✨ What's New in v3.3.0
 
-- **Agent Chat**: Conversational interface with 6 agents, @mentions autocomplete, suggested actions
-- **AG-UI Protocol**: 7 interactive UI hints from agents (metric, datatable, chart, diff, form,
-  list, alert)
-- **Human-in-the-Loop**: 4-mode approval modal with auto-detection
-- **Task Control**: Real-time agent task monitoring with quick dispatch
-- **Session Timeline**: Visual event timeline with expandable payloads
-- **Session Persistence**: Chat history saved across restarts
-- **Shared State Bridge**: Event bus connected to dashboard via WebSocket
+### 🔄 Adaptive Feedback Loop
+
+The system now learns from your corrections in real-time:
+
+- **Correction Capture**: Automatically detects when you modify AI-generated code
+- **Pattern Detector**: Identifies recurring correction patterns across sessions
+- **Smart Suggestions**: Applies learned patterns to future generations
+
+### 📊 Session Quality Scoring
+
+Track your session health with objective metrics:
+
+- **Baseline Score**: 81/100 starting quality metric
+- **Real-time Updates**: Score adjusts as you work
+- **Trend Analysis**: See improvement over time
+
+### 🧠 Auto Norm Learner
+
+Automatically builds coding standards from your patterns:
+
+- **144 Rules**: Baseline rule set for common patterns
+- **Auto-discovery**: New rules added as patterns emerge
+- **Team Sync**: Share rules across your organization
+
+### 🛠️ Stability Improvements
+
+6 critical fixes for smoother operation:
+
+- Improved session recovery after interruptions
+- Better handling of large file operations
+- Enhanced memory persistence reliability
+- Faster agent dispatch response times
+- Reduced memory footprint
+- Improved cross-platform compatibility
 
 ---
 
-## Documentation
+## 📚 Documentation
 
-- [Getting Started](docs/getting-started/README.md)
-- [Installation Guide](docs/getting-started/installation.md)
-- [Stack Setup](docs/getting-started/STACK-SETUP.md)
-- [Changelog](CHANGELOG.md)
-- [Examples](docs/EXAMPLES.md)
+| Resource                                                   | Description                 |
+| ---------------------------------------------------------- | --------------------------- |
+| [Getting Started](docs/getting-started/README.md)          | First-time setup guide      |
+| [Installation Guide](docs/getting-started/installation.md) | Detailed installation steps |
+| [Stack Setup](docs/getting-started/STACK-SETUP.md)         | Full stack configuration    |
+| [Changelog](CHANGELOG.md)                                  | Version history             |
+| [Examples](docs/EXAMPLES.md)                               | Usage examples              |
 
 ---
 
-## License
+## 📄 License
 
 MIT © 2026 Emmanuel Ortiz
 
 ---
 
-_Gentle-Vanguard v3.2.0 — Don't let your mellow hustle be faded_
+_Gentle-Vanguard v3.3.1 — Don't let your mellow hustle be faded_

@@ -44,7 +44,7 @@ When using Claude or Copilot, watch for these keywords and manually load the cor
 | Django, Django REST Framework, DRF, ViewSet, Serializer, APIView                                                                          | `django-drf-skill`            |
 | security, authentication, authorization, vulnerability, CVE, OWASP, XSS, SQL injection, secrets, encryption                               | `security-skill`              |
 | test, write test, test coverage, unit test, integration test, e2e test, testing framework, test setup                                     | `testing-skill`               |
-| test strategy, test pyramid, what to test, coverage target, unit test, integration test                                                  | `testing-skill`               |
+| test strategy, test pyramid, what to test, coverage target, unit test, integration test                                                   | `testing-skill`               |
 | iniciar sesión, session, start session                                                                                                    | `session-lifecycle`           |
 | audit gentle-vanguard, validate docs, sweep project, check links, find duplicates, fix references, homologate, validation sweep, gv audit | `gentle-vanguard-audit-skill` |
 | new project, assess project, setup project, migrate, refactor decisión, organize docs                                                     | `project-orchestrator-skill`  |
