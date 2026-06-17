@@ -1,9 +1,19 @@
 # Changelog
 
-## [3.2.0] - 2026-06-04
+## [3.3.0] - 2026-06-05
 
 ### Added
 
+- **Community Skills**: Issue template for contributions, CI validation workflow, real marketplace
+  API scanning `skills/` directory, `submit-community-skill.ps1` packaging script
+- **Global Health Dashboard**: `GlobalHealth.tsx` component with cross-repo status,
+  `global-health-api.ts` endpoint, integrated into Dashboard and WebSocket metrics
+- **CI/CD Expansion**: Root `Dockerfile` (multi-stage MCP server), dashboard `Dockerfile`
+  (Vite→nginx), `nginx.conf`, `docker-validate.yml`, `integration-tests.yml`, 14 API integration
+  tests, 6-service `docker-compose.test.yml`
+- **Auto-Update**: `check-version.ps1` (GitHub API semver comparison), `auto-update.ps1`
+  (download/backup/restore), `gentle-vanguard.ps1` updated with `-Update`/`-CheckVersion` flags and
+  dynamic version from `VERSION` file, `auto-update.yml` release workflow
 - **CopilotKit Patterns (Fase 1-4)**: Native adoption of 5 CopilotKit patterns over MCP
 - **AG-UI Protocol**: 7 ui_hints renderers (metric, datatable, chart, diff, form, list, alert) in
   AgentMessage component

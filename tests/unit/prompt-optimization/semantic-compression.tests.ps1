@@ -1,6 +1,6 @@
 Describe "Semantic Compression Tests" {
     BeforeAll {
-        $scriptPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\PROMPT\semantic-compression.ps1"
+        $scriptPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\memory\PROMPT\semantic-compression.ps1"
         $testInput = "C:\Workspace_local\gentle-vanguard\tests\unit\prompt-optimization\test-input.md"
         $testOutput = "C:\Workspace_local\gentle-vanguard\tests\unit\prompt-optimization\test-output.md"
         "implementation function configuration" | Set-Content $testInput
