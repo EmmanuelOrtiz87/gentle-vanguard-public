@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.3.1] - 2026-06-17
+
+### Changed
+
+- **CI/CD Consolidation**: 35 workflows reduced to 12 (6 reusable + 6 triggers + 4 retained).
+  Reusable workflow_call pattern for lint, test, security, docker, release, governance.
+- **Structured Logging**: New `Logger.psm1` module writes JSONL to `.session/logs/`. Integrated into
+  all 5 adaptive scripts (correction-capture, session-scoring, pattern-detector, auto-norm-learner,
+  auto-norm-enforcer).
+- **Dual-Write Norms**: `auto-norm-learner.ps1` now writes both `LEARNED-NORMS.md` (backward
+  compatible) and `norms-registry.json` (144 normas with versioned schema, hitCount, successRate).
+- **Adapter Consolidation**: 3 JS adapters (antigravity, codex, windsurf) merged into one TypeScript
+  `adapters/index.ts` (570→80 lines).
+- **Docker Compose**: Root `docker-compose.yml` with 5 services (web-dashboard, mcp-server,
+  websocket-server, health-api, pwsh-toolbox) — all with healthchecks.
+- **Health Endpoint**: Expanded `/api/health` to report websocket, MCP, and adaptive component
+  status (normsLoaded, sessionScore).
+
+### Removed
+
+- **skills-archive/**: Deleted ~1000 files of dead code (skills migrated to root `skills/` long
+  ago).
+- **29 legacy workflows**: Replaced by 6 reusable + 3 trigger workflows.
+- **Root Python scripts**: 22 RLHF-related scripts moved to `research/rlhf-dataset-search/`.
+
+### Fixed
+
+- **package.json**: Version corrected from `"1.0.1"` to `"3.3.0"` (was out of sync).
+
 ## [3.3.0] - 2026-06-05
 
 ### Added
