@@ -1,6 +1,6 @@
 Describe "Prompt Cache Tests" {
     BeforeAll {
-        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\PROMPT\prompt-cache.ps1"
+        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\memory\PROMPT\prompt-cache.ps1"
         $testDir = "C:\Workspace_local\gentle-vanguard\tests\unit\prompt-optimization\test-cache"
     }
     
