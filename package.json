@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "1.0.1",
+  "version": "3.3.0",
   "packageManager": "pnpm@11.1.1",
   "engines": {
     "pnpm": ">=11.0.0",
@@ -24,11 +24,19 @@
     "mcp:test": "pwsh scripts/health-check/health-check.ps1 -Component mcp",
     "team:run": "pwsh scripts/team-mode/team-orchestrator.ps1",
     "sdd:run": "pwsh scripts/sdd-pipeline/sdd-pipeline.ps1",
-    "session:index": "pwsh scripts/utilities/SESSION/session-reference-system.ps1 -Mode index",
-    "session:guide": "pwsh scripts/utilities/SESSION/session-reference-system.ps1 -Mode guide",
-    "factory:run": "pwsh scripts/utilities/SKILL-FACTORY/skill-factory.ps1",
+    "session:index": "pwsh scripts/utilities/session/session-reference-system.ps1 -Mode index",
+    "session:guide": "pwsh scripts/utilities/session/session-reference-system.ps1 -Mode guide",
+    "factory:run": "pwsh scripts/utilities/skill-factory/skill-factory.ps1",
     "health:check": "pwsh scripts/health-check/health-check.ps1",
     "health:check:quiet": "pwsh scripts/health-check/health-check.ps1 -Quiet",
+    "update:check": "pwsh scripts/utilities/utils/check-version.ps1",
+    "update:run": "pwsh scripts/utilities/utils/auto-update.ps1",
+    "docker:build": "docker build -t gentle-vanguard .",
+    "docker:test": "docker compose -f docker-compose.test.yml up --abort-on-container-exit",
+    "test:integration": "node --test tests/integration/api-health.test.js",
+    "dashboard:build": "cd apps/web-dashboard && pnpm build",
+    "dashboard:dev": "cd apps/web-dashboard && pnpm dev",
+    "dashboard:server": "node apps/web-dashboard/server/websocket-server.ts",
     "postinstall": "pnpm build:mcp"
   },
   "devDependencies": {
@@ -42,7 +50,9 @@
     "lefthook": "^2.1.8",
     "prettier": "^3.0.0",
     "secretlint": "^9.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.1.3",
+    "@playwright/test": "^1.54.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
