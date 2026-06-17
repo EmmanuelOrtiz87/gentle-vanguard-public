@@ -347,7 +347,8 @@ Test-Path package-lock.json  # Must be True
 Test-Path node_modules/@modelcontextprotocol/server-filesystem
 ```
 
-**DEPRECATED** — MCP configuration via `config/mcp-servers.json` was removed. Active MCPs are defined in `opencode.json#mcp`.
+**DEPRECATED** — MCP configuration via `config/mcp-servers.json` was removed. Active MCPs are
+defined in `opencode.json#mcp`.
 
 **Global NPM Security Policy (.npmrc)**:
 

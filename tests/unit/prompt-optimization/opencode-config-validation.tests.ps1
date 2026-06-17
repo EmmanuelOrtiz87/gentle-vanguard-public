@@ -1,8 +1,8 @@
 Describe "OpenCode Config Validation Tests" {
     BeforeAll {
-        $validatorPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\CONFIG\validate-opencode-config.ps1"
+        $validatorPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\config\validate-opencode-config.ps1"
         $configPath = Join-Path $PSScriptRoot "..\..\..\opencode.json"
-        $optimizerPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\SYSTEM\system-prompt-optimizer.ps1"
+        $optimizerPath = Join-Path $PSScriptRoot "..\..\..\scripts\utilities\system\system-prompt-optimizer.ps1"
     }
 
     It "Should pass validation (no unknown properties in opencode.json)" {

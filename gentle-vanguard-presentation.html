@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gentle-Vanguard v3.2.0 · Platform Overview</title>
+    <title>Gentle-Vanguard v3.3.0 · Platform Overview</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
       :root {
@@ -393,12 +393,12 @@
           class="slide-inner"
           style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh"
         >
-          <div class="version-badge">v3.2.0</div>
+          <div class="version-badge">v3.3.0</div>
           <div class="tag">AI-Powered Development Orchestrator</div>
           <h1>GENTLE-VANGUARD</h1>
           <p class="subtitle">
-            18 Agents · 386 Skills · OpenTelemetry Tracing · Skill Marketplace<br />
-            Tool-agnostic · SDD Lifecycle · Persistent Memory<br />
+            18 Agents · 386 Skills · OpenTelemetry Tracing · Community Skills<br />
+            Tool-agnostic · SDD Lifecycle · Global Health Dashboard · Auto-Update<br />
             <em
               >"Building the definitive bridge between software engineering and corporate
               strategy."</em
@@ -406,9 +406,9 @@
           </p>
           <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap">
             <a
-              href="https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/download/v3.2.0/gentle-vanguard-3.2.0.exe"
+              href="https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/download/v3.3.0/gentle-vanguard-3.3.0.exe"
               class="btn"
-              >Download v3.2.0</a
+              >Download v3.3.0</a
             >
             <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" class="btn btn-secondary"
               >View on GitHub</a
@@ -507,9 +507,9 @@
           </div>
           <div class="grid-4">
             <div class="card">
-              <div class="num">60</div>
-              <h4>Normatives</h4>
-              <p>Governance standards</p>
+              <div class="num">30</div>
+              <h4>Workflows</h4>
+              <p>CI/CD automations</p>
             </div>
             <div class="card">
               <div class="num">298</div>
@@ -803,12 +803,12 @@
         </div>
       </div>
 
-      <!-- Slide 12: v3.2.0 CopilotKit Native Patterns -->
+      <!-- Slide 12: v3.3.0 Adaptive + CopilotKit Patterns -->
       <div class="slide">
         <div class="slide-inner">
           <div class="tag">What's New</div>
-          <h2>v3.2.0 CopilotKit Patterns</h2>
-          <p class="subtitle">5 patrones nativos sobre MCP — sin dependencia externa</p>
+          <h2>v3.3.0 Adaptive Loop &amp; CopilotKit</h2>
+          <p class="subtitle">Feedback loop adaptativo + 5 patrones nativos MCP</p>
           <div class="grid-2">
             <div class="card">
               <h4>Agent Chat Interface</h4>
@@ -863,7 +863,46 @@
         </div>
       </div>
 
-      <!-- Slide 12: Roadmap -->
+      <!-- Slide 13: v3.3.0 Features -->
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="tag">What's New</div>
+          <h2>v3.3.0 Platform Expansion</h2>
+          <p class="subtitle">4 roadmap features delivered in a single release</p>
+          <div class="grid-2">
+            <div class="card">
+              <h4>✓ Community Skills</h4>
+              <p>
+                Issue template for skill contributions, CI validation workflow, real marketplace API
+                scanning 386 skills, <code>submit-community-skill.ps1</code> packaging script.
+              </p>
+            </div>
+            <div class="card">
+              <h4>✓ Global Health Dashboard</h4>
+              <p>
+                Cross-repository health metrics with status banners, summary stats, and expandable
+                repository table. Real-time via WebSocket.
+              </p>
+            </div>
+            <div class="card">
+              <h4>✓ CI/CD Expansion</h4>
+              <p>
+                Multi-stage Docker builds, 6-service test compose, 14 API integration tests,
+                docker-validate &amp; integration-tests CI workflows, Trivy scanning.
+              </p>
+            </div>
+            <div class="card">
+              <h4>✓ Auto-Update</h4>
+              <p>
+                Version check via GitHub API, auto-download with backup/rollback, launcher flags
+                <code>-Update</code>/<code>-CheckVersion</code>, release workflow.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 14: Roadmap -->
       <div class="slide">
         <div
           class="slide-inner"
@@ -873,29 +912,28 @@
           <h2>What's Next</h2>
           <div class="grid-2">
             <div class="card">
-              <h4>Community Skills</h4>
+              <h4>Multi-Repo Health Aggregation</h4>
               <p>
-                Expansion of the Workspace-Skills library with community contributions and
-                validation.
+                Connect to GitHub API for real cross-repository health data instead of mock data.
               </p>
             </div>
             <div class="card">
-              <h4>Global Health Dashboard</h4>
-              <p>Real-time project health metrics across all repositories and teams.</p>
+              <h4>Skill Versioning &amp; Dependencies</h4>
+              <p>Semver tracking for skills with dependency resolution and rollback support.</p>
             </div>
             <div class="card">
-              <h4>CI/CD Expansion</h4>
+              <h4>Dashboard Alerting</h4>
               <p>
-                Docker validation, integration tests in containerized environments, auto-update.
+                Configure thresholds and receive Slack/Email notifications on health degradation.
               </p>
             </div>
             <div class="card">
-              <h4>Auto-Update</h4>
-              <p>Launcher checks remote version and prompts for upgrade automatically.</p>
+              <h4>Container Registry Publishing</h4>
+              <p>Auto-publish Docker images to GitHub Container Registry on release.</p>
             </div>
           </div>
           <div style="margin-top: 2rem; text-align: center">
-            <p class="subtitle">18 Agents · 386 Skills · 10 Tools · 27 Workflows · 60 Normatives</p>
+            <p class="subtitle">18 Agents · 386 Skills · 10 Tools · 30 Workflows · 60 Normatives</p>
             <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" class="btn">GitHub</a>
           </div>
         </div>
@@ -904,7 +942,7 @@
 
     <script>
       let currentSlide = 0;
-      const totalSlides = 13;
+      const totalSlides = 15;
       const wrapper = document.getElementById('slidesWrapper');
       const navDots = document.getElementById('navDots');
 
