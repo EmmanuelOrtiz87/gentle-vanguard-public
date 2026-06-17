@@ -5,9 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.17.0-brightgreen?style=for-the-badge" alt="Version">
-  <img src="https://img.shields.io/badge/AI_Agents-125+-blueviolet?style=for-the-badge" alt="Skills">
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/Version-3.3.0-brightgreen?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/AI_Agents-18-blueviolet?style=for-the-badge" alt="Agents">
+  <img src="https://img.shields.io/badge/Skills-385-blue?style=for-the-badge" alt="Skills">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 </p>
 
 ---
@@ -15,31 +16,61 @@
 ## 🤔 ¿Qué es Gentle-Vanguard?
 
 **Gentle-Vanguard** es un workspace agnóstico que potencia tu desarrollo con AI assistants como
-**OpenCode, Claude, Cursor y otros**.
+**OpenCode, Claude, Cursor y más de 10 herramientas**.
 
 ```
-
-          🏛️ GENTLE_VANGUARD v2.8.0
+          🏛️ GENTLE_VANGUARD v3.3.0
           AI Development Workspace
 
-          🎯 SESSION MANAGER  🚀 AUTO-DELEGATION
-          📈 REPORTING         💰 TOKEN GUARD
-          🎭 ORCHESTRATOR      🔍 DISTRIBUTED TRACING
-
+          🎯 SESSION MANAGER    🚀 AUTO-DELEGATION
+          📈 REPORTING          💰 TOKEN GUARD
+          🎭 ORCHESTRATOR       🔍 DISTRIBUTED TRACING
+          🧠 ENGRAM MEMORY      🔄 ADAPTIVE FEEDBACK
 ```
 
 ---
 
 ## ✨ Características Principales
 
-| Módulo                 | Función                             | Estado    |
-| ---------------------- | ----------------------------------- | --------- |
-| **🎭 Session Manager** | Tracking de sesiones, métricas      | ✅ Activo |
-| **🚀 Auto-Delegation** | Routing a subagentes especializados | ✅ Activo |
-| **📈 Reporting**       | Informes on-demand para gerencia    | ✅ Activo |
-| **💰 Token Guard**     | Eficiencia de contexto              | ✅ Activo |
-| **🎭 Orchestrator**    | Workflow integrado multi-agent      | ✅ Activo |
-| **🔍 Tracing**         | Distributed tracing                 | ✅ Activo |
+| Módulo                   | Función                                | Estado    |
+| ------------------------ | -------------------------------------- | --------- |
+| **🎭 Session Manager**   | Tracking de sesiones, métricas         | ✅ Activo |
+| **🚀 Auto-Delegation**   | Routing a subagentes especializados    | ✅ Activo |
+| **📈 Reporting**         | Informes on-demand para gerencia       | ✅ Activo |
+| **💰 Token Guard**       | Eficiencia de contexto                 | ✅ Activo |
+| **🎭 Orchestrator**      | Workflow integrado multi-agent         | ✅ Activo |
+| **🔍 Tracing**           | Distributed tracing                    | ✅ Activo |
+| **🧠 Engram Memory**     | Memoria persistente entre sesiones     | ✅ Activo |
+| **🔄 Adaptive Feedback** | Aprendizaje automático de correcciones | ✅ Activo |
+
+---
+
+## 🔄 Adaptive Feedback Loop (NUEVO en v3.3.0)
+
+El sistema aprende de tus correcciones en tiempo real:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  ADAPTIVE FEEDBACK LOOP                  │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│   📥 correction-capture                                  │
+│      └── Detecta correcciones por turno automáticamente  │
+│                                                          │
+│   📊 session-scoring                                     │
+│      └── Puntuación de calidad: 81/100                   │
+│                                                          │
+│   🔍 pattern-detector                                    │
+│      └── 88 patrones rastreados                          │
+│                                                          │
+│   📚 auto-norm-learner                                   │
+│      └── 144 normas aprendidas automáticamente          │
+│                                                          │
+│   ✅ auto-norm-enforcer                                  │
+│      └── Valida estructura de documentación             │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -49,7 +80,7 @@
              🎭 ORCHESTRATOR
           (slim context)
 
-           delegation
+            delegation
 
  🤖 AGENT-BA 🎨 AGENT-SAD 🛠️ AGENT-DEV 🧪 AGENT-QA
 
@@ -60,24 +91,33 @@
     🎮 session-workflow-skill
     🧠 context-engineering-skill
     📚 documentation-skill
-    +125 ms...
+    🔄 adaptive-feedback-skill
+    🧠 engram-memory-skill
+    +385 skills...
 ```
 
 ---
 
-## 📊 Métricas de Sesión
+## 📊 Métricas de v3.3.0
 
 ```
-📅 Fecha: 06-May-2026
+📅 Versión: 3.3.0
 
- 📊 sesiones:    17 total
- 🟢 Activas:     17
+ 🤖 Agentes:        18 total
+ 🧩 Skills:         385 disponibles
+ 🧠 Engram:         Memoria persistente activa
+ 🔄 Adaptive Loop:  4 fases implementadas
 
- 📅 24-Abr:      5 sesiones
- 📅 25-Abr:      7 sesiones  +40%
- 📅 26-Abr:      1 sesión (en curso)
+ 📊 Métricas de Calidad:
+ ─────────────────────────────
+ 📈 Session Score:     81/100
+ 🔍 Patterns Tracked:   88
+ 📚 Norms Learned:      144
+ 🐛 Bugs Fixed:         6 (última sesión)
 
- 💰 Token Guard:  Activo (128K)
+ 🛠️ Integraciones:   10+ herramientas
+ 💻 Plataformas:      Windows, Linux, macOS
+ 🔒 Local-first:      100% local
 ```
 
 ---
@@ -87,10 +127,13 @@
 | Capa                 | Tecnología            |
 | -------------------- | --------------------- |
 | **🖥️ CLI**           | PowerShell 7+         |
-| **🧩 Skills**        | 125+ skills modulares |
+| **🧩 Skills**        | 385 skills modulares  |
 | **🎭 Orchestration** | Multi-agent DAG       |
+| **🧠 Memory**        | Engram persistente    |
+| **🔄 Adaptive**      | Feedback Loop 4 fases |
 | **📈 Reporting**     | CSV + Markdown        |
 | **🔍 Tracing**       | Distributed tracing   |
+| **🛠️ Tools**         | 10+ integraciones     |
 
 ---
 
@@ -101,7 +144,7 @@
 .\scripts\utilities\session-autostart.cmd
 
 # 2️⃣ Solicitar algo
-"génerame un informe de sesiones de ayer"
+"genera un informe de sesiones de ayer"
 
 # 3️⃣ Obtener reporte
 .\scripts\utilities\gv-report.ps1 -Type executive
@@ -109,22 +152,39 @@
 
 ---
 
+## 🔄 Novedades en v3.3.0
+
+| Característica         | Descripción                            |
+| ---------------------- | -------------------------------------- |
+| **Adaptive Feedback**  | Aprendizaje automático de correcciones |
+| **correction-capture** | Detecta correcciones por turno         |
+| **session-scoring**    | Métricas de calidad en tiempo real     |
+| **pattern-detector**   | 88 patrones rastreados                 |
+| **auto-norm-learner**  | 144 normas aprendidas automáticamente  |
+| **auto-norm-enforcer** | Validación de estructura de docs       |
+| **Engram Memory**      | Memoria persistente entre sesiones     |
+| **Tool-agnostic**      | Funciona con 10+ herramientas AI       |
+| **Stability fixes**    | 6 bugs de estabilidad corregidos       |
+
+---
+
 ## 🔗 Conectar
 
-| Plataforma    | Enlace                                            |
-| ------------- | ------------------------------------------------- |
-| **🐙 GitHub** | github.com/EmmanuelOrtiz87/gentle-vanguard-public |
-| **📚 Docs**   | docs.gentle-vanguard.local                        |
+| Plataforma    | Enlace                                     |
+| ------------- | ------------------------------------------ |
+| **🐙 GitHub** | github.com/EmmanuelOrtiz87/gentle-vanguard |
+| **📚 Docs**   | docs/ directory                            |
 
 ---
 
 ## #️⃣ Hashtags
 
-`#Gentle-VanguardStack` `#AIDevelopment` `#DevTools` `#OpenCode` `#Productivity`
+`#GentleVanguard` `#AIDevelopment` `#DevTools` `#OpenSource` `#LocalFirst` `#Productivity`
+`#AdaptiveAI`
 
 ---
 
 <p align="center">
-  <i>* Built for AI-first development teams*</i><br>
-  <i>* Open source • Continuous improvement*</i>
+  <i>* Construido para equipos de desarrollo AI-first*</i><br>
+  <i>* Open source • Mejora continua • 100% local*</i>
 </p>

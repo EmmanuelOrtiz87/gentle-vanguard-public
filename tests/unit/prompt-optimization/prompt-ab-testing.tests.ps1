@@ -1,6 +1,6 @@
 Describe "Prompt A/B Testing Tests" {
     BeforeAll {
-        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\PROMPT\prompt-ab-testing.ps1"
+        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\memory\PROMPT\prompt-ab-testing.ps1"
         $testDir = "C:\Workspace_local\gentle-vanguard\tests\unit\prompt-optimization\test-ab"
     }
     

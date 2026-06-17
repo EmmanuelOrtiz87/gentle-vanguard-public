@@ -54,7 +54,6 @@ Coverage reports are uploaded as artifacts in CI.
 
 - Test runner: `scripts/run-tests-simple.ps1`
 - CI workflow: `.github/workflows/test-suite.yml`
-- See [skills/testing-skill/SKILL.md](../../skills/testing-skill/SKILL.md) for
-  strategy details
+- See [skills/testing-skill/SKILL.md](../../skills/testing-skill/SKILL.md) for strategy details
 - See [docs/guides/SECURITY-AUTH-SECRETS.md](SECURITY-AUTH-SECRETS.md) for secret management during
   tests
