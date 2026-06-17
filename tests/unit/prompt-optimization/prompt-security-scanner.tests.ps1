@@ -1,6 +1,6 @@
 Describe "Prompt Security Scanner Tests" {
     BeforeAll {
-        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\PROMPT\prompt-security-scanner.ps1"
+        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\memory\PROMPT\prompt-security-scanner.ps1"
     }
     
     It "Should detect secrets" {
