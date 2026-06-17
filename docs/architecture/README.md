@@ -70,7 +70,7 @@ docs/architecture/
 | **📊 Project Manager** | PM         | `project-manager`         | Planning, tracking, delivery      |
 | **🏗️ Architect**       | SAD        | `architecture-governance` | Design, standards, decisions      |
 | **🛠️ Developer**       | DEV        | `sdd-lifecycle`           | Implementation, testing           |
-| **🧪 QA**              | QA         | `testing-skill`  | Validation, coverage, evidence    |
+| **🧪 QA**              | QA         | `testing-skill`           | Validation, coverage, evidence    |
 | **🚀 DevOps**          | OPS        | `docker-devops-skill`     | Deployment, CI/CD, infrastructure |
 | **🎨 UX/UI**           | UX         | `design-ux-researcher`    | User research, interface design   |
 

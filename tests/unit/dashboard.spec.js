@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { getMockDashboardData } from '../../dist/src/dashboard/dashboard-data.js';
+import { getMockDashboardData } from '../../src/dashboard/dashboard-data.ts';
 
 const data = getMockDashboardData();
 

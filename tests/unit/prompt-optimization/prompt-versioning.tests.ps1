@@ -1,6 +1,6 @@
 Describe "Prompt Versioning Tests" {
     BeforeAll {
-        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\PROMPT\prompt-versioning.ps1"
+        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\memory\PROMPT\prompt-versioning.ps1"
         $testDir = "C:\Workspace_local\gentle-vanguard\tests\unit\prompt-optimization\test-versions"
     }
     

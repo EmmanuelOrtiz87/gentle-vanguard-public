@@ -1,6 +1,6 @@
 Describe "Prompt Model Adapter Tests" {
     BeforeAll {
-        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\PROMPT\prompt-model-adapter.ps1"
+        $scriptPath = "C:\Workspace_local\gentle-vanguard\scripts\utilities\memory\PROMPT\prompt-model-adapter.ps1"
     }
     
     It "Should adapt to OpenAI format" {
