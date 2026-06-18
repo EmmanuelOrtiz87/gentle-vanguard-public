@@ -202,7 +202,7 @@ jobs:
         & "scripts/metrics/dashboard-render.ps1" -Quiet
         
     - name: Upload to GitHub Pages
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: reports/
         
