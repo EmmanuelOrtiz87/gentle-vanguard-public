@@ -1,28 +1,32 @@
 ---
 name: e2e-testing-skill
 description: >
-  Imported from mercury-agent-skills. Use when working with "e2e test", "end-to-end", "Playwright", "Cypress", "visual testing". Triggers: "e2e test", "end-to-end", "Playwright", "Cypress", "visual testing".
+  Imported from mercury-agent-skills. Use when working with "e2e test", "end-to-end", "Playwright",
+  "Cypress", "visual testing". Triggers: "e2e test", "end-to-end", "Playwright", "Cypress", "visual
+  testing".
 metadata:
   source: mercury-agent-skills
   original-name: e2e-testing
 ---
+
 # E2E Testing
 
 End-to-end testing with Playwright and Cypress.
 
 ## Tool Choice
 
-| Factor | Playwright | Cypress |
-|--------|-----------|---------|
-| Language | JS/TS, Python, C#, Java | JS/TS only |
-| Browser support | Chromium, Firefox, WebKit | Chromium, Firefox, WebKit |
-| Iframe support | Native | Limited |
-| Network mocking | Route API | intercept() |
-| Parallel execution | Built-in | Dashboard required |
+| Factor             | Playwright                | Cypress                   |
+| ------------------ | ------------------------- | ------------------------- |
+| Language           | JS/TS, Python, C#, Java   | JS/TS only                |
+| Browser support    | Chromium, Firefox, WebKit | Chromium, Firefox, WebKit |
+| Iframe support     | Native                    | Limited                   |
+| Network mocking    | Route API                 | intercept()               |
+| Parallel execution | Built-in                  | Dashboard required        |
 
 ## Playwright Patterns
 
 ### Selector Strategy (Priority Order)
+
 1. `getByRole()` — best for accessibility
 2. `getByText()` — for text content
 3. `getByTestId()` — for complex components
@@ -30,6 +34,7 @@ End-to-end testing with Playwright and Cypress.
 5. `locator(CSS)` — last resort
 
 ### Test Structure
+
 ```typescript
 test.describe('Checkout Flow', () => {
   test('completes purchase with valid card', async ({ page }) => {
@@ -44,12 +49,14 @@ test.describe('Checkout Flow', () => {
 ```
 
 ## Visual Testing
+
 - Use `await expect(page).toHaveScreenshot()`
 - Maintain baseline screenshots in version control
 - Run visual tests on CI with 1% threshold
 - Use percy.io or Chromatic for cloud-based visual review
 
 ## CI Integration
+
 ```yaml
 # GitHub Actions
 - name: E2E Tests

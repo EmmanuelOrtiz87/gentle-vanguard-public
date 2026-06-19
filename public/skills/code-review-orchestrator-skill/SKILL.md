@@ -55,4 +55,5 @@ path, and exit code (1 if blocked).
 - `references/config-example.md` — Review configuration JSON
 - `references/integration.md` — Git hooks and CI/CD setup
 
-> **See also**: [code-review-skill](../code-review-skill/SKILL.md) for structured security/performance/correctness reviews
+> **See also**: [code-review-skill](../code-review-skill/SKILL.md) for structured
+> security/performance/correctness reviews

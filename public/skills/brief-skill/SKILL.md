@@ -7,13 +7,17 @@ metadata:
   original-name: brief
   department: legal
 ---
+
 # /brief -- Legal Team Briefing
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+> If you see unfamiliar placeholders or need to check which tools are connected, see
+> [CONNECTORS.md](../../CONNECTORS.md).
 
-Generate contextual briefings for legal work. Supports three modes: daily brief, topic brief, and incident brief.
+Generate contextual briefings for legal work. Supports three modes: daily brief, topic brief, and
+incident brief.
 
-**Important**: This command assists with legal workflows but does not provide legal advice. Briefings should be reviewed by qualified legal professionals before being relied upon.
+**Important**: This command assists with legal workflows but does not provide legal advice.
+Briefings should be reviewed by qualified legal professionals before being relied upon.
 
 ## Invocation
 
@@ -38,6 +42,7 @@ A morning summary of everything a legal team member needs to know to start their
 Check each connected source for legal-relevant items:
 
 **Email (if connected):**
+
 - New contract requests or review requests
 - Compliance questions or reports
 - Responses from counterparties on active negotiations
@@ -46,22 +51,26 @@ Check each connected source for legal-relevant items:
 - Regulatory or legal update newsletters
 
 **Calendar (if connected):**
+
 - Today's meetings that need legal prep (board meetings, deal reviews, vendor calls)
 - Upcoming deadlines this week (contract expirations, filing deadlines, response deadlines)
 - Recurring legal team syncs
 
 **Chat (if connected):**
+
 - Overnight messages in legal team channels
 - Direct messages requesting legal input
 - Mentions of legal-relevant topics (contract, compliance, privacy, NDA, terms)
 - Escalations or urgent requests
 
 **CLM (if connected):**
+
 - Contracts awaiting review or signature
 - Approaching expiration dates (next 30 days)
 - Newly executed agreements
 
 **CRM (if connected):**
+
 - Deals moving to stages that require legal involvement
 - New opportunities flagged for legal review
 
@@ -138,15 +147,19 @@ Research and brief on a specific legal question or topic across available source
 ```
 
 #### Important Notes
-- Topic briefs synthesize what is available in connected sources; they do not substitute for formal legal research
-- If the topic requires current legal authority or case law, recommend the user consult a legal research platform (Westlaw, Lexis, etc.) or outside counsel
+
+- Topic briefs synthesize what is available in connected sources; they do not substitute for formal
+  legal research
+- If the topic requires current legal authority or case law, recommend the user consult a legal
+  research platform (Westlaw, Lexis, etc.) or outside counsel
 - Always note the limitations of the sources searched
 
 ---
 
 ### Incident Brief
 
-Rapid briefing for developing situations that require immediate legal attention (data breaches, litigation threats, regulatory inquiries, IP disputes, etc.).
+Rapid briefing for developing situations that require immediate legal attention (data breaches,
+litigation threats, regulatory inquiries, IP disputes, etc.).
 
 #### Workflow
 
@@ -197,15 +210,20 @@ Rapid briefing for developing situations that require immediate legal attention 
 ```
 
 #### Important Notes for Incident Briefs
-- Speed matters. Produce the brief quickly with available information rather than waiting for complete information
+
+- Speed matters. Produce the brief quickly with available information rather than waiting for
+  complete information
 - Flag any litigation hold or preservation obligations immediately
-- Note privilege considerations (mark the brief as attorney-client privileged / work product if appropriate)
-- If the incident may involve a data breach, flag applicable notification deadlines (e.g., 72 hours for GDPR)
+- Note privilege considerations (mark the brief as attorney-client privileged / work product if
+  appropriate)
+- If the incident may involve a data breach, flag applicable notification deadlines (e.g., 72 hours
+  for GDPR)
 - Recommend outside counsel engagement if the matter is significant
 
 ## General Notes
 
 - If sources are unavailable, note the gaps prominently so the user knows what was not checked
-- For daily briefs, learn the user's preferences over time (what they find useful, what they want filtered out)
+- For daily briefs, learn the user's preferences over time (what they find useful, what they want
+  filtered out)
 - Briefs should be actionable: every item should have a clear next step or reason for inclusion
 - Keep briefs concise. Link to source materials rather than reproducing them in full

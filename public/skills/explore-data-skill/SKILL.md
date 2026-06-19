@@ -7,11 +7,14 @@ metadata:
   original-name: explore-data
   department: data
 ---
+
 # /explore-data - Profile and Explore a Dataset
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+> If you see unfamiliar placeholders or need to check which tools are connected, see
+> [CONNECTORS.md](../../CONNECTORS.md).
 
-Generate a comprehensive data profile for a table or uploaded file. Understand its shape, quality, and patterns before diving into analysis.
+Generate a comprehensive data profile for a table or uploaded file. Understand its shape, quality,
+and patterns before diving into analysis.
 
 ## Usage
 
@@ -44,6 +47,7 @@ Generate a comprehensive data profile for a table or uploaded file. Understand i
 Before analyzing any data, understand its structure:
 
 **Table-level questions:**
+
 - How many rows and columns?
 - What is the grain (one row per what)?
 - What is the primary key? Is it unique?
@@ -51,6 +55,7 @@ Before analyzing any data, understand its structure:
 - How far back does the data go?
 
 **Column classification** — categorize each column as one of:
+
 - **Identifier**: Unique keys, foreign keys, entity IDs
 - **Dimension**: Categorical attributes for grouping/filtering (status, type, region, category)
 - **Metric**: Quantitative values for measurement (revenue, count, duration, score)
@@ -64,18 +69,21 @@ Before analyzing any data, understand its structure:
 Run the following profiling checks:
 
 **Table-level metrics:**
+
 - Total row count
 - Column count and types breakdown
 - Approximate table size (if available from metadata)
 - Date range coverage (min/max of date columns)
 
 **All columns:**
+
 - Null count and null rate
 - Distinct count and cardinality ratio (distinct / total)
 - Most common values (top 5-10 with frequencies)
 - Least common values (bottom 5 to spot anomalies)
 
 **Numeric columns (metrics):**
+
 ```
 min, max, mean, median (p50)
 standard deviation
@@ -85,6 +93,7 @@ negative count (if unexpected)
 ```
 
 **String columns (dimensions, text):**
+
 ```
 min length, max length, avg length
 empty string count
@@ -94,6 +103,7 @@ leading/trailing whitespace count
 ```
 
 **Date/timestamp columns:**
+
 ```
 min date, max date
 null dates
@@ -103,21 +113,26 @@ gaps in time series
 ```
 
 **Boolean columns:**
+
 ```
 true count, false count, null count
 true rate
 ```
 
-**Present the profile as a clean summary table**, grouped by column type (dimensions, metrics, dates, IDs).
+**Present the profile as a clean summary table**, grouped by column type (dimensions, metrics,
+dates, IDs).
 
 ### 4. Identify Data Quality Issues
 
 Apply the quality assessment framework below. Flag potential problems:
 
 - **High null rates**: Columns with >5% nulls (warn), >20% nulls (alert)
-- **Low cardinality surprises**: Columns that should be high-cardinality but aren't (e.g., a "user_id" with only 50 distinct values)
-- **High cardinality surprises**: Columns that should be categorical but have too many distinct values
-- **Suspicious values**: Negative amounts where only positive expected, future dates in historical data, obviously placeholder values (e.g., "N/A", "TBD", "test", "999999")
+- **Low cardinality surprises**: Columns that should be high-cardinality but aren't (e.g., a
+  "user_id" with only 50 distinct values)
+- **High cardinality surprises**: Columns that should be categorical but have too many distinct
+  values
+- **Suspicious values**: Negative amounts where only positive expected, future dates in historical
+  data, obviously placeholder values (e.g., "N/A", "TBD", "test", "999999")
 - **Duplicate detection**: Check if there's a natural key and whether it has duplicates
 - **Distribution skew**: Extremely skewed numeric distributions that could affect averages
 - **Encoding issues**: Mixed case in categorical fields, trailing whitespace, inconsistent formats
@@ -136,7 +151,8 @@ After profiling individual columns:
 
 Based on the column profile, recommend:
 
-- **Best dimension columns** for slicing data (categorical columns with reasonable cardinality, 3-50 values)
+- **Best dimension columns** for slicing data (categorical columns with reasonable cardinality, 3-50
+  values)
 - **Key metric columns** for measurement (numeric columns with meaningful distributions)
 - **Time columns** suitable for trend analysis
 - **Natural groupings** or hierarchies apparent in the data
@@ -179,6 +195,7 @@ Suggest 3-5 specific analyses the user could run next:
 ### Completeness Score
 
 Rate each column:
+
 - **Complete** (>99% non-null): Green
 - **Mostly complete** (95-99%): Yellow -- investigate the nulls
 - **Incomplete** (80-95%): Orange -- understand why and whether it matters
@@ -187,7 +204,9 @@ Rate each column:
 ### Consistency Checks
 
 Look for:
-- **Value format inconsistency**: Same concept represented differently ("USA", "US", "United States", "us")
+
+- **Value format inconsistency**: Same concept represented differently ("USA", "US", "United
+  States", "us")
 - **Type inconsistency**: Numbers stored as strings, dates in various formats
 - **Referential integrity**: Foreign keys that don't match any parent record
 - **Business rule violations**: Negative quantities, end dates before start dates, percentages > 100
@@ -196,6 +215,7 @@ Look for:
 ### Accuracy Indicators
 
 Red flags that suggest accuracy issues:
+
 - **Placeholder values**: 0, -1, 999999, "N/A", "TBD", "test", "xxx"
 - **Default values**: Suspiciously high frequency of a single value
 - **Stale data**: Updated_at shows no recent changes in an active system
@@ -214,6 +234,7 @@ Red flags that suggest accuracy issues:
 ### Distribution Analysis
 
 For numeric columns, characterize the distribution:
+
 - **Normal**: Mean and median are close, bell-shaped
 - **Skewed right**: Long tail of high values (common for revenue, session duration)
 - **Skewed left**: Long tail of low values (less common)
@@ -224,6 +245,7 @@ For numeric columns, characterize the distribution:
 ### Temporal Patterns
 
 For time series data, look for:
+
 - **Trend**: Sustained upward or downward movement
 - **Seasonality**: Repeating patterns (weekly, monthly, quarterly, annual)
 - **Day-of-week effects**: Weekday vs. weekend differences
@@ -234,6 +256,7 @@ For time series data, look for:
 ### Segmentation Discovery
 
 Identify natural segments by:
+
 - Finding categorical columns with 3-20 distinct values
 - Comparing metric distributions across segment values
 - Looking for segments with significantly different behavior
@@ -242,6 +265,7 @@ Identify natural segments by:
 ### Correlation Exploration
 
 Between numeric columns:
+
 - Compute correlation matrix for all metric pairs
 - Flag strong correlations (|r| > 0.7) for investigation
 - Note: Correlation does not imply causation -- flag this explicitly
@@ -256,32 +280,32 @@ When documenting a dataset for team use:
 ```markdown
 ## Table: [schema.table_name]
 
-**Description**: [What this table represents]
-**Grain**: [One row per...]
-**Primary Key**: [column(s)]
-**Row Count**: [approximate, with date]
-**Update Frequency**: [real-time / hourly / daily / weekly]
-**Owner**: [team or person responsible]
+**Description**: [What this table represents] **Grain**: [One row per...] **Primary Key**:
+[column(s)] **Row Count**: [approximate, with date] **Update Frequency**: [real-time / hourly /
+daily / weekly] **Owner**: [team or person responsible]
 
 ### Key Columns
 
-| Column | Type | Description | Example Values | Notes |
-|--------|------|-------------|----------------|-------|
-| user_id | STRING | Unique user identifier | "usr_abc123" | FK to users.id |
-| event_type | STRING | Type of event | "click", "view", "purchase" | 15 distinct values |
-| revenue | DECIMAL | Transaction revenue in USD | 29.99, 149.00 | Null for non-purchase events |
-| created_at | TIMESTAMP | When the event occurred | 2024-01-15 14:23:01 | Partitioned on this column |
+| Column     | Type      | Description                | Example Values              | Notes                        |
+| ---------- | --------- | -------------------------- | --------------------------- | ---------------------------- |
+| user_id    | STRING    | Unique user identifier     | "usr_abc123"                | FK to users.id               |
+| event_type | STRING    | Type of event              | "click", "view", "purchase" | 15 distinct values           |
+| revenue    | DECIMAL   | Transaction revenue in USD | 29.99, 149.00               | Null for non-purchase events |
+| created_at | TIMESTAMP | When the event occurred    | 2024-01-15 14:23:01         | Partitioned on this column   |
 
 ### Relationships
+
 - Joins to `users` on `user_id`
 - Joins to `products` on `product_id`
 - Parent of `event_details` (1:many on event_id)
 
 ### Known Issues
+
 - [List any known data quality issues]
 - [Note any gotchas for analysts]
 
 ### Common Query Patterns
+
 - [Typical use cases for this table]
 ```
 
@@ -323,6 +347,9 @@ When exploring an unfamiliar data environment:
 
 ## Tips
 
-- For very large tables (100M+ rows), profiling queries use sampling by default -- mention if you need exact counts
-- If exploring a new dataset for the first time, this command gives you the lay of the land before writing specific queries
-- The quality flags are heuristic -- not every flag is a real problem, but each is worth a quick look
+- For very large tables (100M+ rows), profiling queries use sampling by default -- mention if you
+  need exact counts
+- If exploring a new dataset for the first time, this command gives you the lay of the land before
+  writing specific queries
+- The quality flags are heuristic -- not every flag is a real problem, but each is worth a quick
+  look
