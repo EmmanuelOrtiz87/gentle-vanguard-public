@@ -1,19 +1,27 @@
 ---
 name: ooda-loop-skill
 description: >
-  Imported from cc-thinking-skills. ooda, observe orient decide act, rapid iteration, decision cycle.
+  Imported from cc-thinking-skills. ooda, observe orient decide act, rapid iteration, decision
+  cycle.
 metadata:
   source: cc-thinking-skills
   original-name: thinking-ooda
 ---
+
 # OODA Loop
 
 ## Overview
-The OODA Loop (Observe, Orient, Decide, Act), developed by military strategist Colonel John Boyd, is a framework for rapid decision-making in dynamic, competitive, or time-sensitive situations. The key insight: speed through the loop creates advantage. In competitive scenarios, operating faster than your opponent disrupts their decision-making.
 
-**Core Principle:** Agility beats perfection. Cycle through OODA faster than the situation changes (or faster than your opponent).
+The OODA Loop (Observe, Orient, Decide, Act), developed by military strategist Colonel John Boyd, is
+a framework for rapid decision-making in dynamic, competitive, or time-sensitive situations. The key
+insight: speed through the loop creates advantage. In competitive scenarios, operating faster than
+your opponent disrupts their decision-making.
+
+**Core Principle:** Agility beats perfection. Cycle through OODA faster than the situation changes
+(or faster than your opponent).
 
 ## When to Use
+
 - Incident response and outages
 - Competitive market situations
 - Time-sensitive decisions
@@ -23,6 +31,7 @@ The OODA Loop (Observe, Orient, Decide, Act), developed by military strategist C
 - Any situation requiring quick adaptation
 
 Decision flow:
+
 ```
 Situation changing rapidly? → yes → Need quick decisions? → yes → APPLY OODA LOOP
                                                          ↘ no → Standard analysis
@@ -32,9 +41,11 @@ Situation changing rapidly? → yes → Need quick decisions? → yes → APPLY 
 ## The Four Phases
 
 ### 1. OBSERVE
+
 **Gather information rapidly**
 
 What to observe:
+
 - Current state of the system/situation
 - Changes since last observation
 - External factors and environment
@@ -51,15 +62,18 @@ Incident Example:
 ```
 
 Observation principles:
+
 - Cast wide net initially, narrow as pattern emerges
 - Don't filter prematurely—gather raw data
 - Include lagging AND leading indicators
 - Time-bound: Don't observe forever
 
 ### 2. ORIENT
+
 **Make sense of observations**
 
 Orientation factors (Boyd's framework):
+
 - **Cultural traditions**: How does our org typically respond?
 - **Genetic heritage**: Our built-in biases and tendencies
 - **Previous experience**: What have we seen before?
@@ -75,15 +89,18 @@ Incident Example:
 ```
 
 Orient is the CRITICAL phase:
+
 - This is where mental models apply
 - Misorientation leads to wrong decisions
 - Update orientation as new info arrives
 - Challenge your initial framing
 
 ### 3. DECIDE
+
 **Select course of action**
 
 Decision characteristics:
+
 - Based on current orientation
 - Acknowledges uncertainty
 - Identifies what to observe next
@@ -98,15 +115,18 @@ Fallback: If no improvement, investigate DB connections
 ```
 
 Decision speed vs. quality tradeoff:
+
 - 70% confidence now beats 90% confidence too late
 - Reversible decisions: Bias toward action
 - Irreversible decisions: Gather more info first
 - "Good enough" decision executed fast > perfect decision too slow
 
 ### 4. ACT
+
 **Execute the decision**
 
 Action principles:
+
 - Execute decisively
 - Immediately return to OBSERVE
 - Don't wait for complete results
@@ -120,6 +140,7 @@ Time limit: 2 minutes to see effect
 ```
 
 The loop restarts:
+
 - Actions create new situation
 - New situation requires new observation
 - Cycle continues until stable state
@@ -127,39 +148,45 @@ The loop restarts:
 ## OODA Loop Speed
 
 ### Tempo Advantage
+
 Operating inside opponent's loop:
+
 ```
 You:     O → O → D → A → O → O → D → A → O ...
 Opponent:     O → O → O →  ...  → D → A (too late)
 ```
 
 When you complete loops faster:
+
 - Your actions change situation before they decide
 - Their orientation becomes outdated
 - They react to old information
 - You maintain initiative
 
 ### Speed Multipliers
-| Factor | Effect |
-|--------|--------|
-| Pre-planned responses | Skip D phase for known scenarios |
+
+| Factor                | Effect                             |
+| --------------------- | ---------------------------------- |
+| Pre-planned responses | Skip D phase for known scenarios   |
 | Distributed authority | Parallel loops at different levels |
-| Clear mental models | Faster O (orientation) |
-| Training/practice | Faster execution (A) |
-| Good observability | Faster O (observation) |
+| Clear mental models   | Faster O (orientation)             |
+| Training/practice     | Faster execution (A)               |
+| Good observability    | Faster O (observation)             |
 
 ### Speed Killers
-| Factor | Effect |
-|--------|--------|
-| Waiting for certainty | Loop stalls at O or D |
-| Hierarchical approval | Adds latency to D |
-| Information overload | O phase never completes |
-| Analysis paralysis | Loop stalls at Orient |
+
+| Factor                   | Effect                  |
+| ------------------------ | ----------------------- |
+| Waiting for certainty    | Loop stalls at O or D   |
+| Hierarchical approval    | Adds latency to D       |
+| Information overload     | O phase never completes |
+| Analysis paralysis       | Loop stalls at Orient   |
 | Perfect solution seeking | D phase never completes |
 
 ## Application Patterns
 
 ### Incident Response
+
 ```
 OBSERVE: Metrics, logs, alerts, user reports
 ORIENT:  Match pattern, form hypothesis, assess blast radius
@@ -169,6 +196,7 @@ LOOP:    Continue until stable
 ```
 
 ### Competitive Response
+
 ```
 OBSERVE: Competitor announcement, market reaction, customer feedback
 ORIENT:  Assess threat level, identify our advantages, gaps
@@ -178,6 +206,7 @@ LOOP:    Adjust based on effectiveness
 ```
 
 ### Debugging Under Pressure
+
 ```
 OBSERVE: Error messages, stack traces, recent changes
 ORIENT:  Form hypothesis about cause
@@ -189,7 +218,9 @@ LOOP:    Update hypothesis based on results
 ## OODA for Teams
 
 ### Parallel Loops
+
 Different team members can run loops simultaneously:
+
 ```
 SRE:     Infrastructure OODA (scaling, failover)
 Dev:     Code OODA (debugging, fixes)
@@ -198,13 +229,16 @@ Lead:    Strategy OODA (coordination, escalation)
 ```
 
 ### Shared Orientation
+
 Teams need synchronized mental models:
+
 - Runbooks create shared orientation
 - Incident channels share observations
 - Clear roles enable parallel action
 - Post-incident updates orientation for next time
 
 ## Verification Checklist
+
 - [ ] Observing actual current state, not assumptions
 - [ ] Orientation considers multiple hypotheses
 - [ ] Decision is actionable and time-bound
@@ -214,15 +248,16 @@ Teams need synchronized mental models:
 
 ## Common Failure Modes
 
-| Failure | Symptom | Fix |
-|---------|---------|-----|
-| Observation overload | Can't process all data | Filter to key indicators |
-| Orientation lock | Stuck on one hypothesis | Force alternative framing |
-| Decision paralysis | Waiting for certainty | Set decision deadline |
-| Action without observation | Blind execution | Mandate observe after act |
-| Single loop | Not cycling | Time-box each phase |
+| Failure                    | Symptom                 | Fix                       |
+| -------------------------- | ----------------------- | ------------------------- |
+| Observation overload       | Can't process all data  | Filter to key indicators  |
+| Orientation lock           | Stuck on one hypothesis | Force alternative framing |
+| Decision paralysis         | Waiting for certainty   | Set decision deadline     |
+| Action without observation | Blind execution         | Mandate observe after act |
+| Single loop                | Not cycling             | Time-box each phase       |
 
 ## Key Questions
+
 - "What do I observe RIGHT NOW?" (not 5 minutes ago)
 - "What does this mean? What pattern does it match?"
 - "What's my best action given current understanding?"
@@ -230,6 +265,8 @@ Teams need synchronized mental models:
 - "Am I cycling fast enough?"
 
 ## Boyd's Insight
+
 "He who can handle the quickest rate of change survives."
 
-The goal isn't just making decisions—it's making decisions faster than the situation evolves, faster than competitors adapt, faster than problems compound. Speed creates options; delay eliminates them.
+The goal isn't just making decisions—it's making decisions faster than the situation evolves, faster
+than competitors adapt, faster than problems compound. Speed creates options; delay eliminates them.

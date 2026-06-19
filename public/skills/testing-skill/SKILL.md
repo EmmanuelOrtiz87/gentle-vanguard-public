@@ -1,9 +1,10 @@
 ---
 name: testing-skill
 description: >
-  Guide test creation, framework selection, strategy, and coverage improvement for all project types. Triggers: "test", "testing",
-  "write test", "add test", "test coverage", "unit test", "integration test", "e2e test", "test strategy", "test planning",
-  "test pyramid", "risk-based testing", "what to test", "coverage target".
+  Guide test creation, framework selection, strategy, and coverage improvement for all project
+  types. Triggers: "test", "testing", "write test", "add test", "test coverage", "unit test",
+  "integration test", "e2e test", "test strategy", "test planning", "test pyramid", "risk-based
+  testing", "what to test", "coverage target".
 metadata:
   source: GV-native
   consolidated: test-strategy-skill + testing-strategy-skill
@@ -47,23 +48,23 @@ metadata:
       Unit Tests (50%)
 ```
 
-| Layer | Scope | Speed | Who Owns |
-|-------|-------|-------|----------|
-| Unit | Single function/class | ms | Developers |
-| Component | UI component/module | ms-s | Developers |
-| Contract | API boundaries | s | Dev + QA |
-| Integration | Service interactions | s-min | QA |
-| E2E | Full user flows | min | QA + DevOps |
+| Layer       | Scope                 | Speed | Who Owns    |
+| ----------- | --------------------- | ----- | ----------- |
+| Unit        | Single function/class | ms    | Developers  |
+| Component   | UI component/module   | ms-s  | Developers  |
+| Contract    | API boundaries        | s     | Dev + QA    |
+| Integration | Service interactions  | s-min | QA          |
+| E2E         | Full user flows       | min   | QA + DevOps |
 
 ## Decision Gates
 
-| Gate | Condition | Action |
-|------|-----------|--------|
-| What to test | Business logic, API handlers, critical paths | Always test |
-| What to test | UI components, error paths | Consider testing |
-| What to test | Framework code, config, third-party | Never test |
-| Coverage | <60% stmts / <50% branches / <70% funcs | Block or improve before PR |
-| Coverage | <80% stmts / <70% branches / <90% funcs | Recommended improvement |
+| Gate         | Condition                                    | Action                     |
+| ------------ | -------------------------------------------- | -------------------------- |
+| What to test | Business logic, API handlers, critical paths | Always test                |
+| What to test | UI components, error paths                   | Consider testing           |
+| What to test | Framework code, config, third-party          | Never test                 |
+| Coverage     | <60% stmts / <50% branches / <70% funcs      | Block or improve before PR |
+| Coverage     | <80% stmts / <70% branches / <90% funcs      | Recommended improvement    |
 
 ## Execution Steps
 
@@ -82,26 +83,26 @@ metadata:
 
 ## Coverage Goals
 
-| Type | Target |
-|------|--------|
-| Line coverage | >80% |
-| Branch coverage | >75% |
-| Mutation score | >60% |
-| Critical path E2E | 100% |
-| API endpoint tested | >90% |
+| Type                | Target |
+| ------------------- | ------ |
+| Line coverage       | >80%   |
+| Branch coverage     | >75%   |
+| Mutation score      | >60%   |
+| Critical path E2E   | 100%   |
+| API endpoint tested | >90%   |
 
 ## Framework Selection
 
-| Type | Stack | Recommended |
-|------|-------|-------------|
-| Unit | Node.js/TypeScript | Vitest, Jest |
-| Unit | Go | testing package |
-| Unit | Python | pytest |
-| Integration | Node.js | Supertest, MSW |
-| E2E | React/Vue | Playwright, Cypress |
-| API | Any | REST Client, Postman |
-| Component | React | React Testing Library |
-| Component | Vue | Vue Test Utils |
+| Type        | Stack              | Recommended           |
+| ----------- | ------------------ | --------------------- |
+| Unit        | Node.js/TypeScript | Vitest, Jest          |
+| Unit        | Go                 | testing package       |
+| Unit        | Python             | pytest                |
+| Integration | Node.js            | Supertest, MSW        |
+| E2E         | React/Vue          | Playwright, Cypress   |
+| API         | Any                | REST Client, Postman  |
+| Component   | React              | React Testing Library |
+| Component   | Vue                | Vue Test Utils        |
 
 ## Test File Naming
 
@@ -147,4 +148,7 @@ describe('User', () => {
 - Flaky test detection → auto-quarantine → alert
 
 > **Referencia detallada**: [references/detail.md](references/detail.md)
+
+```
+
 ```
