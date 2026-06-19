@@ -1,11 +1,15 @@
 ---
 name: report-writing-skill
 description: >
-  Bug bounty report writing for H1/Bugcrowd/Intigriti/Immunefi — report templates, human tone guidelines, impact-first writing, CVSS 3.1 scoring, title formula, impact statement formula, severity decision guide, downgrade counters, pre-submit checklist. Use after validating a finding and before submitting. Never use "could potentially" — prove it or don't report.
+  Bug bounty report writing for H1/Bugcrowd/Intigriti/Immunefi — report templates, human tone
+  guidelines, impact-first writing, CVSS 3.1 scoring, title formula, impact statement formula,
+  severity decision guide, downgrade counters, pre-submit checklist. Use after validating a finding
+  and before submitting. Never use "could potentially" — prove it or don't report.
 metadata:
   source: claude-bughunter
   original-name: report-writing
 ---
+
 # REPORT WRITING
 
 Impact-first. Human tone. No theoretical language. Triagers are people.
@@ -14,8 +18,8 @@ Impact-first. Human tone. No theoretical language. Triagers are people.
 
 ## THE MOST IMPORTANT RULE
 
-> **Never use "could potentially" or "could be used to" or "may allow".**
-> Either it does the thing or it doesn't. If you haven't proved it, don't claim it.
+> **Never use "could potentially" or "could be used to" or "may allow".** Either it does the thing
+> or it doesn't. If you haven't proved it, don't claim it.
 
 ```
 BAD:  "This vulnerability could potentially allow an attacker to access user data."
@@ -34,6 +38,7 @@ GOOD: "An attacker can access any user's order history by changing the user_id
 ```
 
 **Good titles (specific, impact-first):**
+
 ```
 IDOR in /api/v2/invoices/{id} allows authenticated user to read any customer's invoice data
 Missing auth on POST /api/admin/users allows unauthenticated attacker to create admin accounts
@@ -43,6 +48,7 @@ Race condition in coupon redemption allows same code to be used unlimited times
 ```
 
 **Bad titles (vague, useless to triager):**
+
 ```
 IDOR vulnerability found
 Broken access control
@@ -58,24 +64,23 @@ Unauthorized access to user data
 ```markdown
 ## Summary
 
-[One paragraph: what the bug is, where it is, what an attacker can do. Be specific.
-Include: endpoint, method, parameter, data exposed, required access level.]
+[One paragraph: what the bug is, where it is, what an attacker can do. Be specific. Include:
+endpoint, method, parameter, data exposed, required access level.]
 
-Example: "The `/api/users/{user_id}/orders` endpoint does not verify that the
-authenticated user owns the requested user_id. An attacker can enumerate any
-user's order history, including PII (email, address, phone) and purchase history,
-by incrementing the user_id parameter. No privileges beyond a standard free
-account are required."
+Example: "The `/api/users/{user_id}/orders` endpoint does not verify that the authenticated user
+owns the requested user_id. An attacker can enumerate any user's order history, including PII
+(email, address, phone) and purchase history, by incrementing the user_id parameter. No privileges
+beyond a standard free account are required."
 
 ## Vulnerability Details
 
-**Vulnerability Type:** IDOR / Broken Object Level Authorization
-**CVSS 3.1 Score:** 6.5 (Medium) — AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
-**Affected Endpoint:** GET /api/users/{user_id}/orders
+**Vulnerability Type:** IDOR / Broken Object Level Authorization **CVSS 3.1 Score:** 6.5 (Medium) —
+AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N **Affected Endpoint:** GET /api/users/{user_id}/orders
 
 ## Steps to Reproduce
 
 **Environment:**
+
 - Attacker account: attacker@test.com, user_id = 123
 - Victim account: victim@test.com, user_id = 456
 - Target: https://target.com
@@ -85,12 +90,11 @@ account are required."
 1. Log in as attacker@test.com, obtain Bearer token
 
 2. Send the following request:
+```
 
-```
-GET /api/users/456/orders HTTP/1.1
-Host: target.com
-Authorization: Bearer ATTACKER_TOKEN_HERE
-```
+GET /api/users/456/orders HTTP/1.1 Host: target.com Authorization: Bearer ATTACKER_TOKEN_HERE
+
+````
 
 3. Observe response:
 
@@ -100,22 +104,22 @@ Authorization: Bearer ATTACKER_TOKEN_HERE
     {"id": 789, "items": [...], "email": "victim@test.com", "address": "123 Main St..."}
   ]
 }
-```
+````
 
-The response contains victim's full order history and PII despite being requested
-by a different user.
+The response contains victim's full order history and PII despite being requested by a different
+user.
 
 ## Impact
 
-An authenticated attacker can enumerate all user orders by iterating user_id values.
-This exposes: full name, email, shipping address, purchase history, and payment
-method (last 4). With ~100K users, this represents a mass PII breach affecting
-all registered users. Exploitation requires only a free account and takes minutes
-with a simple loop.
+An authenticated attacker can enumerate all user orders by iterating user_id values. This exposes:
+full name, email, shipping address, purchase history, and payment method (last 4). With ~100K users,
+this represents a mass PII breach affecting all registered users. Exploitation requires only a free
+account and takes minutes with a simple loop.
 
 ## Recommended Fix
 
 Add server-side ownership verification:
+
 ```python
 if order.user_id != current_user.id:
     raise Forbidden()
@@ -123,9 +127,10 @@ if order.user_id != current_user.id:
 
 ## Supporting Materials
 
-[Screenshot showing attacker's session returning victim's order data]
-[Video walkthrough if available]
-```
+[Screenshot showing attacker's session returning victim's order data] [Video walkthrough if
+available]
+
+````
 
 ---
 
@@ -162,23 +167,24 @@ Automated enumeration could exfil all [N] user records in minutes.
 ## Remediation
 
 Add ownership verification: `if order.user_id != current_user.id: raise 403`
-```
+````
 
 ---
 
 ## INTIGRITI REPORT TEMPLATE
 
-```markdown
+````markdown
 # [Bug Class]: [Exact Impact] in [Endpoint/Feature]
 
 ## Description
 
-[Impact-first paragraph. Start with what an attacker can do, not with how you found it.
-Include: endpoint, method, parameter, data exposed, required privileges.]
+[Impact-first paragraph. Start with what an attacker can do, not with how you found it. Include:
+endpoint, method, parameter, data exposed, required privileges.]
 
 ## Steps to Reproduce
 
 **Environment:**
+
 - Attacker: email=attacker@test.com (standard account, no special role)
 - Victim: email=victim@test.com
 - Tested: [date]
@@ -189,20 +195,14 @@ Include: endpoint, method, parameter, data exposed, required privileges.]
 
 2. Send the following HTTP request:
 
-\```http
-METHOD /endpoint HTTP/1.1
-Host: target.com
-Authorization: Bearer ATTACKER_TOKEN
+\```http METHOD /endpoint HTTP/1.1 Host: target.com Authorization: Bearer ATTACKER_TOKEN
 Content-Type: application/json
 
-{"param": "victim_id_here"}
-\```
+{"param": "victim_id_here"} \```
 
 3. Observe response contains victim's private data:
 
-\```json
-{"email": "victim@test.com", "address": "123 Main St", ...}
-\```
+\```json {"email": "victim@test.com", "address": "123 Main St", ...} \```
 
 ## Impact
 
@@ -217,9 +217,10 @@ CVSS 3.1 Score: X.X ([Severity]) — AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
 ## Attachments
 
 [Screenshot or Loom video showing the impact — Intigriti triagers prefer video for complex bugs]
-```
+````
 
 **Intigriti-specific notes:**
+
 - Title format: `[Bug Class]: [One-line impact]` (no formula required, but keep it specific)
 - Severity is set by you: Critical/High/Medium/Low/Exceptional
 - CVSS 3.1 is standard (CVSS 4.0 also accepted on newer programs)
@@ -230,20 +231,18 @@ CVSS 3.1 Score: X.X ([Severity]) — AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
 
 ## IMMUNEFI REPORT TEMPLATE
 
-```markdown
+````markdown
 # [Bug Class] — [Protocol Name] — [Severity]
 
 ## Summary
 
-[One paragraph with: root cause, affected function, economic impact, attack cost.
-Include numbers where possible: "attacker can drain $X in Y transactions."]
+[One paragraph with: root cause, affected function, economic impact, attack cost. Include numbers
+where possible: "attacker can drain $X in Y transactions."]
 
 ## Vulnerability Details
 
-**Contract:** `VulnerableContract.sol`
-**Function:** `claimRedemption()`
-**Bug Class:** Accounting State Desynchronization
-**Severity:** Critical
+**Contract:** `VulnerableContract.sol` **Function:** `claimRedemption()` **Bug Class:** Accounting
+State Desynchronization **Severity:** Critical
 
 ### Root Cause
 
@@ -260,15 +259,17 @@ contract ExploitTest is Test {
     // ... full working exploit
 }
 ```
+````
 
 ## Impact
 
-[Quantified: "Attacker can drain X% of TVL = $Y at current rates.
-Requires $Z gas. Attack is repeatable."]
+[Quantified: "Attacker can drain X% of TVL = $Y at current rates. Requires $Z gas. Attack is
+repeatable."]
 
 ## Recommended Fix
 
 [Specific code change with before/after]
+
 ```
 
 ---
@@ -277,7 +278,9 @@ Requires $Z gas. Attack is repeatable."]
 
 ### Formula
 ```
+
 CVSS = f(AV, AC, PR, UI, S, C, I, A)
+
 ```
 
 ### Metric Quick Picks
@@ -349,11 +352,13 @@ CVSS = f(AV, AC, PR, UI, S, C, I, A)
 
 Each YES raises severity:
 ```
-1. Exposes PII / health / financial data of other users?        → +1 severity
-2. Allows account takeover or privilege escalation?             → +2 severity
-3. Requires ZERO user interaction from victim?                  → +1 severity
-4. Affects ALL users (not specific condition)?                  → +1 severity
-5. Remotely exploitable with no internal network access?        → baseline for High+
+
+1. Exposes PII / health / financial data of other users? → +1 severity
+2. Allows account takeover or privilege escalation? → +2 severity
+3. Requires ZERO user interaction from victim? → +1 severity
+4. Affects ALL users (not specific condition)? → +1 severity
+5. Remotely exploitable with no internal network access? → baseline for High+
+
 ```
 
 ---
@@ -374,18 +379,16 @@ Each YES raises severity:
 ## THE 60-SECOND PRE-SUBMIT CHECKLIST
 
 ```
-[ ] Title follows formula: [Class] in [endpoint] allows [actor] to [impact]
-[ ] First sentence states exact impact in plain English
-[ ] Steps to Reproduce has exact HTTP request (copy-paste ready)
-[ ] Response showing the bug is included (screenshot or JSON body)
-[ ] Two test accounts used — not just one account testing itself
-[ ] CVSS score calculated and included
-[ ] Recommended fix is 1-2 sentences (not a lecture)
-[ ] No typos in endpoint paths or parameter names
-[ ] Report is < 600 words — triagers skim long reports
-[ ] Severity claimed matches impact described — don't overclaim
-[ ] Never used "could potentially" or "may allow"
-[ ] PoC is reproducible by triager from a fresh state
+
+[ ] Title follows formula: [Class] in [endpoint] allows [actor] to [impact] [ ] First sentence
+states exact impact in plain English [ ] Steps to Reproduce has exact HTTP request (copy-paste
+ready) [ ] Response showing the bug is included (screenshot or JSON body) [ ] Two test accounts used
+— not just one account testing itself [ ] CVSS score calculated and included [ ] Recommended fix is
+1-2 sentences (not a lecture) [ ] No typos in endpoint paths or parameter names [ ] Report is < 600
+words — triagers skim long reports [ ] Severity claimed matches impact described — don't overclaim [
+] Never used "could potentially" or "may allow" [ ] PoC is reproducible by triager from a fresh
+state
+
 ```
 
 ---
@@ -417,12 +420,12 @@ CVSS 4.0 replaced CVSS 3.1 in November 2023. Some newer programs require it.
 
 ### Quick CVSS 4.0 Calculator
 ```
-Use: https://www.first.org/cvss/calculator/4.0
-Key fields:
-  VC/VI/VA = Vulnerable System Confidentiality/Integrity/Availability
-  SC/SI/SA = Subsequent System (downstream impact)
-  AT = None (no special condition) | Present (race/specific config needed)
-  UI = None | Passive (victim visits URL) | Active (victim takes explicit action)
+
+Use: https://www.first.org/cvss/calculator/4.0 Key fields: VC/VI/VA = Vulnerable System
+Confidentiality/Integrity/Availability SC/SI/SA = Subsequent System (downstream impact) AT = None
+(no special condition) | Present (race/specific config needed) UI = None | Passive (victim visits
+URL) | Active (victim takes explicit action)
+
 ```
 
 **Practical rule**: If program uses CVSS 4.0 and you don't know the vector, use the calculator and include the full string starting with `CVSS:4.0/AV:...`. Programs cannot dispute a valid vector string.
@@ -439,12 +442,14 @@ Key fields:
 
 **Escalation language (when payout is being downgraded):**
 ```
-"This vulnerability does not require any special privileges — only a free account."
-"The exposed data includes [PII type], which is subject to GDPR requirements."
-"An attacker can automate this with a simple loop — all [N] records in minutes."
-"This is exploitable externally without network access to any internal system."
-"The impact is equivalent to a full data breach of [feature/data type]."
-```
+
+"This vulnerability does not require any special privileges — only a free account." "The exposed
+data includes [PII type], which is subject to GDPR requirements." "An attacker can automate this
+with a simple loop — all [N] records in minutes." "This is exploitable externally without network
+access to any internal system." "The impact is equivalent to a full data breach of [feature/data
+type]."
+
+````
 
 **Avoid:**
 - Jargon the triager might not know
@@ -482,36 +487,46 @@ Authorization: Bearer ACCOUNT_A_TOKEN
 
 **Expected:** 403 Forbidden
 **Actual:** 200 OK with victim's private data
-```
+````
 
 ---
 
 ## Related Skills & Chains
 
-- **`triage-validation`** — When deciding whether to write a report at all. Workflow primitive: NEVER open this skill before `triage-validation`'s 7-Question Gate passes; a finding that fails the gate should be killed, not written up.
-- **`bugcrowd-reporting`** — When the target is a Bugcrowd program. Workflow primitive: this skill's body template is the foundation; `bugcrowd-reporting` overlays VRT selection, severity-request paragraph, OOS-clause rebuttals on top.
-- **`evidence-hygiene`** — When PoC screenshots / HARs are being attached to the report. Workflow primitive: every artifact referenced in the "Supporting Materials" / "Proof of Concept" section gets routed through `evidence-hygiene` for cookie + PII redaction before attachment.
-- **`redteam-report-template`** — When the engagement is an external red team (NOT bug bounty). Workflow primitive: confirm engagement mode via `bb-methodology` PART 0; if red-team, swap this skill out for `redteam-report-template` (different audience, different structure: Subject / Observations / Description / Impact / Recommendation / PoC).
+- **`triage-validation`** — When deciding whether to write a report at all. Workflow primitive:
+  NEVER open this skill before `triage-validation`'s 7-Question Gate passes; a finding that fails
+  the gate should be killed, not written up.
+- **`bugcrowd-reporting`** — When the target is a Bugcrowd program. Workflow primitive: this skill's
+  body template is the foundation; `bugcrowd-reporting` overlays VRT selection, severity-request
+  paragraph, OOS-clause rebuttals on top.
+- **`evidence-hygiene`** — When PoC screenshots / HARs are being attached to the report. Workflow
+  primitive: every artifact referenced in the "Supporting Materials" / "Proof of Concept" section
+  gets routed through `evidence-hygiene` for cookie + PII redaction before attachment.
+- **`redteam-report-template`** — When the engagement is an external red team (NOT bug bounty).
+  Workflow primitive: confirm engagement mode via `bb-methodology` PART 0; if red-team, swap this
+  skill out for `redteam-report-template` (different audience, different structure: Subject /
+  Observations / Description / Impact / Recommendation / PoC).
 
 ---
 
 ## Operator Notes (Claude-BugHunter)
 
-> Engagement-derived additions to the vendored foundation. Wisdom from real
-> authorized engagements + Phase 2 verification across this repo's 31+
-> skill-area live tests. The upstream methodology covers the WHAT; this
-> layer covers the WHEN-IT-ACTUALLY-WORKS and the FAILURE-MODES.
+> Engagement-derived additions to the vendored foundation. Wisdom from real authorized engagements +
+> Phase 2 verification across this repo's 31+ skill-area live tests. The upstream methodology covers
+> the WHAT; this layer covers the WHEN-IT-ACTUALLY-WORKS and the FAILURE-MODES.
 
 ### Title formula in practice
 
-`<asset> | <bug class> | <impact>` — three components, no fluff. Triagers read titles in roughly three seconds and use them to order the queue.
+`<asset> | <bug class> | <impact>` — three components, no fluff. Triagers read titles in roughly
+three seconds and use them to order the queue.
 
 - BAD: "Interesting finding on /api/users"
 - BAD: "IDOR vulnerability in API"
 - GOOD: "Authenticated IDOR on /api/users/{uid} -> admin email + role disclosure"
 - GOOD: "Unauthenticated SSRF on /preview?url= -> AWS metadata 169.254.169.254 reachable"
 
-The bad titles get opened last. The good titles get opened first. Same finding, different queue position, different triage day, different payout speed.
+The bad titles get opened last. The good titles get opened first. Same finding, different queue
+position, different triage day, different payout speed.
 
 ### What triagers actually read
 
@@ -523,48 +538,70 @@ Their reading sequence on a fresh report:
 4. **Reproduction steps** (only if the first three were convincing)
 5. **Everything else** (only on follow-up review)
 
-Optimize the top of the report ruthlessly. Save narrative for the middle. Triagers who are convinced by step 3 will rubber-stamp the rest; triagers who aren't convinced by step 3 won't read step 5.
+Optimize the top of the report ruthlessly. Save narrative for the middle. Triagers who are convinced
+by step 3 will rubber-stamp the rest; triagers who aren't convinced by step 3 won't read step 5.
 
 ### CVSS 3.1 vs Bugcrowd VRT vs H1 default severity
 
-These three systems disagree about 30% of the time. The most common gap: a finding that scores CVSS 7.x (High) maps to Bugcrowd P4 (Low) or H1 Medium-default. When the platform default rates lower than CVSS:
+These three systems disagree about 30% of the time. The most common gap: a finding that scores CVSS
+7.x (High) maps to Bugcrowd P4 (Low) or H1 Medium-default. When the platform default rates lower
+than CVSS:
 
-1. **File the severity-request paragraph as the first body section.** Bugcrowd respects this. (See `bugcrowd-reporting` for the canonical template.)
-2. **Anchor the request in CVSS vector string + business impact, not feelings.** "CVSS 3.1 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N = 7.5 High because Confidentiality:High applies to cross-tenant data exposure."
-3. **Cite the platform's own VRT entry** that matches your finding. Don't argue against the platform; route within it.
+1. **File the severity-request paragraph as the first body section.** Bugcrowd respects this. (See
+   `bugcrowd-reporting` for the canonical template.)
+2. **Anchor the request in CVSS vector string + business impact, not feelings.** "CVSS 3.1
+   AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N = 7.5 High because Confidentiality:High applies to
+   cross-tenant data exposure."
+3. **Cite the platform's own VRT entry** that matches your finding. Don't argue against the
+   platform; route within it.
 
-An authorized bug-bounty engagement saw P4-default findings escalated to P3 via the severity-request paragraph. The escalation isn't automatic — you have to ask, with grounded reasoning, in the first body section.
+An authorized bug-bounty engagement saw P4-default findings escalated to P3 via the severity-request
+paragraph. The escalation isn't automatic — you have to ask, with grounded reasoning, in the first
+body section.
 
 ### Evidence rotation
 
 Everything in the submission body is logged forever by the platform. Operate accordingly:
 
 - Use throwaway test accounts created specifically for the engagement.
-- Rotate cookies / tokens after each submission (don't reuse the cookie that's pasted in the report).
-- Never paste production cookies, real user emails, or real PII into the report body — redact in the PoC step.
+- Rotate cookies / tokens after each submission (don't reuse the cookie that's pasted in the
+  report).
+- Never paste production cookies, real user emails, or real PII into the report body — redact in the
+  PoC step.
 - Screenshots of admin panels: blur the user list, blur the URL bar if it contains tokens.
 
 Cross-link `evidence-hygiene` for the full capture-and-redact protocol.
 
 ### Templates by platform — when they differ
 
-| Platform | Tone | Required Structure | Severity Mechanism |
-|---|---|---|---|
-| HackerOne | Narrative | Summary -> Steps -> Impact -> Suggested fix | Triager-set, contestable |
-| Bugcrowd | Structured | Severity request -> VRT category -> Title -> Body -> Remediation | VRT-default + manual override paragraph |
-| Intigriti | Between | Summary -> PoC -> Impact -> Recommendation | Researcher-proposed, triager-confirmed |
-| Immunefi | PoC-first | Working PoC code -> Walkthrough -> Impact -> Severity | Foundry/Hardhat code is the primary deliverable |
+| Platform  | Tone       | Required Structure                                               | Severity Mechanism                              |
+| --------- | ---------- | ---------------------------------------------------------------- | ----------------------------------------------- |
+| HackerOne | Narrative  | Summary -> Steps -> Impact -> Suggested fix                      | Triager-set, contestable                        |
+| Bugcrowd  | Structured | Severity request -> VRT category -> Title -> Body -> Remediation | VRT-default + manual override paragraph         |
+| Intigriti | Between    | Summary -> PoC -> Impact -> Recommendation                       | Researcher-proposed, triager-confirmed          |
+| Immunefi  | PoC-first  | Working PoC code -> Walkthrough -> Impact -> Severity            | Foundry/Hardhat code is the primary deliverable |
 
-Picking the wrong template style costs validity. A narrative-heavy Bugcrowd report misses the VRT mapping the triager needs; a structured H1 report reads as terse and gets follow-up questions that delay payout.
+Picking the wrong template style costs validity. A narrative-heavy Bugcrowd report misses the VRT
+mapping the triager needs; a structured H1 report reads as terse and gets follow-up questions that
+delay payout.
 
 ### The single biggest report-writing mistake
 
-Claiming an attack works "in theory" or "could be chained to [bigger impact]" without demonstrating it. Triage-validation Q6 (impact beyond technically possible) kills these on the validation side; report-writing has to mirror it on the writing side.
+Claiming an attack works "in theory" or "could be chained to [bigger impact]" without demonstrating
+it. Triage-validation Q6 (impact beyond technically possible) kills these on the validation side;
+report-writing has to mirror it on the writing side.
 
 Two valid paths:
 
-1. **Show concrete impact end-to-end.** Capture the chain on a test account. Paste the full request/response sequence. Done.
-2. **Downgrade the severity claim to match what you actually demonstrated.** "IDOR on /api/users/{uid} reading email + role" is real and reportable; "IDOR chained to potential admin takeover" is not until you demonstrate the takeover.
+1. **Show concrete impact end-to-end.** Capture the chain on a test account. Paste the full
+   request/response sequence. Done.
+2. **Downgrade the severity claim to match what you actually demonstrated.** "IDOR on
+   /api/users/{uid} reading email + role" is real and reportable; "IDOR chained to potential admin
+   takeover" is not until you demonstrate the takeover.
 
-Pick one. Never split the difference with "could potentially" or "may allow" — those phrases are the triager's signal that the report is theoretical, and theoretical reports get N/A.
-- **`bb-methodology`** — When Phase 5's report-writing step starts. Workflow primitive: Phase 5 calls `/report` which loads this skill for the platform-specific template (H1 / Bugcrowd / Intigriti / Immunefi).
+Pick one. Never split the difference with "could potentially" or "may allow" — those phrases are the
+triager's signal that the report is theoretical, and theoretical reports get N/A.
+
+- **`bb-methodology`** — When Phase 5's report-writing step starts. Workflow primitive: Phase 5
+  calls `/report` which loads this skill for the platform-specific template (H1 / Bugcrowd /
+  Intigriti / Immunefi).

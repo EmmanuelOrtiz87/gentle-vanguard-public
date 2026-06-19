@@ -1,11 +1,14 @@
 ---
 name: data-storytelling-skill
 description: >
-  Imported from mercury-agent-skills. Use when working with "data storytelling", "data viz", "charts", "dashboard", "analytics presentation". Triggers: "data storytelling", "data viz", "charts", "dashboard", "analytics presentation".
+  Imported from mercury-agent-skills. Use when working with "data storytelling", "data viz",
+  "charts", "dashboard", "analytics presentation". Triggers: "data storytelling", "data viz",
+  "charts", "dashboard", "analytics presentation".
 metadata:
   source: mercury-agent-skills
   original-name: data-storytelling
 ---
+
 # Data Storytelling for Slides
 
 Turn raw data into compelling visual narratives that audiences understand, remember, and act on.
@@ -13,30 +16,39 @@ Turn raw data into compelling visual narratives that audiences understand, remem
 ## Core Principles
 
 ### 1. Data Without Story Is Just Numbers
-A chart without context is meaningless. Every data point should serve a narrative: "Revenue grew 40% because we launched the mobile app" is a story. "Revenue was $1.2M" is just a number.
+
+A chart without context is meaningless. Every data point should serve a narrative: "Revenue grew 40%
+because we launched the mobile app" is a story. "Revenue was $1.2M" is just a number.
 
 ### 2. Show the Relationship, Not Just the Data
-The best data slides reveal relationships: cause and effect, before and after, actual vs. target, you vs. competition. Comparison is the foundation of insight.
+
+The best data slides reveal relationships: cause and effect, before and after, actual vs. target,
+you vs. competition. Comparison is the foundation of insight.
 
 ### 3. Maximize the Data-Ink Ratio
-Remove anything in a chart that isn't data or essential context. Gridlines, borders, 3D effects, excessive labels — eliminate noise. Every pixel should either inform or guide.
+
+Remove anything in a chart that isn't data or essential context. Gridlines, borders, 3D effects,
+excessive labels — eliminate noise. Every pixel should either inform or guide.
 
 ### 4. The Audience Should Arrive at the Insight in 5 Seconds
-If a viewer can't understand the key takeaway within 5 seconds, the visualization has failed. Pre-attentive attributes (color, size, position) should make the insight immediately obvious.
+
+If a viewer can't understand the key takeaway within 5 seconds, the visualization has failed.
+Pre-attentive attributes (color, size, position) should make the insight immediately obvious.
 
 ---
 
 ## Data Storytelling Maturity Model
 
-| Level | Chart Selection | Narrative Integration | Visual Design | Audience Impact |
-|-------|----------------|---------------------|---------------|----------------|
-| **1: Raw Data** | Default chart type, no thought | No story — just numbers | Default Excel/Sheets colors | Confusing, ignored |
-| **2: Basic Chart** | Appropriate chart type | Chart title describes takeaway | Brand colors, clean labels | Understood but forgettable |
-| **3: Annotated** | Right chart for the question | Key points highlighted with annotations | Custom colors, callouts, footnotes | Remembered, shareable |
-| **4: Narrative** | Multi-chart flow tells a story | Data + text + visuals in harmony | Purposeful design, progressive disclosure | Drives action and decisions |
-| **5: Immersive** | Interactive exploration | Data narrative with branching paths | Cinematic, animated, multi-perspective | Changes behavior, memorable |
+| Level              | Chart Selection                | Narrative Integration                   | Visual Design                             | Audience Impact             |
+| ------------------ | ------------------------------ | --------------------------------------- | ----------------------------------------- | --------------------------- |
+| **1: Raw Data**    | Default chart type, no thought | No story — just numbers                 | Default Excel/Sheets colors               | Confusing, ignored          |
+| **2: Basic Chart** | Appropriate chart type         | Chart title describes takeaway          | Brand colors, clean labels                | Understood but forgettable  |
+| **3: Annotated**   | Right chart for the question   | Key points highlighted with annotations | Custom colors, callouts, footnotes        | Remembered, shareable       |
+| **4: Narrative**   | Multi-chart flow tells a story | Data + text + visuals in harmony        | Purposeful design, progressive disclosure | Drives action and decisions |
+| **5: Immersive**   | Interactive exploration        | Data narrative with branching paths     | Cinematic, animated, multi-perspective    | Changes behavior, memorable |
 
-Target: **Level 3** for internal dashboards and reports. **Level 4** for investor and executive presentations.
+Target: **Level 3** for internal dashboards and reports. **Level 4** for investor and executive
+presentations.
 
 ---
 
@@ -100,16 +112,19 @@ Only use pie charts when:
 # The Three-Act Data Story
 
 ## ACT 1: Context
+
 - What's the situation?
 - What are we measuring and why?
 - What's the time frame?
 
 ## ACT 2: The Insight
+
 - What changed? (The "aha" moment)
 - Why did it change? (Cause explanation)
 - How significant is it? (Magnitude)
 
 ## ACT 3: Implication
+
 - What should we do about it?
 - What happens if we don't act?
 - What's the expected outcome?
@@ -143,15 +158,15 @@ def format_data_slide(story_dict):
     """Generate a structured data slide from a story dictionary."""
     slide = f"""
     # {story_dict['headline']}
-    
+
     **Context**: {story_dict['context']['before']}
     → {story_dict['context']['catalyst']}
     → {story_dict['context']['after']}
-    
+
     [CHART: {story_dict['evidence']['primary_chart']}]
-    
+
     **Key Insight**: {story_dict['evidence']['supporting_data']}
-    
+
     **Action**: {story_dict['implication']['action']}
     """
     return slide
@@ -241,7 +256,9 @@ plt.tight_layout()
 
 ### What Are Pre-Attentive Attributes?
 
-Pre-attentive attributes are visual properties that the brain processes in under 500 milliseconds — before conscious attention. Use them to direct the audience's eye to the most important insight instantly.
+Pre-attentive attributes are visual properties that the brain processes in under 500 milliseconds —
+before conscious attention. Use them to direct the audience's eye to the most important insight
+instantly.
 
 ```text
 Key Pre-Attentive Attributes (ranked by effectiveness):
@@ -265,33 +282,33 @@ Key Pre-Attentive Attributes (ranked by effectiveness):
 import matplotlib.pyplot as plt
 import numpy as np
 
-def highlight_bar_chart(categories, values, highlight_index, 
-                         highlight_color="#E53E3E", 
+def highlight_bar_chart(categories, values, highlight_index,
+                         highlight_color="#E53E3E",
                          default_color="#CBD5E0"):
     """
     Create a bar chart where one bar is highlighted using color.
     This uses the pre-attentive attribute of color (hue) to direct attention.
     """
-    colors = [highlight_color if i == highlight_index else default_color 
+    colors = [highlight_color if i == highlight_index else default_color
               for i in range(len(categories))]
-    
+
     fig, ax = plt.subplots(figsize=(10, 6))
     bars = ax.bar(categories, values, color=colors, width=0.6)
-    
+
     # Remove clutter
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_color("#E2E8F0")
     ax.spines["bottom"].set_color("#E2E8F0")
     ax.grid(False)
-    
+
     # Add value labels
     for bar, value in zip(bars, values):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
-                f"{value}", ha="center", va="bottom", 
+                f"{value}", ha="center", va="bottom",
                 fontsize=12, fontweight="bold" if value == max(values) else "normal",
                 color="#2D3748")
-    
+
     ax.set_title("Revenue by Channel", fontsize=16, fontweight="bold", pad=20)
     return fig
 
@@ -335,21 +352,21 @@ Executive Dashboard Layout:
 ## KPI Slide Patterns
 
 ### Single KPI (Hero Metric)
-[Large Number]         → $1,200,000
-[Label]                → Annual Recurring Revenue
-[Trend Arrow]          → ↑ 40% year-over-year
-[Sparkline]            → [Mini line chart showing trend]
-[Context]              → "On track to hit $2M by Q4"
+
+[Large Number] → $1,200,000 [Label] → Annual Recurring Revenue [Trend Arrow] → ↑ 40% year-over-year
+[Sparkline] → [Mini line chart showing trend] [Context] → "On track to hit $2M by Q4"
 
 ### Multiple KPIs (Dashboard Style)
-| Metric       | Value     | Trend | vs Target | Sparkline |
-|--------------|-----------|-------|-----------|-----------|
-| ARR          | $1.2M     | ↑ 40% | ✓ On track| [mini ln] |
-| Active Users | 45,000    | ↑ 22% | ✓ Ahead   | [mini ln] |
-| Churn Rate   | 3.2%      | ↓ 0.5%| ⚠ Watch   | [mini ln] |
-| NPS          | 62        | ↑ 5pts| ✓ Good    | [mini ln] |
+
+| Metric       | Value  | Trend  | vs Target  | Sparkline |
+| ------------ | ------ | ------ | ---------- | --------- |
+| ARR          | $1.2M  | ↑ 40%  | ✓ On track | [mini ln] |
+| Active Users | 45,000 | ↑ 22%  | ✓ Ahead    | [mini ln] |
+| Churn Rate   | 3.2%   | ↓ 0.5% | ⚠ Watch    | [mini ln] |
+| NPS          | 62     | ↑ 5pts | ✓ Good     | [mini ln] |
 
 ### Waterfall KPI
+
 [Starting Point] → [Change 1] → [Change 2] → [Change 3] = [Result]
 ```
 
@@ -407,13 +424,13 @@ def annotated_revenue_chart():
     """Create a line chart with strategic annotations."""
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     revenue = [200, 210, 205, 220, 260, 300, 320, 350, 380, 420, 460, 510]
-    
+
     fig, ax = plt.subplots(figsize=(12, 6))
-    
+
     # Main line
     ax.plot(months, revenue, color="#2B6CB0", linewidth=2.5, zorder=2)
     ax.fill_between(range(len(months)), revenue, alpha=0.1, color="#2B6CB0")
-    
+
     # Annotation 1: Product launch inflection point
     ax.annotate(
         "Mobile App\nLaunch",  # Label
@@ -423,7 +440,7 @@ def annotated_revenue_chart():
         arrowprops=dict(arrowstyle="->", color="#E53E3E", linewidth=2),
         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#E53E3E")
     )
-    
+
     # Annotation 2: Key result
     ax.annotate(
         "Record: $510K\n↑ 155% YoY",
@@ -433,7 +450,7 @@ def annotated_revenue_chart():
         arrowprops=dict(arrowstyle="->", color="#38A169", linewidth=2),
         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#38A169")
     )
-    
+
     # Clean design
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -441,11 +458,11 @@ def annotated_revenue_chart():
     ax.spines["bottom"].set_color("#CBD5E0")
     ax.grid(True, alpha=0.3, axis="y")
     ax.tick_params(colors="#4A5568")
-    
-    ax.set_title("Monthly Revenue — $510K in Record December", 
+
+    ax.set_title("Monthly Revenue — $510K in Record December",
                  fontsize=16, fontweight="bold", pad=20)
     ax.set_ylabel("Revenue ($K)", fontsize=12, color="#4A5568")
-    
+
     return fig
 ```
 
@@ -479,7 +496,7 @@ Line charts CAN have a non-zero baseline but should indicate it.
 ✅ Bar chart starting at 0:   [||||||||||]  = 100%
 ❌ Bar chart starting at 80:  [|||]         = Looks like 15% but is actually 80%
 
-Exception: Line charts for small fluctuations (e.g., stock prices) 
+Exception: Line charts for small fluctuations (e.g., stock prices)
 can zoom in — but clearly mark the axis break or use a sparkline.
 ```
 
@@ -547,13 +564,23 @@ For static slides (presentations, PDFs):
 
 ## Common Mistakes
 
-1. **Chart junk**: 3D effects, excessive gridlines, clip art, and useless decorations that distract from the data.
-2. **Wrong chart type**: Using pie charts for 12 categories, or line charts for categorical data. Match chart to data relationship.
-3. **Missing context**: Showing a metric without a comparison (period-over-period, vs. target, vs. industry). Data alone is meaningless.
-4. **No narrative**: Charts displayed without explanation or insight. The audience is left to figure it out themselves.
-5. **Data overload**: Too many metrics, too many data points, too many charts. One insight per slide. Prioritize ruthlessly.
-6. **Misleading scales**: Truncated Y-axes, inconsistent scales across comparison charts, or dual axes that imply false correlation.
-7. **No source attribution**: Data without a source is untrustworthy. Always cite where numbers come from.
-8. **Highlighting everything**: Making all bars in a chart different colors. If everything is highlighted, nothing is.
-9. **Small fonts on charts**: Axis labels, legends, and annotations too small to read when projected. Minimum 12pt for any chart text.
-10. **No takeaway title**: A chart titled "Revenue by Quarter" tells me what it is, not what I should learn. Use insight-driven titles.
+1. **Chart junk**: 3D effects, excessive gridlines, clip art, and useless decorations that distract
+   from the data.
+2. **Wrong chart type**: Using pie charts for 12 categories, or line charts for categorical data.
+   Match chart to data relationship.
+3. **Missing context**: Showing a metric without a comparison (period-over-period, vs. target, vs.
+   industry). Data alone is meaningless.
+4. **No narrative**: Charts displayed without explanation or insight. The audience is left to figure
+   it out themselves.
+5. **Data overload**: Too many metrics, too many data points, too many charts. One insight per
+   slide. Prioritize ruthlessly.
+6. **Misleading scales**: Truncated Y-axes, inconsistent scales across comparison charts, or dual
+   axes that imply false correlation.
+7. **No source attribution**: Data without a source is untrustworthy. Always cite where numbers come
+   from.
+8. **Highlighting everything**: Making all bars in a chart different colors. If everything is
+   highlighted, nothing is.
+9. **Small fonts on charts**: Axis labels, legends, and annotations too small to read when
+   projected. Minimum 12pt for any chart text.
+10. **No takeaway title**: A chart titled "Revenue by Quarter" tells me what it is, not what I
+    should learn. Use insight-driven titles.

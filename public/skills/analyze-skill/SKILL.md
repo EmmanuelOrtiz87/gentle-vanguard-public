@@ -7,9 +7,11 @@ metadata:
   original-name: analyze
   department: data
 ---
+
 # /analyze - Answer Data Questions
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+> If you see unfamiliar placeholders or need to check which tools are connected, see
+> [CONNECTORS.md](../../CONNECTORS.md).
 
 Answer a data question, from a quick lookup to a full analysis to a formal report.
 
@@ -26,9 +28,12 @@ Answer a data question, from a quick lookup to a full analysis to a formal repor
 Parse the user's question and determine:
 
 - **Complexity level**:
-  - **Quick answer**: Single metric, simple filter, factual lookup (e.g., "How many users signed up last week?")
-  - **Full analysis**: Multi-dimensional exploration, trend analysis, comparison (e.g., "What's driving the drop in conversion rate?")
-  - **Formal report**: Comprehensive investigation with methodology, caveats, and recommendations (e.g., "Prepare a quarterly business review of our subscription metrics")
+  - **Quick answer**: Single metric, simple filter, factual lookup (e.g., "How many users signed up
+    last week?")
+  - **Full analysis**: Multi-dimensional exploration, trend analysis, comparison (e.g., "What's
+    driving the drop in conversion rate?")
+  - **Formal report**: Comprehensive investigation with methodology, caveats, and recommendations
+    (e.g., "Prepare a quarterly business review of our subscription metrics")
 - **Data requirements**: Which tables, metrics, dimensions, and time ranges are needed
 - **Output format**: Number, table, chart, narrative, or combination
 
@@ -39,7 +44,8 @@ Parse the user's question and determine:
 1. Explore the schema to find relevant tables and columns
 2. Write SQL query(ies) to extract the needed data
 3. Execute the query and retrieve results
-4. If the query fails, debug and retry (check column names, table references, syntax for the specific dialect)
+4. If the query fails, debug and retry (check column names, table references, syntax for the
+   specific dialect)
 5. If results look unexpected, run sanity checks before proceeding
 
 **If no data warehouse is connected:**
@@ -48,7 +54,8 @@ Parse the user's question and determine:
    - Paste query results directly
    - Upload a CSV or Excel file
    - Describe the schema so you can write queries for them to run
-2. If writing queries for manual execution, use the `sql-queries` skill for dialect-specific best practices
+2. If writing queries for manual execution, use the `sql-queries` skill for dialect-specific best
+   practices
 3. Once data is provided, proceed with analysis
 
 ### 3. Analyze
@@ -73,16 +80,19 @@ If any check raises concerns, investigate and note caveats.
 ### 5. Present Findings
 
 **For quick answers:**
+
 - State the answer directly with relevant context
 - Include the query used (collapsed or in a code block) for reproducibility
 
 **For full analyses:**
+
 - Lead with the key finding or insight
 - Support with data tables and/or visualizations
 - Note methodology and any caveats
 - Suggest follow-up questions
 
 **For formal reports:**
+
 - Executive summary with key takeaways
 - Methodology section explaining approach and data sources
 - Detailed findings with supporting evidence
@@ -100,16 +110,19 @@ When a chart would communicate results more effectively than a table:
 ## Examples
 
 **Quick answer:**
+
 ```
 /analyze How many new users signed up in December?
 ```
 
 **Full analysis:**
+
 ```
 /analyze What's causing the increase in support ticket volume over the past 3 months? Break down by category and priority.
 ```
 
 **Formal report:**
+
 ```
 /analyze Prepare a data quality assessment of our customer table -- completeness, consistency, and any issues we should address.
 ```
