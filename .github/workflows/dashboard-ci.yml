@@ -207,7 +207,7 @@ jobs:
         path: reports/
         
     - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
       id: deployment
       
     - name: Notify deployment
