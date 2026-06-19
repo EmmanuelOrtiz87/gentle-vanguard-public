@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.3.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.3.2-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
@@ -56,7 +56,7 @@ standards, tracks every token, and remembers what you did last session.
 # https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
 
 # Run
-./gentle-vanguard-3.3.0.exe -Dashboard
+./gentle-vanguard-3.3.2.exe -Dashboard
 ```
 
 Or use the portable version:
@@ -84,7 +84,7 @@ Or use the portable version:
 1. Download the latest `.exe` from
    [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
 2. Run the executable — the installer will set up all dependencies
-3. Launch with `./gentle-vanguard-3.3.0.exe -Dashboard`
+3. Launch with `./gentle-vanguard-3.3.2.exe -Dashboard`
 4. Open `http://localhost:3000` in your browser
 
 ---
@@ -130,7 +130,7 @@ graph TB
 
 ---
 
-## ✨ What's New in v3.3.0
+## ✨ What's New in v3.3.2
 
 ### 🔄 Adaptive Feedback Loop
 
@@ -187,4 +187,4 @@ MIT © 2026 Emmanuel Ortiz
 
 ---
 
-_Gentle-Vanguard v3.3.1 — Don't let your mellow hustle be faded_
+_Gentle-Vanguard v3.3.2 — Don't let your mellow hustle be faded_

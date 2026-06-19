@@ -1,19 +1,26 @@
 ---
 name: second-order-skill
 description: >
-  Imported from cc-thinking-skills. second order, consequences, ripple effects, unintended consequences.
+  Imported from cc-thinking-skills. second order, consequences, ripple effects, unintended
+  consequences.
 metadata:
   source: cc-thinking-skills
   original-name: thinking-second-order
 ---
+
 # Second-Order Thinking
 
 ## Overview
-Second-order thinking, articulated by Howard Marks, moves beyond immediate effects to consider what happens next, and what that leads to. First-order thinking is simplistic ("This action solves the problem"); second-order thinking asks "And then what?" repeatedly.
 
-**Core Principle:** The obvious answer to "What should I do?" is often wrong because it ignores downstream effects.
+Second-order thinking, articulated by Howard Marks, moves beyond immediate effects to consider what
+happens next, and what that leads to. First-order thinking is simplistic ("This action solves the
+problem"); second-order thinking asks "And then what?" repeatedly.
+
+**Core Principle:** The obvious answer to "What should I do?" is often wrong because it ignores
+downstream effects.
 
 ## When to Use
+
 - Making strategic or architectural decisions
 - Evaluating policy or process changes
 - Considering incentive structures
@@ -22,6 +29,7 @@ Second-order thinking, articulated by Howard Marks, moves beyond immediate effec
 - When the "obvious" solution feels too easy
 
 Decision flow:
+
 ```
 Decision with consequences beyond immediate? → yes → APPLY SECOND-ORDER THINKING
                                             ↘ no → First-order may suffice
@@ -29,23 +37,26 @@ Decision with consequences beyond immediate? → yes → APPLY SECOND-ORDER THIN
 
 ## First vs Second-Order Thinking
 
-| Situation | First-Order | Second-Order |
-|-----------|-------------|--------------|
-| Team is slow | Add more engineers | More engineers → more coordination → slower decisions → may get slower |
-| Users complain | Add the feature they request | Feature → complexity → more support load → less time for core work |
-| Costs too high | Cut spending | Cuts → reduced quality → customer churn → revenue drop → worse situation |
-| Bug in prod | Hotfix immediately | Hotfix → skip testing → more bugs → trust erosion → slower deployments |
+| Situation      | First-Order                  | Second-Order                                                             |
+| -------------- | ---------------------------- | ------------------------------------------------------------------------ |
+| Team is slow   | Add more engineers           | More engineers → more coordination → slower decisions → may get slower   |
+| Users complain | Add the feature they request | Feature → complexity → more support load → less time for core work       |
+| Costs too high | Cut spending                 | Cuts → reduced quality → customer churn → revenue drop → worse situation |
+| Bug in prod    | Hotfix immediately           | Hotfix → skip testing → more bugs → trust erosion → slower deployments   |
 
 ## The Process
 
 ### Step 1: Identify the Decision and First-Order Effect
+
 ```
 Decision: Add a feature flag system
 First-order: Teams can ship features independently ✓
 ```
 
 ### Step 2: Ask "And Then What?"
+
 Chain the consequences:
+
 ```
 Feature flags → More flags created → Flag debt accumulates
              → Teams don't clean up → Combinatorial testing complexity
@@ -54,16 +65,19 @@ Feature flags → More flags created → Flag debt accumulates
 ```
 
 ### Step 3: Apply the 10/10/10 Framework
+
 Evaluate impact across time horizons:
 
-| Timeframe | Question | Analysis |
-|-----------|----------|----------|
-| 10 minutes | How will I feel right after? | Relief—problem solved |
-| 10 months | How will this affect things in 10 months? | Flag sprawl emerging |
-| 10 years | What's the long-term trajectory? | Technical debt crisis |
+| Timeframe  | Question                                  | Analysis              |
+| ---------- | ----------------------------------------- | --------------------- |
+| 10 minutes | How will I feel right after?              | Relief—problem solved |
+| 10 months  | How will this affect things in 10 months? | Flag sprawl emerging  |
+| 10 years   | What's the long-term trajectory?          | Technical debt crisis |
 
 ### Step 4: Consider Systemic Effects
+
 Ask: "What if everyone did this?"
+
 ```
 Decision: Skip code review for urgent fixes
 If everyone: All urgent fixes skip review
@@ -72,6 +86,7 @@ Outcome: Quality collapses, more urgent fixes needed
 ```
 
 ### Step 5: Map the Consequence Chain
+
 ```
 ┌─────────────────┐
 │ Decision: X     │
@@ -97,6 +112,7 @@ Outcome: Quality collapses, more urgent fixes needed
 ## Common Second-Order Effects in Software
 
 ### Optimization
+
 ```
 1st: Optimize critical path → Faster
 2nd: Team focuses on optimization → Less feature work
@@ -105,6 +121,7 @@ Outcome: Quality collapses, more urgent fixes needed
 ```
 
 ### Hiring
+
 ```
 1st: Hire senior engineers → More capacity
 2nd: Salary expectations rise → Budget pressure
@@ -113,6 +130,7 @@ Outcome: Quality collapses, more urgent fixes needed
 ```
 
 ### Process Addition
+
 ```
 1st: Add approval process → More oversight
 2nd: Approvals create bottleneck → Slower delivery
@@ -121,6 +139,7 @@ Outcome: Quality collapses, more urgent fixes needed
 ```
 
 ### Technical Shortcuts
+
 ```
 1st: Skip tests to ship faster → Feature delivered
 2nd: Bugs emerge → Support load increases
@@ -136,28 +155,36 @@ For any significant decision, fill out:
 ## Second-Order Analysis: [Decision]
 
 ### Immediate Effect (1st Order)
+
 [What happens right away]
 
 ### Near-Term Consequences (2nd Order)
+
 [What does the immediate effect cause? 1-3 months]
 
-### Medium-Term Consequences (3rd Order)  
+### Medium-Term Consequences (3rd Order)
+
 [What do the near-term effects cause? 3-12 months]
 
 ### Long-Term Trajectory
+
 [Where does this path lead? 1+ years]
 
 ### Feedback Loops
+
 [Does this create reinforcing or balancing dynamics?]
 
 ### If Scaled
+
 [What happens if this becomes standard practice?]
 
 ### Revised Decision
+
 [Given analysis, what should we actually do?]
 ```
 
 ## Questions to Surface Second-Order Effects
+
 - "And then what?"
 - "Who else is affected, and how will they respond?"
 - "What incentives does this create?"
@@ -167,6 +194,7 @@ For any significant decision, fill out:
 - "What does this look like if everyone does it?"
 
 ## Verification Checklist
+
 - [ ] Identified first-order effect clearly
 - [ ] Asked "and then what?" at least 3 times
 - [ ] Applied 10/10/10 framework
@@ -176,6 +204,9 @@ For any significant decision, fill out:
 - [ ] Documented reasoning for future reference
 
 ## Marks' Warning
-"First-level thinking is simplistic and superficial, and just about everyone can do it. Second-level thinking is deep, complex, and convoluted."
 
-The crowd uses first-order thinking. Competitive advantage comes from thinking one level deeper—seeing what happens after the obvious effect.
+"First-level thinking is simplistic and superficial, and just about everyone can do it. Second-level
+thinking is deep, complex, and convoluted."
+
+The crowd uses first-order thinking. Competitive advantage comes from thinking one level
+deeper—seeing what happens after the obvious effect.

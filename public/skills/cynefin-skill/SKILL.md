@@ -1,18 +1,24 @@
 ---
 name: cynefin-skill
 description: >
-  Imported from cc-thinking-skills. cynefin, complexity classification, problem domain, complicated vs complex.
+  Imported from cc-thinking-skills. cynefin, complexity classification, problem domain, complicated
+  vs complex.
 metadata:
   source: cc-thinking-skills
   original-name: thinking-cynefin
 ---
+
 # Cynefin Framework
 
 ## Overview
 
-The Cynefin framework, developed by Dave Snowden, classifies problems into domains based on the relationship between cause and effect. Different domains require fundamentally different approaches. Using the wrong approach for the domain leads to failure—agile doesn't fix truly complex problems, and detailed planning doesn't help in chaos.
+The Cynefin framework, developed by Dave Snowden, classifies problems into domains based on the
+relationship between cause and effect. Different domains require fundamentally different approaches.
+Using the wrong approach for the domain leads to failure—agile doesn't fix truly complex problems,
+and detailed planning doesn't help in chaos.
 
-**Core Principle:** The nature of the problem determines the nature of the solution. Match your approach to the domain.
+**Core Principle:** The nature of the problem determines the nature of the solution. Match your
+approach to the domain.
 
 ## When to Use
 
@@ -39,6 +45,7 @@ Facing a problem?
 ### 1. Clear (formerly Simple/Obvious)
 
 **Characteristics:**
+
 - Cause and effect are obvious to everyone
 - Best practices exist and work
 - Repeatable processes
@@ -63,6 +70,7 @@ Appropriate method:
 ### 2. Complicated
 
 **Characteristics:**
+
 - Cause and effect require expertise to see
 - Multiple right answers exist
 - Good practices (not "best" practices)
@@ -84,11 +92,13 @@ Appropriate method:
 - Multiple valid solutions
 ```
 
-**Failure mode:** Analysis paralysis. Over-analyzing when action is needed, or treating complicated problems as if they're clear.
+**Failure mode:** Analysis paralysis. Over-analyzing when action is needed, or treating complicated
+problems as if they're clear.
 
 ### 3. Complex
 
 **Characteristics:**
+
 - Cause and effect only visible in retrospect
 - Emergent behavior
 - Cannot predict outcomes
@@ -110,11 +120,13 @@ Appropriate method:
 - Emergent strategy
 ```
 
-**Failure mode:** Trying to analyze/plan your way through complexity. The system is too interconnected for analysis; you must probe and learn.
+**Failure mode:** Trying to analyze/plan your way through complexity. The system is too
+interconnected for analysis; you must probe and learn.
 
 ### 4. Chaotic
 
 **Characteristics:**
+
 - No perceivable cause and effect
 - High turbulence
 - Need to act first to create stability
@@ -140,6 +152,7 @@ Appropriate method:
 ### 5. Disorder (Center)
 
 **Characteristics:**
+
 - Don't know which domain you're in
 - Multiple stakeholders perceive different domains
 - Confusion and disagreement about approach
@@ -163,6 +176,7 @@ Solution: Break apart, apply appropriate approach to each
 ## Domain Assessment: [Problem]
 
 Can you see clear cause-effect?
+
 - [ ] Yes, obvious to everyone → CLEAR
 - [ ] Yes, but requires expertise → COMPLICATED
 - [ ] No, only visible after the fact → COMPLEX
@@ -172,12 +186,12 @@ Can you see clear cause-effect?
 
 ### Step 2: Test Your Assessment
 
-| Domain | Test | If yes, stay | If no, reconsider |
-|--------|------|--------------|-------------------|
-| Clear | Do best practices exist and work reliably? | Clear | Maybe Complicated |
-| Complicated | Can experts predict outcomes? | Complicated | Maybe Complex |
-| Complex | Can you run safe-to-fail experiments? | Complex | Maybe Chaotic |
-| Chaotic | Is the situation too turbulent to experiment? | Chaotic | Maybe Complex |
+| Domain      | Test                                          | If yes, stay | If no, reconsider |
+| ----------- | --------------------------------------------- | ------------ | ----------------- |
+| Clear       | Do best practices exist and work reliably?    | Clear        | Maybe Complicated |
+| Complicated | Can experts predict outcomes?                 | Complicated  | Maybe Complex     |
+| Complex     | Can you run safe-to-fail experiments?         | Complex      | Maybe Chaotic     |
+| Chaotic     | Is the situation too turbulent to experiment? | Chaotic      | Maybe Complex     |
 
 ### Step 3: Match Approach
 
@@ -187,6 +201,7 @@ Can you see clear cause-effect?
 Domain: [Assessment result]
 
 Appropriate approach:
+
 - Decision-making style: [Best practice / Expert analysis / Experimentation / Crisis response]
 - Planning depth: [Detailed / Moderate / Minimal / None]
 - Methodology: [Process / Analysis / Agile / Command]
@@ -246,6 +261,7 @@ Fix: Apply best practice, don't over-analyze
 - Process compliance
 
 Example applications:
+
 - Deployment procedures
 - Coding standards
 - Basic incident response
@@ -265,6 +281,7 @@ Example applications:
 - Scenario planning
 
 Example applications:
+
 - System architecture
 - Performance optimization
 - Security review
@@ -284,6 +301,7 @@ Example applications:
 - Feature flags
 
 Example applications:
+
 - Product development
 - Team process improvement
 - User experience design
@@ -302,6 +320,7 @@ Example applications:
 - Post-incident review (later)
 
 Example applications:
+
 - Major outages
 - Security incidents
 - Crisis response
@@ -314,33 +333,39 @@ Example applications:
 # Cynefin Analysis: [Problem/Situation]
 
 ## Problem Statement
+
 [Describe the problem]
 
 ## Domain Assessment
 
 ### Cause-Effect Analysis
-Relationship: [Clear / Requires expertise / Retrospective / Turbulent]
-Evidence: [What makes you believe this]
+
+Relationship: [Clear / Requires expertise / Retrospective / Turbulent] Evidence: [What makes you
+believe this]
 
 ### Domain Classification
+
 Domain: [Clear / Complicated / Complex / Chaotic / Disorder]
 
 ### Confidence Check
+
 Could this be a different domain? [Assessment]
 
 ## Approach
 
 Based on [domain], the appropriate approach is:
 
-| Aspect | Approach |
-|--------|----------|
+| Aspect         | Approach                                                       |
+| -------------- | -------------------------------------------------------------- |
 | Decision style | [Best practice / Analysis / Experimentation / Crisis response] |
-| Planning | [Detailed / Moderate / Minimal / None] |
-| Methodology | [Process / Waterfall / Agile / Command] |
-| Success metric | [Efficiency / Quality / Learning / Stability] |
+| Planning       | [Detailed / Moderate / Minimal / None]                         |
+| Methodology    | [Process / Waterfall / Agile / Command]                        |
+| Success metric | [Efficiency / Quality / Learning / Stability]                  |
 
 ## Specific Actions
+
 Given the domain, I will:
+
 1. [Action]
 2. [Action]
 ```
@@ -366,8 +391,11 @@ Given the domain, I will:
 
 ## Snowden's Wisdom
 
-"Complex systems are not causal—they're dispositional. You can't predict what will happen; you can only influence what might happen."
+"Complex systems are not causal—they're dispositional. You can't predict what will happen; you can
+only influence what might happen."
 
 "The only way to understand a complex system is to probe it and see how it responds."
 
-Different problems require different thinking. The failure isn't in your methodology—it's in applying the wrong methodology to the wrong domain. Match the approach to the problem, not the other way around.
+Different problems require different thinking. The failure isn't in your methodology—it's in
+applying the wrong methodology to the wrong domain. Match the approach to the problem, not the other
+way around.

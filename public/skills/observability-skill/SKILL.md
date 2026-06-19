@@ -115,4 +115,6 @@ Bad examples:
 4. Inspect logs with requestId/traceId
 5. Validate mitigation, then root cause
 
-> **See also**: [monitoring-observability-skill](../monitoring-observability-skill/SKILL.md) for Prometheus/Grafana/metrics deep-dive, [monitoring-aggregator](../monitoring-aggregator/SKILL.md) for metrics aggregation
+> **See also**: [monitoring-observability-skill](../monitoring-observability-skill/SKILL.md) for
+> Prometheus/Grafana/metrics deep-dive, [monitoring-aggregator](../monitoring-aggregator/SKILL.md)
+> for metrics aggregation
