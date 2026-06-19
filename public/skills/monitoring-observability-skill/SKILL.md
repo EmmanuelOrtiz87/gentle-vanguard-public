@@ -1,20 +1,26 @@
 ---
 name: monitoring-observability-skill
 description: >
-  Imported from mercury-agent-skills. Use when working with "monitoring", "observability", "Prometheus", "Grafana", "alerting". Triggers: "monitoring", "observability", "Prometheus", "Grafana", "alerting".
+  Imported from mercury-agent-skills. Use when working with "monitoring", "observability",
+  "Prometheus", "Grafana", "alerting". Triggers: "monitoring", "observability", "Prometheus",
+  "Grafana", "alerting".
 metadata:
   source: mercury-agent-skills
   original-name: monitoring-observability
 ---
+
 # Monitoring & Observability
 
 Build comprehensive observability for your systems.
 
 ## The Three Pillars
 
-> **See also**: [observability-skill](../observability-skill/SKILL.md) for broader observability patterns (logs, tracing, alerting, SLOs), [monitoring-aggregator](../monitoring-aggregator/SKILL.md) for metrics collection
+> **See also**: [observability-skill](../observability-skill/SKILL.md) for broader observability
+> patterns (logs, tracing, alerting, SLOs),
+> [monitoring-aggregator](../monitoring-aggregator/SKILL.md) for metrics collection
 
 ### 1. Metrics (Prometheus)
+
 ```yaml
 # Instrument your app
 http_requests_total{method="GET", endpoint="/api/users", status="200"} 1024
@@ -22,12 +28,14 @@ http_request_duration_seconds{quantile="0.95"} 0.235
 ```
 
 ### 2. Logging (Loki / ELK)
+
 - Structured JSON logging
 - Include: timestamp, level, service, trace_id, message
 - Centralized log aggregation
 - Log levels: DEBUG < INFO < WARN < ERROR < FATAL
 
 ### 3. Tracing (Jaeger / Tempo)
+
 - Trace every request across services
 - Span: individual operation with timing
 - Distributed context propagation via trace ID headers
@@ -36,13 +44,15 @@ http_request_duration_seconds{quantile="0.95"} 0.235
 ## Alerting (Alertmanager)
 
 ### Alert Severity
-| Severity | Response Time | Channel |
-|----------|--------------|---------|
-| Critical | Immediately | PagerDuty + SMS |
-| Warning | 1 hour | Slack + Email |
-| Info | Next day | Dashboard |
+
+| Severity | Response Time | Channel         |
+| -------- | ------------- | --------------- |
+| Critical | Immediately   | PagerDuty + SMS |
+| Warning  | 1 hour        | Slack + Email   |
+| Info     | Next day      | Dashboard       |
 
 ### Golden Signals (Google SRE)
+
 1. **Latency**: Time to respond
 2. **Traffic**: Requests per second
 3. **Errors**: Error rate (5xx, exceptions)
@@ -51,6 +61,7 @@ http_request_duration_seconds{quantile="0.95"} 0.235
 ## Dashboard Design (Grafana)
 
 ### Rules
+
 - 3-5 panels per row
 - Time series with trend lines, not raw numbers
 - RED metrics: Rate, Errors, Duration per service
@@ -58,6 +69,7 @@ http_request_duration_seconds{quantile="0.95"} 0.235
 - Include annotations for deployments, incidents
 
 ## Best Practices
+
 - Monitor from outside (synthetic checks)
 - Monitor everything, alert on what matters
 - Use SLOs to define what's "good enough"

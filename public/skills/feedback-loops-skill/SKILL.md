@@ -1,18 +1,25 @@
 ---
 name: feedback-loops-skill
 description: >
-  Imported from cc-thinking-skills. feedback loop, reinforcing loop, balancing loop, system dynamics.
+  Imported from cc-thinking-skills. feedback loop, reinforcing loop, balancing loop, system
+  dynamics.
 metadata:
   source: cc-thinking-skills
   original-name: thinking-feedback-loops
 ---
+
 # Feedback Loop Analysis
 
 ## Overview
 
-Feedback loop analysis, developed by Donella Meadows in "Thinking in Systems," provides a rigorous framework for understanding how systems behave over time. All dynamic systems—software, organizations, markets, products—are driven by feedback loops that either amplify change (reinforcing) or stabilize toward goals (balancing). Understanding these loops reveals why systems grow, collapse, oscillate, or resist change.
+Feedback loop analysis, developed by Donella Meadows in "Thinking in Systems," provides a rigorous
+framework for understanding how systems behave over time. All dynamic systems—software,
+organizations, markets, products—are driven by feedback loops that either amplify change
+(reinforcing) or stabilize toward goals (balancing). Understanding these loops reveals why systems
+grow, collapse, oscillate, or resist change.
 
-**Core Principle:** System behavior emerges from feedback structure. To change behavior, change the loops.
+**Core Principle:** System behavior emerges from feedback structure. To change behavior, change the
+loops.
 
 ## When to Use
 
@@ -38,7 +45,8 @@ System behavior is puzzling or problematic?
 
 ### 1. Reinforcing Loops (Positive Feedback)
 
-Reinforcing loops amplify change in the same direction—growth or decline. They create exponential behavior: the more you have, the more you get (or lose).
+Reinforcing loops amplify change in the same direction—growth or decline. They create exponential
+behavior: the more you have, the more you get (or lose).
 
 **Structure:** A → increases B → increases A (or: A → decreases B → decreases A)
 
@@ -89,7 +97,8 @@ Users → Invitations → New users → More invitations
 
 ### 2. Balancing Loops (Negative Feedback)
 
-Balancing loops counteract change, pushing the system toward a goal or equilibrium. They create goal-seeking behavior.
+Balancing loops counteract change, pushing the system toward a goal or equilibrium. They create
+goal-seeking behavior.
 
 **Structure:** Gap between actual and goal → corrective action → reduces gap
 
@@ -146,7 +155,8 @@ Defects detected → Review/fix required → Quality improves → Fewer defects
 
 ### 3. Delays
 
-Delays are the time between cause and effect. They are the primary source of oscillation and instability in systems.
+Delays are the time between cause and effect. They are the primary source of oscillation and
+instability in systems.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -389,22 +399,23 @@ The system behavior is driven by currently dominant loops:
 
 Donella Meadows' hierarchy of intervention effectiveness (increasing power):
 
-| Level | Intervention | Example | Impact |
-|-------|-------------|---------|--------|
-| 12 | Constants/parameters | Adjust timeout values | Lowest |
-| 11 | Buffer sizes | Increase queue limits | Low |
-| 10 | Stock-flow structure | Add caching layer | Low |
-| 9 | Delays | Shorten feedback cycles | Medium |
-| 8 | Balancing loop strength | Improve monitoring | Medium |
-| 7 | Reinforcing loop gain | Amplify growth drivers | Medium-High |
-| 6 | Information flows | Make metrics visible | High |
-| 5 | System rules | Change deployment policy | High |
-| 4 | Self-organization | Enable team autonomy | Very High |
-| 3 | System goals | Redefine success metrics | Very High |
-| 2 | Paradigm/mindset | Shift from output to outcomes | Transformational |
-| 1 | Transcend paradigms | Question the frame itself | Highest |
+| Level | Intervention            | Example                       | Impact           |
+| ----- | ----------------------- | ----------------------------- | ---------------- |
+| 12    | Constants/parameters    | Adjust timeout values         | Lowest           |
+| 11    | Buffer sizes            | Increase queue limits         | Low              |
+| 10    | Stock-flow structure    | Add caching layer             | Low              |
+| 9     | Delays                  | Shorten feedback cycles       | Medium           |
+| 8     | Balancing loop strength | Improve monitoring            | Medium           |
+| 7     | Reinforcing loop gain   | Amplify growth drivers        | Medium-High      |
+| 6     | Information flows       | Make metrics visible          | High             |
+| 5     | System rules            | Change deployment policy      | High             |
+| 4     | Self-organization       | Enable team autonomy          | Very High        |
+| 3     | System goals            | Redefine success metrics      | Very High        |
+| 2     | Paradigm/mindset        | Shift from output to outcomes | Transformational |
+| 1     | Transcend paradigms     | Question the frame itself     | Highest          |
 
-**Key insight:** Most interventions happen at levels 10-12 (parameters). The highest leverage is in goals, rules, and mental models.
+**Key insight:** Most interventions happen at levels 10-12 (parameters). The highest leverage is in
+goals, rules, and mental models.
 
 ## Application Framework
 
@@ -414,30 +425,37 @@ Donella Meadows' hierarchy of intervention effectiveness (increasing power):
 ## Feedback Loop Analysis: [System Name]
 
 ### Current Behavior
+
 [Describe: growing, declining, oscillating, stuck]
 
 ### Key Variables
+
 - [List stocks and flows]
 
 ### Loop Diagram
+
 [Draw or describe the loops]
 
 ### Identified Loops
+
 | Loop Name | Type | Variables | Currently Dominant? |
-|-----------|------|-----------|---------------------|
+| --------- | ---- | --------- | ------------------- |
 |           |      |           |                     |
 
 ### Delays Present
+
 | Delay | Duration | Effect |
-|-------|----------|--------|
+| ----- | -------- | ------ |
 |       |          |        |
 
 ### Leverage Points
+
 | Level | Intervention | Expected Effect |
-|-------|-------------|-----------------|
-|       |             |                 |
+| ----- | ------------ | --------------- |
+|       |              |                 |
 
 ### Recommended Intervention
+
 [Highest-leverage, lowest-risk option]
 ```
 
@@ -447,18 +465,23 @@ Donella Meadows' hierarchy of intervention effectiveness (increasing power):
 ## Growth Loop Design: [Product/System]
 
 ### Core Reinforcing Loop
+
 [User action] → [Value created] → [Trigger for more users] → [More user action]
 
 ### Supporting Loops
+
 [Additional loops that feed the core]
 
 ### Balancing Constraints
+
 [What limits growth and when it kicks in]
 
 ### Delays to Minimize
+
 [Where feedback needs to be faster]
 
 ### Metrics to Monitor
+
 [Leading indicators of loop health]
 ```
 
@@ -505,8 +528,10 @@ Use together:
 
 "We can't control systems or figure them out. But we can dance with them."
 
-"The least obvious part of the system, its function or purpose, is often the most crucial determinant of the system's behavior."
+"The least obvious part of the system, its function or purpose, is often the most crucial
+determinant of the system's behavior."
 
 "Pay attention to what is important, not just what is quantifiable."
 
-Systems are not puzzles to be solved but patterns to be understood and influenced. Effective intervention requires humility about control and attention to feedback.
+Systems are not puzzles to be solved but patterns to be understood and influenced. Effective
+intervention requires humility about control and attention to feedback.

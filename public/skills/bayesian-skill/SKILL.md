@@ -6,14 +6,21 @@ metadata:
   source: cc-thinking-skills
   original-name: thinking-bayesian
 ---
+
 # Bayesian Reasoning
 
 ## Overview
-Bayesian thinking provides a framework for updating beliefs based on new evidence. Rather than treating beliefs as binary (true/false), it recognizes degrees of confidence that should shift as evidence accumulates. This approach, rooted in Bayes' Theorem, helps avoid both overconfidence and underreaction to new information.
 
-**Core Principle:** Beliefs are probabilities that should update incrementally as evidence arrives. Strong priors require strong evidence to shift.
+Bayesian thinking provides a framework for updating beliefs based on new evidence. Rather than
+treating beliefs as binary (true/false), it recognizes degrees of confidence that should shift as
+evidence accumulates. This approach, rooted in Bayes' Theorem, helps avoid both overconfidence and
+underreaction to new information.
+
+**Core Principle:** Beliefs are probabilities that should update incrementally as evidence arrives.
+Strong priors require strong evidence to shift.
 
 ## When to Use
+
 - Estimating probabilities or likelihoods
 - Interpreting test results or metrics
 - Making decisions with incomplete information
@@ -23,6 +30,7 @@ Bayesian thinking provides a framework for updating beliefs based on new evidenc
 - Predicting outcomes based on historical data
 
 Decision flow:
+
 ```
 Uncertain about something? → yes → Have prior belief? → yes → New evidence? → APPLY BAYESIAN UPDATE
                                                       ↘ no → Establish base rate first
@@ -32,7 +40,9 @@ Uncertain about something? → yes → Have prior belief? → yes → New eviden
 ## Key Concepts
 
 ### Prior Probability
+
 Your belief BEFORE seeing new evidence:
+
 ```
 P(H) = probability that hypothesis H is true
 
@@ -41,7 +51,9 @@ Example: Before any symptoms, what's the probability someone has disease X?
 ```
 
 ### Likelihood
+
 How probable is the evidence IF the hypothesis is true?
+
 ```
 P(E|H) = probability of seeing evidence E, given H is true
 
@@ -50,7 +62,9 @@ Example: If someone HAS the disease, what's the probability of a positive test?
 ```
 
 ### Posterior Probability
+
 Your belief AFTER seeing the evidence:
+
 ```
 P(H|E) = updated probability of H, given you observed E
 
@@ -83,7 +97,9 @@ your odds should shift by factor of 10.
 ## The Process
 
 ### Step 1: Establish Your Prior
+
 What did you believe before this evidence?
+
 - Use base rates when available
 - Be explicit about uncertainty
 - Don't anchor on 50% just because you're unsure
@@ -95,7 +111,9 @@ Prior: Based on similar features, ~30% succeed significantly
 ```
 
 ### Step 2: Assess the Evidence
+
 How strong is this evidence? Consider:
+
 - How likely is this evidence if hypothesis is TRUE?
 - How likely is this evidence if hypothesis is FALSE?
 - What's the ratio?
@@ -108,6 +126,7 @@ Likelihood ratio = 0.60 / 0.15 = 4x
 ```
 
 ### Step 3: Update Your Belief
+
 Apply the likelihood ratio to your prior:
 
 ```
@@ -121,6 +140,7 @@ Updated belief: 63% confidence feature will succeed
 ```
 
 ### Step 4: Iterate as More Evidence Arrives
+
 Yesterday's posterior becomes today's prior:
 
 ```
@@ -133,6 +153,7 @@ New posterior: 0.78
 ## Common Applications
 
 ### Interpreting Test Results
+
 ```
 Scenario: Test for rare disease (1 in 10,000 prevalence)
 Test: 99% sensitive, 99% specific
@@ -150,6 +171,7 @@ Base rate dominates when condition is rare.
 ```
 
 ### Debugging
+
 ```
 Bug report: Users see error X
 Prior beliefs:
@@ -169,6 +191,7 @@ Next step: Investigate mobile-specific code paths
 ```
 
 ### Project Estimation
+
 ```
 Prior: Based on similar projects, P(on-time) = 0.40
 
@@ -187,27 +210,33 @@ Final estimate: 30% chance of on-time delivery
 ## Mental Shortcuts
 
 ### Strong vs Weak Evidence
-| Evidence Type | Typical Likelihood Ratio |
-|---------------|-------------------------|
-| Definitive proof | 100x+ |
-| Strong evidence | 10-100x |
-| Moderate evidence | 3-10x |
-| Weak evidence | 1.5-3x |
-| Noise | ~1x (no update) |
+
+| Evidence Type     | Typical Likelihood Ratio |
+| ----------------- | ------------------------ |
+| Definitive proof  | 100x+                    |
+| Strong evidence   | 10-100x                  |
+| Moderate evidence | 3-10x                    |
+| Weak evidence     | 1.5-3x                   |
+| Noise             | ~1x (no update)          |
 
 ### When to Update Significantly
+
 Update strongly when:
+
 - Evidence is surprising under your current belief
 - Evidence comes from reliable source
 - Evidence is specific to your hypothesis
 
 Update weakly when:
+
 - Evidence is expected regardless of hypothesis
 - Source has unknown reliability
 - Evidence is circumstantial
 
 ### Base Rate Neglect (Avoid This)
+
 Common error: Ignoring prior probability when evidence arrives
+
 ```
 Wrong: "Positive test = probably have disease"
 Right: "Positive test shifts probability, but base rate matters"
@@ -216,20 +245,24 @@ Right: "Positive test shifts probability, but base rate matters"
 ## Calibration Check
 
 ### Are You Well-Calibrated?
+
 Track predictions and outcomes:
+
 - Of things you said were "70% likely," did ~70% happen?
 - If you're always overconfident, widen your uncertainty
 - If you're always underconfident, trust your assessments more
 
 ### Confidence Levels
-| Stated Confidence | Should Mean |
-|-------------------|-------------|
-| 50% | Coin flip |
-| 70% | Would bet 2:1 |
-| 90% | Would bet 9:1 |
-| 99% | Would bet 99:1 |
+
+| Stated Confidence | Should Mean    |
+| ----------------- | -------------- |
+| 50%               | Coin flip      |
+| 70%               | Would bet 2:1  |
+| 90%               | Would bet 9:1  |
+| 99%               | Would bet 99:1 |
 
 ## Verification Checklist
+
 - [ ] Established explicit prior probability (not just "I think...")
 - [ ] Assessed likelihood ratio of evidence
 - [ ] Applied update mathematically (not just "more/less likely")
@@ -238,6 +271,7 @@ Track predictions and outcomes:
 - [ ] Documented reasoning for future calibration
 
 ## Key Questions
+
 - "What was my belief before this evidence?"
 - "How likely is this evidence if my belief is true? If false?"
 - "What's the likelihood ratio?"
@@ -245,6 +279,9 @@ Track predictions and outcomes:
 - "How would I bet on this? At what odds?"
 
 ## Kahneman's Warning
-"People tend to assess the relative importance of issues by the ease with which they are retrieved from memory—and this is largely determined by the extent of coverage in the media."
 
-Don't let vivid evidence override base rates. A plane crash doesn't make flying more dangerous than driving, even though it feels that way.
+"People tend to assess the relative importance of issues by the ease with which they are retrieved
+from memory—and this is largely determined by the extent of coverage in the media."
+
+Don't let vivid evidence override base rates. A plane crash doesn't make flying more dangerous than
+driving, even though it feels that way.

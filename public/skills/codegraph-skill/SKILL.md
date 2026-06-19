@@ -76,10 +76,10 @@ codegraph index
 
 Beyond standard FTS5 keyword search, GV provides semantic enhancement wrappers:
 
-| Script | Purpose |
-|--------|---------|
-| `codegraph-semantic-search.ps1` | Dual-tier search: FTS5 + fuzzy synonym matching with relevance scoring |
-| `codegraph-enrich.ps1` | Enriches CodeGraph output with layer detection, complexity tags, and metadata |
+| Script                          | Purpose                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `codegraph-semantic-search.ps1` | Dual-tier search: FTS5 + fuzzy synonym matching with relevance scoring        |
+| `codegraph-enrich.ps1`          | Enriches CodeGraph output with layer detection, complexity tags, and metadata |
 
 ### Usage Examples
 
@@ -92,11 +92,15 @@ Beyond standard FTS5 keyword search, GV provides semantic enhancement wrappers:
 ```
 
 ### Synonym Map
-The semantic search includes an expandable synonym map for common dev terms:
-auth, error, config, db, api, test, ui, cache, net — each maps to 5-10 related terms.
+
+The semantic search includes an expandable synonym map for common dev terms: auth, error, config,
+db, api, test, ui, cache, net — each maps to 5-10 related terms.
 
 ### Integration Note
-When using `codegraph_context` for task context, first run a semantic search via `codegraph-semantic-search.ps1` to identify the most relevant symbols, then pass those to `codegraph_context` for deeper exploration.
+
+When using `codegraph_context` for task context, first run a semantic search via
+`codegraph-semantic-search.ps1` to identify the most relevant symbols, then pass those to
+`codegraph_context` for deeper exploration.
 
 ## Integration with Gentle-Vanguard
 
@@ -138,7 +142,3 @@ The following failure pattern has been detected and documented automatically:
 - **Error types observed**: timeout
 
 > Auto-documented by skill-auto-patch.ps1 on 2026-05-25.
-
-
-
-

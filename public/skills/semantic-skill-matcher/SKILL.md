@@ -1,8 +1,8 @@
 ---
 name: semantic-skill-matcher
 description: >
-  Semantic skill matching using embeddings for intelligent routing. Trigger: "semantic
-  match", "find skill", "skill routing", "embeddings".
+  Semantic skill matching using embeddings for intelligent routing. Trigger: "semantic match", "find
+  skill", "skill routing", "embeddings".
 metadata:
   source: GV-native
 ---
