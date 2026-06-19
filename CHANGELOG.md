@@ -1,5 +1,37 @@
 # Changelog
 
+## [3.3.3] - 2026-06-19
+
+### Fixed
+
+- **Maintenance Watchtower**: Eliminado falso WARN por watchdog PID faltante cuando WS corre
+  standalone. El check ahora reporta PASS "WS running standalone" si el servidor responde, aunque
+  no haya watchdog. Autoheal optimizado: no reinicia el WS si ya está vivo (evita conflictos de
+  puerto y procesos duplicados). Resultado: 74/74 PASS, 0 WARN, 0 FAIL.
+
+### Changed
+
+- **Dashboard real-data.ts**: Expansión de métricas y endpoints para monitoreo en tiempo real.
+- **websocket-server.ts**: Mejoras de resiliencia en la conexión WebSocket.
+- **Dashboard.tsx**: Nuevos paneles de monitoreo con indicadores de salud.
+- **types/dashboard.ts**: Tipos extendidos para alertas y trazabilidad.
+- **session-autostart.config.json**: Steps v4.0 integrados (tracing, checkpoint, audit,
+  event-sourcing, cloud-connectors) todos con lazy: true.
+- **docker-compose.yml**: Servicios adicionais para el stack de monitoreo.
+- **session-scoring.ps1**: Algoritmo de scoring mejorado con pesos ajustables.
+
+### Added
+
+- **RBAC + CSP configs**: `config/rbac-policy.json` y `config/security-csp.json` para gobernanza.
+- **Audit pipeline**: `scripts/security/audit-pipeline.ps1` con log JSONL diario.
+- **State persistence**: Checkpoint/snapshot/rollback en `.session/`.
+- **Tracing system**: OpenTelemetry spans en `.telemetry/` con export Prometheus.
+- **Cloud connectors**: Hybrid executor + AWS/Azure delegators con circuit breaker.
+- **Correction rules engine**: `scripts/adaptive/correction-rules-engine.ps1` para auto-corrección.
+- **Engram auto-sync**: `scripts/utilities/memory/ENGRAM/engram-auto-sync.ps1`.
+- **k8s/OpenTelemetry configs**: Despliegue Kubernetes y configs de tracing.
+- **Integration tests**: Tests para cloud-connectors y phase-13-2-3.
+
 ## [3.3.2] - 2026-06-18
 
 ### Added
