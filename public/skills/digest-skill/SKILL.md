@@ -7,11 +7,14 @@ metadata:
   original-name: digest
   department: enterprise-search
 ---
+
 # Digest Command
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+> If you see unfamiliar placeholders or need to check which tools are connected, see
+> [CONNECTORS.md](../../CONNECTORS.md).
 
-Scan recent activity across all connected sources and generate a structured digest highlighting what matters.
+Scan recent activity across all connected sources and generate a structured digest highlighting what
+matters.
 
 ## Instructions
 
@@ -23,6 +26,7 @@ Determine the time window from the user's input:
 - `--weekly` — Last 7 days
 
 The user may also specify a custom range:
+
 - `--since yesterday`
 - `--since Monday`
 - `--since 2025-01-20`
@@ -39,6 +43,7 @@ Identify which MCP sources are connected (same approach as the search command):
 - **~~knowledge base** — recently updated wiki pages
 
 If no sources are connected, guide the user:
+
 ```
 To generate a digest, you'll need at least one source connected.
 Check your MCP settings to add ~~chat, ~~email, ~~cloud storage, or other tools.
@@ -47,31 +52,37 @@ Check your MCP settings to add ~~chat, ~~email, ~~cloud storage, or other tools.
 ### 3. Gather Activity from Each Source
 
 **~~chat:**
+
 - Search for messages mentioning the user (`to:me`)
 - Check channels the user is in for recent activity
 - Look for threads the user participated in
 - Identify new messages in key channels
 
 **~~email:**
+
 - Search recent inbox messages
 - Identify threads with new replies
 - Flag emails with action items or questions directed at the user
 
 **~~cloud storage:**
+
 - Find documents recently modified or shared with the user
 - Note new comments on docs the user owns or collaborates on
 
 **~~project tracker:**
+
 - Tasks assigned to the user (new or updated)
 - Tasks completed by others that the user follows
 - Comments on tasks the user is involved with
 
 **~~CRM:**
+
 - Opportunity stage changes
 - New activities logged on accounts the user owns
 - Updated contacts or accounts
 
 **~~knowledge base:**
+
 - Recently updated documents in relevant collections
 - New documents created in watched areas
 
@@ -80,28 +91,33 @@ Check your MCP settings to add ~~chat, ~~email, ~~cloud storage, or other tools.
 From all gathered activity, extract and categorize:
 
 **Action Items:**
+
 - Direct requests made to the user ("Can you...", "Please...", "@user")
 - Tasks assigned or due soon
 - Questions awaiting the user's response
 - Review requests
 
 **Decisions:**
+
 - Conclusions reached in threads or emails
 - Approvals or rejections
 - Policy or direction changes
 
 **Mentions:**
+
 - Times the user was mentioned or referenced
 - Discussions about the user's projects or areas
 
 **Updates:**
+
 - Status changes on projects the user follows
 - Document updates in the user's domain
 - Completed items the user was waiting on
 
 ### 5. Group by Topic
 
-Organize the digest by topic, project, or theme rather than by source. Merge related activity across sources:
+Organize the digest by topic, project, or theme rather than by source. Merge related activity across
+sources:
 
 ```
 ## Project Aurora
@@ -149,16 +165,19 @@ Sources scanned: ~~chat, ~~email, ~~cloud storage, [others]
 ### 7. Handle Unavailable Sources
 
 If any source fails or is unreachable:
+
 ```
 Note: Could not reach [source name] for this digest.
 The following sources were included: [list of successful sources].
 ```
 
-Do not let one failed source prevent the digest from being generated. Produce the best digest possible from available sources.
+Do not let one failed source prevent the digest from being generated. Produce the best digest
+possible from available sources.
 
 ### 8. Summary Stats
 
 End with a quick summary:
+
 ```
 ---
 [X] action items · [Y] decisions · [Z] mentions · [W] doc updates
@@ -173,4 +192,5 @@ Across [N] sources · Covering [time range]
 - Deduplicate cross-source activity (same decision in ~~chat and email = one entry)
 - For weekly digests, prioritize significance over completeness — highlight what matters, skip noise
 - If the user has a memory system (CLAUDE.md), use it to decode people names and project references
-- Include enough context in each item that the user can decide whether to dig deeper without clicking through
+- Include enough context in each item that the user can decide whether to dig deeper without
+  clicking through
