@@ -6,40 +6,44 @@ metadata:
   source: cc-thinking-skills
   original-name: thinking-model-router
 ---
+
 # Model Router
 
 ## Overview
 
-This is the **master routing skill** for all mental models. Instead of knowing 38 frameworks, start here. Identify your domain and problem type, and this skill points you to the right model(s). Think of it as the "which tool do I use?" guide.
+This is the **master routing skill** for all mental models. Instead of knowing 38 frameworks, start
+here. Identify your domain and problem type, and this skill points you to the right model(s). Think
+of it as the "which tool do I use?" guide.
 
-**Core Principle:** Don't memorize models—memorize how to find the right one. Domain + Problem Type → Model.
+**Core Principle:** Don't memorize models—memorize how to find the right one. Domain + Problem Type
+→ Model.
 
 ## Quick Router
 
 ### Step 1: What's Your Domain?
 
-| Domain | You're working on... |
-|--------|---------------------|
-| **Coding/Debugging** | Bugs, errors, performance issues, root cause |
-| **Architecture** | System design, technical decisions, scalability |
-| **Product** | Features, user needs, prioritization, roadmap |
-| **Business Strategy** | Competition, growth, market, organization |
-| **Personal Decisions** | Career, life choices, major commitments |
-| **Abstract/Analytical** | Arguments, ideas, theories, pure reasoning |
-| **Risk/Safety** | What could go wrong, preparation, resilience |
-| **Innovation** | New ideas, breakthroughs, creative solutions |
+| Domain                  | You're working on...                            |
+| ----------------------- | ----------------------------------------------- |
+| **Coding/Debugging**    | Bugs, errors, performance issues, root cause    |
+| **Architecture**        | System design, technical decisions, scalability |
+| **Product**             | Features, user needs, prioritization, roadmap   |
+| **Business Strategy**   | Competition, growth, market, organization       |
+| **Personal Decisions**  | Career, life choices, major commitments         |
+| **Abstract/Analytical** | Arguments, ideas, theories, pure reasoning      |
+| **Risk/Safety**         | What could go wrong, preparation, resilience    |
+| **Innovation**          | New ideas, breakthroughs, creative solutions    |
 
 ### Step 2: What's Your Problem Type?
 
-| Type | You need to... |
-|------|----------------|
-| **Diagnose** | Find root cause, understand why |
-| **Decide** | Choose between options |
-| **Understand** | Grasp how something works |
-| **Create** | Generate new solutions |
-| **Evaluate** | Judge quality or validity |
-| **Predict** | Forecast outcomes |
-| **Optimize** | Improve performance |
+| Type           | You need to...                  |
+| -------------- | ------------------------------- |
+| **Diagnose**   | Find root cause, understand why |
+| **Decide**     | Choose between options          |
+| **Understand** | Grasp how something works       |
+| **Create**     | Generate new solutions          |
+| **Evaluate**   | Judge quality or validity       |
+| **Predict**    | Forecast outcomes               |
+| **Optimize**   | Improve performance             |
 
 ---
 
@@ -58,7 +62,8 @@ Flaky/intermittent behavior      → Scientific Method (hypothesis testing)
 "It works on my machine"         → Map-Territory (model vs reality gap)
 ```
 
-**Default for debugging:** Start with **5 Whys Plus**, escalate to **Systems Thinking** if it spans components.
+**Default for debugging:** Start with **5 Whys Plus**, escalate to **Systems Thinking** if it spans
+components.
 
 ---
 
@@ -76,7 +81,8 @@ API design tradeoffs             → TRIZ (resolve contradictions)
 Should we rewrite?               → Second-Order, Opportunity Cost
 ```
 
-**Default for architecture:** Start with **Reversibility** (is this Type 1 or Type 2?), then **Systems Thinking** for interconnections.
+**Default for architecture:** Start with **Reversibility** (is this Type 1 or Type 2?), then
+**Systems Thinking** for interconnections.
 
 ---
 
@@ -114,7 +120,8 @@ M&A evaluation                   → Pre-mortem, Steel-manning
 Pricing decisions                → First Principles, Fermi Estimation
 ```
 
-**Default for strategy:** Start with **Cynefin** (what domain is this problem in?), then match approach.
+**Default for strategy:** Start with **Cynefin** (what domain is this problem in?), then match
+approach.
 
 ---
 
@@ -261,11 +268,13 @@ START HERE
 ## Model Inventory by Category
 
 ### Diagnostic Models (Find root cause)
+
 - `5 Whys Plus` - Iterative "why" with bias guards
 - `Scientific Method` - Hypothesis → Test → Learn
 - `Kepner-Tregoe` - Systematic problem/decision analysis
 
 ### Decision Models (Choose wisely)
+
 - `Reversibility` - Type 1 vs Type 2 decisions
 - `Regret Minimization` - What will future-you think?
 - `Opportunity Cost` - What are you giving up?
@@ -273,6 +282,7 @@ START HERE
 - `Probabilistic` - Calibrated probability estimates
 
 ### Systems Models (Understand interconnections)
+
 - `Systems Thinking` - Feedback, emergence, non-linearity
 - `Feedback Loops` - Reinforcing and balancing loops
 - `Theory of Constraints` - Find and exploit the bottleneck
@@ -280,46 +290,52 @@ START HERE
 - `Archetypes` - Recurring system patterns
 
 ### Risk Models (Prepare for failure)
+
 - `Pre-mortem` - Assume failure, explain why
 - `Red Team` - Attack your own plan
 - `Margin of Safety` - Build in buffers
 - `Inversion` - Identify paths to failure, avoid them
 
 ### Innovation Models (Create breakthroughs)
+
 - `First Principles` - Strip to fundamentals, rebuild
 - `TRIZ` - Resolve technical contradictions
 - `Effectuation` - Start with means, not goals
 - `Via Negativa` - Improve by removing
 
 ### Evaluation Models (Judge quality)
+
 - `Steel-manning` - Argue strongest opposing view
 - `Lindy Effect` - Older = likely to last longer
 - `Circle of Competence` - Know your expertise boundaries
 - `Occam's Razor` - Prefer simpler explanations
 
 ### Context Models (Match approach to situation)
+
 - `Cynefin` - Clear/Complicated/Complex/Chaotic domains
 - `Model Selection` - Choose the right model
 - `Model Combination` - Use multiple models together
 
 ### Product Models (Build the right thing)
+
 - `Jobs to be Done` - What job is user hiring this for?
 - `Thought Experiment` - Structured imagination
 
 ### Estimation Models (Size unknowns)
+
 - `Fermi Estimation` - Order-of-magnitude calculations
 
 ## When to Combine Models
 
 Use **Model Combination** when:
 
-| Situation | Combination Pattern | Example |
-|-----------|--------------------| --------|
-| High-stakes decision | Sequential | Reversibility → Pre-mortem → Opportunity Cost |
-| System diagnosis | Nested | Cynefin (macro) → ToC (meso) → OODA (micro) |
-| Validating strategy | Parallel | Red Team + Steel-manning + Second-Order |
-| Innovation under constraints | Sequential | First Principles → TRIZ → Effectuation |
-| Career decision | Temporal | 5 Whys (past) → Circle of Competence (present) → Regret Min (future) |
+| Situation                    | Combination Pattern | Example                                                              |
+| ---------------------------- | ------------------- | -------------------------------------------------------------------- |
+| High-stakes decision         | Sequential          | Reversibility → Pre-mortem → Opportunity Cost                        |
+| System diagnosis             | Nested              | Cynefin (macro) → ToC (meso) → OODA (micro)                          |
+| Validating strategy          | Parallel            | Red Team + Steel-manning + Second-Order                              |
+| Innovation under constraints | Sequential          | First Principles → TRIZ → Effectuation                               |
+| Career decision              | Temporal            | 5 Whys (past) → Circle of Competence (present) → Regret Min (future) |
 
 ## Template
 
@@ -327,19 +343,21 @@ Use **Model Combination** when:
 # Model Router Analysis
 
 ## Context
-Domain: [Coding/Architecture/Product/Strategy/Personal/Abstract/Risk/Innovation]
-Problem: [Brief description]
-Problem Type: [Diagnose/Decide/Understand/Create/Evaluate/Predict/Optimize]
+
+Domain: [Coding/Architecture/Product/Strategy/Personal/Abstract/Risk/Innovation] Problem: [Brief
+description] Problem Type: [Diagnose/Decide/Understand/Create/Evaluate/Predict/Optimize]
 
 ## Routed Models
-Primary: [Main model to use]
-Secondary: [If needed]
-Combination pattern: [Sequential/Parallel/Nested/None]
+
+Primary: [Main model to use] Secondary: [If needed] Combination pattern:
+[Sequential/Parallel/Nested/None]
 
 ## Application
+
 [Apply the selected model(s) here]
 
 ## Verification
+
 - [ ] Domain correctly identified
 - [ ] Problem type matches
 - [ ] Model fits the situation
@@ -356,4 +374,5 @@ Combination pattern: [Sequential/Parallel/Nested/None]
 
 ---
 
-**Remember:** You don't need to know all 38 models. You need to know how to find the right one. Start with domain, identify problem type, look it up, apply. That's it.
+**Remember:** You don't need to know all 38 models. You need to know how to find the right one.
+Start with domain, identify problem type, look it up, apply. That's it.

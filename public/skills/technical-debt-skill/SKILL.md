@@ -22,21 +22,22 @@ metadata:
 
 ## Debt Categories
 
-| Type | Examples | Risk |
-|------|----------|------|
-| **Code debt** | Duplicated logic, poor abstractions, magic numbers | Bugs, slow development |
-| **Architecture debt** | Monolith that should be split, wrong data store | Scaling limits |
-| **Test debt** | Low coverage, flaky tests, missing integration tests | Regressions ship |
-| **Dependency debt** | Outdated libraries, unmaintained dependencies | Security vulns |
-| **Documentation debt** | Missing runbooks, outdated READMEs, tribal knowledge | Onboarding pain |
-| **Infrastructure debt** | Manual deploys, no monitoring, no IaC | Incidents, slow recovery |
-| **Operational debt** | Missing alerts, manual processes, poor observability | Slow incident response |
+| Type                    | Examples                                             | Risk                     |
+| ----------------------- | ---------------------------------------------------- | ------------------------ |
+| **Code debt**           | Duplicated logic, poor abstractions, magic numbers   | Bugs, slow development   |
+| **Architecture debt**   | Monolith that should be split, wrong data store      | Scaling limits           |
+| **Test debt**           | Low coverage, flaky tests, missing integration tests | Regressions ship         |
+| **Dependency debt**     | Outdated libraries, unmaintained dependencies        | Security vulns           |
+| **Documentation debt**  | Missing runbooks, outdated READMEs, tribal knowledge | Onboarding pain          |
+| **Infrastructure debt** | Manual deploys, no monitoring, no IaC                | Incidents, slow recovery |
+| **Operational debt**    | Missing alerts, manual processes, poor observability | Slow incident response   |
 
 ## Prioritization Model
 
 Rank debt by:
 
-1. **Impact × Risk × (6 − Effort)** — Score each item on Impact (1-5), Risk (1-5), Effort (1-5, inverted). Formula: Priority = (Impact + Risk) × (6 - Effort)
+1. **Impact × Risk × (6 − Effort)** — Score each item on Impact (1-5), Risk (1-5), Effort (1-5,
+   inverted). Formula: Priority = (Impact + Risk) × (6 - Effort)
 2. **Delivery drag**: how much it slows feature work
 3. **Incident risk**: how likely it causes failures
 4. **Change frequency**: how often the area changes

@@ -1,40 +1,53 @@
 ---
 name: adr-skill
 description: >
-  Imported from mercury-agent-skills. Use when working with "ADR", "architecture decision", "decision record", "architecture governance". Triggers: "ADR", "architecture decision", "decision record", "architecture governance".
+  Imported from mercury-agent-skills. Use when working with "ADR", "architecture decision",
+  "decision record", "architecture governance". Triggers: "ADR", "architecture decision", "decision
+  record", "architecture governance".
 metadata:
   source: mercury-agent-skills
   original-name: architecture-decision-records
 ---
+
 # Architecture Decision Records
 
-Capture architectural decisions systematically so your team understands not just what was decided, but why — and what alternatives were considered.
+Capture architectural decisions systematically so your team understands not just what was decided,
+but why — and what alternatives were considered.
 
 ## Core Principles
 
 ### 1. Decisions Are More Important Than Diagrams
-A diagram shows the current architecture. An ADR explains *why* it is that way. When someone asks "why did we do it this way?" the ADR is the answer.
+
+A diagram shows the current architecture. An ADR explains _why_ it is that way. When someone asks
+"why did we do it this way?" the ADR is the answer.
 
 ### 2. Capture Context, Not Just Conclusions
-Every architectural decision exists in a web of constraints, tradeoffs, and alternatives. If you only record the conclusion, future engineers will wonder if you considered the obvious alternative — and they might reverse it without understanding why the original choice was made.
+
+Every architectural decision exists in a web of constraints, tradeoffs, and alternatives. If you
+only record the conclusion, future engineers will wonder if you considered the obvious alternative —
+and they might reverse it without understanding why the original choice was made.
 
 ### 3. Lightweight Is Sustainable
-An ADR doesn't need to be a 10-page document. A structured 1-page record is infinitely better than nothing. If the process is heavy, people won't follow it.
+
+An ADR doesn't need to be a 10-page document. A structured 1-page record is infinitely better than
+nothing. If the process is heavy, people won't follow it.
 
 ### 4. Accept and Track Superseded Decisions
-Architecture evolves. An ADR that gets superseded is a success — it means the system adapted. Old ADRs remain valuable as historical records of the team's thinking.
+
+Architecture evolves. An ADR that gets superseded is a success — it means the system adapted. Old
+ADRs remain valuable as historical records of the team's thinking.
 
 ---
 
 ## ADR Maturity Model
 
-| Level | Capture | Storage | Review | Enforcement |
-|-------|---------|---------|--------|-------------|
-| **1: Tribal** | Decisions in Slack/meetings | Nobody remembers | None | None |
-| **2: Documented** | Some decisions written down | Shared drive or wiki | Sporadic | None |
-| **3: Systematic** | All significant decisions as ADRs | In repository alongside code | PR review requires ADR for arch changes | Basic: "needs ADR" check |
-| **4: Integrated** | ADRs linked to implementation | Searchable, indexed, cross-referenced | Mandatory ADR review for arch changes | Automated: lint checks for ADR format |
-| **5: Governance** | ADRs drive architecture reviews | Catalog with status dashboard | Regular architecture review board | Automated compliance checks |
+| Level             | Capture                           | Storage                               | Review                                  | Enforcement                           |
+| ----------------- | --------------------------------- | ------------------------------------- | --------------------------------------- | ------------------------------------- |
+| **1: Tribal**     | Decisions in Slack/meetings       | Nobody remembers                      | None                                    | None                                  |
+| **2: Documented** | Some decisions written down       | Shared drive or wiki                  | Sporadic                                | None                                  |
+| **3: Systematic** | All significant decisions as ADRs | In repository alongside code          | PR review requires ADR for arch changes | Basic: "needs ADR" check              |
+| **4: Integrated** | ADRs linked to implementation     | Searchable, indexed, cross-referenced | Mandatory ADR review for arch changes   | Automated: lint checks for ADR format |
+| **5: Governance** | ADRs drive architecture reviews   | Catalog with status dashboard         | Regular architecture review board       | Automated compliance checks           |
 
 Target: **Level 3** for most teams. **Level 4+** for regulated or long-lived systems.
 
@@ -48,42 +61,45 @@ Target: **Level 3** for most teams. **Level 4+** for regulated or long-lived sys
 # ADR-{NNN}: {Title}
 
 ## Status
+
 [Proposed | Accepted | Deprecated | Superseded]
 
-*If Superseded, list the replacing ADR: Superseded by ADR-{NNN}*
+_If Superseded, list the replacing ADR: Superseded by ADR-{NNN}_
 
 ## Context
-{Describe the problem, constraints, and forces at play. 
- What is the business or technical need? 
- What are the non-negotiable constraints?
- What options were considered?}
+
+{Describe the problem, constraints, and forces at play. What is the business or technical need? What
+are the non-negotiable constraints? What options were considered?}
 
 ## Decision
-{State the decision clearly. 
- What are we doing? What are we NOT doing?}
+
+{State the decision clearly. What are we doing? What are we NOT doing?}
 
 ## Consequences
-{List the positive and negative consequences of this decision.
- What tradeoffs are we accepting?
- What becomes easier? What becomes harder?}
+
+{List the positive and negative consequences of this decision. What tradeoffs are we accepting? What
+becomes easier? What becomes harder?}
 
 ## Alternatives Considered
-{List alternatives and why they were rejected. This is the most 
- important section for future readers.}
+
+{List alternatives and why they were rejected. This is the most important section for future
+readers.}
 
 ### Option A: {Name}
+
 - **Pros**: ...
 - **Cons**: ...
 - **Why rejected**: ...
 
 ### Option B: {Name}
+
 - **Pros**: ...
 - **Cons**: ...
 - **Why rejected**: ...
 
 ## Compliance
-{How will we verify this decision is followed?
- Automated checks? Manual review? Linting rules?}
+
+{How will we verify this decision is followed? Automated checks? Manual review? Linting rules?}
 ```
 
 ### The Lightweight ADR Template
@@ -99,28 +115,34 @@ For quick decisions that still need recording:
 **Deciders**: Alice Chen, Bob Smith, Carol Davis
 
 ## Context
-We need a store for aggregated analytics data. Requirements: 
-JSON support, time-series optimized, managed service preferred.
+
+We need a store for aggregated analytics data. Requirements: JSON support, time-series optimized,
+managed service preferred.
 
 ## Decision
+
 Use PostgreSQL with TimescaleDB extension on RDS.
 
 ## Rationale
+
 - JSONB for flexible event schemas
 - TimescaleDB hypertables for time-series queries
 - RDS for managed operations
 - Team already familiar with PostgreSQL
 
 ## Alternatives
-- **MongoDB**: Better for unstructured data, but adds operational complexity 
-  and team lacks expertise → rejected
+
+- **MongoDB**: Better for unstructured data, but adds operational complexity and team lacks
+  expertise → rejected
 - **ClickHouse**: Excellent for analytics but overkill for our volume (100k events/day) → rejected
 
 ## Consequences
-+ Existing PostgreSQL expertise applies
-+ Single database reduces operational burden
-- Need to learn TimescaleDB syntax
-- JSONB queries are less performant than dedicated document store
+
+- Existing PostgreSQL expertise applies
+- Single database reduces operational burden
+
+* Need to learn TimescaleDB syntax
+* JSONB queries are less performant than dedicated document store
 ```
 
 ### ADR Workflow
@@ -151,6 +173,7 @@ Write an ADR when the decision:
 - **Involves cost**: Financial, operational, or opportunity cost
 
 **Examples of ADR-worthy decisions:**
+
 - Choosing a database, message queue, or cache
 - Adopting a new framework or major library
 - API design decisions (REST vs GraphQL vs gRPC)
@@ -159,6 +182,7 @@ Write an ADR when the decision:
 - Security architecture (auth flows, encryption approach)
 
 **Examples of non-ADR decisions:**
+
 - Renaming a variable or function
 - Adding a minor dependency with no architectural impact
 - Bug fixes or minor refactoring
@@ -178,7 +202,8 @@ cp templates/adr-template.md docs/adr/ADR-043-use-graphql-for-public-api.md
 
 #### Step 3: Review
 
-Include the ADR in the same PR as the implementation, or as a standalone PR for purely architectural decisions. Reviewers should check:
+Include the ADR in the same PR as the implementation, or as a standalone PR for purely architectural
+decisions. Reviewers should check:
 
 - [ ] Is the context clear? Can a new team member understand the problem?
 - [ ] Are alternatives fairly represented? Not straw-man arguments?
@@ -190,15 +215,18 @@ Include the ADR in the same PR as the implementation, or as a standalone PR for 
 
 ```markdown
 # After acceptance, the ADR status changes to "Accepted"
+
 # If the decision is later revisited:
 
 ## Status
+
 Superseded by ADR-052
 
 ## Rationale for Deprecation
-In 2024, a managed Kafka service became available that eliminates
-the operational overhead that motivated our original SQS choice.
-The scale of our event processing has also grown 10x since ADR-021.
+
+In 2024, a managed Kafka service became available that eliminates the operational overhead that
+motivated our original SQS choice. The scale of our event processing has also grown 10x since
+ADR-021.
 ```
 
 ### Storing ADRs with Code
@@ -218,6 +246,7 @@ project/
 ```
 
 **Why store ADRs in the repository:**
+
 - Version controlled alongside the code they describe
 - Visible in the same PRs as the implementation
 - Found by new team members exploring the codebase
@@ -230,24 +259,24 @@ project/
 
 ## Active (Accepted)
 
-| ADR | Title | Date | Area |
-|-----|-------|------|------|
-| ADR-003 | API Protocol: GraphQL | 2024-01-20 | API |
-| ADR-002 | Database: PostgreSQL | 2024-01-15 | Data |
-| ADR-008 | Event Bus: RabbitMQ | 2024-02-10 | Infrastructure |
+| ADR     | Title                 | Date       | Area           |
+| ------- | --------------------- | ---------- | -------------- |
+| ADR-003 | API Protocol: GraphQL | 2024-01-20 | API            |
+| ADR-002 | Database: PostgreSQL  | 2024-01-15 | Data           |
+| ADR-008 | Event Bus: RabbitMQ   | 2024-02-10 | Infrastructure |
 
 ## Proposed
 
-| ADR | Title | Date | Author |
-|-----|-------|------|--------|
-| ADR-009 | Cache Strategy: Redis with write-through | 2024-03-01 | Alice |
+| ADR     | Title                                    | Date       | Author |
+| ------- | ---------------------------------------- | ---------- | ------ |
+| ADR-009 | Cache Strategy: Redis with write-through | 2024-03-01 | Alice  |
 
 ## Deprecated / Superseded
 
-| ADR | Title | Superseded By | Date |
-|-----|-------|---------------|------|
-| ADR-001 | Initial: SQLite | ADR-002 | 2024-01-15 |
-| ADR-004 | Event Bus: SQS | ADR-008 | 2024-02-10 |
+| ADR     | Title           | Superseded By | Date       |
+| ------- | --------------- | ------------- | ---------- |
+| ADR-001 | Initial: SQLite | ADR-002       | 2024-01-15 |
+| ADR-004 | Event Bus: SQS  | ADR-008       | 2024-02-10 |
 ```
 
 ### Advanced ADR Patterns
@@ -262,19 +291,20 @@ Sometimes one PR involves several related decisions. Handle with care:
 **Status**: Accepted
 
 ## This ADR covers three decisions:
+
 1. Extract order management from the monolith
 2. Use event-driven communication between order and inventory services
 3. Adopt PostgreSQL for the order service database
 
 ## Decision
+
 Extract the Order Service as a standalone service...
 ```
 
 **Alternative**: Write one ADR per decision and reference them:
 
 ```markdown
-ADR-031: Extract Order Service from Monolith
-ADR-032: Event-Driven Communication for Order Service
+ADR-031: Extract Order Service from Monolith ADR-032: Event-Driven Communication for Order Service
 ADR-033: Database Selection for Order Service
 ```
 
@@ -285,25 +315,20 @@ A concise format for decisions with clear tradeoffs:
 ```markdown
 ## Decision (Y-Statement)
 
-In the context of {situation/need},
-facing {constraint/force},
-we decided for {option A} over {option B}
-to achieve {positive consequence},
-accepting {negative consequence}.
+In the context of {situation/need}, facing {constraint/force}, we decided for {option A} over
+{option B} to achieve {positive consequence}, accepting {negative consequence}.
 
 ---
 
-**Example:**
-In the context of needing real-time notifications across services,
-facing the constraint of not wanting to manage a dedicated messaging infrastructure,
-we decided for AWS SNS over RabbitMQ
-to achieve zero operational overhead for pub/sub messaging,
-accepting vendor lock-in to AWS and higher per-message costs at scale.
+**Example:** In the context of needing real-time notifications across services, facing the
+constraint of not wanting to manage a dedicated messaging infrastructure, we decided for AWS SNS
+over RabbitMQ to achieve zero operational overhead for pub/sub messaging, accepting vendor lock-in
+to AWS and higher per-message costs at scale.
 ```
 
 #### Capturing Rejected Decisions
 
-Sometimes the most valuable ADR is the one about a decision you *didn't* take:
+Sometimes the most valuable ADR is the one about a decision you _didn't_ take:
 
 ```markdown
 # ADR-017: Rejected — Migrate to Microservices
@@ -312,20 +337,21 @@ Sometimes the most valuable ADR is the one about a decision you *didn't* take:
 **Date**: 2024-02-01
 
 ## Context
+
 Proposal to break the monolith into microservices for better scalability.
 
 ## Decision
+
 We decided NOT to pursue microservice decomposition at this time.
 
 ## Rationale
+
 - Team size (6 engineers) is too small to manage N services
 - Current monolith handles 10k RPM comfortably
 - Deployment frequency is satisfactory (daily)
 - Distributed transactions would add complexity without clear benefit
-- We'll revisit this when:
-  a) Team grows to 15+
-  b) Monolith deployment takes >30 minutes
-  c) Two or more features need different scaling policies
+- We'll revisit this when: a) Team grows to 15+ b) Monolith deployment takes >30 minutes c) Two or
+  more features need different scaling policies
 ```
 
 ### Architecture Governance Patterns
@@ -336,20 +362,24 @@ We decided NOT to pursue microservice decomposition at this time.
 # Architecture Review Board Charter
 
 ## Purpose
+
 Ensure architectural consistency and quality across all products.
 
 ## Composition
+
 - 1 Staff Engineer (permanent)
 - 2 Senior Engineers (rotating, 6-month term)
 - 1 Product Manager (non-voting)
 
 ## When to Escalate
+
 - Cross-team architectural decisions
 - Technology stack additions
 - Major refactoring or migrations
 - Decisions with significant cost implications
 
 ## Process
+
 1. Author drafts ADR → send to ARB
 2. ARB reviews within 1 week
 3. ARB meeting to discuss (if needed)
@@ -367,7 +397,7 @@ rules:
     - Decision
     - Consequences
     - Alternatives Considered
-  
+
   status-values:
     allowed:
       - Proposed
@@ -375,13 +405,13 @@ rules:
       - Deprecated
       - Superseded
       - Rejected
-  
+
   naming:
     pattern: '^ADR-\d{3}-[a-z0-9-]+\.md$'
-    message: "ADR files must follow ADR-{NNN}-{slug}.md naming"
-  
+    message: 'ADR files must follow ADR-{NNN}-{slug}.md naming'
+
   no-duplicate-numbers: true
-  
+
   index-required: true
   index-path: 'docs/adr/index.md'
 ```
@@ -425,15 +455,17 @@ order_id = uuid.uuid4()
 # ADR-010: Authentication Architecture
 
 ## Status
+
 Accepted (Updated 2024-03-01)
 
 ## Changelog
-| Date | Change | Author |
-|------|--------|--------|
-| 2024-01-15 | Initial draft | Alice |
-| 2024-01-20 | Added SSO requirement | Bob |
-| 2024-02-01 | Accepted after ARB review | Carol |
-| 2024-03-01 | Updated token expiry from 1h to 24h based on UX feedback | Alice |
+
+| Date       | Change                                                   | Author |
+| ---------- | -------------------------------------------------------- | ------ |
+| 2024-01-15 | Initial draft                                            | Alice  |
+| 2024-01-20 | Added SSO requirement                                    | Bob    |
+| 2024-02-01 | Accepted after ARB review                                | Carol  |
+| 2024-03-01 | Updated token expiry from 1h to 24h based on UX feedback | Alice  |
 ```
 
 ### ADR Tools
@@ -483,11 +515,19 @@ log4brains build
 
 ## Common Mistakes
 
-1. **Writing ADRs after implementation**: The decision should be captured before or during implementation, not months later when nobody remembers the tradeoffs.
-2. **Too much detail, too little signal**: An ADR isn't a design document. It shouldn't describe the implementation, just the architectural decision and why.
-3. **No alternatives section**: This is the most valuable part of an ADR. Future engineers need to know *what else was considered* and *why it was rejected*.
-4. **Status never updated**: An accepted ADR that is no longer true is misleading. Keep status current — "Superseded" or "Deprecated" are valid statuses.
-5. **ADRs stored outside the repository**: Wiki pages and shared drives get lost. Keep ADRs with the code they describe.
-6. **Too many ADRs for trivial decisions**: Reserve ADRs for meaningful architectural choices. Not every npm package addition needs an ADR.
-7. **No review process**: An ADR that nobody reads might as well not exist. Ensure ADRs are reviewed as part of your standard workflow.
-8. **ADRs as blame documents**: The purpose is understanding, not accountability. An ADR should never be used to say "see, I told you so" when a decision ages poorly.
+1. **Writing ADRs after implementation**: The decision should be captured before or during
+   implementation, not months later when nobody remembers the tradeoffs.
+2. **Too much detail, too little signal**: An ADR isn't a design document. It shouldn't describe the
+   implementation, just the architectural decision and why.
+3. **No alternatives section**: This is the most valuable part of an ADR. Future engineers need to
+   know _what else was considered_ and _why it was rejected_.
+4. **Status never updated**: An accepted ADR that is no longer true is misleading. Keep status
+   current — "Superseded" or "Deprecated" are valid statuses.
+5. **ADRs stored outside the repository**: Wiki pages and shared drives get lost. Keep ADRs with the
+   code they describe.
+6. **Too many ADRs for trivial decisions**: Reserve ADRs for meaningful architectural choices. Not
+   every npm package addition needs an ADR.
+7. **No review process**: An ADR that nobody reads might as well not exist. Ensure ADRs are reviewed
+   as part of your standard workflow.
+8. **ADRs as blame documents**: The purpose is understanding, not accountability. An ADR should
+   never be used to say "see, I told you so" when a decision ages poorly.
