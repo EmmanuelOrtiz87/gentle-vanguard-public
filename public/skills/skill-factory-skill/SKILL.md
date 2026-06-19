@@ -1,8 +1,8 @@
 ---
 name: skill-factory-skill
 description: >
-  Automated skill creation and cross-platform synchronization. Trigger: "skill factory", "bulk skill",
-  "sync skills", "update instructions"
+  Automated skill creation and cross-platform synchronization. Trigger: "skill factory", "bulk
+  skill", "sync skills", "update instructions"
 metadata:
   source: GV-native
 ---
