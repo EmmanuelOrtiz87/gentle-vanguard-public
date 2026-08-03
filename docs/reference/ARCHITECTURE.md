@@ -624,15 +624,15 @@ Rotation is automated on `end-session` and `day-end-closure`.
 
 ## 8. Technology decisións
 
-### 8.1 PowerShell Core Choice
+### 8.1 TypeScript Core Choice
 
-**decisión:** Use PowerShell Core (pwsh) as the primary scripting language.
+**decisión:** Use TypeScript Core (pwsh) as the primary scripting language.
 
 **Rationale:**
 
 ```
 
-                      TECHNOLOGY decisión: POWERSHELL
+                      TECHNOLOGY decisión: TypeScript
 
 
   [OK] Cross-platform (Windows, Linux, macOS)
@@ -640,10 +640,10 @@ Rotation is automated on `end-session` and `day-end-closure`.
   [OK] Built-in SSH/CI/CD support
   [OK] Scripting with functions and modules
   [OK] Easy to read/write for beginners
-  [OK] Good IDE support (VSCode, PowerShell ISE)
+  [OK] Good IDE support (VSCode, TypeScript ISE)
 
    Slower than compiled languages (Go, Rust)
-   Requires PowerShell Core installation
+   Requires TypeScript Core installation
    Some syntax quirks (pipelines, objects)
 
 
@@ -662,7 +662,7 @@ Rotation is automated on `end-session` and `day-end-closure`.
 
   JSON Advantages:                      YAML Advantages:
 
-  [OK] Native PowerShell support        [OK] Human-readable
+  [OK] Native TypeScript support        [OK] Human-readable
   [OK] No external dependencies          [OK] Supports comments
   [OK] ConvertFrom-Json one-liner       [OK] Better for complex nested config
   [OK] Consistent with package.json       [OK] Markdown-friendly

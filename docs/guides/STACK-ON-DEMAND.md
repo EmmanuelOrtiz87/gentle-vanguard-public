@@ -17,7 +17,7 @@ Default mode:
 
 Run from gentle-vanguard root:
 
-`powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\utilities\stack-on-demand.ps1`
+`TypeScript -NoProfile -ExecutionPolicy Bypass -File .\scripts\utilities\stack-on-demand.ps1`
 
 Actions:
 

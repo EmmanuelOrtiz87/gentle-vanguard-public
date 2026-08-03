@@ -41,7 +41,7 @@ quality.
   - [ ] No critical TODO/FIXME comments in core scripts
 
 - [ ] **Compatibility**
-  - [ ] Scripts tested on Windows 10/11 + PowerShell 7+
+  - [ ] Scripts tested on Windows 10/11 + TypeScript 7+
   - [ ] Cross-platform paths use forward slashes (or `Join-Path` where needed)
   - [ ] Go versión pinned in `go.mod` matches README prerequisites
   - [ ] Node/Python versións in templates match README
@@ -85,7 +85,7 @@ quality.
 
 Run before tagging:
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 release-homologation
 # Optional tag-aware check:
 .\scripts\utilities\gv.ps1 release-homologation vX.Y.Z
@@ -138,7 +138,7 @@ Run before tagging:
 
 ### Step 1: Create Release Branch
 
-```powershell
+```TypeScript
 cd .\gentle-vanguard
 git checkout -b release/v1.0.0
 ```
@@ -154,7 +154,7 @@ Edit `CHANGELOG.md`:
 
 ### Step 3: Commit Release
 
-```powershell
+```TypeScript
 git add CHANGELOG.md
 git commit -m "chore(release): prepare v1.0.0 - Gentle-Vanguard stable release"
 git push -u origin release/v1.0.0
@@ -162,7 +162,7 @@ git push -u origin release/v1.0.0
 
 ### Step 4: Create & Merge Release PR
 
-```powershell
+```TypeScript
 gh pr create --base main --head release/v1.0.0 \
   --title "chore(release): v1.0.0 - First stable Gentle-Vanguard release" \
   --body "## Release: v1.0.0
@@ -186,13 +186,13 @@ See CHANGELOG.md for full details.
 
 Merge PR:
 
-```powershell
+```TypeScript
 gh pr merge <number> --squash --delete-branch
 ```
 
 ### Step 5: Tag Release
 
-```powershell
+```TypeScript
 git checkout main
 git pull origin main
 git tag -a v1.0.0 -m "Release v1.0.0: First stable release of Gentle-Vanguard"
@@ -201,13 +201,13 @@ git push origin v1.0.0
 
 Verify:
 
-```powershell
+```TypeScript
 git tag -l v1.0.0 -n5
 ```
 
 ### Step 6: Create GitHub Release
 
-```powershell
+```TypeScript
 gh release create v1.0.0 --target main \
   --title "v1.0.0 - Gentle-Vanguard Stable Release" \
   --notes "First stable release. See CHANGELOG.md for full details."
@@ -217,7 +217,7 @@ Or use GitHub UI: https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/ne
 
 ### Step 7: Sync Back to Develop (Optional)
 
-```powershell
+```TypeScript
 git checkout develop
 git pull origin develop
 git merge main
@@ -257,7 +257,7 @@ git push origin develop
 
 If a critical bug is found post-release:
 
-```powershell
+```TypeScript
 # Option 1: Issue a hotfix (v1.0.1)
 git checkout main
 git pull origin main

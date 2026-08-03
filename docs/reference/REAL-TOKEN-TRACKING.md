@@ -21,7 +21,7 @@ Estos reemplazan el estimado basado en caracteres cuando están disponibles.
 
 Actualizado `Invoke-TokenBudgetGuard` para aceptar y pasar tokens reales:
 
-```powershell
+```TypeScript
 function Invoke-TokenBudgetGuard {
     param(
         [string]$Task,
@@ -38,7 +38,7 @@ function Invoke-TokenBudgetGuard {
 
 Actualizado para inicializar con tokens reales (ejemplo):
 
-```powershell
+```TypeScript
 & $tokenGuard -Task "session-start" -Risk "low" -Record `
     -ActualPromptTokens 0 -ActualCompletionTokens 0
 ```
@@ -49,7 +49,7 @@ Actualizado para inicializar con tokens reales (ejemplo):
 
 Cuando uses una API de AI y obtengas una respuesta con `usage`:
 
-```powershell
+```TypeScript
 $response = Invoke-RestMethod -Uri "https://api.openai.com/v1/chat/completions" `
     -Headers @{ Authorization = "Bearer $apiKey" } `
     -Body $body -ContentType "application/json"
@@ -59,7 +59,7 @@ if ($response.usage) {
     $completionTokens = $response.usage.completion_tokens
 
     # Record in token budget guard
-    $guardScript = "scripts/utilities/TELEMETRY-METRICS/token-budget-guard.ps1"
+    $guardScript = "src/telemetry/token-budget-guard.ts"
     & $guardScript -Task "your-task" -Risk "medium" -Record `
         -ActualPromptTokens $promptTokens -ActualCompletionTokens $completionTokens
 }
@@ -69,7 +69,7 @@ if ($response.usage) {
 
 El engine ahora acepta tokens reales como parámetros adicionales:
 
-```powershell
+```TypeScript
 gv context-pack -ActualPromptTokens 1500 -ActualCompletionTokens 800
 ```
 

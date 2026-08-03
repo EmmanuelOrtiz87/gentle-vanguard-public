@@ -77,9 +77,9 @@ describe('ResilienceManager', () => {
     it('should increment failover count', async () => {
       const initialMetrics = manager.getMetrics();
       const initialCount = initialMetrics.failoverCount;
-      
+
       await manager.failoverToSecondary();
-      
+
       const updatedMetrics = manager.getMetrics();
       expect(updatedMetrics.failoverCount).toBe(initialCount + 1);
     });

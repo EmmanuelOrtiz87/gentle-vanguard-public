@@ -7,7 +7,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ### Integrated (with Gentle-Vanguard)
 
-```powershell
+```TypeScript
 # Quick check - 1 second
 .\scripts\utilities\gv.ps1 audit sweep --scope quick
 
@@ -20,7 +20,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ### Standalone (without Gentle-Vanguard)
 
-```powershell
+```TypeScript
 # After sync:
 ~\.gentle-vanguard-local\audit-workflow.ps1 -Mode quick
 ~\.gentle-vanguard-local\audit-workflow.ps1 -Mode full
@@ -77,7 +77,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ### Pre-Commit Hook
 
-```powershell
+```TypeScript
 # Add to .git/hooks/pre-commit
 .\scripts\utilities\gv.ps1 audit sweep --scope quick --fail-on-issues
 ```
@@ -92,7 +92,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ### Pre-Release Checklist
 
-```powershell
+```TypeScript
 # 1. Batch validation
 .\scripts\utilities\gv.ps1 audit sweep --scope full
 
@@ -106,7 +106,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 For use in projects without Gentle-Vanguard:
 
-```powershell
+```TypeScript
 # 1. From Gentle-Vanguard directory:
 .\skills\gentle-vanguard-audit-skill\scripts\sync-local.ps1
 
@@ -124,7 +124,7 @@ For use in projects without Gentle-Vanguard:
 
 ## Output Formats
 
-```powershell
+```TypeScript
 # Human-readable (default)
 .\gv.ps1 audit sweep --output text
 

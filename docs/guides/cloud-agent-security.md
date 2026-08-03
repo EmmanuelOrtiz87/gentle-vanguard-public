@@ -28,7 +28,7 @@ override pre-existing environment variables.
 
 ## Quick Setup
 
-```powershell
+```TypeScript
 # 1. Create local configuration
 .\scripts\utilities\invoke-cloud-agent.ps1 -Config
 # Select option 2

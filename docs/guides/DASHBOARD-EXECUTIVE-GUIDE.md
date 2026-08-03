@@ -244,7 +244,7 @@ This enables automated refresh without requiring manual command execution for CI
 
 Local manual generation is still available for immediate on-machine preview:
 
-- `pwsh -File scripts/utilities/TELEMETRY-METRICS/generate-dashboard.ps1`
+- `pwsh -File src/telemetry/generate-dashboard.ts`
 
 ---
 

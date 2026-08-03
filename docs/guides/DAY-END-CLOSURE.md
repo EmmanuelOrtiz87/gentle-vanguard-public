@@ -14,7 +14,7 @@ Two modes available:
 
 ### Manual Closure (Explicit)
 
-```powershell
+```TypeScript
 # Close the day with full automation: closure artifact + validation + Engram capture
 .\scripts\utilities\gv.ps1 day-end-closure
 
@@ -78,25 +78,25 @@ Day End Closure Flow
 
 ### Close day with full checks
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 day-end-closure
 ```
 
 ### Skip validation (fast closure)
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 day-end-closure -SkipValidation
 ```
 
 ### Bypass Engram capture (operational only)
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 day-end-closure -SkipEngram
 ```
 
 ### Force closure even with failures
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 day-end-closure -Force
 ```
 
@@ -106,18 +106,18 @@ Currently manual-trigger only. To enable automatic closure:
 
 ### Option A: Scheduled Task (Windows)
 
-```powershell
+```TypeScript
 # Create scheduled task to run at shift end (e.g., 5:30 PM)
 $trigger = New-ScheduledTaskTrigger -Daily -At "17:30"
-$action = New-ScheduledTaskAction -Execute "powershell" -Argument "-NoProfile -ExecutionPolicy Bypass -File .\gentle-vanguard\\scripts\utilities\gv.ps1 day-end-closure -Quiet"
+$action = New-ScheduledTaskAction -Execute "TypeScript" -Argument "-NoProfile -ExecutionPolicy Bypass -File .\gentle-vanguard\\scripts\utilities\gv.ps1 day-end-closure -Quiet"
 Register-ScheduledTask -TaskName "Gentleman-DayEndClosure" -Trigger $trigger -Action $action
 ```
 
-### Option B: PowerShell Profile Hook
+### Option B: TypeScript Profile Hook
 
-```powershell
+```TypeScript
 # Add to your $PROFILE to run on shell exit
-Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+Register-EngineEvent -SourceIdentifier TypeScript.Exiting -Action {
     Push-Location ".\gentle-vanguard"
     & .\scripts\utilities\gv.ps1 day-end-closure -Quiet -AutoTriggered
     Pop-Location
@@ -141,7 +141,7 @@ fi
 When you start the next session:
 
 1. **Tools Auto-Activate**
-   - PowerShell profile detects Gentle-Vanguard project
+   - TypeScript profile detects Gentle-Vanguard project
    - `ensure-tools-active.ps1` runs in background
    - Required and optional tools verified from workspace policy (engram, skills, AI runtime)
 
@@ -191,7 +191,7 @@ Developer choice:         Generated
 
 1. **Use explicit session IDs if tracking multiple projects**
 
-   ```powershell
+   ```TypeScript
    .\scripts\utilities\gv.ps1 day-end-closure -SessionId "bitbucket-dashboard-2026-04-14"
    ```
 
@@ -215,7 +215,7 @@ Developer choice:         Generated
 
 **Checks**:
 
-```powershell
+```TypeScript
 # Verify launcher and CLI
 .\scripts\utilities\run-engram.ps1 --help
 
@@ -225,7 +225,7 @@ Developer choice:         Generated
 
 **Fallback (manual save)**:
 
-```powershell
+```TypeScript
 engram save "session-summary:<session_id>" "<summary_text>" --project gentle-vanguard
 engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 ```
@@ -234,7 +234,7 @@ engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 
 **Check**: Verify end-session.ps1 ran successfully.
 
-```powershell
+```TypeScript
 # Run end-session explicitly to debug
 .\scripts\utilities\end-session.ps1 -Verbose
 ```
@@ -243,7 +243,7 @@ engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 
 **Allow**: Use `-Force` to proceed despite validation issues for now.
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 day-end-closure -Force
 ```
 

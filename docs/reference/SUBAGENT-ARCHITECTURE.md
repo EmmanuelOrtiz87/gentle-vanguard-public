@@ -58,7 +58,7 @@ GITFLOW-HOOKS, GITFLOW-MERGE, GITFLOW-WORKFLOW, GITFLOW-COMMIT, GITFLOW-CONFLICT
 
 ## 3.4 Agent Invocation
 
-```powershell
+```TypeScript
 # List agents
 .\gv.ps1 agent list
 
@@ -171,13 +171,13 @@ Each lane must return structured JSON matching the opencode subagent result sche
 
 1. Generate compact baseline:
 
-```powershell
+```TypeScript
 ./scripts/utilities/gv.ps1 context-pack "<objective>"
 ```
 
 2. Set response mode for compressed operations:
 
-```powershell
+```TypeScript
 ./scripts/utilities/gv.ps1 response-mode ultra
 ```
 
@@ -255,7 +255,7 @@ Each lane must return structured JSON matching the opencode subagent result sche
 
 ## 12.1 Metrics Collection Implementation
 
-```powershell
+```TypeScript
 # Store metrics in Engram for persistence
 function Save-SubagentMetrics {
     param(
@@ -319,14 +319,14 @@ Metrics are persisted to Engram with topic_key `metrics/subagent-delegation` for
 
 1. Manual budget check:
 
-```powershell
+```TypeScript
 ./scripts/utilities/gv.ps1 token-guard
 ./scripts/utilities/gv.ps1 token-guard publish
 ```
 
 2. Engram readiness and usage:
 
-```powershell
+```TypeScript
 ./scripts/utilities/gv.ps1 install-engram
 ./scripts/utilities/run-engram.ps1 --help
 ```

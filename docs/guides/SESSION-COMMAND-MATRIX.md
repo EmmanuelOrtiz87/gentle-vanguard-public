@@ -10,14 +10,14 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 | Situación                 | Comando Exacto                                                                          | Parámetros                                      | Validación                        |
 | ------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------- |
-| **Iniciar sesión nueva**  | `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1` | `-UserInput "inicia sesion" -WorkspaceRoot "."` | Output: `TRIGGER_MATCH_FOUND`     |
+| **Iniciar sesión nueva**  | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "inicia sesion" -WorkspaceRoot "."` | Output: `TRIGGER_MATCH_FOUND`     |
 |                           | `cmd /c scripts\utilities\session-autostart.cmd`                                        | (ninguno)                                       | Output: `[READY] Workspace ready` |
 | **Verificar estado**      | `git status`                                                                            | (ninguno)                                       | Output: rama y cambios            |
 | **Ver resumen de sesión** | `Get-Content logs/session-*.json`                                                       | (ninguno)                                       | JSON válido                       |
-| **Continuar sesión**      | `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1` | `-UserInput "continuar" -WorkspaceRoot "."`     | Output: `TRIGGER_MATCH_FOUND`     |
-| **Revisar código**        | `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1` | `-UserInput "review" -WorkspaceRoot "."`        | Output: `TRIGGER_MATCH_FOUND`     |
-| **Guardar cambios**       | `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1` | `-UserInput "push" -WorkspaceRoot "."`          | Output: `TRIGGER_MATCH_FOUND`     |
-| **Crear PR**              | `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1` | `-UserInput "pr" -WorkspaceRoot "."`            | Output: `TRIGGER_MATCH_FOUND`     |
+| **Continuar sesión**      | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "continuar" -WorkspaceRoot "."`     | Output: `TRIGGER_MATCH_FOUND`     |
+| **Revisar código**        | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "review" -WorkspaceRoot "."`        | Output: `TRIGGER_MATCH_FOUND`     |
+| **Guardar cambios**       | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "push" -WorkspaceRoot "."`          | Output: `TRIGGER_MATCH_FOUND`     |
+| **Crear PR**              | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "pr" -WorkspaceRoot "."`            | Output: `TRIGGER_MATCH_FOUND`     |
 
 ---
 
@@ -25,7 +25,7 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 | Comando Incorrecto                                             | Por Qué                                    | Corrección                                           |
 | -------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| `powershell -File scripts/utilities/...`                       | Falta `-NoProfile -ExecutionPolicy Bypass` | Usa `pwsh -NoProfile -ExecutionPolicy Bypass -File`  |
+| `TypeScript -File scripts/utilities/...`                       | Falta `-NoProfile -ExecutionPolicy Bypass` | Usa `pwsh -NoProfile -ExecutionPolicy Bypass -File`  |
 | `scripts/utilities/session-autostart.cmd`                      | Falta shell (`cmd /c`)                     | Usa `cmd /c scripts\utilities\session-autostart.cmd` |
 | `.\scripts\utilities\gv.ps1 -Command "skill"`                  | Parámetro "skill" no válido                | Usa `gv start-session`                               |
 | `.\scripts\utilities\gv.ps1 skills`                            | Script no existe                           | No usar, skill se carga automáticamente              |
@@ -61,7 +61,7 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 ## 🎯 Parámetros Válidos para pre-process-input.ps1
 
-```powershell
+```TypeScript
 # -UserInput (REQUERIDO)
 # Valores válidos:
 "inicia sesion"      # Iniciar sesión nueva
@@ -86,34 +86,34 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 ### Iniciar sesión
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1 -UserInput "inicia sesion" -WorkspaceRoot "."
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts -UserInput "inicia sesion" -WorkspaceRoot "."
 cmd /c scripts\utilities\session-autostart.cmd
 git status
 ```
 
 ### Continuar sesión
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1 -UserInput "continuar" -WorkspaceRoot "."
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts -UserInput "continuar" -WorkspaceRoot "."
 ```
 
 ### Revisar código
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1 -UserInput "review" -WorkspaceRoot "."
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts -UserInput "review" -WorkspaceRoot "."
 ```
 
 ### Guardar cambios
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1 -UserInput "push" -WorkspaceRoot "."
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts -UserInput "push" -WorkspaceRoot "."
 ```
 
 ### Crear PR
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-input.ps1 -UserInput "pr" -WorkspaceRoot "."
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts -UserInput "pr" -WorkspaceRoot "."
 ```
 
 ---
@@ -122,12 +122,12 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/pre-process-inpu
 
 Antes de ejecutar cualquier comando, verifica:
 
-```powershell
+```TypeScript
 # 1. ¿Estamos en el directorio correcto?
 Get-Location  # Debe contener "gentle-vanguard"
 
 # 2. ¿Existen los scripts?
-Test-Path "scripts/utilities/pre-process-input.ps1"
+Test-Path "src/pre-process-input.ts"
 Test-Path "scripts/utilities/session-autostart.cmd"
 
 # 3. ¿Tenemos permisos?
@@ -159,7 +159,7 @@ git status  # No debe dar error
 | `'scripts' is not recognized`               | Path sin shell                  | Usa `cmd /c scripts\utilities\...`                                    |
 | `File not found`                            | Ruta incorrecta                 | Verifica que uses backslashes `\` en Windows                          |
 | `ExecutionPolicy`                           | Política de ejecución bloqueada | Ejecuta: `Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process` |
-| `Permission denied`                         | Permisos insuficientes          | Ejecuta PowerShell como administrador                                 |
+| `Permission denied`                         | Permisos insuficientes          | Ejecuta TypeScript como administrador                                 |
 | `TRIGGER_MATCH_FOUND: False`                | Entrada no reconocida           | Usa exactamente: `"inicia sesion"` o `"start session"`                |
 | `[ERROR] Skills discovery script not found` | Script no existe                | No usar `gv skills`, skill se carga automáticamente                   |
 | `Cannot validate argument on parameter`     | Parámetro inválido              | Verifica que uses solo parámetros válidos                             |

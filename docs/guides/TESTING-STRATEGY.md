@@ -9,7 +9,7 @@ The project has **28 automated tests** organized in 4 categories:
 - **2 Security tests** — Input validation, secret detection
 - **1 Performance test** — Engram memory benchmarks
 
-All tests use **Pester 5.x** and run via `scripts/run-tests-simple.ps1`.
+All tests use **node:test** and run via `scripts/run-tests-simple.ps1`.
 
 ## Test Categories
 
@@ -33,7 +33,7 @@ Tests run automatically in CI via `test-suite.yml` (GitHub Actions):
 
 Coverage is generated via Pester's built-in `CodeCoverage` configuration:
 
-```powershell
+```TypeScript
 $config = New-PesterConfiguration
 $config.CodeCoverage.Enabled = $true
 $config.CodeCoverage.OutputFormat = 'JaCoCo'

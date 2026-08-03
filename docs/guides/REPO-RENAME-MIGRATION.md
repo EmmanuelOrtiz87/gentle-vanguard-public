@@ -19,13 +19,13 @@ machines and local clones.
 
 Use this script in each machine where you have local clones:
 
-```powershell
+```TypeScript
 .\scripts\utilities\DEPLOYMENT\migrate-gentle-vanguard-remotes.ps1
 ```
 
 Dry run mode:
 
-```powershell
+```TypeScript
 .\scripts\utilities\DEPLOYMENT\migrate-gentle-vanguard-remotes.ps1 -DryRun
 ```
 
@@ -40,10 +40,10 @@ If variables are missing, workflow defaults remain safe.
 
 ## Validation Commands
 
-```powershell
+```TypeScript
 git remote -v
 gh repo view EmmanuelOrtiz87/gentle-vanguard --json name,url,defaultBranchRef
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/agent-verify.ps1
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/agent-verify.ts
 ```
 
 ## Notes

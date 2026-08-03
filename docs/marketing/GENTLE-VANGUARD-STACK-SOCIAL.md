@@ -126,7 +126,7 @@ El sistema aprende de tus correcciones en tiempo real:
 
 | Capa                 | Tecnología            |
 | -------------------- | --------------------- |
-| **🖥️ CLI**           | PowerShell 7+         |
+| **🖥️ CLI**           | TypeScript 7+         |
 | **🧩 Skills**        | 385 skills modulares  |
 | **🎭 Orchestration** | Multi-agent DAG       |
 | **🧠 Memory**        | Engram persistente    |
@@ -139,7 +139,7 @@ El sistema aprende de tus correcciones en tiempo real:
 
 ## 🚀 Quick Start
 
-```powershell
+```TypeScript
 # 1️⃣ Iniciar sesión
 .\scripts\utilities\session-autostart.cmd
 

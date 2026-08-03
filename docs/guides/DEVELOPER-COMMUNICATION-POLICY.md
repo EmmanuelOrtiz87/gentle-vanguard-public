@@ -41,7 +41,7 @@ helper and should not be committed to shared repositories.
 
 Example:
 
-```powershell
+```TypeScript
 .\tools\enforce-response-mode.ps1
 ```
 

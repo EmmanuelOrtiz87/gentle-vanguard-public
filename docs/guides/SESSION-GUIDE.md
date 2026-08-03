@@ -42,7 +42,7 @@ The Gentle-Vanguard automatically ensures all development tools are active and r
 
 ### Manual Activation Commands
 
-```powershell
+```TypeScript
 # Check and activate all tools
 .\scripts\utilities\gv.ps1 health
 
@@ -73,7 +73,7 @@ Before starting work, ensure your workspace is clean:
 
 **Step 1: Bootstrap**
 
-```powershell
+```TypeScript
 # Run the standard bootstrap
 .\scripts\utilities\gv.ps1 health
 .\scripts\utilities\gv.ps1 start-session [task-name]
@@ -102,7 +102,7 @@ When health is degraded, the system helps you recover:
 
 **Step 3: Memory Check**
 
-```powershell
+```TypeScript
 # Check previous context
 mem_context
 
@@ -198,11 +198,11 @@ Use these in conversation with the AI agent:
 | `Review`    | Run code review            | "Review my last commit"          |
 | `PR`        | Create pull request        | "PR for the feature branch"      |
 
-### CLI Commands (PowerShell)
+### CLI Commands (TypeScript)
 
 **Session Management:**
 
-```powershell
+```TypeScript
 # Start a new session
 .\scripts\utilities\gv.ps1 start-session
 .\scripts\utilities\gv.ps1 start-session api-hardening
@@ -217,7 +217,7 @@ Use these in conversation with the AI agent:
 
 **Review & Publishing:**
 
-```powershell
+```TypeScript
 # Code review
 .\scripts\utilities\gv.ps1 review
 
@@ -236,7 +236,7 @@ Use these in conversation with the AI agent:
 
 **Maintenance:**
 
-```powershell
+```TypeScript
 # Full update workflow
 .\scripts\utilities\gv.ps1 update-all
 
@@ -289,7 +289,7 @@ gh pr status
 
 Standard flow for validation and publishing:
 
-```powershell
+```TypeScript
 # Step 1: Check current status
 .\scripts\utilities\gv.ps1 status
 
@@ -336,7 +336,7 @@ Run through this checklist:
 
 **Quick Command:**
 
-```powershell
+```TypeScript
 # Run pre-commit checks
 gv.ps1 review
 git add .
@@ -349,7 +349,7 @@ Ensure these are complete:
 
 **Quick Command:**
 
-```powershell
+```TypeScript
 # Prepare for PR
 gv.ps1 audit
 gv.ps1 pr
@@ -362,7 +362,7 @@ Final checks:
 
 **Quick Command:**
 
-```powershell
+```TypeScript
 # Safe push with checks
 gv.ps1 push  # Shows guided commands
 git push -u origin feature/my-feature

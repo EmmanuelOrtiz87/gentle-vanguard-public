@@ -11,7 +11,7 @@ hardened, offline-only execution of MCP servers.
 
 **Check if setup**:
 
-```powershell
+```TypeScript
 # Verify MCP workspace exists
 Test-Path $HOME\mcp-workspace  # Must be True
 Get-Content $HOME\mcp-workspace\package-lock.json | ConvertFrom-Json | Out-Null
@@ -25,7 +25,7 @@ initialize.
 
 Verify security hardening is in place:
 
-```powershell
+```TypeScript
 # Check .npmrc policy loaded
 npm config get ignore-scripts  # Should return: true
 npm config get min-release-age  # Should return: 3
@@ -48,7 +48,7 @@ Gentle-Vanguard follows [Semantic Versioning](https://semver.org/):
 
 ### 1. Prepare
 
-```powershell
+```TypeScript
 # Ensure working tree is clean
 git status
 
@@ -61,7 +61,7 @@ npm test
 
 ### 2. Update Version
 
-```powershell
+```TypeScript
 # Update VERSION file
 # Update CHANGELOG.md — move [Unreleased] → [X.Y.Z] - YYYY-MM-DD
 # Update version badges in README.md, docs/README.md, marketing/*
@@ -73,7 +73,7 @@ npm test
 This gate is **automatically executed** by `gv.ps1 publish` before any validation or merge attempt.
 If the gate fails, publish is blocked until issues are resolved.
 
-```powershell
+```TypeScript
 # Run manually (same check that publish runs internally)
 .\scripts\utilities\gv.ps1 release-homologation
 
@@ -92,7 +92,7 @@ Expected outcome:
 
 ### 3. Commit & Tag
 
-```powershell
+```TypeScript
 git add -A
 git commit -m "chore: release vX.Y.Z - <summary of changes>"
 git tag -a vX.Y.Z -m "vX.Y.Z: <summary>"
@@ -100,7 +100,7 @@ git tag -a vX.Y.Z -m "vX.Y.Z: <summary>"
 
 ### 4. Merge to Develop
 
-```powershell
+```TypeScript
 git checkout develop
 git merge main --no-edit
 git checkout main
@@ -108,7 +108,7 @@ git checkout main
 
 ### 5. Push
 
-```powershell
+```TypeScript
 git push origin main
 git push origin develop
 git push origin vX.Y.Z
@@ -116,7 +116,7 @@ git push origin vX.Y.Z
 
 ### 6. Sync Public Repo
 
-```powershell
+```TypeScript
 .\scripts\utilities\DEPLOYMENT\sync-to-public.ps1
 ```
 
@@ -125,14 +125,14 @@ the core release checks above are green.
 
 Then from the public repo:
 
-```powershell
+```TypeScript
 git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
 ### 7. Create GitHub Release (Optional)
 
-```powershell
+```TypeScript
 gh release create vX.Y.Z --title "vX.Y.Z" --notes "See CHANGELOG.md"
 ```
 

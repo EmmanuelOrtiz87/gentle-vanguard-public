@@ -34,7 +34,7 @@ DIFY_API_KEY=your_api_key_here
 
 Alternatively, export the variable in your terminal:
 
-```powershell
+```TypeScript
 $env:DIFY_API_KEY = "your_api_key_here"
 ```
 
@@ -42,7 +42,7 @@ $env:DIFY_API_KEY = "your_api_key_here"
 
 ## 3. Test the Connection
 
-```powershell
+```TypeScript
 cd gentle-vanguard
 .\scripts\utilities\AI-AGENT-MANAGEMENT\invoke-cloud-agent.ps1 -Provider dify -TestConnection
 ```
@@ -53,18 +53,18 @@ cd gentle-vanguard
 
 - Run a command:
 
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\AI-AGENT-MANAGEMENT\invoke-cloud-agent.ps1 -Provider dify -Command "What is the capital of France?"
   ```
 
 - Strict mode (automation):
 
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\AI-AGENT-MANAGEMENT\invoke-cloud-agent.ps1 -Provider dify -StrictJson -Command "return JSON"
   ```
 
 - Interactive mode:
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\AI-AGENT-MANAGEMENT\invoke-cloud-agent.ps1 -Provider dify -Interactive
   ```
 

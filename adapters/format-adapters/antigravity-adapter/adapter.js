@@ -1,7 +1,7 @@
 /**
  * Antigravity Mission Control Adapter
  * Converts Gentle-Vanguard skills to Antigravity Mission Control format
- * 
+ *
  * Antigravity uses:
  * - Mission Control: Multi-agent orchestration dashboard
  * - AGENTS.md: Agent configuration file (cross-tool compatible)
@@ -19,10 +19,10 @@ const path = require('path');
  */
 function convertSkillToAntigravity(skillPath, outputPath) {
   const skillContent = fs.readFileSync(skillPath, 'utf-8');
-  
+
   // Parse Gentle-Vanguard SKILL.md format (frontmatter + content)
   const parsed = parseSkillMarkdown(skillContent);
-   
+
   // Convert to Antigravity format (Mission Control compatible)
   const antigravityFormat = {
     name: parsed.name,
@@ -38,12 +38,12 @@ function convertSkillToAntigravity(skillPath, outputPath) {
           role: mapSkillToAgentRole(parsed.name),
           model: 'gemini-3-pro',
           instructions: parsed.content,
-          tools: parsed.tools || ['file_reader', 'code_executor']
-        }
-      ]
-    }
+          tools: parsed.tools || ['file_reader', 'code_executor'],
+        },
+      ],
+    },
   };
-   
+
   fs.writeFileSync(outputPath, JSON.stringify(antigravityFormat, null, 2));
   console.log(`✓ Converted ${parsed.name} to Antigravity format: ${outputPath}`);
 }
@@ -57,9 +57,9 @@ function parseSkillMarkdown(content) {
     description: '',
     triggers: [],
     tools: [],
-    content: ''
+    content: '',
   };
-  
+
   // Extract frontmatter (between --- markers)
   const startMarker = content.indexOf('---');
   if (startMarker >= 0) {
@@ -67,7 +67,7 @@ function parseSkillMarkdown(content) {
     if (secondMarker >= 0) {
       const frontMatter = content.substring(startMarker + 3, secondMarker);
       const restContent = content.substring(secondMarker + 3);
-      
+
       // Parse frontmatter lines
       const lines = frontMatter.split('\n');
       for (const line of lines) {
@@ -77,14 +77,14 @@ function parseSkillMarkdown(content) {
           result.description = line.substring(12).trim();
         } else if (line.startsWith('trigger:')) {
           const triggerText = line.substring(8).trim();
-          result.triggers = triggerText.split(',').map(t => t.trim().replace(/"/g, ''));
+          result.triggers = triggerText.split(',').map((t) => t.trim().replace(/"/g, ''));
         }
       }
-      
+
       result.content = restContent.trim();
     }
   }
-  
+
   return result;
 }
 
@@ -100,9 +100,9 @@ function mapSkillToAgentRole(skillName) {
     'docker-devops-skill': 'devops',
     'testing-skill': 'tester',
     'security-skill': 'security',
-    'documentation-governance': 'writer'
+    'documentation-governance': 'writer',
   };
-  
+
   return roleMap[skillName] || 'generalist';
 }
 
@@ -111,23 +111,24 @@ function mapSkillToAgentRole(skillName) {
  * AGENTS.md is cross-tool compatible (Antigravity, Cursor, Claude Code)
  */
 function generateAGENTSmd(skillsDir, outputPath) {
-  const files = fs.readdirSync(skillsDir)
-    .filter(f => f.endsWith('SKILL.md'))
-    .map(f => path.join(skillsDir, f));
-  
+  const files = fs
+    .readdirSync(skillsDir)
+    .filter((f) => f.endsWith('SKILL.md'))
+    .map((f) => path.join(skillsDir, f));
+
   let agentsMd = '# Agents Configuration\n\n';
   agentsMd += '> Cross-tool compatible: Antigravity, Cursor, Claude Code\n\n';
-  
+
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf-8');
     const parsed = parseSkillMarkdown(content);
-    
+
     agentsMd += `## ${parsed.name}\n`;
     agentsMd += `Role: ${mapSkillToAgentRole(parsed.name)}\n`;
     agentsMd += `Description: ${parsed.description}\n`;
     agentsMd += `Triggers: ${parsed.triggers.join(', ')}\n\n`;
   }
-  
+
   fs.writeFileSync(outputPath, agentsMd);
   console.log(`✓ Generated AGENTS.md: ${outputPath}`);
 }
@@ -140,20 +141,20 @@ function generateMissionYaml(skills, outputPath) {
     mission: {
       name: 'Gentle-Vanguard Multi-Agent Mission',
       max_agents: 5,
-      timeout: 7200
+      timeout: 7200,
     },
-    agents: skills.map(skill => ({
+    agents: skills.map((skill) => ({
       role: mapSkillToAgentRole(skill.name),
       model: 'gemini-3-pro',
       instructions: skill.instructions || `Execute ${skill.name} tasks`,
-      depends_on: skill.dependsOn || []
-    }))
+      depends_on: skill.dependsOn || [],
+    })),
   };
-  
+
   const yaml = JSON.stringify(mission, null, 2)
     .replace(/"/g, '')
     .replace(/: "(.+?)"/g, ': $1');
-  
+
   fs.writeFileSync(outputPath, yaml);
   console.log(`✓ Generated mission.yaml: ${outputPath}`);
 }
@@ -162,7 +163,7 @@ function generateMissionYaml(skills, outputPath) {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   if (command === 'convert-skill') {
     const skillPath = args[1] || 'SKILL.md';
     const outputPath = args[2] || 'output.json';
@@ -196,6 +197,5 @@ Examples:
 module.exports = {
   convertSkillToAntigravity,
   generateAGENTSmd,
-  generateMissionYaml
+  generateMissionYaml,
 };
-

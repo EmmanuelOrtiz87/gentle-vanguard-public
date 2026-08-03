@@ -22,9 +22,9 @@ AI agents must use:
 
 | Tool         | Status   | Rationale                              |
 | ------------ | -------- | -------------------------------------- |
-| `websearch`  | **DENY** | Avoid token waste on external searches |
+| `websearch`  | **ASK** (orchestrator) | Orchestrator may ask user before external search; subagents DENY |
 | `codesearch` | **DENY** | Use local grep and project patterns    |
-| `webfetch`   | **DENY** | Rely on local documentation            |
+| `webfetch`   | **ASK** (orchestrator) | Orchestrator may ask user before fetching external docs; subagents DENY |
 
 ### Allow Only for Orchestrator
 
@@ -36,6 +36,11 @@ External tools are **only available** when:
   - Project skills (`skills/`)
   - Engram memory (`mem_search`, `mem_context`)
   - Project documentation
+
+**Mechanism**: In `opencode.json`, the `orchestrator` (primary) agent sets
+`websearch: ask` and `webfetch: ask` — the orchestrator prompts the user for
+confirmation before each external call, preserving token control. All 20
+subagents keep `websearch: deny` / `webfetch: deny`.
 
 ## Configuration Files
 

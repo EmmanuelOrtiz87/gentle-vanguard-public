@@ -175,7 +175,7 @@ git merge feature/my-feature
 
 ### Check Status
 
-```powershell
+```TypeScript
 .\scripts\utilities\judgment-day-orchestrator.ps1 -Action status
 
 # Output:
@@ -193,19 +193,19 @@ git merge feature/my-feature
 
 ### Initialize Manually
 
-```powershell
+```TypeScript
 .\scripts\utilities\judgment-day-orchestrator.ps1 -Action initialize
 ```
 
 ### Check PR Status
 
-```powershell
+```TypeScript
 .\scripts\utilities\judgment-day-orchestrator.ps1 -Action check-pr
 ```
 
 ### Run Judgment Day
 
-```powershell
+```TypeScript
 .\scripts\utilities\judgment-day-orchestrator.ps1 -Action run-judgment -Scope pr_files
 ```
 
@@ -374,7 +374,7 @@ ls -la .git/hooks/pre-merge-commit
 
 ### Configuration Not Loaded
 
-```powershell
+```TypeScript
 # Check config file exists
 Test-Path config/judgment-day-automation.json
 
@@ -384,7 +384,7 @@ Get-Content config/judgment-day-automation.json | ConvertFrom-Json
 
 ### Judgment Day Not Initializing
 
-```powershell
+```TypeScript
 # Run initialization manually
 .\scripts\utilities\judgment-day-orchestrator.ps1 -Action initialize
 

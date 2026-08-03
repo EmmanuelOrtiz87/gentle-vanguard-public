@@ -3,16 +3,16 @@
   --bg-dark: #06080f;
   --black: #06080f;
   --fg: #f3f6f9;
-  --subtext1: #A1AABB;
-  --subtext: #8394A3;
-  --subtext3: #8394A3;
-  --subtext4: #8394A3;
+  --subtext1: #a1aabb;
+  --subtext: #8394a3;
+  --subtext3: #8394a3;
+  --subtext4: #8394a3;
   --gray0: #191e28;
   --gray1: #1c212c;
   --gray2: #232a36;
   --gray3: #2a3142;
   --line: #313342;
-  --line-strong: #8394A3;
+  --line-strong: #8394a3;
   --surface: #1c212c;
   --surface-2: #232a36;
   --red: #cb7c94;
@@ -40,7 +40,7 @@ body {
 }
 
 body {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   color: var(--fg);
   background: var(--bg-dark);
   overflow: hidden;
@@ -56,7 +56,7 @@ body {
 
 .ambient::before,
 .ambient::after {
-  content: "";
+  content: '';
   position: absolute;
   border-radius: 999px;
   filter: blur(120px);
@@ -119,7 +119,7 @@ body {
 
 h1 {
   margin: 0;
-  font-family: "Source Serif 4", serif;
+  font-family: 'Source Serif 4', serif;
   font-size: clamp(1.4rem, 2.3vw, 2rem);
 }
 
@@ -272,7 +272,7 @@ h1 {
 }
 
 .viewport::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -391,7 +391,7 @@ h1 {
 
 h2 {
   margin: 0 0 12px;
-  font-family: "Source Serif 4", serif;
+  font-family: 'Source Serif 4', serif;
   font-size: clamp(1.3rem, 1.8vw, 1.85rem);
   line-height: 1.2;
 }
@@ -461,22 +461,67 @@ p {
   transform: none;
 }
 
-.deck-app.tone-blue { --tone: var(--blue); --tone-glow: rgba(127, 180, 202, 0.24); }
-.deck-app.tone-yellow { --tone: var(--yellow); --tone-glow: rgba(255, 224, 102, 0.22); }
-.deck-app.tone-green { --tone: var(--green); --tone-glow: rgba(183, 204, 133, 0.22); }
-.deck-app.tone-purple { --tone: var(--purple); --tone-glow: rgba(163, 181, 214, 0.24); }
-.deck-app.tone-cyan { --tone: var(--cyan); --tone-glow: rgba(122, 168, 159, 0.24); }
-.deck-app.tone-magenta { --tone: var(--magenta); --tone-glow: rgba(255, 141, 215, 0.24); }
-.deck-app.tone-orange { --tone: var(--orange); --tone-glow: rgba(222, 186, 135, 0.22); }
-.deck-app.tone-red { --tone: var(--red); --tone-glow: rgba(203, 124, 148, 0.24); }
+.deck-app.tone-blue {
+  --tone: var(--blue);
+  --tone-glow: rgba(127, 180, 202, 0.24);
+}
+.deck-app.tone-yellow {
+  --tone: var(--yellow);
+  --tone-glow: rgba(255, 224, 102, 0.22);
+}
+.deck-app.tone-green {
+  --tone: var(--green);
+  --tone-glow: rgba(183, 204, 133, 0.22);
+}
+.deck-app.tone-purple {
+  --tone: var(--purple);
+  --tone-glow: rgba(163, 181, 214, 0.24);
+}
+.deck-app.tone-cyan {
+  --tone: var(--cyan);
+  --tone-glow: rgba(122, 168, 159, 0.24);
+}
+.deck-app.tone-magenta {
+  --tone: var(--magenta);
+  --tone-glow: rgba(255, 141, 215, 0.24);
+}
+.deck-app.tone-orange {
+  --tone: var(--orange);
+  --tone-glow: rgba(222, 186, 135, 0.22);
+}
+.deck-app.tone-red {
+  --tone: var(--red);
+  --tone-glow: rgba(203, 124, 148, 0.24);
+}
 
-.deck-app.mode-normal { --mode-bg: var(--blue); --mode-fg: var(--bg-dark); }
-.deck-app.mode-command { --mode-bg: var(--accent); --mode-fg: var(--bg-dark); }
-.deck-app.mode-insert { --mode-bg: var(--green); --mode-fg: var(--bg-dark); }
-.deck-app.mode-visual { --mode-bg: var(--magenta); --mode-fg: var(--bg-dark); }
-.deck-app.mode-terminal { --mode-bg: var(--cyan); --mode-fg: var(--bg-dark); }
-.deck-app.mode-replace { --mode-bg: var(--orange); --mode-fg: var(--bg-dark); }
-.deck-app.mode-inactive { --mode-bg: var(--line-strong); --mode-fg: var(--fg); }
+.deck-app.mode-normal {
+  --mode-bg: var(--blue);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-command {
+  --mode-bg: var(--accent);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-insert {
+  --mode-bg: var(--green);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-visual {
+  --mode-bg: var(--magenta);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-terminal {
+  --mode-bg: var(--cyan);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-replace {
+  --mode-bg: var(--orange);
+  --mode-fg: var(--bg-dark);
+}
+.deck-app.mode-inactive {
+  --mode-bg: var(--line-strong);
+  --mode-fg: var(--fg);
+}
 
 body.focus-mode .stage-layout {
   grid-template-columns: 1fr;

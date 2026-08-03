@@ -8,7 +8,7 @@
 
 ### Create a new branch (Recommended - Interactive)
 
-```powershell
+```TypeScript
 .\scripts\utilities\create-gitflow-branch.ps1
 ```
 

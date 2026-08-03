@@ -48,7 +48,7 @@ Below are recommended optimizations across 5 dimensions:
 
 **Implementation** (in CI/CD pipeline):
 
-```powershell
+```TypeScript
 # Replace: npm install
 # With: npm ci
 npm ci
@@ -70,7 +70,7 @@ npm ci
 
 1. Install globally:
 
-```powershell
+```TypeScript
 npm install -g lockfile-lint
 ```
 
@@ -88,7 +88,7 @@ commands:
 
 Create `scripts/hooks/lockfile-lint-check.ps1`:
 
-```powershell
+```TypeScript
 # Quick validation of package-lock.json structure
 param(
     [string]$LockfilePath = ".\package-lock.json"
@@ -132,7 +132,7 @@ if (Test-Path $LockfilePath) {
 
 **Implementation** (in pre-push hook):
 
-```powershell
+```TypeScript
 # scripts/hooks/audit-pre-push.ps1
 
 Write-Host "[AUDIT] Running npm audit..." -ForegroundColor Cyan
@@ -198,8 +198,8 @@ exit 0
 
 1. Install coverage tool:
 
-```powershell
-npm install --save-dev pester-coverage  # For PowerShell tests
+```TypeScript
+npm install --save-dev pester-coverage  # For TypeScript tests
 ```
 
 2. Add coverage thresholds to `tests/coverage-config.json`:
@@ -218,7 +218,7 @@ npm install --save-dev pester-coverage  # For PowerShell tests
 
 3. Run in CI:
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -WithCoverage -OutputFormat html
 # Generates: tests/coverage/index.html
 ```
@@ -240,7 +240,7 @@ npm install --save-dev pester-coverage  # For PowerShell tests
 
 **Implementation** (in `tests/e2e/`):
 
-```powershell
+```TypeScript
 # tests/e2e/release-workflow.e2e.tests.ps1
 
 Describe "Release Workflow E2E" {
@@ -351,7 +351,7 @@ Describe "Release Workflow E2E" {
 
 **Examples**:
 
-1. **ADR-001**: Why we use PowerShell (not Bash/Python)
+1. **ADR-001**: Why we use TypeScript (not Bash/Python)
 2. **ADR-002**: Why MCP workspace is external (not git-tracked)
 3. **ADR-003**: Why npx offline mode with workspace (threat model + mitigation)
 4. **ADR-004**: Why mandatory homologation gate in publish
@@ -412,7 +412,7 @@ Negative:
 ✅ **Good**:
 
 - Pre-commit/pre-push hooks optimized (parallel audit, test-suite)
-- PowerShell scripts use efficient patterns (minimal network calls, caching)
+- TypeScript scripts use efficient patterns (minimal network calls, caching)
 - Tests run in ~55 seconds pre-push
 
 ⚠️ **Opportunities**:
@@ -470,7 +470,7 @@ Add to pre-push hook validation.
 
 Instrument `gv.ps1 publish`:
 
-```powershell
+```TypeScript
 # Track timing for each gate
 $start = Get-Date
 Write-Step "Running Homologation Gate"
@@ -529,7 +529,7 @@ Write-Host "[PROFILE] Homologation Gate: $($duration.TotalSeconds)s"
 
 **Implementation** (in release pipeline):
 
-```powershell
+```TypeScript
 npm install -g @cyclonedx/npm
 
 # Generate SBOM

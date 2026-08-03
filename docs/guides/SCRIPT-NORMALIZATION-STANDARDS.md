@@ -8,7 +8,7 @@
 
 ## Overview
 
-All PowerShell scripts in the project must follow strict normalization standards to ensure:
+All TypeScript scripts in the project must follow strict normalization standards to ensure:
 
 - Compatibility with GitHub Actions CI/CD
 - Consistent behavior across environments
@@ -29,7 +29,7 @@ All PowerShell scripts in the project must follow strict normalization standards
 
 **NOT ALLOWED**:
 
-```powershell
+```TypeScript
 # BAD - Contains emoji
 Write-Host "OK - Task completed"
 
@@ -42,7 +42,7 @@ Write-Host "Error: 'Invalid input'"
 
 **CORRECT**:
 
-```powershell
+```TypeScript
 # GOOD - ASCII only
 Write-Host "[OK] Task completed"
 Write-Host "Validation passed"
@@ -61,7 +61,7 @@ Write-Host "Error: Invalid input"
 
 **Validation**:
 
-```powershell
+```TypeScript
 # Count braces
 $content = Get-Content script.ps1 -Raw
 $openBraces = ($content | Select-String -Pattern '\{' -AllMatches).Matches.Count
@@ -69,18 +69,18 @@ $closeBraces = ($content | Select-String -Pattern '\}' -AllMatches).Matches.Coun
 Write-Host "Braces: $openBraces open, $closeBraces closed"
 ```
 
-### 3. PowerShell Syntax
+### 3. TypeScript Syntax
 
 **REQUIRED**:
 
-- Valid PowerShell 5.1+ syntax
-- No shell operators like `||` or `&&` (use PowerShell equivalents)
+- Valid TypeScript 5.1+ syntax
+- No shell operators like `||` or `&&` (use TypeScript equivalents)
 - Proper variable references with `$` prefix
 - Correct parameter syntax
 
 **NOT ALLOWED**:
 
-```powershell
+```TypeScript
 # BAD - Shell operators
 command1 || command2
 command1 && command2
@@ -95,8 +95,8 @@ $_\"
 
 **CORRECT**:
 
-```powershell
-# GOOD - PowerShell operators
+```TypeScript
+# GOOD - TypeScript operators
 if (-not (command1)) { command2 }
 if (command1) { command2 }
 
@@ -114,11 +114,11 @@ $_
 
 - Use text-based status indicators: `[OK]`, `[ERROR]`, `[WARN]`, `[INFO]`
 - Use simple ASCII characters for decoration
-- Use PowerShell color parameters for emphasis
+- Use TypeScript color parameters for emphasis
 
 **NOT ALLOWED**:
 
-```powershell
+```TypeScript
 # BAD - Emojis
 Write-Host "OK - Task completed"
 Write-Host "ERROR - Something failed"
@@ -132,7 +132,7 @@ Write-Host " Next step"
 
 **CORRECT**:
 
-```powershell
+```TypeScript
 # GOOD - Text indicators
 Write-Host "[OK] Task completed" -ForegroundColor Green
 Write-Host "[ERROR] Something failed" -ForegroundColor Red
@@ -155,7 +155,7 @@ Write-Host "========================================================" -Foregroun
 
 **STRUCTURE**:
 
-```powershell
+```TypeScript
 param(
     [string]$Parameter1,
     [switch]$Flag,
@@ -220,7 +220,7 @@ Scripts containing emojis or special Unicode characters:
 - `generate-pr-artifacts.ps1`
 - `generate-session-artifacts.ps1`
 - `manage-backlog.ps1`
-- `Microsoft.PowerShell_profile.ps1`
+- `Microsoft.TypeScript_profile.ps1`
 - `migrate-structure.ps1`
 - `orchestrator-status.ps1`
 - `pre-compact-hook.ps1`
@@ -251,9 +251,9 @@ Scripts with unbalanced braces, parentheses, or here-strings:
 
 #### Syntax Errors (Multiple)
 
-Scripts with invalid PowerShell syntax:
+Scripts with invalid TypeScript syntax:
 
-- Shell operators (`||`, `&&`) not supported in PowerShell
+- Shell operators (`||`, `&&`) not supported in TypeScript
 - Invalid variable references
 - Incomplete hash literals
 - Missing closing delimiters
@@ -268,7 +268,7 @@ Fix scripts that cause GitHub Actions failures:
 
 1. Remove all non-ASCII characters
 2. Fix unbalanced syntax elements
-3. Replace shell operators with PowerShell equivalents
+3. Replace shell operators with TypeScript equivalents
 4. Validate all scripts parse correctly
 
 ### Phase 2: Important (Week 2)
@@ -291,7 +291,7 @@ Fix remaining compliance issues:
 
 ### Automated Fix
 
-```powershell
+```TypeScript
 # Run audit with automatic fixes
 .\scripts\utilities\audit-script-normalization.ps1 -Fix -Report
 ```
@@ -300,7 +300,7 @@ Fix remaining compliance issues:
 
 **Remove Non-ASCII Characters**:
 
-```powershell
+```TypeScript
 $scriptPath = '.\scripts\path\to\script.ps1'
 $content = Get-Content $scriptPath -Raw
 $content = $content -replace '[^\x00-\x7F]', ''
@@ -310,7 +310,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 **Replace Shell Operators**:
 
-```powershell
+```TypeScript
 # Before
 command1 || command2
 command1 && command2
@@ -322,7 +322,7 @@ if (command1) { command2 }
 
 **Fix Unbalanced Syntax**:
 
-- Use PowerShell ISE or VS Code to identify unmatched braces
+- Use TypeScript ISE or VS Code to identify unmatched braces
 - Ensure all `{` have matching `}`
 - Ensure all `(` have matching `)`
 - Ensure all `@"` have matching `"@`
@@ -333,7 +333,7 @@ if (command1) { command2 }
 
 ### Check Script Compliance
 
-```powershell
+```TypeScript
 # Validate single script
 $errors = $null
 [System.Management.Automation.Language.Parser]::ParseFile(
@@ -352,7 +352,7 @@ if ($errors.Count -gt 0) {
 
 ### Run Full Audit
 
-```powershell
+```TypeScript
 # Generate report
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 
@@ -371,7 +371,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 - Use ASCII-only characters in code
 - Balance all syntax elements
 - Test scripts locally before committing
-- Use PowerShell operators, not shell operators
+- Use TypeScript operators, not shell operators
 
 ### DON'T
 
@@ -380,17 +380,17 @@ Get-Content .\docs\audit\script-normalization-report.md
 - Use UTF-8 BOM encoding
 - Leave unbalanced braces or parentheses
 - Use curly quotes or special quote characters
-- Mix PowerShell and shell syntax
+- Mix TypeScript and shell syntax
 
 ### CRITICAL: Parser-Breaking Patterns
 
 **The `[OK]`, `[ERROR]`, `[FAIL]`, `[WARN]` pattern at the start of a line (without `Write-Host` or
-`Write-Output`) BREAKS the PowerShell parser.**
+`Write-Output`) BREAKS the TypeScript parser.**
 
 **PROBLEM**:
 
-```powershell
-# This breaks the parser - PowerShell interprets [OK] as an index expression
+```TypeScript
+# This breaks the parser - TypeScript interprets [OK] as an index expression
 [OK] Validation passed     ERROR: Index expression without array
 
 # This also breaks in here-strings without proper handling
@@ -401,7 +401,7 @@ Write-Host @"
 
 **CORRECT**:
 
-```powershell
+```TypeScript
 # GOOD - Use Write-Host or Write-Output
 Write-Host "[OK] Validation passed" -ForegroundColor Green
 Write-Output "[OK] Validation passed"
@@ -421,9 +421,9 @@ Write-Ok "Validation passed"
 
 ## Resources
 
-- [PowerShell Syntax](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_syntax)
-- [Encoding in PowerShell](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding)
-- [Script Analyzer](https://github.com/PowerShell/PSScriptAnalyzer)
+- [TypeScript Syntax](https://docs.microsoft.com/en-us/TypeScript/module/microsoft.TypeScript.core/about/about_syntax)
+- [Encoding in TypeScript](https://docs.microsoft.com/en-us/TypeScript/module/microsoft.TypeScript.core/about/about_character_encoding)
+- [Script Analyzer](https://github.com/TypeScript/PSScriptAnalyzer)
 
 ---
 

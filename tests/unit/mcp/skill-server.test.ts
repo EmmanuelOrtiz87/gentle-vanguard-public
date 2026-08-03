@@ -26,12 +26,17 @@ describe('MCP Skill Server', () => {
 
   beforeEach(() => {
     // Setup mock data
-    mockFiles.set('.atl/skill-registry.md', `
+    mockFiles.set(
+      '.atl/skill-registry.md',
+      `
 | Agent | Skill | Triggers |
 |-------|-------|----------|
 | DEV | test-skill | "test", "example" |
-`);
-    mockFiles.set('skills/test-skill/SKILL.md', `---
+`,
+    );
+    mockFiles.set(
+      'skills/test-skill/SKILL.md',
+      `---
 name: test-skill
 description: Test skill for unit tests
 ---
@@ -39,7 +44,8 @@ description: Test skill for unit tests
 Test usage
 ## Examples
 Test example
-`);
+`,
+    );
     mockDirs.add('skills/test-skill');
     mockDirs.add('skills/test-skill/references');
   });
@@ -104,10 +110,10 @@ Test example
         name: z.string(),
         agent: z.string().optional(),
       });
-      
+
       const valid = schema.parse({ name: 'test' });
       expect(valid.name).toBe('test');
-      
+
       expect(() => schema.parse({})).toThrow();
     });
   });

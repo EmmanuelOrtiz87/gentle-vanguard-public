@@ -104,14 +104,14 @@ Custom rules are loaded by:
 
 Check loaded rules:
 
-```powershell
+```TypeScript
 .\scripts\utilities\custom-rules.ps1 -Mode status
 .\scripts\utilities\gv.ps1 custom-rules-status
 ```
 
 Export rule digest:
 
-```powershell
+```TypeScript
 .\scripts\utilities\custom-rules.ps1 -Mode export
 ```
 

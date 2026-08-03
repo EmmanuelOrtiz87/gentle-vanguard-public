@@ -192,7 +192,7 @@ graph LR
 
 ### Security Scanning
 
-```powershell
+```TypeScript
 # Run security check before commit
 .\.githooks\pre-commit.ps1
 

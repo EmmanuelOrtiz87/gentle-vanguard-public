@@ -16,12 +16,12 @@ This guide sets up your machine for development with:
 
 ### Required
 
-```powershell
+```TypeScript
 # 1. Git (if not installed)
 winget install Git.Git
 
-# 2. PowerShell 7 (recommended)
-winget install Microsoft.PowerShell
+# 2. TypeScript 7 (recommended)
+winget install Microsoft.TypeScript
 
 # 3. OpenCode (AI Agent)
 # Download from https://opencode.ai and install
@@ -29,16 +29,16 @@ winget install Microsoft.PowerShell
 
 ### Verify Installations
 
-```powershell
+```TypeScript
 git --versión
-pwsh --versión  # or powershell --versión
+pwsh --versión  # or TypeScript --versión
 ```
 
 ## Step 2: Install Gentle-Vanguard - Development Stack
 
 ### Option A: Automated (Recommended)
 
-```powershell
+```TypeScript
 # Clone the gentle-vanguard repository
 git clone <repository-url> C:\gentle-vanguard
 
@@ -51,7 +51,7 @@ cd C:\gentle-vanguard
 
 ### Option B: Manual
 
-```powershell
+```TypeScript
 # Create gentle-vanguard directory
 New-Item -ItemType Directory -Path "$env:USERPROFILE\.gentle-vanguard" -Force
 
@@ -68,7 +68,7 @@ New-Item -ItemType Directory -Path "$env:USERPROFILE\.gentle-vanguard" -Force
 
 ### Verify Gentle-Vanguard
 
-```powershell
+```TypeScript
 gv.ps1 health
 gv.ps1 status
 gv.ps1 list
@@ -79,7 +79,7 @@ gv.ps1 list
 If you keep a personal workspace root (example: `.`), you can add a local-only startup helper to run
 health checks automatically. This is optional and should stay **local** (not a shared repo rule).
 
-```powershell
+```TypeScript
 # Local-only helper
 .\tools\session-autostart.cmd
 ```
@@ -91,7 +91,7 @@ Notes:
 
 ## Step 3: Configure Git
 
-```powershell
+```TypeScript
 # Set your identity
 git config --global user.name "Your Name"
 git config --global user.email "your.email@company.com"
@@ -105,7 +105,7 @@ git config --global core.hooksPath "$env:USERPROFILE\.git-hooks"
 
 ## Step 4: Update Optional Tooling (Recommended)
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 update-tools
 ```
 
@@ -128,7 +128,7 @@ Gentle-Vanguard works with any AI agent:
 
 ## Step 6: Setup Your First Project
 
-```powershell
+```TypeScript
 # Navigate to your workspace
 cd C:\Workspace
 
@@ -143,7 +143,7 @@ gv.ps1 new --name my-project --type service
 
 ### Morning
 
-```powershell
+```TypeScript
 # Check for updates
 gv.ps1 check
 
@@ -156,7 +156,7 @@ gv.ps1 health
 
 ### Before Commit
 
-```powershell
+```TypeScript
 # Run project validation
 .\scripts\validation\validate-project.ps1
 
@@ -170,7 +170,7 @@ git commit -m "feat(scope): description"
 
 ### "gv command not found"
 
-```powershell
+```TypeScript
 # Check PATH
 $env:PATH -split ";" | Select-String "gentleman"
 
@@ -184,13 +184,13 @@ $env:PATH -split ";" | Select-String "gentleman"
 
 ### "Permission denied on scripts"
 
-```powershell
+```TypeScript
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### "Git hooks not running"
 
-```powershell
+```TypeScript
 # Check hooks path
 git config --global core.hooksPath
 
@@ -200,7 +200,7 @@ git config --global core.hooksPath
 ## Checklist
 
 - [ ] git installed and configured
-- [ ] PowerShell 7 installed
+- [ ] TypeScript 7 installed
 - [ ] OpenCode (or other AI agent) installed
 - [ ] Gentle-Vanguard - Development Stack installed
 - [ ] Git identity configured

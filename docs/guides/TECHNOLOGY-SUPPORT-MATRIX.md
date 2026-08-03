@@ -6,9 +6,9 @@ Complete technology stack support for Gentle-Vanguard.
 
 | Platform   | Version                | Status       | Notes                       |
 | ---------- | ---------------------- | ------------ | --------------------------- |
-| Windows    | 10/11, Server 2016+    | ✅ Full      | PowerShell 7+, Lefthook     |
-| Linux      | Ubuntu 20.04+, RHEL 8+ | ✅ Full      | PowerShell 7+, bash scripts |
-| macOS      | 12+ (Monterey)         | ✅ Full      | PowerShell 7+, Homebrew     |
+| Windows    | 10/11, Server 2016+    | ✅ Full      | TypeScript 7+, Lefthook     |
+| Linux      | Ubuntu 20.04+, RHEL 8+ | ✅ Full      | TypeScript 7+, bash scripts |
+| macOS      | 12+ (Monterey)         | ✅ Full      | TypeScript 7+, Homebrew     |
 | Docker     | All platforms          | ✅ Container | Multi-stage builds          |
 | Kubernetes | 1.24+                  | ✅ Deploy    | Helm charts in templates/   |
 
@@ -86,8 +86,8 @@ Complete technology stack support for Gentle-Vanguard.
 | IDE             | Version | Support | Notes                 |
 | --------------- | ------- | ------- | --------------------- |
 | VS Code         | 1.80+   | ✅ Full | Extensions + settings |
-| Visual Studio   | 2022+   | ✅ Full | PowerShell tools      |
-| JetBrains Rider | 2023+   | ✅ Full | PowerShell plugin     |
+| Visual Studio   | 2022+   | ✅ Full | TypeScript tools      |
+| JetBrains Rider | 2023+   | ✅ Full | TypeScript plugin     |
 | Neovim          | 0.9+    | ✅ Full | LSP config            |
 | Emacs           | 28+     | ✅ Full | init.el included      |
 
@@ -97,7 +97,7 @@ Complete technology stack support for Gentle-Vanguard.
 | ---------------- | --------------- | --------- | ------------------- |
 | Lefthook         | Git hooks       | ✅ Active | v2.1.6              |
 | Trufflehog       | Secret scanning | ✅ Active | Pre-commit hook     |
-| PSScriptAnalyzer | Linting         | ✅ Active | PowerShell lint     |
+| PSScriptAnalyzer | Linting         | ✅ Active | TypeScript lint     |
 | Pester           | Testing         | ✅ Active | v3.4.0              |
 | GitVersion       | Versioning      | ✅ Active | Semantic versioning |
 
@@ -130,12 +130,12 @@ See `plugins/examples/` for templates.
 | Scenario            | Consider Alternative | Reason                   |
 | ------------------- | -------------------- | ------------------------ |
 | Cloud-only workflow | GitHub Copilot       | Native cloud integration |
-| Simple scripts      | Direct PowerShell    | No orchestration needed  |
-| Non-PowerShell team | Different tool       | Skill mismatch           |
+| Simple scripts      | Direct TypeScript    | No orchestration needed  |
+| Non-TypeScript team | Different tool       | Skill mismatch           |
 
 ## Version Compatibility=
 
-| Gentle-Vanguard | PowerShell | Lefthook | Pester      | Node.js |
+| Gentle-Vanguard | TypeScript | Lefthook | Pester      | Node.js |
 | --------------- | ---------- | -------- | ----------- | ------- |
 | v2.6.x          | 7.0+       | 2.1.6+   | 3.4.0       | 18+     |
 | v2.7.x (next)   | 7.2+       | 2.2+     | 3.4.0 / 5.x | 20+     |

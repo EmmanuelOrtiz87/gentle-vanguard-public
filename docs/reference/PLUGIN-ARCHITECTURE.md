@@ -3,7 +3,7 @@
 # FF-011: Extensibility contract for third-party plugins
 
 > **Status**: IMPLEMENTED — Gentle-Vanguard v2.9.0  
-> **Core scripts**: `scripts/utilities/SKILLS-TOOLS/plugins-discovery.ps1`, `plugin-loader.ps1`  
+> **Core scripts**: `src/skills/plugins-discovery.ts`, `plugin-loader.ps1`  
 > **Manifest schema**: `config/plugin-manifest-schema.json`  
 > **CI validation**: `.github/workflows/autonomous-validation.yml`
 
@@ -17,7 +17,7 @@ Each plugin provides a `plugin.json` manifest and one or more executable scripts
 
 ### Required Methods
 
-```powershell
+```TypeScript
 function Invoke-Plugin {
     param(
         [string]$Command,
@@ -54,7 +54,7 @@ Plugins discovered from:
 
 ## Plugin Loading
 
-```powershell
+```TypeScript
 function Load-Plugin {
     param([string]$PluginPath)
 
@@ -110,7 +110,7 @@ plugins/
 
 ### Commands
 
-```powershell
+```TypeScript
 # Discover all plugins
 .\scripts\utilities\SKILLS-TOOLS\plugins-discovery.ps1 -Action discover
 

@@ -9,15 +9,15 @@ concurrency:
 
 on:
   push:
-    branches: [develop, main]
+    branches: [main]
     paths:
       - '.github/workflows/sync-public.yml'
       - 'build/**'
       - 'config/*.example.json'
       - 'config/README.md'
-      - 'scripts/gentle-vanguard/bootstrap*.ps1'
-      - 'scripts/gentle-vanguard/setup-multi-machine.ps1'
-      - 'scripts/utilities/ops/DEPLOYMENT/sync-to-public.ps1'
+      - 'src/sync-to-public.ts'
+      - 'src/bootstrap*.ts'
+      - 'src/setup-multi-machine.ts'
       - 'VERSION'
       - 'skills/SKILL_INDEX.md'
       - 'docs/**'
@@ -105,9 +105,9 @@ jobs:
           git config --local user.email "bot@gentle-vanguard"
           Write-Output "::endgroup::"
 
-          # --- Run sync script ---
+          # --- Run sync script (TS version after PS1→TS migration) ---
           Write-Output "::group::Sync files"
-          & "$privateRepo\scripts\utilities\DEPLOYMENT\sync-to-public.ps1" -privateRepo $privateRepo -publicRepo $publicDir -publicRepoSlug $publicRepoSlug -skipPush
+          npx tsx "$privateRepo\src\sync-to-public.ts" --private-repo $privateRepo --public-repo $publicDir --public-repo-slug $publicRepoSlug --skip-push
           Write-Output "::endgroup::"
 
           # --- Commit and push ---

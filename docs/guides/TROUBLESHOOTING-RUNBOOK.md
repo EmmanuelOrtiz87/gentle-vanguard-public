@@ -28,7 +28,7 @@
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check current branch
 git branch --show-current
 # Expected: feature/something, bugfix/something, or develop/main
@@ -54,7 +54,7 @@ git branch --show-current
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check status
 git status
 # You should see "both modified: package-lock.json"
@@ -78,7 +78,7 @@ git commit -m "merge: resolve package-lock.json (took $BRANCH)"
 
 **Alternative**: Regenerate lockfile from scratch:
 
-```powershell
+```TypeScript
 # If conflict is severe:
 git checkout --ours package.json
 rm package-lock.json
@@ -97,7 +97,7 @@ git commit -m "merge: regenerate package-lock.json"
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Fetch latest
 git fetch origin
 
@@ -117,7 +117,7 @@ git push origin your-branch-name
 
 **⚠️ NEVER force push unless discussed with team**:
 
-```powershell
+```TypeScript
 git push --force-with-lease origin your-branch-name  # Safer than --force
 ```
 
@@ -133,7 +133,7 @@ git push --force-with-lease origin your-branch-name  # Safer than --force
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Find the problematic file
 git diff --cached --name-only | Where-Object { $_ -match '\.json$' }
 
@@ -155,7 +155,7 @@ git commit -m "fix: correct JSON formatting in $file"
 
 **Quick JSON validator**:
 
-```powershell
+```TypeScript
 # Paste JSON directly
 @"
 {
@@ -175,7 +175,7 @@ git commit -m "fix: correct JSON formatting in $file"
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Run tests locally first (before push attempt)
 npm test
 # OR:
@@ -209,7 +209,7 @@ git push
 
 **For unit test failures**:
 
-```powershell
+```TypeScript
 # Run with verbose output
 Invoke-Pester -Path "tests/unit/filename.tests.ps1" -Verbose
 ```
@@ -224,7 +224,7 @@ Invoke-Pester -Path "tests/unit/filename.tests.ps1" -Verbose
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. This is normal on first push after big changes
 # - Orchestrator validates: security, config, skills, docs
 # - Typical runtime: 10-30 seconds
@@ -247,7 +247,7 @@ git status  # See what orchestrator was trying
 
 # 5. If still hanging, report:
 # Get terminal output:
-# $process = Get-Process -Name "powershell" | Stop-Process
+# $process = Get-Process -Name "TypeScript" | Stop-Process
 # Then provide logs to security-team@example.com
 ```
 
@@ -263,7 +263,7 @@ git status  # See what orchestrator was trying
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. See what vulnerabilities exist
 npm audit
 
@@ -292,7 +292,7 @@ git push
 
 **If "npm audit fix" doesn't work**:
 
-```powershell
+```TypeScript
 # Try force fix (use with caution)
 npm audit fix --force
 
@@ -324,7 +324,7 @@ git commit ...
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check what the validator found
 # Run manually for verbose output:
 .\scripts\hooks\lockfile-lint-pre-commit.ps1 -Verbose
@@ -352,7 +352,7 @@ git commit -m "fix: restore valid package-lock.json"
 
 **Emergency: Force skip (NOT RECOMMENDED)**:
 
-```powershell
+```TypeScript
 # Only if you absolutely know the lockfile is safe:
 git commit --no-verify -m "emergency: skip lockfile validation"
 # You must explain this in the commit message and PR
@@ -368,7 +368,7 @@ git commit --no-verify -m "emergency: skip lockfile validation"
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check internet connection
 Test-Connection registry.npmjs.org -Count 1
 
@@ -408,7 +408,7 @@ npm config set registry https://registry.npmjs.org/
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Verify MCP workspace exists
 Test-Path $HOME\mcp-workspace
 # Expected: True
@@ -438,7 +438,7 @@ npx --include-workspace-root --workspace $HOME\mcp-workspace --no --offline @mod
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check current version
 cd $HOME\mcp-workspace
 npm list @modelcontextprotocol/server-filesystem
@@ -471,7 +471,7 @@ npx --include-workspace-root --workspace $HOME\mcp-workspace --no --offline @mod
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Run gate manually to see details
 .\scripts\utilities\gv.ps1 release-homologation
 
@@ -513,7 +513,7 @@ git pull origin develop
 
 **Emergency: Skip gate (NOT RECOMMENDED)**:
 
-```powershell
+```TypeScript
 # Only for critical hotfixes:
 .\scripts\utilities\gv.ps1 publish -SkipHomologationGate
 # You must justify this in the release notes
@@ -529,7 +529,7 @@ git pull origin develop
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. This is unusual — publish typically takes 5-10 minutes
 # Check what step is taking time:
 
@@ -571,7 +571,7 @@ Write-Host "Duration: $($duration.TotalMinutes) minutes"
 
 **Solution**:
 
-```powershell
+```TypeScript
 # 1. Check what was detected
 git diff --cached --name-only
 # Identifies which file has the "secret"
@@ -606,7 +606,7 @@ git commit --no-verify -m "..."
 
 **Solution**:
 
-```powershell
+```TypeScript
 # This is EXPECTED behavior - pre-push validates everything
 # Typical timeline:
 # - audit-check: 1-2 min (128 skills validated)
@@ -644,7 +644,7 @@ Get-Process | Select-Object -Property Name, CPU, Memory | Sort-Object CPU -Desce
 3. **Contact**: security-team@example.com with:
    - Error message (full output)
    - Steps to reproduce
-   - Environment (Windows version, PowerShell version, Node version)
+   - Environment (Windows version, TypeScript version, Node version)
    - Timeline (when it started happening)
 
 ---

@@ -30,7 +30,7 @@ ensure consistent behavior across all integrations.
 
 **Current Implementation**:
 
-- Token budget guard: `scripts/utilities/token-budget-guard.ps1`
+- Token budget guard: `src/token-budget-guard.ts`
 - Context metrics: `scripts/utilities/context-metrics-report.ps1`
 - Token telemetry: `scripts/utilities/token-telemetry.ps1`
 
@@ -38,7 +38,7 @@ ensure consistent behavior across all integrations.
 
 - Token efficiency matrix: `scripts/utilities/response-mode-efficiency-matrix.ps1`
 - Context packing: `scripts/utilities/context-pack.ps1`
-- Handoff compression: `scripts/utilities/handoff-compress.ps1`
+- Handoff compression: `src/handoff-compress.ts`
 
 ---
 
@@ -237,7 +237,7 @@ MAXIMUM = 99% token usage (use all available)
     "text": "Response text",
     "code_blocks": [
       {
-        "language": "powershell",
+        "language": "TypeScript",
         "content": "code here",
         "executable": true
       }
@@ -301,7 +301,7 @@ MAXIMUM = 99% token usage (use all available)
 
 #### Session Initialization
 
-```powershell
+```TypeScript
 # Standard session start
 {
   "session_id": "uuid",
@@ -315,7 +315,7 @@ MAXIMUM = 99% token usage (use all available)
 
 #### Session Termination
 
-```powershell
+```TypeScript
 # Standard session end
 {
   "session_id": "uuid",
@@ -369,7 +369,7 @@ MAXIMUM = 99% token usage (use all available)
 You are an AI assistant integrated with Gentle-Vanguard.
 
 CAPABILITIES:
-- PowerShell scripting and execution
+- TypeScript scripting and execution
 - File operations (read/write)
 - Git operations
 - Project management
@@ -460,7 +460,7 @@ CONSTRAINTS:
 ```json
 {
   "type": "command",
-  "command": "powershell command",
+  "command": "TypeScript command",
   "working_directory": "/path",
   "timeout": 30
 }
@@ -497,7 +497,7 @@ CONSTRAINTS:
 ```json
 {
   "type": "code",
-  "language": "powershell|bash|json",
+  "language": "TypeScript|bash|json",
   "content": "code here",
   "executable": true,
   "explanation": "what this does"
@@ -540,7 +540,7 @@ CONSTRAINTS:
 
 #### Tool Detection
 
-```powershell
+```TypeScript
 # scripts/utilities/detect-ide-session.ps1
 - Detects active IDE/tool
 - Returns tool identifier
@@ -549,7 +549,7 @@ CONSTRAINTS:
 
 #### Tool-Specific Routing
 
-```powershell
+```TypeScript
 # scripts/utilities/dispatch-agent.ps1
 - Routes messages to correct tool
 - Adapts message format
@@ -558,7 +558,7 @@ CONSTRAINTS:
 
 #### Response Mode Management
 
-```powershell
+```TypeScript
 # scripts/utilities/response-mode.ps1
 - Manages efficiency modes
 - Adapts token budgets
@@ -567,8 +567,8 @@ CONSTRAINTS:
 
 #### Token Management
 
-```powershell
-# scripts/utilities/token-budget-guard.ps1
+```TypeScript
+# src/token-budget-guard.ts
 - Enforces token limits
 - Tracks usage
 - Prevents overflow
@@ -708,7 +708,7 @@ CONSTRAINTS:
 
 ## Resources
 
-- Token Budget Guard: `scripts/utilities/token-budget-guard.ps1`
+- Token Budget Guard: `src/token-budget-guard.ts`
 - Response Mode: `scripts/utilities/response-mode.ps1`
 - Context Pack: `scripts/utilities/context-pack.ps1`
 - Detect IDE Session: `scripts/utilities/detect-ide-session.ps1`

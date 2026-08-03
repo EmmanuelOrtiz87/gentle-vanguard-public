@@ -7,9 +7,9 @@ IA externo expuesto va API, usando solo la URL y la API key.
 
 ## 1. Crear configuración local de proveedores
 
-Desde PowerShell, en la raz de gentle-vanguard:
+Desde TypeScript, en la raz de gentle-vanguard:
 
-```powershell
+```TypeScript
 cd .\gentle-vanguard
 .\scripts\utilities\invoke-cloud-agent.ps1 -Config
 ```
@@ -22,7 +22,7 @@ Selecciona la opcin 2 para crear el archivo `config/cloud-agents.local.json`.
 
 **Opcin recomendada (produccin):**
 
-```powershell
+```TypeScript
 $env:MY_AGENT_APIKEY = "tu_apikey"
 ```
 
@@ -59,7 +59,7 @@ Edita `config/cloud-agents.local.json` y agrega tu proveedor personalizado:
 
 ## 4. Probar la conexin
 
-```powershell
+```TypeScript
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider custom -TestConnection
 ```
 
@@ -68,15 +68,15 @@ Edita `config/cloud-agents.local.json` y agrega tu proveedor personalizado:
 ## 5. Uso manual
 
 - Ejecutar un comando:
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Provider custom -Command "Cul es la capital de Francia?"
   ```
 - Modo estricto (automatización):
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Provider custom -StrictJson -Command "return JSON"
   ```
 - Modo interactivo:
-  ```powershell
+  ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Interactive
   ```
 

@@ -14,6 +14,16 @@ paths = [
     "demos/",
     # Security skill examples with placeholder/demo API keys
     "skills/security-expert-skill/",
+    # Public pentesting skill docs with placeholder curl auth examples and injection payloads
+    "public/skills/",
+    # Offensive/security skill docs and scanner tools with intentional detection patterns
+    "skills/hunt-graphql-skill/",
+    "skills/hunt-idor-skill/",
+    "skills/hunt-misc-skill/",
+    "skills/hunt-sqli-skill/",
+    "skills/vmware-vcenter-attack-skill/",
+    "skills/offensive-osint-skill/",
+    "skills/academic-paper-skill/",
     # Model router config with intentional password hash
     "config/model-router\\.json",
     # Private sync workflow intentionally references PAT_SYNC and x-access-token

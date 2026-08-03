@@ -21,7 +21,7 @@ Ensure these capabilities work together without conflicts:
 
 Quick validation:
 
-```powershell
+```TypeScript
 .\gentle-vanguard\scripts\utilities\gv.ps1 orchestrator-status
 .\gentle-vanguard\scripts\utilities\gv.ps1 runtime-route
 .\gentle-vanguard\scripts\utilities\agent-router.ps1 status
@@ -29,13 +29,13 @@ Quick validation:
 
 3. Run session start + explicit checks in pipeline bootstrap:
 
-```powershell
+```TypeScript
 .\tools\session-autostart.cmd
 ```
 
 4. End with closure artifact + memory save:
 
-```powershell
+```TypeScript
 .\tools\session-manual-end.cmd
 ```
 
@@ -86,7 +86,7 @@ If startup fails in strict mode:
 
 1. Run diagnostics:
 
-```powershell
+```TypeScript
 .\gentle-vanguard\scripts\utilities\gv.ps1 orchestrator-status
 .\gentle-vanguard\scripts\utilities\gv.ps1 runtime-route
 .\gentle-vanguard\scripts\utilities\agent-router.ps1 status

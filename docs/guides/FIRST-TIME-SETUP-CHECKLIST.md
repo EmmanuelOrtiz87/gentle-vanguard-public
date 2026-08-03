@@ -10,10 +10,10 @@
 
 Before starting, verify you have:
 
-```powershell
-# PowerShell 7.x
+```TypeScript
+# TypeScript 7.x
 pwsh --version
-# Expected: PowerShell 7.4+
+# Expected: TypeScript 7.4+
 
 # Git
 git --version
@@ -27,7 +27,7 @@ npm --version
 
 ❌ Missing something? Install from:
 
-- [PowerShell](https://github.com/PowerShell/PowerShell/releases)
+- [TypeScript](https://github.com/TypeScript/TypeScript/releases)
 - [Git](https://git-scm.com/download/win)
 - [Node.js](https://nodejs.org/) (includes npm)
 
@@ -35,7 +35,7 @@ npm --version
 
 ## Step 1: Clone Repository (2 min)
 
-```powershell
+```TypeScript
 # Clone gentle-vanguard (private repo — requires access)
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
@@ -52,7 +52,7 @@ dir | Select-Object Name | head -10
 
 **lefthook** intercepts commits and pushes to validate security:
 
-```powershell
+```TypeScript
 # Install lefthook
 npm install lefthook --save-dev
 
@@ -71,7 +71,7 @@ ls .git/hooks
 
 This isolated workspace is required for secure MCP server execution:
 
-```powershell
+```TypeScript
 # Create directory
 mkdir $HOME\mcp-workspace
 cd $HOME\mcp-workspace
@@ -99,7 +99,7 @@ Test-Path package-lock.json
 
 Global npm hardening prevents post-install script attacks:
 
-```powershell
+```TypeScript
 # Configure npm globally
 npm config set ignore-scripts true
 npm config set min-release-age 3
@@ -120,7 +120,7 @@ true
 
 ## Step 5: Install Gentle-Vanguard Dependencies (3 min)
 
-```powershell
+```TypeScript
 # Go back to gentle-vanguard root
 cd C:\Workspace_local\gentle-vanguard
 
@@ -140,7 +140,7 @@ npm test
 
 Test that the new security gates are working:
 
-```powershell
+```TypeScript
 # 1. Check lockfile-lint exists
 Test-Path "scripts/hooks/lockfile-lint-pre-commit.ps1"
 # Expected: True
@@ -163,7 +163,7 @@ npx lefthook run pre-commit --no-verify
 
 Ensure critical directories exist:
 
-```powershell
+```TypeScript
 # Core directories
 Test-Path "scripts/utilities/WORKFLOW-ORCHESTRATION" -PathType Container
 Test-Path "docs/guides" -PathType Container
@@ -178,7 +178,7 @@ Test-Path "tests" -PathType Container
 
 The built-in diagnostic validates everything is working:
 
-```powershell
+```TypeScript
 # From gentle-vanguard root
 .\scripts\utilities\gv.ps1 doctor
 
@@ -186,7 +186,7 @@ The built-in diagnostic validates everything is working:
 .\scripts\gentle-vanguard\gv.ps1 doctor
 ```
 
-**Expected output**: Green checkmarks ✓ for all checks (PowerShell version, git, npm, etc.)
+**Expected output**: Green checkmarks ✓ for all checks (TypeScript version, git, npm, etc.)
 
 ---
 
@@ -194,7 +194,7 @@ The built-in diagnostic validates everything is working:
 
 Follow gitflow convention:
 
-```powershell
+```TypeScript
 # Create feature branch (automatic from develop)
 git checkout develop
 git pull origin develop
@@ -213,7 +213,7 @@ git branch --show-current
 
 Make a dummy change to verify hooks work:
 
-```powershell
+```TypeScript
 # Create a test file
 "# test" | Out-File test.md
 
@@ -240,7 +240,7 @@ If all steps completed successfully:
 
 | Check                                  | Status |
 | -------------------------------------- | ------ |
-| PowerShell 7+                          | ✅     |
+| TypeScript 7+                          | ✅     |
 | Git hooks installed                    | ✅     |
 | MCP workspace at `$HOME\mcp-workspace` | ✅     |
 | npm security policy active             | ✅     |
@@ -256,7 +256,7 @@ If all steps completed successfully:
 
 **Solution**:
 
-```powershell
+```TypeScript
 # Run as Administrator
 # OR change npm cache:
 npm config set cache $HOME\.npm-cache
@@ -267,7 +267,7 @@ npm ci
 
 **Solution**:
 
-```powershell
+```TypeScript
 # Reinstall
 npm install lefthook --save-dev
 npx lefthook install
@@ -277,7 +277,7 @@ npx lefthook install
 
 **Solution**: This is expected if you modified `package-lock.json`. Run:
 
-```powershell
+```TypeScript
 npm ci  # Restore clean lockfile
 ```
 
@@ -285,14 +285,14 @@ npm ci  # Restore clean lockfile
 
 **Solution**: Check if you're on a feature branch:
 
-```powershell
+```TypeScript
 git branch --show-current
 # Should NOT be 'main'
 ```
 
 If tests still fail, reach out to security team with:
 
-```powershell
+```TypeScript
 npm test 2>&1 | Tee-Object test-output.txt
 # Share test-output.txt
 ```

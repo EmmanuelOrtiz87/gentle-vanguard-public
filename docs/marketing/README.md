@@ -82,16 +82,16 @@
 | -------------------- | ---------------------------------- | -------------------- |
 | **🏷️ Version**       | 2.8.0                              | Production Ready     |
 | **🧩 Skills**        | 125+                               | Especializados       |
-| **📜 Scripts**       | 248                                | PowerShell utilities |
+| **📜 Scripts**       | 248                                | TypeScript utilities |
 | **🔒 Security**      | Lefthook + Trufflehog              | Integración activa   |
-| **💻 Compatibility** | PowerShell 7+, Windows/Linux/macOS | Cross-platform       |
+| **💻 Compatibility** | TypeScript 7+, Windows/Linux/macOS | Cross-platform       |
 | **⚖️ License**       | MIT                                | Open source          |
 
 ---
 
 ## 📣 Call to Action
 
-```powershell
+```TypeScript
 # 🚀 PASO 1: Clonar
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard-public

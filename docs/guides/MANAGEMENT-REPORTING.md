@@ -58,7 +58,7 @@ Configured in `opencode.json`:
 ```json
 "post_session": {
   "enabled": true,
-  "script": "scripts/utilities/TELEMETRY-METRICS/generate-management-report.ps1"
+  "script": "src/telemetry/generate-management-report.ts"
 }
 ```
 
@@ -71,7 +71,7 @@ Configured in `opencode.json`:
 
 ### On-Demand
 
-```powershell
+```TypeScript
 # Generate/update current month report
 .\scripts\utilities\TELEMETRY-METRICS\generate-management-report.ps1
 

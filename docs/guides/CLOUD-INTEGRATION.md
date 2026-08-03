@@ -2,8 +2,8 @@
 
 ## Overview
 
-Phase 1.2 adds multi-cloud skill execution with automatic failover, circuit breaker
-resilience, and cost-optimized routing between AWS Lambda and Azure Functions.
+Phase 1.2 adds multi-cloud skill execution with automatic failover, circuit breaker resilience, and
+cost-optimized routing between AWS Lambda and Azure Functions.
 
 ## Architecture
 
@@ -32,12 +32,13 @@ resilience, and cost-optimized routing between AWS Lambda and Azure Functions.
 ### AWS Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1`)
 
 Invokes skills on AWS Lambda with:
+
 - Circuit breaker pattern (CLOSED → OPEN → HALF_OPEN)
 - Exponential backoff retry (1s, 2s, 4s, up to 3 attempts)
 - Session state persistence to S3 (local simulation to `.session/s3-backups/`)
 - Cost tracking ($0.0000167/invocation)
 
-```powershell
+```TypeScript
 # Basic usage
 pwsh scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1 `
   -SkillId "code-review" `
@@ -48,13 +49,14 @@ pwsh scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1 `
 ### Azure Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1`)
 
 Invokes skills on Azure Functions with:
+
 - Same circuit breaker pattern as AWS
 - Multiple auth methods: function key, bearer token, Azure CLI fallback
 - Session state persistence simulation to `.session/azure-backups/`
 - Dry-run mode for testing without real invocation
 - Cost tracking ($0.00002/invocation)
 
-```powershell
+```TypeScript
 # Basic usage
 pwsh scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1 `
   -SkillId "code-review" `
@@ -66,12 +68,13 @@ pwsh scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1 `
 ### Hybrid Executor (`scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1`)
 
 Routes between AWS and Azure based on strategy:
+
 - **cost**: Picks cheapest provider (AWS $0.0000167 vs Azure $0.00002 per call)
 - **latency**: Picks fastest (AWS ~45ms vs Azure ~60ms)
 - **load**: Picks least loaded (load/capacity ratio)
 - **Fallback**: If primary fails, automatically tries secondary
 
-```powershell
+```TypeScript
 # Cost-based routing (default)
 pwsh scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1 `
   -SkillId "code-review" `
@@ -111,18 +114,19 @@ See `config/cloud-connectors-prod.json` for production settings:
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `AWS_ACCESS_KEY_ID` | AWS access key | For AWS |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | For AWS |
-| `AWS_REGION` | AWS region (default: us-east-1) | No |
-| `AZURE_FUNCTION_URL` | Azure Function endpoint URL | For Azure |
-| `AZURE_FUNCTION_KEY` | Azure Function access key | No (alt: token) |
-| `AZURE_ACCESS_TOKEN` | Azure bearer token | No (alt: key) |
+| Variable                | Description                     | Required        |
+| ----------------------- | ------------------------------- | --------------- |
+| `AWS_ACCESS_KEY_ID`     | AWS access key                  | For AWS         |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key                  | For AWS         |
+| `AWS_REGION`            | AWS region (default: us-east-1) | No              |
+| `AZURE_FUNCTION_URL`    | Azure Function endpoint URL     | For Azure       |
+| `AZURE_FUNCTION_KEY`    | Azure Function access key       | No (alt: token) |
+| `AZURE_ACCESS_TOKEN`    | Azure bearer token              | No (alt: key)   |
 
 ## Metrics
 
 All cloud executions record to `.session/cloud-metrics.json`:
+
 ```json
 {
   "executions": [
@@ -142,6 +146,7 @@ Hybrid routing metrics at `.session/hybrid-metrics.json` include outcome and str
 ## Dashboard Integration
 
 Available via the WS server at `/api/cloud/metrics` — provides:
+
 - Per-provider execution count, success rate, avg latency, and total cost
 - Hybrid routing strategy distribution
 - Circuit breaker states

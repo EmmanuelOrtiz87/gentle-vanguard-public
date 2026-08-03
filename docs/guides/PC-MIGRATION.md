@@ -11,8 +11,8 @@ Before importing, install these on the new machine:
 | Git           | `winget install Git.Git`                        | Yes                                |
 | Node.js (LTS) | `winget install OpenJS.NodeJS.LTS`              | Yes                                |
 | Go            | `winget install GoLang.Go`                      | Yes                                |
-| PowerShell 7  | `winget install Microsoft.PowerShell`           | Yes                                |
-| Bun           | `powershell -c "irm bun.sh/install.ps1 \| iex"` | Yes                                |
+| TypeScript 7  | `winget install Microsoft.TypeScript`           | Yes                                |
+| Bun           | `TypeScript -c "irm bun.sh/install.ps1 \| iex"` | Yes                                |
 | Cairo (GTK3)  | `.\scripts\utilities\install-cairo.ps1`         | No (needed for PNG diagram export) |
 
 > Run `.\scripts\utilities\verify-tools.ps1` to check tool availability with hash caching (only
@@ -22,7 +22,7 @@ Before importing, install these on the new machine:
 
 ## Export (Current PC)
 
-```powershell
+```TypeScript
 # Export to Downloads folder
 .\scripts\gentle-vanguard\export-profile.ps1
 
@@ -42,12 +42,12 @@ Before importing, install these on the new machine:
 | OpenCode Config | `~/.config/opencode/`     | `opencode.json`, `tui.json`, `plugins/`             |
 | Binaries        | `~/bin/`                  | `engram.exe`, `opencode`, `gga`, `lib/`             |
 | Go Binaries     | `~/go/bin/`               | `engram.exe` (Go build)                             |
-| PS Profile      | `~/Documents/PowerShell/` | `Microsoft.PowerShell_profile.ps1`                  |
+| PS Profile      | `~/Documents/TypeScript/` | `Microsoft.TypeScript_profile.ps1`                  |
 | Manifest        | Generated                 | `manifest.json` with timestamp and metadata         |
 
 ## Import (New PC)
 
-```powershell
+```TypeScript
 # 1. Clone the Gentle-Vanguard repo first
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git C:\Workspace_local\gentle-vanguard
 cd C:\Workspace_local\gentle-vanguard
@@ -67,13 +67,13 @@ cd C:\Workspace_local\gentle-vanguard
 2. Restores `master.key` to `<repo>/keys/` (backs up existing)
 3. Restores OpenCode config to `~/.config/opencode/`
 4. Restores binaries to `~/bin/` and `~/go/bin/`
-5. Restores PowerShell profile
+5. Restores TypeScript profile
 6. Adds `~/bin` and `~/go/bin` to user PATH
 7. Clones repos + runs bootstrap (if `-SkipBootstrap` not set)
 
 ## Post-Import Verification
 
-```powershell
+```TypeScript
 # Verify Engram
 engram health
 
@@ -91,7 +91,7 @@ opencode --version
 
 Engram can be updated at any time:
 
-```powershell
+```TypeScript
 # Via gv CLI
 .\scripts\utilities\gv.ps1 install-engram
 
@@ -103,7 +103,7 @@ go install github.com/gentle-vanguard/engram/cmd/engram@latest
 
 For fireworks-tech-graph PNG export, install Cairo:
 
-```powershell
+```TypeScript
 .\scripts\utilities\install-cairo.ps1
 ```
 
@@ -114,7 +114,7 @@ export requires it.
 
 After changes to the private repo that need to be reflected in the public repo:
 
-```powershell
+```TypeScript
 # Build protected scripts + sync to public
 .\scripts\utilities\DEPLOYMENT\sync-to-public.ps1
 
@@ -133,7 +133,7 @@ This copies:
 
 ## Updating Gentle-Vanguard Itself
 
-```powershell
+```TypeScript
 # Pull latest changes
 git pull origin develop
 

@@ -110,7 +110,7 @@ Use feature/bugfix/chore/hotfix/release branches and PR workflow.
 
 **Archivo**: `scripts/diagnostics/validate-gitflow.ps1`
 
-```powershell
+```TypeScript
 # Agregar funcin de ayuda contextual
 function Show-GitFlowHelp {
     param([string]$CurrentBranch, [string]$Kind)
@@ -151,7 +151,7 @@ function Show-GitFlowHelp {
 
 **Archivo**: `scripts/utilities/create-gitflow-branch.ps1`
 
-```powershell
+```TypeScript
 param(
     [string]$Description,
     [ValidateSet('feature', 'bugfix', 'chore', 'hotfix', 'release')]
@@ -272,7 +272,7 @@ hotfix/, o release/
 ### NIVEL 3: automatización Avanzada (Mejora Continua)
 
 #### 3.1 Crear Asistente Interactivo en gv.ps1
-```powershell
+```TypeScript
 # Agregar comando: gv.ps1 gitflow-setup
 # Que gue al usuario paso a paso
 ````

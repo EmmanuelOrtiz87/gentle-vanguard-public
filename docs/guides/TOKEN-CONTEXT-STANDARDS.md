@@ -105,7 +105,7 @@
 
 **Configuration**:
 
-```powershell
+```TypeScript
 $mode = 'compact'
 $token_budget = $tier * 0.60
 $context_depth = 'minimal'
@@ -132,7 +132,7 @@ $response_style = 'concise'
 
 **Configuration**:
 
-```powershell
+```TypeScript
 $mode = 'balanced'
 $token_budget = $tier * 0.80
 $context_depth = 'moderate'
@@ -159,7 +159,7 @@ $response_style = 'detailed'
 
 **Configuration**:
 
-```powershell
+```TypeScript
 $mode = 'comprehensive'
 $token_budget = $tier * 0.95
 $context_depth = 'full'
@@ -186,7 +186,7 @@ $response_style = 'thorough'
 
 **Configuration**:
 
-```powershell
+```TypeScript
 $mode = 'maximum'
 $token_budget = $tier * 0.99
 $context_depth = 'complete'
@@ -390,8 +390,8 @@ $response_style = 'exhaustive'
 
 ### Token Management
 
-```powershell
-# scripts/utilities/token-budget-guard.ps1
+```TypeScript
+# src/token-budget-guard.ts
 - Enforces token limits
 - Tracks usage
 - Prevents overflow
@@ -400,7 +400,7 @@ $response_style = 'exhaustive'
 
 ### Context Optimization
 
-```powershell
+```TypeScript
 # scripts/utilities/context-pack.ps1
 - Compresses context
 - Removes redundancy
@@ -410,7 +410,7 @@ $response_style = 'exhaustive'
 
 ### Tool Integration
 
-```powershell
+```TypeScript
 # scripts/utilities/dispatch-agent.ps1
 - Routes to correct tool
 - Adapts message format
@@ -420,8 +420,8 @@ $response_style = 'exhaustive'
 
 ### Session Management
 
-```powershell
-# scripts/utilities/session-manager.ps1
+```TypeScript
+# src/session-manager.ts
 - Creates sessions
 - Tracks state
 - Manages lifecycle
@@ -434,7 +434,7 @@ $response_style = 'exhaustive'
 
 ### Cline Configuration
 
-```powershell
+```TypeScript
 $config = @{
     tool = 'cline'
     token_budget = 100000
@@ -450,7 +450,7 @@ $config = @{
 
 ### Copilot Configuration
 
-```powershell
+```TypeScript
 $config = @{
     tool = 'copilot'
     token_budget = 15000
@@ -466,7 +466,7 @@ $config = @{
 
 ### Continue.dev Configuration
 
-```powershell
+```TypeScript
 $config = @{
     tool = 'continue'
     token_budget = 50000
@@ -487,7 +487,7 @@ $config = @{
 
 ### Message Validation
 
-```powershell
+```TypeScript
 function Validate-Message {
     param([object]$Message, [string]$Type)
 
@@ -500,7 +500,7 @@ function Validate-Message {
 
 ### Token Calculation
 
-```powershell
+```TypeScript
 function Calculate-TokenUsage {
     param([object]$Message)
 
@@ -513,7 +513,7 @@ function Calculate-TokenUsage {
 
 ### Compatibility Check
 
-```powershell
+```TypeScript
 function Check-ToolCompatibility {
     param([string]$Tool, [object]$Message)
 
@@ -541,7 +541,7 @@ function Check-ToolCompatibility {
 
 ## Resources
 
-- Token Budget Guard: `scripts/utilities/token-budget-guard.ps1`
+- Token Budget Guard: `src/token-budget-guard.ts`
 - Context Pack: `scripts/utilities/context-pack.ps1`
 - Dispatch Agent: `scripts/utilities/dispatch-agent.ps1`
-- Session Manager: `scripts/utilities/session-manager.ps1`
+- Session Manager: `src/session-manager.ts`

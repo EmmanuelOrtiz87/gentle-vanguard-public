@@ -16,7 +16,7 @@ Este documento describe el proceso completo para homologar (sincronizar) el repo
 
 ### Paso 1: Encriptar el stack
 
-```powershell
+```TypeScript
 cd C:\Workspace_local\gentle-vanguard
 pwsh -NoProfile -File "build\protect-gentle-vanguard.ps1" -CompileEXE
 ```
@@ -30,7 +30,7 @@ Esto genera:
 
 ### Paso 2: Construir el instalador
 
-```powershell
+```TypeScript
 & "C:\Program Files (x86)\NSIS\makensis.exe" "build\gentle-vanguard-installer.nsi"
 ```
 
@@ -38,7 +38,7 @@ Genera: `dist/Gentle-Vanguard.exe` (instalador unificado)
 
 ### Paso 3: Sincronizar al repo público
 
-```powershell
+```TypeScript
 pwsh -NoProfile -File "scripts\utilities\DEPLOYMENT\sync-to-public.ps1"
 ```
 
@@ -55,7 +55,7 @@ El script `sync-to-public.ps1` hace:
 
 ### Paso 4: Commit y push
 
-```powershell
+```TypeScript
 Push-Location C:\Workspace_local\gentle-vanguard-public
 git add -A
 git commit -m "refactor: homologación completa - protect + sync"
@@ -111,7 +111,7 @@ gentle-vanguard-public/
 
 ## Verificación post-homologación
 
-```powershell
+```TypeScript
 # En gentle-vanguard-public:
 # 1. No debe haber scripts .ps1 fuera de scripts/gentle-vanguard/
 Get-ChildItem -Recurse -Include "*.ps1" | Where-Object { $_.FullName -notmatch '\\scripts\\gentle-vanguard\\' }

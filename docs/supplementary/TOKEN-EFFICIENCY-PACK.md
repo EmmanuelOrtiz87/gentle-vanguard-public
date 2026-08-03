@@ -156,7 +156,7 @@ Total combinations: $3 \times 3 \times 3 = 27$.
 
 Generate matrix:
 
-```powershell
+```TypeScript
 .\scripts\utilities\response-mode-efficiency-matrix.ps1
 
 # CSV export

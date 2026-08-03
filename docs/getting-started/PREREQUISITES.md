@@ -7,7 +7,7 @@
 
 ## Automatic Installation
 
-```powershell
+```TypeScript
 # Option 1: Install everything automatically
 .\scripts\utilities\install-prerequisites.ps1
 
@@ -29,7 +29,7 @@
 
 ## Recommended (Automatic Installation)
 
-```powershell
+```TypeScript
 # These install automatically with the command above
 npm install -g lefthook
 npm install -g prettier
@@ -54,7 +54,7 @@ npm install -g @commitlint/cli @commitlint/config-conventional
 
 ### Python (for Python scripts)
 
-```powershell
+```TypeScript
 # Install Python
 choco install python
 
@@ -87,13 +87,13 @@ pip install safety bandit
 
 - [ ] trufflehog
 - [ ] Python (for Python scripts)
-- [ ] PowerShell Core (pwsh)
+- [ ] TypeScript Core (pwsh)
 
 ---
 
 ## Verification
 
-```powershell
+```TypeScript
 # Verify all tools
 .\scripts\utilities\install-prerequisites.ps1 -CheckOnly
 
@@ -112,7 +112,7 @@ trufflehog --version
 
 1. **trufflehog** is not available via npm - install via Chocolatey or Go
 2. Some tools require administrator permissions
-3. On Windows, run PowerShell as administrator if you encounter issues
+3. On Windows, run TypeScript as administrator if you encounter issues
 
 ---
 
@@ -122,7 +122,7 @@ trufflehog --version
 
 Add to PATH:
 
-```powershell
+```TypeScript
 # For npm global
 $env:PATH += ";$env:APPDATA\npm"
 ```
@@ -131,7 +131,7 @@ $env:PATH += ";$env:APPDATA\npm"
 
 Install Chocolatey:
 
-```powershell
+```TypeScript
 # Run as administrator
 Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))

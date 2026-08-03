@@ -867,7 +867,7 @@ my-service/
 
 
 
-          GIT              POWERSHELL            GIT
+          GIT              TypeScript            GIT
        versión 2.30+       Core 7+            configured
 
       Windows           Windows           user.name
@@ -916,7 +916,7 @@ my-service/
 
 
 
-     Check PowerShell execution policy
+     Check TypeScript execution policy
 
 
 

@@ -63,31 +63,31 @@ seguridad
 
 ### Todos los Tests
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType all -GenerateReport
 ```
 
 ### Solo Unit Tests
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType unit
 ```
 
 ### Solo Integration Tests
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType integration
 ```
 
 ### Solo Performance Tests
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType performance
 ```
 
 ### Solo Security Tests
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType security
 ```
 
@@ -156,7 +156,7 @@ CI/CD: run-tests.ps1 -TestType all -GenerateReport
 
 ### Generacin
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -GenerateReport
 ```
 
@@ -200,7 +200,7 @@ tests/
 
 **Solucin**: Instalar mdulo
 
-```powershell
+```TypeScript
 Install-Module -Name Pester -Force
 ```
 
@@ -208,7 +208,7 @@ Install-Module -Name Pester -Force
 
 **Solucin**: Revisar logs
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -LogLevel debug
 ```
 

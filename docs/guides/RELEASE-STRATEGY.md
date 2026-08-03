@@ -95,7 +95,7 @@ v1.1.0: SDD mandatory for PRs (breaking for strict enforcement)
 
 ## Compatibility & Support Matrix
 
-| versión | Status | Support Until | Go    | Node | Python | PowerShell |
+| versión | Status | Support Until | Go    | Node | Python | TypeScript |
 | ------- | ------ | ------------- | ----- | ---- | ------ | ---------- |
 | v1.0.0  | Stable | v1.3 released | 1.19+ | 18+  | 3.9+   | 7+         |
 | v1.1.0+ | Stable | TBD           | 1.19+ | 18+  | 3.9+   | 7+         |

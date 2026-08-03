@@ -64,7 +64,7 @@
 
 ### Step 1: Create Local Configuration
 
-```powershell
+```TypeScript
 # Navigate to Gentle-Vanguard scripts
 cd .\gentle-vanguard
 
@@ -77,19 +77,19 @@ cd .\gentle-vanguard
 
 **Option A: Environment Variables (Recommended for production)**
 
-```powershell
-# Windows (PowerShell)
+```TypeScript
+# Windows (TypeScript)
 $env:OPENAI_API_KEY = "sk-..."
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
 $env:DIFI_API_KEY = "your-difi-key"
 
-# Add to PowerShell profile for persistence
+# Add to TypeScript profile for persistence
 Add-Content $PROFILE '$env:OPENAI_API_KEY = "sk-..."'
 ```
 
 **Option B: .env.local (Recommended for development)**
 
-```powershell
+```TypeScript
 # Create .env.local in project root
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
@@ -122,7 +122,7 @@ Edit `config/cloud-agents.local.json` (no secrets):
 
 ### Step 4: Test Connection
 
-```powershell
+```TypeScript
 # Test your configuration
 .\scripts\utilities\invoke-cloud-agent.ps1 -ListProviders
 
@@ -136,21 +136,21 @@ Edit `config/cloud-agents.local.json` (no secrets):
 
 ### Mode 1: Command Mode (Single task)
 
-```powershell
+```TypeScript
 # Execute a single command
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider openai -Command "Explain REST API pagination"
 ```
 
 ### Mode 2: Script Mode (Execute file)
 
-```powershell
+```TypeScript
 # Execute a script file
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider bedrock -Script ".\tasks\analyze-code.ps1"
 ```
 
 ### Mode 3: Interactive Mode (Manual execution)
 
-```powershell
+```TypeScript
 # Start interactive session
 .\scripts\utilities\invoke-cloud-agent.ps1 -Interactive
 
@@ -160,14 +160,14 @@ Edit `config/cloud-agents.local.json` (no secrets):
 
 ### Mode 4: Agent Mode (Delegated task)
 
-```powershell
+```TypeScript
 # Delegate a complex task
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider anthropic -Agent "Refactor the authentication module to use JWT tokens"
 ```
 
 ### Mode 5: Strict JSON Mode (Automation)
 
-```powershell
+```TypeScript
 # Force JSON-only responses (reduces narration errors)
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider openai -StrictJson -Command "Return user stats as JSON"
 ```
@@ -190,7 +190,7 @@ Edit `config/cloud-agents.local.json` (no secrets):
 
 **Setup:**
 
-```powershell
+```TypeScript
 # Option 1: AWS CLI profile
 aws configure
 
@@ -223,7 +223,7 @@ $env:AWS_DEFAULT_REGION = "us-east-1"
 
 **Setup:**
 
-```powershell
+```TypeScript
 $env:OPENAI_API_KEY = "sk-proj-..."
 ```
 
@@ -249,7 +249,7 @@ $env:OPENAI_API_KEY = "sk-proj-..."
 
 **Setup:**
 
-```powershell
+```TypeScript
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
 ```
 
@@ -276,7 +276,7 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."
 
 **Setup:**
 
-```powershell
+```TypeScript
 $env:AZURE_OPENAI_KEY = "..."
 $env:AZURE_OPENAI_ENDPOINT = "https://your-resource.openai.azure.com/"
 ```
@@ -304,7 +304,7 @@ $env:AZURE_OPENAI_ENDPOINT = "https://your-resource.openai.azure.com/"
 
 **Setup:**
 
-```powershell
+```TypeScript
 $env:DIFI_API_KEY = "your-difi-api-key"
 ```
 
@@ -331,7 +331,7 @@ $env:DIFI_API_KEY = "your-difi-api-key"
 
 **Setup:**
 
-```powershell
+```TypeScript
 # Install Ollama
 winget install Ollama.Ollama
 
@@ -365,14 +365,14 @@ ollama serve
 
 **Do:**
 
-```powershell
+```TypeScript
 # Set at system/environment level, not in scripts
 [Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "sk-...", "User")
 ```
 
 **Don't:**
 
-```powershell
+```TypeScript
 # NEVER do this - commits to git!
 $config = @{
     api_key = "sk-..."  # BAD!
@@ -398,7 +398,7 @@ $config = @{
 
 ### 3. Key Rotation
 
-```powershell
+```TypeScript
 # Rotate keys every 90 days
 # 1. Generate new key in provider dashboard
 # 2. Update environment variable or local provider metadata (model/endpoint)
@@ -428,7 +428,7 @@ Timestamp,User_ID,Session_ID,Request_ID,Provider,Model,InputTokens,OutputTokens,
 
 **Firewall rules:**
 
-```powershell
+```TypeScript
 # Allow only necessary endpoints
 $allowedEndpoints = @(
     "api.openai.com",
@@ -447,7 +447,7 @@ $allowedEndpoints = @(
 
 **Solution:** Use `-StrictJson` flag:
 
-```powershell
+```TypeScript
 .\scripts\utilities\invoke-cloud-agent.ps1 -Provider openai -StrictJson -Command "Return JSON"
 ```
 
@@ -467,7 +467,7 @@ $allowedEndpoints = @(
 
 **Solution:**
 
-```powershell
+```TypeScript
 # Test connectivity
 Test-NetConnection api.openai.com -Port 443
 
@@ -498,7 +498,7 @@ from provider.
 
 ## Quick Reference Card
 
-```powershell
+```TypeScript
 # List all providers
 .\scripts\utilities\invoke-cloud-agent.ps1 -ListProviders
 

@@ -15,7 +15,8 @@ on:
     branches:
       - main
     paths:
-      - 'scripts/utilities/TELEMETRY-METRICS/generate-dashboard.ps1'
+      - 'src/dashboard*/**'
+      - 'apps/web-dashboard/**'
       - 'docs/sessions/metrics/**'
       - 'docs/management/telemetry-master.csv'
       - '.runtime/telemetry/**'
@@ -23,28 +24,35 @@ on:
 
 jobs:
   dashboard:
-    name: Generate Dashboard Artifact
+    name: Generate Management Report
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      NODE_VERSION: '22'
+      PNPM_VERSION: '11.15.1'
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
 
-      - name: Generate dashboard
-        shell: pwsh
-        run: |
-          if (-not (Test-Path './scripts/utilities/TELEMETRY-METRICS/generate-dashboard.ps1')) {
-            Write-Output "::warning::generate-dashboard.ps1 not found — skipping dashboard generation"
-            New-Item -ItemType Directory -Path "reports" -Force | Out-Null
-            "<html><body><p>Dashboard script not available in this environment.</p></body></html>" | Out-File "reports/dashboard.html" -Encoding utf8
-            exit 0
-          }
-          ./scripts/utilities/TELEMETRY-METRICS/generate-dashboard.ps1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Upload dashboard artifact
+      - name: Setup Node.js
+        uses: actions/setup-node@e51e5fe84fc33b4c73ebe40526b2694712b5b858
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate management report
+        run: npx tsx src/generate-management-report.ts --on-demand --output-dir reports
+
+      - name: Upload report artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: dashboard-${{ github.run_id }}
-          path: reports/dashboard.html
+          name: management-report-${{ github.run_id }}
+          path: reports/MANAGEMENT-REPORT-*.csv
           if-no-files-found: error
-

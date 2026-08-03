@@ -63,7 +63,7 @@ Each asset can define a `strategy`:
 
 1. Run check first:
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 gentle-vanguard-sync
 ```
 
@@ -71,7 +71,7 @@ Each asset can define a `strategy`:
 3. Adjust `config/gentle-vanguard-sync.json` before apply if needed.
 4. Ensure a clean working tree before apply:
 
-```powershell
+```TypeScript
 # Option A: Commit your changes
 git add .
 git commit -m "chore: save local changes"
@@ -82,7 +82,7 @@ git stash push -u -m "pre-gentle-vanguard-sync"
 
 5. Apply with PR for traceability:
 
-```powershell
+```TypeScript
 .\scripts\utilities\gv.ps1 gentle-vanguard-sync apply -CreatePr
 ```
 

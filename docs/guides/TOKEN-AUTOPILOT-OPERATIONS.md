@@ -23,28 +23,28 @@ Configuration source:
 
 Set hard mode (recommended default for testing):
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 token-guard profile:hard
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard profile:hard
 ```
 
 Set balanced mode (less aggressive):
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 token-guard profile:balanced
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard profile:balanced
 ```
 
 Run automatic guard + autopilot check now:
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 token-guard auto
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard auto
 ```
 
 On-demand chat response control:
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 response-mode ahorro
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 response-mode normal
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 response-mode detallado
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode ahorro
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode normal
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode detallado
 ```
 
 ## Profile Comparison
@@ -91,8 +91,8 @@ Note: exact token savings depend on workload shape and agent/task mix.
 
 If a mode command fails, run:
 
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1 response-mode status -JSON
+```TypeScript
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode status -JSON
 ```
 
 Then verify:

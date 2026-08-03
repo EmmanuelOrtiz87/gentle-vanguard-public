@@ -24,7 +24,7 @@ Agent edits file  Hook formats  Agent reads clean file  Done
 
 | Extension | Formatter            | Config Required |
 | --------- | -------------------- | --------------- |
-| `.ps1`    | PowerShell Format    | -               |
+| `.ps1`    | TypeScript Format    | -               |
 | `.js`     | Prettier + ESLint    | package.json    |
 | `.ts`     | Prettier + ESLint    | tsconfig.json   |
 | `.tsx`    | Prettier             | tsconfig.json   |
@@ -32,7 +32,7 @@ Agent edits file  Hook formats  Agent reads clean file  Done
 | `.py`     | Black + Ruff         | pyproject.toml  |
 | `.go`     | gofmt                | go.mod          |
 | `.rs`     | rustfmt              | Cargo.toml      |
-| `.json`   | PowerShell Convert   | -               |
+| `.json`   | TypeScript Convert   | -               |
 | `.md`     | Prettier             | package.json    |
 | `.yaml`   | Prettier             | -               |
 | `.css`    | Prettier + Stylelint | package.json    |
@@ -137,7 +137,7 @@ Create VS Code task in `.vscode/tasks.json`:
 
 ## Standalone Usage
 
-```powershell
+```TypeScript
 # Format single file
 .\hooks\pre-tool-format.ps1 -FilePath ".\src\index.ts"
 
@@ -204,8 +204,8 @@ Create VS Code task in `.vscode/tasks.json`:
 
 **Solution:** Create config or install formatter globally:
 
-```powershell
-# PowerShell
+```TypeScript
+# TypeScript
 Install-Module -Name PSScriptAnalyzer -Scope CurrentUser
 
 # Node
@@ -224,7 +224,7 @@ go install golang.org/x/scripts/utilities/cmd/gofmt@latest
 
 **Solution:** Use full path or ensure PATH includes:
 
-```powershell
+```TypeScript
 # Add to PATH
 $env:PATH += ";C:\Program Files\nodejs;C:\Python311;$env:USERPROFILE\go\bin"
 ```
@@ -235,7 +235,7 @@ $env:PATH += ";C:\Program Files\nodejs;C:\Python311;$env:USERPROFILE\go\bin"
 
 **Solution:**
 
-```powershell
+```TypeScript
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
@@ -255,7 +255,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ## Quick Install
 
-```powershell
+```TypeScript
 # Install to current project
 Copy-Item ".\gentle-vanguard\\hooks\pre-tool-format.ps1" ".git\hooks\pre-tool-format.ps1"
 

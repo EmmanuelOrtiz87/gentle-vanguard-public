@@ -21,7 +21,7 @@
 **Benefit**: Faster startup time  
 **Implementation**:
 
-```powershell
+```TypeScript
 # Load scripts on-demand instead of all at once
 function Load-Script {
     param([string]$ScriptName)
@@ -42,7 +42,7 @@ function Load-Script {
 **Benefit**: Concurrent task processing  
 **Implementation**:
 
-```powershell
+```TypeScript
 # Execute independent scripts in parallel
 $jobs = @()
 foreach ($script in $scripts) {
@@ -68,7 +68,7 @@ Wait-Job $jobs
 **Benefit**: Optimal token usage without manual intervention  
 **Implementation**:
 
-```powershell
+```TypeScript
 function Select-OptimalMode {
     param([int]$ContextSize, [int]$TokenBudget)
 
@@ -90,7 +90,7 @@ function Select-OptimalMode {
 **Benefit**: Anticipate context needs and compress proactively  
 **Implementation**:
 
-```powershell
+```TypeScript
 function Predict-ContextNeeds {
     param([object]$Message)
 
@@ -117,7 +117,7 @@ function Predict-ContextNeeds {
 **Benefit**: Automatic format selection based on tool  
 **Implementation**:
 
-```powershell
+```TypeScript
 function Convert-MessageFormat {
     param([object]$Message, [string]$TargetTool)
 
@@ -144,7 +144,7 @@ function Convert-MessageFormat {
 **Benefit**: Reduce redundant operations  
 **Implementation**:
 
-```powershell
+```TypeScript
 # Level 1: In-memory cache (session)
 $script:cache = @{}
 
@@ -165,7 +165,7 @@ $diskCachePath = "$env:TEMP\workspace-cache"
 
 #### Implement Real-Time Dashboard
 
-```powershell
+```TypeScript
 # Track:
 # - Token usage per session
 # - Script execution times
@@ -180,7 +180,7 @@ $diskCachePath = "$env:TEMP\workspace-cache"
 
 #### Implement Performance Metrics
 
-```powershell
+```TypeScript
 # Measure:
 # - Average response time
 # - Token efficiency ratio

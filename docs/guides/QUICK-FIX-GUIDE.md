@@ -6,7 +6,7 @@
 
 ## One-Minute Diagnosis
 
-```powershell
+```TypeScript
 # Check which scripts have issues
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 
@@ -50,7 +50,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Problem**: 2 extra closing parentheses  
 **Quick Fix**:
 
-1. Open: `scripts/utilities/session-manager.ps1`
+1. Open: `src/session-manager.ts`
 2. Remove 2 extra `)` characters
 3. Validate with audit tool
 
@@ -67,7 +67,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 
 ## Validation Commands
 
-```powershell
+```TypeScript
 # Validate single script
 $errors = $null
 [System.Management.Automation.Language.Parser]::ParseFile(
@@ -100,7 +100,7 @@ Get-ChildItem .\scripts\utilities\*.ps1 | ForEach-Object {
 
 ### Extra Closing Parentheses
 
-```powershell
+```TypeScript
 # WRONG - Extra )
 Write-Host "test"))
 
@@ -110,7 +110,7 @@ Write-Host "test"
 
 ### Missing Closing Brace
 
-```powershell
+```TypeScript
 # WRONG - Missing }
 function Test {
     Write-Host "test"
@@ -123,7 +123,7 @@ function Test {
 
 ### Unbalanced Here-Strings
 
-```powershell
+```TypeScript
 # WRONG - Missing "@
 $text = @"
 This is a

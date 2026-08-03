@@ -2,7 +2,7 @@
 
 ## Directory Structure
 
-- `/scripts`: Automation engines in PowerShell Core (platform-agnostic).
+- `/scripts`: Automation engines in TypeScript Core (platform-agnostic).
 - `/tools`: Core tool repositories (Engram, Workspace-Skills).
 - `/config`: Centralized JSON configuration with dynamic variable resolution support.
 - `/.engram-data`: Context persistence for language models (isolated from source code).
@@ -36,7 +36,7 @@ runtime, allowing the project to move between different disk paths or servers wi
 
 The `finalize-session.ps1` script ensures atomic publishing:
 
-```powershell
+```TypeScript
 Validation -> Tagging -> Commit -> Push (Auto-Upstream) -> Pull Request (gh)
 ```
 
@@ -44,6 +44,6 @@ This creates an immaculate Git history ready for Tag-based deployments.
 
 ## System Requirements
 
-- PowerShell Core 7+
+- TypeScript Core 7+
 - Git 2.30+
 - Go 1.20+ (for backend tools)

@@ -239,7 +239,7 @@ Use `gv.ps1 publish` for end-to-end execution with governance gates:
 
 ### CLI Tools
 
-```powershell
+```TypeScript
 # Workflow CLI
 .\scripts\utilities\gv.ps1 <command>
 

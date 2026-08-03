@@ -52,7 +52,7 @@ Rotation runs automatically during:
 
 ### Manual Execution
 
-```powershell
+```TypeScript
 # Run with config file defaults
 .\scripts\utilities\rotate-artifacts.ps1
 
@@ -131,7 +131,7 @@ The rotation script includes safety mechanisms:
 
 ### Bypassing Safety
 
-```powershell
+```TypeScript
 # Only use -Force when:
 # - You've already committed other docs changes
 # - You're sure about the rotation
@@ -154,7 +154,7 @@ These files are append-only and critical for long-term trend analysis.
 
 ### Rotation Not Running
 
-```powershell
+```TypeScript
 # Check if script exists
 Test-Path scripts\utilities\rotate-artifacts.ps1
 
@@ -167,7 +167,7 @@ Test-Path config\artifacts-retention.json
 
 ### Too Many Files in Repo
 
-```powershell
+```TypeScript
 # Force immediate rotation
 .\scripts\utilities\rotate-artifacts.ps1 -Force
 
@@ -177,7 +177,7 @@ git status
 
 ### Archived Files Missing
 
-```powershell
+```TypeScript
 # Check archive directory
 ls docs\.local-archive\
 

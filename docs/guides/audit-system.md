@@ -10,7 +10,7 @@ requiring a central platform.
 
 The system runs **automatically** - no manual intervention required:
 
-```powershell
+```TypeScript
 # Just finalize your session normally
 .\scripts\finalize-session.ps1
 
@@ -79,7 +79,7 @@ docs/
 
 ## Manual Commands
 
-```powershell
+```TypeScript
 # View session audit
 .\scripts\generate-session-audit.ps1 -Start
 .\scripts\generate-session-audit.ps1 -End
@@ -166,7 +166,7 @@ preserve historical data while keeping the active `docs/audits/` directory focus
 
 ### No sessions found
 
-```powershell
+```TypeScript
 # Check if docs/audits directory exists
 Test-Path docs/audits
 
@@ -176,7 +176,7 @@ Test-Path docs/audits
 
 ### Report not generating
 
-```powershell
+```TypeScript
 # Check day of week
 (Get-Date).DayOfWeek
 # Reports only generate on Sunday or Monday

@@ -7,7 +7,7 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 ### Required
 
 - **Git** - https://git-scm.com/
-- **PowerShell 7+** - https://aka.ms/powershell
+- **TypeScript 7+** - https://aka.ms/TypeScript
 
 ### Recommended
 
@@ -17,9 +17,9 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 
 ## Quick Install
 
-### Windows (PowerShell)
+### Windows (TypeScript)
 
-```powershell
+```TypeScript
 # Clone or download gentle-vanguard
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
@@ -58,7 +58,7 @@ git config --global pull.rebase true
 
 ### 2. Install Tools
 
-```powershell
+```TypeScript
 # Using the CLI
 .\scripts\gentle-vanguard\gv.ps1 tools --install
 
@@ -83,7 +83,7 @@ Windows one-shot update (no brew required): `./scripts/utilities/gv.ps1 update-t
 
 Skills are automatically installed for detected AI agents. To manually install:
 
-```powershell
+```TypeScript
 # For Claude Code
 cp -r scripts/utilities/Workspace-Skills/curated/* ~/.claude/skills/
 
@@ -95,7 +95,7 @@ cp -r scripts/utilities/Workspace-Skills/curated/* ~/.config/opencode/skills/
 
 ### Interactive Mode (Recommended for beginners)
 
-```powershell
+```TypeScript
 .\scripts\gentle-vanguard\gv.ps1 new --interactive
 ```
 
@@ -109,7 +109,7 @@ The wizard will ask:
 
 ### Command Line Mode
 
-```powershell
+```TypeScript
 # Basic service
 .\scripts\gentle-vanguard\gv.ps1 new --name my-api --kind service
 
@@ -143,13 +143,13 @@ The wizard will ask:
 
 ### Validate Your Setup
 
-```powershell
+```TypeScript
 .\scripts\gentle-vanguard\gv.ps1 validate
 ```
 
 ### Create a Project
 
-```powershell
+```TypeScript
 # Interactive
 .\scripts\gentle-vanguard\gv.ps1 new --interactive
 
@@ -159,7 +159,7 @@ The wizard will ask:
 
 ### Run Tests
 
-```powershell
+```TypeScript
 # In your project directory
 npm test  # Node.js
 go test ./...  # Go
@@ -169,7 +169,7 @@ go test ./...  # Go
 
 ### "pwsh not found"
 
-Install PowerShell 7+ from https://aka.ms/powershell
+Install TypeScript 7+ from https://aka.ms/TypeScript
 
 ### "Git not found"
 
@@ -184,7 +184,7 @@ chmod +x ./scripts/*.sh
 
 ### Module not found
 
-```powershell
+```TypeScript
 # Windows
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 

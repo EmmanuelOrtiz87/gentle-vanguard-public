@@ -74,7 +74,7 @@ These scripts are used in important workflows but not critical path.
 
 ### 4. session-manager.ps1 (Utilities)
 
-**Location**: `scripts/utilities/session-manager.ps1`  
+**Location**: `src/session-manager.ts`  
 **Issues**:
 
 - Unbalanced parentheses: 78 open, 80 closed (2 extra closing)
@@ -348,7 +348,7 @@ These scripts have syntax issues but are less frequently used.
 
 ### Step 1: Identify the Issue
 
-```powershell
+```TypeScript
 $errors = $null
 [System.Management.Automation.Language.Parser]::ParseFile(
     '.\scripts\path\to\script.ps1',
@@ -363,7 +363,7 @@ $errors | ForEach-Object { Write-Host $_.Message }
 1. Open script in VS Code
 2. Use Ctrl+H (Find & Replace)
 3. Use Ctrl+Shift+P (Command Palette)
-4. Search for "PowerShell: Show Errors"
+4. Search for "TypeScript: Show Errors"
 
 ### Step 3: Common Fixes
 
@@ -386,7 +386,7 @@ $errors | ForEach-Object { Write-Host $_.Message }
 
 ### Step 4: Validate
 
-```powershell
+```TypeScript
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 ```
 
@@ -397,7 +397,7 @@ $errors | ForEach-Object { Write-Host $_.Message }
 - **Audit Tool**: `scripts/utilities/audit-script-normalization.ps1`
 - **Fix Tool**: `scripts/utilities/fix-remaining-scripts.ps1`
 - **Standards**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
-- **PowerShell Docs**: https://docs.microsoft.com/en-us/powershell/
+- **TypeScript Docs**: https://docs.microsoft.com/en-us/TypeScript/
 
 ---
 
