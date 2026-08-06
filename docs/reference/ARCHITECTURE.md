@@ -22,7 +22,7 @@
 
                                  CLI LAYER
 
-                            gv.ps1 (Main Entry)
+                            src/cli/gv.ts (Main Entry)
 
              init       new       review    validate  ...
 
@@ -70,7 +70,7 @@
                          COMPONENT DEPENDENCIES
 
 
-    gv.ps1 (CLI)
+    src/cli/gv.ts (CLI)
 
          Read-Workspace-Config
 
@@ -705,7 +705,7 @@ gentle-vanguard/
     code-reviews/               # Generated reports
 
  scripts/                          # Main scripts
-    gv.ps1                       # Main CLI
+    src/cli/gv.ts                       # Main CLI
     bootstrap-workspace.ps1       # Project creation
     validate-workspace.ps1        # Validation
     deploy.ps1                    # Deployment

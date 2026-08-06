@@ -4,7 +4,7 @@
  * Usage: npx tsx src/generate-sbom.ts [--output path] [--format json|xml]
  */
 
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 
@@ -48,10 +48,10 @@ function generateSBOM(options: SBOMOptions): boolean {
   
   // Run pnpm native SBOM (pnpm-compatible, unlike cyclonedx-npm which relies on npm ls)
   const sbomFormat = options.format === 'xml' ? 'spdx' : 'cyclonedx';
-  const result = spawnSync(
+  const result = runSync(
     'pnpm',
     ['sbom', '--sbom-format', sbomFormat],
-    { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], shell: process.platform === 'win32' }
+    { stdio: ['pipe', 'pipe', 'pipe'] }
   );
   
   if (result.status === 0 && result.stdout) {

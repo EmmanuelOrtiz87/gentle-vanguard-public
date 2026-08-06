@@ -25,10 +25,10 @@ git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
 # Initialize workspace
-.\scripts\gentle-vanguard\gv.ps1 init
+.\scripts\gentle-vanguard\src/cli/gv.ts init
 
 # Create your first project
-.\scripts\gentle-vanguard\gv.ps1 new --name my-project --kind service
+.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-project --kind service
 ```
 
 ### Linux/macOS
@@ -39,10 +39,10 @@ git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
 # Initialize workspace
-pwsh ./scripts/gentle-vanguard/gv.ps1 init
+pwsh ./scripts/gentle-vanguard/src/cli/gv.ts init
 
 # Create your first project
-pwsh ./scripts/gentle-vanguard/gv.ps1 new --name my-project --kind service
+pwsh ./scripts/gentle-vanguard/src/cli/gv.ts new --name my-project --kind service
 ```
 
 ## Detailed Setup
@@ -60,10 +60,10 @@ git config --global pull.rebase true
 
 ```TypeScript
 # Using the CLI
-.\scripts\gentle-vanguard\gv.ps1 tools --install
+.\scripts\gentle-vanguard\src/cli/gv.ts tools --install
 
 # Or manually
-.\scripts\gentle-vanguard\gv.ps1 init
+.\scripts\gentle-vanguard\src/cli/gv.ts init
 ```
 
 ### 3. Install AI Tools (Optional but Recommended)
@@ -74,10 +74,10 @@ The gentle-vanguard includes integration with:
 | ------------------------ | ------------------------ | ---------------------------------------------------------------- |
 | **OpenCode**             | AI coding agent          | https://opencode.ai                                              |
 | **Claude Code**          | AI coding agent          | https://claude.ai/code                                           |
-| **Native Review Engine** | Built-in workflow review | `./scripts/utilities/gv.ps1 review`                              |
+| **Native Review Engine** | Built-in workflow review | `./src/cli/gv.ts review`                              |
 | **engram**               | Persistent memory        | `go install github.com/gentle-vanguard/engram/cmd/engram@latest` |
 
-Windows one-shot update (no brew required): `./scripts/utilities/gv.ps1 update-tools`
+Windows one-shot update (no brew required): `./src/cli/gv.ts update-tools`
 
 ### 4. Install Skills
 
@@ -96,7 +96,7 @@ cp -r scripts/utilities/Workspace-Skills/curated/* ~/.config/opencode/skills/
 ### Interactive Mode (Recommended for beginners)
 
 ```TypeScript
-.\scripts\gentle-vanguard\gv.ps1 new --interactive
+.\scripts\gentle-vanguard\src/cli/gv.ts new --interactive
 ```
 
 The wizard will ask:
@@ -111,10 +111,10 @@ The wizard will ask:
 
 ```TypeScript
 # Basic service
-.\scripts\gentle-vanguard\gv.ps1 new --name my-api --kind service
+.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-api --kind service
 
 # With options
-.\scripts\gentle-vanguard\gv.ps1 new `
+.\scripts\gentle-vanguard\src/cli/gv.ts new `
     --name my-project `
     --kind frontend `
     --framework react `
@@ -144,17 +144,17 @@ The wizard will ask:
 ### Validate Your Setup
 
 ```TypeScript
-.\scripts\gentle-vanguard\gv.ps1 validate
+.\scripts\gentle-vanguard\src/cli/gv.ts validate
 ```
 
 ### Create a Project
 
 ```TypeScript
 # Interactive
-.\scripts\gentle-vanguard\gv.ps1 new --interactive
+.\scripts\gentle-vanguard\src/cli/gv.ts new --interactive
 
 # Or specify all options
-.\scripts\gentle-vanguard\gv.ps1 new --name my-service --kind service
+.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-service --kind service
 ```
 
 ### Run Tests

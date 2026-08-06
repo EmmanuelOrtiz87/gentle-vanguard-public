@@ -10,7 +10,7 @@
  *   npx tsx src/performance-slo-monitor.ts --service agent_dispatch --ci-gate
  */
 
-import { execSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { request as httpRequest } from 'http';
@@ -101,10 +101,11 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
       const drive = cwd.substring(0, 1);
       try {
         // Use PowerShell Get-PSDrive (works on Win10/11, no wmic dependency)
-        const output = execSync(
-          `powershell -NoProfile -Command "Get-PSDrive -Name ${drive} | Select-Object Used,Free | ConvertTo-Csv -NoTypeInformation"`,
-          { encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 10000, stdio: ['pipe', 'pipe', 'ignore'] }
-        );
+        const output = runSync(
+          'powershell',
+          ['-NoProfile', '-Command', `Get-PSDrive -Name ${drive} | Select-Object Used,Free | ConvertTo-Csv -NoTypeInformation`],
+          { maxBuffer: 1024 * 1024, timeout: 10000, stdio: ['pipe', 'pipe', 'ignore'] }
+        ).stdout;
         const lines = output.trim().split('\n').filter(l => l.trim() && !l.includes('Used') && !l.includes('"'));
         for (const line of lines) {
           const parts = line.split(',').map(p => p.replace(/"/g, '').trim());
@@ -149,7 +150,7 @@ function getRecentMetrics(): { avgLatency: number | null } {
     const dbPath = resolve(process.cwd(), '.runtime', 'gentle-vanguard.db');
     if (existsSync(dbPath)) {
       try {
-        const output = execSync(
+        const output = runSyncShell(
           `npx tsx -e "
             const { DatabaseManager } = require('./apps/web-dashboard/server/database/manager');
             const dm = DatabaseManager.getInstance();
@@ -158,8 +159,8 @@ function getRecentMetrics(): { avgLatency: number | null } {
             const vals = rows.map((r: any) => r.value).filter(Boolean);
             console.log(JSON.stringify(vals.length > 0 ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : null));
           " 2>nul || echo null`,
-          { encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 10000 }
-        );
+          { maxBuffer: 1024 * 1024, timeout: 10000 }
+        ).stdout;
         const avg = JSON.parse(output.trim());
         if (avg !== null) return { avgLatency: avg as number };
       } catch { /* ignore */ }
@@ -176,8 +177,8 @@ function measureLatency(): number {
   // Simple latency benchmark: measure TypeScript compilation time or module load time
   try {
     const start = Date.now();
-    execSync('npx tsx -e "Promise.resolve().then(() => process.exit(0))" 2>nul', {
-      encoding: 'utf8', timeout: 30000, maxBuffer: 1024,
+    runSyncShell('npx tsx -e "Promise.resolve().then(() => process.exit(0))" 2>nul', {
+      timeout: 30000, maxBuffer: 1024,
     });
     return Date.now() - start;
   } catch {
@@ -188,7 +189,7 @@ function measureLatency(): number {
 function saveMetricsSnapshot(snapshot: MetricSnapshot): void {
   try {
     if (!existsSync(resolve(process.cwd(), METRICS_DIR))) {
-      execSync(`mkdir -p "${resolve(process.cwd(), METRICS_DIR)}"`, { encoding: 'utf8' });
+      runSyncShell(`mkdir -p "${resolve(process.cwd(), METRICS_DIR)}"`, {});
     }
     const filePath = resolve(process.cwd(), METRICS_DIR, `slo-${Date.now()}.json`);
     writeFileSync(filePath, JSON.stringify(snapshot, null, 2));

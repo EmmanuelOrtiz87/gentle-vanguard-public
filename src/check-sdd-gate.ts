@@ -3,10 +3,10 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
 function execGit(args: string[], cwd: string = process.cwd()): string {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8', windowsHide: true });
+  const result = runSync('git', args, { cwd });
   return result.stdout?.trim() ?? '';
 }
 

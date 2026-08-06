@@ -316,10 +316,10 @@ Describe "Release Workflow E2E" {
 **Content**:
 
 - [ ] Clone repo
-- [ ] Run `gv.ps1 doctor`
+- [ ] Run `src/cli/gv.ts doctor`
 - [ ] Create MCP workspace (`$HOME\mcp-workspace`)
 - [ ] Verify lefthook hooks installed
-- [ ] Run tests (`gv.ps1 test`)
+- [ ] Run tests (`src/cli/gv.ts test`)
 - [ ] Create feature branch
 - [ ] Make first commit
 - [ ] Push for review
@@ -468,7 +468,7 @@ Add to pre-push hook validation.
 
 **Implementation**:
 
-Instrument `gv.ps1 publish`:
+Instrument `src/cli/gv.ts publish`:
 
 ```TypeScript
 # Track timing for each gate

@@ -197,7 +197,7 @@ graph LR
 .\.githooks\pre-commit.ps1
 
 # Manual security scan
-.\scripts\utilities\gv.ps1 review security
+.\scripts\utilities\src/cli/gv.ts review security
 ```
 
 ---

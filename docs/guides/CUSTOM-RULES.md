@@ -106,7 +106,7 @@ Check loaded rules:
 
 ```TypeScript
 .\scripts\utilities\custom-rules.ps1 -Mode status
-.\scripts\utilities\gv.ps1 custom-rules-status
+.\scripts\utilities\src/cli/gv.ts custom-rules-status
 ```
 
 Export rule digest:

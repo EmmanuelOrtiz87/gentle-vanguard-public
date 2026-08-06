@@ -2,7 +2,7 @@
 
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -69,22 +69,21 @@ function writeInfo(msg: string): void {
 }
 
 function cmdExists(cmd: string): boolean {
-  const result = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { encoding: 'utf-8', stdio: 'pipe' });
+  const result = runSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { stdio: 'pipe' });
   return result.status === 0;
 }
 
 function runCmd(cmd: string, args: string[], cwd?: string): { stdout: string; stderr: string; status: number | null } {
-  const result = spawnSync(cmd, args, { encoding: 'utf-8', stdio: 'pipe', cwd });
-  return { stdout: (result.stdout ?? '').trim(), stderr: (result.stderr ?? '').trim(), status: result.status };
+  const result = runSync(cmd, args, { stdio: 'pipe', cwd });
+  return { stdout: result.stdout.trim(), stderr: result.stderr.trim(), status: result.status };
 }
 
 function runCmdString(fullCmd: string): { stdout: string; stderr: string; status: number | null } {
-  try {
-    const stdout = execSync(fullCmd, { encoding: 'utf-8', stdio: 'pipe' }).trim();
-    return { stdout, stderr: '', status: 0 };
-  } catch (e: any) {
-    return { stdout: '', stderr: e.stderr?.toString() ?? e.message, status: e.status ?? 1 };
+  const r = runSyncShell(fullCmd, { stdio: 'pipe' });
+  if (r.error && r.status === null) {
+    return { stdout: '', stderr: r.error.message, status: 1 };
   }
+  return { stdout: r.stdout.trim(), stderr: r.stderr, status: r.status ?? 1 };
 }
 
 function main(): void {
@@ -229,10 +228,10 @@ function main(): void {
     const taskName = 'Gentle-Vanguard-CodeGraph-Sync';
     const existingTask = runCmd('powershell', ['-Command', `Get-ScheduledTask -TaskName '${taskName}' -ErrorAction SilentlyContinue`]);
     if (!existingTask.stdout) {
-      const taskScript = join(root, 'scripts', 'utilities', 'codegraph', 'codegraph-sync-autostart.ps1');
+      const taskScript = join(root, 'src', 'codegraph-sync-autostart.ts');
       if (existsSync(taskScript)) {
         const psCmd = [
-          '-NoProfile', '-NoLogo', '-NonInteractive', '-File', `"${taskScript}"`,
+          '-NoProfile', '-NoLogo', '-NonInteractive', '-Command', `npx tsx "${taskScript}"`,
         ];
         const registerCmd = [
           '-Command',

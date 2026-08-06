@@ -271,9 +271,9 @@ hotfix/, o release/
 
 ### NIVEL 3: automatización Avanzada (Mejora Continua)
 
-#### 3.1 Crear Asistente Interactivo en gv.ps1
+#### 3.1 Crear Asistente Interactivo en src/cli/gv.ts
 ```TypeScript
-# Agregar comando: gv.ps1 gitflow-setup
+# Agregar comando: src/cli/gv.ts gitflow-setup
 # Que gue al usuario paso a paso
 ````
 
@@ -313,7 +313,7 @@ hotfix/, o release/
 ### Fase 2 (Corto Plazo - 2 Semanas)
 
 1. Integrar validacin de PR base en pre-push hook
-2. Agregar comando `gv.ps1 gitflow-setup` interactivo
+2. Agregar comando `src/cli/gv.ts gitflow-setup` interactivo
 3. Crear GitHub Actions para validacin de PR
 
 ### Fase 3 (Mediano Plazo - 1 Mes)

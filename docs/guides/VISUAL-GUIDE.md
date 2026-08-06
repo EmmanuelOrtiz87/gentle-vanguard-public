@@ -15,7 +15,7 @@
 
 
        Developer               CLI                  Skills
-        Input      (gv.ps1)     System
+        Input      (src/cli/gv.ts)     System
 
 
 
@@ -924,7 +924,7 @@ my-service/
 
 
      Set policy:            Use full path:
-     Set-Execution           .\scripts\utilities\gv.ps1
+     Set-Execution           .\scripts\utilities\src/cli/gv.ts
      Policy -Scope           init
      CurrentUser
      -Execution

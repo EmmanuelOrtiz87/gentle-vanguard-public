@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { spawnSync } from 'child_process';
+import { runSyncShell } from '../../src/core/run-command.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -36,10 +36,8 @@ if (existsSync(configPath)) {
 // 2. Verificar uso de tokens actual
 console.log('\n📊 Verificando uso actual de tokens...');
 try {
-    const result = spawnSync('npx', ['tsx', 'src/token-budget-guard.ts', '-Mode', 'status', '-Quiet'], {
-        cwd: ROOT,
-        stdio: 'pipe',
-        encoding: 'utf-8'
+    const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
+        cwd: ROOT
     });
     
     if (result.status === 0) {

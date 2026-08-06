@@ -29,7 +29,7 @@ The Gentle-Vanguard automatically ensures all development tools are active and r
 | **Pre-commit**         | Tools validated before each commit     | Runs automatically    |
 | **Session start**      | Session brief artifacts are generated  | Daily workflow        |
 | **RED context health** | Orchestrator auto-runs `compact-start` | Recovers lost context |
-| **Manual**             | Use `gv.ps1 health` anytime            | On-demand check       |
+| **Manual**             | Use `src/cli/gv.ts health` anytime            | On-demand check       |
 
 ### Tools Activated
 
@@ -37,27 +37,27 @@ The Gentle-Vanguard automatically ensures all development tools are active and r
 | ------------------------------- | --------------------------------------- | --------------- |
 | **Engram**                      | Memory system for context persistence   | `mem_context`   |
 | **Native Review Engine**        | Gentle-Vanguard code quality validation | Runs on commit  |
-| **Native Runtime Orchestrator** | Policy-driven execution and guidance    | `gv.ps1 status` |
+| **Native Runtime Orchestrator** | Policy-driven execution and guidance    | `src/cli/gv.ts status` |
 | **Orchestrator Skills**         | Project coordination system             | Auto-loaded     |
 
 ### Manual Activation Commands
 
 ```TypeScript
 # Check and activate all tools
-.\scripts\utilities\gv.ps1 health
+.\scripts\utilities\src/cli/gv.ts health
 
 # Create the session brief for today
-.\scripts\utilities\gv.ps1 start-session
+.\scripts\utilities\src/cli/gv.ts start-session
 
 # Create session brief with specific task
-.\scripts\utilities\gv.ps1 start-session api-hardening
+.\scripts\utilities\src/cli/gv.ts start-session api-hardening
 
 # Close session with validation + closure artifact
-.\scripts\utilities\gv.ps1 end-session
-.\scripts\utilities\gv.ps1 end-session api-hardening
+.\scripts\utilities\src/cli/gv.ts end-session
+.\scripts\utilities\src/cli/gv.ts end-session api-hardening
 
 # Force auto-start missing tools
-.\scripts\utilities\gv.ps1 health -Force
+.\scripts\utilities\src/cli/gv.ts health -Force
 
 # Auto-init environment (any directory)
 .\scripts\utilities\auto-init-dev-environment.ps1
@@ -75,8 +75,8 @@ Before starting work, ensure your workspace is clean:
 
 ```TypeScript
 # Run the standard bootstrap
-.\scripts\utilities\gv.ps1 health
-.\scripts\utilities\gv.ps1 start-session [task-name]
+.\scripts\utilities\src/cli/gv.ts health
+.\scripts\utilities\src/cli/gv.ts start-session [task-name]
 ```
 
 **Step 2: Auto-Detection**
@@ -98,7 +98,7 @@ When health is degraded, the system helps you recover:
 | ------------------- | ----------------------------------------------------------- |
 | **WARN/YELLOW**     | CLI shows live guidance                                     |
 | **RED**             | Orchestrator auto-runs `compact-start` before session brief |
-| **Manual fallback** | `.\scripts\utilities\gv.ps1 compact-start "<objective>"`    |
+| **Manual fallback** | `.\scripts\utilities\src/cli/gv.ts compact-start "<objective>"`    |
 
 **Step 3: Memory Check**
 
@@ -135,10 +135,10 @@ Follow these steps for each task:
 **Pre-Push Checklist:**
 
 ```markdown
-1. ✅ Run: gv.ps1 review # Code review
-2. ✅ Generate: Audit document # gv.ps1 audit
+1. ✅ Run: src/cli/gv.ts review # Code review
+2. ✅ Generate: Audit document # src/cli/gv.ts audit
 3. ✅ Check: Specification complete?
-4. ✅ Optional: gv.ps1 push # Guided commit/push
+4. ✅ Optional: src/cli/gv.ts push # Guided commit/push
 5. ❓ Ask: Create PR?
 ```
 
@@ -204,50 +204,50 @@ Use these in conversation with the AI agent:
 
 ```TypeScript
 # Start a new session
-.\scripts\utilities\gv.ps1 start-session
-.\scripts\utilities\gv.ps1 start-session api-hardening
+.\scripts\utilities\src/cli/gv.ts start-session
+.\scripts\utilities\src/cli/gv.ts start-session api-hardening
 
 # End session with closure artifact
-.\scripts\utilities\gv.ps1 end-session
-.\scripts\utilities\gv.ps1 end-session api-hardening
+.\scripts\utilities\src/cli/gv.ts end-session
+.\scripts\utilities\src/cli/gv.ts end-session api-hardening
 
 # Create or refresh task brief
-.\scripts\utilities\gv.ps1 task-brief <task-name>
+.\scripts\utilities\src/cli/gv.ts task-brief <task-name>
 ```
 
 **Review & Publishing:**
 
 ```TypeScript
 # Code review
-.\scripts\utilities\gv.ps1 review
+.\scripts\utilities\src/cli/gv.ts review
 
 # Generate audit document
-.\scripts\utilities\gv.ps1 audit
+.\scripts\utilities\src/cli/gv.ts audit
 
 # Create PR template
-.\scripts\utilities\gv.ps1 pr
+.\scripts\utilities\src/cli/gv.ts pr
 
 # Show current status
-.\scripts\utilities\gv.ps1 status
+.\scripts\utilities\src/cli/gv.ts status
 
 # Prepare to push (guided)
-.\scripts\utilities\gv.ps1 push
+.\scripts\utilities\src/cli/gv.ts push
 ```
 
 **Maintenance:**
 
 ```TypeScript
 # Full update workflow
-.\scripts\utilities\gv.ps1 update-all
+.\scripts\utilities\src/cli/gv.ts update-all
 
 # Preview cleanup/homologation actions
-.\scripts\utilities\gv.ps1 homologate
+.\scripts\utilities\src/cli/gv.ts homologate
 
 # Apply cleanup/homologation actions
-.\scripts\utilities\gv.ps1 homologate apply
+.\scripts\utilities\src/cli/gv.ts homologate apply
 
 # Health check + cleanup drift gate
-.\scripts\utilities\gv.ps1 health -StrictCleanup
+.\scripts\utilities\src/cli/gv.ts health -StrictCleanup
 ```
 
 ### Git Commands
@@ -285,25 +285,25 @@ gh pr status
 
 ## 🤖 Workflow Automation
 
-### Automated gv.ps1 Workflow
+### Automated src/cli/gv.ts Workflow
 
 Standard flow for validation and publishing:
 
 ```TypeScript
 # Step 1: Check current status
-.\scripts\utilities\gv.ps1 status
+.\scripts\utilities\src/cli/gv.ts status
 
 # Step 2: Run code review (auto-fix if available)
-.\scripts\utilities\gv.ps1 review
+.\scripts\utilities\src/cli/gv.ts review
 
 # Step 3: Generate audit document
-.\scripts\utilities\gv.ps1 audit
+.\scripts\utilities\src/cli/gv.ts audit
 
 # Step 4: Create PR with template
-.\scripts\utilities\gv.ps1 pr
+.\scripts\utilities\src/cli/gv.ts pr
 ```
 
-**Pro Tip:** Use `gv.ps1 publish` to run all steps with governance gates automatically.
+**Pro Tip:** Use `src/cli/gv.ts publish` to run all steps with governance gates automatically.
 
 ### Git Hooks (Automatic)
 
@@ -338,7 +338,7 @@ Run through this checklist:
 
 ```TypeScript
 # Run pre-commit checks
-gv.ps1 review
+src/cli/gv.ts review
 git add .
 git commit -m "feat(scope): description"
 ```
@@ -351,8 +351,8 @@ Ensure these are complete:
 
 ```TypeScript
 # Prepare for PR
-gv.ps1 audit
-gv.ps1 pr
+src/cli/gv.ts audit
+src/cli/gv.ts pr
 gh pr create
 ```
 
@@ -364,7 +364,7 @@ Final checks:
 
 ```TypeScript
 # Safe push with checks
-gv.ps1 push  # Shows guided commands
+src/cli/gv.ts push  # Shows guided commands
 git push -u origin feature/my-feature
 ```
 

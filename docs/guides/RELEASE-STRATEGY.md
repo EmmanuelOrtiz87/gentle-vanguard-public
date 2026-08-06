@@ -22,13 +22,13 @@ v1.0.0
 | ---------- | ------------------------------------------------------------------- | ------------------------------------ |
 | MAJOR bump | Breaking changes to CLI, script API, or governance model            | v1.0.0 v2.0.0 (new release strategy) |
 | MINOR bump | New skills, new SDD policy, new features, governance clarifications | v1.0.0 v1.1.0 (SDD gate tightened)   |
-| PATCH bump | Bug fixes, security patches, documentation corrections              | v1.0.0 v1.0.1 (fixed gv.ps1 bug)     |
+| PATCH bump | Bug fixes, security patches, documentation corrections              | v1.0.0 v1.0.1 (fixed src/cli/gv.ts bug)     |
 
 ### Examples
 
 - **v1.0.0 v1.1.0**: Add 5 new skills; upgrade to SDD enforcement via CI gate (new but
   backward-compatible)
-- **v1.1.0 v1.1.1**: Fix gv.ps1 path issue; security patch in pre-commit (bug fixes)
+- **v1.1.0 v1.1.1**: Fix src/cli/gv.ts path issue; security patch in pre-commit (bug fixes)
 - **v1.1.1 v2.0.0**: Change branch strategy from `develop+main` to trunk-based; remove
   `scripts/project/` folder (architecture shift)
 
@@ -179,7 +179,7 @@ See [`RELEASE-CHECKLIST.md`](./RELEASE-CHECKLIST.md) for pre-release validation.
 - [ ] All governance tests pass
 - [ ] Documentation updated
 - [ ] No uncommitted changes on `develop`
-- [ ] Multi-repo homologation gate passes: `./scripts/utilities/gv.ps1 release-homologation`
+- [ ] Multi-repo homologation gate passes: `./src/cli/gv.ts release-homologation`
 
 ## versióning Governance
 
@@ -197,7 +197,7 @@ See [`RELEASE-CHECKLIST.md`](./RELEASE-CHECKLIST.md) for pre-release validation.
 
 ### No Hardcoded versión in Code
 
-Gentle-Vanguard does NOT store versión in `scripts/utilities/gv.ps1` or source files.
+Gentle-Vanguard does NOT store versión in `src/cli/gv.ts` or source files.
 
 - Reason: Sync risk between code and git tags
 - Instead: Query git tag at runtime if needed: `git describe --tags --abbrev=0`

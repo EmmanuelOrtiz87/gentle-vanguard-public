@@ -69,8 +69,8 @@ Current local baseline for this workspace:
 Preset workflow:
 
 1. Ask orchestrator recommendation (`orchestrator-next-steps`).
-2. Apply preset (`gv.ps1 response-mode preset:<name>`).
-3. Escalate by risk when needed (`gv.ps1 response-mode recommend:<name>:high`).
+2. Apply preset (`src/cli/gv.ts response-mode preset:<name>`).
+3. Escalate by risk when needed (`src/cli/gv.ts response-mode recommend:<name>:high`).
 
 Session auto-apply workflow:
 
@@ -108,14 +108,14 @@ To make chat behavior predictable, the workspace defines explicit chat levels:
 
 Activation commands:
 
-1. `gv.ps1 response-mode chat:chat-compact`
-2. `gv.ps1 response-mode chat:chat-balanced`
-3. `gv.ps1 response-mode chat:chat-detailed`
+1. `src/cli/gv.ts response-mode chat:chat-compact`
+2. `src/cli/gv.ts response-mode chat:chat-balanced`
+3. `src/cli/gv.ts response-mode chat:chat-detailed`
 
 Inspection commands:
 
-1. `gv.ps1 response-mode`
-2. `gv.ps1 response-mode list`
+1. `src/cli/gv.ts response-mode`
+2. `src/cli/gv.ts response-mode list`
 
 Architecture baseline for session start:
 

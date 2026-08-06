@@ -84,7 +84,7 @@ opencode --version
 .\scripts\utilities\install-prerequisites.ps1 -CheckOnly
 
 # Verify Gentle-Vanguard
-.\gv.ps1 health
+.\src/cli/gv.ts health
 ```
 
 ## Engram Updates
@@ -93,7 +93,7 @@ Engram can be updated at any time:
 
 ```TypeScript
 # Via gv CLI
-.\scripts\utilities\gv.ps1 install-engram
+.\scripts\utilities\src/cli/gv.ts install-engram
 
 # Or directly
 go install github.com/gentle-vanguard/engram/cmd/engram@latest
@@ -144,7 +144,7 @@ git pull origin develop
 .\scripts\utilities\install-prerequisites.ps1
 
 # Verify all tools
-.\scripts\utilities\gv.ps1 health
+.\scripts\utilities\src/cli/gv.ts health
 ```
 
 ## Troubleshooting

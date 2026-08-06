@@ -69,9 +69,9 @@ New-Item -ItemType Directory -Path "$env:USERPROFILE\.gentle-vanguard" -Force
 ### Verify Gentle-Vanguard
 
 ```TypeScript
-gv.ps1 health
-gv.ps1 status
-gv.ps1 list
+src/cli/gv.ts health
+src/cli/gv.ts status
+src/cli/gv.ts list
 ```
 
 ### Optional: Local Workspace Autostart (Local-only)
@@ -106,7 +106,7 @@ git config --global core.hooksPath "$env:USERPROFILE\.git-hooks"
 ## Step 4: Update Optional Tooling (Recommended)
 
 ```TypeScript
-.\scripts\utilities\gv.ps1 update-tools
+.\scripts\utilities\src/cli/gv.ts update-tools
 ```
 
 ## Step 5: Configure AI Agent
@@ -136,7 +136,7 @@ cd C:\Workspace
 C:\gentle-vanguard\scripts\setup-project.ps1 -ProjectPath "C:\Workspace\my-project"
 
 # Or create new project
-gv.ps1 new --name my-project --type service
+src/cli/gv.ts new --name my-project --type service
 ```
 
 ## Daily Workflow
@@ -145,13 +145,13 @@ gv.ps1 new --name my-project --type service
 
 ```TypeScript
 # Check for updates
-gv.ps1 check
+src/cli/gv.ts check
 
 # Update if needed
-gv.ps1 update-all
+src/cli/gv.ts update-all
 
 # Validate setup
-gv.ps1 health
+src/cli/gv.ts health
 ```
 
 ### Before Commit

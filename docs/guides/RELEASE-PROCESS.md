@@ -70,18 +70,18 @@ npm test
 
 ### 2.5 Homologation Gate (Mandatory — auto-runs on publish)
 
-This gate is **automatically executed** by `gv.ps1 publish` before any validation or merge attempt.
+This gate is **automatically executed** by `src/cli/gv.ts publish` before any validation or merge attempt.
 If the gate fails, publish is blocked until issues are resolved.
 
 ```TypeScript
 # Run manually (same check that publish runs internally)
-.\scripts\utilities\gv.ps1 release-homologation
+.\scripts\utilities\src/cli/gv.ts release-homologation
 
 # Optional: validate with a specific release tag
-.\scripts\utilities\gv.ps1 release-homologation vX.Y.Z
+.\scripts\utilities\src/cli/gv.ts release-homologation vX.Y.Z
 
 # Skip gate on publish (not recommended — use only for emergencies)
-.\scripts\utilities\gv.ps1 publish -SkipHomologationGate
+.\scripts\utilities\src/cli/gv.ts publish -SkipHomologationGate
 ```
 
 Expected outcome:

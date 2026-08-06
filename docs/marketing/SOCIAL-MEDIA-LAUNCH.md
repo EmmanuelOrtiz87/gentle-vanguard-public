@@ -367,7 +367,7 @@ those guardrails in from the start.
 - Engram persistent memory — the stack remembers context across sessions
 - Token budget guard so you don't burn through credits
 - Pre-commit hooks with 7D validation
-- TypeScript CLI (`gv.ps1`) for scaffolding, testing, and deployment
+- TypeScript CLI (`src/cli/gv.ts`) for scaffolding, testing, and deployment
 - 100% local, cross-platform (Windows, Linux, macOS)
 - Tool-agnostic: works with OpenCode, Claude, Cursor, and 10+ other tools
 

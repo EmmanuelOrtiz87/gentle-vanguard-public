@@ -99,7 +99,7 @@ gentle-vanguard-public/
 
 | Categoría              | Ejemplo                          | Razón                 |
 | ---------------------- | -------------------------------- | --------------------- |
-| Scripts en texto plano | `scripts/utilities/gv.ps1`       | IP — solo encriptados |
+| Scripts en texto plano | `src/cli/gv.ts`       | IP — solo encriptados |
 | Configs reales         | `config/auto-delegation.json`    | IP — solo encriptados |
 | Skills completos       | `skills/*/SKILL.md`              | IP — solo encriptados |
 | Docs internos          | `docs/sessions/`, `docs/audits/` | Información interna   |

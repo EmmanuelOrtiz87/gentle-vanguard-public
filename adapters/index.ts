@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 function parseSkillMarkdown(content: string): {
   name: string;
@@ -110,26 +111,60 @@ function convertToWindsurf(skillPath: string, outputDir: string): void {
   );
 }
 
-// Unified CLI
-const cmd = process.argv[2];
-const arg1 = process.argv[3];
-const arg2 = process.argv[4];
+// ─── Unified CLI ───────────────────────────────────────────────────────
+// The CLI only runs when this module is executed directly (node adapters/index.ts).
+// Importing the module as a library (e.g. loadAdapters) has NO side effects.
 
-switch (cmd) {
-  case 'antigravity':
-    convertToAntigravity(arg1 || 'SKILL.md', arg2 || 'output.json');
-    break;
-  case 'codex':
-    convertToCodex(arg1 || 'SKILL.md', arg2 || 'output.json');
-    break;
-  case 'windsurf':
-    convertToWindsurf(arg1 || 'SKILL.md', arg2 || '.windsurf/plugins');
-    break;
-  default:
-    console.log(`Adapters: antigravity | codex | windsurf
+export { convertToAntigravity, convertToCodex, convertToWindsurf };
+
+function isMainModule(): boolean {
+  try {
+    const entry = process.argv[1];
+    if (!entry) return false;
+    const entryUrl = pathToFileURL(entry).href;
+    return import.meta.url === entryUrl;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  const cmd = process.argv[2];
+  const arg1 = process.argv[3];
+  const arg2 = process.argv[4];
+
+  switch (cmd) {
+    case 'antigravity':
+      convertToAntigravity(arg1 || 'SKILL.md', arg2 || 'output.json');
+      break;
+    case 'codex':
+      convertToCodex(arg1 || 'SKILL.md', arg2 || 'output.json');
+      break;
+    case 'windsurf':
+      convertToWindsurf(arg1 || 'SKILL.md', arg2 || '.windsurf/plugins');
+      break;
+    default:
+      console.log(`Adapters: antigravity | codex | windsurf
   node adapters/index.ts antigravity <skill.md> <output.json>
   node adapters/index.ts codex <skill.md> <output.json>
   node adapters/index.ts windsurf <skill.md> <output-dir>`);
+  }
 }
 
-export { convertToAntigravity, convertToCodex, convertToWindsurf };
+// Dynamically load adapter instances if present. Returns null for adapters that aren't available.
+export async function loadAdapters(): Promise<{
+  codexAdapter: any | null;
+  windsurfAdapter: any | null;
+  antigravityAdapter: any | null;
+}> {
+  // Use dynamic imports so the module can be used in environments that don't have the adapters built.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const codexAdapter = await import('./format-adapters/codex-adapter/CodexAdapter.js').then((m) => m.default).catch(() => null);
+  // @ts-ignore
+  const windsurfAdapter = await import('./format-adapters/windsurf-adapter/WindsurfAdapter.js').then((m) => m.default).catch(() => null);
+  // @ts-ignore
+  const antigravityAdapter = await import('./format-adapters/antigravity-adapter/AntigravityAdapter.js').then((m) => m.default).catch(() => null);
+
+  return { codexAdapter, windsurfAdapter, antigravityAdapter };
+}

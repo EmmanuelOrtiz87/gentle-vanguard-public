@@ -86,9 +86,9 @@ quality.
 Run before tagging:
 
 ```TypeScript
-.\scripts\utilities\gv.ps1 release-homologation
+.\scripts\utilities\src/cli/gv.ts release-homologation
 # Optional tag-aware check:
-.\scripts\utilities\gv.ps1 release-homologation vX.Y.Z
+.\scripts\utilities\src/cli/gv.ts release-homologation vX.Y.Z
 ```
 
 - [ ] **Version Baseline Alignment**

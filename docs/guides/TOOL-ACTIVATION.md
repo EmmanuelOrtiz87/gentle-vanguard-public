@@ -14,8 +14,8 @@ This guide describes the current tool activation model for Gentle-Vanguard.
 Windows TypeScript:
 
 ```TypeScript
-.\scripts\utilities\gv.ps1 health
-.\scripts\utilities\gv.ps1 health -Force
+.\scripts\utilities\src/cli/gv.ts health
+.\scripts\utilities\src/cli/gv.ts health -Force
 .\scripts\utilities\update-tools.ps1 -DryRun
 ```
 
@@ -23,13 +23,13 @@ Linux, macOS, or WSL:
 
 ```bash
 ./gv health
-pwsh -NoProfile -File ./scripts/utilities/gv.ps1 health
+pwsh -NoProfile -File ./src/cli/gv.ts health
 pwsh -NoProfile -File ./scripts/utilities/update-tools.ps1 -DryRun
 ```
 
 ## Activation Model
 
-1. `gv.ps1 health` is the canonical tool activation entrypoint.
+1. `src/cli/gv.ts health` is the canonical tool activation entrypoint.
 2. `ensure-tools-active.ps1` reads `config/workspace.config.json` and resolves platform-specific
    installation metadata for Windows, Linux, and macOS.
 3. Missing system dependencies are checked before tool installation.

@@ -91,7 +91,7 @@ Timestamp,SessionID,Category,Status,Agent,Message,SLO_ms
 
 ```TypeScript
 # View trends (future implementation)
-.\scripts\utilities\gv.ps1 judgment-trends
+.\scripts\utilities\src/cli/gv.ts judgment-trends
 
 # This will read dashboard.csv and show:
 # - Failure rate over last 7 days

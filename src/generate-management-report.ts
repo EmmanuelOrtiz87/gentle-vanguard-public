@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
 interface CliArgs {
   outputDir: string;
@@ -124,7 +124,7 @@ function main(): void {
     if (fs.existsSync(engramExe)) {
       console.log('   [EXPORT] Exporting Engram data...');
       const exportFile = path.join(workspaceRoot, 'engram-export.json');
-      spawnSync(engramExe, ['export', exportFile], { cwd: workspaceRoot, shell: true, timeout: 30000 });
+      runSync(engramExe, ['export', exportFile], { cwd: workspaceRoot, timeout: 30000 });
 
       if (fs.existsSync(exportFile)) {
         try {

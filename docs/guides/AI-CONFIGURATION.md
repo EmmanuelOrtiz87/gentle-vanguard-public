@@ -41,19 +41,19 @@ Operational commands:
 
 ```TypeScript
 # Show active communication settings
-.\scripts\utilities\gv.ps1 response-mode
+.\scripts\utilities\src/cli/gv.ts response-mode
 
 # List all options
-.\scripts\utilities\gv.ps1 response-mode list
+.\scripts\utilities\src/cli/gv.ts response-mode list
 
 # Set compression profile
-.\scripts\utilities\gv.ps1 response-mode profile:ultra
+.\scripts\utilities\src/cli/gv.ts response-mode profile:ultra
 
 # Set language
-.\scripts\utilities\gv.ps1 response-mode language:pt-BR
+.\scripts\utilities\src/cli/gv.ts response-mode language:pt-BR
 
 # Set detail level
-.\scripts\utilities\gv.ps1 response-mode detail:expanded
+.\scripts\utilities\src/cli/gv.ts response-mode detail:expanded
 ```
 
 Recommendation:
@@ -76,10 +76,10 @@ Commands:
 
 ```TypeScript
 # Apply preset directly
-.\scripts\utilities\gv.ps1 response-mode preset:bugfix
+.\scripts\utilities\src/cli/gv.ts response-mode preset:bugfix
 
 # Ask for recommendation from preset + risk
-.\scripts\utilities\gv.ps1 response-mode recommend:docs:high
+.\scripts\utilities\src/cli/gv.ts response-mode recommend:docs:high
 ```
 
 Orchestrator integration:

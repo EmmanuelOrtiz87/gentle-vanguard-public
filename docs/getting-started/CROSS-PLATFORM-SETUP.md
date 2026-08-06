@@ -32,7 +32,7 @@ npm run gv -- info
 npm run gv -- health
 ```
 
-> **Note**: The legacy `bootstrap.ps1` / `setup.sh` / `gv.ps1` / `gv.sh` shell wrappers were
+> **Note**: The legacy `bootstrap.ps1` / `setup.sh` / `src/cli/gv.ts` / `gv.sh` shell wrappers were
 > migrated to TypeScript. Use `npm run stack:setup` for first-time setup and `npm run gv` for the
 > workflow CLI (`src/cli/gv.ts`).
 
@@ -258,7 +258,7 @@ Before each commit:
 ## Compatibility Notes
 
 1. The TypeScript CLI (`src/cli/gv.ts`) and `npm run stack:setup` are the canonical automation
-   entrypoints (replacing the legacy `gv.ps1`/`gv.sh`/`bootstrap.ps1` wrappers).
+   entrypoints (replacing the legacy `src/cli/gv.ts`/`gv.sh`/`bootstrap.ps1` wrappers).
 2. On Linux or macOS, `npm run` works with any shell (bash, zsh, pwsh).
 3. Health and diagnostics are unified in `npm run health:check` and `npm run self-diagnosis`.
 4. AI tooling is configurable and optional; the workspace does not require a single IDE or AI

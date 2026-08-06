@@ -55,7 +55,7 @@ You need one of these:
 
 The public sync bundle includes:
 
-1. `scripts/gentle-vanguard/bootstrap.ps1`
+1. `src/bootstrap.ts`
 2. `scripts/gentle-vanguard/bootstrap-machine.ps1`
 3. `src/deployment/install-github-runner.ts`
 4. `config/workspace.example.json`

@@ -60,14 +60,14 @@ GITFLOW-HOOKS, GITFLOW-MERGE, GITFLOW-WORKFLOW, GITFLOW-COMMIT, GITFLOW-CONFLICT
 
 ```TypeScript
 # List agents
-.\gv.ps1 agent list
+.\src/cli/gv.ts agent list
 
 # Check readiness
-.\gv.ps1 agent status
+.\src/cli/gv.ts agent status
 
 # Delegate task
-.\gv.ps1 agent DEV "implement login feature"
-.\gv.ps1 agent QA "validate checkout flow"
+.\src/cli/gv.ts agent DEV "implement login feature"
+.\src/cli/gv.ts agent QA "validate checkout flow"
 ```
 
 ## 4. Execution Graph
@@ -172,13 +172,13 @@ Each lane must return structured JSON matching the opencode subagent result sche
 1. Generate compact baseline:
 
 ```TypeScript
-./scripts/utilities/gv.ps1 context-pack "<objective>"
+./src/cli/gv.ts context-pack "<objective>"
 ```
 
 2. Set response mode for compressed operations:
 
 ```TypeScript
-./scripts/utilities/gv.ps1 response-mode ultra
+./src/cli/gv.ts response-mode ultra
 ```
 
 3. Execute coordinator-led parallel slices.
@@ -320,14 +320,14 @@ Metrics are persisted to Engram with topic_key `metrics/subagent-delegation` for
 1. Manual budget check:
 
 ```TypeScript
-./scripts/utilities/gv.ps1 token-guard
-./scripts/utilities/gv.ps1 token-guard publish
+./src/cli/gv.ts token-guard
+./src/cli/gv.ts token-guard publish
 ```
 
 2. Engram readiness and usage:
 
 ```TypeScript
-./scripts/utilities/gv.ps1 install-engram
+./src/cli/gv.ts install-engram
 ./scripts/utilities/run-engram.ps1 --help
 ```
 

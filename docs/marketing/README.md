@@ -58,7 +58,7 @@
 | Asset                          | Estado       | Descripción                             |
 | ------------------------------ | ------------ | --------------------------------------- |
 | **🎨 Logo y identidad visual** | 📋 Pendiente | Diseño de marca completo                |
-| **📸 Screenshot gallery**      | 📋 Pendiente | TUI installer, gv.ps1 CLI, dashboards   |
+| **📸 Screenshot gallery**      | 📋 Pendiente | TUI installer, src/cli/gv.ts CLI, dashboards   |
 | **🎥 Demo videos**             | 📋 Pendiente | Instalación, primera sesión, delegación |
 | **📚 Case studies**            | 📋 Pendiente | Casos de uso reales                     |
 | **📊 Comparison charts**       | 📋 Pendiente | vs otras soluciones                     |
@@ -100,7 +100,7 @@ cd gentle-vanguard-public
 .\scripts\utilities\gentle-vanguard-installer-tui.ps1
 
 # 📖 PASO 3: ¡Listo para usar!
-.\scripts\utilities\gv.ps1 health
+.\scripts\utilities\src/cli/gv.ts health
 ```
 
 ---

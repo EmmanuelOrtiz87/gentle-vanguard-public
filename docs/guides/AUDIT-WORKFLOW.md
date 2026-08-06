@@ -9,13 +9,13 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ```TypeScript
 # Quick check - 1 second
-.\scripts\utilities\gv.ps1 audit sweep --scope quick
+.\scripts\utilities\src/cli/gv.ts audit sweep --scope quick
 
 # Full batch audit - 5 seconds
-.\scripts\utilities\gv.ps1 audit sweep --scope full
+.\scripts\utilities\src/cli/gv.ts audit sweep --scope full
 
 # Full + Judgment - 15 minutes
-.\scripts\utilities\gv.ps1 audit judgment --mode full
+.\scripts\utilities\src/cli/gv.ts audit judgment --mode full
 ```
 
 ### Standalone (without Gentle-Vanguard)
@@ -79,7 +79,7 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 
 ```TypeScript
 # Add to .git/hooks/pre-commit
-.\scripts\utilities\gv.ps1 audit sweep --scope quick --fail-on-issues
+.\scripts\utilities\src/cli/gv.ts audit sweep --scope quick --fail-on-issues
 ```
 
 ### CI/CD Pipeline
@@ -87,17 +87,17 @@ Unified audit system combining **gentle-vanguard-audit** (batch validation) and 
 ```yaml
 # GitHub Actions
 - name: Gentle-Vanguard Audit
-  run: .\scripts\utilities\gv.ps1 audit sweep --scope standard --output json
+  run: .\scripts\utilities\src/cli/gv.ts audit sweep --scope standard --output json
 ```
 
 ### Pre-Release Checklist
 
 ```TypeScript
 # 1. Batch validation
-.\scripts\utilities\gv.ps1 audit sweep --scope full
+.\scripts\utilities\src/cli/gv.ts audit sweep --scope full
 
 # 2. If pass  Adversarial review
-.\scripts\utilities\gv.ps1 audit judgment --mode unified
+.\scripts\utilities\src/cli/gv.ts audit judgment --mode unified
 
 # 3. If both pass  Safe to release
 ```
@@ -126,13 +126,13 @@ For use in projects without Gentle-Vanguard:
 
 ```TypeScript
 # Human-readable (default)
-.\gv.ps1 audit sweep --output text
+.\src/cli/gv.ts audit sweep --output text
 
 # JSON for CI/CD
-.\gv.ps1 audit sweep --output json
+.\src/cli/gv.ts audit sweep --output json
 
 # Markdown for reports
-.\gv.ps1 audit sweep --output markdown
+.\src/cli/gv.ts audit sweep --output markdown
 ```
 
 ## Skills Reference

@@ -129,7 +129,7 @@ npm ci --ignore-scripts
 
 # Run full test suite to verify
 npm test
-# OR: pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-tests-simple.ps1
+# OR: npx tsx src/gv.ts
 ```
 
 **Expected**: All tests pass (33/33)
@@ -180,10 +180,10 @@ The built-in diagnostic validates everything is working:
 
 ```TypeScript
 # From gentle-vanguard root
-.\scripts\utilities\gv.ps1 doctor
+.\scripts\utilities\src/cli/gv.ts doctor
 
 # Or if not available:
-.\scripts\gentle-vanguard\gv.ps1 doctor
+.\scripts\gentle-vanguard\src/cli/gv.ts doctor
 ```
 
 **Expected output**: Green checkmarks ✓ for all checks (TypeScript version, git, npm, etc.)

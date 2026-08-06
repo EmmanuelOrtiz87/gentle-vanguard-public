@@ -22,8 +22,8 @@ Ensure these capabilities work together without conflicts:
 Quick validation:
 
 ```TypeScript
-.\gentle-vanguard\scripts\utilities\gv.ps1 orchestrator-status
-.\gentle-vanguard\scripts\utilities\gv.ps1 runtime-route
+.\gentle-vanguard\scripts\utilities\src/cli/gv.ts orchestrator-status
+.\gentle-vanguard\scripts\utilities\src/cli/gv.ts runtime-route
 .\gentle-vanguard\scripts\utilities\agent-router.ps1 status
 ```
 
@@ -52,8 +52,8 @@ Use this when core reasoning/runtime is external but repo governance remains loc
 Integration baseline:
 
 1. Keep repository-side governance active:
-   - `gv.ps1 start-session`
-   - `gv.ps1 end-session` or `gv.ps1 day-end-closure`
+   - `src/cli/gv.ts start-session`
+   - `src/cli/gv.ts end-session` or `src/cli/gv.ts day-end-closure`
 2. Keep `engram` as shared memory source from repo side.
 3. Use `agent-router.ps1 status` as readiness contract for role lanes.
 4. Capture artifacts in `docs/sessions`, `docs/audits`, `docs/code-reviews`.
@@ -87,8 +87,8 @@ If startup fails in strict mode:
 1. Run diagnostics:
 
 ```TypeScript
-.\gentle-vanguard\scripts\utilities\gv.ps1 orchestrator-status
-.\gentle-vanguard\scripts\utilities\gv.ps1 runtime-route
+.\gentle-vanguard\scripts\utilities\src/cli/gv.ts orchestrator-status
+.\gentle-vanguard\scripts\utilities\src/cli/gv.ts runtime-route
 .\gentle-vanguard\scripts\utilities\agent-router.ps1 status
 ```
 

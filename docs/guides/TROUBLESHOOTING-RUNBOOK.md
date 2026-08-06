@@ -465,7 +465,7 @@ npx --include-workspace-root --workspace $HOME\mcp-workspace --no --offline @mod
 
 ### Problem: "Homologation gate failed"
 
-**Symptom**: `gv.ps1 publish` blocked — "Multi-Repo Homologation Gate failed"
+**Symptom**: `src/cli/gv.ts publish` blocked — "Multi-Repo Homologation Gate failed"
 
 **Root Cause**: Repos are misaligned (VERSION, branches, or tags don't match)
 
@@ -473,7 +473,7 @@ npx --include-workspace-root --workspace $HOME\mcp-workspace --no --offline @mod
 
 ```TypeScript
 # 1. Run gate manually to see details
-.\scripts\utilities\gv.ps1 release-homologation
+.\scripts\utilities\src/cli/gv.ts release-homologation
 
 # 2. Common issues:
 
@@ -504,18 +504,18 @@ git pull origin main
 git pull origin develop
 
 # 6. Retry gate
-.\scripts\utilities\gv.ps1 release-homologation
+.\scripts\utilities\src/cli/gv.ts release-homologation
 # Should now pass
 
 # 7. Retry publish
-.\scripts\utilities\gv.ps1 publish
+.\scripts\utilities\src/cli/gv.ts publish
 ```
 
 **Emergency: Skip gate (NOT RECOMMENDED)**:
 
 ```TypeScript
 # Only for critical hotfixes:
-.\scripts\utilities\gv.ps1 publish -SkipHomologationGate
+.\scripts\utilities\src/cli/gv.ts publish -SkipHomologationGate
 # You must justify this in the release notes
 ```
 
@@ -523,7 +523,7 @@ git pull origin develop
 
 ### Problem: Publish workflow timeout
 
-**Symptom**: `gv.ps1 publish` runs for 30+ minutes then times out
+**Symptom**: `src/cli/gv.ts publish` runs for 30+ minutes then times out
 
 **Root Cause**: Tests or validation taking too long
 
@@ -536,7 +536,7 @@ git pull origin develop
 # 2. Run stages individually:
 
 # Stage 1: Homologation gate
-.\scripts\utilities\gv.ps1 release-homologation
+.\scripts\utilities\src/cli/gv.ts release-homologation
 # How long? Expected: < 1 min
 
 # Stage 2: Tests
@@ -554,7 +554,7 @@ npm test
 # 4. If still timing out:
 # Contact security-team with:
 $start = Get-Date
-.\scripts\utilities\gv.ps1 publish
+.\scripts\utilities\src/cli/gv.ts publish
 $duration = (Get-Date) - $start
 Write-Host "Duration: $($duration.TotalMinutes) minutes"
 ```

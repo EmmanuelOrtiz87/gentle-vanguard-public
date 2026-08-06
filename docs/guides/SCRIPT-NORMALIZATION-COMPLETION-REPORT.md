@@ -90,7 +90,7 @@ These scripts have mismatched opening and closing braces:
 - Action: Manual review required
 - Impact: Here-string or code block incomplete
 
-**gv.ps1**
+**src/cli/gv.ts**
 
 - Issue: 501 open, 500 closed
 - Action: Manual review required
@@ -119,7 +119,7 @@ These scripts have mismatched `@"` and `"@` delimiters:
 - `end-session.ps1` - 1 open, 3 closed
 - `generate-audit-report.ps1` - 3 open, 2 closed
 - `invoke-ai-review.ps1` - 3 open, 4 closed
-- `gv.ps1` - 4 open, 6 closed
+- `src/cli/gv.ts` - 4 open, 6 closed
 
 **Action**: Review multi-line string definitions
 

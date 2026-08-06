@@ -92,7 +92,7 @@ plugins/
 
 - Hooks: Plugins can register git hooks
 - Skills: Plugins can provide custom skills
-- Commands: Plugins can add gv.ps1 subcommands
+- Commands: Plugins can add src/cli/gv.ts subcommands
 - Tools: Plugins can provide new tool integrations
 
 ## Lifecycle

@@ -17,7 +17,7 @@ Nuevos parámetros:
 
 Estos reemplazan el estimado basado en caracteres cuando están disponibles.
 
-### 2. gv.ps1 (scripts/utilities/WORKFLOW-ORCHESTRATION/)
+### 2. src/cli/gv.ts (scripts/utilities/WORKFLOW-ORCHESTRATION/)
 
 Actualizado `Invoke-TokenBudgetGuard` para aceptar y pasar tokens reales:
 
@@ -65,7 +65,7 @@ if ($response.usage) {
 }
 ```
 
-### Para el Engine (gv.ps1):
+### Para el Engine (src/cli/gv.ts):
 
 El engine ahora acepta tokens reales como parámetros adicionales:
 

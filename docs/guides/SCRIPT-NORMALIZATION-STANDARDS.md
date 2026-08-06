@@ -233,7 +233,7 @@ Scripts containing emojis or special Unicode characters:
 Scripts with unbalanced braces, parentheses, or here-strings:
 
 - `bootstrap-workspace.ps1` - Unbalanced braces
-- `gv.ps1` - Multiple unbalanced elements
+- `src/cli/gv.ts` - Multiple unbalanced elements
 - `check-quality.ps1` - Invalid shell operators
 - `check-testing.ps1` - Invalid shell operators
 - `create-gitflow-branch.ps1` - Unbalanced parentheses

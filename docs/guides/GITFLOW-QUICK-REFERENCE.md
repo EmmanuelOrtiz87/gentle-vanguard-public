@@ -337,7 +337,7 @@ If any validation fails, the push will be blocked. Read the error message to kno
 ### Check Project Status
 
 ```bash
-.\gv.ps1 health
+.\src/cli/gv.ts health
 ```
 
 ### Validate GitFlow Manually

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -35,7 +35,7 @@ function ensureGitRepo(repoSlug: string, targetPath: string): void {
   const repoUrl = `https://github.com/${repoSlug}.git`;
   if (!existsSync(targetPath)) {
     console.log(`Cloning ${repoSlug} -> ${targetPath}`);
-    execSync(`git clone ${repoUrl} "${targetPath}"`, { stdio: 'inherit' });
+    runSync('git', ['clone', repoUrl, targetPath], { stdio: 'inherit' });
     return;
   }
 
@@ -45,16 +45,16 @@ function ensureGitRepo(repoSlug: string, targetPath: string): void {
 
   console.log(`Updating ${repoSlug} at ${targetPath}`);
   try {
-    execSync(`git fetch origin --prune`, { cwd: targetPath, stdio: 'inherit' });
+    runSync('git', ['fetch', 'origin', '--prune'], { cwd: targetPath, stdio: 'inherit' });
     let defaultBranch = 'main';
     try {
-      const remoteHead = execSync('git symbolic-ref refs/remotes/origin/HEAD', { cwd: targetPath, encoding: 'utf8', stdio: 'pipe' }).trim();
+      const remoteHead = runSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD'], { cwd: targetPath, stdio: 'pipe' }).stdout.trim();
       defaultBranch = remoteHead.replace('^refs/remotes/origin/', '');
     } catch {
       // fallback to main
     }
-    execSync(`git checkout ${defaultBranch}`, { cwd: targetPath, stdio: 'inherit' });
-    execSync(`git pull --rebase origin ${defaultBranch}`, { cwd: targetPath, stdio: 'inherit' });
+    runSync('git', ['checkout', defaultBranch], { cwd: targetPath, stdio: 'inherit' });
+    runSync('git', ['pull', '--rebase', 'origin', defaultBranch], { cwd: targetPath, stdio: 'inherit' });
   } catch (err) {
     throw new Error(`Failed to update ${repoSlug}: ${err}`);
   }
@@ -79,13 +79,19 @@ function main(): void {
   console.log('[OK] Repositories are ready');
 
   console.log('\n=== Bootstrap gentle-vanguard workspace ===');
-  const bootstrapScript = join(gentleVanguardPath, 'scripts/gentle-vanguard/bootstrap.ps1');
-  if (!existsSync(bootstrapScript)) {
-    throw new Error(`Bootstrap script not found: ${bootstrapScript}`);
+  // TS migration: bootstrap.ps1 → src/bootstrap.ts
+  const bootstrapTs = join(gentleVanguardPath, 'src', 'bootstrap.ts');
+  const bootstrapPs1 = join(gentleVanguardPath, 'src/bootstrap.ts');
+  if (!existsSync(bootstrapTs) && !existsSync(bootstrapPs1)) {
+    throw new Error(`Bootstrap script not found (TS: ${bootstrapTs}, PS1: ${bootstrapPs1})`);
   }
 
   const runnerParam = args.installRunner ? ` -InstallGitHubRunner -GitHubRunnerConfigPath "${args.runnerConfigPath}"` : '';
-  execSync(`powershell -File "${bootstrapScript}"${runnerParam}`, { stdio: 'inherit' });
+  if (existsSync(bootstrapTs)) {
+    runSyncShell(`npx tsx "${bootstrapTs}"${runnerParam}`, { stdio: 'inherit' });
+  } else {
+    runSyncShell(`powershell -File "${bootstrapPs1}"${runnerParam}`, { stdio: 'inherit' });
+  }
 
   console.log('[OK] Bootstrap completed');
 

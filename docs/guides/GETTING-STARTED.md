@@ -30,7 +30,7 @@ cd gentle-vanguard
 ### 3. Verify Tools
 
 ```TypeScript
-.\scripts\gentle-vanguard\gv.ps1 doctor
+.\scripts\gentle-vanguard\src/cli/gv.ts doctor
 ```
 
 ---
@@ -80,9 +80,9 @@ cd gentle-vanguard
 
 | Command       | Purpose         |
 | ------------- | --------------- |
-| gv.ps1 doctor | Diagnose issues |
-| gv.ps1 audit  | Run audit       |
-| gv.ps1 tools  | Manage tools    |
+| src/cli/gv.ts doctor | Diagnose issues |
+| src/cli/gv.ts audit  | Run audit       |
+| src/cli/gv.ts tools  | Manage tools    |
 
 ---
 

@@ -61,7 +61,7 @@ function main(): void {
   const adaptivePath = 'config/adaptive-config.json';
   if (existsSync(adaptivePath)) checks.push({ name: 'Adaptive Config', local: adaptivePath, gv: join(gentleVanguardRepoRoot, adaptivePath) });
 
-  const gvPath = 'scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1';
+  const gvPath = 'src/gv.ts';
   const gvTarget = join(gentleVanguardRepoRoot, gvPath);
   if (existsSync(gvPath) && existsSync(gvTarget)) checks.push({ name: 'Workflow Script (gv.ps1)', local: gvPath, gv: gvTarget });
 

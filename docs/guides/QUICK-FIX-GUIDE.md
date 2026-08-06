@@ -18,12 +18,12 @@ Get-Content .\docs\audit\script-normalization-report.md
 
 ## Top 5 Scripts to Fix First
 
-### 1. gv.ps1
+### 1. src/cli/gv.ts
 
 **Problem**: Missing 1 closing brace, 2 extra closing parentheses  
 **Quick Fix**:
 
-1. Open: `scripts/gentle-vanguard/gv.ps1`
+1. Open: `scripts/gentle-vanguard/src/cli/gv.ts`
 2. Search for: `function` and count braces
 3. Look for unclosed `if` or `foreach` statements
 

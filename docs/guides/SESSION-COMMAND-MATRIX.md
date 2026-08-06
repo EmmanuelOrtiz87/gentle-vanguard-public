@@ -27,9 +27,9 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 | -------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
 | `TypeScript -File scripts/utilities/...`                       | Falta `-NoProfile -ExecutionPolicy Bypass` | Usa `pwsh -NoProfile -ExecutionPolicy Bypass -File`  |
 | `scripts/utilities/session-autostart.cmd`                      | Falta shell (`cmd /c`)                     | Usa `cmd /c scripts\utilities\session-autostart.cmd` |
-| `.\scripts\utilities\gv.ps1 -Command "skill"`                  | Parámetro "skill" no válido                | Usa `gv start-session`                               |
-| `.\scripts\utilities\gv.ps1 skills`                            | Script no existe                           | No usar, skill se carga automáticamente              |
-| `.\scripts\utilities\gv.ps1 skill load session-workflow-skill` | Sintaxis incorrecta                        | No existe este comando                               |
+| `.\scripts\utilities\src/cli/gv.ts -Command "skill"`                  | Parámetro "skill" no válido                | Usa `gv start-session`                               |
+| `.\scripts\utilities\src/cli/gv.ts skills`                            | Script no existe                           | No usar, skill se carga automáticamente              |
+| `.\scripts\utilities\src/cli/gv.ts skill load session-workflow-skill` | Sintaxis incorrecta                        | No existe este comando                               |
 
 ---
 

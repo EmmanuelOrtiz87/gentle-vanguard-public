@@ -10,9 +10,9 @@
 
 These scripts are essential for project functionality and must be fixed first.
 
-### 1. gv.ps1 (Gentle-Vanguard - CRITICAL)
+### 1. src/cli/gv.ts (Gentle-Vanguard - CRITICAL)
 
-**Location**: `scripts/gentle-vanguard/gv.ps1`  
+**Location**: `scripts/gentle-vanguard/src/cli/gv.ts`  
 **Issues**:
 
 - Unbalanced braces: 501 open, 500 closed (missing 1 closing brace)
@@ -26,7 +26,7 @@ These scripts are essential for project functionality and must be fixed first.
 2. Use Find & Replace to locate unmatched braces
 3. Check function definitions and here-strings
 4. Validate with:
-   `[System.Management.Automation.Language.Parser]::ParseFile('.\scripts\gentle-vanguard\gv.ps1', [ref]$null, [ref]$errors)`
+   `[System.Management.Automation.Language.Parser]::ParseFile('.\scripts\gentle-vanguard\src/cli/gv.ts', [ref]$null, [ref]$errors)`
 
 **Estimated Effort**: 30-45 minutes
 
@@ -314,7 +314,7 @@ These scripts have syntax issues but are less frequently used.
 
 ### Phase 1 - Critical (This Week)
 
-1. **gv.ps1** - Core workflow
+1. **src/cli/gv.ts** - Core workflow
 2. **bootstrap-workspace.ps1** - Initialization
 3. **validate-script-governance.ps1** - Validation
 4. **session-manager.ps1** - Session management
