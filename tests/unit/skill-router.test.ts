@@ -19,16 +19,18 @@ describe('Skill Router', () => {
   it('should have valid embeddings structure', () => {
     if (existsSync(embeddingsFile)) {
       const embeddings = JSON.parse(readFileSync(embeddingsFile, 'utf-8'));
-      
+
       assert.ok(embeddings.version, 'Should have version');
       assert.ok(embeddings.metadata, 'Should have metadata');
       assert.ok(embeddings.vocabulary, 'Should have vocabulary');
       assert.ok(embeddings.idf, 'Should have IDF scores');
       assert.ok(Array.isArray(embeddings.skills), 'Skills should be an array');
-      
+
       // Verify skills count
-      assert.ok(embeddings.metadata.totalSkills >= 400, 
-        `Should have 400+ skills, found ${embeddings.metadata.totalSkills}`);
+      assert.ok(
+        embeddings.metadata.totalSkills >= 400,
+        `Should have 400+ skills, found ${embeddings.metadata.totalSkills}`,
+      );
     }
   });
 
@@ -36,7 +38,7 @@ describe('Skill Router', () => {
     if (existsSync(embeddingsFile)) {
       const embeddings = JSON.parse(readFileSync(embeddingsFile, 'utf-8'));
       const skill = embeddings.skills[0];
-      
+
       assert.ok(skill.name, 'Skill should have name');
       assert.ok(skill.agent, 'Skill should have agent');
       assert.ok(Array.isArray(skill.triggers), 'Skill should have triggers array');
@@ -48,8 +50,10 @@ describe('Skill Router', () => {
   it('should have vocabulary', () => {
     if (existsSync(embeddingsFile)) {
       const embeddings = JSON.parse(readFileSync(embeddingsFile, 'utf-8'));
-      assert.ok(embeddings.metadata.vocabularySize > 1000, 
-        `Should have 1000+ vocabulary terms, found ${embeddings.metadata.vocabularySize}`);
+      assert.ok(
+        embeddings.metadata.vocabularySize > 1000,
+        `Should have 1000+ vocabulary terms, found ${embeddings.metadata.vocabularySize}`,
+      );
     }
   });
 });

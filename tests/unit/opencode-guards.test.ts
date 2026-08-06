@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { normalizeSteps, validateOpencodeJsonSteps, validateAgentMdSteps } from '../../src/opencode-guards.ts';
+import {
+  normalizeSteps,
+  validateOpencodeJsonSteps,
+  validateAgentMdSteps,
+} from '../../src/opencode-guards.ts';
 
 const TEMP_MD = join(process.cwd(), '.opencode', 'agents', 'temp-agent.md');
 

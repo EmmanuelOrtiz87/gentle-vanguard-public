@@ -39,21 +39,19 @@ function generateSBOM(options: SBOMOptions): boolean {
   console.log(`Format: ${options.format.toUpperCase()}`);
   console.log(`Output: ${options.output}`);
   console.log();
-  
+
   // Ensure output directory exists
   const outputDir = dirname(options.output);
   if (!existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true });
   }
-  
+
   // Run pnpm native SBOM (pnpm-compatible, unlike cyclonedx-npm which relies on npm ls)
   const sbomFormat = options.format === 'xml' ? 'spdx' : 'cyclonedx';
-  const result = runSync(
-    'pnpm',
-    ['sbom', '--sbom-format', sbomFormat],
-    { stdio: ['pipe', 'pipe', 'pipe'] }
-  );
-  
+  const result = runSync('pnpm', ['sbom', '--sbom-format', sbomFormat], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+
   if (result.status === 0 && result.stdout) {
     writeFileSync(options.output, result.stdout, 'utf-8');
     console.log('✅ SBOM generated successfully');
@@ -61,7 +59,7 @@ function generateSBOM(options: SBOMOptions): boolean {
     console.log('='.repeat(60));
     console.log(`📄 Output: ${options.output}`);
     console.log('='.repeat(60));
-    
+
     // Read and display summary
     try {
       const sbom = JSON.parse(readFileSync(options.output, 'utf-8'));
@@ -75,7 +73,7 @@ function generateSBOM(options: SBOMOptions): boolean {
     } catch {
       // Not JSON or couldn't read
     }
-    
+
     return true;
   } else {
     console.error('❌ Failed to generate SBOM');

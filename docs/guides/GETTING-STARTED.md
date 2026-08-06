@@ -78,8 +78,8 @@ cd gentle-vanguard
 
 ## Common Commands
 
-| Command       | Purpose         |
-| ------------- | --------------- |
+| Command              | Purpose         |
+| -------------------- | --------------- |
 | src/cli/gv.ts doctor | Diagnose issues |
 | src/cli/gv.ts audit  | Run audit       |
 | src/cli/gv.ts tools  | Manage tools    |

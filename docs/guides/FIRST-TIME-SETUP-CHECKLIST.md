@@ -129,7 +129,7 @@ npm ci --ignore-scripts
 
 # Run full test suite to verify
 npm test
-# OR: npx tsx src/gv.ts
+# OR: npx tsx src/cli/gv.ts
 ```
 
 **Expected**: All tests pass (33/33)

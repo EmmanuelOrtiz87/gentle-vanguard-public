@@ -40,8 +40,8 @@ npm run gv -- health
 
 ### Node.js Runtime
 
-All scripts are TypeScript executed via `npx tsx`, so Node.js is the single runtime
-dependency. No shell-specific scripts or wrappers are required:
+All scripts are TypeScript executed via `npx tsx`, so Node.js is the single runtime dependency. No
+shell-specific scripts or wrappers are required:
 
 ```bash
 # All scripts run through Node.js
@@ -73,32 +73,32 @@ npm run gv -- optimize  # Optimize database
 
 ### Setup Scripts
 
-| Script                          | Platform        | Purpose                                   |
-| ------------------------------- | --------------- | ----------------------------------------- |
-| `npm run stack:setup`           | All             | One-command first-time stack installation |
-| `src/stack-setup.ts`            | All             | TypeScript implementation of setup steps  |
+| Script                | Platform | Purpose                                   |
+| --------------------- | -------- | ----------------------------------------- |
+| `npm run stack:setup` | All      | One-command first-time stack installation |
+| `src/stack-setup.ts`  | All      | TypeScript implementation of setup steps  |
 
 ### Diagnostic Scripts
 
-| Script                    | Platform | Purpose                                          |
-| ------------------------- | -------- | ------------------------------------------------ |
-| `npm run health:check`    | All      | Full stack health check (TypeScript)             |
-| `npm run self-diagnosis`  | All      | Detailed diagnostics for Windows/Linux/macOS     |
-| `src/self-diagnosis.ts`   | All      | TypeScript diagnostics entrypoint                |
+| Script                   | Platform | Purpose                                      |
+| ------------------------ | -------- | -------------------------------------------- |
+| `npm run health:check`   | All      | Full stack health check (TypeScript)         |
+| `npm run self-diagnosis` | All      | Detailed diagnostics for Windows/Linux/macOS |
+| `src/self-diagnosis.ts`  | All      | TypeScript diagnostics entrypoint            |
 
 ### Initialization Scripts
 
-| Script                    | Platform | Purpose                                        |
-| ------------------------- | -------- | ---------------------------------------------- |
-| `npm run stack:setup -- --yes` | All | Non-interactive auto-install of the full stack |
-| `src/stack-setup.ts`      | All      | TypeScript auto-init with auto-install support |
+| Script                         | Platform | Purpose                                        |
+| ------------------------------ | -------- | ---------------------------------------------- |
+| `npm run stack:setup -- --yes` | All      | Non-interactive auto-install of the full stack |
+| `src/stack-setup.ts`           | All      | TypeScript auto-init with auto-install support |
 
 ### Workflow CLI
 
-| Script             | Platform | Purpose                        |
-| ------------------ | -------- | ------------------------------ |
-| `npm run gv`       | All      | Main workflow CLI (`src/cli/gv.ts`) |
-| `src/cli/gv.ts`    | All      | Commands: info, check, validate, list, health, prune, backup, optimize, new, update, sync |
+| Script          | Platform | Purpose                                                                                   |
+| --------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `npm run gv`    | All      | Main workflow CLI (`src/cli/gv.ts`)                                                       |
+| `src/cli/gv.ts` | All      | Commands: info, check, validate, list, health, prune, backup, optimize, new, update, sync |
 
 ## Command Reference
 

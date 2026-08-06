@@ -17,39 +17,39 @@ console.log('🚀 Iniciando validación del sistema de tokens...\n');
 console.log('🔍 Verificando configuración de token budget...');
 const configPath = join(ROOT, 'config', 'token-budget-guard.json');
 if (existsSync(configPath)) {
-    try {
-        const configContent = readFileSync(configPath, 'utf-8');
-        const config = JSON.parse(configContent);
-        console.log('✅ Configuración cargada correctamente');
-        console.log('   - Límite diario:', config.tokenBudget.limits.daily, 'tokens');
-        console.log('   - Límite por sesión:', config.tokenBudget.limits.perSession, 'tokens');
-        console.log('   - Límite por agente:', config.tokenBudget.limits.perAgent, 'tokens');
-    } catch (error) {
-        console.error('❌ Error al parsear configuración:', error);
-        process.exit(1);
-    }
-} else {
-    console.error('❌ Archivo de configuración no encontrado:', configPath);
+  try {
+    const configContent = readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configContent);
+    console.log('✅ Configuración cargada correctamente');
+    console.log('   - Límite diario:', config.tokenBudget.limits.daily, 'tokens');
+    console.log('   - Límite por sesión:', config.tokenBudget.limits.perSession, 'tokens');
+    console.log('   - Límite por agente:', config.tokenBudget.limits.perAgent, 'tokens');
+  } catch (error) {
+    console.error('❌ Error al parsear configuración:', error);
     process.exit(1);
+  }
+} else {
+  console.error('❌ Archivo de configuración no encontrado:', configPath);
+  process.exit(1);
 }
 
 // 2. Verificar uso de tokens actual
 console.log('\n📊 Verificando uso actual de tokens...');
 try {
-    const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
-        cwd: ROOT
-    });
-    
-    if (result.status === 0) {
-        console.log('✅ Monitoreo de tokens funcionando correctamente');
-        console.log('   Output:', result.stdout.trim());
-    } else {
-        console.error('❌ Error en monitoreo de tokens:', result.stderr);
-        process.exit(1);
-    }
-} catch (error) {
-    console.error('❌ Error ejecutando monitoreo:', error);
+  const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
+    cwd: ROOT,
+  });
+
+  if (result.status === 0) {
+    console.log('✅ Monitoreo de tokens funcionando correctamente');
+    console.log('   Output:', result.stdout.trim());
+  } else {
+    console.error('❌ Error en monitoreo de tokens:', result.stderr);
     process.exit(1);
+  }
+} catch (error) {
+  console.error('❌ Error ejecutando monitoreo:', error);
+  process.exit(1);
 }
 
 // 3. Verificar archivos de métricas
@@ -58,58 +58,51 @@ const metricsDir = join(ROOT, 'docs', 'sessions', 'metrics');
 const metricsFile = join(metricsDir, 'token-guard-usage.csv');
 
 if (existsSync(metricsFile)) {
-    const content = readFileSync(metricsFile, 'utf-8');
-    const lines = content.split('\n').filter(l => l.trim());
-    console.log('✅ Archivo de métricas encontrado');
-    console.log('   Líneas totales:', lines.length);
-    console.log('   Última línea:', lines[lines.length - 1]);
+  const content = readFileSync(metricsFile, 'utf-8');
+  const lines = content.split('\n').filter((l) => l.trim());
+  console.log('✅ Archivo de métricas encontrado');
+  console.log('   Líneas totales:', lines.length);
+  console.log('   Última línea:', lines[lines.length - 1]);
 } else {
-    console.log('⚠️  Archivo de métricas no encontrado (puede ser normal en primer uso)');
+  console.log('⚠️  Archivo de métricas no encontrado (puede ser normal en primer uso)');
 }
 
 // 4. Verificar estructura del proyecto
 console.log('\n📁 Verificando estructura del proyecto...');
-const dirsToCheck = [
-    'config',
-    'docs',
-    'src',
-    'scripts',
-    '.session',
-    '.runtime'
-];
+const dirsToCheck = ['config', 'docs', 'src', 'scripts', '.session', '.runtime'];
 
 let allDirsOk = true;
 for (const dir of dirsToCheck) {
-    const fullPath = join(ROOT, dir);
-    if (existsSync(fullPath)) {
-        console.log(`✅ Directorio encontrado: ${dir}`);
-    } else {
-        console.log(`⚠️  Directorio no encontrado: ${dir}`);
-        allDirsOk = false;
-    }
+  const fullPath = join(ROOT, dir);
+  if (existsSync(fullPath)) {
+    console.log(`✅ Directorio encontrado: ${dir}`);
+  } else {
+    console.log(`⚠️  Directorio no encontrado: ${dir}`);
+    allDirsOk = false;
+  }
 }
 
 if (allDirsOk) {
-    console.log('✅ Estructura básica del proyecto verificada');
+  console.log('✅ Estructura básica del proyecto verificada');
 } else {
-    console.log('⚠️  Algunos directorios no encontrados, pero puede ser normal');
+  console.log('⚠️  Algunos directorios no encontrados, pero puede ser normal');
 }
 
 // 5. Verificar archivos de configuración principales
 console.log('\n⚙️  Verificando archivos de configuración principales...');
 const configFiles = [
-    'config/orchestrator.json',
-    'config/model-router.json',
-    'config/output-compression.json'
+  'config/orchestrator.json',
+  'config/model-router.json',
+  'config/output-compression.json',
 ];
 
 for (const configFile of configFiles) {
-    const fullPath = join(ROOT, configFile);
-    if (existsSync(fullPath)) {
-        console.log(`✅ Configuración encontrada: ${configFile}`);
-    } else {
-        console.log(`⚠️  Configuración no encontrada: ${configFile}`);
-    }
+  const fullPath = join(ROOT, configFile);
+  if (existsSync(fullPath)) {
+    console.log(`✅ Configuración encontrada: ${configFile}`);
+  } else {
+    console.log(`⚠️  Configuración no encontrada: ${configFile}`);
+  }
 }
 
 // 6. Mostrar resumen del estado actual

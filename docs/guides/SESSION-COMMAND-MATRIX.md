@@ -8,12 +8,12 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 ## 📋 Matriz Principal
 
-| Situación                 | Comando Exacto                                                                          | Parámetros                                      | Validación                        |
-| ------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------- |
+| Situación                 | Comando Exacto                                                           | Parámetros                                      | Validación                        |
+| ------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------- | --------------------------------- |
 | **Iniciar sesión nueva**  | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "inicia sesion" -WorkspaceRoot "."` | Output: `TRIGGER_MATCH_FOUND`     |
-|                           | `cmd /c scripts\utilities\session-autostart.cmd`                                        | (ninguno)                                       | Output: `[READY] Workspace ready` |
-| **Verificar estado**      | `git status`                                                                            | (ninguno)                                       | Output: rama y cambios            |
-| **Ver resumen de sesión** | `Get-Content logs/session-*.json`                                                       | (ninguno)                                       | JSON válido                       |
+|                           | `cmd /c scripts\utilities\session-autostart.cmd`                         | (ninguno)                                       | Output: `[READY] Workspace ready` |
+| **Verificar estado**      | `git status`                                                             | (ninguno)                                       | Output: rama y cambios            |
+| **Ver resumen de sesión** | `Get-Content logs/session-*.json`                                        | (ninguno)                                       | JSON válido                       |
 | **Continuar sesión**      | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "continuar" -WorkspaceRoot "."`     | Output: `TRIGGER_MATCH_FOUND`     |
 | **Revisar código**        | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "review" -WorkspaceRoot "."`        | Output: `TRIGGER_MATCH_FOUND`     |
 | **Guardar cambios**       | `pwsh -NoProfile -ExecutionPolicy Bypass -File src/pre-process-input.ts` | `-UserInput "push" -WorkspaceRoot "."`          | Output: `TRIGGER_MATCH_FOUND`     |
@@ -23,10 +23,10 @@ Eliminar ambigüedad sobre qué comando ejecutar en cada situación.
 
 ## ❌ Comandos INCORRECTOS (NO USAR)
 
-| Comando Incorrecto                                             | Por Qué                                    | Corrección                                           |
-| -------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| `TypeScript -File scripts/utilities/...`                       | Falta `-NoProfile -ExecutionPolicy Bypass` | Usa `pwsh -NoProfile -ExecutionPolicy Bypass -File`  |
-| `scripts/utilities/session-autostart.cmd`                      | Falta shell (`cmd /c`)                     | Usa `cmd /c scripts\utilities\session-autostart.cmd` |
+| Comando Incorrecto                                                    | Por Qué                                    | Corrección                                           |
+| --------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| `TypeScript -File scripts/utilities/...`                              | Falta `-NoProfile -ExecutionPolicy Bypass` | Usa `pwsh -NoProfile -ExecutionPolicy Bypass -File`  |
+| `scripts/utilities/session-autostart.cmd`                             | Falta shell (`cmd /c`)                     | Usa `cmd /c scripts\utilities\session-autostart.cmd` |
 | `.\scripts\utilities\src/cli/gv.ts -Command "skill"`                  | Parámetro "skill" no válido                | Usa `gv start-session`                               |
 | `.\scripts\utilities\src/cli/gv.ts skills`                            | Script no existe                           | No usar, skill se carga automáticamente              |
 | `.\scripts\utilities\src/cli/gv.ts skill load session-workflow-skill` | Sintaxis incorrecta                        | No existe este comando                               |

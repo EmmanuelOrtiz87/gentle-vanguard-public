@@ -15,7 +15,7 @@ assert.strictEqual(noChanges.tier, 'low', 'Should be low risk with no changes');
 assert.strictEqual(noChanges.reviewLenses, 0, 'Should require 0 lenses');
 console.log('✓ PASS\n');
 
-// Test 2: Documentation changes  
+// Test 2: Documentation changes
 console.log('Test 2: Documentation-only changes');
 const docsChange: RiskClassification = {
   tier: 'low',
@@ -34,15 +34,17 @@ console.log('Test 3: Authentication changes');
 const authChange: RiskClassification = {
   tier: 'high',
   score: 90,
-  factors: [{
-    name: 'Crosses security boundary',
-    category: 'security',
-    severity: 5,
-    evidence: 'Auth code detected',
-    files: ['auth.ts'],
-  }],
+  factors: [
+    {
+      name: 'Crosses security boundary',
+      category: 'security',
+      severity: 5,
+      evidence: 'Auth code detected',
+      files: ['auth.ts'],
+    },
+  ],
   rationale: 'High risk: security',
-  recommendation: '4R review required', 
+  recommendation: '4R review required',
   reviewLenses: 4,
 };
 assert.strictEqual(authChange.tier, 'high');

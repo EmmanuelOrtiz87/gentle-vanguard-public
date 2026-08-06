@@ -24,27 +24,27 @@ Configuration source:
 Set hard mode (recommended default for testing):
 
 ```TypeScript
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard profile:hard
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts token-guard profile:hard
 ```
 
 Set balanced mode (less aggressive):
 
 ```TypeScript
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard profile:balanced
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts token-guard profile:balanced
 ```
 
 Run automatic guard + autopilot check now:
 
 ```TypeScript
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts token-guard auto
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts token-guard auto
 ```
 
 On-demand chat response control:
 
 ```TypeScript
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode ahorro
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode normal
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode detallado
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts response-mode ahorro
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts response-mode normal
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts response-mode detallado
 ```
 
 ## Profile Comparison
@@ -92,7 +92,7 @@ Note: exact token savings depend on workload shape and agent/task mix.
 If a mode command fails, run:
 
 ```TypeScript
-pwsh -NoProfile -ExecutionPolicy Bypass -File src/gv.ts response-mode status -JSON
+pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts response-mode status -JSON
 ```
 
 Then verify:

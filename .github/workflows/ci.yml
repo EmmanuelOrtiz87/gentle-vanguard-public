@@ -185,7 +185,9 @@ jobs:
           cache: pnpm
 
       - name: Validate workflows
-        run: pnpm dlx action-validator .github/workflows/*.yml || echo "action-validator not available, skipping"
+        run:
+          pnpm dlx action-validator .github/workflows/*.yml || echo "action-validator not available,
+          skipping"
 
       - name: Validate npm ci compliance
         run: npx tsx src/npm-ci-check.ts

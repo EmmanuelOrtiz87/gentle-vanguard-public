@@ -158,7 +158,6 @@
     "backlog:stats": "npx tsx src/cli/backlog.ts stats",
     "backlog:report": "npx tsx src/cli/backlog.ts report",
     "postinstall": "pnpm build:mcp",
-
     "model:current": "npx tsx scripts/utilities/MODEL-ROUTER/model-switch.ts current",
     "model:list": "npx tsx scripts/utilities/MODEL-ROUTER/model-switch.ts list",
     "model:switch": "npx tsx scripts/utilities/MODEL-ROUTER/model-switch.ts switch",
@@ -181,9 +180,8 @@
     "pie:analyze": "npx tsx src/proactive-intelligence-engine.ts --analyze",
     "pie:suggest": "npx tsx src/proactive-intelligence-engine.ts --suggest",
     "test:optimized": "npx tsx src/test-runner-optimized.ts",
-    "test:parallel": "npx tsx src/test-runner-optimized.ts --parallel 4"  ,
+    "test:parallel": "npx tsx src/test-runner-optimized.ts --parallel 4",
     "test:quick": "npx tsx src/test-runner-optimized.ts --quick",
-
     "stack": "npx tsx src/cli/stack.ts",
     "stack:health": "npx tsx src/cli/stack.ts health",
     "stack:watchtower": "npx tsx src/cli/stack.ts watchtower",
@@ -192,7 +190,6 @@
     "learning:suggest": "npx tsx src/learning-engine.ts --suggest",
     "knowledge:acquire": "npx tsx src/knowledge-acquisition.ts --fetch",
     "guardian:check": "npx tsx src/session-close-guardian.ts",
-
     "rdd:start": "npx tsx src/rdd/rdd-core.ts start",
     "rdd:classify": "npx tsx src/rdd/rdd-core.ts classify",
     "rdd:review": "npx tsx src/rdd/rdd-core.ts review",

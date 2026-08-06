@@ -218,8 +218,8 @@ Use `src/cli/gv.ts publish` for end-to-end execution with governance gates:
 
 ### Scripts
 
-| Script           | Purpose                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------- |
+| Script                  | Purpose                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------- |
 | `src/cli/gv.ts review`  | Run code review                                                                       |
 | `src/cli/gv.ts audit`   | Generate audit document                                                               |
 | `src/cli/gv.ts pr`      | Create PR template                                                                    |

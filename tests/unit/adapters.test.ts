@@ -85,7 +85,10 @@ describe('adapters', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-adapter-test-'));
     const skill = path.join(tmp, 'SKILL.md');
     const out = path.join(tmp, 'out.json');
-    fs.writeFileSync(skill, '---\nname: test-skill\ndescription: A test skill\ntrigger: test, demo\n---\n# Instructions\nDo the thing.\n');
+    fs.writeFileSync(
+      skill,
+      '---\nname: test-skill\ndescription: A test skill\ntrigger: test, demo\n---\n# Instructions\nDo the thing.\n',
+    );
     convertToCodex(skill, out);
     const parsed = JSON.parse(fs.readFileSync(out, 'utf-8'));
     assert.strictEqual(parsed.type, 'function');
@@ -101,7 +104,10 @@ describe('adapters', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-ws-adapter-test-'));
     const skill = path.join(tmp, 'SKILL.md');
     const outDir = path.join(tmp, 'plugins');
-    fs.writeFileSync(skill, '---\nname: ws-skill\ndescription: A ws skill\ntrigger: ws\n---\n# Instructions\nDo the ws thing.\n');
+    fs.writeFileSync(
+      skill,
+      '---\nname: ws-skill\ndescription: A ws skill\ntrigger: ws\n---\n# Instructions\nDo the ws thing.\n',
+    );
     convertToWindsurf(skill, outDir);
     const pluginJson = path.join(outDir, 'ws-skill', 'plugin.json');
     assert.ok(fs.existsSync(pluginJson));

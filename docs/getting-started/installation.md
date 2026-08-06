@@ -74,7 +74,7 @@ The gentle-vanguard includes integration with:
 | ------------------------ | ------------------------ | ---------------------------------------------------------------- |
 | **OpenCode**             | AI coding agent          | https://opencode.ai                                              |
 | **Claude Code**          | AI coding agent          | https://claude.ai/code                                           |
-| **Native Review Engine** | Built-in workflow review | `./src/cli/gv.ts review`                              |
+| **Native Review Engine** | Built-in workflow review | `./src/cli/gv.ts review`                                         |
 | **engram**               | Persistent memory        | `go install github.com/gentle-vanguard/engram/cmd/engram@latest` |
 
 Windows one-shot update (no brew required): `./src/cli/gv.ts update-tools`

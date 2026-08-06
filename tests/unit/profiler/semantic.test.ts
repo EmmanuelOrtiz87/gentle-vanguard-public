@@ -18,7 +18,7 @@ describe('Semantic Code Graph', () => {
   it('should have generated graph', () => {
     const graphPath = join(process.cwd(), '.runtime', 'semantic-graph', 'semantic-graph.json');
     assert.ok(existsSync(graphPath), 'Semantic graph should be generated');
-    
+
     const graph = JSON.parse(readFileSync(graphPath, 'utf-8'));
     assert.ok(graph.stats, 'Graph should have stats');
     assert.ok(graph.stats.totalNodes > 0, 'Should have nodes');

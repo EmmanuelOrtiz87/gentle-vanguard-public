@@ -40,7 +40,7 @@ Invokes skills on AWS Lambda with:
 
 ```TypeScript
 # Basic usage
-npx tsx src/gv.ts `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -RecordMetrics
@@ -58,7 +58,7 @@ Invokes skills on Azure Functions with:
 
 ```TypeScript
 # Basic usage
-npx tsx src/gv.ts `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -FunctionUrl "https://myapp.azurewebsites.net/api/skill-executor" `
@@ -76,14 +76,14 @@ Routes between AWS and Azure based on strategy:
 
 ```TypeScript
 # Cost-based routing (default)
-npx tsx src/gv.ts `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -RoutingStrategy cost `
   -RecordMetrics
 
 # Force specific provider
-npx tsx src/gv.ts `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -PreferredProvider AWS `

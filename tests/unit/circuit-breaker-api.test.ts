@@ -23,7 +23,9 @@ describe('circuit-breaker-api', () => {
         }
         require('fs').writeFileSync(CIRCUITS_FILE, JSON.stringify(data, null, 2), 'utf-8');
       }
-    } catch { /* non-fatal */ }
+    } catch {
+      /* non-fatal */
+    }
   });
 
   it('source file exists', () => {

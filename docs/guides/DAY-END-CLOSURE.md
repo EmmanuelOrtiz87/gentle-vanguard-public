@@ -71,7 +71,7 @@ Day End Closure Flow
 | --------------------------------------- | ------------------------------------------ | ------------------------- |
 | `scripts/utilities/day-end-closure.ps1` | Main orchestrator for daily closure        | Manual or automatic       |
 | `scripts/utilities/end-session.ps1`     | Operational checks and artifact generation | Called by day-end-closure |
-| `src/cli/gv.ts`              | CLI entry point                            | User command              |
+| `src/cli/gv.ts`                         | CLI entry point                            | User command              |
 | `docs/sessions/`                        | Artifact storage                           | Auto-created on closure   |
 
 ## Manual Execution Examples

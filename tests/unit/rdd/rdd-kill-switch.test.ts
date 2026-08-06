@@ -3,7 +3,13 @@
  * Tests for RDD Kill Switch
  */
 
-import { isDisabled, disable, enable, status, getDisableHistory } from '../../../src/rdd/rdd-kill-switch.ts';
+import {
+  isDisabled,
+  disable,
+  enable,
+  status,
+  getDisableHistory,
+} from '../../../src/rdd/rdd-kill-switch.ts';
 import assert from 'assert';
 import { existsSync, unlinkSync } from 'fs';
 import { join, resolve } from 'path';

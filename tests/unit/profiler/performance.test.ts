@@ -10,7 +10,7 @@ import { join } from 'path';
 
 const PROFILER_PATH = join(process.cwd(), 'src', 'profiler', 'performance-profiler.ts');
 
-	describe('Performance Profiler', () => {
+describe('Performance Profiler', () => {
   it('should have source file', () => {
     assert.ok(existsSync(PROFILER_PATH), 'Profiler source should exist');
   });

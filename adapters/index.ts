@@ -160,11 +160,18 @@ export async function loadAdapters(): Promise<{
   // Use dynamic imports so the module can be used in environments that don't have the adapters built.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const codexAdapter = await import('./format-adapters/codex-adapter/CodexAdapter.js').then((m) => m.default).catch(() => null);
+  const codexAdapter = await import('./format-adapters/codex-adapter/CodexAdapter.js')
+    .then((m) => m.default)
+    .catch(() => null);
   // @ts-ignore
-  const windsurfAdapter = await import('./format-adapters/windsurf-adapter/WindsurfAdapter.js').then((m) => m.default).catch(() => null);
+  const windsurfAdapter = await import('./format-adapters/windsurf-adapter/WindsurfAdapter.js')
+    .then((m) => m.default)
+    .catch(() => null);
   // @ts-ignore
-  const antigravityAdapter = await import('./format-adapters/antigravity-adapter/AntigravityAdapter.js').then((m) => m.default).catch(() => null);
+  const antigravityAdapter =
+    await import('./format-adapters/antigravity-adapter/AntigravityAdapter.js')
+      .then((m) => m.default)
+      .catch(() => null);
 
   return { codexAdapter, windsurfAdapter, antigravityAdapter };
 }

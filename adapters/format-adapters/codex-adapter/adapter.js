@@ -1,7 +1,7 @@
 /**
  * Codex Adapter
  * Converts Gentle-Vanguard tools/skills to OpenAI function calling format
- * 
+ *
  * Codex (OpenAI) uses:
  * - Function calling format (JSON Schema)
  * - Chat completions API
@@ -17,7 +17,7 @@ const path = require('path');
 function convertSkillToCodex(skillPath, outputPath) {
   const skillContent = fs.readFileSync(skillPath, 'utf-8');
   const parsed = parseSkillMarkdown(skillContent);
-  
+
   // Convert to OpenAI function calling format
   const codexFunction = {
     type: 'function',
@@ -29,19 +29,19 @@ function convertSkillToCodex(skillPath, outputPath) {
         properties: {
           task: {
             type: 'string',
-            description: 'The task to execute using this skill'
+            description: 'The task to execute using this skill',
           },
           context: {
             type: 'string',
-            description: 'Additional context for the skill execution'
-          }
+            description: 'Additional context for the skill execution',
+          },
         },
         required: ['task'],
-        additionalProperties: false
-      }
-    }
+        additionalProperties: false,
+      },
+    },
   };
-  
+
   fs.writeFileSync(outputPath, JSON.stringify(codexFunction, null, 2));
   console.log(`✓ Converted ${parsed.name} to Codex format: ${outputPath}`);
   return codexFunction;
@@ -55,16 +55,16 @@ function parseSkillMarkdown(content) {
     name: '',
     description: '',
     triggers: [],
-    content: ''
+    content: '',
   };
-  
+
   const startMarker = content.indexOf('---');
   if (startMarker >= 0) {
     const secondMarker = content.indexOf('---', startMarker + 3);
     if (secondMarker >= 0) {
       const frontMatter = content.substring(startMarker + 3, secondMarker);
       const restContent = content.substring(secondMarker + 3);
-      
+
       const lines = frontMatter.split('\n');
       for (const line of lines) {
         if (line.startsWith('name:')) {
@@ -73,14 +73,14 @@ function parseSkillMarkdown(content) {
           result.description = line.substring(12).trim();
         } else if (line.startsWith('trigger:')) {
           const triggerText = line.substring(8).trim();
-          result.triggers = triggerText.split(',').map(t => t.trim().replace(/"/g, ''));
+          result.triggers = triggerText.split(',').map((t) => t.trim().replace(/"/g, ''));
         }
       }
-      
+
       result.content = restContent.trim();
     }
   }
-  
+
   return result;
 }
 
@@ -88,11 +88,12 @@ function parseSkillMarkdown(content) {
  * Generate OpenAI-compatible tools array
  */
 function generateToolsArray(skillsDir, outputPath) {
-  const files = fs.readdirSync(skillsDir)
-    .filter(f => f.endsWith('SKILL.md'))
-    .map(f => path.join(skillsDir, f));
-  
-  const tools = files.map(file => {
+  const files = fs
+    .readdirSync(skillsDir)
+    .filter((f) => f.endsWith('SKILL.md'))
+    .map((f) => path.join(skillsDir, f));
+
+  const tools = files.map((file) => {
     const parsed = parseSkillMarkdown(fs.readFileSync(file, 'utf-8'));
     return {
       type: 'function',
@@ -102,15 +103,15 @@ function generateToolsArray(skillsDir, outputPath) {
         parameters: {
           type: 'object',
           properties: {
-            task: { type: 'string', description: 'Task to execute' }
+            task: { type: 'string', description: 'Task to execute' },
           },
           required: ['task'],
-          additionalProperties: false
-        }
-      }
+          additionalProperties: false,
+        },
+      },
     };
   });
-  
+
   const output = { tools };
   fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
   console.log(`✓ Generated tools array: ${outputPath}`);
@@ -157,7 +158,7 @@ app.listen(PORT, () => {
   console.log(\`Codex proxy running on port \${PORT}\`);
 });
 `;
-  
+
   fs.writeFileSync(outputPath, serverCode);
   console.log(`✓ Generated proxy server: ${outputPath}`);
 }
@@ -166,7 +167,7 @@ app.listen(PORT, () => {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   if (command === 'convert-skill') {
     const skillPath = args[1] || 'SKILL.md';
     const outputPath = args[2] || 'output.json';
@@ -179,7 +180,7 @@ if (require.main === module) {
     const outputPath = args[1] || 'proxy.js';
     generateProxyServer(outputPath);
   } else {
-    console.log(\`
+    console.log(`
 Codex Adapter
 
 Usage:
@@ -191,13 +192,12 @@ Examples:
   node adapter.js convert-skill skills/react-19-skill/SKILL.md react-19.json
   node adapter.js generate-tools skills/ tools.json
   node adapter.js generate-proxy proxy.js
-    \`);
+    `);
   }
 }
 
 module.exports = {
   convertSkillToCodex,
   generateToolsArray,
-  generateProxyServer
+  generateProxyServer,
 };
-

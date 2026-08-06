@@ -24,9 +24,15 @@ function parseArgs(argv: string[]): BootstrapArgs {
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if ((arg === '--git-user' || arg === '-GitUser') && argv[i + 1]) args.gitUser = argv[++i];
-    else if ((arg === '--git-email' || arg === '-GitEmail') && argv[i + 1]) args.gitEmail = argv[++i];
-    else if (arg === '--install-github-runner' || arg === '-InstallGitHubRunner') args.installGitHubRunner = true;
-    else if ((arg === '--github-runner-config-path' || arg === '-GitHubRunnerConfigPath') && argv[i + 1]) args.gitHubRunnerConfigPath = argv[++i];
+    else if ((arg === '--git-email' || arg === '-GitEmail') && argv[i + 1])
+      args.gitEmail = argv[++i];
+    else if (arg === '--install-github-runner' || arg === '-InstallGitHubRunner')
+      args.installGitHubRunner = true;
+    else if (
+      (arg === '--github-runner-config-path' || arg === '-GitHubRunnerConfigPath') &&
+      argv[i + 1]
+    )
+      args.gitHubRunnerConfigPath = argv[++i];
   }
   return args;
 }
@@ -69,11 +75,17 @@ function writeInfo(msg: string): void {
 }
 
 function cmdExists(cmd: string): boolean {
-  const result = runSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { stdio: 'pipe' });
+  const result = runSync(process.platform === 'win32' ? 'where' : 'which', [cmd], {
+    stdio: 'pipe',
+  });
   return result.status === 0;
 }
 
-function runCmd(cmd: string, args: string[], cwd?: string): { stdout: string; stderr: string; status: number | null } {
+function runCmd(
+  cmd: string,
+  args: string[],
+  cwd?: string,
+): { stdout: string; stderr: string; status: number | null } {
   const result = runSync(cmd, args, { stdio: 'pipe', cwd });
   return { stdout: result.stdout.trim(), stderr: result.stderr.trim(), status: result.status };
 }
@@ -143,7 +155,9 @@ function main(): void {
     writeInfo('Go not found. Engram already available - skipping Go requirement.');
     writeInfo('Install Go later for full functionality: winget install GoLang.Go');
   } else {
-    writeError('Go (Golang) not found and Engram not available. Install Go: winget install GoLang.Go');
+    writeError(
+      'Go (Golang) not found and Engram not available. Install Go: winget install GoLang.Go',
+    );
     process.exit(1);
   }
 
@@ -226,25 +240,34 @@ function main(): void {
   writeStep('Step 4b: Scheduled Task - CodeGraph Auto-Sync...');
   if (process.platform === 'win32') {
     const taskName = 'Gentle-Vanguard-CodeGraph-Sync';
-    const existingTask = runCmd('powershell', ['-Command', `Get-ScheduledTask -TaskName '${taskName}' -ErrorAction SilentlyContinue`]);
+    const existingTask = runCmd('powershell', [
+      '-Command',
+      `Get-ScheduledTask -TaskName '${taskName}' -ErrorAction SilentlyContinue`,
+    ]);
     if (!existingTask.stdout) {
       const taskScript = join(root, 'src', 'codegraph-sync-autostart.ts');
       if (existsSync(taskScript)) {
         const psCmd = [
-          '-NoProfile', '-NoLogo', '-NonInteractive', '-Command', `npx tsx "${taskScript}"`,
+          '-NoProfile',
+          '-NoLogo',
+          '-NonInteractive',
+          '-Command',
+          `npx tsx "${taskScript}"`,
         ];
         const registerCmd = [
           '-Command',
           `$action = New-ScheduledTaskAction -Execute "pwsh.exe" -Argument '${psCmd.join(' ')}'; ` +
-          `$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date "08:00") -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration ([TimeSpan]::FromDays(30)); ` +
-          `$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5); ` +
-          `Register-ScheduledTask -TaskName '${taskName}' -Action $action -Trigger $trigger -Settings $settings -Force`,
+            `$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date "08:00") -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration ([TimeSpan]::FromDays(30)); ` +
+            `$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5); ` +
+            `Register-ScheduledTask -TaskName '${taskName}' -Action $action -Trigger $trigger -Settings $settings -Force`,
         ];
         const regResult = runCmd('powershell', registerCmd);
         if (regResult.status === 0) {
           writeSuccess(`Scheduled task '${taskName}' created (syncs CodeGraph every hour).`);
         } else {
-          writeInfo('Could not create scheduled task (requires admin). Optional - hooks handle sync on every commit/merge.');
+          writeInfo(
+            'Could not create scheduled task (requires admin). Optional - hooks handle sync on every commit/merge.',
+          );
         }
       } else {
         writeInfo(`Task script not found at ${taskScript}. Skipping.`);
@@ -272,7 +295,8 @@ function main(): void {
     Engram: engramAvailable ? 'PASS' : 'FAIL',
     Lefthook: cmdExists('lefthook') ? 'PASS' : 'FAIL',
     'CodeGraph Hooks': existsSync(gitHooksPath) ? 'PASS' : 'FAIL',
-    'CodeGraph Task': process.platform === 'win32' ? 'INFO: Not installed (optional)' : 'INFO: N/A (non-Windows)',
+    'CodeGraph Task':
+      process.platform === 'win32' ? 'INFO: Not installed (optional)' : 'INFO: N/A (non-Windows)',
     Config: existsSync(configPath) ? 'PASS' : 'FAIL',
   };
 
@@ -283,7 +307,9 @@ function main(): void {
   }
 
   console.log(`\n\x1b[32m[SUCCESS] Gentle-Vanguard Initialized and Verified!\x1b[0m`);
-  console.log(`\x1b[32mYou can now run 'npx tsx src/session-autostart.ts' to start your session.\x1b[0m`);
+  console.log(
+    `\x1b[32mYou can now run 'npx tsx src/session-autostart.ts' to start your session.\x1b[0m`,
+  );
 }
 
 main();

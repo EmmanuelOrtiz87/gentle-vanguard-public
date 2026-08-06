@@ -18,11 +18,11 @@ v1.0.0
 
 ### versión Increment Rules
 
-| Scenario   | When                                                                | Example                              |
-| ---------- | ------------------------------------------------------------------- | ------------------------------------ |
-| MAJOR bump | Breaking changes to CLI, script API, or governance model            | v1.0.0 v2.0.0 (new release strategy) |
-| MINOR bump | New skills, new SDD policy, new features, governance clarifications | v1.0.0 v1.1.0 (SDD gate tightened)   |
-| PATCH bump | Bug fixes, security patches, documentation corrections              | v1.0.0 v1.0.1 (fixed src/cli/gv.ts bug)     |
+| Scenario   | When                                                                | Example                                 |
+| ---------- | ------------------------------------------------------------------- | --------------------------------------- |
+| MAJOR bump | Breaking changes to CLI, script API, or governance model            | v1.0.0 v2.0.0 (new release strategy)    |
+| MINOR bump | New skills, new SDD policy, new features, governance clarifications | v1.0.0 v1.1.0 (SDD gate tightened)      |
+| PATCH bump | Bug fixes, security patches, documentation corrections              | v1.0.0 v1.0.1 (fixed src/cli/gv.ts bug) |
 
 ### Examples
 

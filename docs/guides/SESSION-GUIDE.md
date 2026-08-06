@@ -29,16 +29,16 @@ The Gentle-Vanguard automatically ensures all development tools are active and r
 | **Pre-commit**         | Tools validated before each commit     | Runs automatically    |
 | **Session start**      | Session brief artifacts are generated  | Daily workflow        |
 | **RED context health** | Orchestrator auto-runs `compact-start` | Recovers lost context |
-| **Manual**             | Use `src/cli/gv.ts health` anytime            | On-demand check       |
+| **Manual**             | Use `src/cli/gv.ts health` anytime     | On-demand check       |
 
 ### Tools Activated
 
-| Tool                            | Purpose                                 | Status Check    |
-| ------------------------------- | --------------------------------------- | --------------- |
-| **Engram**                      | Memory system for context persistence   | `mem_context`   |
-| **Native Review Engine**        | Gentle-Vanguard code quality validation | Runs on commit  |
+| Tool                            | Purpose                                 | Status Check           |
+| ------------------------------- | --------------------------------------- | ---------------------- |
+| **Engram**                      | Memory system for context persistence   | `mem_context`          |
+| **Native Review Engine**        | Gentle-Vanguard code quality validation | Runs on commit         |
 | **Native Runtime Orchestrator** | Policy-driven execution and guidance    | `src/cli/gv.ts status` |
-| **Orchestrator Skills**         | Project coordination system             | Auto-loaded     |
+| **Orchestrator Skills**         | Project coordination system             | Auto-loaded            |
 
 ### Manual Activation Commands
 
@@ -94,11 +94,11 @@ The orchestrator automatically detects:
 
 When health is degraded, the system helps you recover:
 
-| Health Status       | Action                                                      |
-| ------------------- | ----------------------------------------------------------- |
-| **WARN/YELLOW**     | CLI shows live guidance                                     |
-| **RED**             | Orchestrator auto-runs `compact-start` before session brief |
-| **Manual fallback** | `.\scripts\utilities\src/cli/gv.ts compact-start "<objective>"`    |
+| Health Status       | Action                                                          |
+| ------------------- | --------------------------------------------------------------- |
+| **WARN/YELLOW**     | CLI shows live guidance                                         |
+| **RED**             | Orchestrator auto-runs `compact-start` before session brief     |
+| **Manual fallback** | `.\scripts\utilities\src/cli/gv.ts compact-start "<objective>"` |
 
 **Step 3: Memory Check**
 

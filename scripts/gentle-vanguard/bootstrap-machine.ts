@@ -31,7 +31,8 @@ function parseArgs(argv: string[]): BootstrapMachineArgs {
     const arg = argv[i];
     if ((arg === '--version' || arg === '-Version') && argv[i + 1]) args.version = argv[++i];
     else if ((arg === '--source' || arg === '-Source') && argv[i + 1]) args.source = argv[++i];
-    else if ((arg === '--install-root' || arg === '-InstallRoot') && argv[i + 1]) args.installRoot = argv[++i];
+    else if ((arg === '--install-root' || arg === '-InstallRoot') && argv[i + 1])
+      args.installRoot = argv[++i];
     else if (arg === '--portable' || arg === '-Portable') args.portable = true;
     else if (arg === '--force' || arg === '-Force') args.force = true;
     else if (arg === '--dry-run' || arg === '-DryRun') args.dryRun = true;
@@ -59,7 +60,11 @@ function writeErr(msg: string): void {
   console.log(`[ERROR] ${msg}`);
 }
 
-function runCmd(cmd: string, args: string[], cwd?: string): { stdout: string; stderr: string; status: number | null } {
+function runCmd(
+  cmd: string,
+  args: string[],
+  cwd?: string,
+): { stdout: string; stderr: string; status: number | null } {
   const result = runSync(cmd, args, { stdio: 'pipe', cwd });
   return { stdout: result.stdout.trim(), stderr: result.stderr.trim(), status: result.status };
 }
@@ -120,18 +125,24 @@ function removeDir(path: string): void {
       if (stat.isDirectory()) {
         removeDir(entryPath);
       } else {
-        try { copyFileSync; } catch {}
+        try {
+          copyFileSync;
+        } catch {}
         if (existsSync(entryPath)) {
-          runSync(platform() === 'win32' ? 'cmd' : 'rm', platform() === 'win32'
-            ? ['/c', 'del', '/f', '/q', entryPath]
-            : ['-f', entryPath], { stdio: 'pipe' });
+          runSync(
+            platform() === 'win32' ? 'cmd' : 'rm',
+            platform() === 'win32' ? ['/c', 'del', '/f', '/q', entryPath] : ['-f', entryPath],
+            { stdio: 'pipe' },
+          );
         }
       }
     }
     try {
-      runSync(platform() === 'win32' ? 'cmd' : 'rmdir', platform() === 'win32'
-        ? ['/c', 'rd', '/s', '/q', path]
-        : ['-rf', path], { stdio: 'pipe' });
+      runSync(
+        platform() === 'win32' ? 'cmd' : 'rmdir',
+        platform() === 'win32' ? ['/c', 'rd', '/s', '/q', path] : ['-rf', path],
+        { stdio: 'pipe' },
+      );
     } catch {}
   }
 }
@@ -222,8 +233,9 @@ function main(): void {
     process.exit(1);
   }
 
-  const skillDirs = readdirSync(sourceSkills, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && existsSync(join(sourceSkills, d.name, 'SKILL.md')));
+  const skillDirs = readdirSync(sourceSkills, { withFileTypes: true }).filter(
+    (d) => d.isDirectory() && existsSync(join(sourceSkills, d.name, 'SKILL.md')),
+  );
 
   let syncCount = 0;
   let skipCount = 0;
@@ -265,7 +277,9 @@ function main(): void {
   const targetTemplates = join(gfRoot, 'templates');
 
   if (existsSync(sourceTemplates)) {
-    const templateDirs = readdirSync(sourceTemplates, { withFileTypes: true }).filter((d) => d.isDirectory());
+    const templateDirs = readdirSync(sourceTemplates, { withFileTypes: true }).filter((d) =>
+      d.isDirectory(),
+    );
     for (const dir of templateDirs) {
       const targetPath = join(targetTemplates, dir.name);
       if (existsSync(targetPath) && !args.force) {
@@ -281,8 +295,9 @@ function main(): void {
   const gitHooksDir = join(home, '.git-hooks');
   ensureDir(gitHooksDir);
 
-  const hookScripts = readdirSync(sourceSkills, { recursive: false, withFileTypes: true })
-    .filter((e) => e.isFile() && e.name.startsWith('pre-commit') && e.name.endsWith('.ps1'));
+  const hookScripts = readdirSync(sourceSkills, { recursive: false, withFileTypes: true }).filter(
+    (e) => e.isFile() && e.name.startsWith('pre-commit') && e.name.endsWith('.ps1'),
+  );
 
   for (const hook of hookScripts) {
     const hookName = `${basename(hook.name, '.ps1')}.ps1`;
@@ -290,10 +305,14 @@ function main(): void {
 
     if (isGlobal) {
       if (existsSync(targetHook)) {
-        try { copyFileSync('', ''); } catch {}
-        runSync(platform() === 'win32' ? 'cmd' : 'rm', platform() === 'win32'
-          ? ['/c', 'del', '/f', '/q', targetHook]
-          : ['-f', targetHook], { stdio: 'pipe' });
+        try {
+          copyFileSync('', '');
+        } catch {}
+        runSync(
+          platform() === 'win32' ? 'cmd' : 'rm',
+          platform() === 'win32' ? ['/c', 'del', '/f', '/q', targetHook] : ['-f', targetHook],
+          { stdio: 'pipe' },
+        );
       }
       if (trySymlink(join(sourceSkills, hook.name), targetHook)) {
         writeSuccess(`[HOOK] ${hookName} (symlinked)`);
@@ -319,8 +338,9 @@ function main(): void {
   ensureDir(preToolHookTarget);
 
   if (existsSync(preToolHookSource)) {
-    const preToolHooks = readdirSync(preToolHookSource)
-      .filter((f) => f.startsWith('pre-tool') && f.endsWith('.ps1'));
+    const preToolHooks = readdirSync(preToolHookSource).filter(
+      (f) => f.startsWith('pre-tool') && f.endsWith('.ps1'),
+    );
 
     for (const hook of preToolHooks) {
       const targetHook = join(preToolHookTarget, hook);

@@ -70,8 +70,8 @@ npm test
 
 ### 2.5 Homologation Gate (Mandatory — auto-runs on publish)
 
-This gate is **automatically executed** by `src/cli/gv.ts publish` before any validation or merge attempt.
-If the gate fails, publish is blocked until issues are resolved.
+This gate is **automatically executed** by `src/cli/gv.ts publish` before any validation or merge
+attempt. If the gate fails, publish is blocked until issues are resolved.
 
 ```TypeScript
 # Run manually (same check that publish runs internally)

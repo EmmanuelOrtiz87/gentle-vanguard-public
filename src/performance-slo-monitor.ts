@@ -52,7 +52,11 @@ function tryNexusInsert(snapshot: { latency_p95_ms: number; disk_percent: number
     const managerPath = resolve(process.cwd(), 'apps/web-dashboard/server/database/manager.ts');
     if (existsSync(managerPath)) {
       // Dynamic import — Nexus is optional
-      const mod = require(managerPath) as { DatabaseManager: { getInstance: () => { insertMetricSnapshot: (d: Record<string, unknown>) => void } } };
+      const mod = require(managerPath) as {
+        DatabaseManager: {
+          getInstance: () => { insertMetricSnapshot: (d: Record<string, unknown>) => void };
+        };
+      };
       const db = mod.DatabaseManager.getInstance();
       db.insertMetricSnapshot({
         tokens_used: 0,
@@ -75,7 +79,15 @@ function tryNexusInsert(snapshot: { latency_p95_ms: number; disk_percent: number
   }
 }
 
-function parseArgs(): { json: boolean; output: string | undefined; checkDisk: boolean; checkMemory: boolean; checkLatency: boolean; ciGate: boolean; service: string | undefined } {
+function parseArgs(): {
+  json: boolean;
+  output: string | undefined;
+  checkDisk: boolean;
+  checkMemory: boolean;
+  checkLatency: boolean;
+  ciGate: boolean;
+  service: string | undefined;
+} {
   const raw = process.argv.slice(2);
   return {
     json: raw.includes('--json'),
@@ -103,12 +115,19 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
         // Use PowerShell Get-PSDrive (works on Win10/11, no wmic dependency)
         const output = runSync(
           'powershell',
-          ['-NoProfile', '-Command', `Get-PSDrive -Name ${drive} | Select-Object Used,Free | ConvertTo-Csv -NoTypeInformation`],
-          { maxBuffer: 1024 * 1024, timeout: 10000, stdio: ['pipe', 'pipe', 'ignore'] }
+          [
+            '-NoProfile',
+            '-Command',
+            `Get-PSDrive -Name ${drive} | Select-Object Used,Free | ConvertTo-Csv -NoTypeInformation`,
+          ],
+          { maxBuffer: 1024 * 1024, timeout: 10000, stdio: ['pipe', 'pipe', 'ignore'] },
         ).stdout;
-        const lines = output.trim().split('\n').filter(l => l.trim() && !l.includes('Used') && !l.includes('"'));
+        const lines = output
+          .trim()
+          .split('\n')
+          .filter((l) => l.trim() && !l.includes('Used') && !l.includes('"'));
         for (const line of lines) {
-          const parts = line.split(',').map(p => p.replace(/"/g, '').trim());
+          const parts = line.split(',').map((p) => p.replace(/"/g, '').trim());
           if (parts.length >= 2) {
             const used = parseInt(parts[0], 10);
             const free = parseInt(parts[1], 10);
@@ -116,8 +135,8 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
             if (total > 0) {
               return {
                 percent: Math.round((used / total) * 10000) / 100,
-                freeGb: Math.round(free / (1024 * 1024 * 1024) * 100) / 100,
-                totalGb: Math.round(total / (1024 * 1024 * 1024) * 100) / 100,
+                freeGb: Math.round((free / (1024 * 1024 * 1024)) * 100) / 100,
+                totalGb: Math.round((total / (1024 * 1024 * 1024)) * 100) / 100,
               };
             }
           }
@@ -138,8 +157,8 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
 function measureMemoryUsage(): { processMb: number; heapMb: number; heapPercent: number } {
   const mem = process.memoryUsage();
   return {
-    processMb: Math.round(mem.rss / 1024 / 1024 * 100) / 100,
-    heapMb: Math.round(mem.heapUsed / 1024 / 1024 * 100) / 100,
+    processMb: Math.round((mem.rss / 1024 / 1024) * 100) / 100,
+    heapMb: Math.round((mem.heapUsed / 1024 / 1024) * 100) / 100,
     heapPercent: Math.round((mem.heapUsed / mem.heapTotal) * 10000) / 100,
   };
 }
@@ -159,13 +178,17 @@ function getRecentMetrics(): { avgLatency: number | null } {
             const vals = rows.map((r: any) => r.value).filter(Boolean);
             console.log(JSON.stringify(vals.length > 0 ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : null));
           " 2>nul || echo null`,
-          { maxBuffer: 1024 * 1024, timeout: 10000 }
+          { maxBuffer: 1024 * 1024, timeout: 10000 },
         ).stdout;
         const avg = JSON.parse(output.trim());
         if (avg !== null) return { avgLatency: avg as number };
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { avgLatency: null };
 }
 
@@ -178,7 +201,8 @@ function measureLatency(): number {
   try {
     const start = Date.now();
     runSyncShell('npx tsx -e "Promise.resolve().then(() => process.exit(0))" 2>nul', {
-      timeout: 30000, maxBuffer: 1024,
+      timeout: 30000,
+      maxBuffer: 1024,
     });
     return Date.now() - start;
   } catch {
@@ -193,7 +217,9 @@ function saveMetricsSnapshot(snapshot: MetricSnapshot): void {
     }
     const filePath = resolve(process.cwd(), METRICS_DIR, `slo-${Date.now()}.json`);
     writeFileSync(filePath, JSON.stringify(snapshot, null, 2));
-  } catch { /* best effort */ }
+  } catch {
+    /* best effort */
+  }
 }
 
 function main(): void {
@@ -224,7 +250,12 @@ function main(): void {
     current: disk.percent,
     threshold: diskThreshold,
     unit: '%',
-    status: disk.percent >= diskThreshold ? 'FAIL' : disk.percent >= diskThreshold * 0.85 ? 'WARN' : 'PASS',
+    status:
+      disk.percent >= diskThreshold
+        ? 'FAIL'
+        : disk.percent >= diskThreshold * 0.85
+          ? 'WARN'
+          : 'PASS',
     message: `Disk: ${disk.percent}% used (${disk.freeGb}GB free / ${disk.totalGb}GB total)`,
   });
 
@@ -236,7 +267,12 @@ function main(): void {
     current: mem.processMb,
     threshold: memThreshold,
     unit: 'MB',
-    status: mem.processMb >= memThreshold ? 'FAIL' : mem.processMb >= memThreshold * 0.8 ? 'WARN' : 'PASS',
+    status:
+      mem.processMb >= memThreshold
+        ? 'FAIL'
+        : mem.processMb >= memThreshold * 0.8
+          ? 'WARN'
+          : 'PASS',
     message: `Memory: ${mem.processMb}MB RSS (heap: ${mem.heapMb}MB at ${mem.heapPercent}%)`,
   });
 
@@ -249,15 +285,16 @@ function main(): void {
     threshold: latencyThreshold,
     unit: 'ms',
     status: latency === 0 ? 'WARN' : latency >= latencyThreshold ? 'WARN' : 'PASS',
-    message: latency === 0
-      ? 'Latency: unable to measure (no recent metrics)'
-      : `Latency: ${Math.round(latency)}ms P95`,
+    message:
+      latency === 0
+        ? 'Latency: unable to measure (no recent metrics)'
+        : `Latency: ${Math.round(latency)}ms P95`,
   });
 
   // Compile report
-  const passed = checks.filter(c => c.status === 'PASS').length;
-  const warned = checks.filter(c => c.status === 'WARN').length;
-  const failed = checks.filter(c => c.status === 'FAIL').length;
+  const passed = checks.filter((c) => c.status === 'PASS').length;
+  const warned = checks.filter((c) => c.status === 'WARN').length;
+  const failed = checks.filter((c) => c.status === 'FAIL').length;
 
   const report: SLOReport = {
     timestamp: new Date().toISOString(),
@@ -284,11 +321,15 @@ function main(): void {
   console.log(`║`);
   for (const check of checks) {
     const icon = check.status === 'PASS' ? '✅' : check.status === 'WARN' ? '⚠️' : '❌';
-    console.log(`║ ${icon} ${check.name.padEnd(16)} ${check.current}${check.unit} (target ${check.target})`);
+    console.log(
+      `║ ${icon} ${check.name.padEnd(16)} ${check.current}${check.unit} (target ${check.target})`,
+    );
     console.log(`║   ${check.message}`);
   }
   console.log(`║`);
-  console.log(`║ Overall: ${passed}/${checks.length} passed, ${warned} warnings, ${failed} failures`);
+  console.log(
+    `║ Overall: ${passed}/${checks.length} passed, ${warned} warnings, ${failed} failures`,
+  );
   console.log(`╚${'═'.repeat(40)}`);
 
   if (args.output) {
@@ -305,13 +346,30 @@ function main(): void {
         timestamp: report.timestamp,
         passed: report.passed,
         overall: report.overall,
-        checks: report.checks.map(c => ({ name: c.name, status: c.status, current: c.current, threshold: c.threshold, unit: c.unit })),
+        checks: report.checks.map((c) => ({
+          name: c.name,
+          status: c.status,
+          current: c.current,
+          threshold: c.threshold,
+          unit: c.unit,
+        })),
       });
-      const req = httpRequest({ hostname: 'localhost', port, path: '/api/slo', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) } });
+      const req = httpRequest({
+        hostname: 'localhost',
+        port,
+        path: '/api/slo',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData),
+        },
+      });
       req.write(postData);
       req.end();
     }
-  } catch { /* dashboard WS unavailable — non-fatal */ }
+  } catch {
+    /* dashboard WS unavailable — non-fatal */
+  }
 
   process.exit(exitCode);
 }

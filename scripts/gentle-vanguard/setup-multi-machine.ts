@@ -48,13 +48,19 @@ function ensureGitRepo(repoSlug: string, targetPath: string): void {
     runSync('git', ['fetch', 'origin', '--prune'], { cwd: targetPath, stdio: 'inherit' });
     let defaultBranch = 'main';
     try {
-      const remoteHead = runSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD'], { cwd: targetPath, stdio: 'pipe' }).stdout.trim();
+      const remoteHead = runSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD'], {
+        cwd: targetPath,
+        stdio: 'pipe',
+      }).stdout.trim();
       defaultBranch = remoteHead.replace('^refs/remotes/origin/', '');
     } catch {
       // fallback to main
     }
     runSync('git', ['checkout', defaultBranch], { cwd: targetPath, stdio: 'inherit' });
-    runSync('git', ['pull', '--rebase', 'origin', defaultBranch], { cwd: targetPath, stdio: 'inherit' });
+    runSync('git', ['pull', '--rebase', 'origin', defaultBranch], {
+      cwd: targetPath,
+      stdio: 'inherit',
+    });
   } catch (err) {
     throw new Error(`Failed to update ${repoSlug}: ${err}`);
   }
@@ -62,7 +68,8 @@ function ensureGitRepo(repoSlug: string, targetPath: string): void {
 
 function main(): void {
   const args = parseArgs();
-  const basePath = args.basePath || join(process.env.HOME || process.env.USERPROFILE || '', 'source');
+  const basePath =
+    args.basePath || join(process.env.HOME || process.env.USERPROFILE || '', 'source');
 
   if (!existsSync(basePath)) {
     mkdirSync(basePath, { recursive: true });
@@ -86,7 +93,9 @@ function main(): void {
     throw new Error(`Bootstrap script not found (TS: ${bootstrapTs}, PS1: ${bootstrapPs1})`);
   }
 
-  const runnerParam = args.installRunner ? ` -InstallGitHubRunner -GitHubRunnerConfigPath "${args.runnerConfigPath}"` : '';
+  const runnerParam = args.installRunner
+    ? ` -InstallGitHubRunner -GitHubRunnerConfigPath "${args.runnerConfigPath}"`
+    : '';
   if (existsSync(bootstrapTs)) {
     runSyncShell(`npx tsx "${bootstrapTs}"${runnerParam}`, { stdio: 'inherit' });
   } else {

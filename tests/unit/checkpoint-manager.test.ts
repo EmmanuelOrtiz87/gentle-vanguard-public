@@ -18,17 +18,19 @@ describe('Checkpoint Manager', () => {
 
   it('should have existing checkpoints', () => {
     if (existsSync(checkpointDir)) {
-      const checkpoints = readdirSync(checkpointDir)
-        .filter(f => statSync(join(checkpointDir, f)).isDirectory());
+      const checkpoints = readdirSync(checkpointDir).filter((f) =>
+        statSync(join(checkpointDir, f)).isDirectory(),
+      );
       assert.ok(checkpoints.length >= 0, `Found ${checkpoints.length} checkpoints`);
     }
   });
 
   it('should verify checkpoint structure', () => {
     if (existsSync(checkpointDir)) {
-      const checkpoints = readdirSync(checkpointDir)
-        .filter(f => statSync(join(checkpointDir, f)).isDirectory());
-      
+      const checkpoints = readdirSync(checkpointDir).filter((f) =>
+        statSync(join(checkpointDir, f)).isDirectory(),
+      );
+
       for (const ckpt of checkpoints) {
         const ckptPath = join(checkpointDir, ckpt);
         const stats = statSync(ckptPath);

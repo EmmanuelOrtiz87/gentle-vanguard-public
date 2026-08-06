@@ -55,45 +55,45 @@ pnpm run session:start
 
 ### Core
 
-| Herramienta | Comando | Descripción |
-|-------------|---------|-------------|
-| **Health Check** | `npm run health:check` | Verifica estado de 81 componentes |
-| **Watchtower** | `npm run watchtower:health` | Monitoreo continuo del stack |
-| **Session Start** | `npx tsx src/session-autostart.ts` | Inicializa pipeline de sesión |
-| **Type Check** | `npm run typecheck` | Valida TypeScript |
-| **Lint** | `npm run lint` | ESLint en todo el código |
+| Herramienta       | Comando                            | Descripción                       |
+| ----------------- | ---------------------------------- | --------------------------------- |
+| **Health Check**  | `npm run health:check`             | Verifica estado de 81 componentes |
+| **Watchtower**    | `npm run watchtower:health`        | Monitoreo continuo del stack      |
+| **Session Start** | `npx tsx src/session-autostart.ts` | Inicializa pipeline de sesión     |
+| **Type Check**    | `npm run typecheck`                | Valida TypeScript                 |
+| **Lint**          | `npm run lint`                     | ESLint en todo el código          |
 
 ### Dashboard
 
-| Herramienta | Comando | Descripción |
-|-------------|---------|-------------|
-| **Dashboard Start** | `pnpm run dashboard:start` | Inicia WebSocket server + Vite |
-| **Dashboard WS** | `npx tsx src/dashboard-ws-autostart.ts` | Solo WebSocket server |
-| **Dashboard Stop** | `npx tsx src/dashboard-stop.ts` | Detiene dashboard |
+| Herramienta         | Comando                                 | Descripción                    |
+| ------------------- | --------------------------------------- | ------------------------------ |
+| **Dashboard Start** | `pnpm run dashboard:start`              | Inicia WebSocket server + Vite |
+| **Dashboard WS**    | `npx tsx src/dashboard-ws-autostart.ts` | Solo WebSocket server          |
+| **Dashboard Stop**  | `npx tsx src/dashboard-stop.ts`         | Detiene dashboard              |
 
 ### Cloud Connectors
 
-| Herramienta | Comando | Descripción |
-|-------------|---------|-------------|
-| **AWS Delegator** | `npx tsx src/aws-delegator.ts` | Ejecuta skills en AWS Lambda |
-| **Azure Delegator** | `npx tsx src/azure-delegator.ts` | Ejecuta skills en Azure Functions |
-| **Hybrid Executor** | `npx tsx src/hybrid-executor.ts` | Routing entre local/cloud |
-| **Cloud Metrics** | `npx tsx src/cloud-metrics-collector.ts show` | Muestra métricas |
+| Herramienta         | Comando                                       | Descripción                       |
+| ------------------- | --------------------------------------------- | --------------------------------- |
+| **AWS Delegator**   | `npx tsx src/aws-delegator.ts`                | Ejecuta skills en AWS Lambda      |
+| **Azure Delegator** | `npx tsx src/azure-delegator.ts`              | Ejecuta skills en Azure Functions |
+| **Hybrid Executor** | `npx tsx src/hybrid-executor.ts`              | Routing entre local/cloud         |
+| **Cloud Metrics**   | `npx tsx src/cloud-metrics-collector.ts show` | Muestra métricas                  |
 
 ### Testing
 
-| Herramienta | Comando | Descripción |
-|-------------|---------|-------------|
-| **Tests** | `pnpm test` | Ejecuta suite de tests |
+| Herramienta             | Comando                                              | Descripción            |
+| ----------------------- | ---------------------------------------------------- | ---------------------- |
+| **Tests**               | `pnpm test`                                          | Ejecuta suite de tests |
 | **Deterministic Tests** | `npx tsx src/deterministic-test-framework.ts --list` | Tests sin costo de API |
-| **Coverage** | `pnpm test:coverage` | Reporte de cobertura |
+| **Coverage**            | `pnpm test:coverage`                                 | Reporte de cobertura   |
 
 ### Auto-Update
 
-| Herramienta | Comando | Descripción |
-|-------------|---------|-------------|
-| **Check Updates** | `npx tsx src/auto-update-checker.ts --check-only` | Verifica nuevas versiones |
-| **Show Updates** | `npx tsx src/auto-update-checker.ts` | Muestra instrucciones de update |
+| Herramienta       | Comando                                           | Descripción                     |
+| ----------------- | ------------------------------------------------- | ------------------------------- |
+| **Check Updates** | `npx tsx src/auto-update-checker.ts --check-only` | Verifica nuevas versiones       |
+| **Show Updates**  | `npx tsx src/auto-update-checker.ts`              | Muestra instrucciones de update |
 
 ---
 
@@ -151,26 +151,27 @@ npm run watchtower:health
 ```
 
 **Resultado esperado:**
+
 ```
 PASS: 77 | WARN: 4 | FAIL: 0 | Total: 81
 ```
 
 ### Componentes Monitoreados
 
-| Componente | Estado Esperado |
-|------------|-----------------|
-| dashboard-ws | OK |
-| codegraph | OK |
-| ml-embeddings | OK |
-| engram | OK |
-| mcp | OK |
-| session | OK |
-| cloud-connectors | OK |
-| tracing | OK |
-| state-persistence | OK |
-| audit | OK |
-| governance | OK |
-| gentle-vanguard-db | OK |
+| Componente         | Estado Esperado |
+| ------------------ | --------------- |
+| dashboard-ws       | OK              |
+| codegraph          | OK              |
+| ml-embeddings      | OK              |
+| engram             | OK              |
+| mcp                | OK              |
+| session            | OK              |
+| cloud-connectors   | OK              |
+| tracing            | OK              |
+| state-persistence  | OK              |
+| audit              | OK              |
+| governance         | OK              |
+| gentle-vanguard-db | OK              |
 
 ### Warnings Aceptables
 
@@ -326,13 +327,13 @@ gentle-vanguard/
 
 ### Variables de Entorno Importantes
 
-| Variable | Descripción |
-|----------|-------------|
-| `NODE_ENV` | development/production |
-| `SESSION_ID` | ID de sesión actual |
-| `WS_PORT` | Puerto del WebSocket server |
-| `AZURE_FUNCTION_URL` | URL de Azure Functions |
-| `AWS_REGION` | Región de AWS |
+| Variable             | Descripción                 |
+| -------------------- | --------------------------- |
+| `NODE_ENV`           | development/production      |
+| `SESSION_ID`         | ID de sesión actual         |
+| `WS_PORT`            | Puerto del WebSocket server |
+| `AZURE_FUNCTION_URL` | URL de Azure Functions      |
+| `AWS_REGION`         | Región de AWS               |
 
 ---
 
@@ -345,4 +346,4 @@ gentle-vanguard/
 
 ---
 
-**Gentle-Vanguard v3.5.0** — *Local-first, seguro, extensible, zero-drama.*
+**Gentle-Vanguard v3.5.0** — _Local-first, seguro, extensible, zero-drama._

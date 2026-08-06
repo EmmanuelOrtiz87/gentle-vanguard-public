@@ -55,13 +55,13 @@
 
 ## 🎨 Assets Needed
 
-| Asset                          | Estado       | Descripción                             |
-| ------------------------------ | ------------ | --------------------------------------- |
-| **🎨 Logo y identidad visual** | 📋 Pendiente | Diseño de marca completo                |
-| **📸 Screenshot gallery**      | 📋 Pendiente | TUI installer, src/cli/gv.ts CLI, dashboards   |
-| **🎥 Demo videos**             | 📋 Pendiente | Instalación, primera sesión, delegación |
-| **📚 Case studies**            | 📋 Pendiente | Casos de uso reales                     |
-| **📊 Comparison charts**       | 📋 Pendiente | vs otras soluciones                     |
+| Asset                          | Estado       | Descripción                                  |
+| ------------------------------ | ------------ | -------------------------------------------- |
+| **🎨 Logo y identidad visual** | 📋 Pendiente | Diseño de marca completo                     |
+| **📸 Screenshot gallery**      | 📋 Pendiente | TUI installer, src/cli/gv.ts CLI, dashboards |
+| **🎥 Demo videos**             | 📋 Pendiente | Instalación, primera sesión, delegación      |
+| **📚 Case studies**            | 📋 Pendiente | Casos de uso reales                          |
+| **📊 Comparison charts**       | 📋 Pendiente | vs otras soluciones                          |
 
 ---
 
