@@ -121,9 +121,24 @@ describe('queryThemes', () => {
     const cfg = makeConfig();
     const report = await buildReport(
       [
-        makeTrend({ id: 'r1', title: 'Rust borrow checker', tags: ['rust'], engagement: { stars: 100 } }),
-        makeTrend({ id: 't1', title: 'TypeScript 6.0', tags: ['typescript'], engagement: { stars: 200 } }),
-        makeTrend({ id: 'p1', title: 'Python packaging', tags: ['python'], engagement: { stars: 50 } }),
+        makeTrend({
+          id: 'r1',
+          title: 'Rust borrow checker',
+          tags: ['rust'],
+          engagement: { stars: 100 },
+        }),
+        makeTrend({
+          id: 't1',
+          title: 'TypeScript 6.0',
+          tags: ['typescript'],
+          engagement: { stars: 200 },
+        }),
+        makeTrend({
+          id: 'p1',
+          title: 'Python packaging',
+          tags: ['python'],
+          engagement: { stars: 50 },
+        }),
       ],
       '7d',
       cfg,

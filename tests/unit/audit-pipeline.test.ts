@@ -65,7 +65,10 @@ describe('Audit Pipeline', () => {
     const stats = mod.getStatus();
     assert.equal(typeof stats.totalEvents, 'number');
     assert.ok(Array.isArray(stats.logFiles));
-    assert.ok(Array.isArray(stats.totalSizeFormatted) === false, 'totalSizeFormatted should be a string');
+    assert.ok(
+      Array.isArray(stats.totalSizeFormatted) === false,
+      'totalSizeFormatted should be a string',
+    );
     assert.equal(typeof stats.totalSizeFormatted, 'string');
   });
 });

@@ -25,8 +25,26 @@ function run(args: string[]): string {
 
 describe('Event Sourcing — Hash-Chained Audit', () => {
   it('should append events forming an intact chain', () => {
-    run(['-Action', 'append', '-AggregateId', AGGREGATE, '-EventType', 'session.started', '-EventData', '{"user":"test"}']);
-    run(['-Action', 'append', '-AggregateId', AGGREGATE, '-EventType', 'task.created', '-EventData', '{"task":"t1"}']);
+    run([
+      '-Action',
+      'append',
+      '-AggregateId',
+      AGGREGATE,
+      '-EventType',
+      'session.started',
+      '-EventData',
+      '{"user":"test"}',
+    ]);
+    run([
+      '-Action',
+      'append',
+      '-AggregateId',
+      AGGREGATE,
+      '-EventType',
+      'task.created',
+      '-EventData',
+      '{"task":"t1"}',
+    ]);
 
     const verify = JSON.parse(run(['-Action', 'verify', '-AggregateId', AGGREGATE]));
     assert.strictEqual(verify.total, 2);
@@ -36,8 +54,19 @@ describe('Event Sourcing — Hash-Chained Audit', () => {
 
   it('should detect tampering in the chain', () => {
     // Append a third event, then tamper with the first event's content.
-    run(['-Action', 'append', '-AggregateId', AGGREGATE, '-EventType', 'task.completed', '-EventData', '{"task":"t"}']);
-    const lines = readFileSync(STORE_FILE, 'utf-8').split('\n').filter((l) => l.trim());
+    run([
+      '-Action',
+      'append',
+      '-AggregateId',
+      AGGREGATE,
+      '-EventType',
+      'task.completed',
+      '-EventData',
+      '{"task":"t"}',
+    ]);
+    const lines = readFileSync(STORE_FILE, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim());
     const tampered = lines[0].replace('"user":"test"', '"user":"TAMPERED"');
     lines[0] = tampered;
     writeFileSync(STORE_FILE, lines.join('\n'));

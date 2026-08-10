@@ -50,7 +50,9 @@ describe('Retrieval Grader (CRAG)', () => {
   });
 
   it('should respect a custom threshold', () => {
-    const result = gradeRetrieval('token refresh', ['token refresh is required'], { threshold: 0.9 });
+    const result = gradeRetrieval('token refresh', ['token refresh is required'], {
+      threshold: 0.9,
+    });
     // With a very high threshold, even a matching chunk may be graded below it.
     assert.ok(result.chunks[0].score <= 1);
   });

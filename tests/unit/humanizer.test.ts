@@ -6,11 +6,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import {
-  analyzeText,
-  humanizeText,
-  scoreHumanization,
-} from '../../src/humanizer.ts';
+import { analyzeText, humanizeText, scoreHumanization } from '../../src/humanizer.ts';
 
 const AI_TEXT =
   'In conclusion, it is important to note that the system plays a crucial role in data processing. ' +
@@ -19,11 +15,11 @@ const AI_TEXT =
   'Moreover, the team utilizes the framework.';
 
 const HUMAN_TEXT =
-  "Honestly, I think the whole thing works better than we expected. " +
+  'Honestly, I think the whole thing works better than we expected. ' +
   "We tried the new setup last week, and it's pretty good. " +
   "Sure, there's a learning curve. " +
-  "But you get the hang of it fast. " +
-  "Probably takes a day or two.";
+  'But you get the hang of it fast. ' +
+  'Probably takes a day or two.';
 
 describe('Humanizer — analyzeText', () => {
   it('scores AI-like text above 0.5', () => {
@@ -93,7 +89,7 @@ describe('Humanizer — humanizeText', () => {
   });
 
   it('applies contractions', () => {
-    const out = humanizeText("It is simple, and you do not need to worry.", {
+    const out = humanizeText('It is simple, and you do not need to worry.', {
       tone: 'conversational',
     });
     assert.match(out, /It's/);
@@ -101,7 +97,7 @@ describe('Humanizer — humanizeText', () => {
   });
 
   it('keeps professional tone free of heavy contractions', () => {
-    const out = humanizeText("The team does not plan to stop, but it is early.", {
+    const out = humanizeText('The team does not plan to stop, but it is early.', {
       tone: 'professional',
     });
     assert.match(out, /doesn't|does not/);

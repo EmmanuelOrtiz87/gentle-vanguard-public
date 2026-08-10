@@ -12,7 +12,7 @@ services:
       - gv-test-network
 
   node-tests:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: gv-node-tests
     volumes:
       - .:/workspace
@@ -22,7 +22,7 @@ services:
       - gv-test-network
 
   dashboard-test:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: gv-dashboard-test
     volumes:
       - .:/workspace
@@ -32,7 +32,7 @@ services:
       - gv-test-network
 
   mcp-test:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: gv-mcp-test
     volumes:
       - .:/workspace
@@ -44,7 +44,7 @@ services:
       - gv-test-network
 
   integration-test:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: gv-integration-test
     depends_on:
       - dashboard-test
@@ -59,7 +59,7 @@ services:
       - gv-test-network
 
   lint-test:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: gv-lint-test
     volumes:
       - .:/workspace
@@ -69,16 +69,14 @@ services:
       - gv-test-network
 
   security-scan:
-    image: aquasec/trivy:latest
+    image: aquasec/trivy:0.56.1
     container_name: gv-security-scan
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /workspace
-    command: >
-      sh -c " trivy fs --severity HIGH,CRITICAL --exit-code 0 /workspace && apk add --no-cache git
-      && git clone https://github.com/gitleaks/gitleaks /tmp/gitleaks && /tmp/gitleaks/gitleaks
-      detect --source /workspace --config /workspace/.gitleaks.toml --no-git -v "
+    entrypoint: trivy
+    command: ['fs', '--severity', 'HIGH,CRITICAL', '--exit-code', '0', '/workspace']
     networks:
       - gv-test-network
 

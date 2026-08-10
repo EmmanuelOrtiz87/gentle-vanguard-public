@@ -91,7 +91,11 @@ function startMockServer(): Promise<string> {
           res.end(
             JSON.stringify({
               success: true,
-              links: ['https://example.com/', 'https://example.com/about', 'https://example.com/faq'],
+              links: [
+                'https://example.com/',
+                'https://example.com/about',
+                'https://example.com/faq',
+              ],
             }),
           );
         } else {

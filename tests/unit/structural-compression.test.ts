@@ -29,7 +29,10 @@ describe('Structural Compression Engine', () => {
   });
 
   it('should detect prose', () => {
-    const input = Array.from({ length: 5 }, (_, i) => `This is sentence number ${i} with enough words to be considered prose content.`).join('\n');
+    const input = Array.from(
+      { length: 5 },
+      (_, i) => `This is sentence number ${i} with enough words to be considered prose content.`,
+    ).join('\n');
     assert.strictEqual(detectKind(input), 'prose');
   });
 
@@ -71,7 +74,8 @@ describe('Structural Compression Engine', () => {
   it('TextCrusher should compress prose with query relevance', () => {
     const input = Array.from(
       { length: 10 },
-      (_, i) => `This is a detailed sentence about the authentication flow and token handling in the system, numbered ${i}.`,
+      (_, i) =>
+        `This is a detailed sentence about the authentication flow and token handling in the system, numbered ${i}.`,
     ).join('\n');
     const result = compressStructural(input, { query: 'authentication token' });
     assert.strictEqual(result.strategy, 'text-crusher');

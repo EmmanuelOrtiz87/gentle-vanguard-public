@@ -16,10 +16,7 @@ const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = pathToFileURL(join(ROOT, 'src', 'checkpoint-manager.ts')).href;
 
 function makeTempRoot(): string {
-  const dir = join(
-    tmpdir(),
-    `ckpt-test-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
-  );
+  const dir = join(tmpdir(), `ckpt-test-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`);
   mkdirSync(join(dir, '.session'), { recursive: true });
   return dir;
 }

@@ -131,20 +131,24 @@ function validateSBOM(options: SBOMOptions): boolean {
         ...(pkg.devDependencies ?? {}),
       };
       const inSBOM = new Set(
-        sbom.components.map((c: { group?: string; name?: string }) =>
-          (c.group ? `${c.group}/` : '') + (c.name ?? ''),
+        sbom.components.map(
+          (c: { group?: string; name?: string }) => (c.group ? `${c.group}/` : '') + (c.name ?? ''),
         ),
       );
       const missing = Object.keys(declared).filter(
         (name) => !inSBOM.has(name) && !inSBOM.has(name.replace(/^@/, '')),
       );
       if (missing.length > 0) {
-        errors.push(`dependencies missing from SBOM (${missing.length}): ${missing.slice(0, 10).join(', ')}${missing.length > 10 ? ', …' : ''}`);
+        errors.push(
+          `dependencies missing from SBOM (${missing.length}): ${missing.slice(0, 10).join(', ')}${missing.length > 10 ? ', …' : ''}`,
+        );
       }
     }
 
     if (errors.length > 0) {
-      console.error(`❌ SBOM validation FAILED (${errors.length} issue${errors.length > 1 ? 's' : ''}):`);
+      console.error(
+        `❌ SBOM validation FAILED (${errors.length} issue${errors.length > 1 ? 's' : ''}):`,
+      );
       for (const err of errors) {
         console.error(`  - ${err}`);
       }
@@ -159,7 +163,9 @@ function validateSBOM(options: SBOMOptions): boolean {
     console.log(`   generated: ${sbom.metadata.timestamp}`);
     return true;
   } catch (err) {
-    console.error(`❌ SBOM validation FAILED: invalid JSON or unexpected error: ${(err as Error).message}`);
+    console.error(
+      `❌ SBOM validation FAILED: invalid JSON or unexpected error: ${(err as Error).message}`,
+    );
     return false;
   }
 }

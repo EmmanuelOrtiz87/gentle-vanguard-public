@@ -6,6 +6,10 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+  security-events: write
 
 concurrency:
   group: push-${{ github.ref }}

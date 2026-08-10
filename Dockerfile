@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 RUN npm install -g pnpm@11.1.1
 WORKDIR /app
 COPY package.json pnpm-lock.yaml tsconfig.json ./
@@ -10,7 +10,7 @@ COPY apps/web-dashboard/server/ apps/web-dashboard/server/
 RUN pnpm build:mcp
 RUN npx tsc apps/web-dashboard/server/websocket-server.ts --outDir apps/web-dashboard/server/dist --moduleResolution node --module nodenext --target es2022 --esModuleInterop --skipLibCheck
 
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 RUN npm install -g pnpm@11.1.1
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
