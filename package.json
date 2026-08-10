@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "3.5.0",
+  "version": "3.7.0",
   "packageManager": "pnpm@11.15.1",
   "engines": {
     "pnpm": ">=11.0.0",
@@ -22,6 +22,8 @@
     "prepare": "pnpm lefthook install",
     "coverage": "c8 --reporter=text --reporter=lcov --reporter=html node --test \"tests/**/*.spec.js\"",
     "secretlint": "secretlint \"**/*.{json,yml,yaml,md,env,toml,xml}\" --secretlintrc .secretlintrc.json",
+    "sbom:generate": "npx tsx src/generate-sbom.ts",
+    "sbom:validate": "npx tsx src/generate-sbom.ts --validate",
     "build:mcp": "pnpm tsc",
     "build:mcp:watch": "pnpm tsc --watch",
     "mcp:start": "node dist/scripts/mcp/skill-server.js",
@@ -107,6 +109,8 @@
     "stack:setup": "npx tsx src/stack-setup.ts",
     "stack:setup:yes": "npx tsx src/stack-setup.ts --yes",
     "stack:setup:dry": "npx tsx src/stack-setup.ts --dry-run",
+    "create": "npx tsx src/create-gentle-vanguard.ts",
+    "create:template": "npx tsx src/create-gentle-vanguard.ts --name gentle-vanguard-app --target ../gentle-vanguard-app --dry-run",
     "dashboard:build": "cd apps/web-dashboard && pnpm build",
     "dashboard:dev": "cd apps/web-dashboard && pnpm dev",
     "dashboard:server": "npx tsx apps/web-dashboard/server/websocket-server.ts",
@@ -245,6 +249,7 @@
     "web:map": "npx tsx src/web-crawler-cli.ts map",
     "web:status": "npx tsx src/web-crawler-cli.ts health",
     "web:select": "npx tsx src/web-research-select.ts",
+    "delegate:run": "npx tsx src/route-and-delegate.ts",
     "animation:create": "npx tsx src/animations/cli.ts create",
     "animation:analyze": "npx tsx src/animations/cli.ts analyze",
     "trends:fetch": "npx tsx src/research-trends-cli.ts fetch",
@@ -252,6 +257,13 @@
     "trends:report": "npx tsx src/research-trends-cli.ts report",
     "trends:browse": "npx tsx src/research-trends-cli.ts browse",
     "trends:status": "npx tsx src/research-trends-cli.ts status",
+    "plugin:list": "npx tsx src/plugin-manager.ts list",
+    "plugin:status": "npx tsx src/plugin-manager.ts --status",
+    "plugin:install": "npx tsx src/plugin-manager.ts install",
+    "plugin:remove": "npx tsx src/plugin-manager.ts remove",
+    "plugin:enable": "npx tsx src/plugin-manager.ts enable",
+    "plugin:disable": "npx tsx src/plugin-manager.ts disable",
+    "plugin:hooks": "npx tsx src/plugin-manager.ts hooks",
     "presentations:verify:cdp:hotspots": "node .opencode/skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.cjs"
   },
   "devDependencies": {
@@ -264,7 +276,7 @@
     "@typescript-eslint/eslint-plugin": "^8.64.0",
     "@typescript-eslint/parser": "^8.64.0",
     "better-sqlite3": "^12.11.1",
-    "c8": "^10.1.3",
+    "c8": "^11.0.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.7.0",
     "eslint-plugin-security": "^4.0.1",
@@ -281,6 +293,5 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "glob": "^13.0.6",
     "zod": "^4.4.3"
-  },
-  "pnpm": {}
+  }
 }

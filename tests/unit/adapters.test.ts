@@ -38,7 +38,10 @@ describe('run-command', () => {
 
   it('runSync returns error info for a failing command', async () => {
     const mod = await import(SRC('core/run-command.ts'));
-    const r = mod.runSync('cmd', ['/c', 'exit', '3'], { cwd: ROOT });
+    const isWin = process.platform === 'win32';
+    const r = isWin
+      ? mod.runSync('cmd', ['/c', 'exit', '3'], { cwd: ROOT })
+      : mod.runSync('sh', ['-c', 'exit 3'], { cwd: ROOT });
     assert.strictEqual(r.status, 3);
   });
 
