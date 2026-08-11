@@ -4,13 +4,16 @@
 
 FROM node:22-alpine AS builder
 RUN npm install -g pnpm@11.1.1
+RUN apk add --no-cache git
 WORKDIR /app
 # Full repo copy: the postinstall script (pnpm build:mcp = pnpm tsc)
 # compiles every tsconfig include dir (adapters, scripts/*, src), so the
 # whole tree must be present.
 COPY . .
-# Root install triggers postinstall -> tsc -> dist/
-RUN pnpm install --frozen-lockfile
+# Install without prepare scripts (lefthook needs git which fails in copy)
+RUN pnpm install --frozen-lockfile --ignore-scripts
+# Compile MCP distribution (normally done by postinstall)
+RUN pnpm build:mcp
 # Dashboard install (own workspace + lockfile): provides tsx, ws, react
 RUN cd apps/web-dashboard && pnpm install --frozen-lockfile
 
