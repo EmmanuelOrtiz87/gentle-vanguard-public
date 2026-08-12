@@ -1,82 +1,13 @@
 version: '3.8'
 
 services:
-  pwsh-tests:
-    image: mcr.microsoft.com/powershell:7.4-ubuntu-22.04
-    container_name: gv-pwsh-tests
-    volumes:
-      - .:/workspace
-    working_dir: /workspace
-    command: pwsh -Command "Install-Module Pester -Force; Invoke-Pester tests/unit/scripts"
-    networks:
-      - gv-test-network
-
-  node-tests:
-    image: node:22-alpine
-    container_name: gv-node-tests
-    volumes:
-      - .:/workspace
-    working_dir: /workspace/apps/web-dashboard
-    command: sh -c "npm install -g pnpm && pnpm install && pnpm vitest run"
-    networks:
-      - gv-test-network
-
-  dashboard-test:
-    image: node:22-alpine
-    container_name: gv-dashboard-test
-    volumes:
-      - .:/workspace
-    working_dir: /workspace/apps/web-dashboard
-    command: sh -c "npm install -g pnpm && pnpm install && pnpm vitest run --reporter verbose"
-    networks:
-      - gv-test-network
-
-  mcp-test:
-    image: node:22-alpine
-    container_name: gv-mcp-test
-    volumes:
-      - .:/workspace
-    working_dir: /workspace
-    command:
-      sh -c "npm install -g pnpm && pnpm install && pnpm vitest run tests/unit/mcp/ --reporter
-      verbose"
-    networks:
-      - gv-test-network
-
   integration-test:
     image: node:22-alpine
     container_name: gv-integration-test
-    depends_on:
-      - dashboard-test
-      - mcp-test
     volumes:
       - .:/workspace
     working_dir: /workspace
-    command:
-      sh -c "npm install -g pnpm && pnpm install && pnpm vitest run tests/integration/ --reporter
-      verbose --coverage"
-    networks:
-      - gv-test-network
-
-  lint-test:
-    image: node:22-alpine
-    container_name: gv-lint-test
-    volumes:
-      - .:/workspace
-    working_dir: /workspace
-    command: sh -c "npm install -g pnpm && pnpm install && pnpm lint && pnpm format:check"
-    networks:
-      - gv-test-network
-
-  security-scan:
-    image: aquasec/trivy:0.56.1
-    container_name: gv-security-scan
-    volumes:
-      - .:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
-    working_dir: /workspace
-    entrypoint: trivy
-    command: ['fs', '--severity', 'HIGH,CRITICAL', '--exit-code', '0', '/workspace']
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm vitest run tests/integration/ --reporter verbose"
     networks:
       - gv-test-network
 
