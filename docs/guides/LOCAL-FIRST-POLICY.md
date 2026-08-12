@@ -91,11 +91,11 @@ Each AI tool has a local-first configuration:
 
 Only bypass when ALL conditions met:
 
-1.  Checked local skills
-2.  Queried engram memory
-3.  Read project documentation
-4.  User explicitly requests external search
-5.  Orchestrator approves tool usage
+1. Checked local skills
+2. Queried engram memory
+3. Read project documentation
+4. User explicitly requests external search
+5. Orchestrator approves tool usage
 
 ## Implementation Status
 

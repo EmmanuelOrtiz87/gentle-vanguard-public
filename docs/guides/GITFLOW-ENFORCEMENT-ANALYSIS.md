@@ -306,9 +306,9 @@ hotfix/, o release/
 
 ### Fase 1 (Inmediata - Esta Semana)
 
-1.  Enriquecer mensajes de error en `validate-gitflow.ps1`
-2.  Crear `GITFLOW-QUICK-REFERENCE.md`
-3.  Crear script `create-gitflow-branch.ps1`
+1. Enriquecer mensajes de error en `validate-gitflow.ps1`
+2. Crear `GITFLOW-QUICK-REFERENCE.md`
+3. Crear script `create-gitflow-branch.ps1`
 
 ### Fase 2 (Corto Plazo - 2 Semanas)
 

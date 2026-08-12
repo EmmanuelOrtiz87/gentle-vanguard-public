@@ -211,6 +211,7 @@ These scripts contain syntax that TypeScript cannot parse:
    - Verify no new errors introduced
 
 3. **Run Full Audit**
+
    ```TypeScript
    .\scripts\utilities\audit-script-normalization.ps1 -Report
    ```

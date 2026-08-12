@@ -81,7 +81,7 @@ It's free. It's open source. Try it today.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #OpenSource #DevTools #SoftwareEngineering #Governance #LocalFirst #DeveloperExperience
+# AI #OpenSource #DevTools #SoftwareEngineering #Governance #LocalFirst #DeveloperExperience
 
 ### Post 2 — Adaptive System Angle
 
@@ -104,7 +104,7 @@ No more repeating yourself. No more context loss. Just better code, faster.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #MachineLearning #DeveloperExperience #SoftwareEngineering #DevTools
+# AI #MachineLearning #DeveloperExperience #SoftwareEngineering #DevTools
 
 ### Post 3 — Quality First Angle
 
@@ -125,7 +125,7 @@ Quality isn't a phase. It's built into every commit.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#SoftwareQuality #AI #DevTools #Engineering #BestPractices
+# SoftwareQuality #AI #DevTools #Engineering #BestPractices
 
 ### Post 4 — Open Source Angle
 
@@ -147,7 +147,7 @@ MIT licensed. Fork it. Modify it. Ship with it.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#OpenSource #LocalFirst #Privacy #AI #DevTools #DeveloperFreedom
+# OpenSource #LocalFirst #Privacy #AI #DevTools #DeveloperFreedom
 
 ---
 
@@ -166,7 +166,7 @@ No SaaS. No telemetry leaks. Your code stays yours.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #DevTools #OpenSource #LocalFirst #SoftwareEngineering
+# AI #DevTools #OpenSource #LocalFirst #SoftwareEngineering
 
 ### Post 2 — Adaptive System Angle
 
@@ -181,7 +181,7 @@ Your AI learns. You stop repeating yourself.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #DevTools #MachineLearning #DeveloperExperience
+# AI #DevTools #MachineLearning #DeveloperExperience
 
 ### Post 3 — Quality First Angle
 
@@ -193,7 +193,7 @@ Gentle-Vanguard v3.3.0 measures quality and enforces standards. Zero bugs shippe
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#SoftwareQuality #AI #DevTools #Engineering
+# SoftwareQuality #AI #DevTools #Engineering
 
 ### Post 4 — Open Source Angle
 
@@ -204,7 +204,7 @@ machine, your rules.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#OpenSource #LocalFirst #Privacy #AI #DevTools
+# OpenSource #LocalFirst #Privacy #AI #DevTools
 
 ---
 

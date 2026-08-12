@@ -168,7 +168,7 @@ El comando verifica:
 
 ### Safe (Recomendado)
 
-- Archivos temporales (_.tmp, _.temp, _.bak, _.backup)
+- Archivos temporales (_.tmp,_.temp, _.bak,_.backup)
 - Directorios de cach (_cache_)
 - NO elimina logs
 - Verifica integridad

@@ -68,14 +68,19 @@ Edita `config/cloud-agents.local.json` y agrega tu proveedor personalizado:
 ## 5. Uso manual
 
 - Ejecutar un comando:
+
   ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Provider custom -Command "Cul es la capital de Francia?"
   ```
+
 - Modo estricto (automatización):
+
   ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Provider custom -StrictJson -Command "return JSON"
   ```
+
 - Modo interactivo:
+
   ```TypeScript
   .\scripts\utilities\invoke-cloud-agent.ps1 -Interactive
   ```

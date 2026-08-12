@@ -256,10 +256,10 @@ git merge feature/my-feature
 
 ### PR Labels
 
-- `judgment-day-approved `: Judgment Day passed
-- `judgment-day-failed `: Judgment Day failed
-- `judgment-day-pending `: Judgment Day in progress
-- `judgment-day-escalated `: Judgment Day escalated
+- `judgment-day-approved`: Judgment Day passed
+- `judgment-day-failed`: Judgment Day failed
+- `judgment-day-pending`: Judgment Day in progress
+- `judgment-day-escalated`: Judgment Day escalated
 
 ## Escalation Policy
 
