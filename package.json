@@ -160,6 +160,7 @@
     "presentations:serve": "npx tsx src/cli/serve-presentations.ts",
     "presentations:stop": "npx tsx src/cli/stop-presentations.ts",
     "presentations:validate": "npx tsx src/cli/validate-presentations.ts",
+    "presentations:validate:main": "npx tsx src/cli/validate-presentations.ts --main",
     "presentations:verify:cdp": "node .opencode/skills/presentations-maintenance/scripts/cdp-verify-page.cjs",
     "backlog": "npx tsx src/cli/backlog.ts",
     "backlog:add": "npx tsx src/cli/backlog.ts add",
