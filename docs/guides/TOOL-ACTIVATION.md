@@ -25,6 +25,7 @@ Linux, macOS, or WSL:
 ./gv health
 pwsh -NoProfile -File ./src/cli/gv.ts health
 pwsh -NoProfile -File ./scripts/utilities/update-tools.ps1 -DryRun
+<!-- REF-OBSOLETA: scripts/utilities/update-tools.ps1 no tiene equivalente TS (migración PS1→TS) -->
 ```
 
 ## Activation Model

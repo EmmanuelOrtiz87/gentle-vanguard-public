@@ -151,6 +151,7 @@ Run the size checker:
 
 ```TypeScript
 npx tsx src/utilities/check-skill-sizes.ts
+<!-- REF-OBSOLETA: src/utilities/check-skill-sizes.ts no existe (ruta migrada o eliminada) -->
 ```
 
 Expected output:

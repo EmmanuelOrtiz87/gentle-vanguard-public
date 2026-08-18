@@ -10,6 +10,7 @@ The project has **28 automated tests** organized in 4 categories:
 - **1 Performance test** — Engram memory benchmarks
 
 All tests use **node:test** and run via `scripts/run-tests-simple.ps1`.
+<!-- REF-OBSOLETA: scripts/run-tests-simple.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 ## Test Categories
 
@@ -53,6 +54,7 @@ Coverage reports are uploaded as artifacts in CI.
 ## References
 
 - Test runner: `scripts/run-tests-simple.ps1`
+<!-- REF-OBSOLETA: scripts/run-tests-simple.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - CI workflow: `.github/workflows/test-suite.yml`
 - See [skills/testing-skill/SKILL.md](../../skills/testing-skill/SKILL.md) for strategy details
 - See [docs/guides/SECURITY-AUTH-SECRETS.md](SECURITY-AUTH-SECRETS.md) for secret management during

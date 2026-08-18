@@ -4,6 +4,7 @@
 
 > **Status**: IMPLEMENTED — Gentle-Vanguard v2.9.0  
 > **Core scripts**: `src/skills/plugins-discovery.ts`, `plugin-loader.ps1`  
+<!-- REF-OBSOLETA: src/skills/plugins-discovery.ts no existe (ruta migrada o eliminada) -->
 > **Manifest schema**: `config/plugin-manifest-schema.json`  
 > **CI validation**: `.github/workflows/autonomous-validation.yml`
 

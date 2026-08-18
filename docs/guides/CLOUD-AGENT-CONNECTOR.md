@@ -410,6 +410,7 @@ $config = @{
 
 All runtime requests are logged to `.runtime/telemetry/cloud-agent-telemetry.csv` (local runtime
 artifact). If you need management consolidation, run `scripts/utilities/consolidate-telemetry.ps1`.
+<!-- REF-OBSOLETA: scripts/utilities/consolidate-telemetry.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 Consolidation requires `Session_ID` correlation from runtime telemetry; rows without matching
 session correlation are skipped by design.
@@ -489,6 +490,7 @@ from provider.
 | File                                           | Purpose                              | Git Status     |
 | ---------------------------------------------- | ------------------------------------ | -------------- |
 | `scripts/utilities/invoke-cloud-agent.ps1`     | Main connector script                | Committed      |
+<!-- REF-OBSOLETA: scripts/utilities/invoke-cloud-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
 | `config/cloud-agents.json`                     | Shared template config               | Committed      |
 | `config/cloud-agents.local.example`            | Local config template                | Committed      |
 | `config/cloud-agents.local.json`               | Local provider metadata (no secrets) | **GITIGNORED** |

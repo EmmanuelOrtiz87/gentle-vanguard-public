@@ -173,3 +173,4 @@ git status  # No debe dar error
 - **Guía Rápida**: `docs/SESSION-STARTUP-QUICK-GUIDE.md`
 - **Skill de Sesión**: `skills/session-workflow-skill/SKILL.md`
 - **Script de Validación**: `scripts/utilities/validate-session-startup.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/validate-session-startup.ps1 no tiene equivalente TS (migración PS1→TS) -->

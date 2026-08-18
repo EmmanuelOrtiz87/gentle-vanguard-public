@@ -329,6 +329,7 @@ Metrics are persisted to Engram with topic_key `metrics/subagent-delegation` for
 ```TypeScript
 ./src/cli/gv.ts install-engram
 ./scripts/utilities/run-engram.ps1 --help
+<!-- REF-OBSOLETA: scripts/utilities/run-engram.ps1 no tiene equivalente TS (migración PS1→TS) -->
 ```
 
 ## 15. Implementation Reference

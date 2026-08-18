@@ -59,6 +59,7 @@ Configured in `opencode.json`:
 "post_session": {
   "enabled": true,
   "script": "src/telemetry/generate-management-report.ts"
+<!-- REF-OBSOLETA: src/telemetry/generate-management-report.ts no existe (ruta migrada o eliminada) -->
 }
 ```
 

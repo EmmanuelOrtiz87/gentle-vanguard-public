@@ -60,6 +60,7 @@ if ($response.usage) {
 
     # Record in token budget guard
     $guardScript = "src/telemetry/token-budget-guard.ts"
+<!-- REF-OBSOLETA: src/telemetry/token-budget-guard.ts no existe (ruta migrada o eliminada) -->
     & $guardScript -Task "your-task" -Risk "medium" -Record `
         -ActualPromptTokens $promptTokens -ActualCompletionTokens $completionTokens
 }

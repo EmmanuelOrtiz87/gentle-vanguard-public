@@ -309,6 +309,7 @@ Rotation is automated on `end-session` and `day-end-closure`.
     {
       "id": 1,
       "file": "src/auth/login.ts",
+<!-- REF-OBSOLETA: src/auth/login.ts no existe (ruta migrada o eliminada) -->
       "line": 42,
       "title": "SQL Injection Vulnerability",
       "severity": "CRITICAL",

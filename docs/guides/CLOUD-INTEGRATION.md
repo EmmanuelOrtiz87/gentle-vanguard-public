@@ -29,7 +29,7 @@ cost-optimized routing between AWS Lambda and Azure Functions.
 
 ## Components
 
-### AWS Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1`)
+### AWS Delegator (`src/aws-delegator.ts`)
 
 Invokes skills on AWS Lambda with:
 
@@ -46,7 +46,7 @@ npx tsx src/cli/gv.ts `
   -RecordMetrics
 ```
 
-### Azure Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1`)
+### Azure Delegator (`src/azure-delegator.ts`)
 
 Invokes skills on Azure Functions with:
 
@@ -65,7 +65,7 @@ npx tsx src/cli/gv.ts `
   -RecordMetrics
 ```
 
-### Hybrid Executor (`scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1`)
+### Hybrid Executor (`src/hybrid-executor.ts`)
 
 Routes between AWS and Azure based on strategy:
 

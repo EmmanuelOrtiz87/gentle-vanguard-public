@@ -283,6 +283,7 @@ These scripts contain syntax that TypeScript cannot parse:
 ## Resources
 
 - **Audit Script**: `scripts/utilities/audit-script-normalization.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/audit-script-normalization.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - **Standards Guide**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
 - **Audit Report**: `docs/audit/script-normalization-report.md`
 

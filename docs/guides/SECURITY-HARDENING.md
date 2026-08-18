@@ -13,6 +13,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 1. Encriptación AES-256
 
 **Archivo**: `scripts/security/encryption-manager.ps1`
+<!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Características**:
 
@@ -43,6 +44,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 2. Validación de Entrada
 
 **Archivo**: `scripts/security/input-validator.ps1`
+<!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Tipos de Validación**:
 
@@ -74,6 +76,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 3. Gestin de Secretos
 
 **Archivo**: `scripts/security/secrets-manager.ps1`
+<!-- REF-OBSOLETA: scripts/security/secrets-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Características**:
 
@@ -104,6 +107,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 4. Logging de Seguridad
 
 **Archivo**: `scripts/security/security-logger.ps1`
+<!-- REF-OBSOLETA: scripts/security/security-logger.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Tipos de Eventos**:
 
@@ -415,9 +419,13 @@ npm audit --workspace $HOME\mcp-workspace
 ## Referencias
 
 - `scripts/security/encryption-manager.ps1` - Encriptación
+<!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/input-validator.ps1` - Validación
+<!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/secrets-manager.ps1` - Secretos
+<!-- REF-OBSOLETA: scripts/security/secrets-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/security-logger.ps1` - Logging
+<!-- REF-OBSOLETA: scripts/security/security-logger.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `tests/security/input-validation.security.tests.ps1` - Tests
 - `config/security-policy.json` - Políticas
 - `opencode.json#mcp` - MCP server configuration

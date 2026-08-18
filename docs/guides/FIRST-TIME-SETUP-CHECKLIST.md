@@ -142,11 +142,11 @@ Test that the new security gates are working:
 
 ```TypeScript
 # 1. Check lockfile-lint exists
-Test-Path "scripts/hooks/lockfile-lint-pre-commit.ps1"
+Test-Path "src/lockfile-lint-pre-commit.ts"
 # Expected: True
 
 # 2. Check npm-audit exists
-Test-Path "scripts/hooks/npm-audit-pre-push.ps1"
+Test-Path "src/infrastructure/npm-audit-pre-push.ts"
 # Expected: True
 
 # 3. Verify lefthook sees them

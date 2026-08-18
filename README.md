@@ -3,13 +3,13 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.3.2-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.7.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
-  <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
   <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
-  <img src="https://img.shields.io/badge/Agents-18-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
-  <img src="https://img.shields.io/badge/Skills-386-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
+  <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
+  <img src="https://img.shields.io/badge/Skills-88-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
+  <img src="https://img.shields.io/badge/Auto_Update-%E2%9C%93-22C55E?style=flat-square&labelColor=0D1117" alt="Auto Update">
 </p>
 
 <p align="center">
@@ -23,8 +23,8 @@
 </p>
 
 <p align="center">
-  <strong>AI-powered development orchestrator · 18 agents · 386 skills · 10 tool-compatible</strong><br>
-  <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security</em>
+  <strong>AI-powered development orchestrator · 21 agents · 88 skills · 10 tool-compatible</strong><br>
+  <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security · Auto-Update</em>
 </p>
 
 > _"Building the definitive bridge between high-end software engineering and corporate strategy."_
@@ -45,18 +45,18 @@ standards, tracks every token, and remembers what you did last session.
 | Unstructured AI workflows     | SDD lifecycle enforces spec-driven development             |
 | Disconnected tool sessions    | Session manager tracks context with crash recovery         |
 | No AI cost visibility         | Dashboard with token trends and per-agent analytics        |
-| One-size AI responses         | 18 specialized agents with role-specific profiles          |
+| One-size AI responses         | 21 specialized agents with role-specific profiles          |
 
 ---
 
 ## 🚀 Quick Start
 
 ```powershell
-# Download latest release
+# Download the latest release
 # https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
 
-# Run
-./gentle-vanguard-3.3.2.exe -Dashboard
+# Run the installer — it sets up everything automatically
+./gentle-vanguard-3.7.0.exe
 ```
 
 Or use the portable version:
@@ -83,9 +83,18 @@ Or use the portable version:
 
 1. Download the latest `.exe` from
    [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
-2. Run the executable — the installer will set up all dependencies
-3. Launch with `./gentle-vanguard-3.3.2.exe -Dashboard`
+2. Run the executable — the installer sets up all dependencies (Node, TypeScript, tools)
+3. Launch with `./gentle-vanguard-3.7.0.exe -Dashboard`
 4. Open `http://localhost:3000` in your browser
+
+### 🔄 Auto-Update
+
+The `.exe` includes **automatic updates**:
+
+- On launch, it checks for new versions against the Releases feed
+- If a new version exists, it downloads and installs it in place
+- Your configuration and data are preserved across updates
+- No manual intervention required
 
 ---
 
@@ -115,7 +124,7 @@ graph TB
     end
 
     subgraph Skills["⚡ Skill Layer"]
-        SKILLS[386 On-Demand Skills]
+        SKILLS[88 On-Demand Skills]
     end
 
     subgraph Memory["🧠 Memory Layer"]
@@ -130,42 +139,36 @@ graph TB
 
 ---
 
-## ✨ What's New in v3.3.2
+## ✨ What's New in v3.7.0
 
-### 🔄 Adaptive Feedback Loop
+### 🏛️ Gobernanza de Madurez Completa
 
-The system now learns from your corrections in real-time:
+- **8/8 módulos experimentales activados** bajo el MODULE-ACTIVATION-WORKFLOW con gates 6/6
+- Módulos: root-cause-correlator, convergence-monitor, fine-tuning-collector, predictive-governor,
+  proactive-intelligence, trust-layer-stage8, skill-evolution-engine, cross-workspace-mesh
 
-- **Correction Capture**: Automatically detects when you modify AI-generated code
-- **Pattern Detector**: Identifies recurring correction patterns across sessions
-- **Smart Suggestions**: Applies learned patterns to future generations
+### 🔒 SBOM nativo (CycloneDX 1.7)
 
-### 📊 Session Quality Scoring
+- Integración npm: `sbom:generate` y `sbom:validate`
+- SBOM con 464 componentes trackeado como artifact de compliance
 
-Track your session health with objective metrics:
+### 🛡️ Container Scanning nativo
 
-- **Baseline Score**: 81/100 starting quality metric
-- **Real-time Updates**: Score adjusts as you work
-- **Trend Analysis**: See improvement over time
+- Scanner Syft+Grype+Trivy sin Docker — SBOM, directorios y artefactos
+- Gates en CI/CD y pre-push hooks
 
-### 🧠 Auto Norm Learner
+### 🧪 Chaos Engineering L4
 
-Automatically builds coding standards from your patterns:
+- Experimentos de resiliencia automatizados en CI/CD (semanal)
+- Verificación de auto-heal del watchdog
 
-- **144 Rules**: Baseline rule set for common patterns
-- **Auto-discovery**: New rules added as patterns emerge
-- **Team Sync**: Share rules across your organization
+### 🔄 Auto-Update
 
-### 🛠️ Stability Improvements
+- El `.exe` se auto-actualiza detectando nuevas versiones en Releases
 
-6 critical fixes for smoother operation:
+### ✅ Verificación
 
-- Improved session recovery after interruptions
-- Better handling of large file operations
-- Enhanced memory persistence reliability
-- Faster agent dispatch response times
-- Reduced memory footprint
-- Improved cross-platform compatibility
+- Tests 367/367 · Typecheck 0 errores · Lint 0 errores · Watchtower 95/95
 
 ---
 
@@ -187,4 +190,4 @@ MIT © 2026 Emmanuel Ortiz
 
 ---
 
-_Gentle-Vanguard v3.3.2 — Don't let your mellow hustle be faded_
+_Gentle-Vanguard v3.7.0 — Don't let your mellow hustle be faded_

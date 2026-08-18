@@ -146,6 +146,7 @@ Default rule:
 ## Engram Traceability for Communication Mode
 
 Communication mode changes executed through `scripts/utilities/response-mode.ps1` are persisted as
+<!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 Engram observations.
 
 Observation key:
@@ -258,5 +259,6 @@ Classical Chinese variants are deprecated and out of scope for Gentle-Vanguard a
 This policy is enforced as a required governance artifact by:
 
 - `scripts/diagnostics/validate-script-governance.ps1`
+<!-- REF-OBSOLETA: scripts/diagnostics/validate-script-governance.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 Any removal or relocation must be approved by the developer and updated in governance rules.

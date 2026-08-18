@@ -228,5 +228,6 @@ Install-Module -Name Pester -Force
 
 - `config/testing.config.json` - configuración
 - `scripts/testing/run-tests.ps1` - Test runner
+<!-- REF-OBSOLETA: scripts/testing/run-tests.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `tests/unit/` - Unit tests
 - `tests/integration/` - Integration tests

@@ -402,6 +402,7 @@ $response_style = 'exhaustive'
 
 ```TypeScript
 # scripts/utilities/context-pack.ps1
+<!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Compresses context
 - Removes redundancy
 - Optimizes structure
@@ -412,6 +413,7 @@ $response_style = 'exhaustive'
 
 ```TypeScript
 # scripts/utilities/dispatch-agent.ps1
+<!-- REF-OBSOLETA: scripts/utilities/dispatch-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Routes to correct tool
 - Adapts message format
 - Handles tool-specific features
@@ -543,5 +545,7 @@ function Check-ToolCompatibility {
 
 - Token Budget Guard: `src/token-budget-guard.ts`
 - Context Pack: `scripts/utilities/context-pack.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Dispatch Agent: `scripts/utilities/dispatch-agent.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/dispatch-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Session Manager: `src/session-manager.ts`

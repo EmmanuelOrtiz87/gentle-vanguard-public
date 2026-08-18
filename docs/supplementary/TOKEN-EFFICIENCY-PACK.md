@@ -143,6 +143,7 @@ Aggressive scenario:
 3. Effective monthly reduction: 140,000 tokens.
 
 Use scripts/utilities/token-efficiency-estimator.ps1 for custom estimates.
+<!-- REF-OBSOLETA: scripts/utilities/token-efficiency-estimator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 ### 6.1 Response-Mode Matrix (27 Combinations)
 

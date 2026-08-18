@@ -99,6 +99,7 @@ tools:
 - [ ] `.github/labeler.yml` — Auto-label PRs by path
 - [ ] Tests organized: `tests/unit/`, `tests/integration/`, `tests/security/`, `tests/performance/`
 - [ ] `scripts/run-tests-simple.ps1` — Runs all test categories
+<!-- REF-OBSOLETA: scripts/run-tests-simple.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - [ ] `pre-push` hook runs test suite + audit check
 
 ## Incompatible Features

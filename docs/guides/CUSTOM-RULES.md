@@ -96,9 +96,13 @@ How to verify the rule is being followed (command, checklist, or acceptance crit
 Custom rules are loaded by:
 
 1. `scripts/utilities/custom-rules.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/custom-rules.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. `scripts/utilities/context-pack.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
 3. `scripts/utilities/start-session.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/start-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
 4. `scripts/utilities/orchestrator-status.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/orchestrator-status.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 ## Commands
 

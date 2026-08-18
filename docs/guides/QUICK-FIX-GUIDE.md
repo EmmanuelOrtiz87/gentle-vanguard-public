@@ -33,6 +33,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/gentle-vanguard/bootstrap-workspace.ps1`
+<!-- REF-OBSOLETA: scripts/gentle-vanguard/bootstrap-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Check all `function` definitions
 3. Verify all `if/else` blocks are closed
 
@@ -42,6 +43,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/diagnostics/validate-script-governance.ps1`
+<!-- REF-OBSOLETA: scripts/diagnostics/validate-script-governance.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Search for: `Script` keyword
 3. Check for incomplete statements
 
@@ -60,6 +62,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/validation/homologate-workspace.ps1`
+<!-- REF-OBSOLETA: scripts/validation/homologate-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Find and remove 5 extra `)` characters
 3. Validate with audit tool
 
@@ -153,3 +156,4 @@ multi-line string
 - **Full Guide**: `docs/guides/REMAINING-SCRIPTS-TO-FIX.md`
 - **Standards**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
 - **Audit Tool**: `scripts/utilities/audit-script-normalization.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/audit-script-normalization.ps1 no tiene equivalente TS (migración PS1→TS) -->

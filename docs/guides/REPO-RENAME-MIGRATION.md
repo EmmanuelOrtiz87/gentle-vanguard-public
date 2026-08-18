@@ -44,6 +44,7 @@ If variables are missing, workflow defaults remain safe.
 git remote -v
 gh repo view EmmanuelOrtiz87/gentle-vanguard --json name,url,defaultBranchRef
 pwsh -NoProfile -ExecutionPolicy Bypass -File src/agent-verify.ts
+<!-- REF-OBSOLETA: src/agent-verify.ts no existe (ruta migrada o eliminada) -->
 ```
 
 ## Notes

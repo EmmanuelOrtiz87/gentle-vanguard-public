@@ -245,6 +245,7 @@ This enables automated refresh without requiring manual command execution for CI
 Local manual generation is still available for immediate on-machine preview:
 
 - `pwsh -File src/telemetry/generate-dashboard.ts`
+<!-- REF-OBSOLETA: src/telemetry/generate-dashboard.ts no existe (ruta migrada o eliminada) -->
 
 ---
 

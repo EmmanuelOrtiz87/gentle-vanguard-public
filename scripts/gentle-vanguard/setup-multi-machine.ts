@@ -21,7 +21,7 @@ function parseArgs(): SetupMultiMachineArgs {
     publicRepo: extractArg(args, '--public-repo') || 'gentle-vanguard-public',
     basePath: extractArg(args, '--base-path') || '',
     installRunner: args.includes('--install-runner'),
-    runnerConfigPath: extractArg(args, '--runner-config-path') || 'config/github-runner.local.json',
+    runnerConfigPath: extractArg(args, '--runner-config-path') || 'config/github-runner.example.json',
   };
 }
 

@@ -25,13 +25,19 @@ Use this Gentle-Vanguard as the standard starting point for new repositories.
 
 1. Copy or clone the new project into its own repository.
 2. Run `scripts/init-workspace.ps1` or `scripts/init-workspace.sh` once per machine.
+<!-- REF-OBSOLETA: scripts/init-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 3. Run `scripts/install-workspace-skills.ps1` or `scripts/install-workspace-skills.sh` so the
+<!-- REF-OBSOLETA: scripts/install-workspace-skills.ps1 no tiene equivalente TS (migración PS1→TS) -->
    documentation and architecture skills are available in Codex.
 4. Run `scripts/run-engram.ps1` or `scripts/run-engram.sh` if you want isolated local memory.
+<!-- REF-OBSOLETA: scripts/run-engram.ps1 no tiene equivalente TS (migración PS1→TS) -->
 5. Run `scripts/secrets-bootstrap.ps1` inside each application repo that uses local credentials.
+<!-- REF-OBSOLETA: scripts/secrets-bootstrap.ps1 no tiene equivalente TS (migración PS1→TS) -->
 6. Use `scripts/new-project.ps1 -Name <project>` or `scripts/new-project.sh -Name <project>` for
+<!-- REF-OBSOLETA: scripts/new-project.ps1 no tiene equivalente TS (migración PS1→TS) -->
    scaffolded repos.
 7. Use `scripts/validate-workspace.ps1` or `scripts/validate-workspace.sh` before changes are
+<!-- REF-OBSOLETA: scripts/validate-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
    committed.
 
 ## Project Shape Parameters
@@ -90,6 +96,7 @@ including AI provider and model decisións.
 9. `scripts/start-*.ps1`
 10. `scripts/secrets-*.ps1`
 11. `scripts/cleanup-runtime.ps1`
+<!-- REF-OBSOLETA: scripts/cleanup-runtime.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 ## Portability Checklist
 

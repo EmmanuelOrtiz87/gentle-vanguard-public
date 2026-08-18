@@ -111,6 +111,29 @@ jobs:
         working-directory: apps/web-dashboard
         run: pnpm build
 
+  mcp-servers:
+    name: MCP Servers Self-Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch MCP server self-test
+        run: pnpm mcp:fetch:test
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
