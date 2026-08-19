@@ -1,0 +1,224 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#0f1525"/>
+    </linearGradient>
+    <radialGradient id="nexusGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00bfff" stop-opacity="0.15"/>
+      <stop offset="60%" stop-color="#00bfff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#00bfff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="daoBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00bfff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00bfff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="daoGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="daoPurple" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="daoOrange" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="nexusGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00bfff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00bfff"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Data Architecture — Nexus DB</text>
+  <text x="450" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">SQLite WAL mode · 10 DAOs · 7 migrations</text>
+
+  <!-- Legend -->
+  <g transform="translate(680, 20)">
+    <rect x="0" y="0" width="8" height="8" rx="2" fill="#00bfff"/>
+    <text x="14" y="8" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Data</text>
+    <rect x="0" y="14" width="8" height="8" rx="2" fill="#22c55e"/>
+    <text x="14" y="22" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Quality</text>
+    <rect x="0" y="28" width="8" height="8" rx="2" fill="#a855f7"/>
+    <text x="14" y="36" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Memory</text>
+    <rect x="0" y="42" width="8" height="8" rx="2" fill="#f59e0b"/>
+    <text x="14" y="50" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Ops</text>
+  </g>
+
+  <!-- Center Nexus DB -->
+  <circle cx="450" cy="275" r="155" fill="url(#nexusGlow)"/>
+  <g filter="url(#strongGlow)">
+    <rect x="370" y="240" width="160" height="70" rx="12" fill="#111827" stroke="url(#nexusGrad)" stroke-width="2"/>
+    <rect x="370" y="240" width="160" height="70" rx="12" fill="#00bfff" fill-opacity="0.05"/>
+  </g>
+  <text x="450" y="260" text-anchor="middle" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="700" filter="url(#glow)">NEXUS DB</text>
+  <text x="450" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">gentle-vanguard.db</text>
+  <text x="450" y="290" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="8">SQLite WAL · FK ON</text>
+
+  <!-- ===== TOP RING: 5 DAOs ===== -->
+
+  <!-- MetricsRepo - top-left -->
+  <g filter="url(#shadow)">
+    <rect x="130" y="85" width="140" height="38" rx="6" fill="#111827" stroke="#00bfff" stroke-width="0.5"/>
+    <rect x="130" y="85" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
+  </g>
+  <rect x="138" y="93" width="8" height="22" rx="2" fill="#00bfff"/>
+  <text x="154" y="103" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">MetricsRepo</text>
+  <text x="154" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">metric_snapshots</text>
+  <line x1="270" y1="104" x2="365" y2="250" stroke="#00bfff" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
+
+  <!-- SessionRepo - top-center -->
+  <g filter="url(#shadow)">
+    <rect x="310" y="75" width="140" height="38" rx="6" fill="#111827" stroke="#00bfff" stroke-width="0.5"/>
+    <rect x="310" y="75" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
+  </g>
+  <rect x="318" y="83" width="8" height="22" rx="2" fill="#00bfff"/>
+  <text x="334" y="93" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">SessionRepo</text>
+  <text x="334" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">sessions</text>
+  <line x1="380" y1="113" x2="420" y2="235" stroke="#00bfff" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
+
+  <!-- TraceRepo - top-right -->
+  <g filter="url(#shadow)">
+    <rect x="490" y="75" width="140" height="38" rx="6" fill="#111827" stroke="#00bfff" stroke-width="0.5"/>
+    <rect x="490" y="75" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
+  </g>
+  <rect x="498" y="83" width="8" height="22" rx="2" fill="#00bfff"/>
+  <text x="514" y="93" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">TraceRepo</text>
+  <text x="514" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">traces</text>
+  <line x1="520" y1="113" x2="480" y2="235" stroke="#00bfff" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
+
+  <!-- EventRepo - top-right far -->
+  <g filter="url(#shadow)">
+    <rect x="640" y="85" width="140" height="38" rx="6" fill="#111827" stroke="#22c55e" stroke-width="0.5"/>
+    <rect x="640" y="85" width="140" height="38" rx="6" fill="url(#daoGreen)"/>
+  </g>
+  <rect x="648" y="93" width="8" height="22" rx="2" fill="#22c55e"/>
+  <text x="664" y="103" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">EventRepo</text>
+  <text x="664" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">events</text>
+  <line x1="640" y1="104" x2="535" y2="250" stroke="#22c55e" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowGreen)"/>
+
+  <!-- CacheRepo - left -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="195" width="140" height="38" rx="6" fill="#111827" stroke="#22c55e" stroke-width="0.5"/>
+    <rect x="60" y="195" width="140" height="38" rx="6" fill="url(#daoGreen)"/>
+  </g>
+  <rect x="68" y="203" width="8" height="22" rx="2" fill="#22c55e"/>
+  <text x="84" y="213" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">CacheRepo</text>
+  <text x="84" y="225" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">response_cache</text>
+  <line x1="200" y1="214" x2="365" y2="260" stroke="#22c55e" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowGreen)"/>
+
+  <!-- ===== BOTTOM RING: 5 DAOs ===== -->
+
+  <!-- SkillRepo - bottom-left -->
+  <g filter="url(#shadow)">
+    <rect x="640" y="200" width="140" height="38" rx="6" fill="#111827" stroke="#a855f7" stroke-width="0.5"/>
+    <rect x="640" y="200" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
+  </g>
+  <rect x="648" y="208" width="8" height="22" rx="2" fill="#a855f7"/>
+  <text x="664" y="218" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">SkillRepo</text>
+  <text x="664" y="230" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">skill_usage</text>
+  <line x1="640" y1="219" x2="535" y2="265" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+  <!-- ContractRepo - bottom-center -->
+  <g filter="url(#shadow)">
+    <rect x="490" y="370" width="140" height="38" rx="6" fill="#111827" stroke="#a855f7" stroke-width="0.5"/>
+    <rect x="490" y="370" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
+  </g>
+  <rect x="498" y="378" width="8" height="22" rx="2" fill="#a855f7"/>
+  <text x="514" y="388" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">ContractRepo</text>
+  <text x="514" y="400" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">contract_results</text>
+  <line x1="520" y1="370" x2="485" y2="315" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+  <!-- ErrorMemoryRepo - bottom-right -->
+  <g filter="url(#shadow)">
+    <rect x="310" y="380" width="140" height="38" rx="6" fill="#111827" stroke="#a855f7" stroke-width="0.5"/>
+    <rect x="310" y="380" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
+  </g>
+  <rect x="318" y="388" width="8" height="22" rx="2" fill="#a855f7"/>
+  <text x="334" y="398" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">ErrMemoryRepo</text>
+  <text x="334" y="410" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">scoring</text>
+  <line x1="380" y1="380" x2="425" y2="315" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+  <!-- HousekeepingRepo - right -->
+  <g filter="url(#shadow)">
+    <rect x="130" y="370" width="140" height="38" rx="6" fill="#111827" stroke="#f59e0b" stroke-width="0.5"/>
+    <rect x="130" y="370" width="140" height="38" rx="6" fill="url(#daoOrange)"/>
+  </g>
+  <rect x="138" y="378" width="8" height="22" rx="2" fill="#f59e0b"/>
+  <text x="154" y="388" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">HousekeepingRepo</text>
+  <text x="154" y="400" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">token_usage</text>
+  <line x1="270" y1="389" x2="365" y2="315" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+  <!-- MigrationRunner - bottom-left far -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="290" width="140" height="38" rx="6" fill="#111827" stroke="#f59e0b" stroke-width="0.5"/>
+    <rect x="60" y="290" width="140" height="38" rx="6" fill="url(#daoOrange)"/>
+  </g>
+  <rect x="68" y="298" width="8" height="22" rx="2" fill="#f59e0b"/>
+  <text x="84" y="308" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">MigrationRunner</text>
+  <text x="84" y="320" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">7 migrations</text>
+  <line x1="200" y1="309" x2="360" y2="275" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+  <!-- ===== DATA FLOW ARROWS ===== -->
+  <g>
+    <!-- State.json → Dashboard WS -->
+    <path d="M 160 140 Q 80 170 80 250 Q 80 330 160 370" fill="none" stroke="#00bfff" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowBlue)"/>
+    <rect x="38" y="240" width="22" height="14" rx="4" fill="#0a0e1a" stroke="#1e3a5f" stroke-width="0.5"/>
+    <text x="49" y="250" text-anchor="middle" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="6">Z</text>
+
+    <!-- Session → Checkpoints -->
+    <path d="M 310 113 Q 250 130 230 170" fill="none" stroke="#22c55e" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowGreen)"/>
+
+    <!-- Events → Audit -->
+    <path d="M 640 123 Q 700 150 720 200" fill="none" stroke="#22c55e" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowGreen)"/>
+  </g>
+
+  <!-- Side annotation for state.json flows -->
+  <g transform="translate(30, 135)">
+    <rect x="-8" y="-8" width="100" height="20" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="0.5"/>
+    <text x="42" y="6" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">.state.json flows</text>
+  </g>
+
+  <!-- Migration badges -->
+  <g transform="translate(660, 438)">
+    <rect x="0" y="0" width="100" height="16" rx="6" fill="#111827" stroke="#1e3a5f" stroke-width="0.5"/>
+    <text x="50" y="11" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">M001 · M002 · M003</text>
+  </g>
+
+  <!-- Footer -->
+  <line x1="60" y1="483" x2="840" y2="483" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="450" y="495" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="370" y="240" width="160" height="70" rx="6" data-i18n-title="tip_hs_data_nexus" role="button" tabindex="0" fill="transparent" aria-label="NEXUS DB: operational SQLite database (gentle-vanguard.db) with WAL mode, FK ON, 12 tables and 3 migrations."/>
+    <rect class="gv-hotspot" x="130" y="75" width="650" height="48" rx="6" data-i18n-title="tip_hs_data_repos_blue" role="button" tabindex="0" fill="transparent" aria-label="Data DAOs (blue): MetricsRepo (metric_snapshots), SessionRepo (sessions) and TraceRepo (traces) - time-series and session history."/>
+    <rect class="gv-hotspot" x="60" y="195" width="720" height="38" rx="6" data-i18n-title="tip_hs_data_repos_green" role="button" tabindex="0" fill="transparent" aria-label="Quality DAOs (green): CacheRepo (response_cache) and EventRepo (events) - caching and event sourcing audit trail."/>
+    <rect class="gv-hotspot" x="310" y="370" width="470" height="48" rx="6" data-i18n-title="tip_hs_data_repos_purple" role="button" tabindex="0" fill="transparent" aria-label="Memory DAOs (purple): SkillRepo (skill_usage), ContractRepo (contract_results) and ErrMemoryRepo (scoring) - usage and scoring."/>
+    <rect class="gv-hotspot" x="60" y="290" width="720" height="118" rx="6" data-i18n-title="tip_hs_data_repos_orange" role="button" tabindex="0" fill="transparent" aria-label="Ops DAOs (orange): HousekeepingRepo (token_usage) and MigrationRunner (7 migrations) - maintenance and schema evolution."/>
+</svg>

@@ -1,0 +1,9 @@
+title: 'Gentle-Vanguard — Book of Autonomous AI Stack'
+description:
+  'Complete presentation system covering architecture, autonomy, dashboard, and all subsystems'
+theme: jekyll-theme-cayman
+include:
+  - diagrams/
+  - *.html
+exclude:
+  - README.md

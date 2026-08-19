@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📊 Stack Health & Metrics — Gentle-Vanguard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de health.html (complementan el design system) --- */
+      .metric-ring {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+      }
+      .metric-ring-inner {
+        text-align: center;
+        z-index: 1;
+      }
+      .metric-ring circle {
+        fill: none;
+        stroke-width: 8;
+        cx: 60;
+        cy: 60;
+        r: 52;
+      }
+      .metric-ring .bg {
+        stroke: #1e293b;
+      }
+      .metric-ring .fg {
+        stroke-linecap: round;
+        transform: rotate(-90deg);
+        transform-origin: 60px 60px;
+        transition: stroke-dashoffset 1s ease;
+      }
+      .table-health {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .table-health th {
+        color: var(--p);
+        border-bottom: 1px solid var(--br);
+        padding: 0.6rem 0.4rem;
+        text-align: left;
+        font-weight: 600;
+      }
+      .table-health td {
+        padding: 0.5rem 0.4rem;
+        border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+      }
+    </style>
+    <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="overview">
+      <div>
+        <span class="hero-badge mb-3">✦ v4.0 — 95/95 PASS · 21 componentes</span>
+        <h1 class="glow"><i class="bi bi-heart-pulse me-2"></i>Stack Health & Metrics</h1>
+        <p class="lead" data-i18n="c_health_2">
+          Monitoreo continuo, 95 health checks, 109 Tests automatizados, y trazabilidad total del
+          stack Gentle-Vanguard
+        </p>
+        <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
+          <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>The Book</a>
+          <a href="operations-cloud.html" class="btn-gv-alt"
+            ><i class="bi bi-cloud me-1"></i>Operations</a
+          >
+          <a href="architecture.html" class="btn-gv-alt"
+            ><i class="bi bi-diagram-3 me-1"></i>Architecture</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Health Dashboard Overview -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_health_dash">
+          <i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i>Health Dashboard
+        </h2>
+        <p data-i18n="c_health_3">Estado actual del stack en tiempo real</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-3 col-6">
+          <div class="section-card text-center">
+            <svg class="metric-ring" viewBox="0 0 120 120">
+              <circle class="bg" cx="60" cy="60" r="52" />
+              <circle
+                class="fg"
+                cx="60"
+                cy="60"
+                r="52"
+                stroke="#22c55e"
+                stroke-dasharray="326.7"
+                stroke-dashoffset="0"
+              />
+            </svg>
+            <div class="metric-ring-inner" style="margin-top: -90px">
+              <div class="stat-n">95<span style="font-size: 1rem">/95</span></div>
+              <div class="stat-l">Health Checks</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="section-card text-center">
+            <svg class="metric-ring" viewBox="0 0 120 120">
+              <circle class="bg" cx="60" cy="60" r="52" />
+              <circle
+                class="fg"
+                cx="60"
+                cy="60"
+                r="52"
+                stroke="#22c55e"
+                stroke-dasharray="326.7"
+                stroke-dashoffset="0"
+              />
+            </svg>
+            <div class="metric-ring-inner" style="margin-top: -90px">
+              <div class="stat-n">97<span style="font-size: 1rem">/97</span></div>
+              <div class="stat-l">Tests Passing</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="section-card text-center">
+            <svg class="metric-ring" viewBox="0 0 120 120">
+              <circle class="bg" cx="60" cy="60" r="52" />
+              <circle
+                class="fg"
+                cx="60"
+                cy="60"
+                r="52"
+                stroke="#00bfff"
+                stroke-dasharray="326.7"
+                stroke-dashoffset="0"
+              />
+            </svg>
+            <div class="metric-ring-inner" style="margin-top: -90px">
+              <div class="stat-n">0</div>
+              <div class="stat-l">Typecheck Errors</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="section-card text-center">
+            <svg class="metric-ring" viewBox="0 0 120 120">
+              <circle class="bg" cx="60" cy="60" r="52" />
+              <circle
+                class="fg"
+                cx="60"
+                cy="60"
+                r="52"
+                stroke="#00bfff"
+                stroke-dasharray="326.7"
+                stroke-dashoffset="0"
+              />
+            </svg>
+            <div class="metric-ring-inner" style="margin-top: -90px">
+              <div class="stat-n">0</div>
+              <div class="stat-l">Lint Errors</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Watchtower Components -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2>
+          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i>Watchtower — 95 Checks
+        </h2>
+        <p data-i18n="c_health_4">21 componentes monitoreados en cada ciclo de health check</p>
+      </div>
+      <div class="table-responsive">
+        <table class="table-health">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Checks</th>
+              <th>Status</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge-gv badge-ok">dashboard-ws</span></td>
+              <td>6</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_5">Dashboard WS server, API 200, watchdog PID</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_5"
+                  title="Dashboard WS server, API 200, watchdog PID"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">codegraph</span></td>
+              <td>5</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_6"
+                  >Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_6"
+                  title="Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">timeout-daemon</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_7"
+                  >Timeout daemon, watchdog PIDs, restart loop protection</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_7"
+                  title="Timeout daemon, watchdog PIDs, restart loop protection"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">ml-embeddings</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_8">ML index, embedding files, skill embeddings</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_8"
+                  title="ML index, embedding files, skill embeddings"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">engram</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_9">DB integrity, reindex log, RAG pipeline, 2078 obs</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_9"
+                  title="DB integrity, reindex log, RAG pipeline, 2078 obs"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">mcp</span></td>
+              <td>5</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_10">Config files, bridge health, MCP status</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_10"
+                  title="Config files, bridge health, MCP status"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">session</span></td>
+              <td>5</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_11">Session dir, manifest, pipeline config</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_11"
+                  title="Session dir, manifest, pipeline config"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">hooks</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_12">Git hooks: pre-commit, post-commit, post-merge</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_12"
+                  title="Git hooks: pre-commit, post-commit, post-merge"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">configs</span></td>
+              <td>6</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_13">JSON schemas, 5 configs, JSON validator</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_13"
+                  title="JSON schemas, 5 configs, JSON validator"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">tool-configs</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_14">Clinerules, cursorrules, continue config</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_14"
+                  title="Clinerules, cursorrules, continue config"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">security</span></td>
+              <td>5</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_15"
+                  >Opencode structure, auth config, security orchestrator</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_15"
+                  title="Opencode structure, auth config, security orchestrator"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">cloud-connectors</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_16">Hybrid executor, AWS/Azure delegators</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_16"
+                  title="Hybrid executor, AWS/Azure delegators"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">tracing</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_17">Tracing spans, OTLP export, span files</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_17"
+                  title="Tracing spans, OTLP export, span files"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">state-persistence</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_18">Checkpoint dir, snapshots, rollback readiness</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_18"
+                  title="Checkpoint dir, snapshots, rollback readiness"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">gentle-vanguard-db</span></td>
+              <td>5</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_19"
+                  >Nexus DB file, WAL, integrity check, 7 migrations, 21 tables</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_19"
+                  title="Nexus DB file, WAL, integrity check, 7 migrations, 21 tables"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">model-provider</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_20">Model router, profiles, fallback configuration</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_20"
+                  title="Model router, profiles, fallback configuration"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">audit-pipeline</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_21">Audit logs, pipeline, archive</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_21"
+                  title="Audit logs, pipeline, archive"
+                  >i</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gv badge-ok">governance</span></td>
+              <td>4</td>
+              <td><span class="badge-gv badge-ok">PASS</span></td>
+              <td>
+                <span data-i18n="c_health_22">Policy files, rules directory, 60 Normatives</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_health_22"
+                  title="Policy files, rules directory, 60 Normatives"
+                  >i</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. Nexus DB Health -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2>
+          <i class="bi bi-database me-2" style="color: var(--p)"></i>Nexus DB — Operational Database
+        </h2>
+        <p data-i18n="c_health_23">
+          SQLite WAL mode, 7 migrations, 21 tables, monitoreado por watchtower
+        </p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="stat-n">7</div>
+            <div class="stat-l">Migrations</div>
+            <p class="card-text small mt-2" data-i18n="c_health_24">001→007 aplicadas</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="stat-n">21</div>
+            <div class="stat-l">Tables</div>
+            <p class="card-text small mt-2" data-i18n="c_health_25">
+              Core + stack + scoring + backlog
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="stat-n">8</div>
+            <div class="stat-l">Backlog Items</div>
+            <p class="card-text small mt-2" data-i18n="c_health_26">4 open, 4 resolved</p>
+          </div>
+        </div>
+      </div>
+      <div class="row g-4 mt-3">
+        <div class="col-12">
+          <div class="section-card">
+            <h3 class="card-title">
+              <i class="bi bi-list-check me-2" style="color: var(--ok)"></i>Nexus Commands
+            </h3>
+            <div class="table-responsive">
+              <table class="table-health">
+                <thead>
+                  <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>npm run db:init</code></td>
+                    <td>
+                      <span data-i18n="c_health_27">Init DB + run all migrations</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_27"
+                        title="Init DB + run all migrations"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run db:health</code></td>
+                    <td>
+                      <span data-i18n="c_health_28">Health check: integrity, WAL, tables, rows</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_28"
+                        title="Health check: integrity, WAL, tables, rows"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run db:backup</code></td>
+                    <td>
+                      <span data-i18n="c_health_29">Safe online backup to .runtime/backups/</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_29"
+                        title="Safe online backup to .runtime/backups/"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run db:optimize</code></td>
+                    <td>
+                      <span data-i18n="c_health_30">WAL checkpoint + REINDEX + VACUUM</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_30"
+                        title="WAL checkpoint + REINDEX + VACUUM"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run db:prune</code></td>
+                    <td>
+                      <span data-i18n="c_health_31">Prune old data from stack tables</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_31"
+                        title="Prune old data from stack tables"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run backlog:stats</code></td>
+                    <td>
+                      <span data-i18n="c_health_32"
+                        >Show backlog statistics by status/severity/type</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_32"
+                        title="Show backlog statistics by status/severity/type"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run backlog:list</code></td>
+                    <td>
+                      <span data-i18n="c_health_33">List backlog items with filters</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_33"
+                        title="List backlog items with filters"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>npm run backlog:report -- --format markdown</code></td>
+                    <td>
+                      <span data-i18n="c_health_34">Generate markdown report</span
+                      ><span
+                        class="info-trigger"
+                        data-i18n-title="tip_c_health_34"
+                        title="Generate markdown report"
+                        >i</span
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Backlog Tracking -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2>
+          <i class="bi bi-clipboard-data me-2" style="color: var(--wn)"></i>Backlog & Incident
+          Tracking
+        </h2>
+        <p data-i18n="c_health_35">Sistema completo de trazabilidad en Nexus DB</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="card-title">
+              <i class="bi bi-bookmark me-2" style="color: var(--p)"></i>Item Fields
+            </h3>
+            <table class="table-health mt-2">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>assignee_role</code></td>
+                  <td>
+                    <span data-i18n="c_health_36">dev, po, qa, ux, ops, sec, any</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_36"
+                      title="dev, po, qa, ux, ops, sec, any"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>severity</code></td>
+                  <td>
+                    <span data-i18n="c_health_37">critical, high, medium, low</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_37"
+                      title="critical, high, medium, low"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>priority</code></td>
+                  <td>
+                    <span data-i18n="c_health_38">1-5 numeric</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_38"
+                      title="1-5 numeric"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>estimated_hours</code></td>
+                  <td>
+                    <span data-i18n="c_health_39">Estimated resolution time</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_39"
+                      title="Estimated resolution time"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>impact</code></td>
+                  <td>
+                    <span data-i18n="c_health_40">blocking, major, minor, cosmetic</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_40"
+                      title="blocking, major, minor, cosmetic"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>target_release</code></td>
+                  <td>
+                    <span data-i18n="c_health_41">Target version/release</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_41"
+                      title="Target version/release"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>environment</code></td>
+                  <td>
+                    <span data-i18n="c_health_42">dev, staging, prod, all</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_42"
+                      title="dev, staging, prod, all"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>status</code></td>
+                  <td>
+                    <span data-i18n="c_health_43"
+                      >open, in_progress, resolved, wont_fix, backlog, duplicate</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_43"
+                      title="open, in_progress, resolved, wont_fix, backlog, duplicate"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="card-title">
+              <i class="bi bi-diagram-2 me-2" style="color: var(--a)"></i>Relations & History
+            </h3>
+            <table class="table-health mt-2">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_44">Comments</span
+                    ><span class="info-trigger" data-i18n-title="tip_c_health_44" title="Comments"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_45">Discussion thread per item</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_45"
+                      title="Discussion thread per item"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_46">Status History</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_46"
+                      title="Status History"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_47">Full audit trail of status changes</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_47"
+                      title="Full audit trail of status changes"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_48">Related Items</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_48"
+                      title="Related Items"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_49">duplicates, blocked_by, supersedes, child_of</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_49"
+                      title="duplicates, blocked_by, supersedes, child_of"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_50">Tags</span
+                    ><span class="info-trigger" data-i18n-title="tip_c_health_50" title="Tags"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_51">Multi-label categorization</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_51"
+                      title="Multi-label categorization"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_52">Session Link</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_52"
+                      title="Session Link"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_53">Traceability to session where found/fixed</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_53"
+                      title="Traceability to session where found/fixed"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_54">Search</span
+                    ><span class="info-trigger" data-i18n-title="tip_c_health_54" title="Search"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_55">Find similar items to prevent duplicates</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_55"
+                      title="Find similar items to prevent duplicates"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span data-i18n="c_health_56">Auto-prune</span
+                    ><span class="info-trigger" data-i18n-title="tip_c_health_56" title="Auto-prune"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <span data-i18n="c_health_57">Remove old resolved items (configurable TTL)</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_health_57"
+                      title="Remove old resolved items (configurable TTL)"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Testing & Quality Gates -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2>
+          <i class="bi bi-check2-circle me-2" style="color: var(--ok)"></i>Testing & Quality Gates
+        </h2>
+        <p data-i18n="c_health_58">Múltiples capas de verificación antes de cada cambio</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">97</div>
+            <div class="stat-l">Test Files</div>
+            <span class="badge-gv badge-ok mt-2">npm test</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">0</div>
+            <div class="stat-l">Typecheck Errors</div>
+            <span class="badge-gv badge-ok mt-2">npm run typecheck</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">0</div>
+            <div class="stat-l">Lint Errors</div>
+            <span class="badge-gv badge-ok mt-2">npm run lint</span>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">95</div>
+            <div class="stat-l">Health Checks</div>
+            <span class="badge-gv badge-ok mt-2">watchtower:health</span>
+          </div>
+        </div>
+      </div>
+      <div class="row g-4 mt-2">
+        <div class="col-12">
+          <div class="section-card">
+            <h3 class="card-title">
+              <i class="bi bi-shield me-2" style="color: var(--p)"></i>Quality Gate Pipeline
+            </h3>
+            <ol class="card-text mb-0" style="line-height: 2">
+              <li>
+                <code>npm run typecheck</code> — Zero TypeScript errors enforced by
+                <code>tsc --noEmit</code>
+              </li>
+              <li>
+                <code>npm run lint</code> — ESLint with <code>--max-warnings 0</code>. Zero
+                tolerance for warnings.
+              </li>
+              <li><code>npm test</code> — 109 Test files, all must pass</li>
+              <li>
+                <code>npm run watchtower:health</code> — 95 Checks across 21 components, 100% PASS
+                required
+              </li>
+              <li>
+                <strong>DOCUMENTATION-SYNC-POLICY</strong> — Every change must update all relevant
+                docs
+              </li>
+              <li>
+                <strong>TYPESCRIPT-FIRST-POLICY</strong> — No PS1 scripts. All TypeScript via npx
+                tsx.
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Performance SLOs -->
+    <section class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_perf_slos">
+          <i class="bi bi-lightning me-2" style="color: var(--wn)"></i>Performance SLOs
+        </h2>
+        <p data-i18n="c_health_59">Métricas de rendimiento del stack</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.6rem">&lt;2s</div>
+            <div class="stat-l">Script Execution</div>
+            <p class="card-text small mt-2" data-i18n="c_health_60">
+              All scripts must complete in &lt;2s for interactive use
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.6rem">&lt;30s</div>
+            <div class="stat-l">Session Autostart</div>
+            <p class="card-text small mt-2" data-i18n="c_health_61">
+              Pipeline must initialize within 30 seconds
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.6rem">100%</div>
+            <div class="stat-l">Health Uptime</div>
+            <p class="card-text small mt-2" data-i18n="c_health_62">
+              Watchtower expects 95/95 PASS every cycle
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <h2 data-i18n="sec_diagrams">
+          <i class="bi bi-images me-2" style="color: var(--p)"></i>Diagramas
+        </h2>
+        <p data-i18n="c_health_63">Arquitectura y observabilidad del stack en un vistazo</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <img
+            src="diagrams/stack-dashboard.svg"
+            alt="Stack Dashboard Overview"
+            class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+            loading="lazy"
+          />
+          <p class="text-secondary small mt-2">
+            <i class="bi bi-speedometer2 me-1"></i>Observabilidad en tiempo real: WS + HTTP, 7
+            secciones, i18n, alertas.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <img
+            src="diagrams/architecture-layers.svg"
+            alt="Architecture Layers Diagram"
+            class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+            loading="lazy"
+          />
+          <p class="text-secondary small mt-2">
+            <i class="bi bi-stack me-1"></i>6 capas: Tools → Agents → Pipeline → Memory → Data →
+            Executive.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <p class="mb-0">
+          <a href="index.html" class="mx-2">Home</a> <span style="color: var(--br)">|</span>
+          <a href="architecture.html" class="mx-2">Architecture</a>
+          <span style="color: var(--br)">|</span> <a href="autonomy.html" class="mx-2">Autonomy</a>
+          <span style="color: var(--br)">|</span>
+          <a href="dashboard.html" class="mx-2">Dashboard</a>
+          <span style="color: var(--br)">|</span>
+          <a href="quickstart.html" class="mx-2">Quickstart</a>
+          <span style="color: var(--br)">|</span>
+          <a href="memory-knowledge.html" class="mx-2">Memory</a>
+          <span style="color: var(--br)">|</span>
+          <a href="security-governance.html" class="mx-2">Security</a>
+        </p>
+        <p class="mt-2 mb-0">
+          <a href="agents-pipeline.html" class="mx-2">Agents</a>
+          <span style="color: var(--br)">|</span>
+          <a href="operations-cloud.html" class="mx-2">Cloud</a>
+          <span style="color: var(--br)">|</span>
+          <a href="patterns-conventions.html" class="mx-2">Patterns</a>
+          <span style="color: var(--br)">|</span>
+          <a href="health.html" class="mx-2"><strong>Health</strong></a>
+          <span style="color: var(--br)">|</span>
+          <a href="index.html" class="mx-2"><i class="bi bi-book me-1"></i>The Book</a>
+        </p>
+        <p class="mt-3 mb-0">
+          <span class="badge-gv badge-p">v4.0</span>
+          <span class="badge-gv badge-ok">436 TS</span>
+          <span class="badge-gv badge-ok">109 Test Files</span>
+          <span class="badge-gv badge-ok">95/95 health</span>
+          <span class="badge-gv badge-ok">7 migrations</span>
+          <span class="badge-gv badge-a">21 tables</span>
+          <span class="badge-gv badge-p">8 backlog items</span>
+        </p>
+        <p class="mt-3 mb-0" data-i18n="c_health_64" style="color: #475569; font-size: 0.8rem">
+          Gentle-Vanguard — Autonomous AI Development Stack
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

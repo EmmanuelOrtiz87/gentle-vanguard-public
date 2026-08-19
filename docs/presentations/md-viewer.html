@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visor de Documentos — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Code highlighting -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      .md-viewer {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .md-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--br-soft);
+        margin-bottom: 2rem;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+      }
+      .md-header .breadcrumb {
+        margin: 0;
+        font-size: 0.85rem;
+      }
+      .md-header .actions {
+        margin-left: auto;
+        display: flex;
+        gap: 0.5rem;
+      }
+      .md-content {
+        font-size: 1rem;
+        line-height: 1.8;
+      }
+      .md-content h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid oklch(0.8 0.14 210 / 0.3);
+      }
+      .md-content h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 2px solid oklch(0.8 0.14 210 / 0.2);
+      }
+      .md-content h3 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: var(--text);
+      }
+      .md-content h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+      }
+      .md-content p {
+        margin: 0.75rem 0;
+        color: var(--text-dim);
+      }
+      .md-content ul,
+      .md-content ol {
+        margin: 0.75rem 0;
+        padding-left: 1.5rem;
+      }
+      .md-content li {
+        margin: 0.35rem 0;
+        color: var(--text-dim);
+      }
+      .md-content code {
+        background: oklch(0.22 0.02 262);
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9em;
+        color: var(--p);
+      }
+      .md-content pre {
+        background: oklch(0.14 0.02 262);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+      .md-content pre code {
+        background: transparent;
+        padding: 0;
+        color: var(--text);
+      }
+      .md-content blockquote {
+        border-left: 4px solid var(--p);
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      .md-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      .md-content th {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 2px solid var(--br);
+        color: var(--p);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+      }
+      .md-content td {
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid var(--br-soft);
+        color: var(--text-dim);
+      }
+      .md-content tr:hover td {
+        background: oklch(0.8 0.14 210 / 0.05);
+      }
+      .md-content a {
+        color: var(--p);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+      .md-content a:hover {
+        border-bottom-color: var(--p);
+      }
+      .md-content img {
+        max-width: 100%;
+        border-radius: var(--r-md);
+        margin: 1rem 0;
+      }
+      .md-content hr {
+        border: none;
+        border-top: 2px solid var(--br);
+        margin: 2rem 0;
+      }
+      .md-content .task-list-item {
+        list-style: none;
+      }
+      .md-content .task-list-item input {
+        margin-right: 0.5rem;
+      }
+      .md-toc {
+        position: fixed;
+        right: 2rem;
+        top: 150px;
+        width: 250px;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1rem;
+        font-size: 0.85rem;
+      }
+      .md-toc h4 {
+        margin: 0 0 0.75rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+      .md-toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .md-toc li {
+        margin: 0.35rem 0;
+      }
+      .md-toc a {
+        color: var(--text-dim);
+        text-decoration: none;
+        display: block;
+        padding: 0.2rem 0;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+      .md-toc a:hover {
+        color: var(--p);
+        padding-left: 0.5rem;
+      }
+      .md-toc .toc-h2 {
+        padding-left: 0;
+      }
+      .md-toc .toc-h3 {
+        padding-left: 1rem;
+      }
+      .md-toc .toc-h4 {
+        padding-left: 2rem;
+      }
+      .md-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+      }
+      .md-loading .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--br);
+        border-top-color: var(--p);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .md-error {
+        text-align: center;
+        padding: 3rem;
+        color: var(--er);
+      }
+      @media (max-width: 1400px) {
+        .md-toc {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a
+          class="navbar-brand text-light fw-bold mono"
+          href="index.html"
+          style="font-size: 0.85rem"
+        >
+          <i class="bi bi-file-earmark-text me-2" style="color: var(--p)"></i>MD Viewer
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item">
+              <a class="nav-link" href="resources-index.html"
+                ><i class="bi bi-grid me-1"></i>Recursos</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html"><i class="bi bi-house me-1"></i>Presentación</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="md-header">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="resources-index.html" style="color: var(--p)">Recursos</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page" id="doc-name">Cargando...</li>
+        </ol>
+      </nav>
+      <div class="actions">
+        <button class="btn-gv" id="btn-print" title="Imprimir">
+          <i class="bi bi-printer"></i>
+        </button>
+        <button class="btn-gv" id="btn-download" title="Descargar MD">
+          <i class="bi bi-download"></i>
+        </button>
+        <a href="" class="btn-gv-alt" id="btn-github" target="_blank" title="Ver en GitHub">
+          <i class="bi bi-github"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- TOC Sidebar -->
+    <aside class="md-toc" id="toc">
+      <h4>Contenido</h4>
+      <ul id="toc-list"></ul>
+    </aside>
+
+    <!-- Content -->
+    <div class="md-viewer">
+      <div class="md-loading" id="loading">
+        <div class="spinner"></div>
+        <p class="mt-3 text-secondary">Cargando documento...</p>
+      </div>
+      <div class="md-error d-none" id="error"></div>
+      <article class="md-content" id="content"></article>
+    </div>
+
+    <footer style="margin-top: 4rem">
+      <p class="mb-2">Documento renderizado nativamente en Gentle-Vanguard</p>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Stack nativo</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+    <script>
+      // Parse URL params
+      const params = new URLSearchParams(window.location.search);
+      const filePath = params.get('file') || '../../README.md';
+      const docName = filePath.split('/').pop().replace('.md', '');
+
+      // Update UI
+      document.getElementById('doc-name').textContent = docName;
+      document.getElementById('btn-github').href =
+        `https://github.com/youruser/gentle-vanguard/blob/main/${filePath}`;
+
+      // Configure marked
+      marked.setOptions({
+        highlight: (code, lang) => {
+          if (lang && hljs.getLanguage(lang)) {
+            return hljs.highlight(code, { language: lang }).value;
+          }
+          return hljs.highlightAuto(code).value;
+        },
+        langPrefix: 'hljs language-',
+        gfm: true,
+        breaks: true,
+        headerIds: true,
+      });
+
+      // Embedded markdown content database (fallback for file://)
+      const markdownDatabase = {
+        '../contracts/consulting-services-agreement.md': `# Contrato de Servicios Profesionales - Gentle-Vanguard
+
+## CONTRATO DE CONSULTORÍA STACK
+
+### PARTES
+- **CONSULTOR**: Desarrollador/Empresa proveedora del stack
+- **CLIENTE**: Empresa/Individual que contrata servicios
+
+### SERVICIOS INCLUIDOS
+
+| Paquete | Precio | Descripción |
+|---------|--------|-------------|
+| **Setup** | $2,000 - $5,000 | Instalación completa del stack, configuración de agentes, base de datos Nexus |
+| **Migration** | $500 - $2,000/proyecto | Migración de proyectos existentes al stack |
+| **Training** | $1,500/día | Capacitación de 3-5 desarrolladores en uso del stack |
+| **Support** | $1,000/mes | Soporte técnico continuo, actualizaciones, prioridad en respuestas |
+
+### FORMAS DE PAGO
+- **Setup/Migration**: 50% anticipo, 50% contra entrega
+- **Training**: 100% al firmar (reserva fechas)
+- **Support**: Mensual o trimestral (10% descuento)
+
+### PROPIEDAD INTELECTUAL
+- Stack permanece bajo licencia del proyecto open source
+- Código/documentación creada específicamente para el cliente es propiedad del cliente
+- Casos de éxito pueden usarse para marketing (sin nombres confidenciales)
+
+---
+
+*Documento generado desde resources-index.html*`,
+
+        '../../apps/doc-gentle/README.md': `# Doc-Gentle | README
+
+## Product Overview
+Doc-Gentle is an AI-powered document intelligence platform for local file processing.
+
+**Status**: Specification Complete ✅ | Implementation: Not Started ❌
+
+## Market
+- TAM: $15B document management (2024)
+- SAM: $2B AI document processing
+
+## Features (Planned)
+- Multi-format support: PDF, DOCX, JPG, PNG, URLs
+- Native OCR: Tesseract.js
+- 50+ languages
+- Privacy-first: Local processing
+- API available
+
+## Pricing
+- Free: 5 docs/month
+- Pro: $15/month unlimited
+- Enterprise: $99/month with SSO
+
+## Tech Stack
+- Frontend: React + TypeScript
+- OCR: Tesseract.js
+- AI: Local models (Ollama compatible)
+- Storage: Supabase or local
+
+---
+
+*Full spec in apps/doc-gentle/README.md*`,
+
+        'social-templates/CONTENT-TEMPLATES.md': `# Content Templates - Marketing
+
+## LinkedIn Launch Post
+\`\`\`
+🚀 Introducing [Product]!
+
+After [X] weeks of development, excited to share:
+
+✨ Key features:
+• Feature 1
+• Feature 2
+• Feature 3
+
+💡 Built 100% natively with Gentle-Vanguard stack
+
+[Link]
+#AI #DevTools #OpenSource
+\`\`\`
+
+## Twitter Thread Template
+\`\`\`
+🚀 NEW: [Announcement] 🧵
+
+1/ Problem statement...
+2/ Solution...
+3/ Features...
+4/ Results...
+5/ CTA
+
+#DevTools #BuildInPublic
+\`\`\`
+
+---
+
+*Use marketing agent in resources-index.html to generate variations*`,
+      };
+
+      // Load and render markdown
+      async function loadMarkdown() {
+        let text = '';
+        let source = 'unknown';
+
+        try {
+          // METHOD 1: Try embedded database (works with file://)
+          if (markdownDatabase[filePath]) {
+            text = markdownDatabase[filePath];
+            source = 'embedded';
+            console.log('✅ Loaded from embedded database');
+          } else {
+            // METHOD 2: Try fetch (works with http:// localhost)
+            try {
+              const response = await fetch(filePath);
+              if (response.ok) {
+                text = await response.text();
+                source = 'fetch';
+                console.log('✅ Loaded via fetch');
+              }
+            } catch (fetchError) {
+              console.log('⚠️ Fetch failed (CORS), using fallback');
+            }
+          }
+
+          // METHOD 3: If nothing worked, show error with helpful message
+          if (!text) {
+            throw new Error(`
+              <strong>Could not load file from local filesystem.</strong><br><br>
+              
+              <strong>Solutions:</strong><br>
+              1. <strong>Use HTTP server:</strong> Run <code>npx serve .</code> and access via http://localhost<br>
+              2. <strong>Use VS Code Live Server:</strong> Install extension and click "Go Live"<br>
+              3. <strong>For this specific file:</strong> Edit it locally and refresh<br><br>
+              
+              <strong>Current path:</strong> ${filePath}<br>
+              <strong>Protocol:</strong> ${window.location.protocol}
+            `);
+          }
+
+          // Parse and render
+          const html = marked.parse(text);
+          document.getElementById('content').innerHTML = html;
+
+          // Hide loading
+          document.getElementById('loading').classList.add('d-none');
+
+          // Build TOC
+          buildTOC();
+
+          // Apply highlighting
+          if (typeof hljs !== 'undefined') {
+            document.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          }
+
+          // Update document title
+          const firstH1 = document.querySelector('.md-content h1');
+          if (firstH1) {
+            document.title = `${firstH1.textContent.split('|')[0].trim()} — Gentle-Vanguard`;
+          }
+
+          console.log(`📄 Document loaded successfully from: ${source}`);
+        } catch (error) {
+          document.getElementById('loading').classList.add('d-none');
+          document.getElementById('error').classList.remove('d-none');
+          document.getElementById('error').innerHTML = `
+            <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
+            <h4>Error al cargar el documento</h4>
+            <div class="text-secondary" style="text-align: left; max-width: 600px; margin: 1rem auto;">
+              ${error.message || error}
+            </div>
+            <div class="mt-3 d-flex gap-2 justify-content-center">
+              <a href="resources-index.html" class="btn-gv">
+                <i class="bi bi-arrow-left me-1"></i>Volver al CMS
+              </a>
+              <button onclick="location.reload()" class="btn-gv-alt">
+                <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // Build Table of Contents
+      function buildTOC() {
+        const tocList = document.getElementById('toc-list');
+        const headers = document.querySelectorAll('.md-content h2, .md-content h3, .md-content h4');
+
+        headers.forEach((header, index) => {
+          const id = `section-${index}`;
+          header.id = id;
+
+          const li = document.createElement('li');
+          li.className = `toc-${header.tagName.toLowerCase()}`;
+
+          const a = document.createElement('a');
+          a.href = `#${id}`;
+          a.textContent = header.textContent;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            header.scrollIntoView({ behavior: 'smooth' });
+          });
+
+          li.appendChild(a);
+          tocList.appendChild(li);
+        });
+      }
+
+      // Print functionality
+      document.getElementById('btn-print').addEventListener('click', () => {
+        window.print();
+      });
+
+      // Download functionality
+      document.getElementById('btn-download').addEventListener('click', async () => {
+        try {
+          const response = await fetch(filePath);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${docName}.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          alert('Error al descargar: ' + error.message);
+        }
+      });
+
+      // Load on page load
+      loadMarkdown();
+    </script>
+  </body>
+</html>

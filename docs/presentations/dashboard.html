@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📊 LLM Observability Dashboard — Gentle-Vanguard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
+    <style>
+      /* --- Clases específicas de dashboard.html (no presentes en gv.css) --- */
+      .section-card .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-bottom: 0.75rem;
+      }
+      .section-card .card-text {
+        font-size: 0.84rem;
+        color: var(--text-dim);
+        line-height: 1.65;
+      }
+      .ep-row {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+      .ep-method {
+        background: var(--bg2);
+        border: 1px solid var(--br);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--ok);
+      }
+      .ep-path {
+        color: var(--p);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+      }
+      .tree-line {
+        padding: 0.35rem 0;
+        font-size: 0.82rem;
+        color: #94a3b8;
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .tree-line i {
+        width: 1.3rem;
+        text-align: center;
+        margin-right: 0.4rem;
+      }
+      .tree-dir {
+        color: var(--p);
+        font-weight: 600;
+      }
+      .tree-file {
+        color: #cbd5e1;
+      }
+      .tree-indent {
+        padding-left: 1.5rem;
+      }
+      .tree-dbl {
+        padding-left: 3rem;
+      }
+      .progress-gv {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--bg2);
+        overflow: hidden;
+      }
+      .progress-gv .progress-bar {
+        background: linear-gradient(90deg, var(--p), var(--a));
+        border-radius: 4px;
+        transition: width 1s ease;
+      }
+    </style>
+    <script src="assets/js/i18n-content.js?v=3.0"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/carousel.js"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="gv-particles" aria-hidden="true"></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <header class="hero" id="overview">
+      <div>
+        <span class="hero-badge mb-3">✦ v4.0 — LLM Observability</span>
+        <h1><span class="glow">Observability Dashboard</span></h1>
+        <p
+          class="lead text-secondary z-1"
+          data-i18n="c_dashboard_2"
+          style="max-width: 650px; font-size: clamp(1rem, 2vw, 1.2rem)"
+        >
+          Real-time
+          <span class="info-trigger" data-i18n-title="tip_dashboard_websocket">i</span>
+          WebSocket-powered SPA with
+          <span class="info-trigger" data-i18n-title="tip_dashboard_sections">i</span>
+          7 sections, 25+ REST endpoints,
+          <span class="info-trigger" data-i18n-title="tip_dashboard_i18n">i</span>
+          i18n (en/es/pt-BR), resilient HTTP polling fallback, and auto-recovery watchdog — all
+          driven by live trace data, zero mocks.
+        </p>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_dashboard_budget"
+          title="Daily 5M tokens, per-session 3M. Soft 70%, hard 90% thresholds."
+          >i</span
+        >
+      </div>
+    </header>
+    $1
+    <div class="container-fluid px-4 pb-5" style="max-width: 1400px">
+      <!-- Row 1: Overview Stats -->
+      <div class="row g-4 mb-5 fade-in">
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">7</div>
+            <div class="stat-l">Dashboard Sections</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">25+</div>
+            <div class="stat-l">REST Endpoints</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">3</div>
+            <div class="stat-l">Languages</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n">10</div>
+            <div class="stat-l">Auto-Restart Attempts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carousel: Dashboard Features -->
+      <div class="gv-carousel mb-5" data-autoplay="8000" id="dashboard-carousel">
+        <div class="gv-carousel-track">
+          <div class="gv-carousel-slide active">
+            <div class="section-card text-center py-4">
+              <i class="bi bi-graph-up fs-1 text-info mb-3"></i>
+              <h4>Real-time Metrics</h4>
+              <p class="text-muted">Live token usage, session health, and performance indicators</p>
+            </div>
+          </div>
+          <div class="gv-carousel-slide">
+            <div class="section-card text-center py-4">
+              <i class="bi bi-activity fs-1 text-primary mb-3"></i>
+              <h4>Tracing Waterfall</h4>
+              <p class="text-muted">Distributed tracing with parent-child span relationships</p>
+            </div>
+          </div>
+          <div class="gv-carousel-slide">
+            <div class="section-card text-center py-4">
+              <i class="bi bi-bell fs-1 text-warning mb-3"></i>
+              <h4>Alert System</h4>
+              <p class="text-muted">8 configurable rules with severity-based notifications</p>
+            </div>
+          </div>
+          <div class="gv-carousel-slide">
+            <div class="section-card text-center py-4">
+              <i class="bi bi-star-half fs-1 text-success mb-3"></i>
+              <h4>Session Scoring</h4>
+              <p class="text-muted">Quality metrics: delegations, corrections, proactive hits</p>
+            </div>
+          </div>
+        </div>
+        <div class="gv-carousel-nav text-center mt-3">
+          <button
+            class="btn btn-sm btn-outline-secondary me-2"
+            onclick="moveCarousel('dashboard-carousel', -1)"
+          >
+            ❮
+          </button>
+          <span class="carousel-dots mx-2">
+            <span class="dot active" onclick="goToSlide('dashboard-carousel', 0)"></span>
+            <span class="dot" onclick="goToSlide('dashboard-carousel', 1)"></span>
+            <span class="dot" onclick="goToSlide('dashboard-carousel', 2)"></span>
+            <span class="dot" onclick="goToSlide('dashboard-carousel', 3)"></span>
+          </span>
+          <button
+            class="btn btn-sm btn-outline-secondary ms-2"
+            onclick="moveCarousel('dashboard-carousel', 1)"
+          >
+            ❯
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Dashboard Overview -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--p)">
+            <i class="bi bi-info-circle me-2"></i>1. Dashboard Overview
+            <span
+              class="info-trigger"
+              data-i18n-title="tip_dashboard_websocket"
+              title="Real-time updates every 5s. WebSocket + HTTP polling fallback. Auto-reconnect."
+              >i</span
+            >
+          </h2>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <span class="badge badge-p mb-2">Stack</span>
+            <p class="card-text">
+              <strong>React / TypeScript / Vite</strong> SPA — real-time WebSocket data pipeline
+              with HTTP polling fallback. All metrics derive from live
+              <code class="mono">.state.json</code> traces; no mock data exists in the system.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <span class="badge badge-a mb-2">i18n</span>
+            <p class="card-text">
+              Full internationalization across <strong>3 languages</strong> — English, Español,
+              Português (BR). 14 metric descriptions translated and managed through the
+              <code class="mono">useLocale</code> hook.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 2. Architecture -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--a)">
+            <i class="bi bi-diagram-3 me-2"></i>2. Architecture
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-hdd-stack" style="color: var(--p); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">WS Server</div>
+            <p class="card-text">
+              <code class="mono">server/websocket-server.ts</code><br />Port 8080
+              <span class="badge badge-p small">dynamic</span><br />Auto-recovery watchdog (10
+              restarts)
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-window" style="color: var(--a); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">Frontend</div>
+            <p class="card-text">
+              <code class="mono">Vite dev server</code><br />Port 5173, proxied to WS port<br />HTTP
+              fallback always active
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-arrow-repeat" style="color: var(--ok); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">
+              Watchdog<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_watchdog"
+                title="Auto-restart on failure (10 attempts). Port health check every 5s."
+                >i</span
+              >
+            </div>
+            <p class="card-text">
+              PS1 monitor checks port every 5s<br />Auto-restarts up to 10 attempts<br />Stored PID
+              prevents restart loops
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 3. Dashboard Sections -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--ok)">
+            <i class="bi bi-grid-3x3-gap me-2"></i>3. Dashboard Sections
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-speedometer2" style="color: var(--p); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Metrics Dashboard<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_3">
+              Real-time token usage, latency P50/P95/P99, session counts, health status
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-diagram-2" style="color: var(--a); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Tracing Dashboard<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_4">
+              Waterfall view with span details, drill-down, and user feedback collection
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-exclamation-triangle" style="color: var(--wn); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Alerts Panel<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_5">
+              <span class="info-trigger" data-i18n-title="tip_dashboard_alerts">i</span>
+              8 alert rules evaluated in real-time, color-coded severity levels
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <i class="bi bi-sd-card" style="color: var(--ok); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Knowledge Panel<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_6">
+              Engram memory browser with full-text search across observations
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <i class="bi bi-folder2-open" style="color: var(--p); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Multi-Repo Panel<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_7">
+              Cross-workspace context awareness and navigation
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <i class="bi bi-hdd-network" style="color: var(--a); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              MCP Panel<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_8">
+              Model Context Protocol server status and health
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <i class="bi bi-people" style="color: var(--wn); font-size: 1.3rem"></i>
+            <div class="card-title mt-1">
+              Tenant Panel<span
+                class="info-trigger"
+                data-i18n-title="tip_dashboard_sections"
+                title="7 sections: Real-time metrics, Session tracing, Alerts, Skills, System health, Performance, Feedback"
+                >i</span
+              >
+            </div>
+            <p class="card-text small" data-i18n="c_dashboard_9">
+              Multi-tenant configuration and isolation management
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 4. Data Pipeline -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--pl)">
+            <i class="bi bi-arrow-left-right me-2"></i>4. Data Pipeline
+          </h2>
+        </div>
+        <div class="col-lg-8">
+          <div class="section-card h-100">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <span class="badge badge-p" style="font-size: 0.8rem"
+                ><i class="bi bi-file-earmark me-1"></i>.state.json</span
+              >
+              <i class="bi bi-arrow-right" style="color: #475569"></i>
+              <span class="badge badge-a" style="font-size: 0.8rem"
+                ><i class="bi bi-hdd me-1"></i>real-data.ts</span
+              >
+              <i class="bi bi-arrow-right" style="color: #475569"></i>
+              <span class="badge badge-ok" style="font-size: 0.8rem"
+                ><i class="bi bi-wifi me-1"></i>WebSocket 5s</span
+              >
+              <span class="badge badge-wn" style="font-size: 0.8rem"
+                ><i class="bi bi-globe me-1"></i>HTTP Fallback</span
+              >
+            </div>
+            <p class="card-text mt-3 mb-0">
+              Reads from <code class="mono">.session/context-log/*/.state.json</code> — real data,
+              no mocks. WebSocket pushes every 5 seconds with HTTP polling as fallback.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <span class="stat-l">DB Indexes</span>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span class="badge badge-p">metric_snapshots</span
+              ><span class="badge badge-a">sessions</span><span class="badge badge-ok">traces</span
+              ><span class="badge badge-wn">events</span><span class="badge badge-er">alerts</span
+              ><span class="badge badge-p">feedback</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 5. API Endpoints -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--a)">
+            <i class="bi bi-hdd-rack me-2"></i>5. API Endpoints
+          </h2>
+        </div>
+        <div class="col-12">
+          <div class="section-card">
+            <div class="ep-row">
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/metrics</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/traces</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/alerts</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/feedback</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/health</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/sessions</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span> <span class="ep-path">/api/events</span></span
+              >
+              <span
+                ><span class="ep-method">POST</span>
+                <span class="ep-path">/api/feedback</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span>
+                <span class="ep-path">/api/metrics/history</span></span
+              >
+              <span
+                ><span class="ep-method">GET</span>
+                <span class="ep-path">/api/alerts/history</span></span
+              >
+            </div>
+            <hr style="border-color: var(--br)" />
+            <p class="card-text small mb-0">
+              25+ endpoints total — all returning JSON. The
+              <code class="mono">/api/health</code> endpoint reports 7 components with status
+              <code class="mono">ok</code>, <code class="mono">unknown</code>, or
+              <code class="mono">degraded</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 6. Alert Rules -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--er)">
+            <i class="bi bi-bell me-2"></i>6. Alert Rules
+            <span
+              class="info-trigger"
+              data-i18n-title="tip_dashboard_alerts"
+              title="8 alert rules: high token usage, session degradation, health fails, pipeline errors, etc."
+              >i</span
+            >
+          </h2>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <span class="badge badge-er mb-2">error_rate &gt; 5%</span>
+            <div class="progress-gv mb-2"><div class="progress-bar" style="width: 5%"></div></div>
+            <small style="color: #64748b" data-i18n="c_dashboard_10"
+              >Threshold: 5% error rate triggers critical alert</small
+            >
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <span class="badge badge-wn mb-2">latency_p95 &gt; 2000ms</span>
+            <div class="progress-gv mb-2"><div class="progress-bar" style="width: 65%"></div></div>
+            <small style="color: #64748b" data-i18n="c_dashboard_11"
+              >Threshold: P95 latency exceeds 2 seconds</small
+            >
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <span class="badge badge-er mb-2">health_ok &lt; 100%</span>
+            <p class="card-text small" data-i18n="c_dashboard_12">
+              Any component not reporting 100% health
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <span class="badge badge-wn mb-2">throughput drop</span>
+            <p class="card-text small" data-i18n="c_dashboard_13">
+              Sudden drop in request throughput
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 mt-3">
+          <div class="section-card h-100">
+            <span class="badge badge-p mb-2">8 rules total</span>
+            <p class="card-text small">
+              From <code class="mono">config/dashboard-alerts.json</code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 7. i18n System -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--ok)">
+            <i class="bi bi-translate me-2"></i>7. i18n System
+            <span
+              class="info-trigger"
+              data-i18n-title="tip_dashboard_i18n"
+              title="3 languages: English, Español, Português. Auto-detect browser, persist in localStorage."
+              >i</span
+            >
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center h-100">
+            <span class="badge badge-p mb-2">🇬🇧 English</span>
+            <div class="stat-n">14</div>
+            <div class="stat-l">Metrics Translated</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center h-100">
+            <span class="badge badge-a mb-2">🇪🇸 Español</span>
+            <div class="stat-n">14</div>
+            <div class="stat-l">Metrics Translated</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center h-100">
+            <span class="badge badge-ok mb-2">🇧🇷 Português</span>
+            <div class="stat-n">14</div>
+            <div class="stat-l">Metrics Translated</div>
+          </div>
+        </div>
+        <div class="col-12 mt-3">
+          <div class="section-card">
+            <p class="card-text mb-0">
+              Uses <code class="mono">useLocale</code> hook for dynamic switching. 14 metric
+              descriptions × 3 languages = 42 translated strings managed through the
+              <code class="mono">hooks/useLocale.ts</code> module.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 8. File Structure -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--p)">
+            <i class="bi bi-folder-tree me-2"></i>8. File Structure
+          </h2>
+        </div>
+        <div class="col-12">
+          <div class="section-card">
+            <div class="tree-line">
+              <i class="bi bi-folder text-info"></i
+              ><span class="tree-dir">apps/web-dashboard/</span>
+            </div>
+            <div class="tree-line tree-indent">
+              <i class="bi bi-folder2 text-warning"></i><span class="tree-dir">server/</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">websocket-server.ts</span>
+              <span class="badge badge-p tiny">WS + HTTP</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">real-data.ts</span>
+              <span class="badge badge-a tiny">data pipeline</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-folder2 text-warning"></i><span class="tree-dir">database/</span>
+            </div>
+            <div class="tree-line tree-dbl tree-indent">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">manager.ts</span>
+              <span class="badge badge-ok tiny">migrations</span>
+            </div>
+            <div class="tree-line tree-indent">
+              <i class="bi bi-folder2 text-warning"></i
+              ><span class="tree-dir">src/components/</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">TracingDashboard.tsx</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">InfoPopup.tsx</span>
+            </div>
+            <div class="tree-line tree-indent">
+              <i class="bi bi-folder2 text-warning"></i><span class="tree-dir">hooks/</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">useMetrics.ts</span>
+              <span class="badge badge-p tiny">HTTP + WS</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">useLocale.ts</span>
+              <span class="badge badge-a tiny">i18n</span>
+            </div>
+            <div class="tree-line tree-dbl">
+              <i class="bi bi-file-earmark-code text-success"></i
+              ><span class="tree-file">useAlerts.ts</span>
+            </div>
+            <div class="tree-line tree-indent">
+              <i class="bi bi-file-earmark-code text-info"></i
+              ><span class="tree-file">types/dashboard.ts</span>
+              <span class="badge badge-ok tiny">types</span>
+            </div>
+            <div class="tree-line">
+              <i class="bi bi-file-earmark-text text-secondary"></i
+              ><span class="tree-file">vite.config.ts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 9. Lifecycle Commands -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--wn)">
+            <i class="bi bi-arrow-repeat me-2"></i>9. Lifecycle Commands
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-play-circle" style="color: var(--ok); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">Start Full</div>
+            <code class="mono" style="font-size: 0.75rem; word-break: break-all"
+              >npm run dashboard:dev</code
+            >
+            <p class="card-text small mt-2" data-i18n="c_dashboard_14">
+              Vite + WS proxy (port 5173)
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-wifi" style="color: var(--p); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">Start WS Only</div>
+            <code class="mono" style="font-size: 0.75rem; word-break: break-all"
+              >npm run dashboard:server</code
+            >
+            <p class="card-text small mt-2" data-i18n="c_dashboard_15">
+              WebSocket + HTTP server (port 8080)
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <i class="bi bi-stop-circle" style="color: var(--er); font-size: 1.5rem"></i>
+            <div class="card-title mt-2">Build</div>
+            <code class="mono" style="font-size: 0.75rem; word-break: break-all"
+              >npm run dashboard:build</code
+            >
+            <p class="card-text small mt-2" data-i18n="c_dashboard_16">
+              Bundle production dashboard
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- 10. Health API -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--ok)">
+            <i class="bi bi-heart-pulse me-2"></i>10. Health API
+          </h2>
+        </div>
+        <div class="col-lg-8">
+          <div class="section-card h-100">
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge badge-p"><i class="bi bi-wifi me-1"></i>websocket</span>
+              <span class="badge badge-a"><i class="bi bi-hdd-network me-1"></i>mcp</span>
+              <span class="badge badge-ok"><i class="bi bi-sliders me-1"></i>adaptive</span>
+              <span class="badge badge-wn"><i class="bi bi-cloud me-1"></i>cloud</span>
+              <span class="badge badge-er"><i class="bi bi-pin-map me-1"></i>tracing</span>
+              <span class="badge badge-p"><i class="bi bi-save me-1"></i>checkpoints</span>
+              <span class="badge badge-a"><i class="bi bi-clipboard-check me-1"></i>audit</span>
+            </div>
+            <div class="mt-3 d-flex align-items-center gap-2">
+              <span class="badge badge-ok" style="font-size: 0.9rem">7/7 OK</span>
+              <span class="badge badge-p">Status: ok</span>
+              <span class="badge badge-wn">Status: degraded</span>
+              <span class="badge badge-er">Status: unknown</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100 text-center">
+            <div class="stat-n" style="font-size: 2rem">
+              7<span style="color: #475569">/7</span>
+            </div>
+            <div class="stat-l">Components Responding</div>
+            <div class="progress-gv mt-3"><div class="progress-bar" style="width: 100%"></div></div>
+            <small class="d-block mt-1" data-i18n="c_dashboard_17" style="color: var(--ok)"
+              >All 7 components report ok</small
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagramas &amp; Visualizaciones</h2>
+        <p data-i18n="c_dashboard_18">
+          Arquitectura del dashboard de observabilidad — WS + REST, 7 secciones, i18n, alertas
+        </p>
+      </div>
+      <div class="d-flex justify-content-center">
+        <div class="col-lg-10">
+          <img
+            src="diagrams/stack-dashboard.svg"
+            alt="Stack Dashboard"
+            class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </section>
+    <footer class="gv-footer">
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >436 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >175 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=3.0"></script>
+  </body>
+</html>

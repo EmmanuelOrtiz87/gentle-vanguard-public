@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gentle-Vanguard Contract Viewer</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg0: #0a0e1a;
+        --bg1: #111827;
+        --bg2: #1f2937;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --text-faint: #64748b;
+        --p: #22d3ee;
+        --p-dim: #0891b2;
+        --s: #a78bfa;
+        --a: #34d399;
+        --warn: #fbbf24;
+        --err: #f87171;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--bg0) 0%, #1a0e2e 100%);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(17, 24, 39, 0.95);
+        border-bottom: 1px solid var(--bg2);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.25rem;
+        background: linear-gradient(90deg, var(--p), var(--s));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .main-container {
+        display: flex;
+        min-height: calc(100vh - 60px);
+      }
+
+      .sidebar {
+        width: 320px;
+        background: var(--bg1);
+        border-right: 1px solid var(--bg2);
+        padding: 1.25rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px);
+      }
+
+      .sidebar-title {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .contract-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+        margin-bottom: 0.625rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .contract-item:hover {
+        border-color: var(--p);
+        background: var(--bg2);
+      }
+
+      .contract-item.active {
+        border-color: var(--p);
+        background: rgba(34, 211, 238, 0.1);
+      }
+
+      .contract-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--bg2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+      }
+
+      .contract-info {
+        flex: 1;
+      }
+
+      .contract-name {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 0.125rem;
+      }
+
+      .contract-meta {
+        font-size: 0.6875rem;
+        color: var(--text-faint);
+      }
+
+      .contract-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .contract-status.draft {
+        background: var(--bg2);
+        color: var(--text-dim);
+      }
+
+      .contract-status.sent {
+        background: rgba(34, 211, 238, 0.2);
+        color: var(--p);
+      }
+
+      .contract-status.signed {
+        background: rgba(52, 211, 153, 0.2);
+        color: var(--a);
+      }
+
+      .contract-status.expired {
+        background: rgba(248, 113, 113, 0.2);
+        color: var(--err);
+      }
+
+      .content-area {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .contract-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--bg2);
+      }
+
+      .contract-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+
+      .contract-subtitle {
+        font-size: 1rem;
+        color: var(--text-dim);
+      }
+
+      .contract-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-gv {
+        padding: 0.625rem 1.25rem;
+        background: linear-gradient(135deg, var(--p), var(--s));
+        border: none;
+        border-radius: 6px;
+        color: var(--bg0);
+        font-weight: 600;
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .btn-gv:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .btn-gv-alt {
+        padding: 0.625rem 1.25rem;
+        background: var(--bg2);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .btn-gv-alt:hover {
+        border-color: var(--p);
+        color: var(--p);
+      }
+
+      .contract-content {
+        background: var(--bg1);
+        border: 1px solid var(--bg2);
+        border-radius: 12px;
+        padding: 2rem;
+        line-height: 1.8;
+      }
+
+      .contract-content h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--p);
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--p);
+        padding-bottom: 0.75rem;
+      }
+
+      .contract-content h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .contract-content h3 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text-dim);
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .contract-content p {
+        margin-bottom: 1rem;
+        color: var(--text-dim);
+      }
+
+      .contract-content ul,
+      .contract-content ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+      }
+
+      .contract-content li {
+        margin-bottom: 0.5rem;
+        color: var(--text-dim);
+      }
+
+      .contract-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+      }
+
+      .contract-content th,
+      .contract-content td {
+        padding: 0.75rem;
+        text-align: left;
+        border: 1px solid var(--bg2);
+      }
+
+      .contract-content th {
+        background: var(--bg2);
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .contract-content td {
+        color: var(--text-dim);
+      }
+
+      .contract-content blockquote {
+        border-left: 3px solid var(--p);
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+
+      .contract-content code {
+        background: var(--bg0);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        color: var(--p);
+      }
+
+      .contract-content pre {
+        background: var(--bg0);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+
+      .contract-content pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      /* Signature Section */
+      .signature-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--bg2);
+      }
+
+      .signature-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem;
+        margin-top: 2rem;
+      }
+
+      .signature-box {
+        text-align: center;
+      }
+
+      .signature-line {
+        border-bottom: 1px solid var(--bg2);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        min-height: 60px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .signature-name {
+        font-weight: 600;
+        font-size: 0.9375rem;
+      }
+
+      .signature-role {
+        font-size: 0.75rem;
+        color: var(--text-faint);
+      }
+
+      /* Status Badge */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+      }
+
+      .status-badge.draft {
+        background: var(--bg2);
+        color: var(--text-dim);
+      }
+
+      .status-badge.sent {
+        background: rgba(34, 211, 238, 0.2);
+        color: var(--p);
+      }
+
+      .status-badge.signed {
+        background: rgba(52, 211, 153, 0.2);
+        color: var(--a);
+      }
+
+      .status-badge.expired {
+        background: rgba(248, 113, 113, 0.2);
+        color: var(--err);
+      }
+
+      /* Info Cards */
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .info-card {
+        background: var(--bg1);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+        padding: 1rem;
+      }
+
+      .info-label {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+      }
+
+      .info-value {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      /* Timeline */
+      .timeline {
+        margin: 2rem 0;
+      }
+
+      .timeline-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-left: 2px solid var(--bg2);
+        margin-left: 0.5rem;
+        position: relative;
+      }
+
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -5px;
+        width: 8px;
+        height: 8px;
+        background: var(--p);
+        border-radius: 50%;
+      }
+
+      .timeline-content {
+        flex: 1;
+        padding-left: 1rem;
+      }
+
+      .timeline-date {
+        font-size: 0.75rem;
+        color: var(--text-faint);
+      }
+
+      .timeline-event {
+        font-size: 0.875rem;
+        color: var(--text);
+      }
+
+      /* Right Panel */
+      .right-panel {
+        width: 280px;
+        background: var(--bg1);
+        border-left: 1px solid var(--bg2);
+        padding: 1.25rem;
+      }
+
+      .panel-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .panel-title {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--bg2);
+        font-size: 0.8125rem;
+      }
+
+      .stat-row:last-child {
+        border-bottom: none;
+      }
+
+      .stat-label {
+        color: var(--text-dim);
+      }
+
+      .stat-value {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background: var(--bg1);
+        border: 1px solid var(--bg2);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        padding: 1.5rem;
+        transform: scale(0.9);
+        transition: all 0.3s;
+      }
+
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+
+      .modal-close:hover {
+        color: var(--text);
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        margin-bottom: 0.375rem;
+      }
+
+      .form-input,
+      .form-select {
+        width: 100%;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        padding: 0.625rem;
+        color: var(--text);
+        font-size: 0.8125rem;
+      }
+
+      .form-input:focus,
+      .form-select:focus {
+        outline: none;
+        border-color: var(--p);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        padding: 1rem 1.5rem;
+        background: var(--bg1);
+        border: 1px solid var(--a);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 10000;
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <span class="navbar-brand">Contract Viewer</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button
+            class="btn btn-sm"
+            style="background: transparent; border: 1px solid var(--bg2); color: var(--text-dim)"
+            onclick="showHelp()"
+          >
+            <i class="bi bi-question-circle"></i> Ayuda
+          </button>
+          <button
+            class="btn btn-sm"
+            style="background: transparent; border: 1px solid var(--bg2); color: var(--text-dim)"
+            onclick="window.close()"
+          >
+            <i class="bi bi-x-lg"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <aside class="sidebar">
+        <div class="sidebar-title">Contratos</div>
+
+        <div id="contractList">
+          <!-- Lista de contratos generada por JS -->
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bg2)">
+          <button class="btn-gv" onclick="openNewContractModal()" style="width: 100%">
+            <i class="bi bi-plus-lg"></i> Nuevo Contrato
+          </button>
+        </div>
+      </aside>
+
+      <main class="content-area">
+        <div class="contract-header">
+          <div>
+            <div class="contract-title" id="contractTitle">Selecciona un contrato</div>
+            <div class="contract-subtitle" id="contractSubtitle">
+              Ver y gestionar contratos del stack
+            </div>
+          </div>
+          <div class="contract-actions" id="contractActions" style="display: none">
+            <button class="btn-gv-alt" onclick="downloadPDF()">
+              <i class="bi bi-file-earmark-pdf"></i> PDF
+            </button>
+            <button class="btn-gv-alt" onclick="downloadMarkdown()">
+              <i class="bi bi-filetype-md"></i> MD
+            </button>
+            <button class="btn-gv" onclick="openStatusModal()">
+              <i class="bi bi-pencil"></i> Editar Estado
+            </button>
+          </div>
+        </div>
+
+        <div class="info-grid" id="contractInfo" style="display: none">
+          <div class="info-card">
+            <div class="info-label">Versión</div>
+            <div class="info-value" id="infoVersion">1.0.0</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Fecha</div>
+            <div class="info-value" id="infoDate">2026-08-10</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Estado</div>
+            <div class="info-value">
+              <span class="status-badge draft" id="infoStatus">Borrador</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline" id="contractTimeline" style="display: none">
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <div class="timeline-date" id="timelineCreated">2026-08-10</div>
+              <div class="timeline-event">Contrato creado</div>
+            </div>
+          </div>
+          <div class="timeline-item" id="timelineSent" style="display: none">
+            <div class="timeline-content">
+              <div class="timeline-date">-</div>
+              <div class="timeline-event">Enviado al cliente</div>
+            </div>
+          </div>
+          <div class="timeline-item" id="timelineSigned" style="display: none">
+            <div class="timeline-content">
+              <div class="timeline-date">-</div>
+              <div class="timeline-event">Firmado por ambas partes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contract-content" id="contractContent">
+          <div style="text-align: center; padding: 3rem; color: var(--text-faint)">
+            <i class="bi bi-file-text" style="font-size: 4rem; opacity: 0.5"></i>
+            <p class="mt-3">Selecciona un contrato de la lista para visualizarlo</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem">
+              O crea uno nuevo usando el botón "Nuevo Contrato"
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <aside class="right-panel">
+        <div class="panel-section">
+          <div class="panel-title">Estadísticas</div>
+          <div class="stat-row">
+            <span class="stat-label">Total Contratos</span>
+            <span class="stat-value" id="statTotal">1</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Firmados</span>
+            <span class="stat-value" style="color: var(--a)" id="statSigned">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Pendientes</span>
+            <span class="stat-value" style="color: var(--warn)" id="statPending">1</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Expirados</span>
+            <span class="stat-value" style="color: var(--err)" id="statExpired">0</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">Acciones Rápidas</div>
+          <button
+            class="btn-gv-alt"
+            onclick="exportAllContracts()"
+            style="width: 100%; margin-bottom: 0.5rem"
+          >
+            <i class="bi bi-download"></i> Exportar Todos
+          </button>
+          <button
+            class="btn-gv-alt"
+            onclick="printContract()"
+            style="width: 100%; margin-bottom: 0.5rem"
+          >
+            <i class="bi bi-printer"></i> Imprimir
+          </button>
+          <button class="btn-gv-alt" onclick="shareContract()" style="width: 100%">
+            <i class="bi bi-share"></i> Compartir
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">Próximos Vencimientos</div>
+          <div style="font-size: 0.8125rem; color: var(--text-dim)">
+            <p>No hay vencimientos próximos.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Modal de Estado -->
+    <div class="modal-overlay" id="statusModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Actualizar Estado</div>
+          <button class="modal-close" onclick="closeModal('statusModal')">&times;</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado del Contrato</label>
+          <select class="form-select" id="statusSelect">
+            <option value="draft">Borrador</option>
+            <option value="sent">Enviado</option>
+            <option value="signed">Firmado</option>
+            <option value="expired">Expirado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de cambio</label>
+          <input type="date" class="form-input" id="statusDate" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea
+            class="form-input"
+            id="statusNotes"
+            rows="3"
+            placeholder="Notas adicionales..."
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-gv-alt" onclick="closeModal('statusModal')">Cancelar</button>
+          <button class="btn-gv" onclick="updateStatus()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Nuevo Contrato -->
+    <div class="modal-overlay" id="newContractModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Nuevo Contrato</div>
+          <button class="modal-close" onclick="closeModal('newContractModal')">&times;</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Contrato</label>
+          <select class="form-select" id="newContractType">
+            <option value="consulting">Servicios de Consultoría</option>
+            <option value="development">Desarrollo Custom</option>
+            <option value="training">Capacitación</option>
+            <option value="sla">SLA / Soporte</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Cliente</label>
+          <input
+            type="text"
+            class="form-input"
+            id="newClientName"
+            placeholder="Nombre del cliente"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email del Cliente</label>
+          <input
+            type="email"
+            class="form-input"
+            id="newClientEmail"
+            placeholder="cliente@ejemplo.com"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monto (USD)</label>
+          <input type="number" class="form-input" id="newAmount" placeholder="10000" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-gv-alt" onclick="closeModal('newContractModal')">Cancelar</button>
+          <button class="btn-gv" onclick="createContract()">Crear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">
+      <i class="bi bi-check-circle-fill" style="color: var(--a)"></i>
+      <span id="toastMessage"></span>
+    </div>
+
+    <script>
+      // Base de datos de contratos embebida
+      const contractsDB = {
+        'consulting-services': {
+          id: 'consulting-services',
+          name: 'Consulting Services Agreement',
+          type: 'consulting',
+          version: '1.0.0',
+          date: '2026-08-10',
+          status: 'draft',
+          client: 'Plantilla General',
+          amount: null,
+          icon: '📋',
+          content: `# CONTRATO DE SERVICIOS PROFESIONALES
+
+## GENTLE-VANGUARD STACK CONSULTING
+
+---
+
+**CONTRATO N.º**: GV-CONSULTING-[CLIENTE]-[FECHA]
+
+**FECHA**: [DÍA] de [MES] de 2026
+
+---
+
+## 1. PARTES
+
+**CONSULTOR** (en adelante, "El Consultor"):
+- Razón Social: [Nombre Empresa/Individuo]
+- CUIT/CUIL: [Número]
+- Domicilio: [Dirección]
+- Contacto: [Email] | [Teléfono]
+
+**CLIENTE** (en adelante, "El Cliente"):
+- Razón Social: ___________________________
+- CUIT/CUIL: ___________________________
+- Domicilio: ___________________________
+- Contacto: ___________________________
+
+---
+
+## 2. OBJETO DEL CONTRATO
+
+El Consultor se compromete a prestar servicios profesionales de implementación, configuración y capacitación del Gentle-Vanguard Stack (en adelante, "Los Servicios"), según los términos y condiciones establecidos en el presente contrato.
+
+### 2.1 Servicios Incluidos
+
+Dependiendo del paquete contratado:
+
+| Servicio | Descripción | Entregable |
+|----------|-------------|------------|
+| **Setup** | Instalación y configuración inicial del stack | Stack operativo en ambiente del cliente |
+| **Migration** | Migración de proyectos existentes al stack | Proyectos migrados y operativos |
+| **Training** | Capacitación de equipo del cliente | 3-5 desarrolladores capacitados |
+| **Support** | Soporte técnico continuo | Respuesta en <24h SLA |
+
+---
+
+## 3. PAQUETES Y PRECIOS
+
+### Paquete Starter: $5,000 USD
+- Setup básico del stack
+- Configuración inicial
+- 8 horas de capacitación
+- 30 días de soporte
+
+### Paquete Professional: $15,000 USD
+- Setup avanzado con personalizaciones
+- Migración de hasta 3 proyectos
+- 24 horas de capacitación
+- 90 días de soporte
+- Integraciones custom
+
+### Paquete Enterprise: $50,000 USD
+- Setup completo de Enterprise
+- Migración ilimitada de proyectos
+- 40 horas de capacitación
+- 365 días de soporte
+- Priority support 24/7
+- SLA garantizado
+
+---
+
+## 4. PLAZO DE EJECUCIÓN
+
+El plazo para la prestación de los Servicios será de:
+
+- **Paquete Starter**: 2 semanas desde la firma
+- **Paquete Professional**: 4 semanas desde la firma
+- **Paquete Enterprise**: 8 semanas desde la firma
+
+---
+
+## 5. CONDICIONES DE PAGO
+
+1. **50%** al firmar el contrato (anticipo)
+2. **25%** a la mitad del proyecto
+3. **25%** contra entrega final
+
+Métodos de pago aceptados:
+- Transferencia bancaria
+- PayPal Business
+- Wise (TransferWise)
+- Criptomonedas (BTC, ETH, USDC)
+
+---
+
+## 6. CONFIDENCIALIDAD
+
+Ambas partes se comprometen a mantener la confidencialidad de toda la información intercambiada durante la prestación de los Servicios, incluyendo pero no limitado a:
+- Código fuente y configuraciones
+- Datos de acceso y credenciales
+- Información de negocio del Cliente
+- Estrategias y metodologías propietarias
+
+---
+
+## 7. PROPIEDAD INTELECTUAL
+
+El Consultor mantiene la propiedad intelectual del Gentle-Vanguard Stack. El Cliente recibe una licencia de uso perpetua e irrevocable para el código y configuraciones específicas desarrolladas para su proyecto.
+
+---
+
+## 8. GARANTÍA
+
+El Consultor garantiza que los Servicios:
+- Serán prestados con la diligencia y cuidado de un profesional experto
+- Cumplirán con las especificaciones acordadas
+- Estarán libres de defectos materiales durante 90 días posteriores a la entrega
+
+---
+
+## 9. LIMITACIÓN DE RESPONSABILIDAD
+
+En ningún caso el Consultor será responsable por:
+- Daños indirectos, incidentales o consecuentes
+- Pérdida de datos o información
+- Pérdida de beneficios o ingresos esperados
+- Costos de reposición de bienes o servicios
+
+La responsabilidad total del Consultor estará limitada al monto total pagado por los Servicios.
+
+---
+
+## 10. TERMINACIÓN
+
+El contrato puede terminarse por:
+- **Cumplimiento**: Finalización satisfactoria de los Servicios
+- **Mutuo acuerdo**: Por escrito firmado por ambas partes
+- **Incumplimiento**: Notificación con 15 días de anticipación y oportunidad de subsanación
+- **Fuerza mayor**: Eventos fuera del control de las partes
+
+---
+
+## 11. LEY APLICABLE Y JURISDICCIÓN
+
+Este contrato se regirá e interpretará de acuerdo con las leyes de la República Argentina. Cualquier disputa será resuelta en los tribunales competentes de la Ciudad Autónoma de Buenos Aires.
+
+---
+
+## 12. FIRMAS
+
+En prueba de conformidad, ambas partes firman el presente contrato en dos (2) ejemplares del mismo tenor y a un solo efecto.
+
+---
+
+<div class="signature-section">
+  <div class="signature-grid">
+    <div class="signature-box">
+      <div class="signature-line">Firma del Consultor</div>
+      <div class="signature-name">[Nombre del Consultor]</div>
+      <div class="signature-role">Consultor</div>
+      <div class="signature-role">Fecha: _____________</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-line">Firma del Cliente</div>
+      <div class="signature-name">[Nombre del Cliente]</div>
+      <div class="signature-role">Cliente</div>
+      <div class="signature-role">Fecha: _____________</div>
+    </div>
+  </div>
+</div>`,
+        },
+      };
+
+      // LocalStorage para contratos personalizados
+      let customContracts = JSON.parse(localStorage.getItem('customContracts') || '[]');
+      let currentContractId = null;
+
+      // Inicialización
+      document.addEventListener('DOMContentLoaded', () => {
+        renderContractList();
+        updateStats();
+
+        // Set today's date in modals
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('statusDate').value = today;
+
+        // Recuperar configuración del CMS
+        const savedConfig = localStorage.getItem('contractViewerConfig');
+        const launchTime = parseInt(localStorage.getItem('contractViewerLaunchTime') || '0');
+        const timeSinceLaunch = Date.now() - launchTime;
+
+        if (savedConfig && timeSinceLaunch < 10000) {
+          try {
+            const config = JSON.parse(savedConfig);
+            if (config.contractId) {
+              loadContract(config.contractId);
+            }
+            localStorage.removeItem('contractViewerConfig');
+            localStorage.removeItem('contractViewerLaunchTime');
+          } catch (e) {
+            console.error('Error parsing config:', e);
+          }
+        }
+      });
+
+      // Renderizar lista de contratos
+      function renderContractList() {
+        const list = document.getElementById('contractList');
+        let html = '';
+
+        // Contratos embebidos
+        Object.values(contractsDB).forEach((contract) => {
+          html += createContractItem(contract);
+        });
+
+        // Contratos personalizados
+        customContracts.forEach((contract) => {
+          html += createContractItem(contract, true);
+        });
+
+        list.innerHTML = html;
+      }
+
+      function createContractItem(contract, isCustom = false) {
+        const statusClass = contract.status || 'draft';
+        const statusText = {
+          draft: 'Borrador',
+          sent: 'Enviado',
+          signed: 'Firmado',
+          expired: 'Expirado',
+        }[statusClass];
+
+        const activeClass = currentContractId === contract.id ? 'active' : '';
+
+        return `
+        <div class="contract-item ${activeClass}" onclick="loadContract('${contract.id}')">
+          <div class="contract-icon">${contract.icon || '📄'}</div>
+          <div class="contract-info">
+            <div class="contract-name">${contract.name}</div>
+            <div class="contract-meta">${contract.client || 'Plantilla'} • ${contract.date}</div>
+          </div>
+          <span class="contract-status ${statusClass}">${statusText}</span>
+        </div>
+      `;
+      }
+
+      // Cargar contrato
+      function loadContract(id) {
+        currentContractId = id;
+        const contract = contractsDB[id] || customContracts.find((c) => c.id === id);
+
+        if (!contract) {
+          showToast('Contrato no encontrado');
+          return;
+        }
+
+        // Actualizar UI
+        document.getElementById('contractTitle').textContent = contract.name;
+        document.getElementById('contractSubtitle').textContent =
+          contract.type || 'Servicios Profesionales';
+        document.getElementById('infoVersion').textContent = contract.version || '1.0.0';
+        document.getElementById('infoDate').textContent = contract.date;
+        document.getElementById('infoStatus').textContent = {
+          draft: 'Borrador',
+          sent: 'Enviado',
+          signed: 'Firmado',
+          expired: 'Expirado',
+        }[contract.status || 'draft'];
+        document.getElementById('infoStatus').className =
+          `status-badge ${contract.status || 'draft'}`;
+
+        // Mostrar elementos ocultos
+        document.getElementById('contractActions').style.display = 'flex';
+        document.getElementById('contractInfo').style.display = 'grid';
+        document.getElementById('contractTimeline').style.display = 'block';
+
+        // Timeline
+        document.getElementById('timelineCreated').textContent = contract.date;
+        document.getElementById('timelineSent').style.display =
+          contract.status === 'sent' || contract.status === 'signed' ? 'flex' : 'none';
+        document.getElementById('timelineSigned').style.display =
+          contract.status === 'signed' ? 'flex' : 'none';
+
+        // Renderizar contenido MD
+        const content = contract.content || 'Contenido no disponible';
+        document.getElementById('contractContent').innerHTML = renderMarkdown(content);
+
+        // Actualizar lista
+        renderContractList();
+      }
+
+      // Renderizador simple de Markdown
+      function renderMarkdown(md) {
+        return (
+          md
+            // Headers
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            // Bold/Italic
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/_(.+?)_/g, '<em>$1</em>')
+            // Lists
+            .replace(/^\* (.+)$/gm, '<li>$1</li>')
+            .replace(/(<li>.+<\/li>\n)+/g, '<ul>$&</ul>')
+            // Tables
+            .replace(/\|(.+)\|/g, (match) => {
+              const cells = match
+                .split('|')
+                .filter((c) => c.trim())
+                .map((c) => `<td>${c.trim()}</td>`)
+                .join('');
+              return `<tr>${cells}</tr>`;
+            })
+            .replace(/<tr>.+<\/tr>/g, (match) => {
+              if (match.includes('---')) return match; // Skip separator row
+              return match;
+            })
+            // Line breaks
+            .replace(/\n/g, '<br>')
+            // Signature sections (simplified - would need HTML preserved)
+            .replace(/<div class="signature-section">[\s\S]*?<\/div>/g, (match) => {
+              return match; // Preserve HTML signatures
+            })
+        );
+      }
+
+      // Modal functions
+      function openModal(id) {
+        document.getElementById(id).classList.add('active');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+
+      function openStatusModal() {
+        if (!currentContractId) {
+          showToast('Selecciona un contrato primero');
+          return;
+        }
+        const contract =
+          contractsDB[currentContractId] || customContracts.find((c) => c.id === currentContractId);
+        if (contract) {
+          document.getElementById('statusSelect').value = contract.status || 'draft';
+        }
+        openModal('statusModal');
+      }
+
+      function openNewContractModal() {
+        openModal('newContractModal');
+      }
+
+      function updateStatus() {
+        if (!currentContractId) return;
+
+        const newStatus = document.getElementById('statusSelect').value;
+        const contract =
+          contractsDB[currentContractId] || customContracts.find((c) => c.id === currentContractId);
+
+        if (contract) {
+          contract.status = newStatus;
+          contract.statusDate = document.getElementById('statusDate').value;
+          contract.statusNotes = document.getElementById('statusNotes').value;
+
+          if (contractsDB[currentContractId]) {
+            // Actualizar en DB embebida
+          } else {
+            // Actualizar en custom
+            const idx = customContracts.findIndex((c) => c.id === currentContractId);
+            if (idx >= 0) customContracts[idx] = contract;
+            localStorage.setItem('customContracts', JSON.stringify(customContracts));
+          }
+
+          loadContract(currentContractId);
+          updateStats();
+          showToast('Estado actualizado correctamente');
+        }
+
+        closeModal('statusModal');
+      }
+
+      function createContract() {
+        const type = document.getElementById('newContractType').value;
+        const client = document.getElementById('newClientName').value || 'Cliente Nuevo';
+        const email = document.getElementById('newClientEmail').value;
+        const amount = document.getElementById('newAmount').value;
+
+        const icons = {
+          consulting: '📋',
+          development: '💻',
+          training: '🎓',
+          sla: '🛡️',
+        };
+
+        const names = {
+          consulting: 'Consulting Services',
+          development: 'Custom Development',
+          training: 'Training Services',
+          sla: 'SLA Agreement',
+        };
+
+        const newContract = {
+          id: 'contract-' + Date.now(),
+          name: names[type] + ' - ' + client,
+          type: type,
+          version: '1.0.0',
+          date: new Date().toISOString().split('T')[0],
+          status: 'draft',
+          client: client,
+          email: email,
+          amount: amount,
+          icon: icons[type],
+          content: `# CONTRATO DE ${names[type].toUpperCase()}
+
+## PARTES
+
+**CONSULTOR**: Gentle-Vanguard  
+**CLIENTE**: ${client} (${email})
+
+## OBJETO
+
+${names[type]} para el cliente ${client}.
+
+## PRECIO
+
+$${amount || '0'} USD
+
+## FIRMAS
+
+_Pendientes de firma_
+`,
+        };
+
+        customContracts.push(newContract);
+        localStorage.setItem('customContracts', JSON.stringify(customContracts));
+
+        renderContractList();
+        loadContract(newContract.id);
+        updateStats();
+        closeModal('newContractModal');
+        showToast('Contrato creado correctamente');
+      }
+
+      // Export functions
+      function downloadPDF() {
+        showToast('Generando PDF... (Función simulada)');
+        setTimeout(() => {
+          alert(
+            'El PDF se generaría aquí usando una librería como jsPDF o pdfmake.\n\nEn una implementación completa, esto crearía un PDF profesional del contrato.',
+          );
+        }, 1000);
+      }
+
+      function downloadMarkdown() {
+        if (!currentContractId) {
+          showToast('Selecciona un contrato primero');
+          return;
+        }
+        const contract =
+          contractsDB[currentContractId] || customContracts.find((c) => c.id === currentContractId);
+        if (contract) {
+          const blob = new Blob([contract.content], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${contract.id}.md`;
+          link.click();
+          URL.revokeObjectURL(url);
+          showToast('Markdown descargado');
+        }
+      }
+
+      function exportAllContracts() {
+        const allContracts = [...Object.values(contractsDB), ...customContracts];
+        const blob = new Blob([JSON.stringify(allContracts, null, 2)], {
+          type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'contracts-backup.json';
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('Todos los contratos exportados');
+      }
+
+      function printContract() {
+        window.print();
+      }
+
+      function shareContract() {
+        if (!currentContractId) {
+          showToast('Selecciona un contrato primero');
+          return;
+        }
+        const contract =
+          contractsDB[currentContractId] || customContracts.find((c) => c.id === currentContractId);
+        if (contract) {
+          const shareText = `Contrato: ${contract.name}\nCliente: ${contract.client}\nEstado: ${contract.status}`;
+          navigator.clipboard.writeText(shareText).then(() => {
+            showToast('Información copiada al portapapeles');
+          });
+        }
+      }
+
+      // Estadísticas
+      function updateStats() {
+        const allContracts = [...Object.values(contractsDB), ...customContracts];
+        const signed = allContracts.filter((c) => c.status === 'signed').length;
+        const expired = allContracts.filter((c) => c.status === 'expired').length;
+        const pending = allContracts.filter(
+          (c) => !c.status || c.status === 'draft' || c.status === 'sent',
+        ).length;
+
+        document.getElementById('statTotal').textContent = allContracts.length;
+        document.getElementById('statSigned').textContent = signed;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statExpired').textContent = expired;
+      }
+
+      // Toast
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+
+      // Help
+      function showHelp() {
+        alert(`Gentle-Vanguard Contract Viewer
+
+📋 GESTIÓN DE CONTRATOS:
+• Visualización de contratos en Markdown
+• Estados: Borrador → Enviado → Firmado → Expirado
+• Crear nuevos contratos desde plantillas
+• Editar estado y fechas
+
+✍️ CONTRATOS INCLUIDOS:
+• Consulting Services Agreement
+• Custom Development
+• Training Services
+• SLA Agreement
+
+📤 EXPORTAR:
+• PDF (simulado)
+• Markdown (.md)
+• JSON (todos los contratos)
+• Imprimir
+
+💾 ALMACENAMIENTO:
+• Contratos personalizados en localStorage
+• Compatibles con md-viewer.html
+• Backup automático
+
+100% OFFLINE - Sin APIs externas`);
+      }
+
+      // Cerrar modales al hacer click fuera
+      document.querySelectorAll('.modal-overlay').forEach((modal) => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('active');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

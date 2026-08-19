@@ -1,0 +1,96 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00bfff" stop-opacity=".2"/><stop offset="100%" stop-color="#00bfff" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a855f7" stop-opacity=".2"/><stop offset="100%" stop-color="#a855f7" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00bfff"/><stop offset="100%" stop-color="#099c"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#83c"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect width="1000" height="400" fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Pipeline Flow</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">101-step autonomous session pipeline — parallel + lazy execution</text>
+
+<rect x="60" y="65" width="880" height="24" rx="8" fill="#111827" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="61" y="66" width="350" height="22" rx="7" fill="#00bfff" fill-opacity=".15" stroke="#00bfff" stroke-width=".5"/>
+<text x="236" y="81" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 1 — 31 parallel steps</text>
+<text x="420" y="81" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="16">→</text>
+<rect x="435" y="66" width="370" height="22" rx="7" fill="#a855f7" fill-opacity=".15" stroke="#a855f7" stroke-width=".5"/>
+<text x="620" y="81" text-anchor="middle" fill="#a855f7" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 2 — 70 lazy background steps</text>
+<rect x="820" y="62" width="32" height="30" rx="8" fill="#22c55e" fill-opacity=".15" stroke="#22c55e" stroke-width="1"/>
+<text x="836" y="82" text-anchor="middle" fill="#22c55e" font-family="system-ui,sans-serif" font-size="16" font-weight="700" filter="url(#g)">✓</text>
+<text x="411" y="64" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="8">32</text>
+<text x="805" y="64" text-anchor="middle" fill="#a855f7" font-family="system-ui,sans-serif" font-size="8">65</text>
+
+<!-- Tool Detection -->
+<g filter="url(#s)"><rect x="60" y="110" width="170" height="70" rx="8" fill="#111827" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="68" y="118" width="20" height="20" rx="4" fill="#00bfff" fill-opacity=".15"/><text x="78" y="132" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="10">🔧</text>
+<text x="95" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Tool Detection</text>
+<text x="68" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Bash · Read · Write · Edit</text>
+<text x="68" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Grep · Glob · Task · Skill</text>
+<rect x="160" y="113" width="50" height="14" rx="4" fill="#00bfff" fill-opacity=".12"/><text x="185" y="123" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="7">8 tools</text>
+
+<!-- Session Manager -->
+<g filter="url(#s)"><rect x="250" y="110" width="170" height="70" rx="8" fill="#111827" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="258" y="118" width="20" height="20" rx="4" fill="#00bfff" fill-opacity=".15"/><text x="268" y="132" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="10">⚡</text>
+<text x="285" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Session Manager</text>
+<text x="258" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Session ID · Engram sync</text>
+<text x="258" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Lifecycle tracking</text>
+<rect x="357" y="113" width="50" height="14" rx="4" fill="#00bfff" fill-opacity=".12"/><text x="382" y="123" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="7">3 ops</text>
+
+<!-- Token Budget -->
+<g filter="url(#s)"><rect x="60" y="200" width="170" height="70" rx="8" fill="#111827" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="68" y="208" width="20" height="20" rx="4" fill="#00bfff" fill-opacity=".15"/><text x="78" y="222" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="10">💰</text>
+<text x="95" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Token Budget</text>
+<text x="68" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Budget allocation · Track</text>
+<text x="68" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Guard thresholds</text>
+<rect x="145" y="203" width="65" height="14" rx="4" fill="#00bfff" fill-opacity=".12"/><text x="177" y="213" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="7">3 phases</text>
+
+<!-- Karpathy -->
+<g filter="url(#s)"><rect x="250" y="200" width="170" height="70" rx="8" fill="#111827" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="258" y="208" width="20" height="20" rx="4" fill="#00bfff" fill-opacity=".15"/><text x="268" y="222" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="10">🧠</text>
+<text x="285" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Karpathy Guidelines</text>
+<text x="258" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Quality rubrics · Self-critique</text>
+<text x="258" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Doubt-driven dev</text>
+<rect x="355" y="203" width="52" height="14" rx="4" fill="#00bfff" fill-opacity=".12"/><text x="381" y="213" text-anchor="middle" fill="#00bfff" font-family="system-ui,sans-serif" font-size="7">3 rules</text>
+
+<!-- Lazy Batch -->
+<g filter="url(#s)"><rect x="470" y="135" width="470" height="110" rx="10" fill="#111827" stroke="#a855f7" stroke-width="1" stroke-opacity=".5"/><rect x="470" y="135" width="470" height="110" rx="10" fill="url(#p2)"/></g>
+<text x="705" y="155" text-anchor="middle" fill="#a855f7" font-family="system-ui,sans-serif" font-size="11" font-weight="700">Lazy Batch — 5 background workers</text>
+
+<g font-family="system-ui,sans-serif" font-size="8"><rect x="490" y="168" width="200" height="14" rx="4" fill="#22c55e" fill-opacity=".15" stroke="#22c55e" stroke-width=".5"/><text x="590" y="178" text-anchor="middle" fill="#22c55e">Tracing Init</text><text x="700" y="178" fill="#94a3b8">lazy</text>
+<rect x="490" y="188" width="220" height="14" rx="4" fill="#22c55e" fill-opacity=".15" stroke="#22c55e" stroke-width=".5"/><text x="600" y="198" text-anchor="middle" fill="#22c55e">Cloud Connectors</text><text x="720" y="198" fill="#94a3b8">lazy</text>
+<rect x="490" y="208" width="190" height="14" rx="4" fill="#a855f7" fill-opacity=".15" stroke="#a855f7" stroke-width=".5"/><text x="585" y="218" text-anchor="middle" fill="#a855f7">Event Sourcing</text><text x="690" y="218" fill="#94a3b8">lazy</text>
+<rect x="490" y="228" width="180" height="14" rx="4" fill="#f59e0b" fill-opacity=".15" stroke="#f59e0b" stroke-width=".5"/><text x="580" y="238" text-anchor="middle" fill="#f59e0b">Audit Pipeline</text><text x="680" y="238" fill="#94a3b8">lazy</text>
+<rect x="490" y="248" width="210" height="14" rx="4" fill="#00bfff" fill-opacity=".15" stroke="#00bfff" stroke-width=".5"/><text x="595" y="258" text-anchor="middle" fill="#00bfff">Dashboard WS</text><text x="710" y="258" fill="#94a3b8">lazy</text></g>
+
+<text x="500" y="280" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">+ 68 more lazy steps (watchtower, checkpoint, DB init, scoring, ...)</text>
+
+<!-- Process bar -->
+<rect x="60" y="305" width="880" height="18" rx="6" fill="#111827" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="62" y="307" width="340" height="14" rx="5" fill="url(#b1)" opacity=".6"/><text x="232" y="318" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="9" font-weight="600">PARALLEL (31)</text>
+<rect x="403" y="307" width="5" height="14" rx="2" fill="#4b5563"/>
+<rect x="410" y="307" width="470" height="14" rx="5" fill="url(#b2)" opacity=".6"/><text x="645" y="318" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="9" font-weight="600">LAZY BACKGROUND (70)</text>
+<rect x="882" y="307" width="56" height="14" rx="5" fill="#22c55e" opacity=".8"/><text x="910" y="318" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="8" font-weight="600">DONE</text>
+
+<g transform="translate(60,340)"><rect x="0" y="0" width="400" height="36" rx="6" fill="#111827" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="10" y="15" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Phase 1 steps:</text>
+<g fill="#00bfff" fill-opacity=".2" rx="3"><rect x="90" y="6" width="16" height="12"/><rect x="112" y="6" width="16" height="12"/><rect x="134" y="6" width="16" height="12"/><rect x="156" y="6" width="16" height="12"/><rect x="178" y="6" width="16" height="12"/><rect x="200" y="6" width="16" height="12"/><rect x="222" y="6" width="16" height="12"/><rect x="244" y="6" width="16" height="12"/><rect x="266" y="6" width="16" height="12"/><rect x="288" y="6" width="16" height="12"/><rect x="310" y="6" width="16" height="12"/><rect x="332" y="6" width="50" height="12"/></g>
+<g fill="#00bfff" font-family="system-ui,sans-serif" font-size="7" text-anchor="middle"><text x="98" y="15">S</text><text x="120" y="15">T</text><text x="142" y="15">B</text><text x="164" y="15">K</text><text x="186" y="15">W</text><text x="208" y="15">D</text><text x="230" y="15">H</text><text x="252" y="15">C</text><text x="274" y="15">M</text><text x="296" y="15">R</text><text x="318" y="15">A</text><text x="357" y="14">+20 more</text></g>
+<text x="10" y="30" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">S=Session T=Tool B=Budget K=Karpathy W=Watchtower D=DB H=Health C=Cloud M=MCP R=Router A=Audit</text></g>
+
+<line x1="60" y1="390" x2="940" y2="390" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="500" y="396" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="61" y="66" width="350" height="22" rx="6" data-i18n-title="tip_hs_flow_phase1" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure."/>
+    <rect class="gv-hotspot" x="435" y="66" width="370" height="22" rx="6" data-i18n-title="tip_hs_flow_phase2" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - 70 lazy background steps: deferred heavy work executed in batches of 5 workers after session start."/>
+    <rect class="gv-hotspot" x="60" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_tool_detection" role="button" tabindex="0" fill="transparent" aria-label="Tool Detection: maps the 8 available tools (Bash, Read, Write, Edit, Grep, Glob, Task, Skill)."/>
+    <rect class="gv-hotspot" x="250" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_session_manager" role="button" tabindex="0" fill="transparent" aria-label="Session Manager: generates the session ID, syncs Engram and tracks the session lifecycle."/>
+    <rect class="gv-hotspot" x="60" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_token_budget" role="button" tabindex="0" fill="transparent" aria-label="Token Budget: allocates the 5M daily / 3M per-session budget and enforces guard thresholds."/>
+    <rect class="gv-hotspot" x="250" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_karpathy" role="button" tabindex="0" fill="transparent" aria-label="Karpathy Guidelines: 3 rules (Think First, Simplicity, Surgical Changes) with quality rubrics and self-critique."/>
+    <rect class="gv-hotspot" x="470" y="135" width="470" height="110" rx="6" data-i18n-title="tip_hs_flow_lazy_batch" role="button" tabindex="0" fill="transparent" aria-label="Lazy Batch - 5 background workers: runs deferred steps like Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline and Dashboard WS."/>
+    <rect class="gv-hotspot" x="60" y="305" width="880" height="18" rx="6" data-i18n-title="tip_hs_flow_process_bar" role="button" tabindex="0" fill="transparent" aria-label="Process bar: parallel steps (31) then lazy background (70) then DONE - the full 101-step session pipeline."/>
+</svg>

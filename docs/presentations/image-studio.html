@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gentle-Vanguard Image Studio - Generación Nativa</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg0: #0a0e1a;
+        --bg1: #111827;
+        --bg2: #1f2937;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --text-faint: #64748b;
+        --p: #22d3ee;
+        --p-dim: #0891b2;
+        --s: #a78bfa;
+        --a: #34d399;
+        --warn: #fbbf24;
+        --err: #f87171;
+        --grad-start: #22d3ee;
+        --grad-end: #a78bfa;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--bg0) 0%, #1a0e2e 100%);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(17, 24, 39, 0.95);
+        border-bottom: 1px solid var(--bg2);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.25rem;
+        background: linear-gradient(90deg, var(--p), var(--s));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .studio-title {
+        color: var(--text-dim);
+        font-size: 0.875rem;
+        margin-left: 1rem;
+        padding-left: 1rem;
+        border-left: 1px solid var(--bg2);
+      }
+
+      .main-container {
+        display: flex;
+        min-height: calc(100vh - 60px);
+      }
+
+      .sidebar {
+        width: 280px;
+        background: var(--bg1);
+        border-right: 1px solid var(--bg2);
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px);
+      }
+
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+
+      .sidebar-title {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .prompt-box {
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .prompt-box textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-size: 0.875rem;
+        resize: none;
+        outline: none;
+        min-height: 80px;
+      }
+
+      .prompt-box textarea::placeholder {
+        color: var(--text-faint);
+      }
+
+      .btn-generate {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--p), var(--s));
+        border: none;
+        border-radius: 8px;
+        color: var(--bg0);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .btn-generate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+      }
+
+      .btn-generate:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .control-group {
+        margin-bottom: 1rem;
+      }
+
+      .control-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        margin-bottom: 0.5rem;
+      }
+
+      .control-select,
+      .control-input {
+        width: 100%;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        padding: 0.625rem;
+        color: var(--text);
+        font-size: 0.8125rem;
+      }
+
+      .control-select:focus,
+      .control-input:focus {
+        outline: none;
+        border-color: var(--p);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .slider {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 4px;
+        background: var(--bg2);
+        border-radius: 2px;
+        outline: none;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--p);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .slider-value {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        min-width: 30px;
+        text-align: right;
+      }
+
+      .template-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .template-item {
+        aspect-ratio: 1;
+        background: var(--bg0);
+        border: 2px solid var(--bg2);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .template-item:hover {
+        border-color: var(--p);
+        background: var(--bg2);
+      }
+
+      .template-item.active {
+        border-color: var(--p);
+        background: rgba(34, 211, 238, 0.1);
+      }
+
+      .template-preview {
+        width: 60px;
+        height: 40px;
+        border-radius: 4px;
+      }
+
+      .template-name {
+        font-size: 0.6875rem;
+        color: var(--text-dim);
+      }
+
+      .canvas-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 1rem;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--bg1);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+      }
+
+      .toolbar-left {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .toolbar-btn {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        color: var(--text-dim);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .toolbar-btn:hover {
+        border-color: var(--p);
+        color: var(--text);
+      }
+
+      .canvas-container {
+        flex: 1;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #mainCanvas {
+        max-width: 100%;
+        max-height: 100%;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .size-indicator {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.8);
+        color: var(--text-dim);
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .layers-panel {
+        width: 200px;
+        background: var(--bg1);
+        border-left: 1px solid var(--bg2);
+        padding: 1rem;
+      }
+
+      .layer-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .layer-item:hover {
+        border-color: var(--p);
+      }
+
+      .layer-item.active {
+        border-color: var(--p);
+        background: rgba(34, 211, 238, 0.1);
+      }
+
+      .layer-thumb {
+        width: 32px;
+        height: 24px;
+        background: var(--bg2);
+        border-radius: 4px;
+      }
+
+      .layer-info {
+        flex: 1;
+      }
+
+      .layer-name {
+        font-size: 0.75rem;
+        color: var(--text);
+        margin-bottom: 0.125rem;
+      }
+
+      .layer-type {
+        font-size: 0.625rem;
+        color: var(--text-faint);
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.625rem 1rem;
+        background: var(--bg1);
+        border-top: 1px solid var(--bg2);
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+
+      .status-left {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .status-right {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      .export-btn {
+        padding: 0.5rem 1rem;
+        background: var(--s);
+        border: none;
+        border-radius: 6px;
+        color: var(--bg0);
+        font-weight: 600;
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .export-btn:hover {
+        background: #8b5cf6;
+      }
+
+      /* Generación visual - efectos */
+      .generating-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 14, 26, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+      }
+
+      .generating-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .generating-spinner {
+        width: 60px;
+        height: 60px;
+        border: 3px solid var(--bg2);
+        border-top-color: var(--p);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .generating-text {
+        color: var(--text-dim);
+        font-size: 0.9375rem;
+      }
+
+      .progress-bar {
+        width: 300px;
+        height: 4px;
+        background: var(--bg1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--p), var(--s));
+        width: 0%;
+        transition: width 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <span class="navbar-brand">Gentle-Vanguard Image Studio</span>
+          <span class="studio-title">Generación Nativa 100% Offline</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="toolbar-btn" onclick="showHelp()">
+            <i class="bi bi-question-circle"></i> Ayuda
+          </button>
+          <button class="toolbar-btn" onclick="window.close()">
+            <i class="bi bi-x-lg"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">Prompt</div>
+          <div class="prompt-box">
+            <textarea
+              id="promptInput"
+              placeholder="Describe la imagen que quieres generar. Ejemplos:
+• 'Banner futurista con neón cian y púrpura'
+• 'Thumbnail minimalista para tutorial de Python'
+• 'Fondo abstracto con partículas flotantes'
+• 'Diagrama de arquitectura tecnológica'"
+            ></textarea>
+          </div>
+          <button class="btn-generate" id="generateBtn" onclick="generateImage()">
+            <i class="bi bi-magic"></i> Generar Imagen
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Tamaño</div>
+          <div class="control-group">
+            <label class="control-label">Plataforma</label>
+            <select class="control-select" id="platformSelect" onchange="updateDimensions()">
+              <option value="1920,1080">Personalizado</option>
+              <option value="1200,627" selected>LinkedIn Post (1200×627)</option>
+              <option value="1600,900">Twitter/X (1600×900)</option>
+              <option value="1080,1080">Instagram (1080×1080)</option>
+              <option value="1080,1920">Instagram Story (1080×1920)</option>
+              <option value="1920,1080">YouTube Thumbnail (1920×1080)</option>
+              <option value="512,512">Icon/App (512×512)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Ancho</label>
+            <input
+              type="number"
+              class="control-input"
+              id="widthInput"
+              value="1200"
+              min="100"
+              max="4096"
+            />
+          </div>
+          <div class="control-group">
+            <label class="control-label">Alto</label>
+            <input
+              type="number"
+              class="control-input"
+              id="heightInput"
+              value="627"
+              min="100"
+              max="4096"
+            />
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Estilo</div>
+          <div class="template-grid" id="templateGrid">
+            <div
+              class="template-item active"
+              data-template="neon-cyberpunk"
+              onclick="selectTemplate(this)"
+            >
+              <div
+                class="template-preview"
+                style="background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #f472b6 100%)"
+              ></div>
+              <div class="template-name">Neo Cyber</div>
+            </div>
+            <div class="template-item" data-template="minimal-clean" onclick="selectTemplate(this)">
+              <div
+                class="template-preview"
+                style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+              ></div>
+              <div class="template-name">Minimal</div>
+            </div>
+            <div class="template-item" data-template="gradient-flow" onclick="selectTemplate(this)">
+              <div
+                class="template-preview"
+                style="
+                  background: linear-gradient(45deg, #22d3ee 0%, transparent 50%, #a78bfa 100%);
+                "
+              ></div>
+              <div class="template-name">Gradient</div>
+            </div>
+            <div class="template-item" data-template="dark-tech" onclick="selectTemplate(this)">
+              <div
+                class="template-preview"
+                style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%)"
+              ></div>
+              <div class="template-name">Dark Tech</div>
+            </div>
+            <div class="template-item" data-template="geometric" onclick="selectTemplate(this)">
+              <div
+                class="template-preview"
+                style="
+                  background: repeating-linear-gradient(
+                    45deg,
+                    #1e293b 0px,
+                    #1e293b 10px,
+                    #0f172a 10px,
+                    #0f172a 20px
+                  );
+                "
+              ></div>
+              <div class="template-name">Geometric</div>
+            </div>
+            <div class="template-item" data-template="organic" onclick="selectTemplate(this)">
+              <div
+                class="template-preview"
+                style="
+                  background: radial-gradient(circle at 30% 30%, #22d3ee20 0%, transparent 50%);
+                "
+              ></div>
+              <div class="template-name">Organic</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Efectos</div>
+          <div class="control-group">
+            <label class="control-label">Intensidad de Efectos</label>
+            <div class="slider-container">
+              <input type="range" class="slider" id="effectsSlider" min="0" max="100" value="50" />
+              <span class="slider-value" id="effectsValue">50%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Complejidad</label>
+            <div class="slider-container">
+              <input type="range" class="slider" id="complexitySlider" min="1" max="10" value="5" />
+              <span class="slider-value" id="complexityValue">5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Paleta</div>
+          <div class="control-group">
+            <select class="control-select" id="paletteSelect">
+              <option value="neon">Neón (Cian/Púrpura)</option>
+              <option value="sunset">Sunset (Naranja/Rosa)</option>
+              <option value="forest">Forest (Verde/Azul)</option>
+              <option value="monochrome">Monocromo</option>
+              <option value="custom">Personalizada</option>
+            </select>
+          </div>
+        </div>
+      </aside>
+
+      <main class="canvas-area">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="toolbar-btn" onclick="undo()" disabled id="undoBtn">
+              <i class="bi bi-arrow-counterclockwise"></i> Deshacer
+            </button>
+            <button class="toolbar-btn" onclick="redo()" disabled id="redoBtn">
+              <i class="bi bi-arrow-clockwise"></i> Rehacer
+            </button>
+            <div class="vr mx-2" style="border-color: var(--bg2)"></div>
+            <button class="toolbar-btn" onclick="clearCanvas()">
+              <i class="bi bi-trash"></i> Limpiar
+            </button>
+          </div>
+          <div class="toolbar-left">
+            <button class="toolbar-btn" onclick="zoom(-0.1)">
+              <i class="bi bi-zoom-out"></i>
+            </button>
+            <span id="zoomLevel" style="color: var(--text-dim); min-width: 50px; text-align: center"
+              >100%</span
+            >
+            <button class="toolbar-btn" onclick="zoom(0.1)">
+              <i class="bi bi-zoom-in"></i>
+            </button>
+            <button class="toolbar-btn" onclick="resetZoom()">
+              <i class="bi bi-fullscreen"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="mainCanvas"></canvas>
+          <div class="size-indicator" id="sizeIndicator">1200 × 627 px</div>
+        </div>
+      </main>
+
+      <aside class="layers-panel">
+        <div class="sidebar-title">Capas</div>
+        <div id="layersList">
+          <div class="layer-item active">
+            <div class="layer-thumb"></div>
+            <div class="layer-info">
+              <div class="layer-name">Fondo</div>
+              <div class="layer-type">Gradiente</div>
+            </div>
+            <i class="bi bi-eye" style="color: var(--text-faint); cursor: pointer"></i>
+          </div>
+          <div class="layer-item">
+            <div class="layer-thumb"></div>
+            <div class="layer-info">
+              <div class="layer-name">Efectos</div>
+              <div class="layer-type">Capa vacía</div>
+            </div>
+            <i class="bi bi-eye-slash" style="color: var(--text-faint); cursor: pointer"></i>
+          </div>
+          <div class="layer-item">
+            <div class="layer-thumb"></div>
+            <div class="layer-info">
+              <div class="layer-name">Texto</div>
+              <div class="layer-type">Capa vacía</div>
+            </div>
+            <i class="bi bi-eye-slash" style="color: var(--text-faint); cursor: pointer"></i>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bg2)">
+          <div class="sidebar-title">Historia</div>
+          <div style="font-size: 0.75rem; color: var(--text-faint)">
+            <div style="padding: 0.375rem 0; border-bottom: 1px solid var(--bg0)">
+              <i class="bi bi-check-circle-fill text-success" style="color: var(--a)"></i>
+              Inicializado
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="status-bar">
+      <div class="status-left">
+        <div class="status-item">
+          <i class="bi bi-cpu"></i>
+          <span>Canvas 2D API</span>
+        </div>
+        <div class="status-item">
+          <i class="bi" class="bi-hdd"></i>
+          <span id="canvasSize">0 KB</span>
+        </div>
+        <div class="status-item">
+          <i class="bi bi-layers"></i>
+          <span>3 capas</span>
+        </div>
+      </div>
+      <div class="status-right">
+        <button class="export-btn" onclick="exportImage('png')">
+          <i class="bi bi-download"></i> PNG
+        </button>
+        <button class="export-btn" onclick="exportImage('jpg')">
+          <i class="bi bi-download"></i> JPG
+        </button>
+        <button class="export-btn" onclick="exportImage('webp')">
+          <i class="bi bi-download"></i> WebP
+        </button>
+      </div>
+    </footer>
+
+    <!-- Overlay de generación -->
+    <div class="generating-overlay" id="generatingOverlay">
+      <div class="generating-spinner"></div>
+      <div class="generating-text">Generando imagen nativa...</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <script>
+      // Estado global
+      let currentCanvas = null;
+      let currentContext = null;
+      let history = [];
+      let historyIndex = -1;
+      let currentZoom = 1;
+      let selectedTemplate = 'neon-cyberpunk';
+      let isGenerating = false;
+
+      // Paletas de colores
+      const palettes = {
+        neon: {
+          primary: '#22d3ee',
+          secondary: '#a78bfa',
+          accent: '#f472b6',
+          bg1: '#0a0e1a',
+          bg2: '#1f2937',
+        },
+        sunset: {
+          primary: '#fbbf24',
+          secondary: '#f87171',
+          accent: '#c084fc',
+          bg1: '#1a0e1a',
+          bg2: '#2e1a0e',
+        },
+        forest: {
+          primary: '#34d399',
+          secondary: '#22d3ee',
+          accent: '#a78bfa',
+          bg1: '#0a1a0e',
+          bg2: '#1a2e1a',
+        },
+        monochrome: {
+          primary: '#94a3b8',
+          secondary: '#64748b',
+          accent: '#cbd5e1',
+          bg1: '#0f172a',
+          bg2: '#1e293b',
+        },
+        custom: {
+          primary: '#22d3ee',
+          secondary: '#a78bfa',
+          accent: '#f472b6',
+          bg1: '#0a0e1a',
+          bg2: '#1f2937',
+        },
+      };
+
+      // Algoritmos de generación
+      const generators = {
+        // Gradiente con ruido
+        gradient: (ctx, width, height, palette, complexity) => {
+          const grad = ctx.createLinearGradient(0, 0, width, height);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(0.5, palette.bg2);
+          grad.addColorStop(1, palette.bg1);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          // Añadir ruido procedural
+          if (complexity > 3) {
+            ctx.globalAlpha = 0.1;
+            for (let i = 0; i < complexity * 50; i++) {
+              const x = Math.random() * width;
+              const y = Math.random() * height;
+              const r = Math.random() * 2 + 1;
+              ctx.beginPath();
+              ctx.arc(x, y, r, 0, Math.PI * 2);
+              ctx.fillStyle = Math.random() > 0.5 ? palette.primary : palette.secondary;
+              ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+          }
+        },
+
+        // Grid futurista
+        futuristic: (ctx, width, height, palette, complexity) => {
+          // Fondo
+          const grad = ctx.createLinearGradient(0, 0, 0, height);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(1, palette.bg2);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          // Grid
+          ctx.strokeStyle = palette.primary + '20';
+          ctx.lineWidth = 1;
+          const gridSize = 40 + complexity * 5;
+
+          ctx.beginPath();
+          for (let x = 0; x <= width; x += gridSize) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+          }
+          for (let y = 0; y <= height; y += gridSize) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+          }
+          ctx.stroke();
+
+          // Líneas de perspectiva
+          ctx.strokeStyle = palette.primary + '30';
+          ctx.lineWidth = 2;
+          for (let i = 0; i < width; i += gridSize * 3) {
+            ctx.beginPath();
+            ctx.moveTo(i, height);
+            ctx.lineTo(width / 2, height / 3);
+            ctx.stroke();
+          }
+
+          // Glow spots
+          for (let i = 0; i < complexity; i++) {
+            const x = (width / complexity) * i + width / (complexity * 2);
+            const y = height * 0.3 + Math.random() * height * 0.4;
+            const r = 50 + Math.random() * 100;
+
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            const glow = ctx.createRadialGradient(x, y, 0, x, y, r);
+            glow.addColorStop(0, palette.primary + '40');
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fill();
+          }
+        },
+
+        // Partículas orgánicas
+        particles: (ctx, width, height, palette, complexity) => {
+          // Fondo oscuro
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          // Partículas
+          const count = complexity * 200;
+          for (let i = 0; i < count; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const r = Math.random() * (complexity / 2) + 0.5;
+            const alpha = Math.random() * 0.8 + 0.2;
+
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle =
+              i % 3 === 0 ? palette.primary : i % 3 === 1 ? palette.secondary : palette.accent;
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+
+          // Conexiones entre partículas cercanas
+          if (complexity > 5) {
+            ctx.strokeStyle = palette.secondary + '10';
+            ctx.lineWidth = 0.5;
+            // Simplificado: líneas aleatorias
+            for (let i = 0; i < complexity * 10; i++) {
+              const x1 = Math.random() * width;
+              const y1 = Math.random() * height;
+              const x2 = x1 + (Math.random() - 0.5) * 100;
+              const y2 = y1 + (Math.random() - 0.5) * 100;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+          }
+        },
+
+        // Ondas abstractas
+        waves: (ctx, width, height, palette, complexity) => {
+          // Gradiente base
+          const grad = ctx.createLinearGradient(0, 0, width, 0);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(0.5, palette.bg2);
+          grad.addColorStop(1, palette.bg1);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          // Ondas
+          const waveCount = complexity * 3;
+          for (let w = 0; w < waveCount; w++) {
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+
+            const amplitude = 30 + w * 15;
+            const frequency = 0.01 + w * 0.002;
+            const phase = w * 0.5;
+
+            for (let x = 0; x <= width; x += 5) {
+              const y = height / 2 + Math.sin(x * frequency + phase) * amplitude + w * 20;
+              ctx.lineTo(x, y);
+            }
+
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+
+            const alpha = 0.05 + (w / waveCount) * 0.1;
+            ctx.fillStyle = w % 2 === 0 ? palette.primary : palette.secondary;
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        },
+
+        // Geometric
+        geometric: (ctx, width, height, palette, complexity) => {
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          // Figuras geométricas
+          const count = complexity * 15;
+          for (let i = 0; i < count; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = 20 + Math.random() * 80;
+            const shape = i % 3;
+
+            ctx.fillStyle = i % 2 === 0 ? palette.primary + '20' : palette.secondary + '20';
+            ctx.strokeStyle = i % 2 === 0 ? palette.primary + '60' : palette.secondary + '60';
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            if (shape === 0) {
+              // Círculo
+              ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+            } else if (shape === 1) {
+              // Rectángulo
+              ctx.rect(x - size / 2, y - size / 2, size, size);
+            } else {
+              // Triángulo
+              ctx.moveTo(x, y - size / 2);
+              ctx.lineTo(x - size / 2, y + size / 2);
+              ctx.lineTo(x + size / 2, y + size / 2);
+              ctx.closePath();
+            }
+            ctx.fill();
+            ctx.stroke();
+          }
+        },
+
+        // Tech/Network
+        network: (ctx, width, height, palette, complexity) => {
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          // Nodos
+          const nodes = [];
+          const nodeCount = complexity * 8;
+          for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              r: 3 + Math.random() * 5,
+            });
+          }
+
+          // Conexiones
+          ctx.strokeStyle = palette.primary + '30';
+          ctx.lineWidth = 1;
+          const connectionDist = 150;
+
+          for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+              const dx = nodes[i].x - nodes[j].x;
+              const dy = nodes[i].y - nodes[j].y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist < connectionDist) {
+                const alpha = 1 - dist / connectionDist;
+                ctx.strokeStyle =
+                  palette.primary +
+                  Math.floor(alpha * 50)
+                    .toString(16)
+                    .padStart(2, '0');
+                ctx.beginPath();
+                ctx.moveTo(nodes[i].x, nodes[i].y);
+                ctx.lineTo(nodes[j].x, nodes[j].y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          // Dibujar nodos
+          nodes.forEach((node, i) => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+            ctx.fillStyle =
+              i % 3 === 0 ? palette.primary : i % 3 === 1 ? palette.secondary : palette.accent;
+            ctx.fill();
+
+            // Glow
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r + 3, 0, Math.PI * 2);
+            const glow = ctx.createRadialGradient(
+              node.x,
+              node.y,
+              node.r,
+              node.x,
+              node.y,
+              node.r + 10,
+            );
+            glow.addColorStop(0, palette.primary + '40');
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fill();
+          });
+        },
+      };
+
+      // Templates
+      const templates = {
+        'neon-cyberpunk': {
+          generator: 'futuristic',
+          palette: 'neon',
+          text: 'Neo Cyber',
+        },
+        'minimal-clean': {
+          generator: 'gradient',
+          palette: 'monochrome',
+          text: 'Minimal',
+        },
+        'gradient-flow': {
+          generator: 'waves',
+          palette: 'neon',
+          text: 'Gradient',
+        },
+        'dark-tech': {
+          generator: 'network',
+          palette: 'monochrome',
+          text: 'Dark Tech',
+        },
+        geometric: {
+          generator: 'geometric',
+          palette: 'neon',
+          text: 'Geometric',
+        },
+        organic: {
+          generator: 'particles',
+          palette: 'forest',
+          text: 'Organic',
+        },
+      };
+
+      // Inicialización
+      function init() {
+        updateDimensions();
+        updateSliders();
+
+        // Event listeners para sliders
+        document.getElementById('effectsSlider').addEventListener('input', updateSliders);
+        document.getElementById('complexitySlider').addEventListener('input', updateSliders);
+
+        // Crear canvas inicial
+        createCanvas();
+
+        // CARGAR DESDE LOCALSTORAGE
+        loadFromLocalStorage();
+
+        // Recuperar prompt del localStorage (viene del asistente)
+        const savedPrompt = localStorage.getItem('imageStudioPrompt');
+        const launchTime = parseInt(localStorage.getItem('imageStudioLaunchTime') || '0');
+        const timeSinceLaunch = Date.now() - launchTime;
+
+        if (savedPrompt && timeSinceLaunch < 10000) {
+          // 10 segundos
+          document.getElementById('promptInput').value = savedPrompt;
+          // Limpiar para que no se repita
+          localStorage.removeItem('imageStudioPrompt');
+          localStorage.removeItem('imageStudioLaunchTime');
+
+          // Auto-generar después de un breve delay
+          setTimeout(() => {
+            generateImage();
+          }, 500);
+        }
+      }
+
+      function updateSliders() {
+        document.getElementById('effectsValue').textContent =
+          document.getElementById('effectsSlider').value + '%';
+        document.getElementById('complexityValue').textContent =
+          document.getElementById('complexitySlider').value;
+      }
+
+      function updateDimensions() {
+        const select = document.getElementById('platformSelect');
+        const [w, h] = select.value.split(',').map(Number);
+        document.getElementById('widthInput').value = w;
+        document.getElementById('heightInput').value = h;
+        document.getElementById('sizeIndicator').textContent = `${w} × ${h} px`;
+
+        // Recrear canvas si ya existe
+        if (currentCanvas) {
+          createCanvas();
+        }
+      }
+
+      function createCanvas() {
+        const width = parseInt(document.getElementById('widthInput').value);
+        const height = parseInt(document.getElementById('heightInput').value);
+
+        const canvas = document.getElementById('mainCanvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.maxWidth = '100%';
+        canvas.style.height = 'auto';
+
+        currentCanvas = canvas;
+        currentContext = canvas.getContext('2d');
+
+        // Limpiar
+        currentContext.fillStyle = palettes.monochrome.bg1;
+        currentContext.fillRect(0, 0, width, height);
+
+        updateCanvasSize();
+      }
+
+      function updateCanvasSize() {
+        if (!currentCanvas) return;
+        const size = Math.round((currentCanvas.toDataURL().length * 0.75) / 1024);
+        document.getElementById('canvasSize').textContent = size + ' KB';
+      }
+
+      function selectTemplate(element) {
+        document.querySelectorAll('.template-item').forEach((el) => el.classList.remove('active'));
+        element.classList.add('active');
+        selectedTemplate = element.dataset.template;
+      }
+
+      // Generación de imagen
+      async function generateImage() {
+        if (isGenerating) return;
+
+        const prompt = document.getElementById('promptInput').value.trim();
+        const width = parseInt(document.getElementById('widthInput').value);
+        const height = parseInt(document.getElementById('heightInput').value);
+        const complexity = parseInt(document.getElementById('complexitySlider').value);
+        const effects = parseInt(document.getElementById('effectsSlider').value);
+        const paletteName = document.getElementById('paletteSelect').value;
+
+        isGenerating = true;
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('generatingOverlay').classList.add('active');
+
+        // Parsear prompt para seleccionar generador
+        let generator = templates[selectedTemplate]?.generator || 'gradient';
+
+        if (prompt) {
+          const promptLower = prompt.toLowerCase();
+          if (
+            promptLower.includes('partícula') ||
+            promptLower.includes('particula') ||
+            promptLower.includes('particle')
+          ) {
+            generator = 'particles';
+          } else if (promptLower.includes('onda') || promptLower.includes('wave')) {
+            generator = 'waves';
+          } else if (
+            promptLower.includes('red') ||
+            promptLower.includes('network') ||
+            promptLower.includes('nodo')
+          ) {
+            generator = 'network';
+          } else if (
+            promptLower.includes('geométrico') ||
+            promptLower.includes('geometric') ||
+            promptLower.includes('shape')
+          ) {
+            generator = 'geometric';
+          } else if (
+            promptLower.includes('futurista') ||
+            promptLower.includes('cyberpunk') ||
+            promptLower.includes('tech')
+          ) {
+            generator = 'futuristic';
+          }
+        }
+
+        const palette = palettes[paletteName] || palettes.neon;
+
+        // Simular progreso
+        const progressBar = document.getElementById('progressFill');
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += Math.random() * 15;
+          if (progress > 90) progress = 90;
+          progressBar.style.width = progress + '%';
+        }, 100);
+
+        // Esperar un poco para efecto visual
+        await new Promise((r) => setTimeout(r, 800));
+
+        // Generar
+        createCanvas();
+        generators[generator](currentContext, width, height, palette, complexity);
+
+        // Aplicar efectos basados en intensidad
+        if (effects > 30) {
+          applyCanvasEffect('vignette', effects / 200);
+        }
+        if (effects > 60) {
+          applyCanvasEffect('noise', effects / 500);
+        }
+
+        // Añadir texto del prompt si es corto
+        if (prompt && prompt.length < 50 && prompt.length > 0) {
+          currentContext.fillStyle = palette.primary;
+          currentContext.font = 'bold 48px Inter, sans-serif';
+          currentContext.textAlign = 'center';
+          currentContext.fillText(prompt, width / 2, height / 2);
+        }
+
+        // Guardar en historia
+        saveToHistory();
+
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+
+        setTimeout(() => {
+          document.getElementById('generatingOverlay').classList.remove('active');
+          document.getElementById('generateBtn').disabled = false;
+          progressBar.style.width = '0%';
+          isGenerating = false;
+          updateCanvasSize();
+        }, 300);
+      }
+
+      function applyCanvasEffect(effect, intensity) {
+        if (!currentCanvas) return;
+
+        const ctx = currentContext;
+        const w = currentCanvas.width;
+        const h = currentCanvas.height;
+
+        if (effect === 'vignette') {
+          const grad = ctx.createRadialGradient(w / 2, h / 2, w / 3, w / 2, h / 2, w);
+          grad.addColorStop(0, `rgba(0,0,0,0)`);
+          grad.addColorStop(1, `rgba(0,0,0,${intensity})`);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        if (effect === 'noise') {
+          ctx.globalAlpha = intensity;
+          for (let i = 0; i < 5000; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+            ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      // Historial con persistencia
+      function saveToHistory() {
+        if (historyIndex < history.length - 1) {
+          history = history.slice(0, historyIndex + 1);
+        }
+
+        const imageData = currentCanvas.toDataURL('image/png');
+        history.push(imageData);
+        historyIndex++;
+
+        if (history.length > 20) {
+          history.shift();
+          historyIndex--;
+        }
+
+        // PERSISTENCIA: Guardar en localStorage
+        saveToLocalStorage();
+
+        // Guardar en Asset Manager
+        if (typeof AssetManager !== 'undefined' && window.assetManager) {
+          window.assetManager.imageStudioExport({
+            name: `image_${Date.now()}`,
+            dataUrl: imageData,
+            generator: selectedGenerator,
+            template: selectedTemplate,
+            width: currentCanvas.width,
+            height: currentCanvas.height,
+          });
+        }
+
+        updateHistoryButtons();
+      }
+
+      // Guardar en localStorage
+      function saveToLocalStorage() {
+        try {
+          const projectData = {
+            images: history.map((dataUrl, index) => ({
+              id: index,
+              dataUrl: dataUrl,
+              timestamp: Date.now() - (history.length - index) * 1000,
+              generator: selectedGenerator,
+              template: selectedTemplate,
+              name: `image_${String(index + 1).padStart(3, '0')}`,
+            })),
+            lastSaved: new Date().toISOString(),
+            currentIndex: historyIndex,
+          };
+          localStorage.setItem('imageStudioHistory', JSON.stringify(projectData.images.slice(-10))); // Solo últimas 10
+          localStorage.setItem('imageStudioLastSave', projectData.lastSaved);
+        } catch (e) {
+          console.warn('No se pudo guardar en localStorage:', e);
+        }
+      }
+
+      // Cargar desde localStorage al iniciar
+      function loadFromLocalStorage() {
+        try {
+          const savedData = localStorage.getItem('imageStudioHistory');
+          if (savedData) {
+            const images = JSON.parse(savedData);
+            // No cargar automáticamente, solo notificar
+            console.log(`📸 ${images.length} imágenes guardadas disponibles`);
+          }
+        } catch (e) {
+          console.warn('Error cargando desde localStorage:', e);
+        }
+      }
+
+      function undo() {
+        if (historyIndex > 0) {
+          historyIndex--;
+          restoreFromHistory();
+        }
+      }
+
+      function redo() {
+        if (historyIndex < history.length - 1) {
+          historyIndex++;
+          restoreFromHistory();
+        }
+      }
+
+      function restoreFromHistory() {
+        if (!currentCanvas || historyIndex < 0 || historyIndex >= history.length) return;
+
+        const img = new Image();
+        img.onload = () => {
+          currentContext.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+          currentContext.drawImage(img, 0, 0);
+        };
+        img.src = history[historyIndex];
+        updateHistoryButtons();
+      }
+
+      function updateHistoryButtons() {
+        document.getElementById('undoBtn').disabled = historyIndex <= 0;
+        document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+      }
+
+      function clearCanvas() {
+        if (!currentContext) return;
+        currentContext.fillStyle = palettes.monochrome.bg1;
+        currentContext.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
+        saveToHistory();
+      }
+
+      // Zoom
+      function zoom(delta) {
+        currentZoom = Math.max(0.25, Math.min(3, currentZoom + delta));
+        const canvas = document.getElementById('mainCanvas');
+        canvas.style.transform = `scale(${currentZoom})`;
+        document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
+      }
+
+      function resetZoom() {
+        currentZoom = 1;
+        const canvas = document.getElementById('mainCanvas');
+        canvas.style.transform = 'scale(1)';
+        document.getElementById('zoomLevel').textContent = '100%';
+      }
+
+      // Exportar
+      function exportImage(format) {
+        if (!currentCanvas) return;
+
+        let mimeType = 'image/png';
+        let ext = 'png';
+
+        switch (format) {
+          case 'jpg':
+          case 'jpeg':
+            mimeType = 'image/jpeg';
+            ext = 'jpg';
+            break;
+          case 'webp':
+            mimeType = 'image/webp';
+            ext = 'webp';
+            break;
+        }
+
+        const dataUrl = currentCanvas.toDataURL(mimeType, 0.95);
+        const link = document.createElement('a');
+
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        link.download = `gentle-vanguard-gen-${timestamp}.${ext}`;
+        link.href = dataUrl;
+        link.click();
+      }
+
+      // Ayuda
+      function showHelp() {
+        alert(`Gentle-Vanguard Image Studio
+
+🎨 GENERADORES NATIVOS:
+• Gradient + Noise: Fondos suaves con textura
+• Futuristic Grid: Líneas de perspectiva y glow
+• Partículas: Efectos orgánicos flotantes
+• Ondas: Patrones de ondas abstractas
+• Geométrico: Formas geométricas
+• Network: Nodos y conexiones tipo tech
+
+💡 CONSEJOS:
+• Usa prompts descriptivos para mejores resultados
+• Ajusta complejidad para más/menos elementos
+• Los efectos añaden profundidad a las imágenes
+• Puedes exportar en PNG, JPG o WebP
+
+⌨️ ATAJOS:
+• Los templates tienen presets de estilo
+• El zoom te permite ver detalles
+• Historial te permite deshacer cambios
+
+✨ 100% NATIVO - Sin APIs de terceros`);
+      }
+
+      // Iniciar
+      window.addEventListener('DOMContentLoaded', init);
+    </script>
+  </body>
+</html>

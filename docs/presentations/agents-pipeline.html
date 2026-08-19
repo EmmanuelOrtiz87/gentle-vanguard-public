@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent System &amp; Session Pipeline — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de agents-pipeline.html (complementan el design system) --- */
+      .flow-chain {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem 1.5rem;
+        justify-content: center;
+      }
+      .flow-chain .step {
+        background: #1e293b;
+        padding: 0.5em 1em;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        color: var(--p);
+        border: 1px solid rgba(0, 191, 255, 0.2);
+        font-weight: 500;
+      }
+      .flow-chain .arr {
+        color: #94a3b8;
+        font-size: 1.2rem;
+      }
+    </style>
+    <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="overview">
+      <span class="hero-badge mb-3">✦ v4.0 — Agent Layer &amp; Session Pipeline</span>
+      <h1 class="fw-bold z-1"><span class="glow">Agent System &amp; Session Pipeline</span></h1>
+      <p
+        class="lead text-secondary z-1"
+        style="max-width: 700px; font-size: clamp(1rem, 2vw, 1.3rem)"
+      >
+        21 Specialized Agents · <strong class="text-light">105 Pipeline Steps</strong> ·
+        <strong class="text-light">175 Skills</strong> ·
+        <strong class="text-light">100% Autonomous Routing</strong>
+      </p>
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
+        <div class="text-center">
+          <div class="stat-n" data-count="21">21</div>
+          <div class="stat-l">Agents</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n" data-count="105">105</div>
+          <div class="stat-l">Pipeline Steps</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n" data-count="263">263</div>
+          <div class="stat-l">Skills</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n"><span data-count="101">101</span>/105</div>
+          <div class="stat-l">Enabled Steps</div>
+        </div>
+      </div>
+      <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
+        <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>Overview</a>
+        <a href="autonomy.html" class="btn-gv-alt"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="architecture.html" class="btn-gv-alt"
+          ><i class="bi bi-diagram-3 me-1"></i>Architecture</a
+        >
+      </div>
+    </header>
+
+    <section id="ecosystem" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🌐</div>
+        <h2 data-i18n="sec_agent_eco">Agent Ecosystem</h2>
+        <p data-i18n="c_agentspipeline_2">
+          Orchestrator + 20 specialized subagents with confidence-based routing
+        </p>
+      </div>
+      <div class="arch-layer">
+        <div class="layer-name"><i class="bi bi-diagram-3 me-1"></i> Core Architecture</div>
+        <div class="items">
+          <span>Orchestrator (Main)</span><span>Routing Engine</span><span>Skill Router</span
+          ><span>Confidence Scorer</span><span>Task Dispatcher</span>
+        </div>
+        <p class="small text-secondary mt-2 mb-0" data-i18n="c_agentspipeline_3">
+          Orchestrator routes tasks based on confidence thresholds (≥80% direct, 60-79% with
+          summary, &lt;60% BA first), task type, and agent availability
+        </p>
+      </div>
+      <div class="table-responsive mt-3">
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Code</th>
+              <th>Role</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="text-info fw-semibold">Orchestrator</span></td>
+              <td><code class="small">main</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_4">Routes, coordinates, session lifecycle</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_4"
+                  title="Routes, coordinates, session lifecycle"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_5">sdd-explore</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_5"
+                  title="sdd-explore"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">BA</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_6"
+                  >Requirements gathering, analysis, clarification</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_6"
+                  title="Requirements gathering, analysis, clarification"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-warning bg-opacity-10 text-warning px-2"
+                  >Fallback &lt;60%</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_7">sdd-design</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_7"
+                  title="sdd-design"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">SAD</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_8"
+                  >System design, API contracts, architecture</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_8"
+                  title="System design, API contracts, architecture"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_9">sdd-apply</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_9"
+                  title="sdd-apply"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">DEV</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_10"
+                  >Code generation, feature building, refactoring</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_10"
+                  title="Code generation, feature building, refactoring"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_11">sdd-verify</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_11"
+                  title="sdd-verify"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">QA</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_12">Testing, validation, quality gates</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_12"
+                  title="Testing, validation, quality gates"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_13">gov-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_13"
+                  title="gov-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">GOV</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_14">Compliance, security, policy enforcement</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_14"
+                  title="Compliance, security, policy enforcement"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_15">ops-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_15"
+                  title="ops-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">OPS</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_16">Deployment, CI/CD, infrastructure</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_16"
+                  title="Deployment, CI/CD, infrastructure"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_17">doc-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_17"
+                  title="doc-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">DOC</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_18">Technical docs, ADRs, guides</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_18"
+                  title="Technical docs, ADRs, guides"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_19">session-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_19"
+                  title="session-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Session</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_20">State tracking, lifecycle management</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_20"
+                  title="State tracking, lifecycle management"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_21">premortem-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_21"
+                  title="premortem-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Premortem</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_22">Risk identification, failure prediction</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_22"
+                  title="Risk identification, failure prediction"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-info bg-opacity-10 text-info px-2">On demand</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_23">maintenance-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_23"
+                  title="maintenance-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Maintenance</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_24">Cleanup, optimization, health monitoring</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_24"
+                  title="Cleanup, optimization, health monitoring"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_25">self-diag-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_25"
+                  title="self-diag-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Self-Diag</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_26">Auto-debug and break-glass recovery</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_26"
+                  title="Auto-debug and break-glass recovery"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_27">sia-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_27"
+                  title="sia-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">SIA</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_28"
+                  >Self-improving agent, iterative refinement</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_28"
+                  title="Self-improving agent, iterative refinement"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_29">gitflow-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_29"
+                  title="gitflow-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">GitFlow</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_30">Branch management, PR automation</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_30"
+                  title="Branch management, PR automation"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_31">knowledge-agent</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_31"
+                  title="knowledge-agent"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Knowledge</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_32"
+                  >Knowledge base operations, vault management</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_32"
+                  title="Knowledge base operations, vault management"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_33">explore</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_33"
+                  title="explore"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">Explore</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_34">Fast codebase exploration</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_34"
+                  title="Fast codebase exploration"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_agentspipeline_35">general</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_35"
+                  title="general"
+                  >i</span
+                >
+              </td>
+              <td><code class="small">General</code></td>
+              <td>
+                <span data-i18n="c_agentspipeline_36">Research and multi-step tasks</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_agentspipeline_36"
+                  title="Research and multi-step tasks"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success px-2">≥80% direct</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="routing" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🔄</div>
+        <h2 data-i18n="sec_routing">Routing Rules</h2>
+        <p data-i18n="c_agentspipeline_37">
+          Confidence-driven task dispatching with intelligent fallback
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem">≥80%</div>
+            <h3 data-i18n="c_agentspipeline_38">Direct Dispatch</h3>
+            <p class="card-text" data-i18n="c_agentspipeline_39">
+              High-confidence tasks are routed immediately to the appropriate specialized agent
+              without summarization overhead
+            </p>
+            <span class="badge-tag ok">Fast path</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem; color: var(--wn)">60-79%</div>
+            <h3 data-i18n="c_agentspipeline_40">Dispatch with Summary</h3>
+            <p class="card-text" data-i18n="c_agentspipeline_41">
+              Tasks at moderate confidence include a context summary to guide the target agent and
+              reduce ambiguity
+            </p>
+            <span class="badge-tag wn">Context-rich</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem; color: var(--er)">&lt;60%</div>
+            <h3 data-i18n="c_agentspipeline_42">BA Exploration First</h3>
+            <p class="card-text" data-i18n="c_agentspipeline_43">
+              Low-confidence tasks activate the BA exploration agent first to gather requirements
+              before dispatching
+            </p>
+            <span class="badge-tag er">Fallback trigger</span>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer mt-3">
+        <div class="layer-name"><i class="bi bi-shuffle me-1"></i>Fallback Chain</div>
+        <div class="items">
+          <span>Task Received</span><span class="arr" style="color: var(--p)">→</span
+          ><span>Confidence ≥80%? → Direct</span><span class="arr" style="color: var(--p)">↘</span
+          ><span>60-79%? → Summary</span><span class="arr" style="color: var(--p)">↘</span
+          ><span>&lt;60%? → BA Explore</span><span class="arr" style="color: var(--p)">↘</span
+          ><span>Always → BA Fallback</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="pipeline" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">⚙️</div>
+        <h2 data-i18n="sec_pipeline">Session Pipeline</h2>
+        <p data-i18n="c_agentspipeline_44">
+          105 total config — 53 steps (31 Phase 1 parallel) · 70 lazy background
+        </p>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-lightning text-info me-2"></i>Phase 1 — Parallel (31 Steps)</h3>
+            <p class="card-text mb-2" data-i18n="c_agentspipeline_45">
+              All Phase 1 steps execute concurrently at session start
+            </p>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge bg-info bg-opacity-10 text-info">tool-detection</span>
+              <span class="badge bg-info bg-opacity-10 text-info">session-manager</span>
+              <span class="badge bg-info bg-opacity-10 text-info">token-budget</span>
+              <span class="badge bg-info bg-opacity-10 text-info">engram-policy</span>
+              <span class="badge bg-info bg-opacity-10 text-info">engram-integrity</span>
+              <span class="badge bg-info bg-opacity-10 text-info">engram-optimization</span>
+              <span class="badge bg-info bg-opacity-10 text-info">engram-auto-sync</span>
+              <span class="badge bg-info bg-opacity-10 text-info">cross-workspace-validation</span>
+              <span class="badge bg-info bg-opacity-10 text-info">security-orchestrator</span>
+              <span class="badge bg-info bg-opacity-10 text-info">security-initializer</span>
+              <span class="badge bg-info bg-opacity-10 text-info"
+                >dependency-security-initializer</span
+              >
+              <span class="badge bg-info bg-opacity-10 text-info">skill-router</span>
+              <span class="badge bg-info bg-opacity-10 text-info">karpathy-guidelines</span>
+              <span class="badge bg-info bg-opacity-10 text-info">session-metrics-start</span>
+              <span class="badge bg-info bg-opacity-10 text-info">session-scoring-init</span>
+              <span class="badge bg-info bg-opacity-10 text-info">session-scoring-start</span>
+              <span class="badge bg-info bg-opacity-10 text-info">session-scoring-close</span>
+              <span class="badge bg-info bg-opacity-10 text-info">token-metrics-init</span>
+              <span class="badge bg-info bg-opacity-10 text-info">adaptive-opencode-profile</span>
+              <span class="badge bg-info bg-opacity-10 text-info"
+                >adaptive-codex-windsurf-profile</span
+              >
+              <span class="badge bg-info bg-opacity-10 text-info">lefthook-verify</span>
+              <span class="badge bg-info bg-opacity-10 text-info">codegraph-sync</span>
+              <span class="badge bg-info bg-opacity-10 text-info">post-autostart-summary</span>
+              <span class="badge bg-info bg-opacity-10 text-info">skill-usage-scan</span>
+              <span class="badge bg-info bg-opacity-10 text-info"
+                >post-autostart-consistency-check</span
+              >
+              <span class="badge bg-info bg-opacity-10 text-info">token-notification-init</span>
+              <span class="badge bg-info bg-opacity-10 text-info">json-validator-verify</span>
+              <span class="badge bg-info bg-opacity-10 text-info">opencode-config-validate</span>
+              <span class="badge bg-info bg-opacity-10 text-info">validate-tool-configs</span>
+              <span class="badge bg-info bg-opacity-10 text-info">cost-tracker-init</span>
+              <span class="badge bg-info bg-opacity-10 text-info">github-bypass</span>
+              <span class="badge bg-info bg-opacity-10 text-info">notifications</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-clock text-secondary me-2"></i>Lazy Background (70 Steps)</h3>
+            <p class="card-text mb-2" data-i18n="c_agentspipeline_46">
+              Background batches of 5, non-blocking session initialization
+            </p>
+            <div class="mb-2">
+              <strong class="small text-info">Memory:</strong>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">engram-backup</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >engram-auto-reindex</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >engram-auto-compact</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >engram-auto-update</span
+              >
+            </div>
+            <div class="mb-2">
+              <strong class="small text-info">Dashboard:</strong>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >dashboard-ws-start</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >dashboard-operational-metrics</span
+              >
+            </div>
+            <div class="mb-2">
+              <strong class="small text-info">Monitoring:</strong>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >maintenance-watchtower</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >metrics-collection</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">eval-quality-gate</span>
+            </div>
+            <div class="mb-2">
+              <strong class="small text-info">Auto-Systems:</strong>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">auto-apply-safe</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >predictive-governor</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">auto-norm-learner</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >skill-evolution-engine</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >convergence-monitor</span
+              >
+            </div>
+            <div>
+              <strong class="small text-info">Persistence:</strong>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >checkpoint-auto-create</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >audit-pipeline-init</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                >event-sourcing-init</span
+              >
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">db-init</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">db-health-check</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">db-prune</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-chain">
+        <span class="step">START</span><span class="arr">→</span>
+        <span class="step"
+          >Phase 1 Parallel
+          <small class="text-secondary" data-i18n="c_agentspipeline_47">(31 steps)</small></span
+        ><span class="arr">→</span> <span class="step">Session Active</span
+        ><span class="arr">→</span>
+        <span class="step"
+          >Lazy Background
+          <small class="text-secondary" data-i18n="c_agentspipeline_48"
+            >(70 steps, 5-batch)</small
+          ></span
+        ><span class="arr">→</span>
+        <span class="step"
+          >END
+          <small class="text-secondary" data-i18n="c_agentspipeline_49"
+            >(cleanup + persistence)</small
+          ></span
+        >
+      </div>
+    </section>
+
+    <section id="lifecycle" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🔄</div>
+        <h2 data-i18n="sec_lifecycle">Session Lifecycle</h2>
+        <p data-i18n="c_agentspipeline_50">
+          From START through WORK to END — with full persistence and audit
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem">🟢</div>
+            <h3 data-i18n="c_agentspipeline_51">START</h3>
+            <p class="card-text mb-0" data-i18n="c_agentspipeline_52">
+              cleanup-start creates files, resets counters, prepares session environment. Pipeline
+              validates all prerequisites before allowing work.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem; color: var(--p)">🔵</div>
+            <h3 data-i18n="c_agentspipeline_53">WORK</h3>
+            <p class="card-text mb-0" data-i18n="c_agentspipeline_54">
+              Active session with tools, delegation, and code generation. Agents dispatched via
+              orchestrator. Background tasks continue in lazy batches.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem; color: var(--er)">🔴</div>
+            <h3 data-i18n="c_agentspipeline_55">END</h3>
+            <p class="card-text mb-0" data-i18n="c_agentspipeline_56">
+              Orchestrator persists state, runs backup, performs cleanup. orchestrator
+              (--lightweight) closes session with optional speed optimization.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer mt-3">
+        <div class="layer-name"><i class="bi bi-arrow-repeat me-1"></i> Delegation Chain</div>
+        <div class="items">
+          <span>cleanup-start: prepares new session</span>
+          <span>orchestrator (--lightweight): closes current session</span>
+          <span>session-manager: delegates to cleanup-start</span>
+          <span>orchestrator persists with optional speed optimization</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="delegation" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🤝</div>
+        <h2 data-i18n="sec_delegation">Delegation Model</h2>
+        <p data-i18n="c_agentspipeline_57">
+          Intelligent task distribution with parallel execution capabilities
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-bar-chart text-info me-2"></i>Confidence-Based</h3>
+            <p class="card-text mb-2" data-i18n="c_agentspipeline_58">
+              Orchestrator decides based on confidence score, task type, and agent availability
+              matrix
+            </p>
+            <div class="progress-bar-custom mt-2">
+              <div class="progress-bar-fill bg-info" style="width: 85%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-files text-info me-2"></i>Fresh or Continued</h3>
+            <p class="card-text mb-2">
+              Task agents run with fresh context — or continued session via
+              <code class="small text-info">task_id</code> for multi-turn tasks
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-layers text-info me-2"></i>Parallel Dispatch</h3>
+            <p class="card-text mb-2" data-i18n="c_agentspipeline_59">
+              Multiple agents can run simultaneously for independent subtasks, maximizing throughput
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">📚</div>
+        <h2 data-i18n="sec_skills_system">Skills System</h2>
+        <p data-i18n="c_agentspipeline_60">263 skill files powering autonomous agent behavior</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem">263</div>
+            <h3 data-i18n="c_agentspipeline_61">Skill Files</h3>
+            <p class="card-text mb-0">
+              Each skill has a <code class="small text-info">SKILL.md</code> with instructions and
+              reference files defining agent behavior for specific tasks
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem">🔄</div>
+            <h3 data-i18n="c_agentspipeline_62">Smart Routing</h3>
+            <p class="card-text mb-0" data-i18n="c_agentspipeline_63">
+              Skill router matches task descriptions to skills. Session-start triggers 5 matching
+              skills for auto-discovery and loading
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card">
+            <div class="stat-n" style="font-size: 1.8rem">⚡</div>
+            <h3 data-i18n="c_agentspipeline_64">Auto-Loading</h3>
+            <p class="card-text mb-0">
+              Skills are auto-discovered and injected via the
+              <code class="small text-info">skill</code> tool — no manual selection required
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer mt-3">
+        <div class="layer-name"><i class="bi bi-collection me-1"></i> Key Skills</div>
+        <div class="items">
+          <span>test-driven-development</span>
+          <span>code-review-and-quality</span>
+          <span>frontend-ui-engineering</span>
+          <span>security-and-hardening</span>
+          <span>observability-and-instrumentation</span>
+          <span>performance-optimization</span>
+          <span>documentation-and-adrs</span>
+          <span>ci-cd-and-automation</span>
+          <span>spec-driven-development</span>
+          <span>incremental-implementation</span>
+          <span>git-workflow-and-versioning</span>
+          <span>shipping-and-launch</span>
+          <span>debugging-and-error-recovery</span>
+          <span>doubt-driven-development</span>
+          <span>planning-and-task-breakdown</span>
+          <span>context-engineering</span>
+          <span>dashboard</span>
+          <span>interview-me</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagrama — Pipeline de Sesión</h2>
+        <p data-i18n="c_agentspipeline_65">
+          Flujo completo del pipeline: fase de inicio, pasos paralelos y tareas lazy en background.
+          Pasa el cursor sobre los nodos para explorar cada etapa.
+        </p>
+      </div>
+      <div class="container" style="max-width: 1000px">
+        <img
+          src="diagrams/pipeline-flow.svg"
+          alt="Pipeline Flow"
+          class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+          loading="lazy"
+        />
+        <p class="text-secondary small mt-2 text-center">
+          <i class="bi bi-diagram-2 me-1"></i>105 pasos de configuración — 101 habilitados (31 Phase
+          1 paralelos + 70 lazy background en batches).
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >436 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >175 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

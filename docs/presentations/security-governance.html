@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security, Audit &amp; Governance — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de security-governance.html (complementan el design system) --- */
+      .text-wn {
+        color: var(--wn);
+      }
+      .text-er {
+        color: var(--er);
+      }
+    </style>
+    <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="overview">
+      <span class="hero-badge mb-3">✦ v4.0 — Governance Layer</span>
+      <h1 class="fw-bold z-1"><span class="glow">Security, Audit &amp; Governance</span></h1>
+      <p
+        class="lead text-secondary z-1"
+        style="max-width: 700px; font-size: clamp(1rem, 2vw, 1.3rem)"
+      >
+        Compliance · Auditability · Enforcement —
+        <strong class="text-light">95/95 Health PASS</strong> ·
+        <strong class="text-light">60 Rule Files</strong> ·
+        <strong class="text-light">21 Components</strong>
+      </p>
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
+        <div class="text-center">
+          <div class="stat-n">95</div>
+          <div class="stat-l">Health Checks</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">60</div>
+          <div class="stat-l">Rule Files</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">21</div>
+          <div class="stat-l">Components</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">🔐</div>
+          <div class="stat-l">Auto-Heal</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">📋</div>
+          <div class="stat-l">Full Audit</div>
+        </div>
+      </div>
+    </header>
+
+    <section id="security-orchestrator" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🛡️</div>
+        <h2 data-i18n="sec_sec_orch">Security Orchestrator</h2>
+        <p data-i18n="c_securitygovernance_2">
+          Central security coordination across the entire stack
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🎯</div>
+            <h3 data-i18n="c_securitygovernance_3">Central Coordination</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_4">
+              Unified security command center orchestrating multi-layer defense
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🔍</div>
+            <h3 data-i18n="c_securitygovernance_5">Multi-Layer Checks</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_6">
+              Deep scanning across application, dependency, and infrastructure layers
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">📦</div>
+            <h3 data-i18n="c_securitygovernance_7">Dependency Scanning</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_8">
+              Automated vulnerability detection in all project dependencies
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🔬</div>
+            <h3 data-i18n="c_securitygovernance_9">License Compliance</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_10">
+              Automated license verification for all third-party packages
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="audit-pipeline" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">📜</div>
+        <h2 data-i18n="sec_audit">Audit Pipeline</h2>
+        <p data-i18n="c_securitygovernance_11">Immutable audit trail with daily JSONL rotation</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="section-card">
+            <h3><i class="bi bi-journal-text text-info me-2"></i>Pipeline Commands</h3>
+            <table class="feature-table mt-2">
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th>Description</th>
+                  <th>Usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="text-info">log</span></td>
+                  <td>
+                    <span data-i18n="c_securitygovernance_12">Append entry to daily JSONL</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_securitygovernance_12"
+                      title="Append entry to daily JSONL"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <code class="text-light small"
+                      >npx tsx src/infrastructure/audit-pipeline.ts -Action log</code
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="text-info">status</span></td>
+                  <td>
+                    <span data-i18n="c_securitygovernance_13">Current audit status</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_securitygovernance_13"
+                      title="Current audit status"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <code class="text-light small"
+                      >npx tsx src/infrastructure/audit-pipeline.ts -Action status</code
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="text-info">query</span></td>
+                  <td>
+                    <span data-i18n="c_securitygovernance_14">Search audit entries</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_securitygovernance_14"
+                      title="Search audit entries"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <code class="text-light small"
+                      >npx tsx src/infrastructure/audit-pipeline.ts -Action query</code
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="text-info">archive</span></td>
+                  <td>
+                    <span data-i18n="c_securitygovernance_15">Rotate old logs to archive</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_securitygovernance_15"
+                      title="Rotate old logs to archive"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <code class="text-light small"
+                      >npx tsx src/infrastructure/audit-pipeline.ts -Action archive</code
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="text-info">prune</span></td>
+                  <td>
+                    <span data-i18n="c_securitygovernance_16">Remove expired entries</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_securitygovernance_16"
+                      title="Remove expired entries"
+                      >i</span
+                    >
+                  </td>
+                  <td>
+                    <code class="text-light small"
+                      >npx tsx src/infrastructure/audit-pipeline.ts -Action prune</code
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="section-card">
+            <h3><i class="bi bi-hdd-stack text-success me-2"></i>Storage &amp; Integration</h3>
+            <div class="d-flex flex-column gap-3 mt-3">
+              <div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Storage Path</span><span class="text-info">.session/audit/logs/</span>
+                </div>
+                <code class="small text-secondary">JSONL format — daily rotation</code>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Pipeline Step</span><span class="badge-tag ok">audit-pipeline-init</span>
+                </div>
+                <code class="small text-secondary">lazy: true — non-blocking</code>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Integrity</span><span class="text-success">SHA256 verified</span>
+                </div>
+                <div class="progress-bar-custom mt-1">
+                  <div class="progress-bar-fill bg-success" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="normatives" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">📋</div>
+        <h2 data-i18n="sec_normatives">Normatives System</h2>
+        <p data-i18n="c_securitygovernance_17">
+          60 rule files spanning 10 categories with autonomous enforcement
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-robot text-info me-2"></i>AI Normatives</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_18">
+              Core AI behavior rules and ethical guidelines
+            </p>
+            <span class="badge-tag">AI-NORMATIVES.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-diagram-3 text-info me-2"></i>Architecture</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_19">
+              System design constraints and architectural patterns
+            </p>
+            <span class="badge-tag">NORMATIVAS-ARCHITECTURE.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-shield-check text-info me-2"></i>Security &amp; Compliance</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_20">
+              Security policies, compliance requirements, hardening
+            </p>
+            <span class="badge-tag">NORMATIVAS-SECURITY-COMPLIANCE.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-code-square text-info me-2"></i>Code Quality</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_21">
+              Code standards, review gates, quality thresholds
+            </p>
+            <span class="badge-tag">NORMATIVAS-CODE-QUALITY.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-arrow-repeat text-info me-2"></i>Workflow</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_22">
+              Process workflows and operational sequences
+            </p>
+            <span class="badge-tag">NORMATIVAS-WORKFLOW.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-gear text-info me-2"></i>DevOps</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_23">
+              Deployment pipelines, CI/CD, infrastructure rules
+            </p>
+            <span class="badge-tag">NORMATIVAS-OPS-DEVOPS.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-stars text-info me-2"></i>Autonomous Evolution</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_24">
+              Self-evolution policies, norm promotion thresholds
+            </p>
+            <span class="badge-tag">NORMATIVAS-AUTONOMOUS-EVOLUTION.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-clipboard-check text-info me-2"></i>Eval Quality</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_25">
+              Evaluation quality gates and assessment standards
+            </p>
+            <span class="badge-tag">NORMATIVAS-EVAL-QUALITY.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-people text-info me-2"></i>Multi-Tenant</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_26">
+              Isolation, resource limits, tenant policies
+            </p>
+            <span class="badge-tag">NORMATIVAS-MULTI-TENANT.md</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="section-card">
+            <h3><i class="bi bi-speedometer2 text-info me-2"></i>Performance</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_27">
+              Performance budgets, SLAs, optimization standards
+            </p>
+            <span class="badge-tag">NORMATIVAS-PERFORMANCE.md</span>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-12">
+          <div class="arch-layer">
+            <div class="layer-name"><i class="bi bi-gavel me-1"></i>Enforcement</div>
+            <div class="items">
+              <span>NORMATIVAS-ENFORCEMENT.md</span>
+              <span>Auto-Norm-Learner (≥80% confidence)</span>
+              <span>Pipeline gates</span>
+              <span>Pre-commit hooks</span>
+              <span>CI/CD validation</span>
+            </div>
+            <p class="small text-secondary mt-2 mb-0">
+              Norms are autonomously promoted when confidence reaches ≥80% via the
+              <code class="text-info">auto-norm-learner</code> engine
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="guardrails" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🚧</div>
+        <h2 data-i18n="sec_guardrails">Guardrails &amp; Policies</h2>
+        <p data-i18n="c_securitygovernance_28">Hard boundaries enforced across all operations</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-file-text text-info me-2"></i>Karpathy Guidelines</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_29">
+              Code quality, documentation, and testing standards inspired by the Karpathy
+              methodology — enforced at pipeline init
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-cash-stack text-warning me-2"></i>Token Budget Policy</h3>
+            <div class="mt-2">
+              <div class="d-flex justify-content-between small">
+                <span>Soft Limit (70%)</span><span class="text-wn">84K / 120K</span>
+              </div>
+              <div class="progress-bar-custom mb-2">
+                <div class="progress-bar-fill bg-warning" style="width: 70%"></div>
+              </div>
+              <div class="d-flex justify-content-between small">
+                <span>Hard Limit (90%)</span><span class="text-er">108K / 120K</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-danger" style="width: 90%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-shield text-success me-2"></i>CI Hardening</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_30">
+              Security scanning in CI pipeline: gitleaks, secretlint, trivy
+            </p>
+            <span class="badge-tag ok">github/workflows/security.yml</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-eye text-info me-2"></i>Code Review Standards</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_31">
+              Multi-axis quality review: correctness, readability, architecture, security,
+              performance
+            </p>
+            <span class="badge-tag">code-review-and-quality skill</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-flask text-info me-2"></i>Testing Standards</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_32">
+              SDD-Strict-TDD enforcement: write failing test before implementation code
+            </p>
+            <span class="badge-tag ok">test-driven-development skill</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3><i class="bi bi-file-earmark-check text-info me-2"></i>SDD-Strict-TDD</h3>
+            <p class="card-text mb-2" data-i18n="c_securitygovernance_33">
+              Spec-driven development with strict test-first methodology — all features require spec
+              before code
+            </p>
+            <span class="badge-tag ok">Enforced</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="governance" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🏛️</div>
+        <h2 data-i18n="sec_governance">Governance Framework</h2>
+        <p data-i18n="c_securitygovernance_34">
+          Comprehensive governance documentation and policies
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-book text-info me-2"></i>README-GOVERNANCE.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_35">
+              Governance overview — roles, responsibilities, escalation paths
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-cpu text-info me-2"></i>AI-MODEL-SELECTION.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_36">
+              Model routing governance — selection criteria, fallback policies, cost optimization
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-person-check text-info me-2"></i>HUMAN-IN-THE-LOOP.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_37">
+              Human oversight requirements, approval gates, escalation procedures
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-exclamation-triangle text-warning me-2"></i>INCIDENT-RESPONSE.md
+            </h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_38">
+              Incident classification, response playbooks, post-mortem process
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-key text-info me-2"></i>SECRETS-MANAGEMENT.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_39">
+              Secrets handling, rotation policies, vault integration
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-currency-dollar text-info me-2"></i>COST-ATTRIBUTION.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_40">
+              Cost tracking per session, per agent, per operation
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card">
+            <h3><i class="bi bi-arrow-clockwise text-info me-2"></i>RECOVERY-NORMATIVA.md</h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_41">
+              Disaster recovery, backup strategies, RPO/RTO definitions
+            </p>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-shield-plus text-success me-2"></i>60 Rule Files in rules/ — All
+              Active
+            </h3>
+            <p class="card-text mb-0" data-i18n="c_securitygovernance_42">
+              Every rule file is monitored, version-controlled, and enforced through the pipeline.
+              Automated checks verify policy compliance at session start and during operations.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compliance" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">✅</div>
+        <h2 data-i18n="sec_compliance">Compliance Checks</h2>
+        <p data-i18n="c_securitygovernance_43">
+          95 health checks across 21 components — 100% PASS
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3><i class="bi bi-heart-pulse text-success me-2"></i>Health Check Summary</h3>
+            <div class="d-flex flex-wrap gap-2 mt-3 mb-3">
+              <span class="badge bg-success fs-6 px-3 py-2">95/95 PASS</span>
+              <span class="badge bg-secondary fs-6 px-3 py-2">0 WARN</span>
+              <span class="badge bg-secondary fs-6 px-3 py-2">0 FAIL</span>
+              <span class="badge bg-secondary fs-6 px-3 py-2">0 SKIP</span>
+            </div>
+            <div class="progress-bar-custom mb-2">
+              <div class="progress-bar-fill bg-success" style="width: 100%"></div>
+            </div>
+            <p class="small text-secondary mb-0">
+              Components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks,
+              configs, tool-configs, security, governance, cloud-connectors, tracing, audit,
+              state-persistence, gentle-vanguard-db
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3><i class="bi bi-file-earmark-check text-info me-2"></i>Validation Coverage</h3>
+            <div class="d-flex flex-column gap-2 mt-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small">JSON Config Validation</span
+                ><span class="badge bg-success bg-opacity-10 text-success">5/5 Schemas</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small">Tool Config Validation</span
+                ><span class="badge bg-success bg-opacity-10 text-success"
+                  >opencode.json · cursorrules · clinerules</span
+                >
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small">Git Hooks</span
+                ><span class="badge bg-success bg-opacity-10 text-success"
+                  >pre-commit · post-commit · post-merge</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hardening" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🔨</div>
+        <h2 data-i18n="sec_hardening">Security Hardening</h2>
+        <p data-i18n="c_securitygovernance_44">
+          Multi-layer defense-in-depth for production readiness
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🔐</div>
+            <h3 data-i18n="c_securitygovernance_45">Dependency Lock</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_46">
+              Lockfile verification ensures reproducible, tamper-proof builds
+            </p>
+            <span class="badge-tag ok">package-lock.json</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🔬</div>
+            <h3 data-i18n="c_securitygovernance_47">Vulnerability Scan</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_48">
+              Automated scanning of all dependencies for known CVEs
+            </p>
+            <span class="badge-tag ok">npm audit · trivy</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🤫</div>
+            <h3 data-i18n="c_securitygovernance_49">Secret Detection</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_50">
+              Pre-commit and CI-based secret leak prevention
+            </p>
+            <span class="badge-tag ok">gitleaks · secretlint</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🛡️</div>
+            <h3 data-i18n="c_securitygovernance_51">Trivy Scanning</h3>
+            <p class="card-text" data-i18n="c_securitygovernance_52">
+              Full filesystem and repo vulnerability scanning in CI/CD
+            </p>
+            <span class="badge-tag ok">github/workflows/security.yml</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="standards" class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">📄</div>
+        <h2 data-i18n="sec_standards">Standards Summary</h2>
+        <p data-i18n="c_securitygovernance_53">Key governance and standards files at a glance</p>
+      </div>
+      <div class="table-responsive">
+        <table class="feature-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Purpose</th>
+              <th>Category</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_54">AI-NORMATIVES.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_54"
+                  title="AI-NORMATIVES.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_55"
+                  >Core AI behavior &amp; ethical guidelines</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_55"
+                  title="Core AI behavior &amp;amp; ethical guidelines"
+                  >i</span
+                >
+              </td>
+              <td>AI</td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_56">NORMATIVAS-ARCHITECTURE.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_56"
+                  title="NORMATIVAS-ARCHITECTURE.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_57"
+                  >System design constraints &amp; patterns</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_57"
+                  title="System design constraints &amp;amp; patterns"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_58">Architecture</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_58"
+                  title="Architecture"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_59">NORMATIVAS-SECURITY-COMPLIANCE.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_59"
+                  title="NORMATIVAS-SECURITY-COMPLIANCE.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_60">Security hardening &amp; compliance</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_60"
+                  title="Security hardening &amp;amp; compliance"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_61">Security</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_61"
+                  title="Security"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_62">NORMATIVAS-CODE-QUALITY.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_62"
+                  title="NORMATIVAS-CODE-QUALITY.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_63"
+                  >Code review gates &amp; quality thresholds</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_63"
+                  title="Code review gates &amp;amp; quality thresholds"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_64">Quality</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_64"
+                  title="Quality"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_65">NORMATIVAS-WORKFLOW.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_65"
+                  title="NORMATIVAS-WORKFLOW.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_66"
+                  >Operational workflows &amp; sequences</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_66"
+                  title="Operational workflows &amp;amp; sequences"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_67">Workflow</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_67"
+                  title="Workflow"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_68">NORMATIVAS-OPS-DEVOPS.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_68"
+                  title="NORMATIVAS-OPS-DEVOPS.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_69"
+                  >CI/CD, deployment, infrastructure rules</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_69"
+                  title="CI/CD, deployment, infrastructure rules"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_70">DevOps</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_70"
+                  title="DevOps"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_71">NORMATIVAS-AUTONOMOUS-EVOLUTION.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_71"
+                  title="NORMATIVAS-AUTONOMOUS-EVOLUTION.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_72">Self-evolution &amp; norm promotion</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_72"
+                  title="Self-evolution &amp;amp; norm promotion"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_73">Autonomy</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_73"
+                  title="Autonomy"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_74">NORMATIVAS-EVAL-QUALITY.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_74"
+                  title="NORMATIVAS-EVAL-QUALITY.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_75">Evaluation gates &amp; assessment</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_75"
+                  title="Evaluation gates &amp;amp; assessment"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_64">Quality</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_64"
+                  title="Quality"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_77">NORMATIVAS-MULTI-TENANT.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_77"
+                  title="NORMATIVAS-MULTI-TENANT.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_78"
+                  >Tenant isolation &amp; resource limits</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_78"
+                  title="Tenant isolation &amp;amp; resource limits"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_79">Multi-Tenant</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_79"
+                  title="Multi-Tenant"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_80">NORMATIVAS-PERFORMANCE.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_80"
+                  title="NORMATIVAS-PERFORMANCE.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_81">Performance budgets &amp; SLAs</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_81"
+                  title="Performance budgets &amp;amp; SLAs"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_82">Performance</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_82"
+                  title="Performance"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_83">NORMATIVAS-ENFORCEMENT.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_83"
+                  title="NORMATIVAS-ENFORCEMENT.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_84"
+                  >Enforcement mechanisms &amp; escalation</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_84"
+                  title="Enforcement mechanisms &amp;amp; escalation"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_85">Governance</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_85"
+                  title="Governance"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_86">HUMAN-IN-THE-LOOP.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_86"
+                  title="HUMAN-IN-THE-LOOP.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_87">Human oversight &amp; approval gates</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_87"
+                  title="Human oversight &amp;amp; approval gates"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_85">Governance</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_85"
+                  title="Governance"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_89">INCIDENT-RESPONSE.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_89"
+                  title="INCIDENT-RESPONSE.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_90">Incident handling &amp; recovery</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_90"
+                  title="Incident handling &amp;amp; recovery"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_61">Security</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_61"
+                  title="Security"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_92">SECRETS-MANAGEMENT.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_92"
+                  title="SECRETS-MANAGEMENT.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_93">Secrets handling &amp; rotation</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_93"
+                  title="Secrets handling &amp;amp; rotation"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_61">Security</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_61"
+                  title="Security"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span data-i18n="c_securitygovernance_95">COST-ATTRIBUTION.md</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_95"
+                  title="COST-ATTRIBUTION.md"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_96">Cost tracking &amp; attribution</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_96"
+                  title="Cost tracking &amp;amp; attribution"
+                  >i</span
+                >
+              </td>
+              <td>
+                <span data-i18n="c_securitygovernance_97">Finance</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_c_securitygovernance_97"
+                  title="Finance"
+                  >i</span
+                >
+              </td>
+              <td><span class="badge bg-success bg-opacity-10 text-success px-2">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagramas &amp; Visualizaciones</h2>
+        <p data-i18n="c_securitygovernance_98">
+          Estructura del stack de seguridad y gobernanza — del núcleo de agentes al ciclo ejecutivo
+          autónomo.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-arrow-repeat text-info me-2"></i>Loop Ejecutivo</h3>
+            <img
+              src="diagrams/executive-loop.svg"
+              alt="Executive Autonomous Loop"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>Detección → Evaluación → Decisión → Ejecución →
+              Verificación → Aprendizaje.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i>Arquitectura en Capas</h3>
+            <img
+              src="diagrams/architecture-layers.svg"
+              alt="Architecture Layers"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
+              Data → Executive.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >436 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >10 DAOs</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >175 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>
