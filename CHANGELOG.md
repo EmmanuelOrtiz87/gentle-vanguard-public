@@ -1,5 +1,28 @@
 # Changelog — Gentle-Vanguard
 
+## [3.8.0] — 2026-08-18
+
+### Content Operations Engine (Native TS, Offline-First)
+
+- **Content Operations Engine**: `src/content-operations/` — manifest como fuente de verdad,
+  state machine (`DRAFT → VALIDATED → PACKAGED → REVIEW → APPROVED → PUBLISHED → MEASURED`,
+  `FAILED → DRAFT`), validación contra registry de plataformas, empaquetado idempotente
+- **CLI**: 8 comandos (`list`, `validate`, `prepare`, `status`, `report`, `transition`, `export`,
+  `help`) + npm scripts `content:*`
+- **Manifest real**: `content/operations/master-manifest.json` — 21 jobs del sprint de lanzamiento
+  `GROWTH-EXPERIMENT-001` (18/08 → 01/09/2026, 6 plataformas)
+- **Assets**: 21 PNGs dimensionados por plataforma en `docs/presentations/social-assets/`
+- **Registry**: `config/content-operations/platforms.json` — 11 plataformas con capacidades
+- **Docs**: `docs/operations/` (engine, directive, integration status) + **ADR-0018**
+- **Tests**: 15 unit tests (state machine, registry validation, idempotencia, manifest real)
+- **README + QUICK-COMMANDS**: sección Content Operations con comandos `content:*`
+
+### Distribution & Homologation
+
+- **main homologado con develop** en `b66073a2` (fast-forward, 0 divergencia)
+- **README/README-PUBLIC**: métricas reales v3.7.0 → v3.8.0
+- **Auto-update**: fix `ref: main` en workflow (detached HEAD en trigger release)
+
 ## [3.5.0] — 2026-08-02
 
 ### Native RDD System

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.7.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.8.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
@@ -56,7 +56,7 @@ standards, tracks every token, and remembers what you did last session.
 # https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
 
 # Run the installer — it sets up everything automatically
-./gentle-vanguard-3.7.0.exe
+./gentle-vanguard-3.8.0.exe
 ```
 
 Or use the portable version:
@@ -84,7 +84,7 @@ Or use the portable version:
 1. Download the latest `.exe` from
    [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
 2. Run the executable — the installer sets up all dependencies (Node, TypeScript, tools)
-3. Launch with `./gentle-vanguard-3.7.0.exe -Dashboard`
+3. Launch with `./gentle-vanguard-3.8.0.exe -Dashboard`
 4. Open `http://localhost:3000` in your browser
 
 ### 🔄 Auto-Update
@@ -139,7 +139,7 @@ graph TB
 
 ---
 
-## ✨ What's New in v3.7.0
+## ✨ What's New in v3.8.0
 
 ### 🏛️ Gobernanza de Madurez Completa
 
@@ -190,4 +190,4 @@ MIT © 2026 Emmanuel Ortiz
 
 ---
 
-_Gentle-Vanguard v3.7.0 — Don't let your mellow hustle be faded_
+_Gentle-Vanguard v3.8.0 — Don't let your mellow hustle be faded_

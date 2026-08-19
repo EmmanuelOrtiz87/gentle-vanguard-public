@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "packageManager": "pnpm@11.15.1",
   "engines": {
     "pnpm": ">=11.0.0",
@@ -41,6 +41,13 @@
     "container:report": "npx tsx src/container-scan.ts report",
     "container:db-update": "npx tsx src/container-scan.ts db-update",
     "container:test": "npx tsx --test tests/unit/container-scan.test.ts",
+    "content:list": "npx tsx src/content-operations/cli.ts list",
+    "content:validate": "npx tsx src/content-operations/cli.ts validate",
+    "content:prepare": "npx tsx src/content-operations/cli.ts prepare",
+    "content:status": "npx tsx src/content-operations/cli.ts status",
+    "content:report": "npx tsx src/content-operations/cli.ts report",
+    "content:export": "npx tsx src/content-operations/cli.ts export",
+    "content:test": "npx tsx --test tests/unit/content-operations.test.ts",
     "build:mcp": "pnpm tsc",
     "build:mcp:watch": "pnpm tsc --watch",
     "mcp:start": "node dist/scripts/mcp/skill-server.js",
