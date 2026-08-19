@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
   <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
-  <img src="https://img.shields.io/badge/Skills-88-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
+  <img src="https://img.shields.io/badge/Skills-263-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
   <img src="https://img.shields.io/badge/Auto_Update-%E2%9C%93-22C55E?style=flat-square&labelColor=0D1117" alt="Auto Update">
 </p>
 
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <strong>AI-powered development orchestrator · 21 agents · 88 skills · 10 tool-compatible</strong><br>
+  <strong>AI-powered development orchestrator · 21 agents · 263 skills · 10 tool-compatible</strong><br>
   <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security · Auto-Update</em>
 </p>
 
@@ -33,6 +33,10 @@ Born from a simple observation: AI-assisted coding works, but without structure 
 Gentle-Vanguard gives you an orchestration layer that routes tasks to specialized agents, enforces
 standards, tracks every token, and remembers what you did last session.
 
+At the heart of every session runs **Engram** — persistent memory that survives across sessions and
+compactions — and the **judgment-day** correction engine that auto-applies learned norms from past
+mistakes. The result: the stack gets smarter every time you use it.
+
 ---
 
 ## 🎯 What It Solves
@@ -40,7 +44,7 @@ standards, tracks every token, and remembers what you did last session.
 | Problem                       | How Gentle-Vanguard Solves It                              |
 | ----------------------------- | ---------------------------------------------------------- |
 | AI code quality varies wildly | Multi-layer validation gates catch issues before commit    |
-| No session-to-session memory  | Persistent memory system recalls decisions across sessions |
+| No session-to-session memory  | **Engram** persistent memory recalls decisions across sessions |
 | Token waste from wrong models | Cost-aware router assigns optimal model per task type      |
 | Unstructured AI workflows     | SDD lifecycle enforces spec-driven development             |
 | Disconnected tool sessions    | Session manager tracks context with crash recovery         |
@@ -100,6 +104,10 @@ The `.exe` includes **automatic updates**:
 
 ## 🏗️ Architecture Overview
 
+The stack follows a **5-Layer Architecture**: Executive (autonomous operations), Agents
+(specialized roles), Dashboard (real-time observability), MCP (protocol integration), and
+Memory & Orchestration (Engram + pipeline).
+
 ```mermaid
 graph TB
     subgraph User["👤 User Layer"]
@@ -124,7 +132,7 @@ graph TB
     end
 
     subgraph Skills["⚡ Skill Layer"]
-        SKILLS[88 On-Demand Skills]
+        SKILLS[263 On-Demand Skills]
     end
 
     subgraph Memory["🧠 Memory Layer"]
@@ -136,6 +144,103 @@ graph TB
     Agents --> Skills
     Agents --> Memory
 ```
+
+---
+
+## 🤖 Agent Ecosystem
+
+| Agent            | Role                                                                |
+| ---------------- | ------------------------------------------------------------------- |
+| **Orchestrator** | Routes requests, enforces quality guidelines, session lifecycle      |
+| **BA**           | Requirements exploration and clarification (sdd-explore)             |
+| **SAD**          | System architecture design and API contracts (sdd-design)            |
+| **DEV**          | Implementation and refactoring (sdd-apply)                           |
+| **QA**           | Verification, testing, and quality gates (sdd-verify)                |
+| **OPS**          | Deployment, CI/CD, infrastructure                                    |
+| **GOV**          | Compliance, security, audit, policy enforcement                      |
+| **DOC**          | Technical documentation and ADRs                                     |
+
+Every agent runs with an adaptive step budget and a **Model Profile** tuned per SDD phase — each
+phase (BA/SAD/DEV/QA) gets its own temperature and hallucination guard settings from the model
+router.
+
+---
+
+## ✨ Key Features
+
+| Feature                     | Description                                                              |
+| --------------------------- | ------------------------------------------------------------------------ |
+| **Specialized Agents**      | 21 role-specific agents with adaptive step budgets (up to 80 steps)      |
+| **On-Demand Skills**        | 263 skills loaded by trigger — security, compliance, diagram-design, more |
+| **Persistent Engram Memory**| Hot/warm/cold tiers, auto-repair, survives sessions and compactions       |
+| **Cost-Aware Model Router** | Per-domain model tiers + profiles with fallback chains                    |
+| **Auto-Update**             | Self-updating launcher — detects new versions and updates in place        |
+| **SLSA Provenance**         | Native DSSE/Ed25519 signing of release attestations                       |
+
+The **Specialized Agents** cover every SDD role, **Persistent Engram Memory** recalls decisions
+across sessions, and the **Cost-Aware Model Router** assigns the optimal model per task domain with
+automatic fallback.
+
+---
+
+## 🧩 Skill Catalog
+
+| Category   | Examples                                                            |
+| ---------- | ------------------------------------------------------------------- |
+| **Frontend** | frontend-ui-engineering, dashboard, design-review                  |
+| **Backend**  | api-and-interface-design, performance-optimization, debugging      |
+| **DevOps**   | ci-cd-and-automation, container scanning, chaos engineering        |
+| **Security** | red-teaming, prompt injection, SBOM analysis, compliance          |
+| **Testing**  | test-driven-development, qa-lead, browser-testing-with-devtools   |
+
+---
+
+## 🚀 Quick Install
+
+```powershell
+# Clone the public repository
+git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
+
+# Or bootstrap with the PowerShell installer
+./bootstrap.ps1
+```
+
+For a zero-dependency install, download the `.exe` from
+[Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases) and run it — it
+installs, configures, and launches the whole stack automatically.
+
+---
+
+## 🔄 CI/CD Pipeline
+
+| Workflow                       | Purpose                                                |
+| ------------------------------ | ------------------------------------------------------ |
+| `gentle-vanguard-quality-gate` | Lint + typecheck + tests + coverage gate on every PR   |
+| `test-suite`                   | Full test matrix across Node versions                  |
+| `sync-public`                  | Automated sync of public artifacts to this repository  |
+| `security.yml`                 | Gitleaks + secretlint + trivy scans                    |
+
+---
+
+## 🛡️ Defensive Patterns
+
+Every script in the stack follows defensive conventions:
+
+- **repoRoot** — all scripts resolve paths from the repo root, never from `$PWD`
+- **UTF-8** — explicit encoding for all file reads/writes (no BOM surprises)
+- **ErrorActionPreference** — set to `Stop` at the top of every PowerShell script
+- Idempotency — re-runnable without side effects
+- Structured logging — consistent log format across components
+
+---
+
+## 🔒 Security
+
+- **AES-256** encryption for sensitive stored data (credentials, tokens)
+- Secret scanning: 80+ patterns + entropy analysis in pre-commit hooks
+- SBOM (CycloneDX 1.7) + SLSA provenance for supply-chain attestation
+- Chaos engineering L4 — automated weekly resilience experiments
+- See [docs/SECURITY.md](docs/SECURITY.md) for the full security model
 
 ---
 
@@ -178,6 +283,7 @@ graph TB
 | ---------------------------------------------------------- | --------------------------- |
 | [Getting Started](docs/getting-started/README.md)          | First-time setup guide      |
 | [Installation Guide](docs/getting-started/installation.md) | Detailed installation steps |
+| [INSTALLATION](docs/getting-started/INSTALLATION.md)       | Quick install reference     |
 | [Stack Setup](docs/getting-started/STACK-SETUP.md)         | Full stack configuration    |
 | [Changelog](CHANGELOG.md)                                  | Version history             |
 | [Examples](docs/EXAMPLES.md)                               | Usage examples              |

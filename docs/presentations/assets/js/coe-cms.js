@@ -37,7 +37,7 @@ class COECMS {
       REVIEW: ['APPROVED', 'FAILED'],
       APPROVED: ['PUBLISHED', 'FAILED'],
       PUBLISHED: ['MEASURED'],
-      MEASURED: [],
+      MEASURED: ['DRAFT'],
       FAILED: ['DRAFT'],
     };
     this.PLATFORM_ICONS = {
@@ -95,7 +95,15 @@ class COECMS {
   _writeOverrides() {
     const overrides = {};
     this.jobs.forEach((job) => {
-      overrides[job.id] = { status: job.status };
+      overrides[job.id] = {
+        status: job.status,
+        title: job.title,
+        date: job.date,
+        platform: job.platform,
+        theme: job.theme,
+        copy: job.copy,
+        cta: job.cta,
+      };
     });
     localStorage.setItem(this.DB_KEY, JSON.stringify(overrides));
   }
@@ -143,6 +151,129 @@ class COECMS {
     this._writeOverrides();
     this.render();
     return true;
+  }
+
+  /**
+   * Reinicia un job a DRAFT desde cualquier estado (incluido MEASURED/PUBLISHED).
+   * Permite volver a editar contenido que ya pasó por todo el flujo.
+   */
+  reset(jobId) {
+    const job = this.jobs.find((j) => j.id === jobId);
+    if (!job) return false;
+    job.status = 'DRAFT';
+    this._writeOverrides();
+    this.render();
+    return true;
+  }
+
+  /**
+   * Abre el editor inline de un job. Permite modificar title, copy, cta, theme,
+   * date y platform incluso en estados finales. Los cambios se persisten en
+   * localStorage y se exportan con el manifest.
+   */
+  edit(jobId) {
+    const job = this.jobs.find((j) => j.id === jobId);
+    if (!job) return;
+    const color = this.STATE_COLORS[job.status] || '#94a3b8';
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    `;
+    modal.innerHTML = `
+      <div style="background: var(--bg1); border: 1px solid var(--bg2); border-radius: 16px;
+        max-width: 680px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 1.5rem">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 style="margin: 0; color: var(--text)"><i class="bi bi-pencil-square me-2" style="color: var(--p)"></i>Editar Job</h5>
+            <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem">
+              ${job.id} · <span class="badge" style="background: ${color}22; color: ${color}; border: 1px solid ${color}55">${job.status}</span>
+            </div>
+          </div>
+          <button class="btn btn-sm" style="background: var(--bg2); color: var(--text); border: none"
+            onclick="this.closest('div[style]').remove()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="mb-3">
+          <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">Título</label>
+          <input id="coe-edit-title" class="form-control form-control-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2)"
+            value="${this._escAttr(job.title)}" />
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">Fecha</label>
+            <input id="coe-edit-date" type="date" class="form-control form-control-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2)"
+              value="${this._escAttr(job.date)}" />
+          </div>
+          <div class="col-md-6">
+            <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">Plataforma</label>
+            <select id="coe-edit-platform" class="form-select form-select-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2)">
+              ${Object.keys(this.PLATFORM_ICONS)
+                .map(
+                  (p) =>
+                    `<option value="${p}" ${job.platform === p ? 'selected' : ''}>${p}</option>`,
+                )
+                .join('')}
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">Tema</label>
+          <input id="coe-edit-theme" class="form-control form-control-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2)"
+            value="${this._escAttr(job.theme)}" />
+        </div>
+        <div class="mb-3">
+          <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">Copy</label>
+          <textarea id="coe-edit-copy" rows="8" class="form-control form-control-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem">${this._escTextarea(job.copy)}</textarea>
+        </div>
+        <div class="mb-3">
+          <label style="font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block">CTA</label>
+          <input id="coe-edit-cta" class="form-control form-control-sm" style="background: var(--bg0); color: var(--text); border: 1px solid var(--bg2)"
+            value="${this._escAttr(job.cta)}" />
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button class="btn btn-sm" style="background: linear-gradient(135deg, var(--p), var(--s)); color: var(--bg0); border: none; font-weight: 600"
+            onclick="window.coeCMS.saveEdit('${job.id}')">
+            <i class="bi bi-check-lg me-1"></i>Guardar Cambios
+          </button>
+          <button class="btn btn-sm" style="background: var(--bg2); color: var(--text-dim); border: none"
+            onclick="this.closest('div[style]').remove()">
+            <i class="bi bi-x-lg me-1"></i>Cancelar
+          </button>
+        </div>
+      </div>
+    `;
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    document.body.appendChild(modal);
+  }
+
+  /**
+   * Guarda los cambios del editor inline en el job y persiste en localStorage.
+   */
+  saveEdit(jobId) {
+    const job = this.jobs.find((j) => j.id === jobId);
+    if (!job) return;
+    const get = (id) => document.getElementById(id);
+    const title = get('coe-edit-title');
+    const date = get('coe-edit-date');
+    const platform = get('coe-edit-platform');
+    const theme = get('coe-edit-theme');
+    const copy = get('coe-edit-copy');
+    const cta = get('coe-edit-cta');
+    if (title) job.title = title.value.trim() || job.title;
+    if (date) job.date = date.value || job.date;
+    if (platform) job.platform = platform.value;
+    if (theme) job.theme = theme.value.trim() || job.theme;
+    if (copy) job.copy = copy.value;
+    if (cta) job.cta = cta.value.trim() || job.cta;
+    this._writeOverrides();
+    this.render();
+    // Cerrar el modal del editor
+    const modal = document.querySelector('div[style*="position: fixed"]');
+    if (modal) modal.remove();
   }
 
   /* ====================== Filtros ====================== */
@@ -285,6 +416,18 @@ class COECMS {
               onclick="window.coeCMS.showDetail('${job.id}')">
               <i class="bi bi-eye"></i>
             </button>
+            <button class="btn btn-sm" style="background: var(--bg2); color: var(--p); border: none; font-size: 0.75rem"
+              onclick="window.coeCMS.edit('${job.id}')" title="Editar contenido">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            ${
+              job.status !== 'DRAFT'
+                ? `<button class="btn btn-sm" style="background: var(--bg2); color: var(--warn); border: none; font-size: 0.75rem"
+                    onclick="if(confirm('Reiniciar ${job.id} a DRAFT?')) window.coeCMS.reset('${job.id}')" title="Reiniciar a DRAFT">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                  </button>`
+                : ''
+            }
           </div>
         </td>
       </tr>
@@ -309,7 +452,7 @@ class COECMS {
     const color = this.STATE_COLORS[job.status] || '#94a3b8';
     const modal = document.createElement('div');
     modal.style.cssText = `
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
       display: flex; align-items: center; justify-content: center; padding: 1rem;
     `;
     modal.innerHTML = `
@@ -356,6 +499,18 @@ class COECMS {
           </div>
         </div>
         <div class="d-flex flex-wrap gap-2 mt-4">
+          <button class="btn btn-sm" style="background: linear-gradient(135deg, var(--p), var(--s)); color: var(--bg0); border: none; font-weight: 600"
+            onclick="window.coeCMS.edit('${job.id}'); this.closest('div[style]').remove()">
+            <i class="bi bi-pencil-square me-1"></i>Editar
+          </button>
+          ${
+            job.status !== 'DRAFT'
+              ? `<button class="btn btn-sm" style="background: var(--bg2); color: var(--warn); border: none"
+                  onclick="if(confirm('Reiniciar ${job.id} a DRAFT?')) window.coeCMS.reset('${job.id}'); this.closest('div[style]').remove()">
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>Reiniciar a DRAFT
+                </button>`
+              : ''
+          }
           ${(this.TRANSITIONS[job.status] || [])
             .map(
               (s) => `
@@ -380,6 +535,17 @@ class COECMS {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  _escAttr(str) {
+    return this._esc(str).replace(/'/g, '&#39;');
+  }
+
+  _escTextarea(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 }
 
