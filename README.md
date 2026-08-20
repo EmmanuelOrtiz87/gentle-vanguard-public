@@ -1,299 +1,149 @@
+# Gentle-Vanguard
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/EmmanuelOrtiz87/gentle-vanguard-public/main/docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.8.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
-  <img src="https://img.shields.io/badge/Status-Production%20Ready-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
+  <img src="https://img.shields.io/badge/Version-3.8.1-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
-  <img src="https://img.shields.io/badge/Platform-Win%20|%20Linux%20|%20macOS-6B7280?style=flat-square&labelColor=0D1117" alt="Platform">
   <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
   <img src="https://img.shields.io/badge/Skills-263-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
-  <img src="https://img.shields.io/badge/Auto_Update-%E2%9C%93-22C55E?style=flat-square&labelColor=0D1117" alt="Auto Update">
 </p>
 
-<p align="center">
-  <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard-public">GitHub</a>
-  &nbsp;·&nbsp;
-  <a href="docs/getting-started/README.md">Getting Started</a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases">Releases</a>
-  &nbsp;·&nbsp;
-  <a href="docs/SECURITY.md">Security</a>
-</p>
+> An AI development orchestrator that adds structure, memory and verification to your existing
+> coding tools.
 
-<p align="center">
-  <strong>AI-powered development orchestrator · 21 agents · 263 skills · 10 tool-compatible</strong><br>
-  <em>Tool-agnostic · Spec-Driven Development · Persistent Memory · Built-in Security · Auto-Update</em>
-</p>
+## What It Solves
 
-> _"Building the definitive bridge between high-end software engineering and corporate strategy."_
+AI-assisted coding is powerful, but sessions can lose context and quality can vary. Gentle-Vanguard
+routes work to specialized agents, enforces an SDD workflow, remembers previous decisions through
+Engram and reports what happened through a local dashboard.
 
-Born from a simple observation: AI-assisted coding works, but without structure it is chaotic.
-Gentle-Vanguard gives you an orchestration layer that routes tasks to specialized agents, enforces
-standards, tracks every token, and remembers what you did last session.
+It works alongside OpenCode, Claude Code, Cline, Cursor, Windsurf and Codex. It does not require a
+hosted Gentle-Vanguard account or a mandatory cloud service.
 
-At the heart of every session runs **Engram** — persistent memory that survives across sessions and
-compactions — and the **judgment-day** correction engine that auto-applies learned norms from past
-mistakes. The result: the stack gets smarter every time you use it.
+## Quick Install
 
----
-
-## 🎯 What It Solves
-
-| Problem                       | How Gentle-Vanguard Solves It                              |
-| ----------------------------- | ---------------------------------------------------------- |
-| AI code quality varies wildly | Multi-layer validation gates catch issues before commit    |
-| No session-to-session memory  | **Engram** persistent memory recalls decisions across sessions |
-| Token waste from wrong models | Cost-aware router assigns optimal model per task type      |
-| Unstructured AI workflows     | SDD lifecycle enforces spec-driven development             |
-| Disconnected tool sessions    | Session manager tracks context with crash recovery         |
-| No AI cost visibility         | Dashboard with token trends and per-agent analytics        |
-| One-size AI responses         | 21 specialized agents with role-specific profiles          |
-
----
-
-## 🚀 Quick Start
-
-```powershell
-# Download the latest release
-# https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest
-
-# Run the installer — it sets up everything automatically
-./gentle-vanguard-3.8.0.exe
+```bash
+git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
+cd gentle-vanguard-public
+pnpm install
+npx tsx src/setup-complete.ts
+npm run start
 ```
 
-Or use the portable version:
-
-```powershell
-# Extract and run
-./gentle-vanguard.exe -Dashboard -Portable
-```
-
----
-
-## 📦 Installation
-
-### System Requirements
-
-| Requirement    | Minimum                                         |
-| -------------- | ----------------------------------------------- |
-| **OS**         | Windows 10/11, Linux (Ubuntu 22.04+), macOS 14+ |
-| **PowerShell** | 7.4+                                            |
-| **Memory**     | 4 GB RAM                                        |
-| **Disk**       | 500 MB free                                     |
-
-### Step-by-Step
-
-1. Download the latest `.exe` from
-   [Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases)
-2. Run the executable — the installer sets up all dependencies (Node, TypeScript, tools)
-3. Launch with `./gentle-vanguard-3.8.0.exe -Dashboard`
-4. Open `http://localhost:3000` in your browser
-
-### 🔄 Auto-Update
-
-The `.exe` includes **automatic updates**:
-
-- On launch, it checks for new versions against the Releases feed
-- If a new version exists, it downloads and installs it in place
-- Your configuration and data are preserved across updates
-- No manual intervention required
-
----
-
-## 🏗️ Architecture Overview
-
-The stack follows a **5-Layer Architecture**: Executive (autonomous operations), Agents
-(specialized roles), Dashboard (real-time observability), MCP (protocol integration), and
-Memory & Orchestration (Engram + pipeline).
+Requirements: Node.js 20+, pnpm 11+ and Git. Windows, macOS and Linux are supported.
 
 ```mermaid
-graph TB
-    subgraph User["👤 User Layer"]
-        CLI[CLI]
-        DASH[Dashboard]
-        IDE[IDE Integration]
-    end
-
-    subgraph Orchestrator["🎯 Orchestration Layer"]
-        INPUT[pre-process-input]
-        TRIGGER[Trigger System]
-        DISPATCH[Agent Dispatch]
-    end
-
-    subgraph Agents["🤖 Agent Layer"]
-        BA[BA - Business Analyst]
-        SAD[SAD - Architect]
-        DEV[DEV - Developer]
-        QA[QA - Tester]
-        OPS[OPS - DevOps]
-        GOV[GOV - Governance]
-    end
-
-    subgraph Skills["⚡ Skill Layer"]
-        SKILLS[263 On-Demand Skills]
-    end
-
-    subgraph Memory["🧠 Memory Layer"]
-        ENGRAM[Persistent Memory]
-    end
-
-    User --> Orchestrator
-    Orchestrator --> Agents
-    Agents --> Skills
-    Agents --> Memory
+flowchart LR
+  U[Your request] --> O[Orchestrator]
+  O --> A[Specialized agents]
+  A --> S[Skills]
+  A --> M[Engram memory]
+  A --> Q[Quality checks]
+  Q --> R[Verified result]
 ```
 
----
+## Architecture
 
-## 🤖 Agent Ecosystem
+Gentle-Vanguard is organized around five practical layers: user tools, orchestration, agents and
+skills, memory, and observability.
 
-| Agent            | Role                                                                |
-| ---------------- | ------------------------------------------------------------------- |
-| **Orchestrator** | Routes requests, enforces quality guidelines, session lifecycle      |
-| **BA**           | Requirements exploration and clarification (sdd-explore)             |
-| **SAD**          | System architecture design and API contracts (sdd-design)            |
-| **DEV**          | Implementation and refactoring (sdd-apply)                           |
-| **QA**           | Verification, testing, and quality gates (sdd-verify)                |
-| **OPS**          | Deployment, CI/CD, infrastructure                                    |
-| **GOV**          | Compliance, security, audit, policy enforcement                      |
-| **DOC**          | Technical documentation and ADRs                                     |
-
-Every agent runs with an adaptive step budget and a **Model Profile** tuned per SDD phase — each
-phase (BA/SAD/DEV/QA) gets its own temperature and hallucination guard settings from the model
-router.
-
----
-
-## ✨ Key Features
-
-| Feature                     | Description                                                              |
-| --------------------------- | ------------------------------------------------------------------------ |
-| **Specialized Agents**      | 21 role-specific agents with adaptive step budgets (up to 80 steps)      |
-| **On-Demand Skills**        | 263 skills loaded by trigger — security, compliance, diagram-design, more |
-| **Persistent Engram Memory**| Hot/warm/cold tiers, auto-repair, survives sessions and compactions       |
-| **Cost-Aware Model Router** | Per-domain model tiers + profiles with fallback chains                    |
-| **Auto-Update**             | Self-updating launcher — detects new versions and updates in place        |
-| **SLSA Provenance**         | Native DSSE/Ed25519 signing of release attestations                       |
-
-The **Specialized Agents** cover every SDD role, **Persistent Engram Memory** recalls decisions
-across sessions, and the **Cost-Aware Model Router** assigns the optimal model per task domain with
-automatic fallback.
-
----
-
-## 🧩 Skill Catalog
-
-| Category   | Examples                                                            |
-| ---------- | ------------------------------------------------------------------- |
-| **Frontend** | frontend-ui-engineering, dashboard, design-review                  |
-| **Backend**  | api-and-interface-design, performance-optimization, debugging      |
-| **DevOps**   | ci-cd-and-automation, container scanning, chaos engineering        |
-| **Security** | red-teaming, prompt injection, SBOM analysis, compliance          |
-| **Testing**  | test-driven-development, qa-lead, browser-testing-with-devtools   |
-
----
-
-## 🚀 Quick Install
-
-```powershell
-# Clone the public repository
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
-
-# Or bootstrap with the PowerShell installer
-./bootstrap.ps1
+```mermaid
+flowchart TB
+  T[CLI / IDE / Dashboard] --> O[Orchestration]
+  O --> A[21 agents]
+  A --> K[263 on-demand skills]
+  A --> E[Engram persistent memory]
+  O --> D[Local dashboard]
 ```
 
-For a zero-dependency install, download the `.exe` from
-[Releases](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases) and run it — it
-installs, configures, and launches the whole stack automatically.
+## Agent Ecosystem
 
----
+| Agent | Role |
+| --- | --- |
+| Orchestrator | Routes work and manages sessions |
+| BA | Requirements exploration |
+| SAD | Architecture and contracts |
+| DEV | Implementation and refactoring |
+| QA | Testing and verification |
+| OPS | CI/CD and infrastructure |
+| GOV | Security, compliance and audit |
+| DOC | Documentation and ADRs |
 
-## 🔄 CI/CD Pipeline
+Each phase can use a different Model Profile. The router and fallback chain are configurable and
+local providers are optional.
 
-| Workflow                       | Purpose                                                |
-| ------------------------------ | ------------------------------------------------------ |
-| `gentle-vanguard-quality-gate` | Lint + typecheck + tests + coverage gate on every PR   |
-| `test-suite`                   | Full test matrix across Node versions                  |
-| `sync-public`                  | Automated sync of public artifacts to this repository  |
-| `security.yml`                 | Gitleaks + secretlint + trivy scans                    |
+## Key Features
 
----
+| Feature | Description |
+| --- | --- |
+| Specialized Agents | 21 roles for analysis, design, coding, QA and operations |
+| On-Demand Skills | 263 skills for development, security, documentation and research |
+| Persistent Engram Memory | Decisions and context survive across sessions |
+| Cost-Aware Model Router | Selects models by task and supports safe fallbacks |
+| Dashboard | Local metrics, traces, alerts and feedback |
+| Security Controls | Secret scanning, SBOM, provenance and quality gates |
 
-## 🛡️ Defensive Patterns
+```mermaid
+flowchart TD
+  S[Session] --> E[Engram]
+  S --> N[Nexus operational database]
+  S --> W[Watchtower health checks]
+  E --> D[Dashboard]
+  N --> D
+  W --> D
+  D --> F[Feedback and adaptive routing]
+```
 
-Every script in the stack follows defensive conventions:
+## Getting Started
 
-- **repoRoot** — all scripts resolve paths from the repo root, never from `$PWD`
-- **UTF-8** — explicit encoding for all file reads/writes (no BOM surprises)
-- **ErrorActionPreference** — set to `Stop` at the top of every PowerShell script
-- Idempotency — re-runnable without side effects
-- Structured logging — consistent log format across components
+1. Install the prerequisites.
+2. Clone this repository.
+3. Run `pnpm install` and `npx tsx src/setup-complete.ts`.
+4. Start with `npm run start`.
+5. Run `gv verify` if the command is available, or `npm run watchtower:health`.
 
----
+## Development
 
-## 🔒 Security
+```bash
+npm run typecheck
+npm run lint
+npm test
+```
 
-- **AES-256** encryption for sensitive stored data (credentials, tokens)
-- Secret scanning: 80+ patterns + entropy analysis in pre-commit hooks
-- SBOM (CycloneDX 1.7) + SLSA provenance for supply-chain attestation
-- Chaos engineering L4 — automated weekly resilience experiments
-- See [docs/SECURITY.md](docs/SECURITY.md) for the full security model
+The project follows Spec-Driven Development: explore, design, implement and verify.
 
----
+## CI/CD Pipeline
 
-## ✨ What's New in v3.8.0
+The public distribution is checked by `gentle-vanguard-quality-gate`, `test-suite`, `security.yml`
+and `sync-public`. The public repository receives a curated set of build, documentation and example
+files from the development repository.
 
-### 🏛️ Gobernanza de Madurez Completa
+## Defensive Patterns
 
-- **8/8 módulos experimentales activados** bajo el MODULE-ACTIVATION-WORKFLOW con gates 6/6
-- Módulos: root-cause-correlator, convergence-monitor, fine-tuning-collector, predictive-governor,
-  proactive-intelligence, trust-layer-stage8, skill-evolution-engine, cross-workspace-mesh
+- Scripts resolve paths from `repoRoot`.
+- File operations use explicit UTF-8 encoding.
+- PowerShell scripts use `ErrorActionPreference = Stop`.
+- Setup and validation commands are designed to be idempotent.
 
-### 🔒 SBOM nativo (CycloneDX 1.7)
+## Security
 
-- Integración npm: `sbom:generate` y `sbom:validate`
-- SBOM con 464 componentes trackeado como artifact de compliance
+Never commit API keys. Use environment variables or ignored local configuration. Secret scanning,
+SBOM generation and release provenance are part of the delivery process. See
+[`SECURITY.md`](SECURITY.md) and [`docs/security/README.md`](docs/security/README.md).
 
-### 🛡️ Container Scanning nativo
+## Documentation
 
-- Scanner Syft+Grype+Trivy sin Docker — SBOM, directorios y artefactos
-- Gates en CI/CD y pre-push hooks
+| Resource | Description |
+| --- | --- |
+| [Getting Started](docs/getting-started/README.md) | First-time setup |
+| [Architecture](docs/technical/STACK-DOCUMENTATION.md) | Detailed technical reference |
+| [Installation](docs/getting-started/installation.md) | Installation options |
+| [Examples](docs/EXAMPLES.md) | Usage examples |
+| [Changelog](CHANGELOG.md) | Version history |
 
-### 🧪 Chaos Engineering L4
-
-- Experimentos de resiliencia automatizados en CI/CD (semanal)
-- Verificación de auto-heal del watchdog
-
-### 🔄 Auto-Update
-
-- El `.exe` se auto-actualiza detectando nuevas versiones en Releases
-
-### ✅ Verificación
-
-- Tests 367/367 · Typecheck 0 errores · Lint 0 errores · Watchtower 95/95
-
----
-
-## 📚 Documentation
-
-| Resource                                                   | Description                 |
-| ---------------------------------------------------------- | --------------------------- |
-| [Getting Started](docs/getting-started/README.md)          | First-time setup guide      |
-| [Installation Guide](docs/getting-started/installation.md) | Detailed installation steps |
-| [INSTALLATION](docs/getting-started/INSTALLATION.md)       | Quick install reference     |
-| [Stack Setup](docs/getting-started/STACK-SETUP.md)         | Full stack configuration    |
-| [Changelog](CHANGELOG.md)                                  | Version history             |
-| [Examples](docs/EXAMPLES.md)                               | Usage examples              |
-
----
-
-## 📄 License
+## License
 
 MIT © 2026 Emmanuel Ortiz
-
----
-
-_Gentle-Vanguard v3.8.0 — Don't let your mellow hustle be faded_

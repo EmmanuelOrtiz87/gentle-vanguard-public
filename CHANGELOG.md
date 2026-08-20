@@ -1,5 +1,21 @@
 # Changelog — Gentle-Vanguard
 
+## [3.8.1] — 2026-08-20
+
+### Changed
+
+- README principal reorganizado para separar onboarding de la documentación técnica.
+- Estrategia de publicación documentada: repositorio privado de desarrollo y distribución pública
+  curada.
+
+### Removed
+
+- Configuración Dify/Cline no operativa y referencias Dify de los fallbacks de modelos.
+
+### Security
+
+- `gentle-vanguard` pasa a privado; `gentle-vanguard-public` permanece como superficie pública.
+
 ## [3.8.0] — 2026-08-18
 
 ### Content Operations Engine (Native TS, Offline-First)
