@@ -16,13 +16,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Run Pester tests
+        shell: pwsh
         run: |
           Install-Module Pester -Force -SkipPublisherCheck -Scope CurrentUser
           Import-Module Pester -PassThru
@@ -30,20 +31,32 @@ jobs:
       - name: Run Node tests
         run: pnpm test
       - name: Run Go tests
+        shell: pwsh
         run: |
           where.exe go 2>$null | Out-Null
-          if ($LASTEXITCODE -eq 0) { go test ./... }
+          if ($LASTEXITCODE -eq 0) {
+            # Go modules live in subdirectories (no go.mod at repo root)
+            $modules = @('demos/shared/task-tracker', 'scripts/utilities/model-router-tui', 'tests/go-tests')
+            foreach ($m in $modules) {
+              Write-Host "=== go test ./... ($m) ==="
+              Push-Location $m
+              go test ./...
+              $code = $LASTEXITCODE
+              Pop-Location
+              if ($code -ne 0) { exit $code }
+            }
+          }
 
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
       - name: Docker Compose Integration
         run: |
           docker compose -f docker-compose.test.yml build
-          docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from node-tests
+          docker compose -f docker-compose.test.yml up --exit-code-from integration-test
 
   dashboard:
     name: Dashboard Tests
@@ -51,10 +64,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build dashboard
@@ -63,6 +76,37 @@ jobs:
       - name: Lint dashboard
         working-directory: apps/web-dashboard
         run: pnpm lint
+
+  phase-connectors:
+    name: Phase 1.2 Cloud Connector Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run cloud connector tests
+        run: pnpm test -- cloud-connectors
+
+  phase-integration:
+    name: Phase Integration Tests (Tracing, State, Audit)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Install Pester
+        run: |
+          Install-Module Pester -Force -SkipPublisherCheck -Scope CurrentUser
+          Import-Module Pester -PassThru
+      - name: Run integration tests for phases 1.3, 2, 3
+        run: |
+          Install-Module Pester -Force -SkipPublisherCheck -Scope CurrentUser
+          Import-Module Pester -PassThru
+          Invoke-Pester -Path tests/integration/phase-13-2-3/ -Passthru -Output Detailed
 
   smoke:
     name: Smoke Tests
@@ -78,7 +122,7 @@ jobs:
         run: |
           Install-Module Pester -Force -SkipPublisherCheck -Scope CurrentUser
           Import-Module Pester -PassThru
-          Invoke-Pester -Path tests/smoke/ -Passthru -Output Detailed
+          Invoke-Pester -Path tests/smoke/ -PassThru -Output Detailed
 
   coverage:
     name: Coverage
@@ -86,10 +130,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm coverage

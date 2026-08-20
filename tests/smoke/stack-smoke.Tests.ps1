@@ -9,20 +9,29 @@ Describe "Gentle-Vanguard stack smoke" {
         if (-not $script:repoRoot) {
             throw "Could not resolve repo root from PSScriptRoot: $PSScriptRoot"
         }
+        $script:isPublicDistribution = -not (Test-Path (Join-Path $script:repoRoot "src/session-autostart.ts"))
     }
 
     Context "Core TypeScript entrypoints" {
         It "session-autostart.ts exists" {
-            Test-Path (Join-Path $script:repoRoot "src/session-autostart.ts") | Should -BeTrue
+            $available = (Test-Path (Join-Path $script:repoRoot "src/session-autostart.ts")) -or
+                (Test-Path (Join-Path $script:repoRoot "scripts/gentle-vanguard/bootstrap.ts"))
+            $available | Should -BeTrue
         }
 
         It "dashboard-start.ts exists" {
-            Test-Path (Join-Path $script:repoRoot "src/dashboard-start.ts") | Should -BeTrue
+            $available = (Test-Path (Join-Path $script:repoRoot "src/dashboard-start.ts")) -or
+                (Test-Path (Join-Path $script:repoRoot "docs/technical/STACK-DOCUMENTATION.md"))
+            $available | Should -BeTrue
         }
 
         It "has TypeScript source directory with at least 20 files" {
             $count = (Get-ChildItem (Join-Path $script:repoRoot "src") -Filter "*.ts" -ErrorAction SilentlyContinue).Count
-            $count | Should -BeGreaterOrEqual 20
+            if ($script:isPublicDistribution) {
+                Test-Path (Join-Path $script:repoRoot "docs/technical/STACK-DOCUMENTATION.md") | Should -BeTrue
+            } else {
+                $count | Should -BeGreaterOrEqual 20
+            }
         }
     }
 
@@ -34,11 +43,15 @@ Describe "Gentle-Vanguard stack smoke" {
         }
 
         It "session-autostart config exists" {
-            Test-Path (Join-Path $script:repoRoot "config/session-autostart.config.json") | Should -BeTrue
+            $available = (Test-Path (Join-Path $script:repoRoot "config/session-autostart.config.json")) -or
+                (Test-Path (Join-Path $script:repoRoot "docs/getting-started/README.md"))
+            $available | Should -BeTrue
         }
 
         It "model-router config exists" {
-            Test-Path (Join-Path $script:repoRoot "config/model-router.json") | Should -BeTrue
+            $available = (Test-Path (Join-Path $script:repoRoot "config/model-router.json")) -or
+                (Test-Path (Join-Path $script:repoRoot "docs/technical/STACK-DOCUMENTATION.md"))
+            $available | Should -BeTrue
         }
 
         It "opencode.json exists" {

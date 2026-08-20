@@ -13,10 +13,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
@@ -31,6 +31,7 @@ jobs:
       - name: Install PSScriptAnalyzer
         run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
       - name: Lint PowerShell scripts
+        shell: pwsh
         run: |
           $results = Invoke-ScriptAnalyzer -Path scripts/ -Recurse -Severity Error
           if ($results) { $results | Format-Table; exit 1 }
@@ -41,9 +42,30 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: DavidAnson/markdownlint-cli2-action@v16
+      - uses: DavidAnson/markdownlint-cli2-action@v24
         with:
-          globs: '**/*.md'
+          globs: |
+            **/*.md
+            !.archive/**/*.md
+            !.backups/**/*.md
+            !.session/**/*.md
+            !.sdd/**/*.md
+            !build/**/*.md
+            !node_modules/**/*.md
+            !**/node_modules/**/*.md
+            !.runtime/**/*.md
+            !.opencode/**/*.md
+            !.windsurf/**/*.md
+            !skills/**/*.md
+            !public/skills/**/*.md
+            !knowledge-base/**/*.md
+            !reports/**/*.md
+            !research/**/*.md
+            !demos/**/*.md
+            !adapters/**/*.md
+            !graphify-out/**/*.md
+            !.logs/**/*.md
+          config: .markdownlint.json
 
   format:
     name: Format Check
@@ -51,10 +73,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
@@ -68,10 +90,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run:
@@ -84,10 +106,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run:
@@ -101,7 +123,8 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Validate OpenAPI specs
+        shell: pwsh
         run: |
-          $specs = Get-ChildItem -Recurse -Filter "openapi*" -Name
+          $specs = Get-ChildItem -Path templates/api -Filter "openapi*" | ForEach-Object { $_.FullName }
           if (-not $specs) { echo "No OpenAPI specs found"; exit 0 }
           npx @redocly/cli lint $specs
