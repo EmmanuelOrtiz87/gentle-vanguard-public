@@ -105,7 +105,7 @@ async function searchViaNativeCrawler(query: string, limit: number): Promise<Arr
   try {
     const crawler = createWebCrawler();
     const results = await crawler.search(query, limit);
-    return results.map((r) => ({
+    return results.map((r: { title?: string; url?: string; description?: string; content?: string }) => ({
       title: r.title || '',
       url: r.url || '',
       snippet: r.description || r.content || '',
