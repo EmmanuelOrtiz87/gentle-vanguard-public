@@ -167,6 +167,7 @@
     "gv:protect": "npx tsx src/cli/protect.ts",
     "gv:installer": "npx tsx src/cli/create-installer.ts",
     "gv:verify-installer": "npx tsx src/cli/verify-installer.ts",
+    "audit:shell-quoting": "npx tsx src/check-shell-quoting.ts",
     "gv:launcher": "npx tsx build/Gentle-Vanguard-Launcher.ts",
     "gv:mermaid": "npx tsx src/cli/mermaid-renderer.ts",
     "gv:svg": "npx tsx src/cli/svg-generator.ts",
