@@ -1,18 +1,22 @@
 # Prerequisites - Gentle-Vanguard
 
-**Date**: 2026-05-03  
-**Description**: Complete list of required and optional tools for Gentle-Vanguard.
+**Date**: 2026-08-20  
+**Description**: Required tools and deterministic post-install verification for Gentle-Vanguard.
 
 ---
 
-## Automatic Installation
+## Important distinction
 
-```TypeScript
-# Option 1: Install everything automatically
-.\scripts\utilities\install-prerequisites.ps1
+The current `.exe` is a launcher/bootstrap artifact, not yet a fully self-contained offline
+installer. It does not silently install external runtimes or embed credentials. Use the installer
+doctor after setup and review every external download.
 
-# Option 2: Check status only
-.\scripts\utilities\install-prerequisites.ps1 -CheckOnly
+## Verification
+
+```bash
+npm run install:doctor -- --strict
+npm run db:init
+npm run watchtower:health
 ```
 
 ---
@@ -21,19 +25,18 @@
 
 | Tool        | Min Version | Purpose            | Installation                       |
 | ----------- | ----------- | ------------------ | ---------------------------------- |
-| **Node.js** | 18+         | JavaScript runtime | [nodejs.org](https://nodejs.org)   |
-| **npm**     | 9+          | Package manager    | Included with Node.js              |
+| **Node.js** | 20+         | JavaScript runtime | [nodejs.org](https://nodejs.org)   |
+| **npm**     | Included    | Package manager    | Included with Node.js              |
+| **pnpm**    | 11+         | Locked dependencies | `corepack enable` / `npm i -g pnpm` |
 | **Git**     | 2.30+       | Version control    | [git-scm.com](https://git-scm.com) |
 
 ---
 
-## Recommended (Automatic Installation)
+## Recommended (project-local tooling)
 
 ```TypeScript
-# These install automatically with the command above
-npm install -g lefthook
-npm install -g prettier
-npm install -g @commitlint/cli @commitlint/config-conventional
+# These are installed from package.json by pnpm install
+pnpm install --frozen-lockfile
 ```
 
 | Tool           | Purpose              | Installation                     |
@@ -88,23 +91,6 @@ pip install safety bandit
 - [ ] trufflehog
 - [ ] Python (for Python scripts)
 - [ ] TypeScript Core (pwsh)
-
----
-
-## Verification
-
-```TypeScript
-# Verify all tools
-.\scripts\utilities\install-prerequisites.ps1 -CheckOnly
-
-# Verify individually
-node --version
-npm --version
-git --version
-lefthook --version
-prettier --version
-trufflehog --version
-```
 
 ---
 

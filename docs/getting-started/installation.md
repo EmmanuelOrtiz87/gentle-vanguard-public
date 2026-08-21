@@ -7,12 +7,13 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 ### Required
 
 - **Git** - https://git-scm.com/
-- **TypeScript 7+** - https://aka.ms/TypeScript
+- **Node.js 20+** - https://nodejs.org/
+- **pnpm 11+** - `corepack enable` or `npm install --global pnpm`
 
 ### Recommended
 
-- **Go 1.21+** - For Go-based tools
-- **Node.js 20+** - For Node.js projects
+- **Go 1.21+** - For Engram and Go-based tools
+- **PowerShell 7+** - For Windows automation
 - **Docker** - For containerized development
 
 ## Quick Install
@@ -24,11 +25,17 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
-# Initialize workspace
-.\scripts\gentle-vanguard\src/cli/gv.ts init
+# Install locked dependencies
+corepack enable
+pnpm install --frozen-lockfile
 
-# Create your first project
-.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-project --kind service
+# Verify the machine and workspace
+npm run install:doctor -- --strict
+npm run db:init
+npm run watchtower:health
+
+# Start a session
+npx tsx src/session-autostart.ts
 ```
 
 ### Linux/macOS
@@ -38,11 +45,15 @@ cd gentle-vanguard
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
-# Initialize workspace
-pwsh ./scripts/gentle-vanguard/src/cli/gv.ts init
+# Install locked dependencies
+corepack enable
+pnpm install --frozen-lockfile
 
-# Create your first project
-pwsh ./scripts/gentle-vanguard/src/cli/gv.ts new --name my-project --kind service
+# Verify the machine and workspace
+npm run install:doctor -- --strict
+
+# Start a session
+npx tsx src/session-autostart.ts
 ```
 
 ## Detailed Setup
@@ -59,11 +70,8 @@ git config --global pull.rebase true
 ### 2. Install Tools
 
 ```TypeScript
-# Using the CLI
-.\scripts\gentle-vanguard\src/cli/gv.ts tools --install
-
-# Or manually
-.\scripts\gentle-vanguard\src/cli/gv.ts init
+# Validate required and optional tools without downloading anything
+npm run install:doctor -- --json
 ```
 
 ### 3. Install AI Tools (Optional but Recommended)
@@ -169,7 +177,7 @@ go test ./...  # Go
 
 ### "pwsh not found"
 
-Install TypeScript 7+ from https://aka.ms/TypeScript
+Install PowerShell 7+ from https://learn.microsoft.com/powershell/
 
 ### "Git not found"
 
