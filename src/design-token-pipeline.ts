@@ -14,7 +14,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, watchFile } from 'fs';
 import { resolve, dirname, basename } from 'path';
-import { runSyncShell } from './core/run-command.js';
+import { runNpxTsxSync } from './core/run-command.js';
 
 interface BrandConfig {
   name: string;
@@ -212,7 +212,7 @@ function main(): void {
 
   // Also regenerate SVG banners
   try {
-    runSyncShell(`npx tsx src/cli/svg-generator.ts --brand "${args.brand}" 2>nul`, {
+    runNpxTsxSync('src/cli/svg-generator.ts', ['--brand', args.brand], {
       timeout: 30000,
       stdio: ['pipe', 'pipe', 'ignore'],
     });

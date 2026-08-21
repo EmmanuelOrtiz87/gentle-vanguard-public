@@ -5,11 +5,9 @@
  * TS migration of scripts/utilities/OPTIMIZE/optimize-engram-usage.ps1
  */
 
-import { existsSync, unlinkSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, resolve } from 'path';
-import { runSync, runSyncShell } from './core/run-command.js';
-import { tmpdir } from 'os';
-import { randomUUID } from 'crypto';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
@@ -34,20 +32,12 @@ function resolveEngramBinary(): string | null {
 function runEngram(args: string[], allowFailure = false): string {
   const bin = resolveEngramBinary();
   if (!bin) throw new Error('Engram binary not found');
-  const stderrFile = join(tmpdir(), `engram-stderr-${randomUUID()}.txt`);
   try {
-    return runSyncShell(`"${bin}" ${args.join(' ')} 2>"${stderrFile}"`, {
-      timeout: 30000,
-    }).stdout;
+    // Array form: immune to cmd.exe quote-stripping (paths/args may contain spaces).
+    return runSync(bin, args, { timeout: 30000 }).stdout;
   } catch (e) {
     if (!allowFailure) throw e;
     return '';
-  } finally {
-    try {
-      if (existsSync(stderrFile)) unlinkSync(stderrFile);
-    } catch {
-      /* ignore */
-    }
   }
 }
 

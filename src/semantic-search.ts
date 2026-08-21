@@ -9,8 +9,8 @@
  *   npx tsx src/semantic-search.ts "error handling" --max-results 15 --format detailed
  */
 
-import { runSyncShell } from './core/run-command.js';
-import { existsSync } from 'fs';
+import { runSync } from './core/run-command.js';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
 interface SearchResult {
@@ -109,8 +109,8 @@ function grepSearch(query: string, maxResults: number): SearchResult[] {
   for (const pattern of searchPatterns) {
     if (seen.size >= maxResults) break;
     try {
-      // Use Node.js exec with error suppression (cross-platform)
-      const output = runSyncShell(`rg -n --no-heading -m 3 "${pattern}" --type ts "${srcDir}"`, {
+      // Array form: patterns may contain spaces — shell quoting is unreliable.
+      const output = runSync('rg', ['-n', '--no-heading', '-m', '3', pattern, '--type', 'ts', srcDir], {
         maxBuffer: 1024 * 1024,
         stdio: ['pipe', 'pipe', 'ignore'],
       }).stdout;
@@ -153,25 +153,17 @@ function tryCodeGraphSearch(query: string, maxResults: number): SearchResult[] |
     const codegraphIndex = resolve(process.cwd(), 'graphify-out', 'graph.json');
     if (!existsSync(codegraphIndex)) return null;
 
-    // Simple graphify query as extra source
+    // Simple graphify query as extra source (native read — no shell, no quoting issues)
     try {
-      const output = runSyncShell(
-        `npx --yes tsx -e "
-          const fs = require('fs');
-          const g = JSON.parse(fs.readFileSync('${codegraphIndex.replace(/\\/g, '\\\\')}', 'utf8'));
-          const nodes = g.nodes || [];
-          const q = '${query.toLowerCase()}';
-          const matches = nodes
-            .filter((n: any) => n.label && n.label.toLowerCase().includes(q))
-            .slice(0, ${maxResults})
-            .map((n: any) => ({ file: n.id || '', line: 0, content: n.label || '', relevance: 3 }));
-          console.log(JSON.stringify(matches));
-        " 2>nul || echo []`,
-        { maxBuffer: 1024 * 1024, timeout: 10000 },
-      ).stdout;
-      const parsed = JSON.parse(output.trim());
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed as SearchResult[];
+      const g = JSON.parse(readFileSync(codegraphIndex, 'utf8')) as { nodes?: unknown[] };
+      const nodes = Array.isArray(g.nodes) ? g.nodes : [];
+      const q = query.toLowerCase();
+      const matches = nodes
+        .filter((n: any) => n && typeof n.label === 'string' && n.label.toLowerCase().includes(q))
+        .slice(0, maxResults)
+        .map((n: any) => ({ file: n.id || '', line: 0, content: n.label || '', relevance: 3 }));
+      if (matches.length > 0) {
+        return matches as SearchResult[];
       }
     } catch {
       // codegraph query failed, fallback to grep
