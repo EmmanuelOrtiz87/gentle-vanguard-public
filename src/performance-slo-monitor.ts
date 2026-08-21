@@ -125,9 +125,9 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
         const lines = output
           .trim()
           .split('\n')
-          .filter((l) => l.trim() && !l.includes('Used') && !l.includes('"'));
+          .filter((l: string) => l.trim() && !l.includes('Used') && !l.includes('"'));
         for (const line of lines) {
-          const parts = line.split(',').map((p) => p.replace(/"/g, '').trim());
+          const parts = line.split(',').map((p: string) => p.replace(/"/g, '').trim());
           if (parts.length >= 2) {
             const used = parseInt(parts[0], 10);
             const free = parseInt(parts[1], 10);
