@@ -1,0 +1,1032 @@
+{
+  "version": "1.0.0",
+  "name": "session-autostart-config",
+  "description": "Configuration for session autostart pipeline - controls which steps run and their parameters",
+  "pipeline": {
+    "steps": [
+      {
+        "id": "model-enforcer",
+        "enabled": true,
+        "script": "src/model-enforcer.ts",
+        "args": "--apply",
+        "required": true,
+        "phase": 0,
+        "description": "Enforce free model (opencode/deepseek-v4-flash-free) when credits exhausted"
+      },
+      {
+        "id": "tool-detection",
+        "enabled": true,
+        "script": "src/core/detect-tool.ts",
+        "args": "--json",
+        "required": false,
+        "description": "Detect AI tool/agent and load tool-specific configuration (TS)"
+      },
+      {
+        "id": "bootstrap-symlink",
+        "enabled": true,
+        "script": "src/bootstrap-symlink.ts",
+        "args": "",
+        "required": true,
+        "phase": 0,
+        "description": "Auto-create @gentle-vanguard/core symlink for module resolution"
+      },
+      {
+        "id": "session-manager",
+        "enabled": true,
+        "script": "src/session-cleanup-start.ts",
+        "args": "--quiet --skip-cache-flush --skip-compression",
+        "required": true,
+        "phase": 0,
+        "description": "Initialize session ID and create session file (TS)"
+      },
+      {
+        "id": "session-cleanup",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/session-cleanup-start.ts",
+        "args": "-Quiet -SkipSessionInit -SkipCacheFlush",
+        "required": false,
+        "description": "Cleanup ligero al inicio (lazy): remueve sesiones stale >8h y cierra sesiones huerfanas. -SkipSessionInit impide regenerar la sesion que session-manager (phase 0) ya creo; -SkipCacheFlush evita resetear los caches de tokens que el daemon token-ingest esta escribiendo."
+      },
+      {
+        "id": "github-bypass",
+        "enabled": true,
+        "script": "src/ensure-github-bypass.ts",
+        "args": "--owner EmmanuelOrtiz87 --branch develop",
+        "required": false,
+        "description": "Ensure GitHub bypass policy for current user (TS)"
+      },
+      {
+        "id": "notifications",
+        "enabled": true,
+        "script": "src/session-notification.ts",
+        "args": "--timezone \"America/Argentina/Buenos_Aires\" --peak-start 9 --peak-end 15 --region \"Argentina\"",
+        "required": false,
+        "description": "Time-based peak hour notifications (TS)"
+      },
+      {
+        "id": "auth-session",
+        "enabled": false,
+        "script": "src/auth-session.ts",
+        "args": "",
+        "required": false,
+        "description": "Authenticate owner for restricted operations (TS)",
+        "note": "Disabled by default - auth is demand-driven, not at session start. Enable if session-level auth is required."
+      },
+      {
+        "id": "engram-policy",
+        "enabled": true,
+        "script": "src/engram-policy.ts",
+        "args": "",
+        "required": true,
+        "description": "Verify Engram is installed and running (TS)"
+      },
+      {
+        "id": "token-budget",
+        "enabled": true,
+        "script": "src/token-budget-guard.ts",
+        "args": "-Task session-start -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
+        "required": false,
+        "description": "Record session start for token budget tracking"
+      },
+      {
+        "id": "engram-integrity",
+        "enabled": true,
+        "script": "src/engram-integrity-check.ts",
+        "args": "-Mode status -Quiet",
+        "required": false,
+        "description": "Verify Engram integrity (SHA256 + SQLite + chunks) with auto-sync"
+      },
+      {
+        "id": "engram-backup",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/backup-engram.ts",
+        "args": "--mode backup --quiet",
+        "required": false,
+        "description": "Auto-backup Engram (DB + sessions + SHA256 checksums)"
+      },
+      {
+        "id": "cross-workspace-validation",
+        "enabled": true,
+        "script": "src/cross-workspace-validator.ts",
+        "args": "--detailed",
+        "required": false,
+        "description": "Validate cross-workspace consistency (TS)"
+      },
+      {
+        "id": "security-orchestrator",
+        "enabled": true,
+        "script": "src/security/security-orchestrator.ts",
+        "args": "init prompt",
+        "required": true,
+        "description": "Initialize Security Orchestrator with policy and privacy configs (TS)"
+      },
+      {
+        "id": "security-initializer",
+        "enabled": true,
+        "script": "src/security-initializer.ts",
+        "args": "",
+        "required": false,
+        "description": "Initialize enhanced security components (dependency checks, audit logging) (TS)"
+      },
+      {
+        "id": "dependency-security-initializer",
+        "enabled": true,
+        "script": "src/security/dependency-security-initializer.ts",
+        "args": "",
+        "required": false,
+        "description": "Initialize and enforce dependency security policies (TS)"
+      },
+      {
+        "id": "skill-router",
+        "enabled": true,
+        "script": "src/skills/skill-router.ts",
+        "args": "--query \"session-start\"",
+        "required": false,
+        "description": "Verify skill router is active (TS)"
+      },
+      {
+        "id": "karpathy-guidelines",
+        "enabled": true,
+        "script": "src/karpathy-enforcer.ts",
+        "args": "--trigger session-start --verbose",
+        "required": false,
+        "description": "Enforce Karpathy guidelines (Think, Simplicity, Surgical, Goal-Driven) (TS)"
+      },
+      {
+        "id": "session-metrics-start",
+        "enabled": true,
+        "script": "src/session-metrics-tracker.ts",
+        "args": "--action start",
+        "required": false,
+        "description": "Initialize session metrics tracking (tokens, tool calls, files) (TS)"
+      },
+      {
+        "id": "session-scoring",
+        "enabled": true,
+        "script": "src/session-scoring.ts",
+        "args": "-Action init",
+        "required": false,
+        "description": "Initialize quality scoring system with baseline metrics"
+      },
+      {
+        "id": "session-close-orchestrator",
+        "enabled": false,
+        "lazy": true,
+        "script": "src/session-close-orchestrator.ts",
+        "args": "--reason autostart-close",
+        "required": false,
+        "description": "DISABLED at autostart: running the close protocol at session START killed the freshly-started daemons (codegraph/timeout/dashboard). Session close must only run on real close (session-close-orchestrator.ts invoked explicitly)."
+      },
+      {
+        "id": "session-close-validator",
+        "enabled": false,
+        "lazy": true,
+        "script": "src/session-close-validator.ts",
+        "args": "--mode quick --report",
+        "required": false,
+        "description": "DISABLED at autostart: pairs with the close orchestrator; validation of a close that never ran at startup is meaningless."
+      },
+      {
+        "id": "token-metrics-init",
+        "enabled": true,
+        "script": "src/token-metrics-store.ts",
+        "args": "--action init",
+        "required": false,
+        "description": "Initialize token metrics database for historical tracking (TS)"
+      },
+      {
+        "id": "adaptive-opencode-profile",
+        "enabled": true,
+        "script": "src/adaptive-opencode-profile.ts",
+        "args": "--mode Auto --timezone \"America/Argentina/Buenos_Aires\" --peak-start 9 --peak-end 15",
+        "required": false,
+        "description": "Intelligent temporary OpenCode optimization with automatic restore when normalized (TS)"
+      },
+      {
+        "id": "adaptive-codex-windsurf-profile",
+        "enabled": true,
+        "script": "src/adaptive-codex-windsurf-profile.ts",
+        "args": "--mode Auto --timezone \"America/Argentina/Buenos_Aires\" --peak-start 9 --peak-end 15",
+        "required": false,
+        "description": "Intelligent temporary Codex/Windsurf optimization with automatic restore when normalized (TS)"
+      },
+      {
+        "id": "lefthook-verify",
+        "enabled": true,
+        "script": "src/lefthook-verify.ts",
+        "args": "",
+        "required": false,
+        "description": "Verify Lefthook CLI + hooks are installed (post-commit/post-merge for CodeGraph auto-sync) (TS)"
+      },
+      {
+        "id": "codegraph-mcp-server-start",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/codegraph-mcp-server-start.ts",
+        "args": "",
+        "required": false,
+        "description": "Start CodeGraph MCP server in background â€” makes codegraph tools available to OpenCode immediately (v8.0.2)"
+      },
+      {
+        "id": "codegraph-sync",
+        "enabled": true,
+        "script": "src/codegraph-sync-autostart.ts",
+        "args": "",
+        "required": false,
+        "description": "Verify CodeGraph index freshness and sync if stale (>30min old) (TS)"
+      },
+      {
+        "id": "metrics-collection",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/metrics-collector.ts",
+        "args": "--scope full --quiet",
+        "required": false,
+        "description": "Auto-collect metrics after session start for live dashboard (TS)"
+      },
+      {
+        "id": "dashboard-ws-start",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/dashboard-ws-autostart.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Start React WebSocket metrics server with watchdog auto-recovery â€” serves LLM observability dashboard on port 8080/5173 (TS)"
+      },
+      {
+        "id": "dashboard-operational-metrics",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/core/operational-metrics-tracker.ts",
+        "args": "--mode background --refresh-interval 30",
+        "required": false,
+        "description": "Calculate and persist operational metrics (velocity, efficiency, productivity, quality) every 30s for dashboard (TS)"
+      },
+      {
+        "id": "post-autostart-summary",
+        "enabled": true,
+        "script": "src/post-autostart-summary.ts",
+        "args": "-TimeZone \"Argentina Standard Time\" -PeakStart 9 -PeakEnd 15 -Region \"Argentina\"",
+        "required": false,
+        "description": "Generate startup-summary.json with peak hour, session ID, workspace state"
+      },
+      {
+        "id": "knowledge-base-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/knowledge-base-init.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Initialize Knowledge Base vault, validate structure, and run full sync with Engram/documents (TS)"
+      },
+      {
+        "id": "skill-recommendation",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/skills/skill-recommender.ts",
+        "args": "-Proactive -TopN 3",
+        "required": false,
+        "description": "Recomienda skills relevantes basado en el contexto actual del workspace (git branch, archivos modificados, commits recientes)"
+      },
+      {
+        "id": "skill-usage-scan",
+        "enabled": true,
+        "script": "src/skills/skill-usage-tracker.ts",
+        "args": "",
+        "required": false,
+        "description": "Inicializa/escanea mÃ©tricas de uso de skills al inicio de sesion (TS)"
+      },
+      {
+        "id": "skill-nudge-check",
+        "enabled": false,
+        "script": "src/skills/skill-nudge.ts",
+        "args": "--report",
+        "required": false,
+        "description": "Reporta nudges pendientes de skills al inicio (desactivado por defecto, corre al cerrar) (TS)"
+      },
+      {
+        "id": "skill-size-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/check-skill-sizes.ts",
+        "args": "--warn-only",
+        "required": false,
+        "description": "Audita skills que exceden limites de tokens/lineas y recomienda split a references/ (TS)"
+      },
+      {
+        "id": "post-autostart-consistency-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/post-autostart-summary.ts",
+        "args": "",
+        "required": false,
+        "description": "Refresca startup-summary.json como ultimo paso para asegurar datos actuales post-pipeline (lazy)"
+      },
+      {
+        "id": "document-analysis-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/document-analysis-init.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Inicializar Document Analysis Skill - sidecar Python + conectores Jira/Confluence (TS)"
+      },
+      {
+        "id": "token-notification-init",
+        "enabled": false,
+        "script": "src/token-metrics-store.ts",
+        "args": "--action init --quiet",
+        "required": false,
+        "description": "Inicializa sistema de notificaciones de tokens al inicio de sesion (TS)"
+      },
+      {
+        "id": "token-session-banner",
+        "enabled": true,
+        "script": "src/token-session-banner.ts",
+        "args": "",
+        "required": false,
+        "description": "Muestra al inicio de sesion los tokens consumidos por el stack y los restantes de la sesion (input/output/total)"
+      },
+      {
+        "id": "json-validator-verify",
+        "enabled": true,
+        "script": "src/json-validator.ts",
+        "args": "--json-string '{\"test\":\"ok\"}' --context startup-verify",
+        "required": false,
+        "description": "Verifica que el validador JSON esta operativo al inicio de sesion (TS)"
+      },
+      {
+        "id": "opencode-config-validate",
+        "enabled": true,
+        "script": "src/validate-opencode-config.ts",
+        "args": "--config opencode.json --timeout 10000",
+        "required": true,
+        "description": "Valida que opencode.json tenga configuraciones críticas para Gentle-Vanguard (previene crash y protege stack) (TS)",
+        "phase": 1,
+        "skipOnFailure": false,
+        "timeout": 15000,
+        "retries": 2,
+        "retryDelay": 1000
+      },
+      {
+        "id": "validate-tool-configs",
+        "enabled": true,
+        "script": "src/core/validate-tool-configs.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Valida tool configs (.windsurf, .continue, .clinerules) contra schemas oficiales (TS)"
+      },
+      {
+        "id": "maintenance-watchtower",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/core/maintenance-watchtower.ts",
+        "args": "-Action autoheal -Quiet",
+        "required": false,
+        "description": "Health check completo + auto-healing de componentes caÃ­dos al inicio de sesiÃ³n. Corre en background (lazy)."
+      },
+      {
+        "id": "post-mortem-trigger",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/post-mortem-trigger.ts",
+        "args": "--after-heal",
+        "required": false,
+        "description": "Post-mortem automation â€” runs self-diagnosis after watchtower auto-heal, logs incidents to Nexus + audit."
+      },
+      {
+        "id": "design-token-pipeline",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/design-token-pipeline.ts",
+        "args": "",
+        "required": false,
+        "description": "Design Token Pipeline â€” generates assets/tokens.css, tokens.json, tokens.scss from config/brand.json."
+      },
+      {
+        "id": "digest-generator",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/digest-generator.ts",
+        "args": "--mode status --show",
+        "required": false,
+        "description": "Genera digest de inicio de sesion con health, feedback trends, proposals pendientes (TS)"
+      },
+      {
+        "id": "fine-tuning-data-collect",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/fine-tuning-data-collector.ts",
+        "args": "--source all",
+        "required": false,
+        "description": "Auto-colecta datos de sesiones, engram, skills para fine-tuning dataset (TS)"
+      },
+      {
+        "id": "judgment-day-correction",
+        "enabled": true,
+        "script": "src/correction-rules-engine.ts",
+        "args": "-Mode check -Quiet",
+        "required": false,
+        "lazy": true,
+        "description": "Execute auto-correction rules based on session quality scoring (Phase 1 v4.0)"
+      },
+      {
+        "id": "token-budget-guard-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-budget-guard.ts",
+        "args": "-Task session-metrics -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
+        "required": false,
+        "description": "Initialize token budget tracking for session metrics (consolidated from cloud-connectors)"
+      },
+      {
+        "id": "tracing-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tracing-instrument.ts",
+        "args": "-Action start -SpanName session-start -ServiceName gentle-vanguard -Quiet",
+        "required": false,
+        "description": "Initialize distributed tracing span for this session â€” sends OTLP to collector (Phase 1.3)"
+      },
+      {
+        "id": "checkpoint-auto-create",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/checkpoint-manager.ts",
+        "args": "create",
+        "required": false,
+        "description": "Auto-create session state checkpoint at session start for rollback safety (TS)"
+      },
+      {
+        "id": "audit-pipeline-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/infrastructure/audit-pipeline.ts",
+        "args": "-Action log -EventType session.start -Component system -Operation autostart -Actor system -Status success -Message Session-autostart-pipeline-initialized -Quiet",
+        "required": false,
+        "description": "Log session start in the audit pipeline for SOC2/GDPR compliance (Phase 3)"
+      },
+      {
+        "id": "event-sourcing-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/event-sourcing.ts",
+        "args": "-Action append -AggregateId session-autostart -EventType session.started -EventData '{}' -Quiet",
+        "required": false,
+        "description": "Record session start event in append-only event store for traceability (Phase 5)"
+      },
+      {
+        "id": "auto-norm-learner",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/auto-norm-learner.ts",
+        "args": "--trigger=session-start --quiet",
+        "required": false,
+        "description": "Auto-learn norms from session patterns and update LEARNED-NORMS.md (meta-cognitive learning)"
+      },
+      {
+        "id": "post-session-learning",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/post-autostart-summary.ts",
+        "args": "-FinalReportMode",
+        "required": false,
+        "description": "Generate final session report + auto-learned patterns for next session"
+      },
+      {
+        "id": "cost-tracker-init",
+        "enabled": true,
+        "script": "src/cost-tracker.ts",
+        "args": "--action status --quiet",
+        "required": false,
+        "description": "Initialize cost tracking and show daily budget status at session start (TS)"
+      },
+      {
+        "id": "planning-estimator-verify",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/planning-estimator.ts",
+        "args": "--action report --task-type feature --complexity 1 --files-changed 1 --lines-changed 10 --quiet",
+        "required": false,
+        "description": "Verify planning estimator is operational at session start (TS)"
+      },
+      {
+        "id": "engram-auto-reindex",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/engram-rag-reindex.ts",
+        "args": "--project workspace_gentle_vanguard",
+        "required": false,
+        "description": "Auto-reindex Engram RAG if older than 24 hours (prevents freshness WARN)"
+      },
+      {
+        "id": "knowledge-base-sync",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/knowledge-base-sync.ts",
+        "args": "--mode session-summary --quiet",
+        "required": false,
+        "description": "Auto-sync Engram memory to Knowledge Base vault (session summary)"
+      },
+      {
+        "id": "engram-auto-compact",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/engram-auto-compact.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Auto-compact old engram observations (>90 days) (TS)"
+      },
+      {
+        "id": "engram-auto-update",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/engram-auto-update.ts",
+        "args": "--check-only",
+        "required": false,
+        "description": "Check for engram updates and install if available â€” validates post-update (auto-evolution)"
+      },
+      {
+        "id": "gentle-ai-monitor",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/gentle-ai-monitor.ts",
+        "args": "--analyze-release",
+        "required": false,
+        "description": "Monitor gentle-ai releases without installation â€” analyzes and generates suggestions (alignment)"
+      },
+      {
+        "id": "ml-embeddings-incremental",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/skills/skill-embedder-incremental.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Incrementally update skill embeddings on session start (TS)"
+      },
+      {
+        "id": "maintenance-auto-prune",
+        "script": "src/checkpoint-manager.ts",
+        "args": "prune",
+        "lazy": true,
+        "enabled": true,
+        "required": false,
+        "description": "Auto-prune old checkpoints (>14 days), compact event store, clean graphify snapshots on session start"
+      },
+      {
+        "id": "tenant-context",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tenant-context.ts",
+        "args": "--action get",
+        "required": false,
+        "description": "Resolve tenant context (multi-tenant isolation v5.1) (TS)"
+      },
+      {
+        "id": "eval-quality-gate",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/eval-quality-gate.ts",
+        "args": "--suite=codegraph-search --export",
+        "required": false,
+        "description": "Run eval quality gates on core skills (v5.1) (TS)"
+      },
+      {
+        "id": "self-heal-status",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/multitenant/ci-rollback-engine.ts",
+        "args": "--action status",
+        "required": false,
+        "description": "Check CI/CD self-healing status (v5.1) (TS)"
+      },
+      {
+        "id": "auto-code-review",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/auto-code-review.ts",
+        "args": "--action pre-commit",
+        "required": false,
+        "description": "Autonomous code review on staged files (v6.0) (TS)"
+      },
+      {
+        "id": "receipt-manager-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "scripts/utilities/ops/REVIEW/receipt-manager.ts",
+        "args": "list",
+        "required": false,
+        "description": "Initialize receipt manager â€” validates review receipts bound to Git candidates (Gentle AI alignment)"
+      },
+      {
+        "id": "staged-review-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "scripts/utilities/ops/REVIEW/staged-review.ts",
+        "args": "status",
+        "required": false,
+        "description": "Check staged review session status â€” supports staged index review (Gentle AI alignment)"
+      },
+      {
+        "id": "mcp-gateway-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/mcp-native/mcp-gateway.ts",
+        "args": "-Action start -Quiet",
+        "required": false,
+        "description": "Start MCP Native gateway at session start (v6.4)"
+      },
+      {
+        "id": "db-health-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "scripts/recovery/db-health-check.ts",
+        "args": "",
+        "required": false,
+        "description": "Validate SQLite database integrity (CodeGraph + Engram) on session start â€” auto-repairs WAL/REINDEX issues"
+      },
+      {
+        "id": "db-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/database/db-init.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Initialize gentle-vanguard.db (auto-creates DB, runs all pending migrations, outputs health info) â€” idempotent, safe to run every session (Wave 34)"
+      },
+      {
+        "id": "db-prune",
+        "enabled": true,
+        "lazy": true,
+        "script": "scripts/database/db-prune.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Prune old data from gentle-vanguard.db stack tables â€” events >30d, cache >7d, token_usage >90d, orphaned skill_usage (Wave 37 D)"
+      },
+      {
+        "id": "token-monthly-summary",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-monthly-summary.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Genera resumen automatico del consumo de tokens de los ultimos 30 dias y lo persiste en docs/sessions/metrics/monthly/"
+      },
+      {
+        "id": "self-reflection",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/self-reflection-loop.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Self-reflection loop â€” analyze patterns, generate insights, suggest improvements (meta-cognitive)"
+      },
+      {
+        "id": "knowledge-synthesizer",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/knowledge-synthesizer.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Knowledge Synthesizer â€” cross-session knowledge distillation, concept mapping, trend and gap analysis"
+      },
+      {
+        "id": "adaptive-router",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/adaptive-router.ts",
+        "args": "--build --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Adaptive Router DinÃ¡mico â€” dynamic routing from historical performance data"
+      },
+      {
+        "id": "adaptive-steps",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/adaptive-steps.ts",
+        "args": "--status",
+        "required": false,
+        "phase": 99,
+        "description": "Adaptive Steps â€” auto-scale orchestrator/subagent step budgets from task complexity so agents never block on insufficient limits"
+      },
+      {
+        "id": "predictive-governor",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/predictive-governor.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Predictive Resource Governor — anticipate load, prewarm resources, adjust budgets"
+      },
+      {
+        "id": "proactive-intelligence",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/proactive-intelligence-engine.ts",
+        "args": "--analyze --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Proactive Intelligence Engine — anticipates user needs based on usage patterns and context"
+      },
+      {
+        "id": "root-cause-correlator",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/root-cause-correlator.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Root-Cause Correlator â€” cross-component failure correlation and cascade detection"
+      },
+      {
+        "id": "skill-evolution-engine",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/skills/skill-evolution-engine.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Skill & Agent Evolution Engine â€” analyze usage, detect gaps, suggest refinements, deprecate unused"
+      },
+      {
+        "id": "convergence-monitor",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/convergence-monitor.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Convergence Monitor â€” tracks if the stack is converging, oscillating, or diverging (stage #7)"
+      },
+      {
+        "id": "findings-ledger-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/findings-ledger.ts",
+        "args": "--report --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Findings Ledger â€” structured lifecycle for review findings (stage #8 trust layer)"
+      },
+      {
+        "id": "compact-state-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/compact-state.ts",
+        "args": "--gc --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Compact State Machine â€” formal state machine for review transactions with CAS (stage #8 trust layer)"
+      },
+      {
+        "id": "review-lenses-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/review-lenses.ts",
+        "args": "--risk medium --target src --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Review Lenses â€” 4-lens review with risk-signal selection (stage #8 trust layer)"
+      },
+      {
+        "id": "result-gatekeeper-verify",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/result-gatekeeper.ts",
+        "args": "--verify all --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Result Gatekeeper â€” contract validation between pipeline phases (stage #8 trust layer)"
+      },
+      {
+        "id": "publication-gates",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/publication-gates.ts",
+        "args": "--prune --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Publication Gates â€” TOCTOU and stale-approval prevention (stage #8 trust layer)"
+      },
+      {
+        "id": "rdd-initializer",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/rdd/rdd-core.ts",
+        "args": "status --json",
+        "required": false,
+        "description": "RDD Initializer â€” Receipt-Driven Development system initialization (native, no gentle-ai CLI dependency)"
+      },
+      {
+        "id": "rdd-risk-classifier-verify",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/rdd/risk-classifier.ts",
+        "args": "classify --json --staged",
+        "required": false,
+        "description": "RDD Risk Classifier â€” Evidence-based risk classification for staged changes (native)"
+      },
+      {
+        "id": "response-cache-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/response-cache.ts",
+        "args": "stats",
+        "required": false,
+        "description": "Initialize SHA256 Response Cache and show statistics"
+      },
+      {
+        "id": "cost-efficiency-score",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/cost-efficiency-scorer.ts",
+        "args": "score",
+        "required": false,
+        "description": "Calculate and record cost efficiency score for session"
+      },
+      {
+        "id": "auto-optimization",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/auto-optimizer.ts",
+        "args": "--mode auto",
+        "required": false,
+        "description": "Auto-optimize stack based on session metrics and learned patterns"
+      },
+      {
+        "id": "auto-apply-safe",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/auto-apply-safe.ts",
+        "args": "--apply --quiet",
+        "required": false,
+        "description": "Auto-apply safe optimizations (budget, deprecations, norms) with rollback protection — cierra el ciclo de autonomÃ­a ejecutiva"
+      },
+      {
+        "id": "timeout-monitor-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/start-monitor-daemon.ts",
+        "args": "",
+        "required": false,
+        "description": "Start timeout & performance monitoring daemon (detached) â€” tracks violations, measures latencies, emits alerts"
+      },
+      {
+        "id": "timeout-config-verify",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/core/timeout-config.ts",
+        "args": "",
+        "required": false,
+        "description": "Verify centralized timeout configuration is valid and accessible"
+      },
+      {
+        "id": "prompt-compression-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/prompt-compression.ts",
+        "args": "--stats --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Prompt compression engine â€” skill-aware extractive compression, token-budget adaptive, pre-process pipeline integration"
+      },
+      {
+        "id": "output-compression-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/output-compression.ts",
+        "args": "--stats --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Output compression engine â€” profile-based response compression with abbreviations and causal notation"
+      },
+      {
+        "id": "chat-level-enforcer-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/chat-level-enforcer.ts",
+        "args": "--status --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Chat level enforcer â€” enforces chat-compact/balanced/detailed levels with break-glass override support"
+      },
+      {
+        "id": "token-optimization-orchestrator-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-optimization-orchestrator.ts",
+        "args": "--status --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Token optimization orchestrator â€” coordinates input/output compression, chat enforcement, and response caching"
+      },
+      {
+        "id": "summarize-wipe",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/summarize-wipe.ts",
+        "args": "auto",
+        "required": false,
+        "phase": 99,
+        "description": "Context compaction engine â€” auto-checks token budget, compacts session if above threshold, wipes old context"
+      },
+      {
+        "id": "model-provider-heal",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/model-provider-healer.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 90,
+        "description": "Model provider health â€” detecta errores de proveedor LLM (UnsupportedParamsError/Bedrock/Model not found) en opencode.log y auto-switch al modelo nativo"
+      },
+      {
+        "id": "token-ingest-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-ingest.ts",
+        "args": "--watch 30",
+        "required": false,
+        "phase": 90,
+        "description": "Token Ingest AGNÃSTICO â€” lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/cursor) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesiÃ³n hasta el cierre."
+      },
+      {
+        "id": "web-crawler-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/web-crawler-init.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Initialize Firecrawl web crawler â€” validate config + API key, snapshot health to .runtime/web-crawler-health.json (web research)"
+      },
+      {
+        "id": "adaptive-router-build",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/adaptive-router.ts",
+        "args": "--build --quiet",
+        "required": false,
+        "description": "Rebuild adaptive routing table from historical skill-usage/delegations (9 domain agents + 10 high-priority overrides, cold-start seed)"
+      },
+      {
+        "id": "web-research-adhoc",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/web-research-select.ts",
+        "args": "--query \"AI agent orchestration and LLM observability best practices\" --limit 3 --threshold 0.3",
+        "required": false,
+        "description": "M5 selective web acquisition: search (Firecrawl→DDG→Bing) → BM25 grade → filter → persist to .session/web-research/"
+      },
+      {
+        "id": "module-maturity-validate",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/module-maturity.ts",
+        "args": "--status",
+        "required": false,
+        "description": "Validate module maturity registry — surface gated experimental modules and deprecated entries at session start (Phase 1 maturity governance)"
+      },
+      {
+        "id": "plugin-registry-load",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/plugin-manager.ts",
+        "args": "list --quiet",
+        "required": false,
+        "description": "Load local-first plugin registry at session start — discovers plugins/ and ~/.gentle-vanguard/plugins, validates manifests, persists enabled state (non-blocking)"
+      }
+    ],
+    "onStepFailure": "continue",
+    "requiredStepFailureAction": "exit"
+  },
+  "notifications": {
+    "timeZone": "Argentina Standard Time",
+    "peakStart": 9,
+    "peakEnd": 15,
+    "region": "Argentina"
+  },
+  "sessionDirectory": ".session",
+  "sessionFilePattern": "session-{date}-{number:D2}.json",
+  "sessionExpiryHours": 8,
+  "auth": {
+    "integrateWithAutostart": false,
+    "requireAuthForRestrictedOps": true,
+    "sessionAuthFile": ".workspace/config/session-auth.json",
+    "ownerAuthFile": "config/owner-auth.json",
+    "lockoutFile": "config/owner-auth.json.lock",
+    "encryptedAuthFile": "config/owner-auth.json.enc"
+  },
+  "orphanSessionCleanup": {
+    "enabled": true,
+    "maxAgeHours": 24,
+    "statusesToClean": ["active", "orphaned", "ended"],
+    "description": "Clean up sessions left in 'active' status after maxAgeHours (crash recovery)"
+  }
+}
