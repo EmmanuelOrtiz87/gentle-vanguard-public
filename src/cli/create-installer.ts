@@ -61,6 +61,82 @@ function sha256(filePath: string): string {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
+interface SignOutcome {
+  status: 'signed' | 'skipped' | 'failed';
+  detail: string;
+}
+
+/**
+ * Optional Authenticode signing. Runs only when explicitly configured:
+ *   GV_SIGNTOOL_PATH      — full path to signtool.exe (or on PATH)
+ *   GV_SIGNING_CERT       — path to .pfx certificate
+ *   GV_SIGNING_CERT_PASSWORD — certificate password (optional if prompt-free pfx)
+ * Unsigned installers trigger SmartScreen; the skip is reported honestly.
+ */
+function trySignInstaller(installerPath: string): SignOutcome {
+  const cert = process.env.GV_SIGNING_CERT;
+  const certPassword = process.env.GV_SIGNING_CERT_PASSWORD;
+  const signtool =
+    process.env.GV_SIGNTOOL_PATH ??
+    ['signtool.exe', 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64\\signtool.exe'].find(
+      (p) => {
+        try {
+          return runSync(p, ['/?' ], { timeout: 10000 }).status === 0;
+        } catch {
+          return false;
+        }
+      },
+    );
+
+  if (!cert || !signtool) {
+    return {
+      status: 'skipped',
+      detail:
+        'no signing configured (set GV_SIGNTOOL_PATH + GV_SIGNING_CERT to sign). Installer will show SmartScreen warning.',
+    };
+  }
+
+  const signArgs = [
+    'sign',
+    '/f',
+    cert,
+    ...(certPassword ? ['/p', certPassword] : []),
+    '/tr',
+    process.env.GV_TIMESTAMP_URL ?? 'http://timestamp.digicert.com',
+    '/td',
+    'sha256',
+    '/fd',
+    'sha256',
+    installerPath,
+  ];
+  try {
+    const result = runSync(signtool, signArgs, { timeout: 120000 });
+    if (result.status === 0) return { status: 'signed', detail: `signed with ${cert}` };
+    return { status: 'failed', detail: `signtool exit code ${result.status}` };
+  } catch (err) {
+    return { status: 'failed', detail: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** cmd shim that repairs an existing installation (re-run bootstrap + doctor). */
+function repairCmd(): string {
+  return [
+    '@echo off',
+    'setlocal',
+    'cd /d "%~dp0"',
+    'echo ==============================================',
+    'echo  Gentle-Vanguard Repair',
+    'echo ==============================================',
+    'echo [1/2] Re-verifying environment (doctor)...',
+    'call npm run install:doctor || (echo [!] Doctor reported issues - continuing with bootstrap)',
+    'echo [2/2] Re-running bootstrap (repairs dependencies and runtime state)...',
+    'call npm run install:bootstrap -- --full',
+    'echo.',
+    'echo Repair finished. You can close this window.',
+    'pause',
+  ].join('\r\n');
+}
+
 /** cmd shim executed from the Finish page on a clean machine. */
 function bootstrapCmd(): string {
   return [
@@ -155,6 +231,7 @@ Section "Core" SecCore
 
   CreateDirectory "$SMPROGRAMS\\\${PRODUCT_NAME}"
   CreateShortcut "$SMPROGRAMS\\\${PRODUCT_NAME}\\\${PRODUCT_NAME}.lnk" "$INSTDIR\\bootstrap.cmd"
+  CreateShortcut "$SMPROGRAMS\\\${PRODUCT_NAME}\\Repair Gentle-Vanguard.lnk" "$INSTDIR\\repair.cmd"
   CreateShortcut "$SMPROGRAMS\\\${PRODUCT_NAME}\\Uninstall.lnk" "$INSTDIR\\uninstall.exe"
   WriteUninstaller "$INSTDIR\\uninstall.exe"
 SectionEnd
@@ -185,10 +262,11 @@ function main(): void {
   ok(`${staged.copiedEntries.length} entries staged -> ${STAGE_DIR}`);
   if (staged.skippedSecretPaths.length > 0) ok(`Refused secret paths: ${staged.skippedSecretPaths.join(', ')}`);
 
-  // Phase 2: bootstrap.cmd shim
-  step('Phase 2: Writing bootstrap.cmd');
+  // Phase 2: bootstrap.cmd + repair.cmd shims
+  step('Phase 2: Writing bootstrap.cmd and repair.cmd');
   writeFileSync(join(STAGE_DIR, 'bootstrap.cmd'), bootstrapCmd(), 'utf8');
-  ok('bootstrap.cmd written');
+  writeFileSync(join(STAGE_DIR, 'repair.cmd'), repairCmd(), 'utf8');
+  ok('bootstrap.cmd + repair.cmd written');
 
   // Phase 3: Generate NSI
   step('Phase 3: Generating NSIS script');
@@ -224,6 +302,17 @@ function main(): void {
   writeFileSync(`${installerPath}.sha256`, `${checksum}  ${`Gentle-Vanguard-Setup-${version}.exe`}\n`, 'utf8');
   ok(`Installer: ${installerPath}`);
   ok(`SHA256: ${checksum}`);
+
+  // Phase 6: Optional Authenticode signing (honest skip when unconfigured)
+  step('Phase 6: Code signing');
+  const sign = trySignInstaller(installerPath);
+  if (sign.status === 'signed') ok(`Signed: ${sign.detail}`);
+  else if (sign.status === 'skipped') console.log(`  [SKIP] ${sign.detail}`);
+  else {
+    console.error(`  [ERROR] Signing failed: ${sign.detail}`);
+    process.exit(1);
+  }
+
   step('Build complete');
 }
 

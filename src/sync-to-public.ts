@@ -26,7 +26,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { runSyncShell } from './core/run-command.js';
+import { runSync } from './core/run-command.js';
 
 interface SyncOptions {
   privateRepo: string;
@@ -357,22 +357,32 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 }
 
 /**
- * Commit and push to ALL remote branches.
+ * Commit and push to distribution branches (main, develop).
+ *
+ * Git commands use array form (runSync) — never shell strings — because
+ * `cmd /d /s /c` + Node arg quoting strips inner quotes, turning
+ * `git commit -m "sync: automated ..."` into pathspec errors (silent no-op).
+ * Every command's exit status is validated; failures are loud.
  */
 function pushToAllBranches(opts: SyncOptions): void {
   const { publicRepo } = opts;
-  const run = (cmd: string, cwd?: string): string =>
-    runSyncShell(cmd, { cwd: cwd ?? publicRepo, stdio: ['pipe', 'pipe', 'pipe'] }).stdout;
+  const git = (args: string[]): string => {
+    const r = runSync('git', args, { cwd: publicRepo, timeout: 180000 });
+    if (r.status !== 0) {
+      throw new Error(`git ${args.join(' ')} → exit ${r.status}: ${(r.stderr || r.stdout).slice(0, 300)}`);
+    }
+    return r.stdout;
+  };
 
   try {
-    run('git fetch origin --prune');
+    git(['fetch', 'origin', '--prune']);
   } catch {
     console.log('[WARN] git fetch origin failed — continuing with current refs');
   }
 
   let remoteBranches: string[] = [];
   try {
-    remoteBranches = run('git branch -r')
+    remoteBranches = git(['branch', '-r'])
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter((l) => /^origin\/(\S+)/.test(l) && !l.includes('->'))
@@ -381,11 +391,18 @@ function pushToAllBranches(opts: SyncOptions): void {
     // no remote refs
   }
   if (remoteBranches.length === 0) remoteBranches = ['main'];
+  // Only sync real distribution branches — never dependabot/feature PR branches.
+  const SYNC_BRANCHES = new Set(['main', 'develop']);
+  const skipped = remoteBranches.filter((b) => !SYNC_BRANCHES.has(b));
+  remoteBranches = remoteBranches.filter((b) => SYNC_BRANCHES.has(b));
+  if (skipped.length > 0) {
+    console.log(`[SKIP] Non-distribution branches excluded from sync: ${skipped.join(', ')}`);
+  }
   console.log(`[DETECT] Remote branches: ${remoteBranches.join(', ')}`);
 
   let priorBranch = 'main';
   try {
-    priorBranch = run('git branch --show-current').trim();
+    priorBranch = git(['branch', '--show-current']).trim();
   } catch {
     // detached
   }
@@ -395,7 +412,7 @@ function pushToAllBranches(opts: SyncOptions): void {
 
     const localBranch = (() => {
       try {
-        return run(`git branch --list ${branch}`);
+        return git(['branch', '--list', branch]);
       } catch {
         return '';
       }
@@ -403,9 +420,9 @@ function pushToAllBranches(opts: SyncOptions): void {
 
     try {
       if (localBranch.trim().length === 0) {
-        run(`git checkout -B ${branch} origin/${branch}`);
+        git(['checkout', '-B', branch, `origin/${branch}`]);
       } else {
-        run(`git checkout ${branch}`);
+        git(['checkout', branch]);
       }
     } catch (err) {
       console.log(`[WARN] Could not checkout ${branch}: ${String(err)}`);
@@ -413,35 +430,47 @@ function pushToAllBranches(opts: SyncOptions): void {
     }
 
     try {
-      run(`git reset --hard origin/${branch}`);
-    } catch {
-      console.log(`[WARN] Could not reset to origin/${branch} — skipping`);
+      git(['reset', '--hard', `origin/${branch}`]);
+    } catch (err) {
+      console.log(`[WARN] Could not reset to origin/${branch} — skipping: ${String(err)}`);
       continue;
     }
 
     syncFilesToBranch(opts, publicRepo);
 
-    try {
-      run('git add .');
-      const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
-      const commitMsg = `sync: automated sync from private repo - ${timestamp}`;
-      run(`git commit -m "${commitMsg}"`);
+    const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const commitMsg = `sync: automated sync from private repo - ${timestamp}`;
+    const addResult = runSync('git', ['add', '.'], { cwd: publicRepo, timeout: 120000 });
+    if (addResult.status !== 0) {
+      console.log(`[FAIL] git add . on '${branch}': ${(addResult.stderr || '').slice(0, 300)}`);
+      continue;
+    }
+    const commitResult = runSync('git', ['commit', '-m', commitMsg], { cwd: publicRepo, timeout: 60000 });
+    if (commitResult.status === 0) {
       console.log(`[OK] Committed to '${branch}': ${commitMsg}`);
-      try {
-        run(`git push origin ${branch}`);
-        console.log(`[OK] Pushed to origin/${branch}`);
-      } catch (err) {
-        console.log(`[FAIL] Push to ${branch} failed: ${String(err)}`);
-      }
-    } catch {
+    } else if (/nothing to commit/i.test(`${commitResult.stdout}${commitResult.stderr}`)) {
       console.log(`i  Nothing to commit on '${branch}' — up to date`);
+      continue;
+    } else {
+      console.log(
+        `[FAIL] Commit on '${branch}' → exit ${commitResult.status}: ${(commitResult.stderr || commitResult.stdout).slice(0, 300)}`,
+      );
+      continue;
+    }
+    const pushResult = runSync('git', ['push', 'origin', branch], { cwd: publicRepo, timeout: 180000 });
+    if (pushResult.status === 0) {
+      console.log(`[OK] Pushed to origin/${branch}`);
+    } else {
+      console.log(
+        `[FAIL] Push to ${branch} → exit ${pushResult.status}: ${(pushResult.stderr || pushResult.stdout).slice(0, 300)}`,
+      );
     }
   }
 
   try {
-    run(`git checkout ${priorBranch}`);
-  } catch {
-    // ignore
+    git(['checkout', priorBranch]);
+  } catch (err) {
+    console.log(`[WARN] Could not restore prior branch '${priorBranch}': ${String(err)}`);
   }
 }
 
