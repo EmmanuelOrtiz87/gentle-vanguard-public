@@ -244,6 +244,7 @@ Lo que gans:
 
 Cmo empezar:
 1. ./scripts/init-workspace.ps1
+<!-- REF-OBSOLETA: scripts/init-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Sigue la gua en docs/TECHNICAL-ONBOARDING.md
 3. Pregunta en #gentle-vanguard en Slack
 

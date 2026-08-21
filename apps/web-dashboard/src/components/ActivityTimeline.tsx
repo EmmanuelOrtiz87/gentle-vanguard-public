@@ -1,5 +1,14 @@
 import { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 import { Clock } from 'lucide-react';
 import type { MetricHistory } from '../types/dashboard';
 
@@ -46,16 +55,19 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
     }
 
     // Only return buckets that have data + adjacent context
-    const nonEmpty = buckets.filter(b => b.count > 0);
+    const nonEmpty = buckets.filter((b) => b.count > 0);
     if (nonEmpty.length === 0) return [];
 
-    const firstIdx = Math.max(0, buckets.findIndex(b => b.count > 0) - 1);
+    const firstIdx = Math.max(0, buckets.findIndex((b) => b.count > 0) - 1);
     let lastIdx = 0;
     for (let i = buckets.length - 1; i >= 0; i--) {
-      if (buckets[i].count > 0) { lastIdx = i; break; }
+      if (buckets[i].count > 0) {
+        lastIdx = i;
+        break;
+      }
     }
     lastIdx = Math.min(23, lastIdx + 1);
-    return buckets.slice(firstIdx, lastIdx + 1).map(b => ({
+    return buckets.slice(firstIdx, lastIdx + 1).map((b) => ({
       ...b,
       tokens: Math.round(b.tokens / (b.count || 1)),
       sessions: Math.round(b.sessions / (b.count || 1)),
@@ -86,11 +98,7 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={hourlyData} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis
-              dataKey="label"
-              tick={{ fill: '#6b7280', fontSize: 11 }}
-              interval={0}
-            />
+            <XAxis dataKey="label" tick={{ fill: '#6b7280', fontSize: 11 }} interval={0} />
             <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} />
             <Tooltip
               contentStyle={{

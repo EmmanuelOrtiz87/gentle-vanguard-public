@@ -1,258 +1,258 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.1",
   "enabled": true,
-  "description": "Model Router: per-agent model/temperature binding with opencode Go tier models and big-pickle fallback",
-  "lastModified": "2026-05-11T00:00:00.0000000-03:00",
-  "modifiedBy": "config-sync",
+  "description": "Model Router: per-agent model/temperature binding aligned to the native available model opencode/deepseek-v4-flash-free with local provider fallback",
+  "lastModified": "2026-07-31T04:45:00.0000000-03:00",
+  "modifiedBy": "orchestrator",
   "defaults": {
-    "model": "qwen-3.6-plus",
-    "provider": "openrouter",
+    "model": "opencode/deepseek-v4-flash-free",
+    "provider": "opencode",
     "temperature": 0.3,
     "hallucinationGuard": "medium",
-    "notes": "Base model for agents without specific override. GLM5 for code/precision, Kimi K2.6 for reasoning/long-context, Qwen 3.6 Plus for coordination/balance."
+    "notes": "Base model for agents without specific override. All agents use the native available model opencode/deepseek-v4-flash-free (free tier). Fallback to local providers (ollama/lm-studio2) if the native model is unavailable."
   },
   "fallback": {
-    "model": "opencode/big-pickle",
-    "description": "Free-tier opencode model used when monthly Go subscription quota is exhausted",
+    "model": "opencode/deepseek-v4-flash-free",
+    "description": "Free-tier opencode model, the only model guaranteed available in this environment; fallback chain to local providers",
     "quotaExhaustedBehavior": "auto-switch",
     "notifyOnSwitch": true,
-    "notificationMessage": "[QUOTA] Monthly Go subscription quota exhausted. Switched to opencode/big-pickle (free tier). Consider upgrading or waiting for reset.",
+    "notificationMessage": "[FALLBACK] Native model unavailable. Switched to opencode/deepseek-v4-flash-free (free tier).",
     "resetOnRenewal": true
   },
   "agentBindings": {
     "BA": {
-      "model": "kimi-k2.6",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.7,
       "hallucinationGuard": "low",
       "subagent": "sdd-explore",
-      "rationale": "BA explora/analiza — Kimi K2.6 para razonamiento profundo y contexto largo"
+      "rationale": "BA explora/analiza — modelo nativo disponible"
     },
     "SAD": {
-      "model": "kimi-k2.6",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
       "subagent": "sdd-design",
-      "rationale": "SAD diseña arquitectura — Kimi K2.6 para razonamiento preciso"
+      "rationale": "SAD diseña arquitectura — modelo nativo disponible"
     },
     "DEV": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
       "subagent": "sdd-apply",
-      "rationale": "DEV implementa código — GLM5 para generación robusta"
+      "rationale": "DEV implementa código — modelo nativo disponible"
     },
     "QA": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "sdd-verify",
-      "rationale": "QA valida — GLM5 para precisión binaria"
+      "rationale": "QA valida — modelo nativo disponible"
     },
     "OPS": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "ops-agent",
-      "rationale": "OPS despliega — GLM5 para precisión en producción"
+      "rationale": "OPS despliega — modelo nativo disponible"
     },
     "GOV": {
-      "model": "kimi-k2.6",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gov-agent",
-      "rationale": "GOV audita — Kimi K2.6 para contexto largo en compliance"
+      "rationale": "GOV audita — modelo nativo disponible"
     },
     "DOC": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
       "subagent": "doc-agent",
-      "rationale": "DOC documenta — Qwen balanceado para documentación técnica"
+      "rationale": "DOC documenta — modelo nativo disponible"
     },
     "SESSION": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
       "subagent": "session-agent",
-      "rationale": "SESSION trackea estado — Qwen eficiente para tareas determinísticas"
+      "rationale": "SESSION trackea estado — modelo nativo disponible"
     },
     "MKT": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "low",
       "subagent": "mkt-agent",
-      "rationale": "MKT crea contenido — Qwen para creatividad de marca"
+      "rationale": "MKT crea contenido — modelo nativo disponible"
     },
     "SALES": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
       "subagent": "sales-agent",
-      "rationale": "SALES sigue metodología — Qwen eficiente para procesos estructurados"
+      "rationale": "SALES sigue metodología — modelo nativo disponible"
     },
     "FINANCE": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
       "subagent": "finance-agent",
-      "rationale": "FINANCE calcula — GLM5 para precisión numérica"
+      "rationale": "FINANCE calcula — modelo nativo disponible"
     },
     "HR": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "medium",
       "subagent": "hr-agent",
-      "rationale": "HR procesa — Qwen eficiente para procesos estructurados"
+      "rationale": "HR procesa — modelo nativo disponible"
     },
     "LEGAL": {
-      "model": "kimi-k2.6",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "legal-agent",
-      "rationale": "LEGAL cumple normativa — Kimi K2.6 para precisión regulatoria"
+      "rationale": "LEGAL cumple normativa — modelo nativo disponible"
     },
     "BUS-TELE": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.2,
       "hallucinationGuard": "high",
-      "subagent": "general",
-      "rationale": "Telemetría — Qwen, datos estructurados"
+      "subagent": "bus-tele-agent",
+      "rationale": "Telemetría — agente específico bus-tele-agent (modelo nativo disponible)"
     },
     "PREMORTEM": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "medium",
       "subagent": "premortem-agent",
-      "rationale": "PREMORTEM analiza riesgos — GLM5 para razonamiento adversarial"
+      "rationale": "PREMORTEM analiza riesgos — modelo nativo disponible"
     },
     "SELF-DIAG": {
-      "model": "glm-5",
-      "provider": "openrouter",
-      "temperature": 0.15,
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
+      "temperature": 0.1,
       "hallucinationGuard": "high",
-      "subagent": "general",
-      "rationale": "SELF-DIAG diagnóstico — GLM5 para precisión"
+      "subagent": "self-diag-agent",
+      "rationale": "SELF-DIAG diagnóstico — agente específico self-diag-agent (modelo nativo disponible)"
     },
     "SCRIPT-GOV": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
       "subagent": "sdd-verify",
-      "rationale": "Script governance — hereda glm-5 de sdd-verify"
+      "rationale": "Script governance — hereda modelo de sdd-verify"
     },
     "GITFLOW-BRANCH": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general",
-      "rationale": "GitFlow — Qwen, tareas determinísticas"
+      "subagent": "gitflow-agent",
+      "rationale": "GitFlow — agente específico gitflow-agent (modelo nativo disponible)"
     },
     "GITFLOW-PR": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "GITFLOW-HOOKS": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "GITFLOW-MERGE": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "GITFLOW-WORKFLOW": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "GITFLOW-COMMIT": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "GITFLOW-CONFLICT": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
-      "subagent": "general"
+      "subagent": "gitflow-agent"
     },
     "REPORT": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
       "subagent": "doc-agent",
-      "rationale": "Reportes — hereda qwen de doc-agent"
+      "rationale": "Reportes — hereda modelo de doc-agent"
     },
     "PR-REVIEW": {
-      "model": "glm-5",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "sdd-verify",
-      "rationale": "Code review — hereda glm-5 de sdd-verify"
+      "rationale": "Code review — hereda modelo de sdd-verify"
     },
     "RELEASE": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "ops-agent",
-      "rationale": "Release — Qwen, procesos determinísticos"
+      "rationale": "Release — modelo nativo disponible"
     },
     "SESSION-CLOSE": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
       "subagent": "session-agent",
-      "rationale": "Session close — Qwen, estado determinístico"
+      "rationale": "Session close — modelo nativo disponible"
     },
     "DAILY": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
       "subagent": "general",
-      "rationale": "Daily — Qwen, rutina ligera"
+      "rationale": "Daily — modelo nativo disponible"
     },
     "ORCHESTRATOR": {
-      "model": "qwen-3.6-plus",
-      "provider": "openrouter",
+      "model": "opencode/deepseek-v4-flash-free",
+      "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "high",
       "subagent": "orchestrator",
-      "rationale": "Orquestador — Qwen para coordinación eficiente"
+      "rationale": "Orquestador — modelo nativo disponible"
     }
   },
   "temperaturePolicy": {
@@ -279,30 +279,27 @@
     "sessionTimeoutMinutes": 60,
     "auditLog": ".logs/model-router-audit.jsonl",
     "maxAuthAttempts": 3,
-    "lockoutDurationMinutes": 15
+    "lockoutDurationMinutes": 15,
+    "requireAuthorization": true,
+    "approvalRequired": true,
+    "changeDocumentation": true
   },
   "failover": {
     "enabled": true,
-    "script": "scripts/utilities/MODEL-ROUTER/provider-failover.ps1",
-    "chain": ["openrouter", "anthropic", "openai", "ollama"],
+    "script": "scripts/utilities/MODEL-ROUTER/provider-failover.ts",
+    "chain": ["opencode", "ollama", "lm-studio2"],
     "autoCheck": "on-route",
     "cacheMinutes": 5,
-    "fallbackModel": "opencode/big-pickle",
-    "stateFile": ".session/provider-state.json"
+    "fallbackModel": "opencode/deepseek-v4-flash-free",
+    "fallbackConfigRef": "config/model-fallback.json",
+    "stateFile": ".runtime/model-fallback-state.json",
+    "agentFallbackEnabled": true,
+    "notifyOnFallback": true,
+    "description": "FAILOVER ACTIVO — cuando un modelo no está disponible, provider-failover.ts consulta model-fallback.json para cadenas de fallback por agente. El modelo nativo opencode/deepseek-v4-flash-free es el primario; fallback a proveedores locales (ollama/lm-studio2)."
   },
   "providerPriority": {
     "description": "Ordered list for model selection UI (first = default)",
-    "order": [
-      "opencode",
-      "anthropic",
-      "openai",
-      "bedrock",
-      "gemini",
-      "azure",
-      "ollama",
-      "dify",
-      "custom"
-    ]
+    "order": ["opencode", "ollama", "lm-studio2", "custom"]
   },
   "audit": {
     "enabled": true,
@@ -328,37 +325,102 @@
     "enabled": true,
     "immutable": true,
     "budgetLimits": {
-      "dailyTokens": 30000,
-      "perSessionTokens": 15000,
+      "dailyTokens": 5000000,
+      "perSessionTokens": 3000000,
       "hardCapEnabled": true
     },
     "trackingLevel": "per_call"
   },
+  "authorization": {
+    "requireApproval": true,
+    "userResponsibility": true,
+    "changeAudit": true,
+    "riskAssessment": true,
+    "documentationRequired": true
+  },
   "modelLevels": {
-    "description": "Abstract model capability levels used by routing policy (consolidated from model-routing.json v1.1.0)",
+    "description": "Abstract model capability levels used by routing policy — all mapped to the single native available model in this environment",
     "fastCheap": {
       "description": "Fast, low-cost model for deterministic/structured tasks",
-      "examples": ["qwen-3.6-plus"],
+      "examples": ["opencode/deepseek-v4-flash-free"],
       "thinking": "off",
       "rationale": "Speed over reasoning — structured data, git ops, session tracking"
     },
     "strongCoding": {
       "description": "Strong coding model for implementation tasks",
-      "examples": ["glm-5"],
+      "examples": ["opencode/deepseek-v4-flash-free"],
       "thinking": "medium",
       "rationale": "Code generation needs robust tool-use model"
     },
     "strongReasoning": {
       "description": "Strong reasoning model for architectural decisions",
-      "examples": ["kimi-k2.6"],
+      "examples": ["opencode/deepseek-v4-flash-free"],
       "thinking": "high",
       "rationale": "Deep reasoning for architecture, design, risk analysis"
     },
     "strongReview": {
       "description": "Strong review model for audits and validation",
-      "examples": ["glm-5", "kimi-k2.6"],
+      "examples": ["opencode/deepseek-v4-flash-free"],
       "thinking": "high",
       "rationale": "Fresh-context model for thorough review and compliance"
     }
+  },
+  "profiles": {
+    "description": "Multi-profile-per-SDD-phase convention (absorbed from gentle-ai). Named profile sets route model/temperature/hallucinationGuard per SDD phase. Switch with the model-profile-switcher. All profiles map to the single native model in this environment; the value is the per-phase temperature/guard tuning.",
+    "active": "balanced",
+    "available": ["cheap", "balanced", "premium"],
+    "sets": {
+      "cheap": {
+        "description": "Fast/low-cost: lower temperature, lower hallucination guard. For high-volume deterministic phases.",
+        "phases": {
+          "BA": { "temperature": 0.7, "hallucinationGuard": "low" },
+          "SAD": { "temperature": 0.5, "hallucinationGuard": "low" },
+          "DEV": { "temperature": 0.3, "hallucinationGuard": "medium" },
+          "QA": { "temperature": 0.2, "hallucinationGuard": "medium" }
+        }
+      },
+      "balanced": {
+        "description": "Default: balanced temperature and guard across phases.",
+        "phases": {
+          "BA": { "temperature": 0.7, "hallucinationGuard": "low" },
+          "SAD": { "temperature": 0.3, "hallucinationGuard": "medium" },
+          "DEV": { "temperature": 0.15, "hallucinationGuard": "high" },
+          "QA": { "temperature": 0.1, "hallucinationGuard": "critical" }
+        }
+      },
+      "premium": {
+        "description": "Highest quality: lower temperature, higher hallucination guard for correctness-critical phases.",
+        "phases": {
+          "BA": { "temperature": 0.5, "hallucinationGuard": "medium" },
+          "SAD": { "temperature": 0.2, "hallucinationGuard": "high" },
+          "DEV": { "temperature": 0.1, "hallucinationGuard": "critical" },
+          "QA": { "temperature": 0.0, "hallucinationGuard": "critical" }
+        }
+      }
+    }
+  },
+  "domainTiering": {
+    "description": "Per-domain quality tier for business agents (M6). finance/legal are correctness-critical -> premium (low temperature, high guard). Marketing/sales are creative -> balanced. Determined by domain risk, mirrored in config/agents.json temperatures.",
+    "tiers": {
+      "premium": {
+        "domains": ["finance", "legal", "gov"],
+        "temperature": 0.1,
+        "hallucinationGuard": "critical",
+        "rationale": "Financial models must balance; legal output escalates on doubt. Zero tolerance for hallucination."
+      },
+      "balanced": {
+        "domains": ["mkt", "sales", "hr", "bus-tele", "knowledge", "sia"],
+        "temperature": 0.25,
+        "hallucinationGuard": "high",
+        "rationale": "Creative/analytical work needs quality without over-constraining."
+      },
+      "fastCheap": {
+        "domains": ["gitflow", "ops", "session"],
+        "temperature": 0.15,
+        "hallucinationGuard": "medium",
+        "rationale": "Deterministic governance/ops - speed over reasoning."
+      }
+    },
+    "defaultTier": "balanced"
   }
 }

@@ -15,7 +15,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -103,23 +103,34 @@ const WATCHTOWER_SCRIPT = join(ROOT, 'src', 'maintenance-watchtower.ts');
 
 const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
   'dashboard-ws': [],
-  'codegraph': ['engram'],
+  codegraph: ['engram'],
   'ml-embeddings': ['codegraph', 'engram'],
-  'engram': [],
-  'mcp': ['codegraph', 'engram'],
-  'session': ['engram', 'mcp'],
-  'hooks': [],
-  'configs': [],
+  engram: [],
+  mcp: ['codegraph', 'engram'],
+  session: ['engram', 'mcp'],
+  hooks: [],
+  configs: [],
   'tool-configs': [],
-  'security': ['configs'],
-  'governance': ['configs', 'security'],
+  security: ['configs'],
+  governance: ['configs', 'security'],
 };
 
 const DEFAULT_CONFIG = {
-  correlation: { timeWindowMinutes: 30, minCorrelationScore: 0.3, maxComponents: 20, maxEvents: 200 },
+  correlation: {
+    timeWindowMinutes: 30,
+    minCorrelationScore: 0.3,
+    maxComponents: 20,
+    maxEvents: 200,
+  },
   cascade: { detectEnabled: true, maxDepth: 5, minCascadeConfidence: 0.5 },
   remediation: { enabled: true, autoSuggestOrder: true, maxSuggestions: 5 },
-  sources: { watchtowerHealth: true, auditLogs: true, telemetrySpans: true, corrections: true, metrics: true },
+  sources: {
+    watchtowerHealth: true,
+    auditLogs: true,
+    telemetrySpans: true,
+    corrections: true,
+    metrics: true,
+  },
   outputDir: CORR_DIR,
 };
 
@@ -140,14 +151,25 @@ function loadJsonLines(path: string): Record<string, unknown>[] {
   try {
     if (!existsSync(path)) return [];
     return readFileSync(path, 'utf-8')
-      .split('\n').filter(l => l.trim())
-      .map(l => { try { return JSON.parse(l) as Record<string, unknown>; } catch { return null; } })
+      .split('\n')
+      .filter((l) => l.trim())
+      .map((l) => {
+        try {
+          return JSON.parse(l) as Record<string, unknown>;
+        } catch {
+          return null;
+        }
+      })
       .filter(Boolean) as Record<string, unknown>[];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function getLogger(quiet: boolean): LogFn {
-  return (msg: string) => { if (!quiet) console.log(msg); };
+  return (msg: string) => {
+    if (!quiet) console.log(msg);
+  };
 }
 
 function ensureDir(p: string): void {
@@ -162,10 +184,10 @@ function now(): string {
 
 function runWatchtowerHealth(log: LogFn): ComponentHealth[] {
   try {
-    const out = execSync(
-      `npx tsx "${WATCHTOWER_SCRIPT}" --action health --quiet 2>&1`,
-      { cwd: ROOT, encoding: 'utf-8', timeout: 30000, windowsHide: true }
-    );
+    const out = runNpxTsxSync(WATCHTOWER_SCRIPT, ['--action', 'health', '--quiet'], {
+      cwd: ROOT,
+      timeout: 30000,
+    }).stdout;
     const components: ComponentHealth[] = [];
     const lines = out.split('\n');
 
@@ -180,7 +202,7 @@ function runWatchtowerHealth(log: LogFn): ComponentHealth[] {
         const status = (checkMatch?.[1] || 'PASS') as 'PASS' | 'WARN' | 'FAIL';
         const detail = line.split(':').slice(2).join(':').trim() || '';
 
-        const existing = components.find(c => c.component === currentComponent);
+        const existing = components.find((c) => c.component === currentComponent);
         if (existing) {
           existing.checks++;
           if (status === 'FAIL') existing.failed++;
@@ -216,7 +238,10 @@ function runWatchtowerHealth(log: LogFn): ComponentHealth[] {
 
 function collectAuditErrors(log: LogFn): FailureEvent[] {
   if (!existsSync(AUDIT_DIR)) return [];
-  const files = readdirSync(AUDIT_DIR).filter(f => f.endsWith('.jsonl')).sort().slice(-10);
+  const files = readdirSync(AUDIT_DIR)
+    .filter((f) => f.endsWith('.jsonl'))
+    .sort()
+    .slice(-10);
   const events: FailureEvent[] = [];
 
   for (const f of files) {
@@ -249,7 +274,11 @@ function collectTelemetryErrors(log: LogFn): FailureEvent[] {
   // Read span files for error status
   for (const dir of [TELEMETRY_SPANS, TELEMETRY_TRACES]) {
     if (!existsSync(dir)) continue;
-    const files = readdirSync(dir).filter(f => f.endsWith('.json')).sort().reverse().slice(0, 50);
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .sort()
+      .reverse()
+      .slice(0, 50);
     for (const f of files) {
       try {
         const data = loadJson<Record<string, unknown>>(join(dir, f), {});
@@ -265,7 +294,9 @@ function collectTelemetryErrors(log: LogFn): FailureEvent[] {
             source: 'telemetry',
           });
         }
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
   }
 
@@ -297,7 +328,9 @@ function correlateFailures(
   if (allEvents.length === 0) return [];
 
   const windowMs = config.correlation.timeWindowMinutes * 60 * 1000;
-  const sorted = [...allEvents].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sorted = [...allEvents].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
 
   const clusters: FailureCluster[] = [];
   let clusterId = 0;
@@ -317,11 +350,11 @@ function correlateFailures(
     }
 
     if (cluster.length >= 2) {
-      const comps = [...new Set(cluster.map(e => e.component))];
-      const failedComps = components.filter(c => c.status === 'FAIL').map(c => c.component);
+      const comps = [...new Set(cluster.map((e) => e.component))];
+      const failedComps = components.filter((c) => c.status === 'FAIL').map((c) => c.component);
 
       // Score: ratio of failed components in cluster
-      const overlappingFailures = comps.filter(c => failedComps.includes(c)).length;
+      const overlappingFailures = comps.filter((c) => failedComps.includes(c)).length;
       const correlationScore = Math.min(
         0.3 + (overlappingFailures / Math.max(comps.length, 1)) * 0.5 + (cluster.length / 20) * 0.2,
         0.95,
@@ -344,7 +377,9 @@ function correlateFailures(
         events: cluster,
         components: comps,
         correlationScore,
-        timeSpanMinutes: Math.round((new Date(cluster[cluster.length - 1].timestamp).getTime() - startTime) / 60000),
+        timeSpanMinutes: Math.round(
+          (new Date(cluster[cluster.length - 1].timestamp).getTime() - startTime) / 60000,
+        ),
         isCascading: false, // will be set later
         likelyRootCause: likelyRoot,
       });
@@ -356,16 +391,18 @@ function correlateFailures(
   // Merge overlapping clusters
   const merged: FailureCluster[] = [];
   for (const c of clusters) {
-    const existing = merged.find(m =>
-      m.components.some(mc => c.components.includes(mc)) &&
-      Math.abs(new Date(m.timestamp).getTime() - new Date(c.timestamp).getTime()) <= windowMs
+    const existing = merged.find(
+      (m) =>
+        m.components.some((mc) => c.components.includes(mc)) &&
+        Math.abs(new Date(m.timestamp).getTime() - new Date(c.timestamp).getTime()) <= windowMs,
     );
     if (existing) {
       existing.events.push(...c.events);
       existing.components = [...new Set([...existing.components, ...c.components])];
       existing.timeSpanMinutes = Math.max(existing.timeSpanMinutes, c.timeSpanMinutes);
       existing.correlationScore = Math.max(existing.correlationScore, c.correlationScore);
-      if (c.likelyRootCause && !existing.likelyRootCause) existing.likelyRootCause = c.likelyRootCause;
+      if (c.likelyRootCause && !existing.likelyRootCause)
+        existing.likelyRootCause = c.likelyRootCause;
     } else {
       merged.push(c);
     }
@@ -385,7 +422,9 @@ function detectCascading(
   const cascades: CascadeChain[] = [];
   let cascadeId = 0;
 
-  const failedComps = new Set(components.filter(c => c.status === 'FAIL').map(c => c.component));
+  const failedComps = new Set(
+    components.filter((c) => c.status === 'FAIL').map((c) => c.component),
+  );
 
   for (const cluster of clusters) {
     if (!cluster.likelyRootCause) continue;
@@ -393,7 +432,9 @@ function detectCascading(
     // Walk dependency chain from likely root
     const chain: Array<{ component: string; failure: string; depth: number }> = [];
     const visited = new Set<string>();
-    const queue: Array<{ component: string; depth: number }> = [{ component: cluster.likelyRootCause, depth: 0 }];
+    const queue: Array<{ component: string; depth: number }> = [
+      { component: cluster.likelyRootCause, depth: 0 },
+    ];
 
     while (queue.length > 0) {
       const current = queue.shift();
@@ -430,7 +471,10 @@ function detectCascading(
           rootComponent: cluster.likelyRootCause || 'unknown',
           chain,
           confidence,
-          description: `${chain[0].component} failure cascaded to ${chain.slice(1).map(c => c.component).join(' → ')}`,
+          description: `${chain[0].component} failure cascaded to ${chain
+            .slice(1)
+            .map((c) => c.component)
+            .join(' → ')}`,
         });
       }
     }
@@ -449,11 +493,11 @@ function suggestRemediation(
 ): RemediationAction[] {
   if (!config.remediation.enabled) return [];
   const actions: RemediationAction[] = [];
-  const failedComps = components.filter(c => c.status === 'FAIL');
+  const failedComps = components.filter((c) => c.status === 'FAIL');
 
   // Remediation from cascades: fix root first
   for (const cascade of cascades) {
-    if (!actions.some(a => a.component === cascade.rootComponent)) {
+    if (!actions.some((a) => a.component === cascade.rootComponent)) {
       actions.push({
         component: cascade.rootComponent,
         action: `Restore ${cascade.rootComponent} — root cause of cascade affecting ${cascade.chain.length - 1} downstream component(s)`,
@@ -466,7 +510,7 @@ function suggestRemediation(
 
     for (let i = 1; i < cascade.chain.length; i++) {
       const c = cascade.chain[i];
-      if (!actions.some(a => a.component === c.component)) {
+      if (!actions.some((a) => a.component === c.component)) {
         actions.push({
           component: c.component,
           action: `Verify ${c.component} after ${cascade.rootComponent} is restored`,
@@ -481,8 +525,10 @@ function suggestRemediation(
 
   // Remediation for independent failures
   for (const c of failedComps) {
-    if (!actions.some(a => a.component === c.component)) {
-      const isInCascade = cascades.some(ca => ca.chain.some(ch => ch.component === c.component));
+    if (!actions.some((a) => a.component === c.component)) {
+      const isInCascade = cascades.some((ca) =>
+        ca.chain.some((ch) => ch.component === c.component),
+      );
       if (!isInCascade) {
         actions.push({
           component: c.component,
@@ -500,7 +546,7 @@ function suggestRemediation(
   const sorted: RemediationAction[] = [];
   const added = new Set<string>();
   while (actions.length > 0) {
-    const ready = actions.filter(a => a.dependsOn.every(d => added.has(d)));
+    const ready = actions.filter((a) => a.dependsOn.every((d) => added.has(d)));
     if (ready.length === 0) {
       sorted.push(...actions);
       break;
@@ -509,7 +555,7 @@ function suggestRemediation(
       sorted.push(r);
       added.add(r.component);
     }
-    actions.splice(0, actions.length, ...actions.filter(a => !ready.includes(a)));
+    actions.splice(0, actions.length, ...actions.filter((a) => !ready.includes(a)));
   }
 
   return sorted.slice(0, config.remediation.maxSuggestions);
@@ -549,8 +595,8 @@ function main(): void {
 
   const allEvents = [...auditErrors, ...telemetryErrors, ...correctionEvents];
 
-  const failedComps = components.filter(c => c.status === 'FAIL').length;
-  const warnComps = components.filter(c => c.status === 'WARN').length;
+  const failedComps = components.filter((c) => c.status === 'FAIL').length;
+  const warnComps = components.filter((c) => c.status === 'WARN').length;
   log(`  Failed: ${failedComps}, Warn: ${warnComps}, Events: ${allEvents.length}`);
 
   // 2. Correlate failures
@@ -560,7 +606,9 @@ function main(): void {
     clusters = correlateFailures(allEvents, components, config);
     log(`  Clusters: ${clusters.length}`);
     for (const c of clusters.slice(0, 3)) {
-      log(`    ${c.id}: ${c.components.join(', ')} (score: ${(c.correlationScore * 100).toFixed(0)}%, root: ${c.likelyRootCause || 'unknown'})`);
+      log(
+        `    ${c.id}: ${c.components.join(', ')} (score: ${(c.correlationScore * 100).toFixed(0)}%, root: ${c.likelyRootCause || 'unknown'})`,
+      );
     }
   }
 
@@ -587,7 +635,7 @@ function main(): void {
   }
 
   // 5. Summary
-  const rootCauses = [...new Set(cascades.map(c => c.rootComponent))];
+  const rootCauses = [...new Set(cascades.map((c) => c.rootComponent))];
   const overallStatus: 'healthy' | 'degraded' | 'critical' =
     failedComps > 2 ? 'critical' : failedComps > 0 ? 'degraded' : 'healthy';
 
@@ -614,14 +662,16 @@ function main(): void {
   }
 
   if (!args.quiet) {
-    console.log(JSON.stringify({
-      components: output.summary.totalComponents,
-      failed: output.summary.failedComponents,
-      clusters: output.summary.clustersFound,
-      cascades: output.summary.cascadesFound,
-      rootCauses: output.summary.rootCauses.length,
-      status: output.summary.overallStatus,
-    }));
+    console.log(
+      JSON.stringify({
+        components: output.summary.totalComponents,
+        failed: output.summary.failedComponents,
+        clusters: output.summary.clustersFound,
+        cascades: output.summary.cascadesFound,
+        rootCauses: output.summary.rootCauses.length,
+        status: output.summary.overallStatus,
+      }),
+    );
   }
 
   log('[ROOT-CAUSE-CORRELATOR] Done');

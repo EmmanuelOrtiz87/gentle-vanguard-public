@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from 'child_process';
+import { runNpxTsxSync } from './core/run-command.js';
 import { resolve } from 'path';
 
 interface CliArgs {
@@ -25,14 +25,17 @@ const ROOT = resolve(process.cwd());
 function run(): void {
   const { mode, quiet } = parseArgs();
 
-  const tsArgs: string[] = ['tsx', 'src/session-manager.ts'];
-  if (mode) { tsArgs.push('--mode', mode); }
-  if (quiet) { tsArgs.push('--quiet'); }
+  const tsArgs: string[] = [];
+  if (mode) {
+    tsArgs.push('--mode', mode);
+  }
+  if (quiet) {
+    tsArgs.push('--quiet');
+  }
 
-  const result = spawnSync('npx', tsArgs, {
+  const result = runNpxTsxSync('src/session-manager.ts', tsArgs, {
     stdio: 'inherit',
     cwd: ROOT,
-    shell: true,
   });
   process.exit(result.status ?? 0);
 }

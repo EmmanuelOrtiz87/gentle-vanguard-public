@@ -3,10 +3,10 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
 function execGit(args: string[], cwd: string = process.cwd()): string {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8', windowsHide: true });
+  const result = runSync('git', args, { cwd });
   return result.stdout?.trim() ?? '';
 }
 
@@ -75,16 +75,22 @@ function main(): number {
   const validDocs = allStatuses.filter((d) => VALID_STATUSES.has(d.status));
   const draftDocs = allStatuses.filter((d) => !VALID_STATUSES.has(d.status));
 
-  console.log(`[SDD-GATE] Valid (validated/done/active): ${validDocs.length} | Draft/Unknown: ${draftDocs.length}`);
+  console.log(
+    `[SDD-GATE] Valid (validated/done/active): ${validDocs.length} | Draft/Unknown: ${draftDocs.length}`,
+  );
 
   if (validDocs.length === 0 && draftDocs.length > 0) {
     const draftList = draftDocs.map((d) => `${d.file} [status: ${d.status}]`).join(', ');
 
     if (isMain) {
-      console.log(`[SDD-GATE] BLOCKING: Merging to main requires a validated/done SDD. Drafts: ${draftList}`);
+      console.log(
+        `[SDD-GATE] BLOCKING: Merging to main requires a validated/done SDD. Drafts: ${draftList}`,
+      );
       return 1;
     } else {
-      console.log(`[SDD-GATE] ADVISORY: All SDDs are drafts - update before merging to main. Drafts: ${draftList}`);
+      console.log(
+        `[SDD-GATE] ADVISORY: All SDDs are drafts - update before merging to main. Drafts: ${draftList}`,
+      );
       return 0;
     }
   }

@@ -22,7 +22,7 @@ import {
 } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { createRequire } from 'module';
 
 const _require = createRequire(import.meta.url);
@@ -32,7 +32,7 @@ let _db: any = null;
 function getDb(): any {
   if (!_db) {
     try {
-      const mod = _require('../../apps/web-dashboard/server/database/manager');
+      const mod = _require('../apps/web-dashboard/server/database/manager');
       _db = mod.DatabaseManager.getInstance();
     } catch {
       // SQLite not available — skip dual-write
@@ -98,6 +98,34 @@ interface StoredEvent {
   version: number;
   timestamp: string;
   sessionId?: string;
+  /** SHA-256 of the previous event in the chain (hash-chained audit trail). */
+  prevHash?: string;
+  /** SHA-256 of this event's canonical content (tamper-evident). */
+  hash?: string;
+}
+
+/** Compute a canonical SHA-256 hash for an event (excluding the hash field itself). */
+function eventHash(event: StoredEvent): string {
+  const content: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(event)) {
+    if (k !== 'hash') content[k] = v;
+  }
+  return createHash('sha256').update(JSON.stringify(content)).digest('hex');
+}
+
+/** Load the last event of an aggregate (for hash chaining). */
+function getLastEvent(aggregateId: string): StoredEvent | null {
+  const path = getStorePath(aggregateId);
+  if (!path || !existsSync(path)) return null;
+  const lines = readFileSync(path, 'utf-8')
+    .split('\n')
+    .filter((l) => l.trim());
+  if (lines.length === 0) return null;
+  try {
+    return JSON.parse(lines[lines.length - 1]) as StoredEvent;
+  } catch {
+    return null;
+  }
 }
 
 function newEvent(
@@ -106,7 +134,8 @@ function newEvent(
   data: Record<string, unknown>,
   version: number,
 ): StoredEvent {
-  return {
+  const prev = getLastEvent(aggregateId);
+  const base: StoredEvent = {
     eventId: newEventId(),
     aggregateId,
     type,
@@ -114,7 +143,10 @@ function newEvent(
     version,
     timestamp: new Date().toISOString(),
     sessionId: process.env.SESSION_ID,
+    prevHash: prev?.hash,
   };
+  base.hash = eventHash(base);
+  return base;
 }
 
 function saveEvent(event: StoredEvent): void {
@@ -129,7 +161,13 @@ function saveEvent(event: StoredEvent): void {
   try {
     const mgr = getDb();
     if (mgr) {
-      mgr.insertEvent(event.type, { eventId: event.eventId, aggregateId: event.aggregateId, version: event.version, data: event.data, sessionId: event.sessionId });
+      mgr.insertEvent(event.type, {
+        eventId: event.eventId,
+        aggregateId: event.aggregateId,
+        version: event.version,
+        data: event.data,
+        sessionId: event.sessionId,
+      });
     }
   } catch {
     // Dual-write failure is non-critical
@@ -336,6 +374,77 @@ function listAction(): Array<{
   return aggregates.sort((a, b) => b.eventCount - a.eventCount);
 }
 
+/**
+ * Verify the hash-chained audit trail integrity for an aggregate.
+ * Recomputes each event's hash and checks that prevHash of event N matches
+ * the hash of event N-1. Returns per-event status plus overall verdict.
+ */
+function verifyChainAction(args: Record<string, string>): {
+  aggregateId: string;
+  total: number;
+  valid: number;
+  broken: number;
+  intact: boolean;
+  checks: Array<{
+    version: number;
+    type: string;
+    status: 'ok' | 'broken' | 'tamper-mismatch';
+    detail?: string;
+  }>;
+} {
+  const aggregateId = args['AggregateId'];
+  if (!aggregateId) throw new Error('AggregateId required');
+  const events = loadEvents(aggregateId);
+  const checks: Array<{
+    version: number;
+    type: string;
+    status: 'ok' | 'broken' | 'tamper-mismatch';
+    detail?: string;
+  }> = [];
+  let valid = 0;
+  let broken = 0;
+
+  for (let i = 0; i < events.length; i++) {
+    const evt = events[i];
+    const recomputed = eventHash(evt);
+    const selfOk = recomputed === evt.hash;
+    if (!selfOk) {
+      broken++;
+      checks.push({
+        version: evt.version,
+        type: evt.type,
+        status: 'tamper-mismatch',
+        detail: 'event hash does not match its content',
+      });
+      continue;
+    }
+    if (i > 0) {
+      const prev = events[i - 1];
+      if (evt.prevHash !== prev.hash) {
+        broken++;
+        checks.push({
+          version: evt.version,
+          type: evt.type,
+          status: 'broken',
+          detail: 'prevHash does not link to previous event hash',
+        });
+        continue;
+      }
+    }
+    valid++;
+    checks.push({ version: evt.version, type: evt.type, status: 'ok' });
+  }
+
+  return {
+    aggregateId,
+    total: events.length,
+    valid,
+    broken,
+    intact: broken === 0,
+    checks,
+  };
+}
+
 // ===== MAIN =====
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -360,6 +469,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         break;
       case 'list':
         result = listAction();
+        break;
+      case 'verify':
+        result = verifyChainAction(args);
         break;
       default:
         console.error(`Unknown action: ${action}`);

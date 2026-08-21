@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 
 const ROOT = process.cwd();
 
@@ -27,7 +27,7 @@ function parseOptions(): Options {
 
 async function checkEngramVersion(): Promise<CheckResult> {
   try {
-    const out = execSync('engram --version', { encoding: 'utf-8', timeout: 10000 }).trim();
+    const out = runSync('engram', ['--version'], { timeout: 10000 }).stdout.trim();
     return { name: 'Engram Version', passed: true, detail: out };
   } catch {
     return { name: 'Engram Version', passed: false, detail: 'Engram not available' };
@@ -36,7 +36,7 @@ async function checkEngramVersion(): Promise<CheckResult> {
 
 async function checkPnpmAudit(): Promise<CheckResult> {
   try {
-    execSync('pnpm audit', { encoding: 'utf-8', timeout: 60000, stdio: 'pipe' });
+    runSync('pnpm', ['audit'], { timeout: 60000, stdio: 'pipe' });
     return { name: 'pnpm Audit', passed: true, detail: 'No vulnerabilities found' };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Audit failed';
@@ -86,8 +86,7 @@ async function checkFileSizes(): Promise<CheckResult> {
 
 async function checkWatchtowerHealth(): Promise<CheckResult> {
   try {
-    execSync('npx tsx src/maintenance-watchtower.ts --action health --quiet', {
-      encoding: 'utf-8',
+    runNpxTsxSync('src/maintenance-watchtower.ts', ['--action', 'health', '--quiet'], {
       timeout: 30000,
       stdio: 'pipe',
     });
@@ -124,7 +123,7 @@ async function run(): Promise<void> {
     console.log(JSON.stringify(results, null, 2));
   }
 
-  const failed = results.filter(r => !r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
   if (failed > 0) process.exit(1);
 }
 

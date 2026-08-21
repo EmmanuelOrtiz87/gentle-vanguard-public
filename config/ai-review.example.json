@@ -1,8 +1,7 @@
 {
   "provider": "openai",
-  "filePatterns": ["*.ps1", "*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.go", "*.java", "*.cs"],
+  "filePatterns": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.go", "*.java", "*.cs"],
   "excludePatterns": [
-    "*.test.ps1",
     "*.spec.ts",
     "*.test.ts",
     "*.test.js",

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-import { spawnSync } from 'child_process';
+/* eslint-disable security/detect-unsafe-regex */
+/* These regex patterns are intentionally complex for injection detection - not user-input parsing */
+
+import { runNpxTsxSync } from '../core/run-command.js';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -36,19 +39,69 @@ interface SuccessResponse {
 }
 
 const VALID_TARGETS = ['ai-api', 'mcp', 'log', 'error', 'prompt'] as const;
-type Target = typeof VALID_TARGETS[number];
+type Target = (typeof VALID_TARGETS)[number];
 
 const INJECTION_PATTERNS: InjectionPattern[] = [
-  { pattern: /(?:\bignore\s+(?:all\s+)?(?:previous\s+)?(?:instructions|commands|directions|rules|prompts?|constraints?|guidelines?|orders?))\b/i, category: 'instruction-override', severity: 'CRITICAL' },
-  { pattern: /(?:\b(?:repeat|output|print|show|display|reveal|leak|dump|copy)\s+(?:your\s+)?(?:system\s+)?(?:prompt|instructions|rules|directions|commands|guidelines|initial\s+prompt|system\s+message))\b/i, category: 'prompt-leakage', severity: 'CRITICAL' },
-  { pattern: /(?:\byou\s+(?:are\s+)?(?:now|must\s+act\s+as|will\s+pretend|have\s+to\s+roleplay|shall\s+behave))\b/i, category: 'role-takeover', severity: 'HIGH' },
-  { pattern: /(?:DAN|do\s+anything\s+now|jailbreak|jail\s*broken|unrestricted\s+mode|god\s+mode|developer\s+mode|debug\s+mode|super\s+mode|free\s+mode|no\s+(?:limits|restrictions|filter|boundaries))\b/i, category: 'jailbreak', severity: 'CRITICAL' },
-  { pattern: /(?:\$?(?:exec|run|eval|system|shell|cmd|powershell|bash|sh|zsh|os\.system|subprocess|child_process|execSync|spawn)\s*\()/i, category: 'code-execution', severity: 'CRITICAL' },
-  { pattern: /(?:\b(?:new\s+)?system\s+prompt\s*[:=]|重置|新\s*的\s*提\s*示|system\s+message\s*[:=]|##?\s*system\s*(?:prompt|instructions))\b/i, category: 'prompt-override', severity: 'HIGH' },
-  { pattern: /(?:base64\s*(?:decode|encode|64)|rot[0-9]+|hex\s*(?:decode|encode)|unicode\s*escape|reverse\s*(?:string|text))\s*(?:the\s+)?(?:following|above|below|this)\s*(?:text|message|prompt|string|instructions)/i, category: 'encoding-obfuscation', severity: 'HIGH' },
-  { pattern: /(?:respond\s+(?:with|in\s+a\s+way\s+that\s+doesnt\s+reflect|without\s+(?:the\s+)?(?:usual|typical|standard|normal))|dont\s+(?:adhere|follow|abide|comply|stick)\s+to)/i, category: 'constraint-bypass', severity: 'HIGH' },
-  { pattern: /(?:pretend|imagine|simulate|hypothetically)\s+(?:you\s+are|youve\s+been\s+replaced|you\s+have\s+no\s+(?:rules|restrictions|limits|boundaries|filters))/i, category: 'simulation-attack', severity: 'HIGH' },
-  { pattern: /(?:forget|ignore|disregard|skip|omit|override|bypass|circumvent)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|commands|rules|directions|prompts|constraints|guidelines|policies|safeguards|protocols)\b/i, category: 'instruction-override', severity: 'CRITICAL' },
+  {
+    pattern:
+      /(?:\bignore\s+(?:all\s+)?(?:previous\s+)?(?:instructions|commands|directions|rules|prompts?|constraints?|guidelines?|orders?))\b/i,
+    category: 'instruction-override',
+    severity: 'CRITICAL',
+  },
+  {
+    pattern:
+      /(?:\b(?:repeat|output|print|show|display|reveal|leak|dump|copy)\s+(?:your\s+)?(?:system\s+)?(?:prompt|instructions|rules|directions|commands|guidelines|initial\s+prompt|system\s+message))\b/i,
+    category: 'prompt-leakage',
+    severity: 'CRITICAL',
+  },
+  {
+    pattern:
+      /(?:\byou\s+(?:are\s+)?(?:now|must\s+act\s+as|will\s+pretend|have\s+to\s+roleplay|shall\s+behave))\b/i,
+    category: 'role-takeover',
+    severity: 'HIGH',
+  },
+  {
+    pattern:
+      /(?:DAN|do\s+anything\s+now|jailbreak|jail\s*broken|unrestricted\s+mode|god\s+mode|developer\s+mode|debug\s+mode|super\s+mode|free\s+mode|no\s+(?:limits|restrictions|filter|boundaries))\b/i,
+    category: 'jailbreak',
+    severity: 'CRITICAL',
+  },
+  {
+    pattern:
+      /(?:\$?(?:exec|run|eval|system|shell|cmd|powershell|bash|sh|zsh|os\.system|subprocess|child_process|execSync|spawn)\s*\()/i,
+    category: 'code-execution',
+    severity: 'CRITICAL',
+  },
+  {
+    pattern:
+      /(?:\b(?:new\s+)?system\s+prompt\s*[:=]|重置|新\s*的\s*提\s*示|system\s+message\s*[:=]|##?\s*system\s*(?:prompt|instructions))\b/i,
+    category: 'prompt-override',
+    severity: 'HIGH',
+  },
+  {
+    pattern:
+      /(?:base64\s*(?:decode|encode|64)|rot[0-9]+|hex\s*(?:decode|encode)|unicode\s*escape|reverse\s*(?:string|text))\s*(?:the\s+)?(?:following|above|below|this)\s*(?:text|message|prompt|string|instructions)/i,
+    category: 'encoding-obfuscation',
+    severity: 'HIGH',
+  },
+  {
+    pattern:
+      /(?:respond\s+(?:with|in\s+a\s+way\s+that\s+doesnt\s+reflect|without\s+(?:the\s+)?(?:usual|typical|standard|normal))|dont\s+(?:adhere|follow|abide|comply|stick)\s+to)/i,
+    category: 'constraint-bypass',
+    severity: 'HIGH',
+  },
+  {
+    pattern:
+      /(?:pretend|imagine|simulate|hypothetically)\s+(?:you\s+are|youve\s+been\s+replaced|you\s+have\s+no\s+(?:rules|restrictions|limits|boundaries|filters))/i,
+    category: 'simulation-attack',
+    severity: 'HIGH',
+  },
+  {
+    pattern:
+      /(?:forget|ignore|disregard|skip|omit|override|bypass|circumvent)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|commands|rules|directions|prompts|constraints|guidelines|policies|safeguards|protocols)\b/i,
+    category: 'instruction-override',
+    severity: 'CRITICAL',
+  },
 ];
 
 function testInjectionAttempt(text: string): InjectionResult {
@@ -119,8 +172,7 @@ function tryOrchestrator(text: string): string | null {
   if (!existsSync(orchestratorTs)) return null;
 
   try {
-    const result = spawnSync('npx', ['tsx', orchestratorTs, 'sanitize', text, 'prompt'], {
-      encoding: 'utf-8',
+    const result = runNpxTsxSync(orchestratorTs, ['sanitize', text, 'prompt'], {
       stdio: 'pipe',
       timeout: 10000,
     });

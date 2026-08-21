@@ -8,7 +8,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 type Trigger = 'session-start' | 'pre-commit' | 'code-review' | 'task-complete';
@@ -72,13 +72,18 @@ function getFileContext(filePath: string): FileContext {
   const directory = path.dirname(filePath);
 
   const legitimateLarge = [
-    'orchestrator', 'manager', 'dashboard', 'monitor', 'generator',
-    'bootstrap', 'gv.ps1', 'validate-gentle-vanguard', 'judgment-day',
+    'orchestrator',
+    'manager',
+    'dashboard',
+    'monitor',
+    'generator',
+    'bootstrap',
+    'gv.ps1',
+    'validate-gentle-vanguard',
+    'judgment-day',
   ];
 
-  const shouldBeSimple = [
-    'policy', 'config', 'setup', 'init', 'get-', 'set-', 'test-',
-  ];
+  const shouldBeSimple = ['policy', 'config', 'setup', 'init', 'get-', 'set-', 'test-'];
 
   const context: FileContext = {
     isLegitimatelyLarge: false,
@@ -144,7 +149,9 @@ function testRealOvercomplication(filePath: string, context: FileContext): strin
   // Check for massive functions
   const funcMatches = content.match(/function\s+\w+/g);
   if (funcMatches && funcMatches.length > 10 && lines < 500) {
-    violations.push(`File: ${fileName} - Too many functions (${funcMatches.length}) for ${lines} lines`);
+    violations.push(
+      `File: ${fileName} - Too many functions (${funcMatches.length}) for ${lines} lines`,
+    );
   }
 
   // Check for deep nesting
@@ -199,10 +206,7 @@ function testSurgicalChanges(_targetPath: string, changedFiles: string[]): strin
 
   if (!changedFiles || changedFiles.length === 0) return violations;
 
-  const unrelatedPatterns = [
-    /package\.json/, /package-lock\.json/,
-    /\.css$/, /\.scss$/,
-  ];
+  const unrelatedPatterns = [/package\.json/, /package-lock\.json/, /\.css$/, /\.scss$/];
 
   let unrelatedCount = 0;
   for (const file of changedFiles) {
@@ -215,7 +219,9 @@ function testSurgicalChanges(_targetPath: string, changedFiles: string[]): strin
   }
 
   if (unrelatedCount > 2) {
-    violations.push(`Too many unrelated files changed: ${unrelatedCount} (possible drive-by edits)`);
+    violations.push(
+      `Too many unrelated files changed: ${unrelatedCount} (possible drive-by edits)`,
+    );
   }
 
   return violations;
@@ -242,13 +248,14 @@ function testGoalDriven(changedFiles: string[]): string[] {
 
 function getChangedFiles(targetPath: string): string[] {
   try {
-    const output = execSync('git diff --name-only HEAD~1...HEAD', {
+    const output = runSync('git', ['diff', '--name-only', 'HEAD~1...HEAD'], {
       cwd: targetPath,
-      encoding: 'utf-8',
       timeout: 5000,
-      windowsHide: true,
     });
-    return output.trim().split('\n').filter((f) => f.trim().length > 0);
+    return output.stdout
+      .trim()
+      .split('\n')
+      .filter((f: string) => f.trim().length > 0);
   } catch {
     return [];
   }
@@ -311,7 +318,12 @@ function invokeKarpathyEnforcement(trigger: Trigger): KarpathyResult {
     fs.writeFileSync(
       baselinePath,
       JSON.stringify(
-        { timestamp: new Date().toISOString(), trigger, count: allViolations.length, items: allViolations },
+        {
+          timestamp: new Date().toISOString(),
+          trigger,
+          count: allViolations.length,
+          items: allViolations,
+        },
         null,
         2,
       ),
@@ -386,4 +398,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   process.exit(result.exitCode);
 }
 
-export { invokeKarpathyEnforcement, getFileContext, testRealOvercomplication, testRealAssumptions, testSurgicalChanges, testGoalDriven };
+export {
+  invokeKarpathyEnforcement,
+  getFileContext,
+  testRealOvercomplication,
+  testRealAssumptions,
+  testSurgicalChanges,
+  testGoalDriven,
+};

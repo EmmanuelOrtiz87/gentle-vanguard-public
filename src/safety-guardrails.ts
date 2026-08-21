@@ -75,7 +75,6 @@ function loadConfig(root: string): SafetyConfig {
   const configPath = path.join(root, 'config', 'safety-layer.json');
   if (!fs.existsSync(configPath)) {
     console.error('[SAFETY] safety-layer.json not found');
-
   }
   return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 }
@@ -115,7 +114,10 @@ function testBlockedPatterns(mutation: Mutation, config: SafetyConfig): Violatio
 
 function testResourceLimits(mutation: Mutation, config: SafetyConfig): Violation[] {
   const violations: Violation[] = [];
-  if (mutation.changes && mutation.changes.length > config.guardrails.resourceLimits.maxFilesPerMutation) {
+  if (
+    mutation.changes &&
+    mutation.changes.length > config.guardrails.resourceLimits.maxFilesPerMutation
+  ) {
     violations.push({
       rule: `maxFilesPerMutation (${config.guardrails.resourceLimits.maxFilesPerMutation})`,
       type: 'resource-limit',
@@ -126,20 +128,37 @@ function testResourceLimits(mutation: Mutation, config: SafetyConfig): Violation
   return violations;
 }
 
-function doValidate(agentId: string, proposedMutation: string, config: SafetyConfig, auditDir: string): GuardrailResult {
-  if (!agentId) { console.error('[SAFETY] Provide --agentId'); throw new Error("Validation failed"); }
-  if (!proposedMutation) { console.error('[SAFETY] Provide --mutation as JSON'); throw new Error("Validation failed"); }
+function doValidate(
+  agentId: string,
+  proposedMutation: string,
+  config: SafetyConfig,
+  auditDir: string,
+): GuardrailResult {
+  if (!agentId) {
+    console.error('[SAFETY] Provide --agentId');
+    throw new Error('Validation failed');
+  }
+  if (!proposedMutation) {
+    console.error('[SAFETY] Provide --mutation as JSON');
+    throw new Error('Validation failed');
+  }
 
   let mutation: Mutation;
-  try { mutation = JSON.parse(proposedMutation); } catch { console.error('[SAFETY] Invalid JSON in --mutation'); process.exit(1); return undefined as never; }
+  try {
+    mutation = JSON.parse(proposedMutation);
+  } catch {
+    console.error('[SAFETY] Invalid JSON in --mutation');
+    process.exit(1);
+    return undefined as never;
+  }
 
   const constitutionalViolations = testConstitutionalRules(mutation, config);
   const patternViolations = testBlockedPatterns(mutation, config);
   const resourceViolations = testResourceLimits(mutation, config);
   const allViolations = [...constitutionalViolations, ...patternViolations, ...resourceViolations];
 
-  const hasCritical = allViolations.some(v => v.severity === 'critical');
-  const hasHigh = allViolations.some(v => v.severity === 'high');
+  const hasCritical = allViolations.some((v) => v.severity === 'critical');
+  const hasHigh = allViolations.some((v) => v.severity === 'high');
   const allowed = !hasCritical && !(hasHigh && config.global.blockOnViolation);
 
   const result: GuardrailResult = {
@@ -157,12 +176,16 @@ function doValidate(agentId: string, proposedMutation: string, config: SafetyCon
   } else {
     console.log(`\x1b[31m[SAFETY] BLOCKED — ${allViolations.length} violation(s)\x1b[0m`);
     for (const v of allViolations) {
-      const color = v.severity === 'critical' ? '\x1b[31m' : v.severity === 'high' ? '\x1b[33m' : '\x1b[90m';
+      const color =
+        v.severity === 'critical' ? '\x1b[31m' : v.severity === 'high' ? '\x1b[33m' : '\x1b[90m';
       console.log(`  ${color}[${v.severity}] ${v.type}: ${v.rule}\x1b[0m`);
     }
   }
 
-  const logFile = path.join(auditDir, `guardrail-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+  const logFile = path.join(
+    auditDir,
+    `guardrail-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
+  );
   fs.writeFileSync(logFile, JSON.stringify(result, null, 2), 'utf-8');
 
   return result;
@@ -178,17 +201,22 @@ function doStatus(config: SafetyConfig, auditDir: string): void {
   console.log(`  \x1b[90mAudit log: ${auditDir}\x1b[0m`);
 
   if (fs.existsSync(auditDir)) {
-    const logs = fs.readdirSync(auditDir)
-      .filter(f => f.startsWith('guardrail-') && f.endsWith('.json'))
+    const logs = fs
+      .readdirSync(auditDir)
+      .filter((f) => f.startsWith('guardrail-') && f.endsWith('.json'))
       .sort()
       .reverse()
       .slice(0, 5);
     if (logs.length > 0) {
       console.log(`  \x1b[90mRecent validations:\x1b[0m`);
       for (const log of logs) {
-        const data: GuardrailResult = JSON.parse(fs.readFileSync(path.join(auditDir, log), 'utf-8'));
+        const data: GuardrailResult = JSON.parse(
+          fs.readFileSync(path.join(auditDir, log), 'utf-8'),
+        );
         const color = data.allowed ? '\x1b[32m' : '\x1b[31m';
-        console.log(`    ${color}${data.timestamp} | ${data.agentId} | ${data.allowed ? 'ALLOWED' : 'BLOCKED'} (${data.violationCount} violations)\x1b[0m`);
+        console.log(
+          `    ${color}${data.timestamp} | ${data.agentId} | ${data.allowed ? 'ALLOWED' : 'BLOCKED'} (${data.violationCount} violations)\x1b[0m`,
+        );
       }
     }
   }
@@ -201,13 +229,20 @@ function doRules(config: SafetyConfig): void {
   }
   console.log(`\x1b[36m[SAFETY] Blocked patterns:\x1b[0m`);
   for (const bp of config.guardrails.blockedPatterns) {
-    const color = bp.severity === 'critical' ? '\x1b[31m' : bp.severity === 'high' ? '\x1b[33m' : '\x1b[90m';
+    const color =
+      bp.severity === 'critical' ? '\x1b[31m' : bp.severity === 'high' ? '\x1b[33m' : '\x1b[90m';
     console.log(`  ${color}[${bp.severity}] ${bp.pattern}\x1b[0m`);
   }
   console.log(`\x1b[36m[SAFETY] Resource limits:\x1b[0m`);
-  console.log(`  \x1b[90mMax files per mutation: ${config.guardrails.resourceLimits.maxFilesPerMutation}\x1b[0m`);
-  console.log(`  \x1b[90mMax tokens per prompt: ${config.guardrails.resourceLimits.maxTokensPerPrompt}\x1b[0m`);
-  console.log(`  \x1b[90mMax network calls: ${config.guardrails.resourceLimits.maxNetworkCallsPerMutation}\x1b[0m`);
+  console.log(
+    `  \x1b[90mMax files per mutation: ${config.guardrails.resourceLimits.maxFilesPerMutation}\x1b[0m`,
+  );
+  console.log(
+    `  \x1b[90mMax tokens per prompt: ${config.guardrails.resourceLimits.maxTokensPerPrompt}\x1b[0m`,
+  );
+  console.log(
+    `  \x1b[90mMax network calls: ${config.guardrails.resourceLimits.maxNetworkCallsPerMutation}\x1b[0m`,
+  );
 }
 
 function printUsage(): void {
@@ -247,10 +282,13 @@ function main(): void {
     default:
       console.error(`[SAFETY] Unknown action: ${action}`);
       printUsage();
-
   }
 }
 
-if (process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('safety-guardrails.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith('safety-guardrails.ts'))
+) {
   main();
 }

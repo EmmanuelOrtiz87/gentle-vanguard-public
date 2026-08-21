@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, rmSync, statSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,12 +40,24 @@ function isValidComponent(v: string): v is Component {
 }
 
 function colored(msg: string, color: 'cyan' | 'green' | 'yellow' | 'red'): string {
-  const codes: Record<string, string> = { cyan: '\x1b[36m', green: '\x1b[32m', yellow: '\x1b[33m', red: '\x1b[31m' };
+  const codes: Record<string, string> = {
+    cyan: '\x1b[36m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    red: '\x1b[31m',
+  };
   return `${codes[color] ?? ''}${msg}\x1b[0m`;
 }
 
 function log(msg: string, color: 'cyan' | 'green' | 'yellow' | 'red' = 'cyan') {
-  const prefix = color === 'green' ? '[OK]' : color === 'yellow' ? '[WARN]' : color === 'red' ? '[ERROR]' : '[QUICK-RESTART]';
+  const prefix =
+    color === 'green'
+      ? '[OK]'
+      : color === 'yellow'
+        ? '[WARN]'
+        : color === 'red'
+          ? '[ERROR]'
+          : '[QUICK-RESTART]';
   console.log(colored(`${prefix} ${msg}`, color));
 }
 
@@ -56,7 +68,11 @@ function restartSession(projectName: string, scriptsDir: string): boolean {
     log('session-manager.ts not found', 'yellow');
     return false;
   }
-  const result = spawnSync('npx', ['tsx', 'src/session-manager.ts', '--mode', 'Manual', '--project', projectName], { stdio: 'inherit', shell: true });
+  const result = runNpxTsxSync(
+    'src/session-manager.ts',
+    ['--mode', 'Manual', '--project', projectName],
+    { stdio: 'inherit' },
+  );
   if (result.status === 0) {
     log('Session tracking restarted', 'green');
     return true;
@@ -69,7 +85,7 @@ function recoverCleanup(scriptsDir: string): boolean {
   const engramBin = join(scriptsDir, 'engram.exe');
   if (existsSync(engramBin)) {
     log('Retrieving context from Engram...');
-    spawnSync(engramBin, ['context', '--project', 'gentle-vanguard'], { stdio: 'inherit' });
+    runSync(engramBin, ['context', '--project', 'gentle-vanguard'], { stdio: 'inherit' });
     log('Context recovered from Engram', 'green');
   }
   return true;
@@ -115,7 +131,6 @@ function main() {
 
   if (!isValidComponent(componentsStr)) {
     log(`Invalid component: ${componentsStr}. Valid: ${VALID_COMPONENTS.join(', ')}`, 'red');
-
   }
 
   const components = componentsStr as Component;
@@ -146,12 +161,12 @@ function main() {
     console.log(colored('                    READY TO CONTINUE                         ', 'green'));
   } else {
     log('Some components failed to restart', 'yellow');
-    const autostart = process.platform === 'win32'
-      ? '.\\tools\\session-autostart.cmd'
-      : 'bash scripts/utilities/session-autostart.sh';
+    const autostart =
+      process.platform === 'win32'
+        ? '.\\tools\\session-autostart.cmd'
+        : 'bash scripts/utilities/session-autostart.sh';
     log(`Run full restart: ${autostart}`, 'cyan');
   }
-
 }
 
 try {
@@ -161,5 +176,4 @@ try {
 } catch (e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
   log(`Quick restart failed: ${msg}`, 'red');
-
 }

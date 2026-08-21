@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Staged Review v1.0.0
+ * Staged Review
  * Staged index review with incremental validation
- * Part of Gentle-Vanguard v6.0
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -44,13 +44,17 @@ export class StagedReview extends EventEmitter {
     { id: 3, name: 'Integration Tests', validators: ['integration'], required: false },
     { id: 4, name: 'Security Scan', validators: ['security'], required: true },
   ];
-  
+
   private changes: Map<string, StagedChange> = new Map();
   // Stage tracking disabled
 
-  public stageChange(filePath: string, changeType: StagedChange['changeType'], diff: string): string {
+  public stageChange(
+    filePath: string,
+    changeType: StagedChange['changeType'],
+    diff: string,
+  ): string {
     const changeId = `change_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const change: StagedChange = {
       id: changeId,
       filePath,
@@ -69,7 +73,7 @@ export class StagedReview extends EventEmitter {
     const change = this.changes.get(changeId);
     if (!change) return false;
 
-    const stage = this.stages.find(s => s.id === change.stage);
+    const stage = this.stages.find((s) => s.id === change.stage);
     if (!stage) return false;
 
     this.emit('validationStarted', { changeId, stage: stage.name });
@@ -106,14 +110,14 @@ export class StagedReview extends EventEmitter {
 
   private async runValidator(_validator: string, _change: StagedChange): Promise<boolean> {
     // Simulate validation
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return Math.random() > 0.1; // 90% pass rate
   }
 
   public promoteToNextStage(changeId: string): boolean {
     const change = this.changes.get(changeId);
     if (!change || !change.validated) return false;
-    
+
     if (change.stage < this.stages.length) {
       change.stage++;
       change.validated = false;
@@ -128,11 +132,11 @@ export class StagedReview extends EventEmitter {
     const changes = Array.from(this.changes.values());
     return {
       totalChanges: changes.length,
-      byStage: this.stages.map(s => ({
+      byStage: this.stages.map((s) => ({
         stage: s.name,
-        count: changes.filter(c => c.stage === s.id).length,
+        count: changes.filter((c) => c.stage === s.id).length,
       })),
-      fullyValidated: changes.filter(c => c.stage === this.stages.length && c.validated).length,
+      fullyValidated: changes.filter((c) => c.stage === this.stages.length && c.validated).length,
     };
   }
 }

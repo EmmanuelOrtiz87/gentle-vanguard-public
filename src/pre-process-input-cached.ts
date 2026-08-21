@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Pre-Process Input with Response Cache
- * 
+ *
  * Wrapper around pre-process-input.ts that adds SHA256 response caching.
  * Reduces token costs by caching processed inputs.
- * 
+ *
  * Expected Impact: 25-35% token cost reduction
  */
 

@@ -8,7 +8,7 @@
 
 ### Create a new branch (Recommended - Interactive)
 
-```powershell
+```TypeScript
 .\scripts\utilities\create-gitflow-branch.ps1
 ```
 
@@ -337,7 +337,7 @@ If any validation fails, the push will be blocked. Read the error message to kno
 ### Check Project Status
 
 ```bash
-.\gv.ps1 health
+.\src/cli/gv.ts health
 ```
 
 ### Validate GitFlow Manually
@@ -354,4 +354,4 @@ For more information, see:
 
 - `docs/guides/GITFLOW-ENFORCEMENT-ANALYSIS.md` - Detailed analysis
 - `docs/guides/DEVELOPER-COMMUNICATION-POLICY.md` - Development policies
-- `scripts/diagnostics/validate-gitflow.ps1` - GitFlow validator
+- `src/validate-gitflow.ts` - GitFlow validator

@@ -95,7 +95,9 @@ function readTokenUsage(config: SwConfig): TokenUsage {
         const hardThreshold = tb.hardThreshold ?? config.hardThresholdPct;
         return { used: 0, dailyBudget, softThreshold, hardThreshold, pctUsed: 0 };
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   return {
@@ -115,13 +117,18 @@ function estimateContextTokens(config: SwConfig): number {
     const files = readdirSync(config.sessionDir, { recursive: true }) as string[];
     for (const file of files) {
       const fullPath = join(config.sessionDir, file.toString());
-      if (!fullPath.endsWith('.json') && !fullPath.endsWith('.md') && !fullPath.endsWith('.txt')) continue;
+      if (!fullPath.endsWith('.json') && !fullPath.endsWith('.md') && !fullPath.endsWith('.txt'))
+        continue;
       try {
         const stat = readFileSync(fullPath, 'utf-8');
         total += stat.length;
-      } catch { /* skip unreadable */ }
+      } catch {
+        /* skip unreadable */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // Rough estimate: ~4 chars per token
   return Math.round(total / 4);
@@ -177,7 +184,7 @@ function doSummarize(config: SwConfig): CompactionRecord | null {
     const tokenEst = Math.round(content.length / 4);
 
     // Extract key lines (first 3 content lines + last line)
-    const lines = content.split('\n').filter(l => l.trim());
+    const lines = content.split('\n').filter((l) => l.trim());
     const keyLines: string[] = [];
     for (let i = 0; i < Math.min(3, lines.length); i++) {
       keyLines.push(lines[i].trim());
@@ -206,7 +213,10 @@ function doSummarize(config: SwConfig): CompactionRecord | null {
     originalTokens,
     summaryTokens,
     tokenReduction: originalTokens - summaryTokens,
-    reductionPct: originalTokens > 0 ? Math.round(((originalTokens - summaryTokens) / originalTokens) * 100) : 0,
+    reductionPct:
+      originalTokens > 0
+        ? Math.round(((originalTokens - summaryTokens) / originalTokens) * 100)
+        : 0,
     fileCount: sessionFiles.length,
   };
 
@@ -236,10 +246,14 @@ function collectSessionFiles(config: SwConfig): string[] {
         try {
           const stat = readFileSync(fullPath, 'utf-8');
           if (stat.trim().length > 0) files.push(fullPath);
-        } catch { /* skip unreadable */ }
+        } catch {
+          /* skip unreadable */
+        }
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   return files;
 }
@@ -261,9 +275,13 @@ function doWipe(config: SwConfig, exceptId?: string): number {
           unlinkSync(fullPath);
           wiped++;
         }
-      } catch { /* skip locked files */ }
+      } catch {
+        /* skip locked files */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   log('INFO', 'Wiped session files', { count: wiped, exceptId: exceptId ?? 'none' });
   return wiped;
@@ -277,7 +295,7 @@ function doRestore(config: SwConfig): string | null {
 
   try {
     const files = readdirSync(config.compactedDir)
-      .filter(f => f.endsWith('.json') && f !== 'index.json')
+      .filter((f) => f.endsWith('.json') && f !== 'index.json')
       .sort()
       .reverse();
 
@@ -287,7 +305,9 @@ function doRestore(config: SwConfig): string | null {
     }
 
     const latest = files[0];
-    const meta = JSON.parse(readFileSync(join(config.compactedDir, latest), 'utf-8')) as CompactionRecord;
+    const meta = JSON.parse(
+      readFileSync(join(config.compactedDir, latest), 'utf-8'),
+    ) as CompactionRecord;
 
     if (!existsSync(meta.summaryFile)) {
       log('WARN', 'Summary file not found', { path: meta.summaryFile });
@@ -318,17 +338,21 @@ function listCompactions(config: SwConfig): CompactionRecord[] {
 
   try {
     const files = readdirSync(config.compactedDir)
-      .filter(f => f.endsWith('.json') && f !== 'index.json')
+      .filter((f) => f.endsWith('.json') && f !== 'index.json')
       .sort()
       .reverse();
 
-    return files.map(f => {
-      try {
-        return JSON.parse(readFileSync(join(config.compactedDir, f), 'utf-8')) as CompactionRecord;
-      } catch {
-        return null;
-      }
-    }).filter((r): r is CompactionRecord => r !== null);
+    return files
+      .map((f) => {
+        try {
+          return JSON.parse(
+            readFileSync(join(config.compactedDir, f), 'utf-8'),
+          ) as CompactionRecord;
+        } catch {
+          return null;
+        }
+      })
+      .filter((r): r is CompactionRecord => r !== null);
   } catch {
     return [];
   }
@@ -438,7 +462,9 @@ function actionAuto(config: SwConfig): void {
     const result = doSummarize(config);
     if (result) {
       const wiped = doWipe(config, result.id);
-      console.log(`   ✅ Compaction ${result.id}: ${result.reductionPct}% reduction, ${wiped} files wiped`);
+      console.log(
+        `   ✅ Compaction ${result.id}: ${result.reductionPct}% reduction, ${wiped} files wiped`,
+      );
     }
   } else {
     console.log(`   → No compaction needed`);
@@ -453,9 +479,13 @@ function actionAuto(config: SwConfig): void {
         if (existsSync(old.summaryFile)) unlinkSync(old.summaryFile);
         const metaFile = join(config.compactedDir, `${old.id}.json`);
         if (existsSync(metaFile)) unlinkSync(metaFile);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
-    console.log(`   🧹 Pruned ${toRemove.length} old compactions (keeping ${config.maxCompactions})`);
+    console.log(
+      `   🧹 Pruned ${toRemove.length} old compactions (keeping ${config.maxCompactions})`,
+    );
   }
 }
 

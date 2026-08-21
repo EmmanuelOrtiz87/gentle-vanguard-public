@@ -2,7 +2,7 @@
 
 import { existsSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from '../core/run-command.js';
 import { join, dirname, basename } from 'path';
 
 function findRepoRoot(startDir: string): string | null {
@@ -24,10 +24,7 @@ function main(): number {
     return 0;
   }
 
-  const stagedResult = spawnSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-  });
+  const stagedResult = runSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM']);
 
   const stagedRaw = stagedResult.stdout?.trim();
   if (!stagedRaw) return 0;
@@ -52,12 +49,9 @@ function main(): number {
   // Try TS equivalent first
   const validateScriptTs = join(repoRoot, 'src', 'validate-readme.ts');
   if (existsSync(validateScriptTs)) {
-    const result = spawnSync('npx', ['tsx', 'src/validate-readme.ts', '--repo', 'both'], {
-      encoding: 'utf-8',
-      windowsHide: true,
+    const result = runNpxTsxSync('src/validate-readme.ts', ['--repo', 'both'], {
       stdio: 'inherit',
       cwd: repoRoot,
-      shell: true,
     });
     return result.status ?? 0;
   }
@@ -65,16 +59,20 @@ function main(): number {
   // PS1 fallback
   const validateScript = join(repoRoot, 'scripts', 'utilities', 'validate', 'validate-readme.ps1');
   if (!existsSync(validateScript)) {
-    console.log('[WARN] validate-readme not found (neither TS nor PS1) - skipping governance check');
+    console.log(
+      '[WARN] validate-readme not found (neither TS nor PS1) - skipping governance check',
+    );
     return 0;
   }
 
-  const result = spawnSync('pwsh', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', validateScript, '-Repo', 'both'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-    stdio: 'inherit',
-    cwd: repoRoot,
-  });
+  const result = runSync(
+    'pwsh',
+    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', validateScript, '-Repo', 'both'],
+    {
+      stdio: 'inherit',
+      cwd: repoRoot,
+    },
+  );
 
   const exitCode = result.status ?? 0;
 

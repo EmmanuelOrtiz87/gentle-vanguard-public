@@ -21,15 +21,23 @@ function getLocalizedTime(timeZoneId: string): Date {
     // Use Intl.DateTimeFormat for timezone conversion
     const formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone: timeZoneId,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
       hour12: false,
     });
     const parts = formatter.formatToParts(now);
     const getVal = (type: string) => parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
     return new Date(
-      getVal('year'), getVal('month') - 1, getVal('day'),
-      getVal('hour'), getVal('minute'), getVal('second'),
+      getVal('year'),
+      getVal('month') - 1,
+      getVal('day'),
+      getVal('hour'),
+      getVal('minute'),
+      getVal('second'),
     );
   } catch {
     // Fallback: UTC-3 (Argentina)

@@ -52,7 +52,7 @@ feature/* / bugfix/* / chore/*
 2. This does not simulate a second reviewer; it enables administrative bypass when GitHub review
    policy blocks a time-critical merge.
 3. Session autostart enforces this setting automatically through
-   `scripts/utilities/SESSION-MANAGEMENT/ensure-github-bypass.ps1`.
+   `src/ensure-github-bypass.ts`.
 4. Recommended usage: keep normal PR + checks flow by default; use bypass only when explicitly
    needed to avoid workflow deadlocks.
 
@@ -79,11 +79,11 @@ feature/* / bugfix/* / chore/*
 ### 3. Before End
 
 ```markdown
-1. gv.ps1 review # Code review
-2. gv.ps1 audit # Audit document
+1. src/cli/gv.ts review # Code review
+2. src/cli/gv.ts audit # Audit document
 3. Validate specification
 4. Ask: Create PR?
-5. gv.ps1 publish # Full publish flow with gated merge decisión
+5. src/cli/gv.ts publish # Full publish flow with gated merge decisión
 ```
 
 ## Commit Convention
@@ -114,7 +114,7 @@ docs(readme): update installation
 ### Trigger Points
 
 - Before any PR
-- Manual: `gv.ps1 review`
+- Manual: `src/cli/gv.ts review`
 - Automatic: Pre-commit hook
 
 ### 7 Dimensions
@@ -156,7 +156,7 @@ LOW found:
 
 ## Audit Document
 
-Generated automatically with `gv.ps1 audit`.
+Generated automatically with `src/cli/gv.ts audit`.
 
 ### Structure
 
@@ -205,7 +205,7 @@ gh pr merge --admin --merge
 
 ### Controlled Publish decisión
 
-Use `gv.ps1 publish` for end-to-end execution with governance gates:
+Use `src/cli/gv.ts publish` for end-to-end execution with governance gates:
 
 1. If validations pass with no alerts, PR merge is authorized automatically.
 2. If alerts are detected, a summary + suggestións are shown.
@@ -218,14 +218,14 @@ Use `gv.ps1 publish` for end-to-end execution with governance gates:
 
 ### Scripts
 
-| Script           | Purpose                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `gv.ps1 review`  | Run code review                                                                       |
-| `gv.ps1 audit`   | Generate audit document                                                               |
-| `gv.ps1 pr`      | Create PR template                                                                    |
-| `gv.ps1 push`    | Prepare for push                                                                      |
-| `gv.ps1 publish` | Validate, summarize alerts, apply suggestións, and merge according to decisión policy |
-| `gv.ps1 status`  | Show current status                                                                   |
+| Script                  | Purpose                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `src/cli/gv.ts review`  | Run code review                                                                       |
+| `src/cli/gv.ts audit`   | Generate audit document                                                               |
+| `src/cli/gv.ts pr`      | Create PR template                                                                    |
+| `src/cli/gv.ts push`    | Prepare for push                                                                      |
+| `src/cli/gv.ts publish` | Validate, summarize alerts, apply suggestións, and merge according to decisión policy |
+| `src/cli/gv.ts status`  | Show current status                                                                   |
 
 ### Hooks
 
@@ -239,9 +239,9 @@ Use `gv.ps1 publish` for end-to-end execution with governance gates:
 
 ### CLI Tools
 
-```powershell
+```TypeScript
 # Workflow CLI
-.\scripts\utilities\gv.ps1 <command>
+.\scripts\utilities\src/cli/gv.ts <command>
 
 # Gentle-Vanguard CLI
 gv validate
@@ -270,7 +270,7 @@ Add to `~/.gitconfig`:
 ### Do
 
 - Always create feature branches
-- Run `gv.ps1 review` before PR
+- Run `src/cli/gv.ts review` before PR
 - Generate audit document on push
 - Use conventional commits
 - Keep PRs small and focused
@@ -291,7 +291,7 @@ Add to `~/.gitconfig`:
 git checkout -b feature/my-feature
 
 # During work
-.\scripts\utilities\gv.ps1 review
+.\scripts\utilities\src/cli/gv.ts review
 go test ./...
 npm test
 
@@ -300,7 +300,7 @@ git add .
 git commit -m "feat(scope): description"
 
 # Before push
-.\scripts\utilities\gv.ps1 audit
+.\scripts\utilities\src/cli/gv.ts audit
 git push -u origin feature/my-feature
 
 # Create PR

@@ -5,6 +5,15 @@
   "pipeline": {
     "steps": [
       {
+        "id": "model-enforcer",
+        "enabled": true,
+        "script": "src/model-enforcer.ts",
+        "args": "--apply",
+        "required": true,
+        "phase": 0,
+        "description": "Enforce free model (opencode/deepseek-v4-flash-free) when credits exhausted"
+      },
+      {
         "id": "tool-detection",
         "enabled": true,
         "script": "src/core/detect-tool.ts",
@@ -33,10 +42,11 @@
       {
         "id": "session-cleanup",
         "enabled": true,
+        "lazy": true,
         "script": "src/session-cleanup-start.ts",
-        "args": "-Quiet",
+        "args": "-Quiet -SkipSessionInit -SkipCacheFlush",
         "required": false,
-        "description": "Flush caches, close orphans, reset state, generate compressed CLAUDE.min.md"
+        "description": "Cleanup ligero al inicio (lazy): remueve sesiones stale >8h y cierra sesiones huerfanas. -SkipSessionInit impide regenerar la sesion que session-manager (phase 0) ya creo; -SkipCacheFlush evita resetear los caches de tokens que el daemon token-ingest esta escribiendo."
       },
       {
         "id": "github-bypass",
@@ -85,7 +95,7 @@
         "script": "src/engram-integrity-check.ts",
         "args": "-Mode status -Quiet",
         "required": false,
-        "description": "Verificar integridad de Engram (SHA256 + SQLite + chunks) al inicio de sesion"
+        "description": "Verify Engram integrity (SHA256 + SQLite + chunks) with auto-sync"
       },
       {
         "id": "engram-backup",
@@ -94,23 +104,7 @@
         "script": "src/backup-engram.ts",
         "args": "--mode backup --quiet",
         "required": false,
-        "description": "Backup automatico de Engram (DB + sessions + SHA256 checksums) (TS)"
-      },
-      {
-        "id": "engram-optimization",
-        "enabled": true,
-        "script": "src/optimize-engram-usage.ts",
-        "args": "--project workspace_gentle_vanguard",
-        "required": false,
-        "description": "Optimize Engram memory usage (TS)"
-      },
-      {
-        "id": "engram-auto-sync",
-        "enabled": true,
-        "script": "src/engram-auto-sync.ts",
-        "args": "-Mode sync -Quiet",
-        "required": false,
-        "description": "Auto-synchronize Engram checksums if DB was modified (prevents hash mismatches)"
+        "description": "Auto-backup Engram (DB + sessions + SHA256 checksums)"
       },
       {
         "id": "cross-workspace-validation",
@@ -169,7 +163,7 @@
         "description": "Initialize session metrics tracking (tokens, tool calls, files) (TS)"
       },
       {
-        "id": "session-scoring-init",
+        "id": "session-scoring",
         "enabled": true,
         "script": "src/session-scoring.ts",
         "args": "-Action init",
@@ -177,20 +171,22 @@
         "description": "Initialize quality scoring system with baseline metrics"
       },
       {
-        "id": "session-scoring-start",
-        "enabled": true,
-        "script": "src/session-scoring.ts",
-        "args": "-Action record -EventType session -Detail session-start -Success",
+        "id": "session-close-orchestrator",
+        "enabled": false,
+        "lazy": true,
+        "script": "src/session-close-orchestrator.ts",
+        "args": "--reason autostart-close",
         "required": false,
-        "description": "Record session-start event in quality scoring system"
+        "description": "DISABLED at autostart: running the close protocol at session START killed the freshly-started daemons (codegraph/timeout/dashboard). Session close must only run on real close (session-close-orchestrator.ts invoked explicitly)."
       },
       {
-        "id": "session-scoring-close",
+        "id": "session-close-validator",
         "enabled": false,
-        "script": "src/session-scoring.ts",
-        "args": "-Action record -EventType session -Detail session-close -Success",
+        "lazy": true,
+        "script": "src/session-close-validator.ts",
+        "args": "--mode quick --report",
         "required": false,
-        "description": "Record session-close event in quality scoring system (enabled on session end)"
+        "description": "DISABLED at autostart: pairs with the close orchestrator; validation of a close that never ran at startup is meaningless."
       },
       {
         "id": "token-metrics-init",
@@ -225,6 +221,15 @@
         "description": "Verify Lefthook CLI + hooks are installed (post-commit/post-merge for CodeGraph auto-sync) (TS)"
       },
       {
+        "id": "codegraph-mcp-server-start",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/codegraph-mcp-server-start.ts",
+        "args": "",
+        "required": false,
+        "description": "Start CodeGraph MCP server in background â€” makes codegraph tools available to OpenCode immediately (v8.0.2)"
+      },
+      {
         "id": "codegraph-sync",
         "enabled": true,
         "script": "src/codegraph-sync-autostart.ts",
@@ -248,7 +253,16 @@
         "script": "src/dashboard-ws-autostart.ts",
         "args": "--quiet",
         "required": false,
-        "description": "Start React WebSocket metrics server with watchdog auto-recovery — serves LLM observability dashboard on port 8080/5173 (TS)"
+        "description": "Start React WebSocket metrics server with watchdog auto-recovery â€” serves LLM observability dashboard on port 8080/5173 (TS)"
+      },
+      {
+        "id": "dashboard-operational-metrics",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/core/operational-metrics-tracker.ts",
+        "args": "--mode background --refresh-interval 30",
+        "required": false,
+        "description": "Calculate and persist operational metrics (velocity, efficiency, productivity, quality) every 30s for dashboard (TS)"
       },
       {
         "id": "post-autostart-summary",
@@ -282,12 +296,12 @@
         "script": "src/skills/skill-usage-tracker.ts",
         "args": "",
         "required": false,
-        "description": "Inicializa/escanea métricas de uso de skills al inicio de sesion (TS)"
+        "description": "Inicializa/escanea mÃ©tricas de uso de skills al inicio de sesion (TS)"
       },
       {
         "id": "skill-nudge-check",
         "enabled": false,
-        "script": "src/skill-nudge.ts",
+        "script": "src/skills/skill-nudge.ts",
         "args": "--report",
         "required": false,
         "description": "Reporta nudges pendientes de skills al inicio (desactivado por defecto, corre al cerrar) (TS)"
@@ -304,10 +318,11 @@
       {
         "id": "post-autostart-consistency-check",
         "enabled": true,
+        "lazy": true,
         "script": "src/post-autostart-summary.ts",
         "args": "",
         "required": false,
-        "description": "Refresca startup-summary.json como ultimo paso para asegurar datos actuales post-pipeline"
+        "description": "Refresca startup-summary.json como ultimo paso para asegurar datos actuales post-pipeline (lazy)"
       },
       {
         "id": "document-analysis-init",
@@ -320,11 +335,19 @@
       },
       {
         "id": "token-notification-init",
-        "enabled": true,
+        "enabled": false,
         "script": "src/token-metrics-store.ts",
         "args": "--action init --quiet",
         "required": false,
         "description": "Inicializa sistema de notificaciones de tokens al inicio de sesion (TS)"
+      },
+      {
+        "id": "token-session-banner",
+        "enabled": true,
+        "script": "src/token-session-banner.ts",
+        "args": "",
+        "required": false,
+        "description": "Muestra al inicio de sesion los tokens consumidos por el stack y los restantes de la sesion (input/output/total)"
       },
       {
         "id": "json-validator-verify",
@@ -338,9 +361,14 @@
         "id": "opencode-config-validate",
         "enabled": true,
         "script": "src/validate-opencode-config.ts",
-        "args": "--config opencode.json",
-        "required": false,
-        "description": "Valida que opencode.json no tenga props no reconocidas por OpenCode (previene crash al iniciar) (TS)"
+        "args": "--config opencode.json --timeout 10000",
+        "required": true,
+        "description": "Valida que opencode.json tenga configuraciones críticas para Gentle-Vanguard (previene crash y protege stack) (TS)",
+        "phase": 1,
+        "skipOnFailure": false,
+        "timeout": 15000,
+        "retries": 2,
+        "retryDelay": 1000
       },
       {
         "id": "validate-tool-configs",
@@ -357,7 +385,7 @@
         "script": "src/core/maintenance-watchtower.ts",
         "args": "-Action autoheal -Quiet",
         "required": false,
-        "description": "Health check completo + auto-healing de componentes caídos al inicio de sesión. Corre en background (lazy)."
+        "description": "Health check completo + auto-healing de componentes caÃ­dos al inicio de sesiÃ³n. Corre en background (lazy)."
       },
       {
         "id": "post-mortem-trigger",
@@ -366,7 +394,7 @@
         "script": "src/post-mortem-trigger.ts",
         "args": "--after-heal",
         "required": false,
-        "description": "Post-mortem automation — runs self-diagnosis after watchtower auto-heal, logs incidents to Nexus + audit."
+        "description": "Post-mortem automation â€” runs self-diagnosis after watchtower auto-heal, logs incidents to Nexus + audit."
       },
       {
         "id": "design-token-pipeline",
@@ -375,7 +403,7 @@
         "script": "src/design-token-pipeline.ts",
         "args": "",
         "required": false,
-        "description": "Design Token Pipeline — generates assets/tokens.css, tokens.json, tokens.scss from config/brand.json."
+        "description": "Design Token Pipeline â€” generates assets/tokens.css, tokens.json, tokens.scss from config/brand.json."
       },
       {
         "id": "digest-generator",
@@ -405,7 +433,7 @@
         "description": "Execute auto-correction rules based on session quality scoring (Phase 1 v4.0)"
       },
       {
-        "id": "token-metrics-init",
+        "id": "token-budget-guard-init",
         "enabled": true,
         "lazy": true,
         "script": "src/token-budget-guard.ts",
@@ -420,7 +448,7 @@
         "script": "src/tracing-instrument.ts",
         "args": "-Action start -SpanName session-start -ServiceName gentle-vanguard -Quiet",
         "required": false,
-        "description": "Initialize distributed tracing span for this session — sends OTLP to collector (Phase 1.3)"
+        "description": "Initialize distributed tracing span for this session â€” sends OTLP to collector (Phase 1.3)"
       },
       {
         "id": "checkpoint-auto-create",
@@ -445,7 +473,7 @@
         "enabled": true,
         "lazy": true,
         "script": "src/event-sourcing.ts",
-        "args": "-Action append -AggregateId session-autostart -EventType session.started -EventData \u0027{}\u0027 -Quiet",
+        "args": "-Action append -AggregateId session-autostart -EventType session.started -EventData '{}' -Quiet",
         "required": false,
         "description": "Record session start event in append-only event store for traceability (Phase 5)"
       },
@@ -518,7 +546,7 @@
         "script": "src/engram-auto-update.ts",
         "args": "--check-only",
         "required": false,
-        "description": "Check for engram updates and install if available — validates post-update (auto-evolution)"
+        "description": "Check for engram updates and install if available â€” validates post-update (auto-evolution)"
       },
       {
         "id": "gentle-ai-monitor",
@@ -527,7 +555,7 @@
         "script": "src/gentle-ai-monitor.ts",
         "args": "--analyze-release",
         "required": false,
-        "description": "Monitor gentle-ai releases without installation — analyzes and generates suggestions (alignment)"
+        "description": "Monitor gentle-ai releases without installation â€” analyzes and generates suggestions (alignment)"
       },
       {
         "id": "ml-embeddings-incremental",
@@ -590,7 +618,7 @@
         "script": "scripts/utilities/ops/REVIEW/receipt-manager.ts",
         "args": "list",
         "required": false,
-        "description": "Initialize receipt manager — validates review receipts bound to Git candidates (Gentle AI alignment)"
+        "description": "Initialize receipt manager â€” validates review receipts bound to Git candidates (Gentle AI alignment)"
       },
       {
         "id": "staged-review-init",
@@ -599,7 +627,7 @@
         "script": "scripts/utilities/ops/REVIEW/staged-review.ts",
         "args": "status",
         "required": false,
-        "description": "Check staged review session status — supports staged index review (Gentle AI alignment)"
+        "description": "Check staged review session status â€” supports staged index review (Gentle AI alignment)"
       },
       {
         "id": "mcp-gateway-init",
@@ -617,7 +645,7 @@
         "script": "scripts/recovery/db-health-check.ts",
         "args": "",
         "required": false,
-        "description": "Validate SQLite database integrity (CodeGraph + Engram) on session start — auto-repairs WAL/REINDEX issues"
+        "description": "Validate SQLite database integrity (CodeGraph + Engram) on session start â€” auto-repairs WAL/REINDEX issues"
       },
       {
         "id": "db-init",
@@ -626,7 +654,7 @@
         "script": "src/database/db-init.ts",
         "args": "--quiet",
         "required": false,
-        "description": "Initialize gentle-vanguard.db (auto-creates DB, runs all pending migrations, outputs health info) — idempotent, safe to run every session (Wave 34)"
+        "description": "Initialize gentle-vanguard.db (auto-creates DB, runs all pending migrations, outputs health info) â€” idempotent, safe to run every session (Wave 34)"
       },
       {
         "id": "db-prune",
@@ -635,7 +663,17 @@
         "script": "scripts/database/db-prune.ts",
         "args": "--quiet",
         "required": false,
-        "description": "Prune old data from gentle-vanguard.db stack tables — events >30d, cache >7d, token_usage >90d, orphaned skill_usage (Wave 37 D)"
+        "description": "Prune old data from gentle-vanguard.db stack tables â€” events >30d, cache >7d, token_usage >90d, orphaned skill_usage (Wave 37 D)"
+      },
+      {
+        "id": "token-monthly-summary",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-monthly-summary.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Genera resumen automatico del consumo de tokens de los ultimos 30 dias y lo persiste en docs/sessions/metrics/monthly/"
       },
       {
         "id": "self-reflection",
@@ -645,7 +683,7 @@
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Self-reflection loop — analyze patterns, generate insights, suggest improvements (meta-cognitive)"
+        "description": "Self-reflection loop â€” analyze patterns, generate insights, suggest improvements (meta-cognitive)"
       },
       {
         "id": "knowledge-synthesizer",
@@ -655,7 +693,7 @@
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Knowledge Synthesizer — cross-session knowledge distillation, concept mapping, trend and gap analysis"
+        "description": "Knowledge Synthesizer â€” cross-session knowledge distillation, concept mapping, trend and gap analysis"
       },
       {
         "id": "adaptive-router",
@@ -665,7 +703,17 @@
         "args": "--build --quiet",
         "required": false,
         "phase": 99,
-        "description": "Adaptive Router Dinámico — dynamic routing from historical performance data"
+        "description": "Adaptive Router DinÃ¡mico â€” dynamic routing from historical performance data"
+      },
+      {
+        "id": "adaptive-steps",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/adaptive-steps.ts",
+        "args": "--status",
+        "required": false,
+        "phase": 99,
+        "description": "Adaptive Steps â€” auto-scale orchestrator/subagent step budgets from task complexity so agents never block on insufficient limits"
       },
       {
         "id": "predictive-governor",
@@ -678,6 +726,16 @@
         "description": "Predictive Resource Governor — anticipate load, prewarm resources, adjust budgets"
       },
       {
+        "id": "proactive-intelligence",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/proactive-intelligence-engine.ts",
+        "args": "--analyze --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Proactive Intelligence Engine — anticipates user needs based on usage patterns and context"
+      },
+      {
         "id": "root-cause-correlator",
         "enabled": true,
         "lazy": true,
@@ -685,7 +743,7 @@
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Root-Cause Correlator — cross-component failure correlation and cascade detection"
+        "description": "Root-Cause Correlator â€” cross-component failure correlation and cascade detection"
       },
       {
         "id": "skill-evolution-engine",
@@ -695,7 +753,7 @@
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Skill & Agent Evolution Engine — analyze usage, detect gaps, suggest refinements, deprecate unused"
+        "description": "Skill & Agent Evolution Engine â€” analyze usage, detect gaps, suggest refinements, deprecate unused"
       },
       {
         "id": "convergence-monitor",
@@ -705,7 +763,7 @@
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Convergence Monitor — tracks if the stack is converging, oscillating, or diverging (stage #7)"
+        "description": "Convergence Monitor â€” tracks if the stack is converging, oscillating, or diverging (stage #7)"
       },
       {
         "id": "findings-ledger-init",
@@ -715,7 +773,7 @@
         "args": "--report --quiet",
         "required": false,
         "phase": 99,
-        "description": "Findings Ledger — structured lifecycle for review findings (stage #8 trust layer)"
+        "description": "Findings Ledger â€” structured lifecycle for review findings (stage #8 trust layer)"
       },
       {
         "id": "compact-state-init",
@@ -725,7 +783,7 @@
         "args": "--gc --quiet",
         "required": false,
         "phase": 99,
-        "description": "Compact State Machine — formal state machine for review transactions with CAS (stage #8 trust layer)"
+        "description": "Compact State Machine â€” formal state machine for review transactions with CAS (stage #8 trust layer)"
       },
       {
         "id": "review-lenses-init",
@@ -735,7 +793,7 @@
         "args": "--risk medium --target src --quiet",
         "required": false,
         "phase": 99,
-        "description": "Review Lenses — 4-lens review with risk-signal selection (stage #8 trust layer)"
+        "description": "Review Lenses â€” 4-lens review with risk-signal selection (stage #8 trust layer)"
       },
       {
         "id": "result-gatekeeper-verify",
@@ -745,7 +803,7 @@
         "args": "--verify all --quiet",
         "required": false,
         "phase": 99,
-        "description": "Result Gatekeeper — contract validation between pipeline phases (stage #8 trust layer)"
+        "description": "Result Gatekeeper â€” contract validation between pipeline phases (stage #8 trust layer)"
       },
       {
         "id": "publication-gates",
@@ -755,7 +813,25 @@
         "args": "--prune --quiet",
         "required": false,
         "phase": 99,
-        "description": "Publication Gates — TOCTOU and stale-approval prevention (stage #8 trust layer)"
+        "description": "Publication Gates â€” TOCTOU and stale-approval prevention (stage #8 trust layer)"
+      },
+      {
+        "id": "rdd-initializer",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/rdd/rdd-core.ts",
+        "args": "status --json",
+        "required": false,
+        "description": "RDD Initializer â€” Receipt-Driven Development system initialization (native, no gentle-ai CLI dependency)"
+      },
+      {
+        "id": "rdd-risk-classifier-verify",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/rdd/risk-classifier.ts",
+        "args": "classify --json --staged",
+        "required": false,
+        "description": "RDD Risk Classifier â€” Evidence-based risk classification for staged changes (native)"
       },
       {
         "id": "response-cache-init",
@@ -785,13 +861,22 @@
         "description": "Auto-optimize stack based on session metrics and learned patterns"
       },
       {
+        "id": "auto-apply-safe",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/auto-apply-safe.ts",
+        "args": "--apply --quiet",
+        "required": false,
+        "description": "Auto-apply safe optimizations (budget, deprecations, norms) with rollback protection — cierra el ciclo de autonomÃ­a ejecutiva"
+      },
+      {
         "id": "timeout-monitor-init",
         "enabled": true,
         "lazy": true,
         "script": "src/start-monitor-daemon.ts",
         "args": "",
         "required": false,
-        "description": "Start timeout & performance monitoring daemon (detached) — tracks violations, measures latencies, emits alerts"
+        "description": "Start timeout & performance monitoring daemon (detached) â€” tracks violations, measures latencies, emits alerts"
       },
       {
         "id": "timeout-config-verify",
@@ -810,7 +895,37 @@
         "args": "--stats --quiet",
         "required": false,
         "phase": 99,
-        "description": "Prompt compression engine — skill-aware extractive compression, token-budget adaptive, pre-process pipeline integration"
+        "description": "Prompt compression engine â€” skill-aware extractive compression, token-budget adaptive, pre-process pipeline integration"
+      },
+      {
+        "id": "output-compression-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/output-compression.ts",
+        "args": "--stats --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Output compression engine â€” profile-based response compression with abbreviations and causal notation"
+      },
+      {
+        "id": "chat-level-enforcer-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/chat-level-enforcer.ts",
+        "args": "--status --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Chat level enforcer â€” enforces chat-compact/balanced/detailed levels with break-glass override support"
+      },
+      {
+        "id": "token-optimization-orchestrator-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-optimization-orchestrator.ts",
+        "args": "--status --quiet",
+        "required": false,
+        "phase": 99,
+        "description": "Token optimization orchestrator â€” coordinates input/output compression, chat enforcement, and response caching"
       },
       {
         "id": "summarize-wipe",
@@ -820,7 +935,72 @@
         "args": "auto",
         "required": false,
         "phase": 99,
-        "description": "Context compaction engine — auto-checks token budget, compacts session if above threshold, wipes old context"
+        "description": "Context compaction engine â€” auto-checks token budget, compacts session if above threshold, wipes old context"
+      },
+      {
+        "id": "model-provider-heal",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/model-provider-healer.ts",
+        "args": "--quiet",
+        "required": false,
+        "phase": 90,
+        "description": "Model provider health â€” detecta errores de proveedor LLM (UnsupportedParamsError/Bedrock/Model not found) en opencode.log y auto-switch al modelo nativo"
+      },
+      {
+        "id": "token-ingest-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/token-ingest.ts",
+        "args": "--watch 30",
+        "required": false,
+        "phase": 90,
+        "description": "Token Ingest AGNÃSTICO â€” lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/cursor) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesiÃ³n hasta el cierre."
+      },
+      {
+        "id": "web-crawler-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/web-crawler-init.ts",
+        "args": "--quiet",
+        "required": false,
+        "description": "Initialize Firecrawl web crawler â€” validate config + API key, snapshot health to .runtime/web-crawler-health.json (web research)"
+      },
+      {
+        "id": "adaptive-router-build",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/adaptive-router.ts",
+        "args": "--build --quiet",
+        "required": false,
+        "description": "Rebuild adaptive routing table from historical skill-usage/delegations (9 domain agents + 10 high-priority overrides, cold-start seed)"
+      },
+      {
+        "id": "web-research-adhoc",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/web-research-select.ts",
+        "args": "--query \"AI agent orchestration and LLM observability best practices\" --limit 3 --threshold 0.3",
+        "required": false,
+        "description": "M5 selective web acquisition: search (Firecrawl→DDG→Bing) → BM25 grade → filter → persist to .session/web-research/"
+      },
+      {
+        "id": "module-maturity-validate",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/module-maturity.ts",
+        "args": "--status",
+        "required": false,
+        "description": "Validate module maturity registry — surface gated experimental modules and deprecated entries at session start (Phase 1 maturity governance)"
+      },
+      {
+        "id": "plugin-registry-load",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/plugin-manager.ts",
+        "args": "list --quiet",
+        "required": false,
+        "description": "Load local-first plugin registry at session start — discovers plugins/ and ~/.gentle-vanguard/plugins, validates manifests, persists enabled state (non-blocking)"
       }
     ],
     "onStepFailure": "continue",
@@ -847,6 +1027,6 @@
     "enabled": true,
     "maxAgeHours": 24,
     "statusesToClean": ["active", "orphaned", "ended"],
-    "description": "Clean up sessions left in \u0027active\u0027 status after maxAgeHours (crash recovery)"
+    "description": "Clean up sessions left in 'active' status after maxAgeHours (crash recovery)"
   }
 }

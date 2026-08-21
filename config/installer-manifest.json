@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "product": "Gentle-Vanguard",
+  "minimumNode": "20.0.0",
+  "minimumPnpm": "11.0.0",
+  "required": [
+    { "id": "node", "command": "node", "purpose": "JavaScript runtime" },
+    { "id": "npm", "command": "npm", "purpose": "Node package manager" },
+    { "id": "pnpm", "command": "pnpm", "purpose": "Reproducible dependency installation" },
+    { "id": "git", "command": "git", "purpose": "Updates and repository integration" }
+  ],
+  "optional": [
+    { "id": "engram", "command": "engram", "purpose": "Persistent memory" },
+    { "id": "codegraph", "command": "codegraph", "purpose": "Code graph and symbol intelligence" },
+    { "id": "docker", "command": "docker", "purpose": "Containerized integration services" },
+    { "id": "go", "command": "go", "purpose": "Engram build and Go utilities" },
+    { "id": "gh", "command": "gh", "purpose": "GitHub release and repository operations" }
+  ],
+  "runtime": {
+    "workspace": [".runtime", ".session", ".telemetry"],
+    "database": ".runtime/gentle-vanguard.db",
+    "dashboard": "apps/web-dashboard",
+    "configuration": ["opencode.json", "config/session-autostart.config.json", "config/model-router.json"]
+  },
+  "installerPolicy": {
+    "mode": "bootstrapper",
+    "requiresConsentForExternalDownloads": true,
+    "neverBundlesSecrets": true,
+    "supportsOfflineInstall": false,
+    "postInstallVerification": "npm run install:doctor -- --strict",
+    "bootstrapCommand": "npm run install:bootstrap -- --full"
+  }
+}

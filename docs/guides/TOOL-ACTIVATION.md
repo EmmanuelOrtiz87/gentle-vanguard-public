@@ -6,16 +6,16 @@ This guide describes the current tool activation model for Gentle-Vanguard.
 
 1. Run the workflow health check from the repository root.
 2. Let the config decide which tools are required, optional, or shell-dependent.
-3. Use the shell wrapper on Linux or macOS, or run the PowerShell entrypoint directly when
+3. Use the shell wrapper on Linux or macOS, or run the TypeScript entrypoint directly when
    preferred.
 
 ## Primary Commands
 
-Windows PowerShell:
+Windows TypeScript:
 
-```powershell
-.\scripts\utilities\gv.ps1 health
-.\scripts\utilities\gv.ps1 health -Force
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts health
+.\scripts\utilities\src/cli/gv.ts health -Force
 .\scripts\utilities\update-tools.ps1 -DryRun
 ```
 
@@ -23,13 +23,14 @@ Linux, macOS, or WSL:
 
 ```bash
 ./gv health
-pwsh -NoProfile -File ./scripts/utilities/gv.ps1 health
+pwsh -NoProfile -File ./src/cli/gv.ts health
 pwsh -NoProfile -File ./scripts/utilities/update-tools.ps1 -DryRun
+<!-- REF-OBSOLETA: scripts/utilities/update-tools.ps1 no tiene equivalente TS (migración PS1→TS) -->
 ```
 
 ## Activation Model
 
-1. `gv.ps1 health` is the canonical tool activation entrypoint.
+1. `src/cli/gv.ts health` is the canonical tool activation entrypoint.
 2. `ensure-tools-active.ps1` reads `config/workspace.config.json` and resolves platform-specific
    installation metadata for Windows, Linux, and macOS.
 3. Missing system dependencies are checked before tool installation.
@@ -50,7 +51,7 @@ pwsh -NoProfile -File ./scripts/utilities/update-tools.ps1 -DryRun
 2. Tool install metadata is resolved from the config per platform instead of hardcoded `.windows`
    paths.
 3. Bash is treated as a capability, not a Windows-only implementation detail.
-4. PowerShell remains the canonical automation runtime for these scripts, even when invoked through
+4. TypeScript remains the canonical automation runtime for these scripts, even when invoked through
    `pwsh` on Linux or macOS.
 
 ## Current Agnosticism Status
@@ -64,7 +65,7 @@ High portability is implemented for these areas:
 
 The remaining intentional constraint is:
 
-1. The activation and update workflows are still authored in PowerShell, so the stack is
+1. The activation and update workflows are still authored in TypeScript, so the stack is
    shell-compatible through routing, but not shell-neutral at the implementation layer.
 
 ## Tools Covered

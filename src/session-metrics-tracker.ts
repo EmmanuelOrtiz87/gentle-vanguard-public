@@ -61,7 +61,14 @@ function getCostEstimate(tokens: number): number {
 
 function log(message: string, level = 'INFO', silent = false): void {
   if (silent) return;
-  const prefix = level === 'OK' ? '\x1b[32m' : level === 'WARN' ? '\x1b[33m' : level === 'ERROR' ? '\x1b[31m' : '\x1b[90m';
+  const prefix =
+    level === 'OK'
+      ? '\x1b[32m'
+      : level === 'WARN'
+        ? '\x1b[33m'
+        : level === 'ERROR'
+          ? '\x1b[31m'
+          : '\x1b[90m';
   const suffix = '\x1b[0m';
   console.log(`${prefix}[${level}]${suffix} ${message}`);
 }
@@ -78,7 +85,9 @@ function readState(): SessionData | null {
     if (fs.existsSync(STATE_FILE)) {
       return JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8')) as SessionData;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
@@ -87,7 +96,17 @@ function writeState(data: SessionData): void {
   fs.writeFileSync(STATE_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-function actionStart(sessionId: string, inputTokens: number, outputTokens: number, contextChars: number, toolCalls: number, filesRead: number, filesEdited: number, filesCreated: number, silent: boolean): void {
+function actionStart(
+  sessionId: string,
+  inputTokens: number,
+  outputTokens: number,
+  contextChars: number,
+  toolCalls: number,
+  filesRead: number,
+  filesEdited: number,
+  filesCreated: number,
+  silent: boolean,
+): void {
   const sid = sessionId || `session-${new Date().toISOString().slice(0, 13).replace('T', '-')}`;
   const totalTokens = inputTokens + outputTokens;
 
@@ -113,7 +132,16 @@ function actionStart(sessionId: string, inputTokens: number, outputTokens: numbe
   log(`Started tracking session: ${sid}`, 'OK', silent);
 }
 
-function actionUpdate(inputTokens: number, outputTokens: number, contextChars: number, toolCalls: number, filesRead: number, filesEdited: number, filesCreated: number, silent: boolean): void {
+function actionUpdate(
+  inputTokens: number,
+  outputTokens: number,
+  contextChars: number,
+  toolCalls: number,
+  filesRead: number,
+  filesEdited: number,
+  filesCreated: number,
+  silent: boolean,
+): void {
   const data = readState();
   if (!data) {
     log('No active session to update. Run with --action start first.', 'WARN', silent);
@@ -171,11 +199,17 @@ function actionEnd(silent: boolean): void {
       sessionData.metrics = data.metrics;
       fs.writeFileSync(targetFile, JSON.stringify(sessionData, null, 2), 'utf-8');
       log('Saved metrics to session file', 'OK', silent);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Clean up state file
-  try { fs.unlinkSync(STATE_FILE); } catch { /* ignore */ }
+  try {
+    fs.unlinkSync(STATE_FILE);
+  } catch {
+    /* ignore */
+  }
   log(`Ended session: ${data.sessionId}`, 'OK', silent);
 }
 

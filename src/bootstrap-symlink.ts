@@ -12,7 +12,7 @@
 
 import * as fs from 'fs';
 import { resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 
 const ROOT = resolve(process.cwd());
 const LINK_PARENT = resolve(ROOT, 'apps', 'web-dashboard', 'node_modules', '@gentle-vanguard');
@@ -57,7 +57,7 @@ function main(): void {
   if (platform === 'win32') {
     // Use junction on Windows (works without admin)
     const cmd = `mklink /J "${LINK_PATH}" "${TARGET_PATH}"`;
-    execSync(cmd, { stdio: 'pipe', shell: 'cmd.exe' });
+    runSyncShell(cmd, { stdio: 'pipe' });
     console.log('[BOOTSTRAP] Junction created:', LINK_PATH, '→', TARGET_PATH);
   } else {
     // Use symlink on Unix

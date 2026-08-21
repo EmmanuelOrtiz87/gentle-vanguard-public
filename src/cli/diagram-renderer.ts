@@ -12,7 +12,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'fs';
 import { resolve, dirname, extname, basename, relative, join } from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { runSync, runSyncShell } from '../core/run-command.js';
 
 interface RenderArgs {
   input: string;
@@ -54,16 +54,36 @@ function parseArgs(): RenderArgs {
 
   for (let i = 0; i < raw.length; i++) {
     switch (raw[i]) {
-      case '--output': output = raw[++i] || ''; break;
-      case '--output-dir': outputDir = raw[++i] || ''; break;
-      case '--format': format = raw[++i] || 'svg'; break;
-      case '--dot': dotInline = raw[++i] || ''; break;
-      case '--watch': watch = true; break;
-      case '--from-codegraph': fromCodegraph = true; break;
-      case '--module': codegraphModule = raw[++i] || ''; break;
-      case '--depth': codegraphDepth = parseInt(raw[++i] || '2', 10); break;
-      case '--all-modules': codegraphAll = true; break;
-      case '--json': json = true; break;
+      case '--output':
+        output = raw[++i] || '';
+        break;
+      case '--output-dir':
+        outputDir = raw[++i] || '';
+        break;
+      case '--format':
+        format = raw[++i] || 'svg';
+        break;
+      case '--dot':
+        dotInline = raw[++i] || '';
+        break;
+      case '--watch':
+        watch = true;
+        break;
+      case '--from-codegraph':
+        fromCodegraph = true;
+        break;
+      case '--module':
+        codegraphModule = raw[++i] || '';
+        break;
+      case '--depth':
+        codegraphDepth = parseInt(raw[++i] || '2', 10);
+        break;
+      case '--all-modules':
+        codegraphAll = true;
+        break;
+      case '--json':
+        json = true;
+        break;
       default:
         if (!raw[i].startsWith('--')) positional.push(raw[i]);
     }
@@ -87,17 +107,21 @@ function parseArgs(): RenderArgs {
 function detectEngine(): 'graphviz-cli' | 'viz-js' | 'plantuml-cli' | 'plantuml-http' | 'unknown' {
   // Try native Graphviz
   try {
-    const result = spawnSync('dot', ['-V'], { encoding: 'utf8', timeout: 5000 });
+    const result = runSync('dot', ['-V'], { timeout: 5000 });
     if (result.status === 0) return 'graphviz-cli';
-  } catch { /* not found */ }
+  } catch {
+    /* not found */
+  }
 
   // Try native PlantUML
   try {
-    const result = spawnSync('java', ['-jar', 'plantuml.jar', '-version'], {
-      encoding: 'utf8', timeout: 5000,
+    const result = runSync('java', ['-jar', 'plantuml.jar', '-version'], {
+      timeout: 5000,
     });
     if (result.status === 0) return 'plantuml-cli';
-  } catch { /* not found */ }
+  } catch {
+    /* not found */
+  }
 
   // Check local plantuml.jar
   const jarPath = resolve(process.cwd(), 'plantuml.jar');
@@ -106,7 +130,11 @@ function detectEngine(): 'graphviz-cli' | 'viz-js' | 'plantuml-cli' | 'plantuml-
   return 'viz-js'; // Fallback to viz.js HTML
 }
 
-async function renderGraphviz(dotContent: string, format: string, outputPath: string): Promise<string | null> {
+async function renderGraphviz(
+  dotContent: string,
+  format: string,
+  outputPath: string,
+): Promise<string | null> {
   const engine = detectEngine();
 
   if (engine === 'graphviz-cli') {
@@ -116,15 +144,20 @@ async function renderGraphviz(dotContent: string, format: string, outputPath: st
 
     const outFormat = format === 'svg' ? 'svg' : format === 'png' ? 'png' : 'svg';
     try {
-      execSync(`dot -T${outFormat} "${tmpFile}" -o "${outputPath}"`, {
-        encoding: 'utf8', timeout: 30000,
+      const r = runSyncShell(`dot -T${outFormat} "${tmpFile}" -o "${outputPath}"`, {
+        timeout: 30000,
       });
+      if (r.status !== 0) throw new Error(r.stderr || `dot exited ${r.status}`);
       return outputPath;
     } catch (err) {
       console.error(`[DIAGRAM] Graphviz render failed: ${err}`);
       return null;
     } finally {
-      try { execSync(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`); } catch { /* ignore */ }
+      try {
+        runSyncShell(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -161,15 +194,23 @@ function renderPlantUml(pumlContent: string, format: string, outputPath: string)
     writeFileSync(tmpFile, pumlContent);
 
     try {
-      execSync(`java -jar "${jarPath}" -t${outFormat} "${tmpFile}" -o "${dirname(outputPath)}"`, {
-        encoding: 'utf8', timeout: 30000,
-      });
+      const r = runSyncShell(
+        `java -jar "${jarPath}" -t${outFormat} "${tmpFile}" -o "${dirname(outputPath)}"`,
+        {
+          timeout: 30000,
+        },
+      );
+      if (r.status !== 0) throw new Error(r.stderr || `java exited ${r.status}`);
       return outputPath;
     } catch (err) {
       console.error(`[DIAGRAM] PlantUML render failed: ${err}`);
       return null;
     } finally {
-      try { execSync(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`); } catch { /* ignore */ }
+      try {
+        runSyncShell(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -182,24 +223,29 @@ function renderPlantUml(pumlContent: string, format: string, outputPath: string)
 }
 
 function escapeForJs(s: string): string {
-  return s
-    .replace(/\\/g, '\\\\')
-    .replace(/`/g, '\\`')
-    .replace(/\$/g, '\\$')
-    .replace(/'/g, "\\'");
+  return s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/'/g, "\\'");
 }
 
 function detectInputType(content: string): 'dot' | 'puml' {
   const trimmed = content.trim();
   if (trimmed.startsWith('@start')) return 'puml';
-  if (trimmed.startsWith('digraph') || trimmed.startsWith('graph') || trimmed.startsWith('strict')) return 'dot';
+  if (trimmed.startsWith('digraph') || trimmed.startsWith('graph') || trimmed.startsWith('strict'))
+    return 'dot';
   return 'dot'; // default
 }
 
 async function renderFile(inputPath: string, args: RenderArgs): Promise<RenderResult> {
   const fullPath = resolve(process.cwd(), inputPath);
   if (!existsSync(fullPath)) {
-    return { success: false, input: inputPath, output: '', format: args.format, engine: 'unknown', size: 0, error: `File not found: ${inputPath}` };
+    return {
+      success: false,
+      input: inputPath,
+      output: '',
+      format: args.format,
+      engine: 'unknown',
+      size: 0,
+      error: `File not found: ${inputPath}`,
+    };
   }
 
   const content = readFileSync(fullPath, 'utf8');
@@ -207,9 +253,7 @@ async function renderFile(inputPath: string, args: RenderArgs): Promise<RenderRe
   const ext = extname(fullPath).toLowerCase();
   const name = basename(fullPath, ext);
 
-  const outDir = args.outputDir
-    ? resolve(process.cwd(), args.outputDir)
-    : dirname(fullPath);
+  const outDir = args.outputDir ? resolve(process.cwd(), args.outputDir) : dirname(fullPath);
   const outputPath = args.output
     ? resolve(process.cwd(), args.output)
     : resolve(outDir, `${name}.${args.format}`);
@@ -226,19 +270,35 @@ async function renderFile(inputPath: string, args: RenderArgs): Promise<RenderRe
     result = await renderGraphviz(content, args.format, outputPath);
   } else {
     engine = detectEngine();
-    if (engine === 'plantuml-cli' || existsSync(resolve(process.cwd(), 'plantuml.jar'))) engine = 'PlantUML CLI';
+    if (engine === 'plantuml-cli' || existsSync(resolve(process.cwd(), 'plantuml.jar')))
+      engine = 'PlantUML CLI';
     else engine = 'PlantUML HTTP (online fallback)';
     result = renderPlantUml(content, args.format, outputPath);
   }
 
   if (!result) {
-    return { success: false, input: inputPath, output: '', format: args.format, engine, size: 0, error: 'Render failed' };
+    return {
+      success: false,
+      input: inputPath,
+      output: '',
+      format: args.format,
+      engine,
+      size: 0,
+      error: 'Render failed',
+    };
   }
 
   const resultPath = result.startsWith('http') ? result : result;
   const fileSize = result.startsWith('http') ? 0 : statSync(resultPath).size;
 
-  return { success: true, input: inputPath, output: resultPath, format: args.format, engine, size: fileSize };
+  return {
+    success: true,
+    input: inputPath,
+    output: resultPath,
+    format: args.format,
+    engine,
+    size: fileSize,
+  };
 }
 
 async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
@@ -253,7 +313,9 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
       try {
         graphData = JSON.parse(readFileSync(gp, 'utf8'));
         break;
-      } catch { /* try next */ }
+      } catch {
+        /* try next */
+      }
     }
   }
 
@@ -280,10 +342,12 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
   }
 
   // Build DOT
-  const nodeIds = new Set(filteredNodes.map((n: any) => {
-    const id = (n.id || n.name || 'unknown').replace(/[^a-zA-Z0-9_]/g, '_');
-    return id;
-  }));
+  const nodeIds = new Set(
+    filteredNodes.map((n: any) => {
+      const id = (n.id || n.name || 'unknown').replace(/[^a-zA-Z0-9_]/g, '_');
+      return id;
+    }),
+  );
 
   let dot = 'digraph CodeGraph {\n';
   dot += '  rankdir=LR;\n';
@@ -314,7 +378,8 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
   const dotFile = resolve(tmpDir, `codegraph-${Date.now()}.dot`);
   writeFileSync(dotFile, dot);
 
-  const outputPath = args.output || resolve(process.cwd(), 'docs/diagrams/codegraph-architecture.svg');
+  const outputPath =
+    args.output || resolve(process.cwd(), 'docs/diagrams/codegraph-architecture.svg');
   mkdirSync(dirname(outputPath), { recursive: true });
 
   const result = await renderGraphviz(dot, args.format, outputPath);
@@ -336,7 +401,9 @@ async function main(): Promise<void> {
 
     // Initial render
     const files = existsSync(watchDir)
-      ? readdirSync(watchDir).filter(f => f.endsWith('.dot') || f.endsWith('.gv') || f.endsWith('.puml'))
+      ? readdirSync(watchDir).filter(
+          (f) => f.endsWith('.dot') || f.endsWith('.gv') || f.endsWith('.puml'),
+        )
       : [args.input];
 
     for (const f of files) {
@@ -371,8 +438,14 @@ async function main(): Promise<void> {
       }
     }, 2000);
 
-    process.on('SIGINT', () => { clearInterval(interval); process.exit(0); });
-    process.on('SIGTERM', () => { clearInterval(interval); process.exit(0); });
+    process.on('SIGINT', () => {
+      clearInterval(interval);
+      process.exit(0);
+    });
+    process.on('SIGTERM', () => {
+      clearInterval(interval);
+      process.exit(0);
+    });
     return;
   }
 
@@ -384,7 +457,8 @@ async function main(): Promise<void> {
 
   // Inline DOT mode
   if (args.dotInline) {
-    const outputPath = args.output || resolve(process.cwd(), `docs/diagrams/diagram-${Date.now()}.svg`);
+    const outputPath =
+      args.output || resolve(process.cwd(), `docs/diagrams/diagram-${Date.now()}.svg`);
     mkdirSync(dirname(outputPath), { recursive: true });
     const result = await renderGraphviz(args.dotInline, args.format, outputPath);
     if (result) {
@@ -397,9 +471,15 @@ async function main(): Promise<void> {
   if (!args.input) {
     console.error(`[DIAGRAM] Usage:`);
     console.error(`  npx tsx src/cli/diagram-renderer.ts input.dot --output output.svg`);
-    console.error(`  npx tsx src/cli/diagram-renderer.ts --dot "digraph { A -> B; }" --output graph.svg`);
-    console.error(`  npx tsx src/cli/diagram-renderer.ts docs/diagrams/ --output-dir docs/generated/`);
-    console.error(`  npx tsx src/cli/diagram-renderer.ts --from-codegraph --module src/core --output arch.svg`);
+    console.error(
+      `  npx tsx src/cli/diagram-renderer.ts --dot "digraph { A -> B; }" --output graph.svg`,
+    );
+    console.error(
+      `  npx tsx src/cli/diagram-renderer.ts docs/diagrams/ --output-dir docs/generated/`,
+    );
+    console.error(
+      `  npx tsx src/cli/diagram-renderer.ts --from-codegraph --module src/core --output arch.svg`,
+    );
     process.exit(1);
   }
 
@@ -413,7 +493,7 @@ async function main(): Promise<void> {
   // Directory — batch render
   if (statSync(inputPath).isDirectory()) {
     const diagramFiles = readdirSync(inputPath).filter(
-      f => f.endsWith('.dot') || f.endsWith('.gv') || f.endsWith('.puml') || f.endsWith('.wsd')
+      (f) => f.endsWith('.dot') || f.endsWith('.gv') || f.endsWith('.puml') || f.endsWith('.wsd'),
     );
 
     if (diagramFiles.length === 0) {
@@ -432,7 +512,9 @@ async function main(): Promise<void> {
       results.push(result);
       if (result.success) {
         passed++;
-        console.log(`  ✅ ${f} → ${relative(process.cwd(), result.output)} (${(result.size / 1024).toFixed(1)} KB)`);
+        console.log(
+          `  ✅ ${f} → ${relative(process.cwd(), result.output)} (${(result.size / 1024).toFixed(1)} KB)`,
+        );
       } else {
         failed++;
         console.error(`  ❌ ${f}: ${result.error}`);
@@ -453,7 +535,9 @@ async function main(): Promise<void> {
     console.log(JSON.stringify(result, null, 2));
   }
   if (result.success) {
-    console.log(`[DIAGRAM] ✅ Rendered: ${result.output} (${(result.size / 1024).toFixed(1)} KB, ${result.engine})`);
+    console.log(
+      `[DIAGRAM] ✅ Rendered: ${result.output} (${(result.size / 1024).toFixed(1)} KB, ${result.engine})`,
+    );
     process.exit(0);
   } else {
     console.error(`[DIAGRAM] ❌ ${result.error}`);
@@ -461,7 +545,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('[DIAGRAM] Fatal error:', err);
   process.exit(1);
 });

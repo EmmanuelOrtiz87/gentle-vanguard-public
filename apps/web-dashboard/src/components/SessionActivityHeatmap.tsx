@@ -55,16 +55,21 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
           bucket.total++;
           if (s.status === 'active') bucket.active++;
         }
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
 
-    const nonEmpty = buckets.filter(b => b.total > 0);
+    const nonEmpty = buckets.filter((b) => b.total > 0);
     if (nonEmpty.length === 0) return [];
 
-    const firstIdx = Math.max(0, buckets.findIndex(b => b.total > 0) - 1);
+    const firstIdx = Math.max(0, buckets.findIndex((b) => b.total > 0) - 1);
     let lastIdx = 0;
     for (let i = buckets.length - 1; i >= 0; i--) {
-      if (buckets[i].total > 0) { lastIdx = i; break; }
+      if (buckets[i].total > 0) {
+        lastIdx = i;
+        break;
+      }
     }
     lastIdx = Math.min(23, lastIdx + 1);
     return buckets.slice(firstIdx, lastIdx + 1);
@@ -72,7 +77,7 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
 
   const maxCount = useMemo(() => {
     if (hourlyData.length === 0) return 0;
-    return Math.max(...hourlyData.map(b => b.total));
+    return Math.max(...hourlyData.map((b) => b.total));
   }, [hourlyData]);
 
   if (hourlyData.length === 0) {
@@ -101,7 +106,7 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
           <span>{sessions.length} sessions</span>
           <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
           <Zap className="w-3 h-3 text-green-500" />
-          <span>{sessions.filter(s => s.status === 'active').length} active</span>
+          <span>{sessions.filter((s) => s.status === 'active').length} active</span>
         </div>
       </div>
 
@@ -144,7 +149,8 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
                 fontSize: '12px',
               }}
               formatter={(value: number, name: string) => [
-                value, name === 'total' ? 'Total Sessions' : 'Active Sessions'
+                value,
+                name === 'total' ? 'Total Sessions' : 'Active Sessions',
               ]}
             />
             <Bar dataKey="total" fill="#0ea5e9" radius={[2, 2, 0, 0]} name="total" />

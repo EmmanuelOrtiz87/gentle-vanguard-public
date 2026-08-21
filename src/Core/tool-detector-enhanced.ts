@@ -5,7 +5,7 @@
  * Improves tool detection to handle newer tools and frameworks
  */
 
-import { execSync } from 'child_process';
+import { runSyncShell } from './run-command.js';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
@@ -25,7 +25,6 @@ interface ToolDetectionResult {
  * Enhanced tool detector class
  */
 export class EnhancedToolDetector {
-
   /**
    * Detect available tools in the system
    * @returns Array of detected tools
@@ -41,7 +40,7 @@ export class EnhancedToolDetector {
       { name: 'typescript', command: 'tsc --version' },
       { name: 'eslint', command: 'eslint --version' },
       { name: 'jest', command: 'jest --version' },
-      { name: 'vite', command: 'vite --version' }
+      { name: 'vite', command: 'vite --version' },
     ];
 
     const results: ToolDetectionResult[] = [];
@@ -57,7 +56,7 @@ export class EnhancedToolDetector {
           path: 'unknown',
           detected: false,
           compatibility: 'unknown',
-          notes: [`Detection failed: ${error instanceof Error ? error.message : String(error)}`]
+          notes: [`Detection failed: ${error instanceof Error ? error.message : String(error)}`],
         });
       }
     }
@@ -74,10 +73,13 @@ export class EnhancedToolDetector {
    * @param tool Tool definition
    * @returns Tool detection result
    */
-  private async detectSingleTool(tool: { name: string; command: string }): Promise<ToolDetectionResult> {
+  private async detectSingleTool(tool: {
+    name: string;
+    command: string;
+  }): Promise<ToolDetectionResult> {
     try {
       // Try to get version information
-      const versionOutput = execSync(tool.command, { encoding: 'utf8', timeout: 5000 });
+      const versionOutput = runSyncShell(tool.command, { timeout: 5000 }).stdout;
 
       // Extract version from output
       let version = 'unknown';
@@ -89,10 +91,9 @@ export class EnhancedToolDetector {
       // Try to get the tool path
       let path = 'unknown';
       try {
-        const pathOutput = execSync(`which ${tool.name} || where ${tool.name}`, {
-          encoding: 'utf8',
-          timeout: 500
-        });
+        const pathOutput = runSyncShell(`which ${tool.name} || where ${tool.name}`, {
+          timeout: 500,
+        }).stdout;
         path = pathOutput.trim();
       } catch {
         // If path detection fails, keep 'unknown'
@@ -107,9 +108,8 @@ export class EnhancedToolDetector {
         path,
         detected: true,
         compatibility,
-        notes: [`Detected version: ${version}`]
+        notes: [`Detected version: ${version}`],
       };
-
     } catch (error) {
       return {
         name: tool.name,
@@ -117,7 +117,7 @@ export class EnhancedToolDetector {
         path: 'unknown',
         detected: false,
         compatibility: 'unknown',
-        notes: [`Tool not detected: ${error instanceof Error ? error.message : String(error)}`]
+        notes: [`Tool not detected: ${error instanceof Error ? error.message : String(error)}`],
       };
     }
   }
@@ -146,7 +146,7 @@ export class EnhancedToolDetector {
                 path: join(scriptsDir, file),
                 detected: true,
                 compatibility: 'compatible',
-                notes: ['Custom tool detected']
+                notes: ['Custom tool detected'],
               });
             }
           }
@@ -165,7 +165,10 @@ export class EnhancedToolDetector {
    * @param version Version string
    * @returns Compatibility status
    */
-  private determineCompatibility(toolName: string, version: string): 'compatible' | 'incompatible' | 'unknown' {
+  private determineCompatibility(
+    toolName: string,
+    version: string,
+  ): 'compatible' | 'incompatible' | 'unknown' {
     // Simple compatibility logic - in a real implementation this would be more sophisticated
     if (version === 'unknown') {
       return 'unknown';
@@ -186,7 +189,7 @@ export class EnhancedToolDetector {
       npm: { major: 8, minor: 0 },
       pnpm: { major: 7, minor: 0 },
       git: { major: 2, minor: 0 },
-      typescript: { major: 4, minor: 0 }
+      typescript: { major: 4, minor: 0 },
     };
 
     if (minVersions[toolName]) {
@@ -209,38 +212,37 @@ export class EnhancedToolDetector {
   async validateTool(toolName: string): Promise<{ valid: boolean; message: string }> {
     try {
       const tools = await this.detectTools();
-      const tool = tools.find(t => t.name === toolName);
+      const tool = tools.find((t) => t.name === toolName);
 
       if (!tool) {
         return {
           valid: false,
-          message: `Tool '${toolName}' not found`
+          message: `Tool '${toolName}' not found`,
         };
       }
 
       if (!tool.detected) {
         return {
           valid: false,
-          message: `Tool '${toolName}' not detected in system`
+          message: `Tool '${toolName}' not detected in system`,
         };
       }
 
       if (tool.compatibility === 'incompatible') {
         return {
           valid: false,
-          message: `Tool '${toolName}' version ${tool.version} is incompatible`
+          message: `Tool '${toolName}' version ${tool.version} is incompatible`,
         };
       }
 
       return {
         valid: true,
-        message: `Tool '${toolName}' is compatible (version: ${tool.version})`
+        message: `Tool '${toolName}' is compatible (version: ${tool.version})`,
       };
-
     } catch (error) {
       return {
         valid: false,
-        message: `Error validating tool '${toolName}': ${error instanceof Error ? error.message : String(error)}`
+        message: `Error validating tool '${toolName}': ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -257,9 +259,9 @@ export class EnhancedToolDetector {
     reportLines.push('==============================');
     reportLines.push('');
 
-    const compatibleTools = tools.filter(t => t.compatibility === 'compatible');
-    const incompatibleTools = tools.filter(t => t.compatibility === 'incompatible');
-    const undetectedTools = tools.filter(t => !t.detected);
+    const compatibleTools = tools.filter((t) => t.compatibility === 'compatible');
+    const incompatibleTools = tools.filter((t) => t.compatibility === 'incompatible');
+    const undetectedTools = tools.filter((t) => !t.detected);
 
     reportLines.push(`Total tools detected: ${tools.length}`);
     reportLines.push(`Compatible tools: ${compatibleTools.length}`);
@@ -271,9 +273,7 @@ export class EnhancedToolDetector {
     reportLines.push('-------------');
 
     for (const tool of tools) {
-      const statusIcon = tool.detected
-        ? (tool.compatibility === 'compatible' ? '✅' : '⚠️')
-        : '❌';
+      const statusIcon = tool.detected ? (tool.compatibility === 'compatible' ? '✅' : '⚠️') : '❌';
 
       reportLines.push(`${statusIcon} ${tool.name} (${tool.version})`);
       reportLines.push(`   Path: ${tool.path}`);
@@ -298,12 +298,13 @@ export const toolDetector = new EnhancedToolDetector();
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const detector = new EnhancedToolDetector();
 
-  detector.detectTools()
-    .then(tools => {
+  detector
+    .detectTools()
+    .then((tools) => {
       console.log(detector.generateReport(tools));
 
       // Check for incompatible tools
-      const incompatible = tools.filter(t => t.compatibility === 'incompatible');
+      const incompatible = tools.filter((t) => t.compatibility === 'incompatible');
       if (incompatible.length > 0) {
         console.log('⚠️  Incompatible tools detected:');
         for (const tool of incompatible) {
@@ -311,7 +312,7 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
         }
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Tool detection error:', error);
       process.exit(1);
     });

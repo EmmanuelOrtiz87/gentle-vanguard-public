@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Marketing & Products — Gentle-Vanguard — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketing & Products — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      .social-card {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-lg);
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .social-card:hover {
+        border-color: oklch(0.8 0.14 210 / 0.4);
+        transform: translateY(-4px);
+        box-shadow:
+          var(--glow-cyan),
+          0 12px 40px oklch(0.1 0.02 262 / 0.45);
+      }
+      .social-card .platform-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .social-card.tiktok .platform-icon {
+        background: linear-gradient(135deg, #ff0050, #00f2ea);
+      }
+      .social-card.instagram .platform-icon {
+        background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      }
+      .social-card.linkedin .platform-icon {
+        background: #0077b5;
+      }
+      .social-card.twitter .platform-icon {
+        background: #1da1f2;
+      }
+      .social-card.reddit .platform-icon {
+        background: #ff4500;
+      }
+      .social-card.discord .platform-icon {
+        background: #5865f2;
+      }
+      .social-card.youtube .platform-icon {
+        background: #ff0000;
+      }
+      .social-card.facebook .platform-icon {
+        background: #1877f2;
+      }
+
+      .product-card {
+        background: linear-gradient(135deg, var(--card), oklch(0.24 0.03 262));
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-lg);
+        padding: 2rem;
+        transition: all 0.35s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--p), var(--a));
+      }
+      .product-card:hover {
+        border-color: oklch(0.8 0.14 210 / 0.4);
+        transform: translateY(-6px);
+      }
+      .price-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, oklch(0.75 0.15 155 / 0.2), oklch(0.8 0.14 210 / 0.15));
+        border: 1px solid oklch(0.75 0.15 155 / 0.3);
+        color: var(--ok);
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .audience-card {
+        background: oklch(0.22 0.02 262 / 0.8);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.5rem;
+        height: 100%;
+      }
+      .tag-strategy {
+        display: inline-block;
+        background: oklch(0.27 0.02 262);
+        padding: 0.25em 0.7em;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        margin: 0.15rem;
+        border: 1px solid oklch(0.8 0.14 210 / 0.15);
+      }
+      .roi-card {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        text-align: center;
+      }
+      .roi-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--p), var(--pl));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .content-template {
+        background: oklch(0.14 0.02 262);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .content-template .label {
+        color: var(--p);
+      }
+      .content-template .value {
+        color: var(--text);
+      }
+      .content-template .hashtag {
+        color: var(--a);
+      }
+    </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="overview">
+      <span class="hero-badge mb-3">✦ Monetization Strategy</span>
+      <h1 class="display-1 fw-bold z-1">
+        <span class="glow">Marketing & Products</span>
+      </h1>
+      <p class="lead text-secondary z-1" style="max-width: 800px">
+        Turn your AI automation into revenue streams.<br />
+        <strong class="text-light">From open-source to profitable business</strong>.
+      </p>
+      <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
+        <a href="#strategy" class="btn-gv"><i class="bi bi-bullseye me-1"></i>Strategy</a>
+        <a href="#products" class="btn-gv-alt"><i class="bi bi-box me-1"></i>Products</a>
+        <a href="#social" class="btn-gv-alt"><i class="bi bi-share me-1"></i>Social Media</a>
+        <a href="#pricing" class="btn-gv-alt"><i class="bi bi-currency-dollar me-1"></i>Pricing</a>
+      </div>
+    </header>
+
+    <section class="fade-in" id="strategy">
+      <div class="section-title">
+        <div class="display-4 mb-2">🎯</div>
+        <h2>Marketing Strategy</h2>
+        <p>Multi-channel approach targeting developers, enterprises, and decision-makers</p>
+      </div>
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-4">
+          <div class="audience-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="badge badge-p me-2">B2D</div>
+              <h5 class="mb-0">Developers & AI Engineers</h5>
+            </div>
+            <p class="text-secondary small mb-3">
+              Senior developers, AI engineers, tech leads looking for 10× productivity tools
+            </p>
+            <div class="mb-3">
+              <span class="tag-strategy">GitHub</span>
+              <span class="tag-strategy">Dev.to</span>
+              <span class="tag-strategy">Hacker News</span>
+              <span class="tag-strategy">Reddit</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Message:</strong> "From Chat to Cognitive System — Automate your AI workflows"
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="audience-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="badge badge-a me-2">B2B</div>
+              <h5 class="mb-0">CTOs & Decision Makers</h5>
+            </div>
+            <p class="text-secondary small mb-3">
+              CTOs, VPs of Engineering, Directors looking to reduce development costs and
+              standardize processes
+            </p>
+            <div class="mb-3">
+              <span class="tag-strategy">LinkedIn</span>
+              <span class="tag-strategy">Webinars</span>
+              <span class="tag-strategy">Whitepapers</span>
+              <span class="tag-strategy">Conferences</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Message:</strong> "100% Autonomous AI Stack — Self-healing, self-learning,
+              self-evolving"
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="audience-card">
+            <div class="d-flex align-items-center mb-3">
+              <div class="badge badge-ok me-2">B2B</div>
+              <h5 class="mb-0">Startups & Scale-ups</h5>
+            </div>
+            <p class="text-secondary small mb-3">
+              Teams of 10-50 people in growth mode needing to scale without increasing headcount
+            </p>
+            <div class="mb-3">
+              <span class="tag-strategy">Product Hunt</span>
+              <span class="tag-strategy">Indie Hackers</span>
+              <span class="tag-strategy">Twitter</span>
+              <span class="tag-strategy">Discord</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Message:</strong> "Ship faster with AI autonomy — Build the future"
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h4><i class="bi bi-lightbulb text-warning me-2"></i>Value Propositions</h4>
+            <div class="mt-4">
+              <div class="d-flex align-items-start mb-3">
+                <span class="badge badge-ok me-2">1</span>
+                <div>
+                  <strong class="text-light">10× Developer Productivity</strong>
+                  <p class="text-secondary small mb-0">
+                    AI agents handle routine tasks, code review, testing, and documentation
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex align-items-start mb-3">
+                <span class="badge badge-ok me-2">2</span>
+                <div>
+                  <strong class="text-light">100% Autonomous Operation</strong>
+                  <p class="text-secondary small mb-0">
+                    Self-healing, self-learning, and self-evolving stack with minimal human
+                    intervention
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex align-items-start mb-3">
+                <span class="badge badge-ok me-2">3</span>
+                <div>
+                  <strong class="text-light">Multi-Tool Integration</strong>
+                  <p class="text-secondary small mb-0">
+                    Works with OpenCode, Claude, Cursor, Windsurf, Copilot, and 5+ other tools
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex align-items-start">
+                <span class="badge badge-ok me-2">4</span>
+                <div>
+                  <strong class="text-light">Enterprise-Grade Security</strong>
+                  <p class="text-secondary small mb-0">
+                    Circuit breakers, audit trails, RBAC, and compliance monitoring built-in
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h4><i class="bi bi-graph-up-arrow text-success me-2"></i>ROI Projections</h4>
+            <div class="row g-3 mt-2">
+              <div class="col-4">
+                <div class="roi-card">
+                  <div class="roi-number">70%</div>
+                  <small class="text-secondary">Reduction in development time</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="roi-card">
+                  <div class="roi-number">3×</div>
+                  <small class="text-secondary">Faster feature delivery</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="roi-card">
+                  <div class="roi-number">50%</div>
+                  <small class="text-secondary">Reduction in bugs</small>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-secondary">Payback Period</span>
+                <span class="text-info fw-bold">3-6 months</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-secondary">Annual ROI</span>
+                <span class="text-success fw-bold">300%+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fade-in" id="products">
+      <div class="section-title">
+        <div class="display-4 mb-2">📦</div>
+        <h2>Product Ecosystem</h2>
+        <p>Build on top of Gentle-Vanguard to create revenue-generating products</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-music-note-beamed me-2"></i>Gentle-Music</h4>
+              <span class="price-tag">$4.99/mo</span>
+            </div>
+            <p class="text-secondary mb-3">
+              AI-powered music streaming with personalized recommendations, playlist management, and
+              offline mode.
+            </p>
+            <div class="mb-3">
+              <span class="tag">Streaming</span>
+              <span class="tag">AI Recommendations</span>
+              <span class="tag">Offline</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>Web Audio API<br />
+              <i class="bi bi-check2 text-success me-1"></i>Embeddings for music similarity<br />
+              <i class="bi bi-check2 text-success me-1"></i>Cloud storage integration
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-shop me-2"></i>Stock-Vanguard</h4>
+              <span class="price-tag">$29/mo</span>
+            </div>
+            <p class="text-secondary mb-3">
+              Stock and billing system for Argentina with AFIP integration, facturación electrónica,
+              and multi-branch support.
+            </p>
+            <div class="mb-3">
+              <span class="tag">AFIP Ready</span>
+              <span class="tag">Facturación A/B/C</span>
+              <span class="tag">Multi-Sucursal</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>RG 3741 compliant<br />
+              <i class="bi bi-check2 text-success me-1"></i>Libros IVA automáticos<br />
+              <i class="bi bi-check2 text-success me-1"></i>Reportes automáticos
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-file-earmark-text me-2"></i>Doc-Gentle</h4>
+              <span class="price-tag">$15/mo</span>
+            </div>
+            <p class="text-secondary mb-3">
+              Document intelligence platform. Upload PDFs, Word docs, images, URLs. Get AI summaries
+              and translations.
+            </p>
+            <div class="mb-3">
+              <span class="tag">OCR</span>
+              <span class="tag">Summarization</span>
+              <span class="tag">Translation</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>Google Drive, Dropbox, Notion<br />
+              <i class="bi bi-check2 text-success me-1"></i>Multi-language support<br />
+              <i class="bi bi-check2 text-success me-1"></i>Q&A with documents
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-robot me-2"></i>Gentle-Agency</h4>
+              <span class="price-tag">Custom</span>
+            </div>
+            <p class="text-secondary mb-3">
+              AI development agency. "We build your MVP in 48 hours" using Gentle-Vanguard stack.
+            </p>
+            <div class="mb-3">
+              <span class="tag">MVP in 48h</span>
+              <span class="tag">Custom Development</span>
+              <span class="tag">Consulting</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>Landing page: $499<br />
+              <i class="bi bi-check2 text-success me-1"></i>MVP complete: $2,999<br />
+              <i class="bi bi-check2 text-success me-1"></i>Production app: $9,999
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-kanban me-2"></i>Task-Gentle</h4>
+              <span class="price-tag">$9.99/mo</span>
+            </div>
+            <p class="text-secondary mb-3">
+              AI-powered project management with automatic task prioritization, sprint planning, and
+              progress tracking.
+            </p>
+            <div class="mb-3">
+              <span class="tag">Kanban</span>
+              <span class="tag">Sprint Planning</span>
+              <span class="tag">Auto-Prioritize</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>GitHub/Jira integration<br />
+              <i class="bi bi-check2 text-success me-1"></i>AI workload balancing<br />
+              <i class="bi bi-check2 text-success me-1"></i>Predictive deadlines
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="product-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4><i class="bi bi-code-slash me-2"></i>Code-Gentle</h4>
+              <span class="price-tag">$19.99/mo</span>
+            </div>
+            <p class="text-secondary mb-3">
+              AI code review and quality assurance platform. Automated PR reviews, security
+              scanning, and documentation.
+            </p>
+            <div class="mb-3">
+              <span class="tag">Code Review</span>
+              <span class="tag">Security Scan</span>
+              <span class="tag">Documentation</span>
+            </div>
+            <div class="text-secondary small">
+              <i class="bi bi-check2 text-success me-1"></i>GitHub/GitLab/Bitbucket<br />
+              <i class="bi bi-check2 text-success me-1"></i>21 agent review<br />
+              <i class="bi bi-check2 text-success me-1"></i>Auto-fix suggestions
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fade-in" id="pricing">
+      <div class="section-title">
+        <div class="display-4 mb-2">💰</div>
+        <h2>Pricing Models</h2>
+        <p>Multiple revenue streams from Gentle-Vanguard</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="section-card h-100">
+            <h4><i class="bi bi-cloud text-info me-2"></i>SaaS Freemium (Recommended)</h4>
+            <div class="mt-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3 p-3"
+                style="background: var(--bg2); border-radius: 10px"
+              >
+                <div>
+                  <strong class="text-light">Free Tier</strong>
+                  <p class="text-secondary small mb-0">Stack self-hosted, community Discord</p>
+                </div>
+                <span class="badge badge-ok">Free</span>
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center mb-3 p-3"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    oklch(0.8 0.14 210 / 0.1),
+                    oklch(0.7 0.18 290 / 0.1)
+                  );
+                  border-radius: 10px;
+                  border: 1px solid oklch(0.8 0.14 210 / 0.2);
+                "
+              >
+                <div>
+                  <strong class="text-light">Pro</strong>
+                  <p class="text-secondary small mb-0">Cloud hosting, multi-agent, dashboard</p>
+                </div>
+                <span class="price-tag">$29/mo</span>
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center p-3"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    oklch(0.75 0.15 155 / 0.15),
+                    oklch(0.8 0.14 210 / 0.1)
+                  );
+                  border-radius: 10px;
+                  border: 1px solid oklch(0.75 0.15 155 / 0.3);
+                "
+              >
+                <div>
+                  <strong class="text-light">Enterprise</strong>
+                  <p class="text-secondary small mb-0">On-premise, SLA, 24/7 support, training</p>
+                </div>
+                <span class="price-tag">$299/mo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="section-card h-100">
+            <h4><i class="bi bi-building text-success me-2"></i>Enterprise Licensing</h4>
+            <div class="mt-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-light">Tier 1 (1-10 devs)</span>
+                <span class="text-info fw-bold">$500/dev/year</span>
+              </div>
+              <div class="progress-bar-custom mb-4">
+                <div class="progress-bar-fill bg-info" style="width: 30%"></div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-light">Tier 2 (11-50 devs)</span>
+                <span class="text-info fw-bold">$400/dev/year</span>
+              </div>
+              <div class="progress-bar-custom mb-4">
+                <div class="progress-bar-fill bg-info" style="width: 60%"></div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-light">Tier 3 (50+ devs)</span>
+                <span class="text-info fw-bold">$300/dev/year</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-success" style="width: 100%"></div>
+              </div>
+              <p class="text-secondary small mt-3">
+                Includes source code, updates, support, custom integrations
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="section-card h-100">
+            <h4><i class="bi bi-briefcase text-warning me-2"></i>Consulting Services</h4>
+            <div class="mt-4">
+              <div
+                class="d-flex justify-content-between mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="text-light">Initial Setup</span>
+                <span class="text-warning">$2,000-5,000</span>
+              </div>
+              <div
+                class="d-flex justify-content-between mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="text-light">Project Migration</span>
+                <span class="text-warning">$500-2,000/project</span>
+              </div>
+              <div
+                class="d-flex justify-content-between mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="text-light">Team Training</span>
+                <span class="text-warning">$1,500/day</span>
+              </div>
+              <div
+                class="d-flex justify-content-between p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="text-light">Ongoing Support</span>
+                <span class="text-warning">$1,000/mo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="section-card h-100">
+            <h4><i class="bi bi-shop-window text-primary me-2"></i>Marketplace & Plugins</h4>
+            <div class="mt-4">
+              <div class="d-flex justify-content-between mb-3">
+                <span class="text-light">Plugin Commission</span>
+                <span class="badge badge-p">20%</span>
+              </div>
+              <div class="d-flex justify-content-between mb-3">
+                <span class="text-light">Premium Templates</span>
+                <span class="badge badge-a">$49-299</span>
+              </div>
+              <div class="d-flex justify-content-between mb-3">
+                <span class="text-light">Custom Skills</span>
+                <span class="badge badge-ok">$99-499</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-light">Theming</span>
+                <span class="badge badge-wn">$29-149</span>
+              </div>
+              <p class="text-secondary small mt-4">
+                Build an ecosystem of developers creating and selling Gentle-Vanguard extensions
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fade-in" id="social">
+      <div class="section-title">
+        <div class="display-4 mb-2">📱</div>
+        <h2>Social Media Strategy</h2>
+        <p>Content calendar and templates for each platform</p>
+      </div>
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+          <div class="social-card tiktok">
+            <div class="platform-icon"><i class="bi bi-tiktok text-white"></i></div>
+            <h5>TikTok</h5>
+            <p class="text-secondary small">Short-form video content for brand awareness</p>
+            <div class="mb-3">
+              <span class="tag-strategy">1-2 videos/day</span>
+              <span class="tag-strategy">Viral/Brand</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Hooks:</strong> "Day in the life", "Before/After", "Behind the scenes"
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="social-card linkedin">
+            <div class="platform-icon"><i class="bi bi-linkedin text-white"></i></div>
+            <h5>LinkedIn</h5>
+            <p class="text-secondary small">B2B thought leadership and case studies</p>
+            <div class="mb-3">
+              <span class="tag-strategy">1 long/week</span>
+              <span class="tag-strategy">3-5 short/day</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Content:</strong> Technical articles, ROI studies, comparisons
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="social-card twitter">
+            <div class="platform-icon"><i class="bi bi-twitter-x text-white"></i></div>
+            <h5>Twitter/X</h5>
+            <p class="text-secondary small">Community engagement and technical discussions</p>
+            <div class="mb-3">
+              <span class="tag-strategy">3-5 tweets/day</span>
+              <span class="tag-strategy">1 thread/week</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Format:</strong> Threads, screenshots, quick tips
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="social-card youtube">
+            <div class="platform-icon"><i class="bi bi-youtube text-white"></i></div>
+            <h5>YouTube</h5>
+            <p class="text-secondary small">Long-form tutorials and documentation</p>
+            <div class="mb-3">
+              <span class="tag-strategy">1 video/week</span>
+              <span class="tag-strategy">10-20 min</span>
+            </div>
+            <p class="text-secondary small">
+              <strong>Topics:</strong> Setup guides, deep dives, showcases
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h5><i class="bi bi-calendar-week text-info me-2"></i>Weekly Content Calendar</h5>
+            <div class="mt-3">
+              <div
+                class="d-flex align-items-center mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-p me-2">MON</span>
+                <span class="text-secondary">Technical deep-dive (LinkedIn)</span>
+              </div>
+              <div
+                class="d-flex align-items-center mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-a me-2">TUE</span>
+                <span class="text-secondary">Product showcase (Twitter)</span>
+              </div>
+              <div
+                class="d-flex align-items-center mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-ok me-2">WED</span>
+                <span class="text-secondary">Video tutorial (YouTube + TikTok)</span>
+              </div>
+              <div
+                class="d-flex align-items-center mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-wn me-2">THU</span>
+                <span class="text-secondary">Case study / Customer story (LinkedIn)</span>
+              </div>
+              <div
+                class="d-flex align-items-center mb-2 p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-er me-2">FRI</span>
+                <span class="text-secondary">Community engagement (Discord + Reddit)</span>
+              </div>
+              <div
+                class="d-flex align-items-center p-2"
+                style="background: var(--bg2); border-radius: 8px"
+              >
+                <span class="badge badge-p me-2">WEEKEND</span>
+                <span class="text-secondary">Behind the scenes / Personal brand</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h5><i class="bi bi-hash text-success me-2"></i>Hashtag Strategy</h5>
+            <div class="mt-3">
+              <div class="mb-3">
+                <strong class="text-light">Primary (always use):</strong>
+                <div class="mt-2">
+                  <span class="tag-strategy">#AI</span>
+                  <span class="tag-strategy">#DevTools</span>
+                  <span class="tag-strategy">#Automation</span>
+                  <span class="tag-strategy">#Coding</span>
+                  <span class="tag-strategy">#Developer</span>
+                </div>
+              </div>
+              <div class="mb-3">
+                <strong class="text-light">Secondary (rotate):</strong>
+                <div class="mt-2">
+                  <span class="tag-strategy">#MachineLearning</span>
+                  <span class="tag-strategy">#OpenSource</span>
+                  <span class="tag-strategy">#TypeScript</span>
+                  <span class="tag-strategy">#Startup</span>
+                  <span class="tag-strategy">#Tech</span>
+                </div>
+              </div>
+              <div>
+                <strong class="text-light">Branded:</strong>
+                <div class="mt-2">
+                  <span class="tag-strategy">#GentleVanguard</span>
+                  <span class="tag-strategy">#AutonomousAI</span>
+                  <span class="tag-strategy">#FutureOfCoding</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fade-in">
+      <div class="section-title">
+        <div class="display-4 mb-2">🚀</div>
+        <h2>Action Plan</h2>
+        <p>30-day launch plan for Gentle-Vanguard monetization</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="stat-n">Week 1</div>
+            <div class="stat-l mb-3">Foundation</div>
+            <p class="text-secondary small">
+              • Update all documentation<br />
+              • Create social media accounts<br />
+              • Design branding assets<br />
+              • Setup analytics tracking
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="stat-n">Week 2</div>
+            <div class="stat-l mb-3">Content</div>
+            <p class="text-secondary small">
+              • Create first video content<br />
+              • Write technical articles<br />
+              • Build email list<br />
+              • Launch Discord community
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="stat-n">Week 3</div>
+            <div class="stat-l mb-3">Launch</div>
+            <p class="text-secondary small">
+              • Product Hunt launch<br />
+              • Press release<br />
+              • Influencer outreach<br />
+              • First paid consulting gig
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="stat-n">Week 4</div>
+            <div class="stat-l mb-3">Growth</div>
+            <p class="text-secondary small">
+              • Iterate based on feedback<br />
+              • Scale content production<br />
+              • Onboard first customers<br />
+              • Plan next product release
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

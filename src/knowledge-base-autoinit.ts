@@ -2,7 +2,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 function findProjectRoot(dir: string): string {
@@ -28,7 +28,11 @@ interface KBConfig {
 
 function getConfig(): KBConfig | null {
   if (existsSync(configPath)) {
-    try { return JSON.parse(readFileSync(configPath, 'utf-8')); } catch { /* */ }
+    try {
+      return JSON.parse(readFileSync(configPath, 'utf-8'));
+    } catch {
+      /* */
+    }
   }
   return null;
 }
@@ -104,28 +108,44 @@ function initializeVault(force: boolean, quiet: boolean): boolean {
 }
 
 function getVaultStats(): { notes: number; sizeKB: number } {
-  let notes = 0, size = 0;
+  let notes = 0,
+    size = 0;
   function walk(d: string): void {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const full = join(d, e.name);
       if (e.isDirectory()) walk(full);
-      else if (e.name.endsWith('.md')) { notes++; size += statSync(full).size; }
+      else if (e.name.endsWith('.md')) {
+        notes++;
+        size += statSync(full).size;
+      }
     }
   }
   if (existsSync(vaultPath)) walk(vaultPath);
-  return { notes, sizeKB: Math.round(size / 1024 * 100) / 100 };
+  return { notes, sizeKB: Math.round((size / 1024) * 100) / 100 };
 }
 
 function runFullSync(quiet: boolean): boolean {
   const syncScriptTs = join(projectRoot, 'src', 'knowledge-base-sync.ts');
-  const syncScriptPs1 = join(projectRoot, 'scripts', 'utilities', 'knowledge-base', 'knowledge-base-sync.ps1');
+  const syncScriptPs1 = join(
+    projectRoot,
+    'scripts',
+    'utilities',
+    'knowledge-base',
+    'knowledge-base-sync.ps1',
+  );
   const hasTs = existsSync(syncScriptTs);
   if (hasTs || existsSync(syncScriptPs1)) {
     try {
       if (hasTs) {
-        execSync(`npx tsx "${syncScriptTs}" --mode full --quiet`, { cwd: projectRoot, timeout: 60000, windowsHide: true });
+        runNpxTsxSync(syncScriptTs, ['--mode', 'full', '--quiet'], {
+          cwd: projectRoot,
+          timeout: 60000,
+        });
       } else {
-        execSync(`pwsh -NoProfile "${syncScriptPs1}" -Mode full -Quiet`, { cwd: projectRoot, timeout: 60000, windowsHide: true });
+        runSync('pwsh', ['-NoProfile', syncScriptPs1, '-Mode', 'full', '-Quiet'], {
+          cwd: projectRoot,
+          timeout: 60000,
+        });
       }
       if (!quiet) console.log('[OK] Full sync completed');
       return true;

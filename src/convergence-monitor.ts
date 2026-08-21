@@ -15,7 +15,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { getEffectiveProcessTimeout } from './core/timeout-config';
 
@@ -100,9 +100,25 @@ const CONFIG_DIR = join(ROOT, 'config');
 
 const DEFAULT_CONFIG = {
   decisionStability: { windowDays: 14, maxConfigChangesBeforeAlert: 5, minStabilityPeriods: 3 },
-  improvementRate: { enabled: true, minDataPoints: 3, improvementThreshold: 0.05, degradationThreshold: -0.05 },
-  divergence: { enabled: true, alertOnDivergence: true, minDivergenceScore: 0.6, consecutiveDivergencesToAlert: 2 },
-  metrics: { qualityScoreWeight: 0.3, correctionRateWeight: 0.2, patternRecurrenceWeight: 0.2, configStabilityWeight: 0.15, skillHealthWeight: 0.15 },
+  improvementRate: {
+    enabled: true,
+    minDataPoints: 3,
+    improvementThreshold: 0.05,
+    degradationThreshold: -0.05,
+  },
+  divergence: {
+    enabled: true,
+    alertOnDivergence: true,
+    minDivergenceScore: 0.6,
+    consecutiveDivergencesToAlert: 2,
+  },
+  metrics: {
+    qualityScoreWeight: 0.3,
+    correctionRateWeight: 0.2,
+    patternRecurrenceWeight: 0.2,
+    configStabilityWeight: 0.15,
+    skillHealthWeight: 0.15,
+  },
   outputDir: CONV_DIR,
 };
 
@@ -111,33 +127,49 @@ const DEFAULT_CONFIG = {
 type LogFn = (msg: string) => void;
 
 function loadJson<T>(path: string, fallback: T): T {
-  try { if (!existsSync(path)) return fallback; return JSON.parse(readFileSync(path, 'utf-8')) as T; }
-  catch { return fallback; }
+  try {
+    if (!existsSync(path)) return fallback;
+    return JSON.parse(readFileSync(path, 'utf-8')) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 function getLogger(quiet: boolean): LogFn {
-  return (msg: string) => { if (!quiet) console.log(msg); };
+  return (msg: string) => {
+    if (!quiet) console.log(msg);
+  };
 }
 
-function ensureDir(p: string): void { if (!existsSync(p)) mkdirSync(p, { recursive: true }); }
+function ensureDir(p: string): void {
+  if (!existsSync(p)) mkdirSync(p, { recursive: true });
+}
 
-function now(): string { return new Date().toISOString(); }
+function now(): string {
+  return new Date().toISOString();
+}
 
 // ─── Data Collection ──────────────────────────────────────────────────
 
 function collectReflections(): Array<Record<string, unknown>> {
   if (!existsSync(REFLECTIONS_DIR)) return [];
   return readdirSync(REFLECTIONS_DIR)
-    .filter(f => f.startsWith('reflection-') && f.endsWith('.json'))
+    .filter((f) => f.startsWith('reflection-') && f.endsWith('.json'))
     .sort()
-    .map(f => loadJson<Record<string, unknown>>(join(REFLECTIONS_DIR, f), {}))
-    .filter(r => Object.keys(r).length > 0);
+    .map((f) => loadJson<Record<string, unknown>>(join(REFLECTIONS_DIR, f), {}))
+    .filter((r) => Object.keys(r).length > 0);
 }
 
 function collectConfigChanges(log: LogFn): DecisionChange[] {
   const changes: DecisionChange[] = [];
-  const configFiles = ['session-autostart.config.json', 'adaptive-router.json', 'predictive-governor.json',
-    'root-cause-correlator.json', 'skill-evolution-engine.json', 'convergence-monitor.json'];
+  const configFiles = [
+    'session-autostart.config.json',
+    'adaptive-router.json',
+    'predictive-governor.json',
+    'root-cause-correlator.json',
+    'skill-evolution-engine.json',
+    'convergence-monitor.json',
+  ];
 
   try {
     const since = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
@@ -145,10 +177,11 @@ function collectConfigChanges(log: LogFn): DecisionChange[] {
       const cfgPath = join(CONFIG_DIR, cfg);
       if (!existsSync(cfgPath)) continue;
       try {
-        const logOut = execSync(
-          `git log --since="${since}" --format="%aI|%s" -- "${cfgPath}"`,
-          { cwd: ROOT, encoding: 'utf-8', timeout: getEffectiveProcessTimeout('default'), windowsHide: true }
-        ).trim();
+        const logOut = runSync(
+          'git',
+          ['log', `--since=${since}`, '--format=%aI|%s', '--', cfgPath],
+          { cwd: ROOT, timeout: getEffectiveProcessTimeout('default') },
+        ).stdout.trim();
         if (logOut) {
           for (const line of logOut.split('\n')) {
             const parts = line.split('|');
@@ -162,9 +195,13 @@ function collectConfigChanges(log: LogFn): DecisionChange[] {
             });
           }
         }
-      } catch { /* git not available */ }
+      } catch {
+        /* git not available */
+      }
     }
-  } catch { /* skip */ }
+  } catch {
+    /* skip */
+  }
 
   log(`  Config changes: ${changes.length}`);
   return changes;
@@ -175,7 +212,7 @@ function getMetricsHistory(log: LogFn): ImprovementPoint[] {
 
   // Current metrics
   const metrics = loadJson<Record<string, unknown>>(METRICS_FILE, {});
-  const summary = metrics.summary as Record<string, unknown> || {};
+  const summary = (metrics.summary as Record<string, unknown>) || {};
   const qualityScore = (summary.quality_score as number) || 0;
   const corrections = (summary.total_corrections as number) || 0;
   const delegations = (summary.total_delegations as number) || 0;
@@ -185,11 +222,11 @@ function getMetricsHistory(log: LogFn): ImprovementPoint[] {
   // Get pattern counts from reflections
   const reflections = collectReflections();
   const totalPatterns = reflections.reduce((s, r) => {
-    const patterns = r.patterns as Array<unknown> || [];
+    const patterns = (r.patterns as Array<unknown>) || [];
     return s + patterns.length;
   }, 0);
   const totalSuggestions = reflections.reduce((s, r) => {
-    const suggestions = r.suggestions as Array<unknown> || [];
+    const suggestions = (r.suggestions as Array<unknown>) || [];
     return s + suggestions.length;
   }, 0);
 
@@ -203,12 +240,16 @@ function getMetricsHistory(log: LogFn): ImprovementPoint[] {
 
   // Try to read historical points from previous convergence reports
   if (existsSync(CONV_DIR)) {
-    const prevFiles = readdirSync(CONV_DIR).filter(f => f.startsWith('convergence-')).sort().reverse().slice(1);
+    const prevFiles = readdirSync(CONV_DIR)
+      .filter((f) => f.startsWith('convergence-'))
+      .sort()
+      .reverse()
+      .slice(1);
     for (const f of prevFiles) {
       const prev = loadJson<Record<string, unknown>>(join(CONV_DIR, f), {});
-      const summary = prev.summary as Record<string, unknown> || {};
+      const summary = (prev.summary as Record<string, unknown>) || {};
       points.push({
-        date: (prev.timestamp as string || now()).slice(0, 10),
+        date: ((prev.timestamp as string) || now()).slice(0, 10),
         qualityScore: (summary.overallScore as number) || 0,
         correctionRate: 0,
         patternCount: 0,
@@ -242,14 +283,14 @@ function trackDecisionStability(
 
   for (const [component, changes] of changesByComponent) {
     const totalChanges = changes.length;
-    const uniqueReasons = new Set(changes.map(c => c.reason)).size;
+    const uniqueReasons = new Set(changes.map((c) => c.reason)).size;
 
     // Detect oscillation: same reason appearing multiple times (revert/re-apply patterns)
     const reasonCounts = new Map<string, number>();
     for (const c of changes) {
       reasonCounts.set(c.reason, (reasonCounts.get(c.reason) || 0) + 1);
     }
-    const oscillationCount = [...reasonCounts.values()].filter(count => count > 1).length;
+    const oscillationCount = [...reasonCounts.values()].filter((count) => count > 1).length;
 
     // Score: fewer changes + fewer oscillations = more stable
     const changePenalty = Math.min(totalChanges / ds.maxConfigChangesBeforeAlert, 1);
@@ -297,18 +338,17 @@ function measureImprovementRate(
     const slope = sorted.length > 1 ? scoreDiff / (sorted.length - 1) : 0;
 
     // Weight: quality score + correction reduction + pattern reduction
-    const correctionImprovement = first.correctionRate > 0
-      ? (first.correctionRate - last.correctionRate) / first.correctionRate
-      : 0;
-    const patternImprovement = first.patternCount > 0
-      ? (first.patternCount - last.patternCount) / first.patternCount
-      : 0;
+    const correctionImprovement =
+      first.correctionRate > 0
+        ? (first.correctionRate - last.correctionRate) / first.correctionRate
+        : 0;
+    const patternImprovement =
+      first.patternCount > 0 ? (first.patternCount - last.patternCount) / first.patternCount : 0;
 
-    const weightedScore = (
+    const weightedScore =
       slope * config.metrics.qualityScoreWeight +
       correctionImprovement * config.metrics.correctionRateWeight +
-      patternImprovement * config.metrics.patternRecurrenceWeight
-    );
+      patternImprovement * config.metrics.patternRecurrenceWeight;
 
     let direction: ImprovementTrend['direction'];
     let description: string;
@@ -351,7 +391,7 @@ function alertOnDivergence(
   const dv = config.divergence;
 
   // Signal 1: Oscillating components
-  const oscillating = stabilityMetrics.filter(m => m.trend === 'oscillating');
+  const oscillating = stabilityMetrics.filter((m) => m.trend === 'oscillating');
   for (const m of oscillating) {
     const score = Math.min(0.4 + (m.oscillationCount / m.totalChanges) * 0.4, 0.95);
     if (score >= dv.minDivergenceScore) {
@@ -367,21 +407,30 @@ function alertOnDivergence(
   }
 
   // Signal 2: Degrading improvement trend
-  if (improvementTrend && improvementTrend.direction === 'degrading' && improvementTrend.confidence >= 0.5) {
+  if (
+    improvementTrend &&
+    improvementTrend.direction === 'degrading' &&
+    improvementTrend.confidence >= 0.5
+  ) {
     signals.push({
       component: 'system',
       signal: 'Overall system quality is degrading',
       severity: 'critical',
       score: Math.min(Math.abs(improvementTrend.slope) + 0.5, 0.95),
       evidence: [`Slope: ${improvementTrend.slope}`, improvementTrend.description],
-      recommendation: 'Run root-cause analysis and prioritize corrective actions. Consider rolling back recent changes.',
+      recommendation:
+        'Run root-cause analysis and prioritize corrective actions. Consider rolling back recent changes.',
     });
   }
 
   // Signal 3: Many stale components + no improvement = divergence
-  const stableCount = stabilityMetrics.filter(m => m.isStable).length;
+  const stableCount = stabilityMetrics.filter((m) => m.isStable).length;
   const totalCount = stabilityMetrics.length;
-  if (totalCount > 0 && stableCount / totalCount < 0.3 && improvementTrend?.direction === 'stable') {
+  if (
+    totalCount > 0 &&
+    stableCount / totalCount < 0.3 &&
+    improvementTrend?.direction === 'stable'
+  ) {
     signals.push({
       component: 'system',
       signal: 'System is stable but not improving — potential plateau',
@@ -406,9 +455,10 @@ function computeOverallScore(
   let score = 70; // baseline
 
   // Stability contribution
-  const stableRatio = stabilityMetrics.length > 0
-    ? stabilityMetrics.filter(m => m.isStable).length / stabilityMetrics.length
-    : 0.5;
+  const stableRatio =
+    stabilityMetrics.length > 0
+      ? stabilityMetrics.filter((m) => m.isStable).length / stabilityMetrics.length
+      : 0.5;
   score += (stableRatio - 0.5) * 30;
 
   // Improvement contribution
@@ -418,8 +468,8 @@ function computeOverallScore(
   }
 
   // Divergence penalty
-  const criticalSignals = divergenceSignals.filter(s => s.severity === 'critical').length;
-  const warningSignals = divergenceSignals.filter(s => s.severity === 'warning').length;
+  const criticalSignals = divergenceSignals.filter((s) => s.severity === 'critical').length;
+  const warningSignals = divergenceSignals.filter((s) => s.severity === 'warning').length;
   score -= criticalSignals * 15;
   score -= warningSignals * 8;
 
@@ -476,8 +526,11 @@ function main(): void {
     log('Tracking decision stability...');
     stabilityMetrics = trackDecisionStability(configChanges, reflections, config, log);
     for (const m of stabilityMetrics) {
-      const icon = { improving: '📈', stable: '✅', oscillating: '🔄', degrading: '📉' }[m.trend] || '❓';
-      log(`  ${icon} ${m.component}: ${m.totalChanges} changes, score=${m.stabilityScore}, ${m.trend}`);
+      const icon =
+        { improving: '📈', stable: '✅', oscillating: '🔄', degrading: '📉' }[m.trend] || '❓';
+      log(
+        `  ${icon} ${m.component}: ${m.totalChanges} changes, score=${m.stabilityScore}, ${m.trend}`,
+      );
     }
   }
 
@@ -500,7 +553,13 @@ function main(): void {
   if (args.mode === 'all' || args.mode === 'divergence') {
     log('─'.repeat(30));
     log('Checking for divergence...');
-    divergenceSignals = alertOnDivergence(stabilityMetrics, improvementTrend, reflections, config, log);
+    divergenceSignals = alertOnDivergence(
+      stabilityMetrics,
+      improvementTrend,
+      reflections,
+      config,
+      log,
+    );
     for (const s of divergenceSignals) {
       const icon = { critical: '🔴', warning: '🟡', info: '🔵' }[s.severity] || '⚪';
       log(`  ${icon} [${s.severity}] ${s.signal} (score: ${(s.score * 100).toFixed(0)}%)`);
@@ -512,15 +571,24 @@ function main(): void {
 
   // 5. Overall score and verdict
   log('─'.repeat(30));
-  const { score, verdict } = computeOverallScore(stabilityMetrics, improvementTrend, divergenceSignals);
+  const { score, verdict } = computeOverallScore(
+    stabilityMetrics,
+    improvementTrend,
+    divergenceSignals,
+  );
   log(`Overall convergence score: ${score}/100`);
-  const verdictIcons: Record<string, string> = { converging: '🚀', stable: '✅', oscillating: '🔄', diverging: '🔴' };
+  const verdictIcons: Record<string, string> = {
+    converging: '🚀',
+    stable: '✅',
+    oscillating: '🔄',
+    diverging: '🔴',
+  };
   log(`Verdict: ${verdictIcons[verdict] || '❓'} ${verdict}`);
 
   // 6. Assemble output
-  const stableComps = stabilityMetrics.filter(m => m.isStable).length;
-  const oscComps = stabilityMetrics.filter(m => m.trend === 'oscillating').length;
-  const degComps = stabilityMetrics.filter(m => m.trend === 'degrading').length;
+  const stableComps = stabilityMetrics.filter((m) => m.isStable).length;
+  const oscComps = stabilityMetrics.filter((m) => m.trend === 'oscillating').length;
+  const degComps = stabilityMetrics.filter((m) => m.trend === 'degrading').length;
 
   const output: ConvOutput = {
     timestamp: now(),
@@ -536,7 +604,9 @@ function main(): void {
       divergenceSignals: divergenceSignals.length,
       overallScore: score,
       verdict,
-      sinceDate: new Date(Date.now() - config.decisionStability.windowDays * 86400000).toISOString().slice(0, 10),
+      sinceDate: new Date(Date.now() - config.decisionStability.windowDays * 86400000)
+        .toISOString()
+        .slice(0, 10),
     },
   };
 
@@ -547,13 +617,15 @@ function main(): void {
   }
 
   if (!args.quiet) {
-    console.log(JSON.stringify({
-      stability: stabilityMetrics.length,
-      trend: improvementTrend?.direction || 'unknown',
-      divergence: divergenceSignals.length,
-      score,
-      verdict,
-    }));
+    console.log(
+      JSON.stringify({
+        stability: stabilityMetrics.length,
+        trend: improvementTrend?.direction || 'unknown',
+        divergence: divergenceSignals.length,
+        score,
+        verdict,
+      }),
+    );
   }
 
   log('═'.repeat(50));

@@ -6,7 +6,7 @@
 
 ## Prerequisites
 
-- PowerShell 7.x or Windows PowerShell 5.1+
+- TypeScript 7.x or Windows TypeScript 5.1+
 - Git installed and configured
 - Access to workspace projects
 
@@ -16,21 +16,21 @@
 
 ### 1. Clone Repository
 
-```powershell
+```TypeScript
 git clone <repository-url>
 cd gentle-vanguard
 ```
 
 ### 2. Initialize Session
 
-```powershell
+```TypeScript
 .\tools\session-autostart.cmd
 ```
 
 ### 3. Verify Tools
 
-```powershell
-.\scripts\gentle-vanguard\gv.ps1 doctor
+```TypeScript
+.\scripts\gentle-vanguard\src/cli/gv.ts doctor
 ```
 
 ---
@@ -39,7 +39,7 @@ cd gentle-vanguard
 
 ### Start Session
 
-```powershell
+```TypeScript
 .\tools\session-autostart.cmd
 ```
 
@@ -51,7 +51,7 @@ cd gentle-vanguard
 
 ### End Session
 
-```powershell
+```TypeScript
 .\tools\session-autostart.cmd
 ```
 
@@ -70,7 +70,7 @@ cd gentle-vanguard
 
 ### Creating Branch
 
-```powershell
+```TypeScript
 .\scripts\utilities\create-gitflow-branch.ps1
 ```
 
@@ -78,11 +78,11 @@ cd gentle-vanguard
 
 ## Common Commands
 
-| Command       | Purpose         |
-| ------------- | --------------- |
-| gv.ps1 doctor | Diagnose issues |
-| gv.ps1 audit  | Run audit       |
-| gv.ps1 tools  | Manage tools    |
+| Command              | Purpose         |
+| -------------------- | --------------- |
+| src/cli/gv.ts doctor | Diagnose issues |
+| src/cli/gv.ts audit  | Run audit       |
+| src/cli/gv.ts tools  | Manage tools    |
 
 ---
 

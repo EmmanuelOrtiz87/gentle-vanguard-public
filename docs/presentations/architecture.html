@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Architecture — Gentle-Vanguard — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de architecture.html (complementan el design system) --- */
+      .sh {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .sh h2 {
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
+        font-weight: 800;
+      }
+      .sh p {
+        color: #94a3b8;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .card-dao {
+        background: var(--card);
+        border: 1px solid var(--br);
+        border-radius: 12px;
+        padding: 1rem;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+      .card-dao:hover {
+        border-color: var(--p);
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.08);
+      }
+    </style>
+    <script src="assets/js/carousel.js"></script>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="overview">
+      <span class="hero-badge mb-3">✦ v4.0 — Architecture Layer</span>
+      <h1
+        class="display-1 fw-bold z-1"
+        style="font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.02em; line-height: 1.05"
+      >
+        <span class="glow">System Architecture</span>
+      </h1>
+      <p
+        class="lead text-secondary z-1"
+        style="max-width: 650px; font-size: clamp(1rem, 2vw, 1.2rem)"
+      >
+        6-layer autonomous architecture — Tools → Agents → Pipeline → Memory → Data → Executive. 101
+        pipeline steps, 21 specialized agents, and 11 data access objects orchestrating 100%
+        autonomous AI operations.
+      </p>
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
+        <div class="text-center">
+          <div class="stat-n" data-count="6">6</div>
+          <div class="stat-l">Layers</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n" data-count="101">101</div>
+          <div class="stat-l">Pipeline Steps</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n" data-count="21">21</div>
+          <div class="stat-l">Agents</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n" data-count="11">11</div>
+          <div class="stat-l">DAOs</div>
+        </div>
+      </div>
+      <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center">
+        <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>Overview</a>
+        <a href="autonomy.html" class="btn-gv-alt"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="#diagrams" class="btn-gv-alt"><i class="bi bi-images me-1"></i>Diagrams</a>
+      </div>
+    </header>
+
+    <div style="padding-top: 70px">
+      <section class="fade-in" id="layers">
+        <div class="sh">
+          <h2 data-i18n="sec_arch_layers">🏗️ System Architecture</h2>
+          <p data-i18n="c_architecture_2">6 layers of autonomous AI orchestration</p>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-laptop me-1"></i> Layer 1 — Tools (10 Integrations)
+          </div>
+          <div class="items">
+            <span>OpenCode</span><span>Claude Code</span><span>Cursor</span><span>Windsurf</span
+            ><span>Cline</span><span>Codex</span><span>Copilot</span><span>Continue.dev</span
+            ><span>Aider</span><span>Roo Code</span>
+          </div>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-robot me-1"></i> Layer 2 — Agents (21 Specialized)
+          </div>
+          <div class="items">
+            <span>Orchestrator</span><span>BA (sdd-explore)</span><span>SAD (sdd-design)</span
+            ><span>DEV (sdd-apply)</span><span>QA (sdd-verify)</span><span>GOV</span><span>OPS</span
+            ><span>DOC</span><span>Session</span><span>Premortem</span><span>Maintenance</span
+            ><span>Self-Diag</span><span>SIA</span><span>GitFlow</span><span>Knowledge</span
+            ><span>Mkt</span><span>Sales</span><span>Finance</span><span>HR</span><span>Legal</span
+            ><span>Bus-Tele</span>
+          </div>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-gear me-1"></i> Layer 3 — Pipeline (53 steps / 70 lazy)
+          </div>
+          <div class="items">
+            <span>tool-detection</span><span>session-manager</span><span>token-budget</span
+            ><span>karpathy-guidelines</span><span>codegraph-sync</span><span>security-orch</span
+            ><span>db-init</span><span>auto-apply-safe</span><span>predictive-governor</span
+            ><span>auto-norm-learner</span><span>+70 background</span>
+          </div>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-memory me-1"></i> Layer 4 — Memory & Knowledge
+          </div>
+          <div class="items">
+            <span>Engram (2078 obs)</span><span>CodeGraph (10663 nodes, 21746 edges)</span
+            ><span>Graphify (18MB)</span><span>ML Embeddings</span><span>Nexus DB</span
+            ><span>Knowledge Vault</span>
+          </div>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-database me-1"></i> Layer 5 — Data (11 Repos / 7 Migrations)
+          </div>
+          <div class="items">
+            <span>MetricsRepo</span><span>SessionRepo</span><span>TraceRepo</span
+            ><span>EventRepo</span><span>CacheRepo</span><span>SkillRepo</span
+            ><span>ContractRepo</span><span>ErrorMemoryRepo</span><span>HousekeepingRepo</span
+            ><span>BacklogRepo</span><span>MigrationRunner</span>
+          </div>
+        </div>
+        <div class="arch-layer">
+          <div class="layer-name">
+            <i class="bi bi-shield-check me-1"></i> Layer 6 — Executive (100% Autonomous)
+          </div>
+          <div class="items">
+            <span>Auto-Apply Safe</span><span>Circuit Breaker</span><span>Auto-Escalation</span
+            ><span>Dependency Graph</span><span>AB Testing</span><span>Session Scoring</span
+            ><span>Norms Learner</span><span>Watchtower 95/95</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="fade-in" id="daos">
+        <div class="sh">
+          <h2 data-i18n="sec_daos">📦 11 Data Access Objects</h2>
+          <p data-i18n="c_architecture_3">DatabaseManager refactored: 1066 → 250 lines</p>
+        </div>
+        <!-- CAROUSEL: 11 Data Access Objects -->
+        <div class="gv-carousel mb-4" data-autoplay="6000" id="dao-carousel">
+          <div class="gv-carousel-track">
+            <div class="gv-carousel-slide active">
+              <div class="row g-3">
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-graph-up me-1"></i>MetricsRepo</h6>
+                    <small class="text-secondary"
+                      >metric_snapshots CRUD — time-series tokens, latency, health</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-people me-1"></i>SessionRepo</h6>
+                    <small class="text-secondary"
+                      >sessions + session_scoring — upsert, active queries, quality</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-activity me-1"></i>TraceRepo</h6>
+                    <small class="text-secondary"
+                      >traces + feedback — waterfall, latency stats, thumbs</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="gv-carousel-slide">
+              <div class="row g-3">
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-megaphone me-1"></i>EventRepo</h6>
+                    <small class="text-secondary" data-i18n="c_architecture_4"
+                      >events + alerts — append-only event sourcing</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-database me-1"></i>CacheRepo</h6>
+                    <small class="text-secondary"
+                      >response_cache + semantic — SHA256 + embedding TTL</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-tools me-1"></i>SkillRepo</h6>
+                    <small class="text-secondary" data-i18n="c_architecture_5"
+                      >skill_usage, token_usage, routing_rules tracking</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="gv-carousel-slide">
+              <div class="row g-3">
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-file-check me-1"></i>ContractRepo</h6>
+                    <small class="text-secondary" data-i18n="c_architecture_6"
+                      >contract_results — SDD validation persistence</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-bug me-1"></i>ErrorMemoryRepo</h6>
+                    <small class="text-secondary"
+                      >error_memory + embeddings — bug tracking + vector</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-journal-text me-1"></i>BacklogRepo</h6>
+                    <small class="text-secondary" data-i18n="c_architecture_8"
+                      >backlog tracking + priorities, persistence</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="gv-carousel-slide">
+              <div class="row g-3 justify-content-center">
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info"><i class="bi bi-brush me-1"></i>HousekeepingRepo</h6>
+                    <small class="text-secondary" data-i18n="c_architecture_7"
+                      >pruneAll, vacuum, WAL checkpoint >1MB auto</small
+                    >
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <div class="card-dao">
+                    <h6 class="text-info">
+                      <i class="bi bi-database-gear me-1"></i>MigrationRunner
+                    </h6>
+                    <small class="text-secondary"
+                      >7 automated DB migrations with rollback support</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="gv-carousel-nav text-center mt-3">
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              onclick="moveCarousel('dao-carousel', -1)"
+            >
+              ❮
+            </button>
+            <span class="carousel-dots mx-2">
+              <span class="dot active" onclick="goToSlide('dao-carousel', 0)"></span>
+              <span class="dot" onclick="goToSlide('dao-carousel', 1)"></span>
+              <span class="dot" onclick="goToSlide('dao-carousel', 2)"></span>
+              <span class="dot" onclick="goToSlide('dao-carousel', 3)"></span>
+            </span>
+            <button
+              class="btn btn-sm btn-outline-secondary ms-2"
+              onclick="moveCarousel('dao-carousel', 1)"
+            >
+              ❯
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="fade-in" id="pipeline">
+        <div class="sh">
+          <h2 data-i18n="sec_pipeline">⚙️ Session Pipeline</h2>
+          <p data-i18n="c_architecture_9">53 steps steps + 70 lazy background</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card-dao">
+              <h6 class="text-info">Phase 1 — Parallel (31 steps)</h6>
+              <small class="text-secondary"
+                >tool-detection, session-manager, token-budget, engram-policy,
+                security-orchestrator, karpathy-guidelines, codegraph-sync, adaptive-profile,
+                db-init, auto-norm-learner...</small
+              >
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-dao">
+              <h6 class="text-secondary">Phase 2 — Lazy (70 steps)</h6>
+              <small class="text-secondary"
+                >engram-backup, dashboard-ws, ml-embeddings, checkpoint, audit, event-sourcing,
+                predictive-governor, skill-evolution, auto-apply-safe, convergence-monitor...</small
+              >
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 mt-3">
+          <span class="badge bg-info bg-opacity-10 text-info p-2">🔵 101 Steps</span>
+          <span class="flow-arrow">→</span>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"
+            >⚡ Parallel Phase 1</span
+          >
+          <span class="flow-arrow">→</span>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"
+            >⏳ 70 Lazy Background</span
+          >
+          <span class="flow-arrow">→</span>
+          <span class="badge bg-success bg-opacity-10 text-success p-2">✅ 100% Operational</span>
+        </div>
+      </section>
+
+      <section class="fade-in" id="performance">
+        <div class="sh">
+          <h2 data-i18n="sec_performance">⚡ Performance Optimizations</h2>
+          <p data-i18n="c_architecture_10">Phase 3 — parallel, cache, WAL</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card-dao">
+              <h6 class="text-success"><i class="bi bi-lightning me-1"></i>Parallel Watchtower</h6>
+              <div class="d-flex justify-content-between small mb-1">
+                <span>95 Checks</span><span class="text-info">Promise.allSettled</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-success" style="width: 100%"></div>
+              </div>
+              <small class="text-secondary mt-2 d-block"
+                >All 95 health checks run concurrently</small
+              >
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card-dao">
+              <h6 class="text-info"><i class="bi bi-database me-1"></i>LRU Cache</h6>
+              <div class="d-flex justify-content-between small mb-1">
+                <span>real-data.ts</span><span class="text-info">Map(20, 2000ms)</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-info" style="width: 80%"></div>
+              </div>
+              <small class="text-secondary mt-2 d-block"
+                >In-memory cache for .state.json reads</small
+              >
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card-dao">
+              <h6 class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>WAL Checkpoint</h6>
+              <div class="d-flex justify-content-between small mb-1">
+                <span>>1MB</span><span class="text-warning">auto-TRUNCATE</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-warning" style="width: 60%"></div>
+              </div>
+              <small class="text-secondary mt-2 d-block"
+                >Auto checkpoint when WAL exceeds 1MB</small
+              >
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 card-dao">
+          <h6 class="text-primary">
+            <i class="bi bi-clock-history me-1"></i>Lazy Batch Delay: 500ms → 100ms
+          </h6>
+          <div class="progress-bar-custom mt-2">
+            <div class="progress-bar-fill bg-primary" style="width: 20%"></div>
+          </div>
+          <small class="text-secondary mt-1 d-block" data-i18n="c_architecture_11"
+            >5× faster background task launch</small
+          >
+        </div>
+      </section>
+    </div>
+
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagramas &amp; Visualizaciones</h2>
+        <p data-i18n="c_architecture_12">
+          Arquitectura del stack — de lo simple a lo complejo. Pasa el cursor sobre los nodos para
+          explorar cada capa.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i>Arquitectura en Capas</h3>
+            <img
+              src="diagrams/architecture-layers.svg"
+              alt="Architecture Layers Diagram"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
+              Data → Executive. <strong class="text-info">Hover en las capas</strong> para ver
+              detalles.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-diagram-2 text-info me-2"></i>Pipeline de Sesión</h3>
+            <img
+              src="diagrams/pipeline-flow.svg"
+              alt="Session Pipeline Flow"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>101 pasos habilitados: 31 Phase 1 paralelos + 70
+              lazy background en batches.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

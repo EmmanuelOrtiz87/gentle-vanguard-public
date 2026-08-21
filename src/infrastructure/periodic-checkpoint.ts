@@ -50,11 +50,11 @@ function main(): void {
       };
       writeFileSync(join(rpDir, `${timestamp}.json`), JSON.stringify(rp, null, 2), 'utf8');
       if (!args.quiet) console.log(`[CHECKPOINT] Created: checkpoint-${timestamp}`);
-      await new Promise(resolve => setTimeout(resolve, args.intervalHours * 3600000));
+      await new Promise((resolve) => setTimeout(resolve, args.intervalHours * 3600000));
     }
   };
 
-  loop().catch(err => {
+  loop().catch((err) => {
     console.error('[CHECKPOINT] Fatal error:', err);
     process.exit(1);
   });

@@ -131,7 +131,7 @@ Skills can be optimized incrementally:
 
 2. **Create references/ structure**:
 
-   ```powershell
+   ```TypeScript
    # Example for flutter-skill
    references/
    ├── widget-catalog.md
@@ -149,8 +149,9 @@ Skills can be optimized incrementally:
 
 Run the size checker:
 
-```powershell
-pwsh -NoProfile -File scripts/utilities/check-skill-sizes.ps1
+```TypeScript
+npx tsx src/utilities/check-skill-sizes.ts
+<!-- REF-OBSOLETA: src/utilities/check-skill-sizes.ts no existe (ruta migrada o eliminada) -->
 ```
 
 Expected output:

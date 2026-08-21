@@ -45,7 +45,6 @@ async function initializeDependencySecurity() {
       console.log('\n✅ All dependency security policies are compliant');
       return true;
     }
-
   } catch (error) {
     console.error('❌ Dependency security initialization failed:', error);
     return false;
@@ -55,13 +54,11 @@ async function initializeDependencySecurity() {
 // If called directly, run initialization
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   initializeDependencySecurity()
-    .then(success => {
+    .then((success) => {
       if (!success) {
-
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Initialization error:', error);
-
     });
 }

@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 
 export interface SkillFactoryArgs {
   Name: string;
@@ -81,7 +81,9 @@ function main() {
   const registryPath = join(ROOT, '.atl', 'skill-registry.md');
 
   if (!/^[a-z0-9][a-z0-9_-]+$/.test(name)) {
-    console.error('\x1b[31m[ERROR] Name must be lowercase alphanumeric with hyphens/underscores\x1b[0m');
+    console.error(
+      '\x1b[31m[ERROR] Name must be lowercase alphanumeric with hyphens/underscores\x1b[0m',
+    );
     process.exit(1);
   }
   if (existsSync(skillPath) && !dryRun) {
@@ -158,7 +160,7 @@ ${description}
             mappings[name] = {
               agent: agentShort,
               skill: name,
-              triggers: triggers.split(',').map(s => s.trim()),
+              triggers: triggers.split(',').map((s) => s.trim()),
             };
             writeFileSync(autoDelPath, JSON.stringify(config, null, 2), 'utf8');
             console.log('\x1b[32m[SKILL] Registered in auto-delegation.json\x1b[0m');
@@ -172,7 +174,10 @@ ${description}
       }
     }
 
-    const triggerList = triggers.split(',').map(s => s.trim()).join(', ');
+    const triggerList = triggers
+      .split(',')
+      .map((s) => s.trim())
+      .join(', ');
     const registryLine = `| ${agent} | ${name} | ${triggerList} |\n`;
     try {
       appendFileSync(registryPath, registryLine, 'utf8');
@@ -185,11 +190,11 @@ ${description}
 
   console.log('\x1b[36m[SKILL] Rebuilding MCP server...\x1b[0m');
   try {
-    const result = spawnSync('pnpm', ['build:mcp'], { cwd: ROOT, stdio: 'pipe' });
+    const result = runSync('pnpm', ['build:mcp'], { cwd: ROOT, stdio: 'pipe' });
     if (result.status === 0) {
       console.log('\x1b[32m[SKILL] MCP server rebuilt\x1b[0m');
     } else {
-      const errMsg = result.stderr?.toString() || result.stdout?.toString() || 'unknown error';
+      const errMsg = result.stderr || result.stdout || 'unknown error';
       console.log(`\x1b[33m[WARN] MCP rebuild failed: ${errMsg}\x1b[0m`);
     }
   } catch (e: unknown) {

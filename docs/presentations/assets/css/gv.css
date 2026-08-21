@@ -1,0 +1,1544 @@
+/* ==========================================================================
+   Gentle-Vanguard — Unified Design System (v2.0)
+   --------------------------------------------------------------------------
+   Shared stylesheet for ALL presentations. Built on 2025-2026 design trends:
+   - Dark-mode "lujo" con superficies OKLCH (nunca #000 puro)
+   - Aurora / mesh gradients + grain noise (fondo premium estilo Linear/Vercel)
+   - Glassmorphism refinado (blur sutil en navbar y sticky headers)
+   - Hover spotlight cards (luz que sigue al cursor)
+   - Scroll progress bar (CSS scroll-driven con fallback JS)
+   - Glowing borders animados (@property + conic-gradient)
+   - Fluid typography, text-wrap balance, prefers-reduced-motion
+   ========================================================================== */
+
+/* --- 1. Design Tokens (OKLCH perceptual palette) ----------------------- */
+:root {
+  /* Acentos funcionales */
+  --p: #22d3ee; /* cyan primario (oklch ~0.78 0.14 210) */
+  --pl: #67e8f9; /* cyan claro */
+  --a: #a78bfa; /* purple acento */
+  --ok: #34d399; /* verde éxito */
+  --wn: #fbbf24; /* amber warning */
+  --er: #f87171; /* rojo error */
+
+  /* Superficies oscuras (escala OKLCH, nunca negro puro) */
+  --bg: oklch(0.17 0.03 262); /* fondo base #0a0e1a */
+  --bg2: oklch(0.19 0.03 262); /* fondo secundario */
+  --card: oklch(0.22 0.03 262); /* card base */
+  --card2: oklch(0.25 0.03 262); /* card elevada / hover */
+  --card3: oklch(0.28 0.03 262); /* popover / modal */
+  --br: oklch(0.3 0.03 262); /* borde base */
+  --br-soft: color-mix(in oklab, white 8%, transparent); /* borde sutil premium */
+
+  /* Texto */
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-faint: #64748b;
+
+  /* Radii y sombras */
+  --r-lg: 18px;
+  --r-md: 12px;
+  --r-sm: 8px;
+  --glow-cyan: 0 0 24px oklch(0.8 0.15 210 / 0.18);
+  --glow-purple: 0 0 24px oklch(0.7 0.18 290 / 0.16);
+
+  /* Tipografía fluida */
+  --fs-hero: clamp(2.4rem, 6vw, 4.8rem);
+  --fs-h2: clamp(1.5rem, 3vw, 2.2rem);
+
+  /* Ángulo para bordes glow animados */
+  --angle: 0deg;
+}
+
+/* --- 2. Reset & Base --------------------------------------------------- */
+* {
+  scroll-behavior: smooth;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+::selection {
+  background: oklch(0.75 0.14 210 / 0.35);
+  color: #fff;
+}
+
+/* Scrollbar premium */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--p), var(--a));
+  border-radius: 6px;
+  border: 2px solid var(--bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* --- 3. Aurora + Grain background -------------------------------------- */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px) saturate(1.25);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(1) {
+  width: 55vmax;
+  height: 55vmax;
+  background: oklch(0.55 0.18 250 / 0.5);
+  top: -18%;
+  left: -12%;
+}
+.aurora span:nth-child(2) {
+  width: 45vmax;
+  height: 45vmax;
+  background: oklch(0.6 0.15 200 / 0.42);
+  bottom: -25%;
+  right: -8%;
+  animation-delay: -9s;
+}
+.aurora span:nth-child(3) {
+  width: 40vmax;
+  height: 40vmax;
+  background: oklch(0.55 0.2 310 / 0.36);
+  top: 35%;
+  left: 55%;
+  animation-delay: -17s;
+}
+@keyframes aurora-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, 6%) scale(1.15);
+  }
+  100% {
+    transform: translate(-6%, -8%) scale(0.88);
+  }
+}
+
+/* Grain / noise (elimina banding de gradients — el secreto de los fondos premium) */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- 4. Glass Navbar ---------------------------------------------------- */
+.nav-blur {
+  background: oklch(0.17 0.03 262 / 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--br-soft);
+  z-index: 1050;
+  transition:
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+.nav-blur.scrolled {
+  box-shadow: 0 4px 30px oklch(0.1 0.02 262 / 0.5);
+  background: oklch(0.16 0.03 262 / 0.85);
+}
+.nav-blur .nav-link {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.5rem 0.7rem;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease;
+  white-space: nowrap;
+  border-radius: 8px;
+}
+.nav-blur .nav-link:hover,
+.nav-blur .nav-link.active {
+  color: var(--p);
+  background: oklch(0.8 0.14 210 / 0.08);
+}
+.nav-blur .navbar-brand {
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--p), var(--a));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- 5. Hero ------------------------------------------------------------- */
+.hero {
+  min-height: 72vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: 8rem 1rem 4rem;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 50%, oklch(0.75 0.14 210 / 0.1), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 70% 50%, oklch(0.7 0.18 290 / 0.08), transparent 70%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-size: var(--fs-hero);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+.glow {
+  background: linear-gradient(135deg, var(--p) 0%, var(--pl) 40%, var(--a) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: glow-shift 6s linear infinite;
+}
+@keyframes glow-shift {
+  to {
+    background-position: 200% center;
+  }
+}
+.hero .lead {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: var(--text-dim);
+  max-width: 720px;
+  margin: 1.5rem auto 0;
+}
+
+/* Badge hero con shimmer */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid oklch(0.8 0.14 210 / 0.3);
+  background: oklch(0.8 0.14 210 / 0.08);
+  color: var(--p);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  z-index: 1;
+}
+.hero-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.14), transparent);
+  transform: skewX(-20deg);
+  animation: shimmer 3.2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%,
+  55% {
+    left: -60%;
+  }
+  100% {
+    left: 130%;
+  }
+}
+
+/* --- 6. Scroll progress bar (CSS scroll-driven + fallback JS) ----------- */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--p), var(--a), var(--pl));
+  z-index: 2000;
+  scale: 0 1;
+  animation: gv-fill linear both;
+  animation-timeline: scroll(root);
+  pointer-events: none;
+}
+@keyframes gv-fill {
+  to {
+    scale: 1 1;
+  }
+}
+@supports not (animation-timeline: scroll(root)) {
+  .scroll-progress {
+    transform: scaleX(0);
+  }
+}
+
+/* --- 7. Section cards con hover spotlight -------------------------------- */
+.section-card {
+  background: var(--card);
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-lg);
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+.section-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--sx, 50%) var(--sy, 50%),
+    oklch(0.75 0.14 210 / 0.12),
+    transparent 42%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.section-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--p), var(--a));
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
+}
+.section-card:hover {
+  transform: translateY(-4px);
+  border-color: oklch(0.8 0.14 210 / 0.35);
+  box-shadow:
+    var(--glow-cyan),
+    0 12px 40px oklch(0.1 0.02 262 / 0.45);
+  background: var(--card2);
+}
+.section-card:hover::before {
+  opacity: 1;
+}
+.section-card:hover::after {
+  opacity: 1;
+}
+.section-card > * {
+  position: relative;
+  z-index: 1;
+}
+.section-card .icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 12px oklch(0.8 0.14 210 / 0.35));
+  transition: transform 0.35s ease;
+}
+.section-card:hover .icon {
+  transform: scale(1.12) rotate(-4deg);
+}
+.section-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+.section-card p {
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin-bottom: 0.5rem;
+}
+
+/* --- 8. Stats con count-up ----------------------------------------------- */
+.stat-n {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--p), var(--pl));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-l {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin-top: 0.25rem;
+}
+
+/* --- 9. Badges ------------------------------------------------------------ */
+.badge-gv {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3em 0.7em;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+.badge-p {
+  background: oklch(0.8 0.14 210 / 0.14);
+  color: var(--p);
+}
+.badge-a {
+  background: oklch(0.7 0.18 290 / 0.14);
+  color: var(--a);
+}
+.badge-ok {
+  background: oklch(0.75 0.15 155 / 0.14);
+  color: var(--ok);
+}
+.badge-wn {
+  background: oklch(0.8 0.15 75 / 0.14);
+  color: var(--wn);
+}
+.badge-er {
+  background: oklch(0.7 0.18 25 / 0.14);
+  color: var(--er);
+}
+
+.badge-tag {
+  display: inline-block;
+  background: oklch(0.8 0.14 210 / 0.1);
+  color: var(--p);
+  padding: 0.2em 0.6em;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+.badge-tag.ok {
+  background: oklch(0.75 0.15 155 / 0.14);
+  color: var(--ok);
+}
+.badge-tag.new {
+  background: oklch(0.7 0.18 290 / 0.14);
+  color: var(--a);
+  position: relative;
+  overflow: hidden;
+}
+.badge-tag.new::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.18), transparent);
+  transform: skewX(-20deg);
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+
+/* --- 10. Botones (glow + micro-interacción magnética sutil) -------------- */
+.btn-gv {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid oklch(0.8 0.14 210 / 0.35);
+  color: var(--p);
+  background: oklch(0.8 0.14 210 / 0.07);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  text-decoration: none;
+  overflow: hidden;
+}
+.btn-gv::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.14), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+.btn-gv:hover {
+  color: #04121c;
+  background: linear-gradient(135deg, var(--p), var(--pl));
+  border-color: transparent;
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-2px);
+}
+.btn-gv:hover::before {
+  left: 130%;
+}
+.btn-gv:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-gv-alt {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  overflow: hidden;
+  text-decoration: none;
+  border-color: oklch(0.7 0.18 290 / 0.4);
+  color: var(--a);
+  background: oklch(0.7 0.18 290 / 0.07);
+}
+.btn-gv-alt:hover {
+  color: #140a24;
+  background: linear-gradient(135deg, var(--a), var(--p));
+  border-color: transparent;
+  box-shadow: var(--glow-purple);
+}
+
+/* --- 11. Secciones --------------------------------------------------------- */
+section {
+  padding: 4.5rem 1rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.section-title {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.section-title h2 {
+  font-size: var(--fs-h2);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  position: relative;
+  display: inline-block;
+}
+.section-title h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--p), var(--a));
+}
+.section-title p {
+  color: var(--text-dim);
+  max-width: 640px;
+  margin: 1rem auto 0;
+}
+
+/* --- 12. Fade-in reveal (IntersectionObserver + fallback scroll-driven) --- */
+.fade-in {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-in-d1 {
+  transition-delay: 0.1s;
+}
+.fade-in-d2 {
+  transition-delay: 0.2s;
+}
+.fade-in-d3 {
+  transition-delay: 0.3s;
+}
+
+/* --- 13. Sticky glass section headers -------------------------------------- */
+.sticky-head {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: oklch(0.17 0.03 262 / 0.82);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--br-soft);
+  padding: 0.7rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+/* --- 14. Feature table premium ---------------------------------------------- */
+.feature-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.feature-table th {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 2px solid var(--br);
+  color: var(--p);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: oklch(0.8 0.14 210 / 0.06);
+}
+.feature-table td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid oklch(1 0 0 / 0.05);
+  color: var(--text-dim);
+}
+.feature-table tbody tr {
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.feature-table tbody tr:hover td {
+  background: oklch(0.8 0.14 210 / 0.05);
+}
+
+/* --- 15. Info trigger ------------------------------------------------------- */
+.info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: oklch(0.8 0.14 210 / 0.15);
+  color: var(--p);
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: help;
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: all 0.3s ease;
+  border: none;
+}
+.info-trigger:hover {
+  background: var(--p);
+  color: #04121c;
+  transform: scale(1.15);
+  box-shadow: var(--glow-cyan);
+}
+
+/* --- 16. Arch layers --------------------------------------------------------- */
+.arch-layer {
+  background: var(--card);
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-md);
+  padding: 1rem 1.5rem;
+  margin-bottom: 0.8rem;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+.arch-layer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--p), var(--a));
+  opacity: 0.6;
+  transition:
+    opacity 0.3s ease,
+    width 0.3s ease;
+}
+.arch-layer:hover {
+  border-color: oklch(0.8 0.14 210 / 0.4);
+  box-shadow: var(--glow-cyan);
+  transform: translateX(4px);
+}
+.arch-layer:hover::before {
+  opacity: 1;
+  width: 4px;
+}
+.arch-layer .layer-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--p);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+}
+.arch-layer .items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.arch-layer .items span {
+  background: oklch(0.27 0.02 262);
+  padding: 0.25em 0.7em;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+.arch-layer:hover .items span {
+  border-color: oklch(0.8 0.14 210 / 0.25);
+  color: #f1f5f9;
+}
+.arch-layer .items span.new {
+  border-color: oklch(0.7 0.18 290 / 0.35);
+  color: var(--a);
+}
+
+/* --- 17. Progress bars ------------------------------------------------------ */
+.progress-bar-custom {
+  height: 22px;
+  background: oklch(0.28 0.02 262);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--p), var(--a));
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.2), transparent);
+  animation: shimmer 2.4s ease-in-out infinite;
+}
+
+/* --- 18. Glowing gradient border (cards premium) ---------------------------- */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.card-glow {
+  border-radius: var(--r-lg);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    conic-gradient(from var(--angle), var(--p), var(--a), var(--pl), var(--p)) border-box;
+  animation: gv-spin 5s linear infinite;
+  position: relative;
+}
+@keyframes gv-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+/* --- 19. Terminal / cmd blocks ---------------------------------------------- */
+.cmd-block {
+  background: oklch(0.14 0.02 262);
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-md);
+  padding: 1.1rem 1.3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  position: relative;
+  overflow: hidden;
+}
+.cmd-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--p), var(--a), transparent);
+}
+.cmd-block .prompt {
+  color: var(--p);
+  font-weight: 700;
+}
+.cmd-block .comment {
+  color: var(--text-faint);
+  font-style: italic;
+}
+.cmd-block .cmd {
+  color: #e2e8f0;
+}
+.cmd-block .out {
+  color: var(--ok);
+}
+
+/* --- 20. Flow / pipeline steps ---------------------------------------------- */
+.flow-step {
+  background: var(--card);
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-md);
+  padding: 0.9rem 1.1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  position: relative;
+  transition: all 0.3s ease;
+}
+.flow-step:hover {
+  border-color: var(--p);
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-2px);
+}
+.flow-arrow {
+  color: var(--p);
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  animation: arrow-pulse 1.6s ease-in-out infinite;
+}
+@keyframes arrow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+}
+
+/* --- 21. Diagramas SVG interactivos ------------------------------------------ */
+.svg-diagram {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--br-soft);
+  background: oklch(0.14 0.02 262);
+  box-shadow:
+    var(--glow-cyan),
+    0 10px 40px oklch(0.1 0.02 262 / 0.4);
+  transition: border-color 0.3s ease;
+}
+.svg-diagram:hover {
+  border-color: oklch(0.8 0.14 210 / 0.35);
+}
+.svg-diagram .gv-node {
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.svg-diagram .gv-node:hover,
+.svg-diagram .gv-node.highlight {
+  filter: drop-shadow(0 0 8px oklch(0.8 0.14 210 / 0.5));
+}
+.svg-diagram .gv-node.dim {
+  opacity: 0.25;
+}
+.svg-diagram text {
+  font-family: 'Inter', sans-serif;
+}
+.svg-diagram .gv-link {
+  transition:
+    opacity 0.25s ease,
+    stroke-width 0.25s ease;
+}
+.svg-diagram .gv-link.highlight {
+  stroke-width: 2.5;
+  opacity: 1;
+}
+.svg-diagram .gv-link.dim {
+  opacity: 0.08;
+}
+
+/* Tooltip flotante para SVG */
+.gv-tooltip {
+  position: fixed;
+  z-index: 3000;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  pointer-events: none;
+  background: oklch(0.28 0.02 262 / 0.92);
+  border: 1px solid var(--br-soft);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  box-shadow: 0 8px 30px oklch(0.1 0.02 262 / 0.5);
+  max-width: 300px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.gv-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- 22. Tilt 3D cards -------------------------------------------------------- */
+.tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.25s ease-out;
+}
+.tilt .tilt-inner {
+  transform: translateZ(24px);
+}
+
+/* --- 23. Timeline --------------------------------------------------------------- */
+.gv-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+.gv-timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--p), var(--a), transparent);
+}
+.gv-timeline .tl-item {
+  position: relative;
+  margin-bottom: 1.6rem;
+}
+.gv-timeline .tl-item::before {
+  content: '';
+  position: absolute;
+  left: -2rem + 8px;
+  transform: translateX(-50%);
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--p);
+  box-shadow: var(--glow-cyan);
+}
+.gv-timeline .tl-item.active::before {
+  background: var(--p);
+}
+
+/* --- 24. Bento grid ---------------------------------------------------------------- */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  grid-auto-flow: dense;
+}
+.bento .span-2 {
+  grid-column: span 2;
+}
+.bento .span-3 {
+  grid-column: span 3;
+}
+.bento .tall {
+  grid-row: span 2;
+}
+
+/* --- 25. Scroll snap (opcional en galerías de diagramas) --------------------------- */
+.snap-scroll {
+  scroll-snap-type: x proximity;
+  overflow-x: auto;
+}
+.snap-scroll > * {
+  scroll-snap-align: center;
+}
+
+/* --- 26. Marquee -------------------------------------------------------------------- */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  animation: marquee-scroll 28s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --- 27. Accessibility: prefers-reduced-motion --------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+  .scroll-progress {
+    animation: none;
+    transform: scaleX(0);
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .card-glow {
+    animation: none;
+  }
+}
+
+/* --- 28. Responsive ---------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .nav-blur .nav-link {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+  .hero {
+    min-height: 55vh;
+    padding: 6rem 1rem 3rem;
+  }
+  .stat-n {
+    font-size: 1.8rem;
+  }
+  .bento .span-2,
+  .bento .span-3 {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 575.98px) {
+  section {
+    padding: 3rem 0.75rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+  }
+}
+
+/* --- 29. Utilidades ------------------------------------------------------------------- */
+.text-gv {
+  color: var(--p);
+}
+.text-gv-dim {
+  color: var(--text-dim);
+}
+.bg-card {
+  background: var(--card);
+}
+.border-soft {
+  border: 1px solid var(--br-soft);
+}
+.radius-lg {
+  border-radius: var(--r-lg);
+}
+.shadow-glow {
+  box-shadow: var(--glow-cyan);
+}
+.mono-tab {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 30. Diagram modal (click en diagrama → imagen ampliada) ------------------------- */
+/* --- 30a. Diagram lightbox with pan/zoom (Google-Photos style) ------------------- */
+.gv-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+.gv-lightbox.open {
+  visibility: visible;
+  opacity: 1;
+}
+.gv-lightbox.open .gv-lightbox-stage {
+  animation: gv-lbox-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes gv-lbox-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.gv-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.1 0.02 262 / 0.88);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.gv-lightbox-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gv-lightbox-stage:active {
+  cursor: grabbing;
+}
+.gv-lightbox-img {
+  width: auto;
+  height: auto;
+  border-radius: var(--r-md);
+  background: oklch(0.14 0.02 262);
+  box-shadow: 0 0 60px oklch(0.1 0.02 262 / 0.8);
+  will-change: transform;
+  transform-origin: 0 0;
+  transition: transform 0.08s ease-out;
+}
+.gv-lightbox-img.no-anim {
+  transition: none;
+}
+/* Contenedor del SVG inline (hotspots interactivos) */
+.gv-lightbox-svg {
+  position: relative;
+  width: auto;
+  height: auto;
+  border-radius: var(--r-md);
+  background: oklch(0.14 0.02 262);
+  box-shadow: 0 0 60px oklch(0.1 0.02 262 / 0.8);
+  will-change: transform;
+  transform-origin: 0 0;
+  transition: transform 0.08s ease-out;
+}
+.gv-lightbox-svg svg {
+  display: block;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+.gv-lightbox-svg svg text,
+.gv-lightbox-svg svg tspan {
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Hotspots: zonas clicables dentro del diagrama */
+.gv-hotspot {
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+.gv-lightbox-svg .gv-hotspot {
+  fill: transparent;
+}
+.gv-lightbox-svg .gv-hotspot:hover {
+  fill: rgba(168, 85, 247, 0.16);
+  filter: brightness(1.25) drop-shadow(0 0 6px rgba(168, 85, 247, 0.8));
+}
+.gv-lightbox-svg .gv-hotspot:focus-visible {
+  outline: 2px solid var(--a, #a855f7);
+  outline-offset: 1px;
+}
+.gv-lightbox-toolbar {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: oklch(0.18 0.03 262 / 0.85);
+  border: 1px solid var(--br-soft);
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px oklch(0.1 0.02 262 / 0.5);
+}
+.gv-lightbox-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--br-soft);
+  background: var(--card3);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.gv-lightbox-btn:hover {
+  background: linear-gradient(135deg, var(--p), var(--a));
+  color: #fff;
+  transform: scale(1.08);
+}
+.gv-lightbox-btn[data-zoom='reset'] {
+  font-size: 1rem;
+}
+.gv-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--br-soft);
+  background: var(--card3);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  z-index: 3;
+}
+.gv-lightbox-close:hover {
+  background: var(--er);
+  color: #fff;
+  transform: rotate(90deg);
+}
+.gv-lightbox-cap {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  max-width: calc(100% - 5rem);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.8rem;
+  background: oklch(0.18 0.03 262 / 0.7);
+  border: 1px solid var(--br-soft);
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.gv-lightbox-hint {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(3.2rem);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gv-lightbox-img {
+    transition: none;
+  }
+  .gv-lightbox.open .gv-lightbox-stage {
+    animation: none;
+  }
+}
+
+/* --- 30b. Info modal (click en la "i" → detalle ampliado) -------------------------- */
+.gv-info-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+}
+.gv-info-modal.open {
+  visibility: visible;
+  opacity: 1;
+}
+.gv-info-backdrop {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.12 0.02 262 / 0.7);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.gv-info-box {
+  position: relative;
+  max-width: min(92vw, 560px);
+  background: var(--card2);
+  border: 1px solid var(--br-soft);
+  border-radius: var(--r-lg);
+  padding: 1.6rem 1.8rem;
+  box-shadow:
+    0 0 60px oklch(0.6 0.15 210 / 0.22),
+    0 24px 60px oklch(0.1 0.02 262 / 0.6);
+  animation: gv-info-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes gv-info-in {
+  from {
+    transform: translateY(14px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.gv-info-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.8rem;
+  right: 1.8rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--p), var(--a));
+  border-radius: 2px;
+}
+.gv-info-body {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  padding-top: 0.5rem;
+}
+.gv-info-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding-right: 2rem;
+}
+.gv-info-ico {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-style: italic;
+  color: #fff;
+  background: linear-gradient(135deg, var(--p), var(--a));
+  box-shadow: 0 0 24px oklch(0.6 0.15 210 / 0.45);
+}
+.gv-info-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.gv-info-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--p), var(--a));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.gv-info-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.3;
+}
+.gv-info-foot {
+  margin-top: 1.1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--br-soft);
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.gv-info-foot::before {
+  content: '⌨';
+  font-size: 0.85rem;
+}
+.gv-info-close {
+  position: absolute;
+  top: -13px;
+  right: -13px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--br-soft);
+  background: var(--card3);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  z-index: 2;
+}
+.gv-info-close:hover {
+  background: var(--er);
+  color: #fff;
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gv-info-box {
+    animation: none;
+  }
+}
+
+/* --- 31. Language selector: segmented flags (visible, sin menú) --------------------- */
+.lang-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: oklch(0.24 0.02 262 / 0.7);
+  border: 1px solid var(--br-soft);
+  border-radius: 999px;
+  padding: 3px;
+}
+.lang-seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 40px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 0 0.65rem;
+  position: relative;
+}
+.lang-seg button .lang-flag {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.lang-seg button .lang-code {
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+}
+.lang-seg button:hover {
+  color: var(--text);
+  background: oklch(1 0 0 / 0.05);
+}
+.lang-seg button.active {
+  color: #04121c;
+  background: linear-gradient(135deg, var(--p), var(--pl));
+  box-shadow: 0 0 12px oklch(0.8 0.14 210 / 0.4);
+}
+.lang-seg button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--p);
+  opacity: 0;
+}
+.lang-seg button.active .lang-code {
+  color: #04121c;
+}
+
+/* Carousel Styles */
+.gv-carousel {
+  position: relative;
+  overflow: hidden;
+}
+.gv-carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+.gv-carousel-slide {
+  min-width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  display: none;
+}
+.gv-carousel-slide.active {
+  opacity: 1;
+  display: block;
+}
+.carousel-dots .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--br);
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.carousel-dots .dot.active {
+  background: var(--p);
+}

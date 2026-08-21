@@ -7,28 +7,35 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 ### Required
 
 - **Git** - https://git-scm.com/
-- **PowerShell 7+** - https://aka.ms/powershell
+- **Node.js 20+** - https://nodejs.org/
+- **pnpm 11+** - `corepack enable` or `npm install --global pnpm`
 
 ### Recommended
 
-- **Go 1.21+** - For Go-based tools
-- **Node.js 20+** - For Node.js projects
+- **Go 1.21+** - For Engram and Go-based tools
+- **PowerShell 7+** - For Windows automation
 - **Docker** - For containerized development
 
 ## Quick Install
 
-### Windows (PowerShell)
+### Windows (TypeScript)
 
-```powershell
+```TypeScript
 # Clone or download gentle-vanguard
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
-# Initialize workspace
-.\scripts\gentle-vanguard\gv.ps1 init
+# Install locked dependencies
+corepack enable
+pnpm install --frozen-lockfile
 
-# Create your first project
-.\scripts\gentle-vanguard\gv.ps1 new --name my-project --kind service
+# Verify the machine and workspace
+npm run install:doctor -- --strict
+npm run db:init
+npm run watchtower:health
+
+# Start a session
+npx tsx src/session-autostart.ts
 ```
 
 ### Linux/macOS
@@ -38,11 +45,15 @@ cd gentle-vanguard
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
 cd gentle-vanguard
 
-# Initialize workspace
-pwsh ./scripts/gentle-vanguard/gv.ps1 init
+# Install locked dependencies
+corepack enable
+pnpm install --frozen-lockfile
 
-# Create your first project
-pwsh ./scripts/gentle-vanguard/gv.ps1 new --name my-project --kind service
+# Verify the machine and workspace
+npm run install:doctor -- --strict
+
+# Start a session
+npx tsx src/session-autostart.ts
 ```
 
 ## Detailed Setup
@@ -58,12 +69,9 @@ git config --global pull.rebase true
 
 ### 2. Install Tools
 
-```powershell
-# Using the CLI
-.\scripts\gentle-vanguard\gv.ps1 tools --install
-
-# Or manually
-.\scripts\gentle-vanguard\gv.ps1 init
+```TypeScript
+# Validate required and optional tools without downloading anything
+npm run install:doctor -- --json
 ```
 
 ### 3. Install AI Tools (Optional but Recommended)
@@ -74,16 +82,16 @@ The gentle-vanguard includes integration with:
 | ------------------------ | ------------------------ | ---------------------------------------------------------------- |
 | **OpenCode**             | AI coding agent          | https://opencode.ai                                              |
 | **Claude Code**          | AI coding agent          | https://claude.ai/code                                           |
-| **Native Review Engine** | Built-in workflow review | `./scripts/utilities/gv.ps1 review`                              |
+| **Native Review Engine** | Built-in workflow review | `./src/cli/gv.ts review`                                         |
 | **engram**               | Persistent memory        | `go install github.com/gentle-vanguard/engram/cmd/engram@latest` |
 
-Windows one-shot update (no brew required): `./scripts/utilities/gv.ps1 update-tools`
+Windows one-shot update (no brew required): `./src/cli/gv.ts update-tools`
 
 ### 4. Install Skills
 
 Skills are automatically installed for detected AI agents. To manually install:
 
-```powershell
+```TypeScript
 # For Claude Code
 cp -r scripts/utilities/Workspace-Skills/curated/* ~/.claude/skills/
 
@@ -95,8 +103,8 @@ cp -r scripts/utilities/Workspace-Skills/curated/* ~/.config/opencode/skills/
 
 ### Interactive Mode (Recommended for beginners)
 
-```powershell
-.\scripts\gentle-vanguard\gv.ps1 new --interactive
+```TypeScript
+.\scripts\gentle-vanguard\src/cli/gv.ts new --interactive
 ```
 
 The wizard will ask:
@@ -109,12 +117,12 @@ The wizard will ask:
 
 ### Command Line Mode
 
-```powershell
+```TypeScript
 # Basic service
-.\scripts\gentle-vanguard\gv.ps1 new --name my-api --kind service
+.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-api --kind service
 
 # With options
-.\scripts\gentle-vanguard\gv.ps1 new `
+.\scripts\gentle-vanguard\src/cli/gv.ts new `
     --name my-project `
     --kind frontend `
     --framework react `
@@ -143,23 +151,23 @@ The wizard will ask:
 
 ### Validate Your Setup
 
-```powershell
-.\scripts\gentle-vanguard\gv.ps1 validate
+```TypeScript
+.\scripts\gentle-vanguard\src/cli/gv.ts validate
 ```
 
 ### Create a Project
 
-```powershell
+```TypeScript
 # Interactive
-.\scripts\gentle-vanguard\gv.ps1 new --interactive
+.\scripts\gentle-vanguard\src/cli/gv.ts new --interactive
 
 # Or specify all options
-.\scripts\gentle-vanguard\gv.ps1 new --name my-service --kind service
+.\scripts\gentle-vanguard\src/cli/gv.ts new --name my-service --kind service
 ```
 
 ### Run Tests
 
-```powershell
+```TypeScript
 # In your project directory
 npm test  # Node.js
 go test ./...  # Go
@@ -169,7 +177,7 @@ go test ./...  # Go
 
 ### "pwsh not found"
 
-Install PowerShell 7+ from https://aka.ms/powershell
+Install PowerShell 7+ from https://learn.microsoft.com/powershell/
 
 ### "Git not found"
 
@@ -184,7 +192,7 @@ chmod +x ./scripts/*.sh
 
 ### Module not found
 
-```powershell
+```TypeScript
 # Windows
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 

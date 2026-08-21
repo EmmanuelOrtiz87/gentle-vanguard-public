@@ -10,10 +10,19 @@ import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
 
-interface Validation { name: string; local: string; gentleVanguard: string; status: boolean }
+interface Validation {
+  name: string;
+  local: string;
+  gentleVanguard: string;
+  status: boolean;
+}
 
 function readFileContent(p: string): string | null {
-  try { return readFileSync(p, 'utf-8'); } catch { return null; }
+  try {
+    return readFileSync(p, 'utf-8');
+  } catch {
+    return null;
+  }
 }
 
 function compareFiles(file1: string, file2: string): boolean {
@@ -32,38 +41,65 @@ function main(): void {
   let manifest: Record<string, unknown> | null = null;
 
   if (existsSync(manifestPath)) {
-    try { manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')); } catch { /* */ }
+    try {
+      manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    } catch {
+      /* */
+    }
   }
 
   if (manifest && manifest.role === 'source') {
-    console.log('[OK] Repository marked as gentle-vanguard source; no external workspace comparison needed');
+    console.log(
+      '[OK] Repository marked as gentle-vanguard source; no external workspace comparison needed',
+    );
     process.exit(0);
   }
 
   if (!gentleVanguardRepoRoot) {
-    if (manifest && manifest.gentleVanguardPath) gentleVanguardRepoRoot = String(manifest.gentleVanguardPath);
-    else if (process.env.GENTLE_VANGUARD_REPO_PATH) gentleVanguardRepoRoot = process.env.GENTLE_VANGUARD_REPO_PATH;
+    if (manifest && manifest.gentleVanguardPath)
+      gentleVanguardRepoRoot = String(manifest.gentleVanguardPath);
+    else if (process.env.GENTLE_VANGUARD_REPO_PATH)
+      gentleVanguardRepoRoot = process.env.GENTLE_VANGUARD_REPO_PATH;
     else gentleVanguardRepoRoot = ROOT;
   }
 
-  gentleVanguardRepoRoot = isAbsolute(gentleVanguardRepoRoot) ? gentleVanguardRepoRoot : join(ROOT, gentleVanguardRepoRoot);
-  if (!existsSync(gentleVanguardRepoRoot)) { console.error(`[ERROR] Gentle-Vanguard root not found: ${gentleVanguardRepoRoot}`); process.exit(1); }
+  gentleVanguardRepoRoot = isAbsolute(gentleVanguardRepoRoot)
+    ? gentleVanguardRepoRoot
+    : join(ROOT, gentleVanguardRepoRoot);
+  if (!existsSync(gentleVanguardRepoRoot)) {
+    console.error(`[ERROR] Gentle-Vanguard root not found: ${gentleVanguardRepoRoot}`);
+    process.exit(1);
+  }
 
   const validations: Validation[] = [];
   let issues = 0;
 
   const checks: Array<{ name: string; local: string; gv: string }> = [
-    { name: 'Context Efficiency Config', local: 'scripts/utilities/context-efficiency-config.json', gv: join(gentleVanguardRepoRoot, 'scripts/utilities/context-efficiency-config.json') },
-    { name: 'Session Autostart Config', local: 'scripts/utilities/session-autostart.config.json', gv: join(gentleVanguardRepoRoot, 'scripts/utilities/session-autostart.config.json') },
+    {
+      name: 'Context Efficiency Config',
+      local: 'scripts/utilities/context-efficiency-config.json',
+      gv: join(gentleVanguardRepoRoot, 'scripts/utilities/context-efficiency-config.json'),
+    },
+    {
+      name: 'Session Autostart Config',
+      local: 'scripts/utilities/session-autostart.config.json',
+      gv: join(gentleVanguardRepoRoot, 'scripts/utilities/session-autostart.config.json'),
+    },
     { name: 'AGENTS.md', local: 'AGENTS.md', gv: join(gentleVanguardRepoRoot, 'AGENTS.md') },
   ];
 
   const adaptivePath = 'config/adaptive-config.json';
-  if (existsSync(adaptivePath)) checks.push({ name: 'Adaptive Config', local: adaptivePath, gv: join(gentleVanguardRepoRoot, adaptivePath) });
+  if (existsSync(adaptivePath))
+    checks.push({
+      name: 'Adaptive Config',
+      local: adaptivePath,
+      gv: join(gentleVanguardRepoRoot, adaptivePath),
+    });
 
-  const gvPath = 'scripts/utilities/WORKFLOW-ORCHESTRATION/gv.ps1';
+  const gvPath = 'src/cli/gv.ts';
   const gvTarget = join(gentleVanguardRepoRoot, gvPath);
-  if (existsSync(gvPath) && existsSync(gvTarget)) checks.push({ name: 'Workflow Script (gv.ps1)', local: gvPath, gv: gvTarget });
+  if (existsSync(gvPath) && existsSync(gvTarget))
+    checks.push({ name: 'Workflow Script (gv.ps1)', local: gvPath, gv: gvTarget });
 
   for (const check of checks) {
     const result = compareFiles(check.local, check.gv);
@@ -76,11 +112,17 @@ function main(): void {
         const l1 = c1.split('\n');
         const l2 = c2.split('\n');
         for (let i = 0; i < Math.max(l1.length, l2.length); i++) {
-          if (l1[i] !== l2[i]) console.log(`  Line ${i + 1}: LOCAL="${l1[i] || ''}"  GV="${l2[i] || ''}"`);
+          if (l1[i] !== l2[i])
+            console.log(`  Line ${i + 1}: LOCAL="${l1[i] || ''}"  GV="${l2[i] || ''}"`);
         }
       }
     }
-    validations.push({ name: check.name, local: check.local, gentleVanguard: check.gv, status: result });
+    validations.push({
+      name: check.name,
+      local: check.local,
+      gentleVanguard: check.gv,
+      status: result,
+    });
     if (!result) issues++;
   }
 
@@ -91,7 +133,10 @@ function main(): void {
   if (issues > 0) {
     console.log(`\nArchivos con diferencias:`);
     for (const v of validations) {
-      if (!v.status) console.log(`  - ${v.name}\n    Local: ${v.local}\n    Gentle-Vanguard: ${v.gentleVanguard}`);
+      if (!v.status)
+        console.log(
+          `  - ${v.name}\n    Local: ${v.local}\n    Gentle-Vanguard: ${v.gentleVanguard}`,
+        );
     }
   }
 

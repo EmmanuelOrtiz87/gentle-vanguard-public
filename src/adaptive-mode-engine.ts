@@ -29,14 +29,17 @@ interface DAGConfig {
       checkpoint_on_phase_complete: boolean;
       auto_rollback_on_qa_failure: boolean;
     };
-    feedback_loops: Record<string, {
-      source: string;
-      target: string;
-      enabled: boolean;
-      description: string;
-      max_iterations: number;
-      trigger: string;
-    }>;
+    feedback_loops: Record<
+      string,
+      {
+        source: string;
+        target: string;
+        enabled: boolean;
+        description: string;
+        max_iterations: number;
+        trigger: string;
+      }
+    >;
   };
 }
 
@@ -302,9 +305,9 @@ class DAGExecutor {
       case 'test_failure':
         return result.Status === 'failed' || result.Errors.length > 0;
       case 'architecture_issue':
-        return result.Warnings.some(w => /architecture|design/i.test(w));
+        return result.Warnings.some((w) => /architecture|design/i.test(w));
       case 'security_issue':
-        return result.Errors.some(e => /security|vulnerability/i.test(e));
+        return result.Errors.some((e) => /security|vulnerability/i.test(e));
       default:
         return false;
     }
@@ -356,7 +359,10 @@ class DAGExecutor {
       } else {
         failedPhases.push(phaseName);
 
-        if (this.Config.dag.rollback_policy.auto_rollback_on_qa_failure && phaseName === 'quality_assurance') {
+        if (
+          this.Config.dag.rollback_policy.auto_rollback_on_qa_failure &&
+          phaseName === 'quality_assurance'
+        ) {
           console.log(`\n\x1b[31m[AUTO-ROLLBACK] Triggered by QA failure\x1b[0m`);
           const checkpointNames = Object.keys(this.Checkpoints).sort().reverse();
           if (checkpointNames.length > 0) {
@@ -398,7 +404,11 @@ class DAGExecutor {
   }
 }
 
-function startAdaptiveMode(configPath: string, _taskDescription: string, dryRun: boolean): WorkflowResult | null {
+function startAdaptiveMode(
+  configPath: string,
+  _taskDescription: string,
+  dryRun: boolean,
+): WorkflowResult | null {
   if (!existsSync(configPath)) {
     console.log(`\x1b[31m[ERROR] Config file not found: ${configPath}\x1b[0m`);
     return null;

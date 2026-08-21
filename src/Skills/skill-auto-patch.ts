@@ -35,7 +35,12 @@ interface UsageMetric {
   skillName: string;
   useCount: number;
   failureCount: number;
-  failurePatterns: Array<{ errorType: string; timestamp: string; description: string; fixApplied: string | null }>;
+  failurePatterns: Array<{
+    errorType: string;
+    timestamp: string;
+    description: string;
+    fixApplied: string | null;
+  }>;
   successRate: number;
 }
 
@@ -52,8 +57,10 @@ function findRepoRoot(dir: string): string {
   return dir;
 }
 
-const repoRoot = process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
-  ? process.env.GENTLE_VANGUARD_BASE_DIR : findRepoRoot(ROOT);
+const repoRoot =
+  process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
+    ? process.env.GENTLE_VANGUARD_BASE_DIR
+    : findRepoRoot(ROOT);
 const nudgeDir = join(repoRoot, '.session', 'skill-nudges');
 const skillsDir = join(repoRoot, 'skills');
 
@@ -84,7 +91,7 @@ const reportMode = args.includes('--report');
 
 function getPendingNudges(): NudgeEntry[] {
   if (!existsSync(nudgeDir)) return [];
-  const files = readdirSync(nudgeDir).filter(f => f.endsWith('.json') && f !== '.sequence');
+  const files = readdirSync(nudgeDir).filter((f) => f.endsWith('.json') && f !== '.sequence');
   const pending: NudgeEntry[] = [];
   for (const file of files) {
     try {
@@ -106,7 +113,7 @@ function getSkillMdPath(skill: string): string | null {
   if (existsSync(lower)) return lower;
 
   if (!existsSync(skillsDir)) return null;
-  const dirs = readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory());
+  const dirs = readdirSync(skillsDir, { withFileTypes: true }).filter((d) => d.isDirectory());
   for (const d of dirs) {
     const dirName = d.name;
     if (dirName === skill || dirName === `${skill}-skill`) {
@@ -121,7 +128,12 @@ function addFailureSectionToSkill(
   mdPath: string,
   fixPattern: string,
   skill: string,
-  failures: Array<{ errorType: string; timestamp: string; description: string; fixApplied: string | null }>
+  failures: Array<{
+    errorType: string;
+    timestamp: string;
+    description: string;
+    fixApplied: string | null;
+  }>,
 ): boolean {
   const content = readFileSync(mdPath, 'utf-8');
 
@@ -141,7 +153,7 @@ function addFailureSectionToSkill(
   lines.push(`- **Issue**: ${fixPattern}`);
 
   if (failures.length > 0) {
-    const distinct = [...new Set(failures.map(f => f.errorType))];
+    const distinct = [...new Set(failures.map((f) => f.errorType))];
     lines.push(`- **Error types observed**: ${distinct.join(', ')}`);
   }
 
@@ -176,10 +188,11 @@ function invokeAutoPatch(): PatchResult[] {
       shouldApply = true;
       reason = '--auto-apply flag';
     } else {
-      const samePattern = pending.filter(p =>
-        p.nudge.skillName === nudge.skillName &&
-        p.nudge.fixPattern === nudge.fixPattern &&
-        p.nudge.nudgeId !== nudge.nudgeId
+      const samePattern = pending.filter(
+        (p) =>
+          p.nudge.skillName === nudge.skillName &&
+          p.nudge.fixPattern === nudge.fixPattern &&
+          p.nudge.nudgeId !== nudge.nudgeId,
       );
       if (samePattern.length >= 1) {
         shouldApply = true;
@@ -189,27 +202,44 @@ function invokeAutoPatch(): PatchResult[] {
 
     if (!shouldApply) {
       log('WARN', `Skipping ${nudge.nudgeId} — not urgent, use --auto-apply`);
-      applied.push({ nudgeId: nudge.nudgeId, skill: nudge.skillName, action: 'skipped', reason: 'not urgent, use --auto-apply' });
+      applied.push({
+        nudgeId: nudge.nudgeId,
+        skill: nudge.skillName,
+        action: 'skipped',
+        reason: 'not urgent, use --auto-apply',
+      });
       continue;
     }
 
     const mdPath = getSkillMdPath(nudge.skillName);
     if (!mdPath) {
       log('ERROR', `SKILL.md not found for ${nudge.skillName}`);
-      applied.push({ nudgeId: nudge.nudgeId, skill: nudge.skillName, action: 'failed', reason: 'SKILL.md not found' });
+      applied.push({
+        nudgeId: nudge.nudgeId,
+        skill: nudge.skillName,
+        action: 'failed',
+        reason: 'SKILL.md not found',
+      });
       continue;
     }
 
     log('APPLY', `Applying patch to ${mdPath}`);
 
     // Load usage metrics to get failure patterns
-    let failures: Array<{ errorType: string; timestamp: string; description: string; fixApplied: string | null }> = [];
+    let failures: Array<{
+      errorType: string;
+      timestamp: string;
+      description: string;
+      fixApplied: string | null;
+    }> = [];
     const usagePath = join(repoRoot, '.session', 'skill-usage', `${nudge.skillName}.json`);
     if (existsSync(usagePath)) {
       try {
         const um: UsageMetric = JSON.parse(readFileSync(usagePath, 'utf-8'));
         failures = um.failurePatterns || [];
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     const patched = addFailureSectionToSkill(mdPath, nudge.fixPattern, nudge.skillName, failures);
@@ -219,7 +249,12 @@ function invokeAutoPatch(): PatchResult[] {
       log('APPLY', `Patched ${nudge.skillName} with: ${nudge.fixPattern}`);
       applied.push({ nudgeId: nudge.nudgeId, skill: nudge.skillName, action: 'patched', reason });
     } else {
-      applied.push({ nudgeId: nudge.nudgeId, skill: nudge.skillName, action: 'skipped', reason: 'section already exists' });
+      applied.push({
+        nudgeId: nudge.nudgeId,
+        skill: nudge.skillName,
+        action: 'skipped',
+        reason: 'section already exists',
+      });
     }
   }
 
@@ -231,14 +266,22 @@ function invokeReport(): void {
     log('INFO', 'No nudge files found');
     return;
   }
-  const files = readdirSync(nudgeDir).filter(f => f.endsWith('.json') && f !== '.sequence');
+  const files = readdirSync(nudgeDir).filter((f) => f.endsWith('.json') && f !== '.sequence');
   if (files.length === 0) {
     log('INFO', 'No nudge files found');
     return;
   }
 
   log('INFO', '=== Auto-Patch Dry Run ===');
-  const rows: Array<{ nudgeId: string; skill: string; issueType: string; urgent: boolean; fix: string; skillMd: string; wouldPatch: boolean }> = [];
+  const rows: Array<{
+    nudgeId: string;
+    skill: string;
+    issueType: string;
+    urgent: boolean;
+    fix: string;
+    skillMd: string;
+    wouldPatch: boolean;
+  }> = [];
 
   for (const file of files) {
     try {
@@ -254,9 +297,11 @@ function invokeReport(): void {
         urgent: nudge.urgent,
         fix: nudge.fixPattern,
         skillMd: mdExists,
-        wouldPatch: nudge.urgent || autoApply
+        wouldPatch: nudge.urgent || autoApply,
       });
-    } catch { /* skip corrupt */ }
+    } catch {
+      /* skip corrupt */
+    }
   }
 
   if (rows.length === 0) {
@@ -264,14 +309,35 @@ function invokeReport(): void {
     return;
   }
 
-  console.log(padRight('Nudge', 30), padRight('Skill', 20), padRight('Type', 12), padRight('Urgent', 8), padRight('SKILL.md', 12), 'Would Patch');
-  console.log(padRight('-----', 30), padRight('-----', 20), padRight('----', 12), padRight('------', 8), padRight('-------', 12), '-----------');
+  console.log(
+    padRight('Nudge', 30),
+    padRight('Skill', 20),
+    padRight('Type', 12),
+    padRight('Urgent', 8),
+    padRight('SKILL.md', 12),
+    'Would Patch',
+  );
+  console.log(
+    padRight('-----', 30),
+    padRight('-----', 20),
+    padRight('----', 12),
+    padRight('------', 8),
+    padRight('-------', 12),
+    '-----------',
+  );
   let wouldPatchCount = 0;
   for (const row of rows) {
     const urgent = row.urgent ? 'yes' : 'no';
     const wp = row.wouldPatch ? 'yes' : 'no-dry';
     if (row.wouldPatch) wouldPatchCount++;
-    console.log(padRight(row.nudgeId, 30), padRight(row.skill, 20), padRight(row.issueType, 12), padRight(urgent, 8), padRight(row.skillMd, 12), wp);
+    console.log(
+      padRight(row.nudgeId, 30),
+      padRight(row.skill, 20),
+      padRight(row.issueType, 12),
+      padRight(urgent, 8),
+      padRight(row.skillMd, 12),
+      wp,
+    );
   }
   log('INFO', `${rows.length} pending, ${wouldPatchCount} would be applied`);
 }
@@ -285,9 +351,9 @@ if (reportMode) {
 }
 
 const results = invokeAutoPatch();
-const patched = results.filter(r => r.action === 'patched');
-const skipped = results.filter(r => r.action === 'skipped');
-const failed = results.filter(r => r.action === 'failed');
+const patched = results.filter((r) => r.action === 'patched');
+const skipped = results.filter((r) => r.action === 'skipped');
+const failed = results.filter((r) => r.action === 'failed');
 
 log('OK', `Results: ${patched.length} patched, ${skipped.length} skipped, ${failed.length} failed`);
 

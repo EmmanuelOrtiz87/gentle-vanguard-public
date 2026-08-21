@@ -48,7 +48,7 @@ All 24 scripts containing emojis and special Unicode characters have been cleane
 - `generate-pr-artifacts.ps1` - FIXED
 - `generate-session-artifacts.ps1` - FIXED
 - `manage-backlog.ps1` - FIXED
-- `Microsoft.PowerShell_profile.ps1` - FIXED
+- `Microsoft.TypeScript_profile.ps1` - FIXED
 - `migrate-structure.ps1` - FIXED
 - `orchestrator-status.ps1` - FIXED
 - `pre-compact-hook.ps1` - FIXED
@@ -90,7 +90,7 @@ These scripts have mismatched opening and closing braces:
 - Action: Manual review required
 - Impact: Here-string or code block incomplete
 
-**gv.ps1**
+**src/cli/gv.ts**
 
 - Issue: 501 open, 500 closed
 - Action: Manual review required
@@ -119,23 +119,23 @@ These scripts have mismatched `@"` and `"@` delimiters:
 - `end-session.ps1` - 1 open, 3 closed
 - `generate-audit-report.ps1` - 3 open, 2 closed
 - `invoke-ai-review.ps1` - 3 open, 4 closed
-- `gv.ps1` - 4 open, 6 closed
+- `src/cli/gv.ts` - 4 open, 6 closed
 
 **Action**: Review multi-line string definitions
 
-#### 4. Invalid PowerShell Syntax (8 scripts)
+#### 4. Invalid TypeScript Syntax (8 scripts)
 
-These scripts contain syntax that PowerShell cannot parse:
+These scripts contain syntax that TypeScript cannot parse:
 
 **check-quality.ps1**
 
-- Issue: Shell operators `||` not supported in PowerShell
-- Fix: Replace with PowerShell equivalents
+- Issue: Shell operators `||` not supported in TypeScript
+- Fix: Replace with TypeScript equivalents
 
 **check-testing.ps1**
 
-- Issue: Shell operators `||` not supported in PowerShell
-- Fix: Replace with PowerShell equivalents
+- Issue: Shell operators `||` not supported in TypeScript
+- Fix: Replace with TypeScript equivalents
 
 **migrate.ps1**
 
@@ -145,7 +145,7 @@ These scripts contain syntax that PowerShell cannot parse:
 **create-skill.ps1**
 
 - Issue: Invalid escape sequences `\""`
-- Fix: Use proper PowerShell string escaping
+- Fix: Use proper TypeScript string escaping
 
 **export-backlog-csv.ps1**
 
@@ -154,13 +154,13 @@ These scripts contain syntax that PowerShell cannot parse:
 
 **migrate-structure.ps1**
 
-- Issue: Null coalescing operator `??` not supported in PowerShell 5.1
+- Issue: Null coalescing operator `??` not supported in TypeScript 5.1
 - Fix: Use `-eq $null` or `if ($var)` instead
 
 **invoke-ai-review.ps1**
 
 - Issue: Null coalescing operator `??` not supported
-- Fix: Use PowerShell 5.1 compatible syntax
+- Fix: Use TypeScript 5.1 compatible syntax
 
 **validate-script-governance.ps1**
 
@@ -174,13 +174,13 @@ These scripts contain syntax that PowerShell cannot parse:
 ### Immediate Actions (This Week)
 
 1. **Review and Fix Unbalanced Syntax**
-   - Use PowerShell ISE or VS Code to identify exact locations
+   - Use TypeScript ISE or VS Code to identify exact locations
    - Fix one script at a time
    - Test each script after fixing
 
 2. **Replace Invalid Operators**
 
-   ```powershell
+   ```TypeScript
    # Replace shell operators
    command1 || command2    if (-not (command1)) { command2 }
    command1 && command2    if (command1) { command2 }
@@ -197,7 +197,7 @@ These scripts contain syntax that PowerShell cannot parse:
 
 1. **Validate Each Script**
 
-   ```powershell
+   ```TypeScript
    $errors = $null
    [System.Management.Automation.Language.Parser]::ParseFile(
        '.\scripts\path\to\script.ps1',
@@ -211,7 +211,8 @@ These scripts contain syntax that PowerShell cannot parse:
    - Verify no new errors introduced
 
 3. **Run Full Audit**
-   ```powershell
+
+   ```TypeScript
    .\scripts\utilities\audit-script-normalization.ps1 -Report
    ```
 
@@ -282,6 +283,7 @@ These scripts contain syntax that PowerShell cannot parse:
 ## Resources
 
 - **Audit Script**: `scripts/utilities/audit-script-normalization.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/audit-script-normalization.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - **Standards Guide**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
 - **Audit Report**: `docs/audit/script-normalization-report.md`
 

@@ -8,7 +8,7 @@
  *   npx tsx src/workload-guard.ts --diff (reads from git diff --stat)
  */
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -24,7 +24,13 @@ interface GuardResult {
 const DEFAULT_LINE_THRESHOLD = 400;
 const DEFAULT_FILE_THRESHOLD = 8;
 
-function parseArgs(): { files: string[]; lines: number; fileLimit: number; diff: boolean; json: boolean } {
+function parseArgs(): {
+  files: string[];
+  lines: number;
+  fileLimit: number;
+  diff: boolean;
+  json: boolean;
+} {
   const raw = process.argv.slice(2);
   const files: string[] = [];
   let lines = DEFAULT_LINE_THRESHOLD;
@@ -63,7 +69,7 @@ function parseArgs(): { files: string[]; lines: number; fileLimit: number; diff:
 
 function getGitDiffStats(): { files: string[]; totalLines: number } {
   try {
-    const output = execSync('git diff --stat HEAD', { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    const output = runSync('git', ['diff', '--stat', 'HEAD'], { maxBuffer: 1024 * 1024 }).stdout;
     const lines = output.trim().split('\n');
     const changedFiles: string[] = [];
     let totalChangedLines = 0;
@@ -83,7 +89,10 @@ function getGitDiffStats(): { files: string[]; totalLines: number } {
   }
 }
 
-function countLinesInFiles(filePaths: string[]): { totalLines: number; fileDetails: { path: string; lines: number }[] } {
+function countLinesInFiles(filePaths: string[]): {
+  totalLines: number;
+  fileDetails: { path: string; lines: number }[];
+} {
   const fileDetails: { path: string; lines: number }[] = [];
   let totalLines = 0;
 
@@ -142,12 +151,12 @@ function main(): void {
   if (totalLines > args.lines) {
     result.errors.push(
       `Implementation exceeds line threshold: ${totalLines} lines (max ${args.lines}). ` +
-      `Consider splitting into smaller PRs.`
+        `Consider splitting into smaller PRs.`,
     );
     result.passed = false;
   } else if (totalLines > args.lines * 0.75) {
     result.warnings.push(
-      `Approaching line threshold: ${totalLines}/${args.lines} lines. Consider reducing scope.`
+      `Approaching line threshold: ${totalLines}/${args.lines} lines. Consider reducing scope.`,
     );
   }
 
@@ -155,7 +164,7 @@ function main(): void {
   if (result.totalFiles > args.fileLimit) {
     result.warnings.push(
       `High file count: ${result.totalFiles} files (recommended max ${args.fileLimit}). ` +
-      `Review if all changes are necessary.`
+        `Review if all changes are necessary.`,
     );
   }
 
@@ -170,14 +179,20 @@ function printResult(result: GuardResult, json: boolean): void {
 
   if (result.passed) {
     if (result.warnings.length === 0) {
-      console.log(`[WORKLOAD-GUARD] ✅ PASS — ${result.totalLines} lines across ${result.totalFiles} files`);
+      console.log(
+        `[WORKLOAD-GUARD] ✅ PASS — ${result.totalLines} lines across ${result.totalFiles} files`,
+      );
     } else {
-      console.log(`[WORKLOAD-GUARD] ⚠️  PASS with warnings — ${result.totalLines} lines across ${result.totalFiles} files`);
+      console.log(
+        `[WORKLOAD-GUARD] ⚠️  PASS with warnings — ${result.totalLines} lines across ${result.totalFiles} files`,
+      );
       for (const w of result.warnings) console.warn(`  ⚠️  ${w}`);
     }
     process.exit(0);
   } else {
-    console.error(`[WORKLOAD-GUARD] ❌ FAIL — ${result.totalLines} lines across ${result.totalFiles} files`);
+    console.error(
+      `[WORKLOAD-GUARD] ❌ FAIL — ${result.totalLines} lines across ${result.totalFiles} files`,
+    );
     for (const e of result.errors) console.error(`  ❌ ${e}`);
     for (const w of result.warnings) console.warn(`  ⚠️  ${w}`);
     process.exit(1);

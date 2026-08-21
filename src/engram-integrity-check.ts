@@ -288,13 +288,23 @@ function invokeIntegrityCheck(
         : [];
       const chunkFiles = chunkFilesRoot.length > 0 ? chunkFilesRoot : chunkFilesSub;
       if (chunkFiles.length > 0) {
-        const totalSize = chunkFiles.reduce((sum, f) => sum + statSync(join(chunkFilesSub.length > 0 ? chunksSubDir : latestPath, f)).size, 0);
-        writeResult(`Latest backup (${latestBackup}, ${Math.round(totalSize / 1024)}KB, ${chunkFiles.length} chunks)`, 'PASS');
+        const totalSize = chunkFiles.reduce(
+          (sum, f) =>
+            sum + statSync(join(chunkFilesSub.length > 0 ? chunksSubDir : latestPath, f)).size,
+          0,
+        );
+        writeResult(
+          `Latest backup (${latestBackup}, ${Math.round(totalSize / 1024)}KB, ${chunkFiles.length} chunks)`,
+          'PASS',
+        );
       } else {
         const dbFiles = readdirSync(latestPath).filter((f) => f.endsWith('.db'));
         if (dbFiles.length > 0) {
           const totalSize = dbFiles.reduce((sum, f) => sum + statSync(join(latestPath, f)).size, 0);
-          writeResult(`Latest backup (${latestBackup}, legacy ${Math.round(totalSize / 1024)}KB db)`, 'PASS');
+          writeResult(
+            `Latest backup (${latestBackup}, legacy ${Math.round(totalSize / 1024)}KB db)`,
+            'PASS',
+          );
         } else {
           log('Latest backup may be incomplete', 'WARN');
           writeResult('Backup integrity', 'FAIL');

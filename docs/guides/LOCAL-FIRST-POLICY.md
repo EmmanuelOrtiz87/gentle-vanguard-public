@@ -20,11 +20,11 @@ AI agents must use:
 
 ### Deny by Default
 
-| Tool         | Status   | Rationale                              |
-| ------------ | -------- | -------------------------------------- |
-| `websearch`  | **DENY** | Avoid token waste on external searches |
-| `codesearch` | **DENY** | Use local grep and project patterns    |
-| `webfetch`   | **DENY** | Rely on local documentation            |
+| Tool         | Status                 | Rationale                                                               |
+| ------------ | ---------------------- | ----------------------------------------------------------------------- |
+| `websearch`  | **ASK** (orchestrator) | Orchestrator may ask user before external search; subagents DENY        |
+| `codesearch` | **DENY**               | Use local grep and project patterns                                     |
+| `webfetch`   | **ASK** (orchestrator) | Orchestrator may ask user before fetching external docs; subagents DENY |
 
 ### Allow Only for Orchestrator
 
@@ -36,6 +36,10 @@ External tools are **only available** when:
   - Project skills (`skills/`)
   - Engram memory (`mem_search`, `mem_context`)
   - Project documentation
+
+**Mechanism**: In `opencode.json`, the `orchestrator` (primary) agent sets `websearch: ask` and
+`webfetch: ask` — the orchestrator prompts the user for confirmation before each external call,
+preserving token control. All 20 subagents keep `websearch: deny` / `webfetch: deny`.
 
 ## Configuration Files
 
@@ -87,11 +91,11 @@ Each AI tool has a local-first configuration:
 
 Only bypass when ALL conditions met:
 
-1.  Checked local skills
-2.  Queried engram memory
-3.  Read project documentation
-4.  User explicitly requests external search
-5.  Orchestrator approves tool usage
+1. Checked local skills
+2. Queried engram memory
+3. Read project documentation
+4. User explicitly requests external search
+5. Orchestrator approves tool usage
 
 ## Implementation Status
 

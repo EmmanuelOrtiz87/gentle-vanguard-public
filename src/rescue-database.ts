@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync, cpSync } from 'fs';
 import { join, resolve } from 'path';
 
@@ -29,7 +29,7 @@ function findDBs(dir: string): string[] {
 
 function checkSQLite(db: string, q: string): boolean {
   try {
-    execSync(`sqlite3 "${db}" "${q}" 2>nul`, { timeout: 5000, encoding: 'utf8' });
+    runSyncShell(`sqlite3 "${db}" "${q}" 2>nul`, { timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -59,7 +59,7 @@ for (const t of targets) {
   const healthy = dbs.some((db) => checkSQLite(db, 'SELECT name FROM sqlite_master LIMIT 1'));
   if (healthy) {
     const count = checkSQLite(dbs[0], 'SELECT COUNT(*) FROM nodes')
-      ? execSync(`sqlite3 "${dbs[0]}" "SELECT COUNT(*) FROM nodes"`, { encoding: 'utf8' }).trim()
+      ? runSyncShell(`sqlite3 "${dbs[0]}" "SELECT COUNT(*) FROM nodes"`, {}).stdout.trim()
       : '?';
     results.push({ n: t, s: 'ok' });
     log(`  ${t}: OK (${count})`, 'green');

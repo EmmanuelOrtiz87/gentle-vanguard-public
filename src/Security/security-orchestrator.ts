@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 
+/* eslint-disable security/detect-unsafe-regex */
+/* These regex patterns are intentionally complex for security token detection - not user-input parsing */
+
 export type SecurityMode = 'prompt' | 'log' | 'error' | 'audit';
 export type SecurityAction =
-  | 'init'
-  | 'sanitize'
-  | 'audit'
-  | 'block'
-  | 'status'
-  | 'enable'
-  | 'disable'
-  | 'scan';
+  'init' | 'sanitize' | 'audit' | 'block' | 'status' | 'enable' | 'disable' | 'scan';
 
 export interface SecurityActionResult {
   status: 'OK' | 'AUTH_REQUIRED' | 'BLOCKED' | 'ERROR';
@@ -61,7 +57,8 @@ const criticalPatterns: SecurityPattern[] = [
   },
   {
     name: 'Prompt Injection: Constraint Bypass',
-    pattern: /(?:forget|disregard|override|bypass|ignore\s+all\s+)(?:instructions|rules|safeguards|protocols|constraints)/i,
+    pattern:
+      /(?:forget|disregard|override|bypass|ignore\s+all\s+)(?:instructions|rules|safeguards|protocols|constraints)/i,
   },
   {
     name: 'Prompt Injection: Direct System Access',
@@ -128,18 +125,18 @@ export function testBlockCritical(text: string): { blocked: boolean; pattern?: s
     // Check for potential command execution patterns
     {
       name: 'Potential Command Execution',
-      pattern: /(?:\$\(|`|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})/i
+      pattern: /(?:\$\(|`|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})/i,
     },
     // Check for potential file system access
     {
       name: 'Potential File Access',
-      pattern: /(?:\/etc\/passwd|\/etc\/shadow|C:\\Windows\\System32|\/proc\/self)/i
+      pattern: /(?:\/etc\/passwd|\/etc\/shadow|C:\\Windows\\System32|\/proc\/self)/i,
     },
     // Check for potential environment variable access
     {
       name: 'Potential Env Var Access',
-      pattern: /(?:\$\{[^}]+\}|%[^%]+%)/i
-    }
+      pattern: /(?:\$\{[^}]+\}|%[^%]+%)/i,
+    },
   ];
 
   for (const entry of advancedPatterns) {
@@ -212,7 +209,10 @@ export function evaluateAction(
  * @param agentTier - The agent tier (low, medium, high) that determines the level of protection needed
  * @returns Whether the content contains hallucination risks
  */
-export function detectHallucination(content: string, agentTier: 'low' | 'medium' | 'high' = 'medium'): {
+export function detectHallucination(
+  content: string,
+  agentTier: 'low' | 'medium' | 'high' = 'medium',
+): {
   hasRisk: boolean;
   riskLevel: 'low' | 'medium' | 'high';
   details?: string[];
@@ -223,36 +223,39 @@ export function detectHallucination(content: string, agentTier: 'low' | 'medium'
   const riskThresholds = {
     low: 2,
     medium: 1,
-    high: 0
+    high: 0,
   };
 
   // Check for common hallucination patterns
   const hallucinationPatterns = [
     {
       name: 'Unverified Claims',
-      pattern: /\b(?:according to|as stated by|reports that|claims that)\b.*\b(?:AI|bot|system|assistant)\b/i,
-      severity: 'medium' as const
+      pattern:
+        /\b(?:according to|as stated by|reports that|claims that)\b.*\b(?:AI|bot|system|assistant)\b/i,
+      severity: 'medium' as const,
     },
     {
       name: 'Fabricated Sources',
       pattern: /\b(?:source:|via:|from:)\s*(?:unknown|unverified|anonymous|uncited)/i,
-      severity: 'high' as const
+      severity: 'high' as const,
     },
     {
       name: 'Overly Specific Details',
       pattern: /\b(?:exact|precise|definite|certain)\b.*\b(?:date|time|location|person)\b/i,
-      severity: 'medium' as const
+      severity: 'medium' as const,
     },
     {
       name: 'Absolute Statements',
-      pattern: /\b(?:always|never|completely|totally|absolutely)\b.*\b(?:true|correct|right|wrong)\b/i,
-      severity: 'high' as const
+      pattern:
+        /\b(?:always|never|completely|totally|absolutely)\b.*\b(?:true|correct|right|wrong)\b/i,
+      severity: 'high' as const,
     },
     {
       name: 'Conflicting Information',
-      pattern: /\b(?:but|however|although|while|whereas)\b.*\b(?:different|conflicting|opposite|contrary)\b/i,
-      severity: 'medium' as const
-    }
+      pattern:
+        /\b(?:but|however|although|while|whereas)\b.*\b(?:different|conflicting|opposite|contrary)\b/i,
+      severity: 'medium' as const,
+    },
   ];
 
   // Check for hallucination patterns
@@ -275,7 +278,7 @@ export function detectHallucination(content: string, agentTier: 'low' | 'medium'
   return {
     hasRisk: riskCount > 0,
     riskLevel,
-    details: risks
+    details: risks,
   };
 }
 

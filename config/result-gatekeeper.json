@@ -1,8 +1,0 @@
-{
-  "version": "1.0.0",
-  "description": "Result Gatekeeper — contract validation between pipeline phases. Don't trust the phase's word, check the work product.",
-  "enabled": true,
-  "outputDir": ".session/contract-results",
-  "failOnContractViolation": false,
-  "logOnly": true
-}

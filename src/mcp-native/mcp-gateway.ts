@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * MCP Gateway v1.0.0
+ * MCP Gateway
  * Native MCP gateway for seamless IDE integration
- * Part of Gentle-Vanguard v6.4
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';

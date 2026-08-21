@@ -69,7 +69,10 @@ function log(msg: string, color?: string): void {
 }
 
 async function getLatestRelease(preRelease: boolean): Promise<GitHubRelease> {
-  const baseUrl = 'https://api.github.com/repos/EmmanuelOrtiz87/gentle-vanguard/releases';
+  // Repo público de releases (el repo privado `gentle-vanguard` devuelve 404).
+  // Override opcional via GENTLE_VANGUARD_GH_REPO (formato owner/repo).
+  const ghRepo = process.env.GENTLE_VANGUARD_GH_REPO || 'EmmanuelOrtiz87/gentle-vanguard-public';
+  const baseUrl = `https://api.github.com/repos/${ghRepo}/releases`;
   const url = preRelease ? baseUrl : `${baseUrl}/latest`;
 
   const response = await fetch(url, {
@@ -121,7 +124,7 @@ async function main(): Promise<void> {
     }
 
     const release = await getLatestRelease(preRelease);
-     const latestVersion = release.tag_name.replace(/^v/, '');
+    const latestVersion = release.tag_name.replace(/^v/, '');
     const downloadAsset = release.assets.find((a) => a.name.endsWith('.exe'));
     const downloadUrl = downloadAsset ? downloadAsset.browser_download_url : '';
 
@@ -158,7 +161,11 @@ async function main(): Promise<void> {
   }
 }
 
-if (process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('check-version.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith('check-version.ts'))
+) {
   main().catch((e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
     console.log(`CHECK_FAILED|${msg.replace(/\|/g, '-')}`);

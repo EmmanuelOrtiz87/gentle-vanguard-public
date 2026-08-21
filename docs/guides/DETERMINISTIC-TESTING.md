@@ -1,12 +1,14 @@
 # Testing Determinista para Agentes
 
-**Basado en:** [gentle-ai testing-agents-deterministically](https://github.com/Gentleman-Programming/gentle-ai/blob/main/docs/testing-agents-deterministically.md)
+**Basado en:**
+[gentle-ai testing-agents-deterministically](https://github.com/Gentleman-Programming/gentle-ai/blob/main/docs/testing-agents-deterministically.md)
 
 ---
 
 ## ¿Qué es el Testing Determinista?
 
-El testing determinista permite probar el orquestador con un "modelo fixture" que devuelve respuestas scripteadas en lugar de llamar a una API de LLM real. Esto hace que los tests sean:
+El testing determinista permite probar el orquestador con un "modelo fixture" que devuelve
+respuestas scripteadas en lugar de llamar a una API de LLM real. Esto hace que los tests sean:
 
 - **Gratuitos** — sin costo de tokens
 - **Offline** — sin dependencia de red
@@ -19,12 +21,12 @@ El testing determinista permite probar el orquestador con un "modelo fixture" qu
 
 Los tests tradicionales con LLM reales tienen problemas:
 
-| Problema | Impacto |
-|----------|---------|
-| **No-determinismo** | Misma instrucción, diferentes tool calls |
-| **Costo por token** | Cada push, cada PR, cada plataforma |
-| **Dependencia de red** | Rate limits y outages hacen fallar CI |
-| **Secrets** | API keys en CI son objetivo de exfiltración |
+| Problema               | Impacto                                     |
+| ---------------------- | ------------------------------------------- |
+| **No-determinismo**    | Misma instrucción, diferentes tool calls    |
+| **Costo por token**    | Cada push, cada PR, cada plataforma         |
+| **Dependencia de red** | Rate limits y outages hacen fallar CI       |
+| **Secrets**            | API keys en CI son objetivo de exfiltración |
 
 Un test con estas propiedades eventualmente se desactiva.
 
@@ -50,11 +52,11 @@ Un test con estas propiedades eventualmente se desactiva.
 
 ### Componentes
 
-| Componente | Archivo | Descripción |
-|------------|---------|-------------|
-| Framework | `src/deterministic-test-framework.ts` | Servidor HTTP fixture + runner |
-| Escenarios | `SCENARIOS` object | Secuencias scripteadas de tool calls |
-| Validadores | `validate` functions | Verifican requests del agente |
+| Componente  | Archivo                               | Descripción                          |
+| ----------- | ------------------------------------- | ------------------------------------ |
+| Framework   | `src/deterministic-test-framework.ts` | Servidor HTTP fixture + runner       |
+| Escenarios  | `SCENARIOS` object                    | Secuencias scripteadas de tool calls |
+| Validadores | `validate` functions                  | Verifican requests del agente        |
 
 ---
 
@@ -69,6 +71,7 @@ npx tsx src/deterministic-test-framework.ts --scenario direct-inline
 ```
 
 **Secuencia:**
+
 1. `bash.capabilities` — Consulta capacidades
 2. `bash.execute` — Ejecuta tarea directamente
 
@@ -85,6 +88,7 @@ npx tsx src/deterministic-test-framework.ts --scenario delegated-direct
 ```
 
 **Secuencia:**
+
 1. `bash.capabilities` — Consulta capacidades
 2. `task.delegate` — Delega a sub-agente
 3. `bash.verify` — Verifica resultado
@@ -100,6 +104,7 @@ npx tsx src/deterministic-test-framework.ts --scenario sdd-lifecycle
 ```
 
 **Secuencia:**
+
 1. `bash.sdd-start` — Inicia sesión SDD
 2. `task.ba-explore` — Fase de exploración
 3. `task.sad-design` — Fase de diseño
@@ -118,6 +123,7 @@ npx tsx src/deterministic-test-framework.ts --scenario kill-switch
 ```
 
 **Secuencia:**
+
 1. `bash.capabilities` — Consulta capacidades
 2. `bash.check-kill-switch` — Verifica kill switch (bloqueado)
 
@@ -170,6 +176,7 @@ jobs:
 ### El Model Fixture
 
 Es un servidor HTTP que:
+
 1. Escucha en un puerto local aleatorio
 2. Expone endpoint `/v1/chat/completions` compatible con OpenAI
 3. Responde con tool calls scripteadas según el contador de llamadas
@@ -211,10 +218,10 @@ Call #3 → tool: task, action: delegate
 
 La distinción clave:
 
-| Componente | Costo | Detalle |
-|------------|-------|---------|
-| **Agente** | $0 | Programa local (como `git`) |
-| **Modelo API** | $$$ | HTTP call a vendor |
+| Componente     | Costo | Detalle                     |
+| -------------- | ----- | --------------------------- |
+| **Agente**     | $0    | Programa local (como `git`) |
+| **Modelo API** | $$$   | HTTP call a vendor          |
 
 El fixture intercepta la llamada:
 
@@ -229,13 +236,13 @@ El agente hace todo el trabajo real. Solo cambia el destino de su request de raz
 
 ## Ventajas
 
-| Ventaja | Descripción |
-|---------|-------------|
-| **Gratuito** | Sin costo de tokens, ejecutable cualquier cantidad de veces |
-| **Offline** | Sin dependencia de red, funciona en runners aislados |
+| Ventaja          | Descripción                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| **Gratuito**     | Sin costo de tokens, ejecutable cualquier cantidad de veces         |
+| **Offline**      | Sin dependencia de red, funciona en runners aislados                |
 | **Determinista** | Misma secuencia siempre, un fallo significa que el código se rompió |
-| **Sin secrets** | Solo necesita `GITHUB_TOKEN` que Actions provee |
-| **Rápido** | Milisegundos de latencia en lugar de minutos |
+| **Sin secrets**  | Solo necesita `GITHUB_TOKEN` que Actions provee                     |
+| **Rápido**       | Milisegundos de latencia en lugar de minutos                        |
 
 ---
 
@@ -243,7 +250,8 @@ El agente hace todo el trabajo real. Solo cambia el destino de su request de raz
 
 **No prueba:** Que un modelo real, dado el prompt, produzca las mismas tool calls que el fixture.
 
-**Ese salto es no-determinista por naturaleza** y no pertenece a un merge gate; se cubre con uso real y tests de paridad de adapters.
+**Ese salto es no-determinista por naturaleza** y no pertenece a un merge gate; se cubre con uso
+real y tests de paridad de adapters.
 
 ---
 

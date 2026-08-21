@@ -22,8 +22,23 @@ interface FtRecord {
 const ROOT = resolve(process.cwd());
 const results: FtRecord[] = [];
 
-function addRecord(instruction: string, input: string, output: string, domain: string, source: string, sourceRef: string): void {
-  results.push({ instruction, input, output, domain, source, sourceRef, timestamp: new Date().toISOString() });
+function addRecord(
+  instruction: string,
+  input: string,
+  output: string,
+  domain: string,
+  source: string,
+  sourceRef: string,
+): void {
+  results.push({
+    instruction,
+    input,
+    output,
+    domain,
+    source,
+    sourceRef,
+    timestamp: new Date().toISOString(),
+  });
 }
 
 function collectSessionLogs(): void {
@@ -31,16 +46,24 @@ function collectSessionLogs(): void {
   if (!existsSync(ctxDir)) return;
 
   let entries: string[];
-  try { entries = readdirSync(ctxDir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name).filter(n => n !== 'live-traceability-session' && n !== '__archive'); }
-  catch { return; }
+  try {
+    entries = readdirSync(ctxDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .filter((n) => n !== 'live-traceability-session' && n !== '__archive');
+  } catch {
+    return;
+  }
 
   let turnCount = 0;
   for (const s of entries) {
     const sDir = join(ctxDir, s);
     let turnFiles: string[];
     try {
-      turnFiles = readdirSync(sDir).filter(f => f.startsWith('turn-') && f.endsWith('.md'));
-    } catch { continue; }
+      turnFiles = readdirSync(sDir).filter((f) => f.startsWith('turn-') && f.endsWith('.md'));
+    } catch {
+      continue;
+    }
 
     const summaryPath = join(sDir, 'context-summary.md');
     const summary = existsSync(summaryPath) ? readFileSync(summaryPath, 'utf-8') : '';
@@ -74,7 +97,9 @@ function collectEngram(): void {
         if (e.isDirectory()) walk(full);
         else if (e.name.endsWith('.json') || e.name.endsWith('.md')) files.push(full);
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   walk(memDir);
 
@@ -101,7 +126,9 @@ function collectEngram(): void {
         f,
       );
       count++;
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   console.log(`  [FT] Collected ${count} Engram observations`);
 }
@@ -112,12 +139,26 @@ function collectSkills(): void {
 
   if (existsSync(regPath)) {
     const content = readFileSync(regPath, 'utf-8');
-    addRecord('Understand available skills for task routing', 'Full skill registry', content.substring(0, 2000), 'BA', 'skill-registry', regPath);
+    addRecord(
+      'Understand available skills for task routing',
+      'Full skill registry',
+      content.substring(0, 2000),
+      'BA',
+      'skill-registry',
+      regPath,
+    );
   }
   if (existsSync(embedPath)) {
     const data = JSON.parse(readFileSync(embedPath, 'utf-8'));
     const meta = `Skills: ${Array.isArray(data) ? data.length : 0} | Terms: ${data.terms?.length || 0}`;
-    addRecord('Embedding metadata for skill routing', meta, JSON.stringify(data).substring(0, 1000), 'DEV', 'skill-embeddings', embedPath);
+    addRecord(
+      'Embedding metadata for skill routing',
+      meta,
+      JSON.stringify(data).substring(0, 1000),
+      'DEV',
+      'skill-embeddings',
+      embedPath,
+    );
   }
   console.log('  [FT] Collected skill registry + embeddings');
 }
@@ -128,11 +169,25 @@ function collectRoutingLogs(): void {
 
   if (existsSync(delPath)) {
     const content = readFileSync(delPath, 'utf-8');
-    addRecord('Route tasks to correct agent based on intent', 'Auto-delegation configuration', content.substring(0, 3000), 'BA', 'auto-delegation-config', delPath);
+    addRecord(
+      'Route tasks to correct agent based on intent',
+      'Auto-delegation configuration',
+      content.substring(0, 3000),
+      'BA',
+      'auto-delegation-config',
+      delPath,
+    );
   }
   if (existsSync(qualPath)) {
     const content = readFileSync(qualPath, 'utf-8');
-    addRecord('Learn from past routing decisions and quality scores', 'Routing quality metrics', content.substring(0, 2000), 'QA', 'routing-quality', qualPath);
+    addRecord(
+      'Learn from past routing decisions and quality scores',
+      'Routing quality metrics',
+      content.substring(0, 2000),
+      'QA',
+      'routing-quality',
+      qualPath,
+    );
   }
   console.log('  [FT] Collected routing configuration');
 }
@@ -140,21 +195,34 @@ function collectRoutingLogs(): void {
 function main(): void {
   const args = process.argv.slice(2);
   const source = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'all';
-  const outputPath = args.includes('--output-path') ? args[args.indexOf('--output-path') + 1] : join(ROOT, '.ft', 'dataset', 'raw');
+  const outputPath = args.includes('--output-path')
+    ? args[args.indexOf('--output-path') + 1]
+    : join(ROOT, '.ft', 'dataset', 'raw');
   mkdirSync(outputPath, { recursive: true });
 
   console.log('=== FT Data Collector ===');
   const sources = source === 'all' ? ['session', 'engram', 'skills', 'routing'] : [source];
   for (const s of sources) {
     switch (s) {
-      case 'session': collectSessionLogs(); break;
-      case 'engram': collectEngram(); break;
-      case 'skills': collectSkills(); break;
-      case 'routing': collectRoutingLogs(); break;
+      case 'session':
+        collectSessionLogs();
+        break;
+      case 'engram':
+        collectEngram();
+        break;
+      case 'skills':
+        collectSkills();
+        break;
+      case 'routing':
+        collectRoutingLogs();
+        break;
     }
   }
 
-  const outputFile = join(outputPath, `ft-raw-${new Date().toISOString().slice(0, 13).replace(/[:-]/g, '')}${new Date().getMinutes().toString().padStart(2, '0')}.json`);
+  const outputFile = join(
+    outputPath,
+    `ft-raw-${new Date().toISOString().slice(0, 13).replace(/[:-]/g, '')}${new Date().getMinutes().toString().padStart(2, '0')}.json`,
+  );
   writeFileSync(outputFile, JSON.stringify(results, null, 2), 'utf-8');
 
   console.log(`\n[FT] Complete: ${results.length} records → ${outputFile}`);

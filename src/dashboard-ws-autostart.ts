@@ -14,6 +14,7 @@ import { spawn } from 'child_process';
 import { pathToFileURL } from 'url';
 import {
   getFreePort,
+  getProcessIdByPort,
   saveDashboardPorts,
   readDashboardPorts,
   logToFile,
@@ -85,7 +86,8 @@ function awaitExists(port: number): Promise<boolean> {
 /** Main autostart logic */
 async function main(overridePort?: number): Promise<number> {
   const portArgIdx = process.argv.indexOf('--port');
-  const preferredPort = overridePort ?? (portArgIdx > 0 ? parseInt(process.argv[portArgIdx + 1] || '0', 10) : 0);
+  const preferredPort =
+    overridePort ?? (portArgIdx > 0 ? parseInt(process.argv[portArgIdx + 1] || '0', 10) : 0);
 
   // Ensure runtime dir
   if (!fs.existsSync(RUNTIME_DIR)) {
@@ -121,32 +123,30 @@ async function main(overridePort?: number): Promise<number> {
   // Detect available port
   const defaultPort = (() => {
     const ports = readDashboardPorts();
-    return (ports?.wsPort) || 8080;
+    return ports?.wsPort || 8080;
   })();
   const selectedPort = await getFreePort(preferredPort > 0 ? preferredPort : defaultPort);
 
   logToFile(`[PORT] selected=${selectedPort}`);
-  saveDashboardPorts(selectedPort, 0);
+  // Preserve existing vitePort instead of overwriting with 0
+  const existingPorts = readDashboardPorts();
+  saveDashboardPorts(selectedPort, existingPorts?.vitePort ?? 0);
 
   // Start WS server detached with windowsHide
   logToFile(`[START] Starting WS server on port ${selectedPort}`);
 
   // On Windows, .cmd files require cmd.exe or shell:true (spawn EINVAL otherwise)
   const tsxBin = path.join(WS_SERVER_DIR, 'node_modules', '.bin', 'tsx.cmd');
-  const child = spawn(
-    'cmd.exe',
-    ['/c', tsxBin, WS_SCRIPT],
-    {
-      cwd: WS_SERVER_DIR,
-      stdio: 'ignore',
-      detached: true,
-      windowsHide: true,
-      env: {
-        ...process.env,
-        WS_PORT: String(selectedPort),
-      },
+  const child = spawn('cmd.exe', ['/c', tsxBin, WS_SCRIPT], {
+    cwd: WS_SERVER_DIR,
+    stdio: 'ignore',
+    detached: true,
+    windowsHide: true,
+    env: {
+      ...process.env,
+      WS_PORT: String(selectedPort),
     },
-  );
+  });
 
   child.unref();
   const procId = child.pid;
@@ -154,18 +154,35 @@ async function main(overridePort?: number): Promise<number> {
 
   logToFile(`[START] PID=${procId} port=${selectedPort}`);
 
-  // Wait up to 15s for server to become healthy
-  for (let i = 0; i < 3; i++) {
+  // Wait up to 20s for server to become healthy. NOTE: we must NOT bail out
+  // when the cmd.exe wrapper PID dies — on Windows the real node process is a
+  // descendant and keeps running after cmd.exe exits. Health check is truth.
+  let healthy = false;
+  for (let i = 0; i < 4; i++) {
     await sleep(5000);
-    if (procId === null || procId === undefined || !isProcessAlive(procId)) break;
     const ok = await healthCheck(selectedPort);
     if (ok) {
-      logToFile(`[OK] WS healthy on port ${selectedPort} (PID=${procId})`);
-      return 0;
+      healthy = true;
+      break;
     }
   }
 
-  logToFile(`[WARN] WS process started but health check inconclusive (PID=${procId} port=${selectedPort})`);
+  // Resolve the REAL server PID (the node process listening on the port), not
+  // the cmd.exe wrapper PID. This is what the watchtower and stop scripts use.
+  const realPid = await getProcessIdByPort(selectedPort);
+  if (realPid && realPid !== procId) {
+    fs.writeFileSync(PID_FILE, String(realPid), 'utf-8');
+    logToFile(`[PID] Resolved real server PID=${realPid} (was wrapper PID=${procId})`);
+  }
+
+  if (healthy) {
+    logToFile(`[OK] WS healthy on port ${selectedPort} (PID=${realPid ?? procId})`);
+    return 0;
+  }
+
+  logToFile(
+    `[WARN] WS process started but health check inconclusive (PID=${procId} port=${selectedPort})`,
+  );
   return 0;
 }
 

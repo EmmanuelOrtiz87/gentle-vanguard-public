@@ -73,7 +73,10 @@ function getProgramFiles(configPath: string): { fileNames: string[]; options: ts
   const configContent = readFileSync(configPath, 'utf-8');
   const configJson = ts.parseConfigFileTextToJson(configPath, configContent);
   if (configJson.error) {
-    throw new McpError(ErrorCode.InvalidRequest, `Invalid tsconfig: ${ts.flattenDiagnosticMessageText(configJson.error.messageText, '\n')}`);
+    throw new McpError(
+      ErrorCode.InvalidRequest,
+      `Invalid tsconfig: ${ts.flattenDiagnosticMessageText(configJson.error.messageText, '\n')}`,
+    );
   }
 
   const parsedConfig = ts.parseJsonConfigFileContent(
@@ -89,7 +92,9 @@ function getProgramFiles(configPath: string): { fileNames: string[]; options: ts
 
 function getLanguageService(configPath?: string): LsCache {
   const resolvedConfig = configPath
-    ? (isAbsolute(configPath) ? configPath : resolve(ROOT, configPath))
+    ? isAbsolute(configPath)
+      ? configPath
+      : resolve(ROOT, configPath)
     : resolve(ROOT, 'tsconfig.json');
 
   if (_lsCache && _lsCache.configPath === resolvedConfig) {
@@ -165,7 +170,12 @@ function normalizePath(p: string): string {
   return p.replace(/[/\\]/g, '\\');
 }
 
-function getOffset(service: ts.LanguageService, fileName: string, line: number, col: number): number {
+function getOffset(
+  service: ts.LanguageService,
+  fileName: string,
+  line: number,
+  col: number,
+): number {
   const program = service.getProgram();
   if (!program) return 0;
   const sf = program.getSourceFile(fileName);
@@ -193,7 +203,7 @@ function basename(p: string): string {
 
 function getQuickInfoDisplayString(qi: ts.QuickInfo): string {
   if (qi.displayParts) {
-    return qi.displayParts.map(p => p.text).join('');
+    return qi.displayParts.map((p) => p.text).join('');
   }
   return '';
 }
@@ -248,16 +258,28 @@ function handleFindReferences(filePath: string, line: number, col: number) {
     return { found: false, message: 'No references found' };
   }
 
-  const entries: Array<{ file: string; line: number; col: number; text: string; isDefinition: boolean }> = [];
+  const entries: Array<{
+    file: string;
+    line: number;
+    col: number;
+    text: string;
+    isDefinition: boolean;
+  }> = [];
 
   for (const ref of refs) {
     for (const entry of ref.references) {
       if (entries.length >= DEFAULT_CONFIG.maxReferences) break;
       const sf = cache.service.getProgram()?.getSourceFile(entry.fileName);
       const pos = sf ? getLineColFromPosition(sf, entry.textSpan.start) : { line: 0, col: 0 };
-      const text = entry.textSpan.length > 0 && sf
-        ? sf.text.substring(entry.textSpan.start, Math.min(entry.textSpan.start + entry.textSpan.length + 40, sf.text.length)).trim()
-        : '';
+      const text =
+        entry.textSpan.length > 0 && sf
+          ? sf.text
+              .substring(
+                entry.textSpan.start,
+                Math.min(entry.textSpan.start + entry.textSpan.length + 40, sf.text.length),
+              )
+              .trim()
+          : '';
 
       entries.push({
         file: entry.fileName,
@@ -295,8 +317,10 @@ function handleHoverInfo(filePath: string, line: number, col: number) {
   return {
     found: true,
     displayString,
-    documentation: documentation.map(c => c.kind === 'text' ? c.text : c.kind === 'code' ? `\`${c.text}\`` : c.text).join('\n'),
-    tags: tags.map(t => `@${t.name} ${t.text ?? ''}`),
+    documentation: documentation
+      .map((c) => (c.kind === 'text' ? c.text : c.kind === 'code' ? `\`${c.text}\`` : c.text))
+      .join('\n'),
+    tags: tags.map((t) => `@${t.name} ${t.text ?? ''}`),
     kind: quickInfo.kind,
     kindModifiers: quickInfo.kindModifiers,
   };
@@ -320,7 +344,7 @@ function handleCompletions(filePath: string, line: number, col: number, prefix?:
   let entries = details.entries;
   if (prefix) {
     const q = prefix.toLowerCase();
-    entries = entries.filter(e => e.name.toLowerCase().startsWith(q));
+    entries = entries.filter((e) => e.name.toLowerCase().startsWith(q));
   }
 
   entries = entries.slice(0, DEFAULT_CONFIG.maxCompletions);
@@ -329,16 +353,18 @@ function handleCompletions(filePath: string, line: number, col: number, prefix?:
     found: entries.length > 0,
     total: entries.length,
     isNewIdentifierLocation: details.isNewIdentifierLocation ?? false,
-    entries: entries.map(e => ({
+    entries: entries.map((e) => ({
       name: e.name,
       kind: e.kind,
       kindModifiers: e.kindModifiers ?? '',
       sortText: e.sortText,
       isRecommended: e.sortText?.startsWith('15') ?? false,
-      replacementSpan: e.replacementSpan ? {
-        start: e.replacementSpan.start,
-        length: e.replacementSpan.length,
-      } : undefined,
+      replacementSpan: e.replacementSpan
+        ? {
+            start: e.replacementSpan.start,
+            length: e.replacementSpan.length,
+          }
+        : undefined,
     })),
   };
 }
@@ -351,7 +377,10 @@ function handleDiagnostics(filePath: string) {
   const semanticDiags = cache.service.getSemanticDiagnostics(resolved);
   const suggestionDiags = cache.service.getSuggestionDiagnostics(resolved);
 
-  const allDiags = [...syntacticDiags, ...semanticDiags, ...suggestionDiags].slice(0, DEFAULT_CONFIG.maxDiagnostics);
+  const allDiags = [...syntacticDiags, ...semanticDiags, ...suggestionDiags].slice(
+    0,
+    DEFAULT_CONFIG.maxDiagnostics,
+  );
 
   if (allDiags.length === 0) {
     return { hasDiagnostics: false, diagnostics: [] };
@@ -361,19 +390,23 @@ function handleDiagnostics(filePath: string) {
     hasDiagnostics: true,
     total: allDiags.length,
     truncated: allDiags.length >= DEFAULT_CONFIG.maxDiagnostics,
-    diagnostics: allDiags.map(d => {
+    diagnostics: allDiags.map((d) => {
       const file = d.file;
-      const pos = file && d.start !== undefined ? getLineColFromPosition(file, d.start) : { line: 0, col: 0 };
+      const pos =
+        file && d.start !== undefined ? getLineColFromPosition(file, d.start) : { line: 0, col: 0 };
       return {
-        category: d.category === ts.DiagnosticCategory.Error ? 'error'
-          : d.category === ts.DiagnosticCategory.Warning ? 'warning'
-          : 'suggestion',
+        category:
+          d.category === ts.DiagnosticCategory.Error
+            ? 'error'
+            : d.category === ts.DiagnosticCategory.Warning
+              ? 'warning'
+              : 'suggestion',
         code: d.code,
         message: ts.flattenDiagnosticMessageText(d.messageText, '\n'),
         line: pos.line,
         col: pos.col,
         source: d.source ?? 'typescript',
-        relatedInformation: d.relatedInformation?.map(r => ({
+        relatedInformation: d.relatedInformation?.map((r) => ({
           message: ts.flattenDiagnosticMessageText(r.messageText, '\n'),
           file: r.file?.fileName,
           line: r.file && r.start !== undefined ? getLineColFromPosition(r.file, r.start).line : 0,
@@ -401,15 +434,17 @@ function handleSignatureHelp(filePath: string, line: number, col: number) {
     argumentCount: sigs.argumentCount,
     items: sigs.items.map((item) => ({
       signature: printSignature(item),
-      prefixDisplayParts: item.prefixDisplayParts?.map(p => p.text).join('') ?? '',
-      separator: item.separatorDisplayParts?.map(p => p.text).join('') ?? ', ',
-      parameters: item.parameters.map(p => ({
+      prefixDisplayParts: item.prefixDisplayParts?.map((p) => p.text).join('') ?? '',
+      separator: item.separatorDisplayParts?.map((p) => p.text).join('') ?? ', ',
+      parameters: item.parameters.map((p) => ({
         name: p.name,
-        displayParts: p.displayParts?.map(dp => dp.text).join('') ?? '',
-        documentation: p.documentation?.map(c => c.kind === 'text' ? c.text : '').join('\n') ?? '',
+        displayParts: p.displayParts?.map((dp) => dp.text).join('') ?? '',
+        documentation:
+          p.documentation?.map((c) => (c.kind === 'text' ? c.text : '')).join('\n') ?? '',
         isOptional: p.isOptional ?? false,
       })),
-      documentation: item.documentation?.map(c => c.kind === 'text' ? c.text : '').join('\n') ?? '',
+      documentation:
+        item.documentation?.map((c) => (c.kind === 'text' ? c.text : '')).join('\n') ?? '',
     })),
   };
 }
@@ -421,7 +456,7 @@ function printSignature(item: ts.SignatureHelpItem): string {
     parts.push(...item.parameters[i].displayParts);
     if (item.parameters[i].isOptional) parts.push({ text: '?', kind: 'punctuation' });
   }
-  return parts.map(p => p.text).join('');
+  return parts.map((p) => p.text).join('');
 }
 
 function handleSymbolSearch(query: string, maxResults: number) {
@@ -438,9 +473,10 @@ function handleSymbolSearch(query: string, maxResults: number) {
     found: true,
     total: navToItems.length,
     truncated: navToItems.length >= maxResults,
-    symbols: navToItems.map(item => {
+    symbols: navToItems.map((item) => {
       // Compute line/col from textSpan.start using source file
-      let line = 0, col = 0;
+      let line = 0,
+        col = 0;
       if (program) {
         const sf = program.getSourceFile(item.fileName);
         if (sf) {
@@ -476,25 +512,47 @@ function handleFileSymbols(filePath: string) {
   const program = cache.service.getProgram();
   const sf = program?.getSourceFile(resolved);
 
-  function getSpanPos(span: ts.TextSpan): { line: number; col: number; endLine: number; endCol: number } {
+  function getSpanPos(span: ts.TextSpan): {
+    line: number;
+    col: number;
+    endLine: number;
+    endCol: number;
+  } {
     if (!sf) return { line: 0, col: 0, endLine: 0, endCol: 0 };
     const start = getLineColFromPosition(sf, span.start);
     const end = getLineColFromPosition(sf, span.start + span.length);
     return { line: start.line, col: start.col, endLine: end.line, endCol: end.col };
   }
 
-  function flattenTree(node: ts.NavigationTree, depth: number = 0): Array<{
-    name: string; kind: string; kindModifiers: string;
-    line: number; col: number; endLine: number; endCol: number;
-    depth: number; hasChildren: boolean;
+  function flattenTree(
+    node: ts.NavigationTree,
+    depth: number = 0,
+  ): Array<{
+    name: string;
+    kind: string;
+    kindModifiers: string;
+    line: number;
+    col: number;
+    endLine: number;
+    endCol: number;
+    depth: number;
+    hasChildren: boolean;
   }> {
     const result: Array<{
-      name: string; kind: string; kindModifiers: string;
-      line: number; col: number; endLine: number; endCol: number;
-      depth: number; hasChildren: boolean;
+      name: string;
+      kind: string;
+      kindModifiers: string;
+      line: number;
+      col: number;
+      endLine: number;
+      endCol: number;
+      depth: number;
+      hasChildren: boolean;
     }> = [];
 
-    const span = node.spans?.[0] ? getSpanPos(node.spans[0]) : { line: 0, col: 0, endLine: 0, endCol: 0 };
+    const span = node.spans?.[0]
+      ? getSpanPos(node.spans[0])
+      : { line: 0, col: 0, endLine: 0, endCol: 0 };
     result.push({
       name: node.text,
       kind: node.kind,
@@ -516,7 +574,7 @@ function handleFileSymbols(filePath: string) {
     return result;
   }
 
-  const symbols = flattenTree(tree).filter(s => s.depth <= 2); // Limit depth
+  const symbols = flattenTree(tree).filter((s) => s.depth <= 2); // Limit depth
 
   return {
     found: symbols.length > 0,
@@ -547,7 +605,9 @@ server.tool(
       const result = handleGoToDefinition(filePath, line, col);
 
       if (!result.found) {
-        return { content: [{ type: 'text', text: `No definition found at ${filePath}:${line}:${col}` }] };
+        return {
+          content: [{ type: 'text', text: `No definition found at ${filePath}:${line}:${col}` }],
+        };
       }
 
       const relFile = relative(ROOT, result.file!);
@@ -585,7 +645,9 @@ server.tool(
       const result = handleFindReferences(filePath, line, col);
 
       if (!result.found) {
-        return { content: [{ type: 'text', text: `No references found at ${filePath}:${line}:${col}` }] };
+        return {
+          content: [{ type: 'text', text: `No references found at ${filePath}:${line}:${col}` }],
+        };
       }
 
       const lines = [
@@ -637,7 +699,9 @@ server.tool(
       }
 
       if (result.kind) {
-        parts.push(`**Kind**: ${result.kind}${result.kindModifiers ? ` (${result.kindModifiers})` : ''}`);
+        parts.push(
+          `**Kind**: ${result.kind}${result.kindModifiers ? ` (${result.kindModifiers})` : ''}`,
+        );
       }
 
       if (result.documentation) {
@@ -676,7 +740,9 @@ server.tool(
       const result = handleCompletions(filePath, line, col, prefix ?? '');
 
       if (!result.found) {
-        return { content: [{ type: 'text', text: `No completions at ${filePath}:${line}:${col}` }] };
+        return {
+          content: [{ type: 'text', text: `No completions at ${filePath}:${line}:${col}` }],
+        };
       }
 
       const lines: string[] = [
@@ -687,7 +753,9 @@ server.tool(
 
       for (const entry of result.entries!) {
         const marker = entry.isRecommended ? '★' : ' ';
-        lines.push(`${marker} \`${entry.name}\` — ${entry.kind}${entry.kindModifiers ? ` (${entry.kindModifiers})` : ''}`);
+        lines.push(
+          `${marker} \`${entry.name}\` — ${entry.kind}${entry.kindModifiers ? ` (${entry.kindModifiers})` : ''}`,
+        );
       }
 
       return {
@@ -713,7 +781,14 @@ server.tool(
       const result = handleDiagnostics(filePath);
 
       if (!result.hasDiagnostics) {
-        return { content: [{ type: 'text', text: `✅ No diagnostics for \`${relative(ROOT, resolveFilePath(filePath))}\`` }] };
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `✅ No diagnostics for \`${relative(ROOT, resolveFilePath(filePath))}\``,
+            },
+          ],
+        };
       }
 
       const lines: string[] = [
@@ -760,7 +835,9 @@ server.tool(
       const result = handleSignatureHelp(filePath, line, col);
 
       if (!result.found) {
-        return { content: [{ type: 'text', text: `No signature help at ${filePath}:${line}:${col}` }] };
+        return {
+          content: [{ type: 'text', text: `No signature help at ${filePath}:${line}:${col}` }],
+        };
       }
 
       const parts: string[] = [
@@ -776,8 +853,14 @@ server.tool(
           parts.push(`   ${item.documentation}`);
         }
         for (const param of item.parameters) {
-          const argPrefix = item.parameters.indexOf(param) === result.argumentIndex! && i === result.selectedItemIndex ? '◀ ' : '  ';
-          parts.push(`   ${argPrefix}\`${param.name}: ${param.displayParts}\`${param.isOptional ? ' (optional)' : ''}`);
+          const argPrefix =
+            item.parameters.indexOf(param) === result.argumentIndex! &&
+            i === result.selectedItemIndex
+              ? '◀ '
+              : '  ';
+          parts.push(
+            `   ${argPrefix}\`${param.name}: ${param.displayParts}\`${param.isOptional ? ' (optional)' : ''}`,
+          );
           if (param.documentation) {
             parts.push(`     ${param.documentation}`);
           }
@@ -821,7 +904,9 @@ server.tool(
       for (const sym of result.symbols) {
         const relFile = relative(ROOT, sym.file);
         const container = sym.containerName ? `${sym.containerName}.` : '';
-        lines.push(`- \`${container}${sym.name}\` (${sym.kind}) — ${relFile}:${sym.line}:${sym.col}`);
+        lines.push(
+          `- \`${container}${sym.name}\` (${sym.kind}) — ${relFile}:${sym.line}:${sym.col}`,
+        );
       }
 
       return {
@@ -847,7 +932,14 @@ server.tool(
       const result = handleFileSymbols(filePath);
 
       if (!result.found) {
-        return { content: [{ type: 'text', text: `No symbols found in \`${relative(ROOT, resolveFilePath(filePath))}\`` }] };
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `No symbols found in \`${relative(ROOT, resolveFilePath(filePath))}\``,
+            },
+          ],
+        };
       }
 
       const lines: string[] = [
@@ -858,7 +950,9 @@ server.tool(
       for (const sym of result.symbols!) {
         const indent = '  '.repeat(sym.depth);
         const marker = sym.depth === 0 ? '📦' : sym.hasChildren ? '📁' : '📄';
-        lines.push(`${indent}${marker} \`${sym.name}\` (${sym.kind}) — ${sym.line}:${sym.col} - ${sym.endLine}:${sym.endCol}`);
+        lines.push(
+          `${indent}${marker} \`${sym.name}\` (${sym.kind}) — ${sym.line}:${sym.col} - ${sym.endLine}:${sym.endCol}`,
+        );
       }
 
       return {

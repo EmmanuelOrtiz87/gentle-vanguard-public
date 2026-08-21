@@ -14,12 +14,12 @@ Two modes available:
 
 ### Manual Closure (Explicit)
 
-```powershell
+```TypeScript
 # Close the day with full automation: closure artifact + validation + Engram capture
-.\scripts\utilities\gv.ps1 day-end-closure
+.\scripts\utilities\src/cli/gv.ts day-end-closure
 
 # Or run end-session separately if you prefer more control
-.\scripts\utilities\gv.ps1 end-session
+.\scripts\utilities\src/cli/gv.ts end-session
 ```
 
 ### What Gets Captured
@@ -70,34 +70,36 @@ Day End Closure Flow
 | File                                    | Purpose                                    | Trigger                   |
 | --------------------------------------- | ------------------------------------------ | ------------------------- |
 | `scripts/utilities/day-end-closure.ps1` | Main orchestrator for daily closure        | Manual or automatic       |
+<!-- REF-OBSOLETA: scripts/utilities/day-end-closure.ps1 no tiene equivalente TS (migración PS1→TS) -->
 | `scripts/utilities/end-session.ps1`     | Operational checks and artifact generation | Called by day-end-closure |
-| `scripts/utilities/gv.ps1`              | CLI entry point                            | User command              |
+<!-- REF-OBSOLETA: scripts/utilities/end-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
+| `src/cli/gv.ts`                         | CLI entry point                            | User command              |
 | `docs/sessions/`                        | Artifact storage                           | Auto-created on closure   |
 
 ## Manual Execution Examples
 
 ### Close day with full checks
 
-```powershell
-.\scripts\utilities\gv.ps1 day-end-closure
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts day-end-closure
 ```
 
 ### Skip validation (fast closure)
 
-```powershell
-.\scripts\utilities\gv.ps1 day-end-closure -SkipValidation
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts day-end-closure -SkipValidation
 ```
 
 ### Bypass Engram capture (operational only)
 
-```powershell
-.\scripts\utilities\gv.ps1 day-end-closure -SkipEngram
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts day-end-closure -SkipEngram
 ```
 
 ### Force closure even with failures
 
-```powershell
-.\scripts\utilities\gv.ps1 day-end-closure -Force
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts day-end-closure -Force
 ```
 
 ## Automatic Closure (Future)
@@ -106,20 +108,20 @@ Currently manual-trigger only. To enable automatic closure:
 
 ### Option A: Scheduled Task (Windows)
 
-```powershell
+```TypeScript
 # Create scheduled task to run at shift end (e.g., 5:30 PM)
 $trigger = New-ScheduledTaskTrigger -Daily -At "17:30"
-$action = New-ScheduledTaskAction -Execute "powershell" -Argument "-NoProfile -ExecutionPolicy Bypass -File .\gentle-vanguard\\scripts\utilities\gv.ps1 day-end-closure -Quiet"
+$action = New-ScheduledTaskAction -Execute "TypeScript" -Argument "-NoProfile -ExecutionPolicy Bypass -File .\gentle-vanguard\\scripts\utilities\src/cli/gv.ts day-end-closure -Quiet"
 Register-ScheduledTask -TaskName "Gentleman-DayEndClosure" -Trigger $trigger -Action $action
 ```
 
-### Option B: PowerShell Profile Hook
+### Option B: TypeScript Profile Hook
 
-```powershell
+```TypeScript
 # Add to your $PROFILE to run on shell exit
-Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+Register-EngineEvent -SourceIdentifier TypeScript.Exiting -Action {
     Push-Location ".\gentle-vanguard"
-    & .\scripts\utilities\gv.ps1 day-end-closure -Quiet -AutoTriggered
+    & .\scripts\utilities\src/cli/gv.ts day-end-closure -Quiet -AutoTriggered
     Pop-Location
 } | Out-Null
 ```
@@ -132,7 +134,7 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
 # Runs closure at end of major commits
 
 if [[ $(($(date +%H)*100 + $(date +%M))) -ge 1700 ]]; then
-    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/utilities/gv.ps1 day-end-closure -Quiet
+    pwsh -NoProfile -ExecutionPolicy Bypass -File src/cli/gv.ts day-end-closure -Quiet
 fi
 ```
 
@@ -141,17 +143,17 @@ fi
 When you start the next session:
 
 1. **Tools Auto-Activate**
-   - PowerShell profile detects Gentle-Vanguard project
+   - TypeScript profile detects Gentle-Vanguard project
    - `ensure-tools-active.ps1` runs in background
    - Required and optional tools verified from workspace policy (engram, skills, AI runtime)
 
 2. **Context Restores**
-   - `gv.ps1 start-session` (or manual entry) loads prior Engram context
+   - `src/cli/gv.ts start-session` (or manual entry) loads prior Engram context
    - Session memory available for AI agents
    - Findings and learnings from yesterday are loaded
 
 3. **Status Shows Where You Left Off**
-   - `gv.ps1 status` displays pending from prior session
+   - `src/cli/gv.ts status` displays pending from prior session
    - Delivery artifacts remain visible
    - Continue work without context loss
 
@@ -181,8 +183,8 @@ Developer choice:         Generated
    - `end-session.ps1` now enforces publication policy by default.
    - Closure is blocked when there are uncommitted changes, no upstream, or local commits ahead of
      upstream.
-   - Recommended flow: `gv.ps1 publish` before closure.
-   - Explicit override only when intentional: `gv.ps1 end-session -AllowUnpublishedClose`.
+   - Recommended flow: `src/cli/gv.ts publish` before closure.
+   - Explicit override only when intentional: `src/cli/gv.ts end-session -AllowUnpublishedClose`.
 
 1. **Run day-end-closure before truly leaving for the day**
    - Ensures all learnings are captured
@@ -191,8 +193,8 @@ Developer choice:         Generated
 
 1. **Use explicit session IDs if tracking multiple projects**
 
-   ```powershell
-   .\scripts\utilities\gv.ps1 day-end-closure -SessionId "bitbucket-dashboard-2026-04-14"
+   ```TypeScript
+   .\scripts\utilities\src/cli/gv.ts day-end-closure -SessionId "bitbucket-dashboard-2026-04-14"
    ```
 
 1. **Keep closure artifacts for audit trail**
@@ -215,7 +217,7 @@ Developer choice:         Generated
 
 **Checks**:
 
-```powershell
+```TypeScript
 # Verify launcher and CLI
 .\scripts\utilities\run-engram.ps1 --help
 
@@ -225,7 +227,7 @@ Developer choice:         Generated
 
 **Fallback (manual save)**:
 
-```powershell
+```TypeScript
 engram save "session-summary:<session_id>" "<summary_text>" --project gentle-vanguard
 engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 ```
@@ -234,7 +236,7 @@ engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 
 **Check**: Verify end-session.ps1 ran successfully.
 
-```powershell
+```TypeScript
 # Run end-session explicitly to debug
 .\scripts\utilities\end-session.ps1 -Verbose
 ```
@@ -243,8 +245,8 @@ engram save "session-end:<session_id>" "<end_message>" --project gentle-vanguard
 
 **Allow**: Use `-Force` to proceed despite validation issues for now.
 
-```powershell
-.\scripts\utilities\gv.ps1 day-end-closure -Force
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts day-end-closure -Force
 ```
 
 ## See Also

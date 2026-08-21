@@ -34,10 +34,19 @@ import {
 import { meshHandler, meshDiscoverHandler, meshSyncHandler } from './mesh-api.ts';
 import { runValidations } from './validations.ts';
 import { ROOT, readJson, countSkills } from './shared.ts';
+import { OperationalMetricsTracker } from '@gentle-vanguard/core/operational-metrics-tracker';
 
 const FEEDBACK_PATH = join(ROOT, '.runtime', 'metrics', 'feedback.json');
 const ALERTS_CONFIG_PATH = join(ROOT, 'config', 'dashboard-alerts.json');
-import type { AgentSession, AgentMessage, AgentToolCall } from '../src/types/agent.ts';
+import type {
+  AgentSession,
+  AgentMessage,
+  AgentToolCall,
+  HitlRequest,
+  HitlResponse,
+  UIHint,
+} from '../src/types/agent.ts';
+import { parseSkillList, buildSkillListHint } from '../src/lib/agent-command-utils.ts';
 
 const STATS_PATH = join(ROOT, '.atl', 'skill-stats.json');
 const REGISTRY_PATH = join(ROOT, '.atl', 'skill-registry.md');
@@ -56,6 +65,15 @@ const connPerIp = new Map<string, number>();
 const MAX_CONN_PER_IP = 5;
 let bridgeReady = false;
 let bridgeToolCount = 0;
+
+interface ActiveSkillExecution {
+  active: boolean;
+  cancelled: boolean;
+  messageId?: string;
+  abortController?: AbortController;
+}
+
+const activeSkillExecutions = new Map<string, ActiveSkillExecution>();
 
 // ─── Database Persistence Layer ───────────────────────────────────────
 const metricsWriter = new MetricsWriter();
@@ -153,6 +171,93 @@ function broadcastToSession(sessionId: string, payload: Record<string, unknown>)
   }
 }
 
+const hitlTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+
+function scheduleHitlTimeout(request: HitlRequest, sessionId: string): void {
+  if (!request.timeoutMs || request.timeoutMs <= 0) return;
+  const timeout = setTimeout(() => {
+    hitlTimeouts.delete(request.id);
+    const session = sessions.get(sessionId);
+    if (session) session.status = 'active';
+    const response: HitlResponse = {
+      requestId: request.id,
+      kind: request.kind,
+      approved: false,
+      reviewed: false,
+      timedOut: true,
+      sessionId,
+    };
+    broadcastToSession(sessionId, { type: 'hitl_resolved', requestId: request.id, response });
+  }, request.timeoutMs);
+  hitlTimeouts.set(request.id, timeout);
+}
+
+function cancelHitlTimeout(requestId: string): void {
+  const timeout = hitlTimeouts.get(requestId);
+  if (timeout) {
+    clearTimeout(timeout);
+    hitlTimeouts.delete(requestId);
+  }
+}
+
+function buildDemoHitlRequest(session: AgentSession, text: string): HitlRequest {
+  const base = {
+    id: `hitl-${Date.now()}`,
+    sessionId: session.id,
+    timeoutMs: 60000,
+  };
+  if (text.includes('elige') || text.includes('choose') || text.includes('select')) {
+    return {
+      ...base,
+      kind: 'selection' as const,
+      title: 'Select an Option',
+      message: `Agent ${session.agent} needs you to pick an option.`,
+      options: ['Option A', 'Option B', 'Option C'],
+    };
+  }
+  if (text.includes('formulario') || /\bform\b/.test(text)) {
+    return {
+      ...base,
+      kind: 'form' as const,
+      title: 'Complete the Form',
+      message: `Agent ${session.agent} needs additional input.`,
+      fields: [
+        { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Your name' },
+        { name: 'count', label: 'Count', type: 'number', required: true },
+        {
+          name: 'mode',
+          label: 'Mode',
+          type: 'select',
+          required: true,
+          options: ['fast', 'safe', 'balanced'],
+        },
+        { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Optional notes' },
+        { name: 'dryRun', label: 'Dry run', type: 'boolean' },
+      ],
+    };
+  }
+  if (text.includes('revisar') || text.includes('review')) {
+    return {
+      ...base,
+      kind: 'review' as const,
+      title: 'Review Changes',
+      message: `Agent ${session.agent} prepared changes for your review.`,
+      review: [
+        { label: 'File', value: 'src/config.ts', severity: 'info' },
+        { label: 'Lines changed', value: '+42 / -17', severity: 'info' },
+        { label: 'Breaking change', value: 'Yes — API contract updated', severity: 'warning' },
+        { label: 'Security', value: 'New secret rotation required', severity: 'error' },
+      ],
+    };
+  }
+  return {
+    ...base,
+    kind: 'confirmation' as const,
+    title: 'Human-in-the-Loop Required',
+    message: `Agent ${session.agent} requires your approval before proceeding.`,
+  };
+}
+
 async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): Promise<void> {
   const { action, sessionId, agent, skill, params } = msg as Record<string, string>;
 
@@ -220,6 +325,16 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
     return;
   }
 
+  if (action === 'cancel') {
+    cancelSkillExecution(session.id, ws);
+    return;
+  }
+
+  if (action === 'list_skills' || action === 'search_skills') {
+    await handleSkillListing(ws, session, action, (msg as { query?: string }).query);
+    return;
+  }
+
   if (action === 'emit_event') {
     const eventMsg = msg as { event?: string; payload?: Record<string, unknown> };
     if (eventMsg.event) {
@@ -229,12 +344,13 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
   }
 
   if (action === 'hitl_response') {
-    const hitlResponse = msg as Record<string, unknown>;
+    const hitlResponse = msg as unknown as HitlResponse;
     session.status = 'active';
+    cancelHitlTimeout(hitlResponse.requestId);
     broadcastToSession(session.id, {
       type: 'hitl_resolved',
       requestId: hitlResponse.requestId,
-      response: hitlResponse.response,
+      response: hitlResponse,
     });
     return;
   }
@@ -266,19 +382,18 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
       text.includes('approve') ||
       text.includes('confirm') ||
       text.includes('delegate') ||
-      text.includes('revisar');
+      text.includes('revisar') ||
+      text.includes('elige') ||
+      text.includes('choose') ||
+      text.includes('select') ||
+      text.includes('formulario') ||
+      /\bform\b/.test(text);
 
     if (needsHITL) {
       session.status = 'awaiting_input';
-      const hitlRequest = {
-        id: `hitl-${Date.now()}`,
-        type: 'confirmation' as const,
-        title: 'Human-in-the-Loop Required',
-        description: `Agent ${session.agent} requires your approval before proceeding.`,
-        agent: session.agent,
-        context: { input: text, session: session.id },
-      };
+      const hitlRequest = buildDemoHitlRequest(session, text);
       broadcastToSession(session.id, { type: 'hitl_request', hitlRequest });
+      scheduleHitlTimeout(hitlRequest, session.id);
     } else {
       setTimeout(() => {
         assistantMsg.streaming = false;
@@ -291,12 +406,89 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
   }
 }
 
+function cancelSkillExecution(sessionId: string, ws: WebSocket): void {
+  const exec = activeSkillExecutions.get(sessionId);
+  if (!exec || !exec.active) {
+    ws.send(JSON.stringify({ type: 'error', error: 'No active skill execution to cancel' }));
+    return;
+  }
+  exec.cancelled = true;
+  exec.abortController?.abort();
+  const systemMsg: AgentMessage = {
+    id: `msg-${Date.now()}`,
+    agent: 'system',
+    role: 'system',
+    content: 'Ejecución cancelada.',
+    timestamp: new Date().toISOString(),
+  };
+  addMessage(sessionId, systemMsg);
+  broadcastToSession(sessionId, { type: 'agent_message', message: systemMsg });
+  if (exec.messageId) {
+    broadcastToSession(sessionId, { type: 'agent_stream_done', messageId: exec.messageId });
+  }
+}
+
+async function handleSkillListing(
+  ws: WebSocket,
+  session: AgentSession,
+  action: 'list_skills' | 'search_skills',
+  query?: string,
+): Promise<void> {
+  const bridge = getBridge();
+  if (!bridge.connected) {
+    ws.send(JSON.stringify({ type: 'error', error: 'MCP bridge not connected' }));
+    return;
+  }
+  try {
+    const args = action === 'search_skills' ? { query: query || '' } : {};
+    const result = await bridge.callTool(action, args);
+    const names = parseSkillList(result);
+    const content =
+      action === 'list_skills'
+        ? `${names.length} skills disponibles. Haz clic en una skill para ejecutarla.`
+        : `${names.length} resultado(s) para "${query || ''}". Haz clic en una skill para ejecutarla.`;
+    const listMsg: AgentMessage = {
+      id: `msg-${Date.now()}`,
+      agent: session.agent,
+      role: 'assistant',
+      content,
+      timestamp: new Date().toISOString(),
+      uiHints: [buildSkillListHint(names)],
+    };
+    addMessage(session.id, listMsg);
+    broadcastToSession(session.id, { type: 'agent_message', message: listMsg });
+  } catch (err) {
+    ws.send(
+      JSON.stringify({
+        type: 'error',
+        error: `Failed to ${action}: ${err instanceof Error ? err.message : String(err)}`,
+      }),
+    );
+  }
+}
+
 function subscribeToAgentSession(ws: WebSocket, sessionId: string): void {
   if (!agentSubscriptions.has(sessionId)) {
     agentSubscriptions.set(sessionId, new Set());
   }
   const subs = agentSubscriptions.get(sessionId);
   if (subs) subs.add(ws);
+}
+
+function extractUiHints(result: unknown): UIHint[] | null {
+  if (!result || typeof result !== 'object') return null;
+  const r = result as Record<string, unknown>;
+  if (Array.isArray(r.ui_hints)) return r.ui_hints as UIHint[];
+  if (r.uiHint && typeof r.uiHint === 'object') return [r.uiHint as UIHint];
+  return null;
+}
+
+function extractChunks(result: unknown): string[] | null {
+  if (!result || typeof result !== 'object') return null;
+  const r = result as Record<string, unknown>;
+  const chunks = Array.isArray(r.chunks) ? r.chunks : Array.isArray(r.stream) ? r.stream : null;
+  if (!chunks) return null;
+  return chunks.filter((c): c is string => typeof c === 'string');
 }
 
 async function executeSkillAndStream(
@@ -324,8 +516,33 @@ async function executeSkillAndStream(
     streaming: true,
     toolCalls: [toolCall],
   };
+
+  const exec: ActiveSkillExecution = {
+    active: true,
+    cancelled: false,
+    messageId: msg.id,
+    abortController: new AbortController(),
+  };
+  activeSkillExecutions.set(session.id, exec);
+
   addMessage(session.id, msg);
   broadcastToSession(session.id, { type: 'agent_message', message: msg });
+
+  const finalize = (cancelled: boolean): void => {
+    exec.active = false;
+    if (activeSkillExecutions.get(session.id) === exec) {
+      activeSkillExecutions.delete(session.id);
+    }
+    msg.streaming = false;
+    if (cancelled) {
+      msg.content = `Skill "${skillName}" cancelado.`;
+      toolCall.status = 'cancelled';
+      toolCall.completedAt = new Date().toISOString();
+    }
+    broadcastToSession(session.id, { type: 'agent_message', message: msg });
+    broadcastToSession(session.id, { type: 'agent_stream_done', messageId: msg.id });
+    session.status = 'idle';
+  };
 
   try {
     const bridge = getBridge();
@@ -334,27 +551,66 @@ async function executeSkillAndStream(
     }
 
     const result = await bridge.callTool('execute_skill', { name: skillName, params });
+    if (exec.cancelled) {
+      finalize(true);
+      return;
+    }
 
-    msg.streaming = false;
-    msg.content = `Skill "${skillName}" ejecutado exitosamente.`;
-    toolCall.status = 'completed';
+    // AG-UI Hints (patrón 2): parsear ui_hints de la respuesta MCP
+    const uiHints = extractUiHints(result);
+    if (uiHints && uiHints.length > 0) {
+      msg.uiHints = uiHints;
+      broadcastToSession(session.id, { type: 'agent_ui_hints', messageId: msg.id, uiHints });
+    }
+
+    // Streaming incremental (patrón 1): emitir chunks antes del mensaje final
+    const chunks = extractChunks(result);
+
     toolCall.result = JSON.stringify(result);
     toolCall.completedAt = new Date().toISOString();
 
-    broadcastToSession(session.id, { type: 'agent_message', message: msg });
-    broadcastToSession(session.id, { type: 'agent_stream_done', messageId: msg.id });
+    if (chunks && chunks.length > 0) {
+      chunks.forEach((chunk, i) => {
+        setTimeout(
+          () => {
+            if (exec.cancelled) return;
+            broadcastToSession(session.id, {
+              type: 'agent_stream_chunk',
+              messageId: msg.id,
+              content: chunk,
+            });
+          },
+          50 * (i + 1),
+        );
+      });
+      setTimeout(
+        () => {
+          if (exec.cancelled) {
+            finalize(true);
+            return;
+          }
+          toolCall.status = 'completed';
+          msg.content = chunks.join('');
+          finalize(false);
+        },
+        50 * (chunks.length + 1),
+      );
+    } else {
+      toolCall.status = 'completed';
+      msg.content = `Skill "${skillName}" ejecutado exitosamente.`;
+      finalize(false);
+    }
   } catch (err) {
-    msg.streaming = false;
+    if (exec.cancelled) {
+      finalize(true);
+      return;
+    }
     msg.content = `Error ejecutando skill "${skillName}": ${err instanceof Error ? err.message : String(err)}`;
     toolCall.status = 'error';
     toolCall.error = err instanceof Error ? err.message : String(err);
     toolCall.completedAt = new Date().toISOString();
-
-    broadcastToSession(session.id, { type: 'agent_message', message: msg });
-    broadcastToSession(session.id, { type: 'agent_stream_done', messageId: msg.id });
+    finalize(false);
   }
-
-  session.status = 'idle';
 }
 
 // --- HTTP Handlers ---
@@ -369,7 +625,7 @@ process.on('unhandledRejection', (err: unknown) => {
   );
 });
 
-function handleRequest(req: IncomingMessage, res: ServerResponse) {
+async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
@@ -392,12 +648,17 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
     const SLO_PATH = join(ROOT, '.runtime', 'metrics', 'slo-latest.json');
     if (url.pathname === '/api/slo' && req.method === 'POST') {
       let body = '';
-      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('data', (chunk: Buffer) => {
+        body += chunk.toString();
+      });
       req.on('end', () => {
         try {
           const data = JSON.parse(body);
           mkdirSync(dirname(SLO_PATH), { recursive: true });
-          writeFileSync(SLO_PATH, JSON.stringify({ ...data, ingested: new Date().toISOString() }, null, 2));
+          writeFileSync(
+            SLO_PATH,
+            JSON.stringify({ ...data, ingested: new Date().toISOString() }, null, 2),
+          );
           res.writeHead(200, headers);
           res.end(JSON.stringify({ success: true }));
         } catch (e) {
@@ -533,12 +794,18 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
                 if (existsSync(guardPath)) {
                   const raw = JSON.parse(readFileSync(guardPath, 'utf-8'));
                   const limits = raw?.tokenBudget?.limits || {};
-                  const usedPath = join(ROOT, 'docs', 'sessions', 'metrics', 'token-guard-usage.csv');
+                  const usedPath = join(
+                    ROOT,
+                    'docs',
+                    'sessions',
+                    'metrics',
+                    'token-guard-usage.csv',
+                  );
                   let usedToday = 0;
                   if (existsSync(usedPath)) {
                     const csv = readFileSync(usedPath, 'utf-8');
                     const today = new Date().toISOString().slice(0, 10);
-                    const lines = csv.split('\n').filter(l => l.trim());
+                    const lines = csv.split('\n').filter((l) => l.trim());
                     for (const line of lines.slice(1)) {
                       const cols = line.split(',');
                       if (cols[1] === today && /^\d+$/.test(cols[4])) {
@@ -840,6 +1107,18 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
         }
       } catch {
         res.end(JSON.stringify({ events: [] }));
+      }
+      return;
+    }
+
+    if (url.pathname === '/api/state/events/persisted') {
+      const limit = parseInt(url.searchParams.get('limit') || '20', 10);
+      res.writeHead(200, headers);
+      try {
+        const events = await getStateBridge().getPersistedEvents(limit);
+        res.end(JSON.stringify({ events, source: 'nexus' }));
+      } catch {
+        res.end(JSON.stringify({ events: [], source: 'nexus' }));
       }
       return;
     }
@@ -1207,6 +1486,17 @@ function evaluateAlerts(metrics: any): Array<{
 
 setInterval(() => {
   const metrics = generateMetrics();
+
+  // Agregar métricas operacionales si existen datos
+  try {
+    const operationalMetrics = OperationalMetricsTracker.calculateMetrics();
+    if (operationalMetrics && operationalMetrics.totalOperations > 0) {
+      (metrics as any).operational = operationalMetrics;
+    }
+  } catch {
+    // Silencioso si no hay métricas operacionales aún
+  }
+
   const msg = JSON.stringify({ type: 'metrics', data: metrics });
   clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
   broadcastValidations();
@@ -1360,6 +1650,14 @@ function initSharedState(): void {
   });
   stateBridge.on('event', (evt: unknown) => {
     const msg = JSON.stringify({ type: 'state_event', event: evt });
+    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+  });
+  stateBridge.on('state_delta', (delta: unknown) => {
+    const msg = JSON.stringify({ type: 'state_delta', ...(delta as object) });
+    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+  });
+  stateBridge.on('task_delta', (delta: unknown) => {
+    const msg = JSON.stringify({ type: 'task_delta', ...(delta as object) });
     clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
   });
   stateBridge.start();

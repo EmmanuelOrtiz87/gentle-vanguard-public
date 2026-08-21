@@ -16,7 +16,7 @@ vivo), pero el watchtower reportaba WARN si el PID file no existía.
 **Solución**: El check ahora evalúa el estado real del WS. Si responde OK en el puerto,
 reporta PASS aunque no haya watchdog. Solo WARN si el WS está caído Y no hay watchdog.
 
-**Archivo**: `scripts/maintenance/maintenance-watchtower.ps1` — función `Check-DashboardWs`,
+**Archivo**: `src/core/maintenance-watchtower.ts` — función `Check-DashboardWs`,
 línea 142: `} elseif ($httpOk -or $running) {`
 
 ### 2. Autoheal seguro

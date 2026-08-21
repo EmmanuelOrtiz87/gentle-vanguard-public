@@ -233,6 +233,7 @@ export function verifyCheckpoint(rootInput: string, checkpointId: string): Verif
       continue;
     }
     const hash = computeFileHash(currentPath);
+    // eslint-disable-next-line security/detect-possible-timing-attacks -- hash comparison is not attacker-controlled timing
     if (hash === file.sha256) valid += 1;
     else invalid += 1;
   }
@@ -245,18 +246,22 @@ export function verifyCheckpoint(rootInput: string, checkpointId: string): Verif
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [, , action = 'list', rootArg = process.cwd()] = process.argv;
-  const root = normalizeRoot(rootArg);
+  const [, , action = 'list'] = process.argv;
+  const root = normalizeRoot(process.cwd());
   if (action === 'create') {
     const manifest = createCheckpoint(root, { label: 'cli' });
     console.log(JSON.stringify(manifest));
   } else if (action === 'list') {
     console.log(JSON.stringify(listCheckpoints(root)));
   } else if (action === 'verify') {
-    const checkpointId = process.argv[4] ?? '';
+    // Usage: checkpoint-manager.ts verify <checkpointId>
+    // The shared destructuring previously consumed argv[3] as rootArg,
+    // which misaligned verify's checkpointId lookup. Root always defaults
+    // to cwd — the checkpoint store lives under <root>/.session.
+    const checkpointId = process.argv[3] ?? '';
     console.log(JSON.stringify(verifyCheckpoint(root, checkpointId)));
   } else if (action === 'prune') {
-    const keepCount = parseInt(process.argv[4] ?? '3', 10);
+    const keepCount = parseInt(process.argv[3] ?? '3', 10);
     console.log(JSON.stringify(pruneCheckpoints(root, keepCount)));
   }
 }

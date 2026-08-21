@@ -11,6 +11,6 @@ describe('scripts-integration', () => {
   });
 
   it('src/privacy-gateway.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'Security', 'privacy-gateway.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'security', 'privacy-gateway.ts')));
   });
 });

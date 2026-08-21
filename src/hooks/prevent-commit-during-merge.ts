@@ -2,14 +2,11 @@
 
 import { existsSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 import { join } from 'path';
 
 function main(): number {
-  const result = spawnSync('git', ['rev-parse', '--git-dir'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-  });
+  const result = runSync('git', ['rev-parse', '--git-dir']);
 
   const gitDir = result.stdout?.trim();
   if (!gitDir) return 0;
@@ -20,20 +17,23 @@ function main(): number {
   const cherryPick = join(gitDir, 'CHERRY_PICK_HEAD');
 
   if (existsSync(rebaseApply) || existsSync(rebaseMerge)) {
-    console.log('Commit blocked: rebase in progress. Finish or abort the rebase before committing.');
+    console.log(
+      'Commit blocked: rebase in progress. Finish or abort the rebase before committing.',
+    );
     return 1;
   }
 
   if (existsSync(cherryPick)) {
-    console.log('Commit blocked: cherry-pick in progress (CHERRY_PICK_HEAD present). Resolve it before committing.');
+    console.log(
+      'Commit blocked: cherry-pick in progress (CHERRY_PICK_HEAD present). Resolve it before committing.',
+    );
     return 1;
   }
 
-  const unmergedResult = spawnSync('git', ['diff', '--name-only', '--diff-filter=U'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-  });
-  const unmergedFiles = unmergedResult.stdout?.trim() ? unmergedResult.stdout.trim().split('\n').filter(Boolean) : [];
+  const unmergedResult = runSync('git', ['diff', '--name-only', '--diff-filter=U']);
+  const unmergedFiles = unmergedResult.stdout?.trim()
+    ? unmergedResult.stdout.trim().split('\n').filter(Boolean)
+    : [];
 
   if (existsSync(mergeHead) && unmergedFiles.length > 0) {
     console.log('Commit blocked: merge has unresolved conflicts. Resolve them before committing.');

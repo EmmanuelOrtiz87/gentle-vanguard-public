@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
  * Token Tracker API Integration
- * 
+ *
  * Captures actual token usage from AI API responses and integrates with
  * the token budget tracking system.
- * 
+ *
  * Features:
  * - Intercepts API responses to extract token counts
  * - Tracks input/output tokens separately
  * - Calculates actual costs based on provider pricing
  * - Integrates with token-budget-guard
  * - Provides real-time token usage metrics
- * 
+ *
  * Usage:
  *   Import and use in API calls:
  *   const tracker = new TokenTracker();
@@ -72,17 +72,17 @@ interface ProviderPricing {
 // Provider pricing (USD per 1M tokens)
 const PROVIDER_PRICING: Record<string, Record<string, ProviderPricing>> = {
   openai: {
-    'gpt-4o': { inputPer1M: 2.50, outputPer1M: 10.00, cachedInputPer1M: 1.25 },
-    'gpt-4o-mini': { inputPer1M: 0.15, outputPer1M: 0.60 },
-    'gpt-4-turbo': { inputPer1M: 10.00, outputPer1M: 30.00 },
+    'gpt-4o': { inputPer1M: 2.5, outputPer1M: 10.0, cachedInputPer1M: 1.25 },
+    'gpt-4o-mini': { inputPer1M: 0.15, outputPer1M: 0.6 },
+    'gpt-4-turbo': { inputPer1M: 10.0, outputPer1M: 30.0 },
   },
   anthropic: {
-    'claude-3-5-sonnet': { inputPer1M: 3.00, outputPer1M: 15.00 },
-    'claude-3-opus': { inputPer1M: 15.00, outputPer1M: 75.00 },
+    'claude-3-5-sonnet': { inputPer1M: 3.0, outputPer1M: 15.0 },
+    'claude-3-opus': { inputPer1M: 15.0, outputPer1M: 75.0 },
     'claude-3-haiku': { inputPer1M: 0.25, outputPer1M: 1.25 },
   },
   openrouter: {
-    'default': { inputPer1M: 1.00, outputPer1M: 3.00 },
+    default: { inputPer1M: 1.0, outputPer1M: 3.0 },
   },
 };
 
@@ -115,10 +115,10 @@ export class TokenTracker {
    */
   extractTokenUsage(response: ApiResponse): TokenUsage {
     const usage = response?.usage || {};
-    
+
     const promptTokens = usage.prompt_tokens || 0;
     const completionTokens = usage.completion_tokens || 0;
-    const totalTokens = usage.total_tokens || (promptTokens + completionTokens);
+    const totalTokens = usage.total_tokens || promptTokens + completionTokens;
 
     return {
       promptTokens,
@@ -132,10 +132,10 @@ export class TokenTracker {
    */
   calculateCost(usage: TokenUsage): CostBreakdown {
     const pricing = this.getPricing();
-    
+
     const inputCost = (usage.promptTokens / 1_000_000) * pricing.inputPer1M;
     const outputCost = (usage.completionTokens / 1_000_000) * pricing.outputPer1M;
-    
+
     return {
       inputCost,
       outputCost,
@@ -147,23 +147,23 @@ export class TokenTracker {
   private getPricing(): ProviderPricing {
     const providerPricing = PROVIDER_PRICING[this.provider];
     if (!providerPricing) {
-      return { inputPer1M: 1.00, outputPer1M: 3.00 }; // Default
+      return { inputPer1M: 1.0, outputPer1M: 3.0 }; // Default
     }
-    
+
     // Try exact model match first
     if (providerPricing[this.model]) {
       return providerPricing[this.model];
     }
-    
+
     // Try partial match
     for (const [modelKey, pricing] of Object.entries(providerPricing)) {
       if (this.model.includes(modelKey) || modelKey.includes(this.model)) {
         return pricing;
       }
     }
-    
+
     // Return default for provider
-    return providerPricing['default'] || { inputPer1M: 1.00, outputPer1M: 3.00 };
+    return providerPricing['default'] || { inputPer1M: 1.0, outputPer1M: 3.0 };
   }
 
   /**
@@ -173,7 +173,7 @@ export class TokenTracker {
     task: string,
     usage: TokenUsage,
     cost: CostBreakdown,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
   ): void {
     const entry = {
       timestamp: new Date().toISOString(),
@@ -198,7 +198,13 @@ export class TokenTracker {
     try {
       const mgr = getDb();
       if (mgr) {
-        mgr.recordTokenUsage(this.sessionId, usage.promptTokens, usage.completionTokens, cost.totalCost, `${this.provider}/${this.model}`);
+        mgr.recordTokenUsage(
+          this.sessionId,
+          usage.promptTokens,
+          usage.completionTokens,
+          cost.totalCost,
+          `${this.provider}/${this.model}`,
+        );
       }
     } catch {
       // Dual-write failure is non-critical
@@ -207,50 +213,55 @@ export class TokenTracker {
 
   /**
    * Track an API call and extract token usage
-   * 
+   *
    * Usage:
    *   const tracker = new TokenTracker('openai', 'gpt-4o');
    *   const result = await tracker.trackApiCall(
    *     () => openai.chat.completions.create({...}),
-     *     'my-task'
+   *     'my-task'
    *   );
    */
   async trackApiCall<T extends ApiResponse>(
     apiCall: () => Promise<T>,
     task: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
   ): Promise<{ response: T; usage: TokenUsage; cost: CostBreakdown }> {
     const startTime = Date.now();
-    
+
     try {
       const response = await apiCall();
       const duration = Date.now() - startTime;
-      
+
       const usage = this.extractTokenUsage(response);
       const cost = this.calculateCost(usage);
-      
+
       this.logTokenUsage(task, usage, cost, {
         ...metadata,
         duration,
         success: true,
       });
-      
+
       return { response, usage, cost };
     } catch (error) {
       const duration = Date.now() - startTime;
-      
-      this.logTokenUsage(task, { promptTokens: 0, completionTokens: 0, totalTokens: 0 }, {
-        inputCost: 0,
-        outputCost: 0,
-        totalCost: 0,
-        currency: 'USD',
-      }, {
-        ...metadata,
-        duration,
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      
+
+      this.logTokenUsage(
+        task,
+        { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        {
+          inputCost: 0,
+          outputCost: 0,
+          totalCost: 0,
+          currency: 'USD',
+        },
+        {
+          ...metadata,
+          duration,
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
+
       throw error;
     }
   }
@@ -266,7 +277,7 @@ export class TokenTracker {
     const today = new Date().toISOString().slice(0, 10);
     const lines = readFileSync(TOKEN_LOG_FILE, 'utf-8')
       .split('\n')
-      .filter(line => line.trim());
+      .filter((line) => line.trim());
 
     let tokens = 0;
     let cost = 0;
@@ -289,7 +300,10 @@ export class TokenTracker {
   /**
    * Get usage statistics for a date range
    */
-  getUsageStats(startDate: string, endDate: string): {
+  getUsageStats(
+    startDate: string,
+    endDate: string,
+  ): {
     totalTokens: number;
     totalCost: number;
     totalCalls: number;
@@ -308,7 +322,7 @@ export class TokenTracker {
 
     const lines = readFileSync(TOKEN_LOG_FILE, 'utf-8')
       .split('\n')
-      .filter(line => line.trim());
+      .filter((line) => line.trim());
 
     let totalTokens = 0;
     let totalCost = 0;
@@ -385,7 +399,7 @@ function runCLI(): void {
     case 'today': {
       const tracker = new TokenTracker();
       const usage = tracker.getTodayUsage();
-      console.log('\n=== Today\'s Token Usage ===\n');
+      console.log("\n=== Today's Token Usage ===\n");
       console.log(`Total Tokens: ${usage.tokens.toLocaleString()}`);
       console.log(`Total Cost:   $${usage.cost.toFixed(4)} USD`);
       console.log(`API Calls:    ${usage.calls}`);
@@ -396,7 +410,7 @@ function runCLI(): void {
     case 'stats': {
       const startDate = args[1];
       const endDate = args[2];
-      
+
       if (!startDate || !endDate) {
         console.error('Error: Start and end dates required (YYYY-MM-DD)');
         process.exit(1);
@@ -404,20 +418,24 @@ function runCLI(): void {
 
       const tracker = new TokenTracker();
       const stats = tracker.getUsageStats(startDate, endDate);
-      
+
       console.log(`\n=== Token Usage Stats (${startDate} to ${endDate}) ===\n`);
       console.log(`Total Tokens: ${stats.totalTokens.toLocaleString()}`);
       console.log(`Total Cost:   $${stats.totalCost.toFixed(4)} USD`);
       console.log(`Total Calls:  ${stats.totalCalls}`);
-      
+
       console.log('\n--- By Provider ---');
       for (const [provider, data] of Object.entries(stats.byProvider)) {
-        console.log(`${provider}: ${data.tokens.toLocaleString()} tokens, $${data.cost.toFixed(4)}, ${data.calls} calls`);
+        console.log(
+          `${provider}: ${data.tokens.toLocaleString()} tokens, $${data.cost.toFixed(4)}, ${data.calls} calls`,
+        );
       }
-      
+
       console.log('\n--- By Model ---');
       for (const [model, data] of Object.entries(stats.byModel)) {
-        console.log(`${model}: ${data.tokens.toLocaleString()} tokens, $${data.cost.toFixed(4)}, ${data.calls} calls`);
+        console.log(
+          `${model}: ${data.tokens.toLocaleString()} tokens, $${data.cost.toFixed(4)}, ${data.calls} calls`,
+        );
       }
       console.log();
       break;
@@ -437,7 +455,7 @@ function runCLI(): void {
 
     case 'test': {
       console.log('\n=== Running Token Tracker Tests ===\n');
-      
+
       // Test 1: Token extraction
       console.log('Test 1: Token extraction from API response');
       const tracker = new TokenTracker('openai', 'gpt-4o');
@@ -449,19 +467,21 @@ function runCLI(): void {
         },
       };
       const usage = tracker.extractTokenUsage(mockResponse);
-      console.log(usage.promptTokens === 1000 && usage.completionTokens === 500 ? '✅ PASS' : '❌ FAIL');
-      
+      console.log(
+        usage.promptTokens === 1000 && usage.completionTokens === 500 ? '✅ PASS' : '❌ FAIL',
+      );
+
       // Test 2: Cost calculation
       console.log('Test 2: Cost calculation');
       const cost = tracker.calculateCost(usage);
-      const expectedCost = (1000 / 1_000_000 * 2.50) + (500 / 1_000_000 * 10.00);
+      const expectedCost = (1000 / 1_000_000) * 2.5 + (500 / 1_000_000) * 10.0;
       console.log(Math.abs(cost.totalCost - expectedCost) < 0.001 ? '✅ PASS' : '❌ FAIL');
-      
+
       // Test 3: Today's usage (should be 0 or existing)
-      console.log('Test 3: Today\'s usage query');
+      console.log("Test 3: Today's usage query");
       const todayUsage = tracker.getTodayUsage();
       console.log(typeof todayUsage.tokens === 'number' ? '✅ PASS' : '❌ FAIL');
-      
+
       console.log('\n=== Tests Complete ===\n');
       break;
     }

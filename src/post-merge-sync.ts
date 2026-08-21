@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -14,15 +14,15 @@ function main(): void {
   console.log('[INFO] Running post-merge sync...');
 
   const validatorTs = resolve(repoRoot, 'src', 'cross-workspace-validator.ts');
-  const validatorPs1 = resolve(repoRoot, 'scripts/monitoring/cross-workspace-validator.ps1');
+  const validatorPs1 = resolve(repoRoot, 'src/cross-workspace-validator.ts');
   if (existsSync(validatorTs)) {
-    execSync(`npx tsx "${validatorTs}" --fix`, { stdio: 'inherit' });
+    runSync('npx', ['tsx', validatorTs, '--fix'], { stdio: 'inherit' });
   } else if (existsSync(validatorPs1)) {
-    execSync(`powershell -File "${validatorPs1}" -Fix`, { stdio: 'inherit' });
+    runSync('powershell', ['-File', validatorPs1, '-Fix'], { stdio: 'inherit' });
   }
 
   try {
-    const version = execSync('engram --version', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    const version = runSync('engram', ['--version'], { stdio: 'pipe' }).stdout.trim();
     if (/Update available/i.test(version)) {
       console.log('[WARN] Engram update available');
     }

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * GateGuard MCP v1.0.0
+ * GateGuard MCP
  * MCP-specific security guards and validators
- * Part of Gentle-Vanguard v6.4
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -30,7 +30,7 @@ export class GateGuardMCP extends EventEmitter {
 
   public validate(connId: string, method: string): { allowed: boolean; violations: string[] } {
     const violations: string[] = [];
-    
+
     for (const policy of this.policies.values()) {
       if (!policy.enabled) continue;
       for (const rule of policy.rules) {

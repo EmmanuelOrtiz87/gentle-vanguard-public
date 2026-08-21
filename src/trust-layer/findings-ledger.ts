@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Findings Ledger v1.0.0
+ * Findings Ledger
  * Structured findings ledger with tamper-proof records
- * Part of Gentle-Vanguard v8.0
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -29,9 +29,11 @@ export class FindingsLedger extends EventEmitter {
   }
 
   private calculateHash(finding: any): string {
-    return require('crypto').createHash('sha256')
+    return require('crypto')
+      .createHash('sha256')
       .update(JSON.stringify({ title: finding.title, timestamp: finding.timestamp }))
-      .digest('hex').substring(0, 32);
+      .digest('hex')
+      .substring(0, 32);
   }
 
   public verifyIntegrity(): boolean {

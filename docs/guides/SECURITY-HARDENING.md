@@ -13,6 +13,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 1. Encriptación AES-256
 
 **Archivo**: `scripts/security/encryption-manager.ps1`
+<!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Características**:
 
@@ -26,7 +27,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Uso**:
 
-```powershell
+```TypeScript
 # Generar clave
 .\scripts\security\encryption-manager.ps1 -Action generate-key
 
@@ -43,6 +44,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 2. Validación de Entrada
 
 **Archivo**: `scripts/security/input-validator.ps1`
+<!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Tipos de Validación**:
 
@@ -54,7 +56,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Uso**:
 
-```powershell
+```TypeScript
 # Validar string
 .\scripts\security\input-validator.ps1 -Input "test" -Type string
 
@@ -74,6 +76,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 3. Gestin de Secretos
 
 **Archivo**: `scripts/security/secrets-manager.ps1`
+<!-- REF-OBSOLETA: scripts/security/secrets-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Características**:
 
@@ -84,7 +87,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Uso**:
 
-```powershell
+```TypeScript
 # Establecer secreto
 .\scripts\security\secrets-manager.ps1 -Action set -SecretName "API_KEY" -SecretValue "secret123"
 
@@ -104,6 +107,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 ### 4. Logging de Seguridad
 
 **Archivo**: `scripts/security/security-logger.ps1`
+<!-- REF-OBSOLETA: scripts/security/security-logger.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Tipos de Eventos**:
 
@@ -116,7 +120,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Uso**:
 
-```powershell
+```TypeScript
 # Registrar evento de acceso
 .\scripts\security\security-logger.ps1 -EventType access -Message "User accessed config" -Severity low
 
@@ -155,7 +159,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Ejecutar tests**:
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -TestType security
 ```
 
@@ -254,19 +258,19 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 ### Generar Reporte de Seguridad
 
-```powershell
+```TypeScript
 .\scripts\security\security-logger.ps1 -Action report
 ```
 
 ### Detectar Anomalías
 
-```powershell
+```TypeScript
 .\scripts\security\security-logger.ps1 -Action anomalies
 ```
 
 ### Limpiar Logs Antiguos
 
-```powershell
+```TypeScript
 .\scripts\security\security-logger.ps1 -Action cleanup -RetentionDays 90
 ```
 
@@ -278,7 +282,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Solución**: Verificar que la clave exista y sea vlida
 
-```powershell
+```TypeScript
 .\scripts\security\encryption-manager.ps1 -Action validate
 ```
 
@@ -290,7 +294,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Solución**: Verificar que estn configurados
 
-```powershell
+```TypeScript
 .\scripts\security\secrets-manager.ps1 -Action list
 ```
 
@@ -298,7 +302,7 @@ Este documento describe las medidas de seguridad implementadas en gentle-vanguar
 
 **Solución**: Verificar permisos de directorio
 
-```powershell
+```TypeScript
 Test-Path .\logs\security
 ```
 
@@ -331,7 +335,7 @@ NPX supply-chain attacks leverage two vectors:
 
 **Setup Instructions (New Machine)**:
 
-```powershell
+```TypeScript
 # 1. Create isolated MCP workspace
 mkdir $HOME\mcp-workspace
 cd $HOME\mcp-workspace
@@ -370,7 +374,7 @@ allow-git=none
 
 When updating MCP server version:
 
-```powershell
+```TypeScript
 cd $HOME\mcp-workspace
 
 # 1. Review current version
@@ -396,7 +400,7 @@ Vulnerabilities: [audit result]
 
 **Verification Commands**:
 
-```powershell
+```TypeScript
 # Verify offline mode works (should NOT make network requests)
 npx --include-workspace-root --workspace $HOME\mcp-workspace --no --offline @modelcontextprotocol/server-filesystem --version
 
@@ -415,9 +419,13 @@ npm audit --workspace $HOME\mcp-workspace
 ## Referencias
 
 - `scripts/security/encryption-manager.ps1` - Encriptación
+<!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/input-validator.ps1` - Validación
+<!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/secrets-manager.ps1` - Secretos
+<!-- REF-OBSOLETA: scripts/security/secrets-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `scripts/security/security-logger.ps1` - Logging
+<!-- REF-OBSOLETA: scripts/security/security-logger.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - `tests/security/input-validation.security.tests.ps1` - Tests
 - `config/security-policy.json` - Políticas
 - `opencode.json#mcp` - MCP server configuration

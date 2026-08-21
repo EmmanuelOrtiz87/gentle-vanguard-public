@@ -22,7 +22,6 @@ interface ApiCompatibilityResult {
  * API compatibility checker class
  */
 export class ApiCompatibilityChecker {
-
   /**
    * Check API compatibility across components
    * @returns Compatibility check results
@@ -58,11 +57,13 @@ export class ApiCompatibilityChecker {
 
       for (const file of files) {
         // Look for files that might contain API contracts
-        if (file.includes('api') ||
-            file.includes('contract') ||
-            file.includes('interface') ||
-            file.includes('schema') ||
-            file.endsWith('.d.ts')) {
+        if (
+          file.includes('api') ||
+          file.includes('contract') ||
+          file.includes('interface') ||
+          file.includes('schema') ||
+          file.endsWith('.d.ts')
+        ) {
           contracts.push(file);
         }
       }
@@ -83,7 +84,7 @@ export class ApiCompatibilityChecker {
       componentName: contractFile,
       isCompatible: true,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
@@ -107,9 +108,10 @@ export class ApiCompatibilityChecker {
         result.issues.push('Mixed naming conventions detected (camelCase and snake_case)');
         result.isCompatible = false;
       }
-
     } catch (error) {
-      result.issues.push(`Error reading contract file: ${error instanceof Error ? error.message : String(error)}`);
+      result.issues.push(
+        `Error reading contract file: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isCompatible = false;
     }
 
@@ -135,13 +137,14 @@ export class ApiCompatibilityChecker {
       // Check for consistent parameter patterns
       const paramPatternResult = await this.checkParameterPatterns();
       results.push(paramPatternResult);
-
     } catch (error) {
       results.push({
         componentName: 'common-patterns',
         isCompatible: false,
-        issues: [`Error checking common patterns: ${error instanceof Error ? error.message : String(error)}`],
-        recommendations: []
+        issues: [
+          `Error checking common patterns: ${error instanceof Error ? error.message : String(error)}`,
+        ],
+        recommendations: [],
       });
     }
 
@@ -157,7 +160,7 @@ export class ApiCompatibilityChecker {
       componentName: 'error-handling',
       isCompatible: true,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
@@ -190,9 +193,10 @@ export class ApiCompatibilityChecker {
       if (errorHandlersFound === 0) {
         result.recommendations.push('Consider implementing consistent error handling patterns');
       }
-
     } catch (error) {
-      result.issues.push(`Error checking error handling: ${error instanceof Error ? error.message : String(error)}`);
+      result.issues.push(
+        `Error checking error handling: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isCompatible = false;
     }
 
@@ -208,7 +212,7 @@ export class ApiCompatibilityChecker {
       componentName: 'response-patterns',
       isCompatible: true,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
@@ -224,9 +228,11 @@ export class ApiCompatibilityChecker {
             const content = await fs.readFile(file, 'utf8');
 
             // Look for response handling patterns
-            if (content.includes('res.send') ||
-                content.includes('res.json') ||
-                content.includes('res.status')) {
+            if (
+              content.includes('res.send') ||
+              content.includes('res.json') ||
+              content.includes('res.status')
+            ) {
               responseHandlersFound++;
 
               // Check for consistent response structures
@@ -243,9 +249,10 @@ export class ApiCompatibilityChecker {
       if (responseHandlersFound === 0) {
         result.recommendations.push('Consider implementing consistent response handling patterns');
       }
-
     } catch (error) {
-      result.issues.push(`Error checking response patterns: ${error instanceof Error ? error.message : String(error)}`);
+      result.issues.push(
+        `Error checking response patterns: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isCompatible = false;
     }
 
@@ -261,7 +268,7 @@ export class ApiCompatibilityChecker {
       componentName: 'parameter-patterns',
       isCompatible: true,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
@@ -276,13 +283,19 @@ export class ApiCompatibilityChecker {
             const content = await fs.readFile(file, 'utf8');
 
             // Look for parameter handling patterns
-            if (content.includes('params') ||
-                content.includes('query') ||
-                content.includes('body')) {
+            if (
+              content.includes('params') ||
+              content.includes('query') ||
+              content.includes('body')
+            ) {
               paramHandlersFound++;
 
               // Check for consistent parameter validation
-              if (!content.includes('validate') && !content.includes('zod') && !content.includes('joi')) {
+              if (
+                !content.includes('validate') &&
+                !content.includes('zod') &&
+                !content.includes('joi')
+              ) {
                 result.recommendations.push('Consider adding parameter validation for consistency');
               }
             }
@@ -295,9 +308,10 @@ export class ApiCompatibilityChecker {
       if (paramHandlersFound === 0) {
         result.recommendations.push('Consider implementing consistent parameter handling patterns');
       }
-
     } catch (error) {
-      result.issues.push(`Error checking parameter patterns: ${error instanceof Error ? error.message : String(error)}`);
+      result.issues.push(
+        `Error checking parameter patterns: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isCompatible = false;
     }
 
@@ -348,7 +362,9 @@ export class ApiCompatibilityChecker {
 
     for (const result of results) {
       const statusIcon = result.isCompatible ? '✅' : '❌';
-      reportLines.push(`${statusIcon} ${result.componentName}: ${result.isCompatible ? 'Compatible' : 'Incompatible'}`);
+      reportLines.push(
+        `${statusIcon} ${result.componentName}: ${result.isCompatible ? 'Compatible' : 'Incompatible'}`,
+      );
 
       if (result.issues.length > 0) {
         reportLines.push('Issues:');
@@ -371,7 +387,9 @@ export class ApiCompatibilityChecker {
       }
     }
 
-    reportLines.push(`Overall Status: ${overallCompatible ? '✅ All APIs compatible' : '❌ Some API compatibility issues found'}`);
+    reportLines.push(
+      `Overall Status: ${overallCompatible ? '✅ All APIs compatible' : '❌ Some API compatibility issues found'}`,
+    );
 
     return reportLines.join('\n');
   }
@@ -382,7 +400,7 @@ export class ApiCompatibilityChecker {
    */
   async checkCurrentApiCompatibility(): Promise<boolean> {
     const results = await this.checkApiCompatibility();
-    return results.every(r => r.isCompatible);
+    return results.every((r) => r.isCompatible);
   }
 }
 
@@ -393,11 +411,12 @@ export const apiCompatibilityChecker = new ApiCompatibilityChecker();
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const checker = new ApiCompatibilityChecker();
 
-  checker.checkApiCompatibility()
-    .then(results => {
+  checker
+    .checkApiCompatibility()
+    .then((results) => {
       console.log(checker.generateReport(results));
 
-      const allCompatible = results.every(r => r.isCompatible);
+      const allCompatible = results.every((r) => r.isCompatible);
       if (allCompatible) {
         console.log('✅ All APIs are compatible');
       } else {
@@ -405,7 +424,7 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
         process.exit(1);
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('API compatibility check error:', error);
       process.exit(1);
     });

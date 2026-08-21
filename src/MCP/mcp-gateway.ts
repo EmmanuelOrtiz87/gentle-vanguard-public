@@ -11,7 +11,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawn } from 'child_process';
+import { run } from '../../adapters/command-runner.js';
 
 const ROOT = resolve(process.cwd());
 const REGISTRY_PATH = join(ROOT, 'config', 'mcp-registry.json');
@@ -100,11 +100,10 @@ function startServers() {
       continue;
     }
     try {
-      const child = spawn(`${s.command} ${s.args.join(' ')}`, {
+      const child = run(s.command, s.args, {
         detached: true,
         stdio: 'ignore',
         windowsHide: true,
-        shell: true,
       });
       child.unref();
       writeFileSync(join(LOCK_DIR, `${s.name}.pid`), String(child.pid), 'utf-8');

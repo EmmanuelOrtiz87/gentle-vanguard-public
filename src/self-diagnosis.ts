@@ -68,17 +68,23 @@ function diagnose(args: DiagnosisArgs): DiagnosisResult {
 
   if (stuckRatio >= 1.0) {
     state = 'STUCK';
-    recommendations.push(`EXCEEDED max turns for "${args.profile}" (${args.turnCount}/${maxTurns}).`);
+    recommendations.push(
+      `EXCEEDED max turns for "${args.profile}" (${args.turnCount}/${maxTurns}).`,
+    );
     recommendations.push('Switch to "lleno" or "compact" profile for faster resolution.');
     recommendations.push('Consider delegating to subagents via task tool.');
   } else if (stuckRatio >= 0.75) {
     state = 'DEGRADED';
-    recommendations.push(`Approaching max turns for "${args.profile}" (${args.turnCount}/${maxTurns}).`);
+    recommendations.push(
+      `Approaching max turns for "${args.profile}" (${args.turnCount}/${maxTurns}).`,
+    );
     recommendations.push('Reduce response detail. Abbreviate more aggressively.');
     recommendations.push('Verify no loop condition — review last 3 turns for repetition.');
   } else {
     state = 'HEALTHY';
-    recommendations.push(`Within normal range for "${args.profile}" (${args.turnCount}/${maxTurns}).`);
+    recommendations.push(
+      `Within normal range for "${args.profile}" (${args.turnCount}/${maxTurns}).`,
+    );
   }
 
   // Determine suggested profile based on state
@@ -127,11 +133,15 @@ function main(): void {
   }
 
   const icon = result.state === 'STUCK' ? '🛑' : result.state === 'DEGRADED' ? '⚠️' : '✅';
-  console.log(`[SELF-DIAGNOSIS] ${icon} State: ${result.state} | Profile: ${result.profile} | Turns: ${result.turnCount}/${PROFILE_CONFIGS[result.profile]?.maxTurnsBeforeStuck || '?'}`);
+  console.log(
+    `[SELF-DIAGNOSIS] ${icon} State: ${result.state} | Profile: ${result.profile} | Turns: ${result.turnCount}/${PROFILE_CONFIGS[result.profile]?.maxTurnsBeforeStuck || '?'}`,
+  );
   for (const rec of result.recommendations) {
     console.log(`  → ${rec}`);
   }
-  console.log(`  Suggested: --profile ${result.suggestedProfile} --chat-level ${result.suggestedChatLevel}`);
+  console.log(
+    `  Suggested: --profile ${result.suggestedProfile} --chat-level ${result.suggestedChatLevel}`,
+  );
 }
 
 main();

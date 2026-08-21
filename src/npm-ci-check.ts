@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * NPM CI Check
- * 
+ *
  * Validates that CI uses npm ci / pnpm install --frozen-lockfile
  * instead of npm install to prevent version drift.
  */
@@ -28,8 +28,10 @@ function checkCIWorkflows(): number {
     return 0;
   }
 
-  const workflowFiles = readdirSync(CI_DIR).filter(f => f.endsWith('.yml') || f.endsWith('.yaml'));
-  
+  const workflowFiles = readdirSync(CI_DIR).filter(
+    (f) => f.endsWith('.yml') || f.endsWith('.yaml'),
+  );
+
   if (workflowFiles.length === 0) {
     console.log('[npm-ci-check] No workflow files found, skipping');
     return 0;
@@ -42,7 +44,7 @@ function checkCIWorkflows(): number {
     const filePath = join(CI_DIR, file);
     const content = readFileSync(filePath, 'utf-8');
     const lines = content.split('\n');
-    
+
     const result: CheckResult = {
       file,
       usesFrozenLockfile: false,
@@ -85,7 +87,7 @@ function checkCIWorkflows(): number {
   for (const result of results) {
     if (result.issues.length > 0) {
       console.log(`⚠️  ${result.file}:`);
-      result.issues.forEach(issue => console.log(`   ${issue}`));
+      result.issues.forEach((issue) => console.log(`   ${issue}`));
       console.log();
     } else if (result.usesFrozenLockfile) {
       console.log(`✅ ${result.file}: Uses frozen lockfile`);

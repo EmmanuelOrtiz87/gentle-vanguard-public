@@ -24,7 +24,7 @@ import {
 } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync, execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { randomBytes } from 'crypto';
 
 // ---- Types ----
@@ -80,7 +80,9 @@ function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO')
   if (!quiet) console.log(`${colors[level] ?? ''}[${ts}] [SWARM] [${level}] ${msg}\x1b[0m`);
   try {
     appendFileSync(ORCHESTRATOR_LOG, `[${ts}] [SWARM] [${level}] ${msg}\n`);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function ensureDirs() {
@@ -106,7 +108,7 @@ function dateStamp(): string {
  */
 function leaderDecompose(task: string, explicitSkills: string[]): SubTask[] {
   if (explicitSkills.length > 0) {
-    return explicitSkills.map(s => ({
+    return explicitSkills.map((s) => ({
       name: s,
       description: `[${s}] ${task}`,
     }));
@@ -116,21 +118,27 @@ function leaderDecompose(task: string, explicitSkills: string[]): SubTask[] {
   try {
     const routerPath = join(ROOT, 'src', 'skills', 'skill-router.ts').replace(/\\/g, '/');
     const escapedTask = task.replace(/"/g, '\\"');
-    const result = spawnSync(`npx tsx "${routerPath}" --query "${escapedTask}" --top-k 5 --json`, {
-      cwd: ROOT,
-      encoding: 'utf-8',
-      timeout: 15000,
-      shell: true,
-    });
+    const result = runSyncShell(
+      `npx tsx "${routerPath}" --query "${escapedTask}" --top-k 5 --json`,
+      {
+        cwd: ROOT,
+        timeout: 15000,
+      },
+    );
 
     if (result.status === 0 && result.stdout) {
       const parsed = JSON.parse(result.stdout);
       if (parsed.Status === 'Routed' && parsed.Matches?.length > 0) {
-        const subTasks: SubTask[] = parsed.Matches.map((m: { skill: string; confidence: number }) => ({
-          name: m.skill,
-          description: `[${m.skill} (confidence: ${(m.confidence * 100).toFixed(0)}%)] ${task}`,
-        }));
-        log(`Leader decomposed task into ${subTasks.length} sub-tasks via semantic router`, 'SUCCESS');
+        const subTasks: SubTask[] = parsed.Matches.map(
+          (m: { skill: string; confidence: number }) => ({
+            name: m.skill,
+            description: `[${m.skill} (confidence: ${(m.confidence * 100).toFixed(0)}%)] ${task}`,
+          }),
+        );
+        log(
+          `Leader decomposed task into ${subTasks.length} sub-tasks via semantic router`,
+          'SUCCESS',
+        );
         return subTasks;
       }
     }
@@ -170,7 +178,11 @@ function spawnWorker(
   };
 
   // Write the task to the worker directory
-  writeFileSync(join(workerDir, 'task.json'), JSON.stringify({ skill: skillName, task: subTask }, null, 2), 'utf-8');
+  writeFileSync(
+    join(workerDir, 'task.json'),
+    JSON.stringify({ skill: skillName, task: subTask }, null, 2),
+    'utf-8',
+  );
 
   const workerScript = join(ROOT, 'src', 'skills', 'skill-router.ts');
 
@@ -179,11 +191,9 @@ function spawnWorker(
 
     const escapedScript = workerScript.replace(/\\/g, '/');
     const escapedQuery = subTask.replace(/"/g, '\\"');
-    const proc = spawnSync(`npx tsx "${escapedScript}" --query "${escapedQuery}" --json`, {
+    const proc = runSyncShell(`npx tsx "${escapedScript}" --query "${escapedQuery}" --json`, {
       cwd: workerDir,
-      encoding: 'utf-8',
       timeout: timeoutSec * 1000,
-      shell: true,
       env: {
         ...process.env,
         GENTLE_VANGUARD_BASE_DIR: ROOT,
@@ -197,23 +207,30 @@ function spawnWorker(
 
     result.exitCode = proc.status;
     result.output = stdout || stderr || '(no output)';
-    result.error = proc.error ? proc.error.message : (stderr || null);
+    result.error = proc.error ? proc.error.message : stderr || null;
     result.status = proc.status === 0 ? 'completed' : 'failed';
 
     // Write worker output files
-    writeFileSync(join(workerDir, 'output.json'), JSON.stringify({
-      skill: skillName,
-      status: result.status,
-      exitCode: result.exitCode,
-      stdout,
-      stderr,
-      finished: timestamp(),
-    }, null, 2), 'utf-8');
+    writeFileSync(
+      join(workerDir, 'output.json'),
+      JSON.stringify(
+        {
+          skill: skillName,
+          status: result.status,
+          exitCode: result.exitCode,
+          stdout,
+          stderr,
+          finished: timestamp(),
+        },
+        null,
+        2,
+      ),
+      'utf-8',
+    );
 
     // Write stdout log
     if (stdout) writeFileSync(join(workerDir, 'output.log'), stdout, 'utf-8');
     if (stderr) writeFileSync(join(workerDir, 'error.log'), stderr, 'utf-8');
-
   } catch (err: unknown) {
     result.status = 'failed';
     result.error = err instanceof Error ? err.message : String(err);
@@ -227,11 +244,12 @@ function spawnWorker(
 // ---- Synthesis ----
 
 function leaderSynthesize(allResults: WorkerResult[], subTasks: SubTask[], task: string): string {
-  const completedCount = allResults.filter(r => r.status === 'completed').length;
-  const failedCount = allResults.filter(r => r.status === 'failed').length;
-  const duration = allResults.length > 0 && allResults[0].started && allResults[allResults.length - 1].finished
-    ? `${allResults[allResults.length - 1].finished}`
-    : 'unknown';
+  const completedCount = allResults.filter((r) => r.status === 'completed').length;
+  const failedCount = allResults.filter((r) => r.status === 'failed').length;
+  const duration =
+    allResults.length > 0 && allResults[0].started && allResults[allResults.length - 1].finished
+      ? `${allResults[allResults.length - 1].finished}`
+      : 'unknown';
 
   const lines: string[] = [
     '# Swarm Mode Report',
@@ -261,7 +279,9 @@ function leaderSynthesize(allResults: WorkerResult[], subTasks: SubTask[], task:
   lines.push('- Review individual worker dirs for detailed output');
   lines.push('- Re-run failed workers: `--action rerun --skill <name>`');
   if (failedCount > 0) {
-    lines.push('- Fix issues and re-run: `npm run team:run -- --action rerun --skill <failed-skill>`');
+    lines.push(
+      '- Fix issues and re-run: `npm run team:run -- --action rerun --skill <failed-skill>`',
+    );
   }
 
   const report = lines.join('\n');
@@ -288,12 +308,18 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
   }
 
   if (opts.dryRun) {
-    log(`[DRY-RUN] Would execute ${subTasks.length} workers in parallel (max ${opts.maxParallel})`, 'WARN');
+    log(
+      `[DRY-RUN] Would execute ${subTasks.length} workers in parallel (max ${opts.maxParallel})`,
+      'WARN',
+    );
     return [];
   }
 
   // WORKERS: Parallel execution
-  log(`Workers deploying (maxParallel=${opts.maxParallel}, timeout=${opts.timeoutSeconds}s)...`, 'INFO');
+  log(
+    `Workers deploying (maxParallel=${opts.maxParallel}, timeout=${opts.timeoutSeconds}s)...`,
+    'INFO',
+  );
   const allResults: WorkerResult[] = [];
   const queue = [...subTasks];
   const swarmId = randomBytes(4).toString('hex');
@@ -311,7 +337,10 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
         const result = spawnWorker(task.name, task.description, opts.timeoutSeconds, workerId);
         allResults.push(result);
         const level = result.status === 'completed' ? 'SUCCESS' : 'ERROR';
-        log(`  [DONE] ${task.name}: ${result.status} (exit: ${result.exitCode})`, level as 'SUCCESS' | 'ERROR');
+        log(
+          `  [DONE] ${task.name}: ${result.status} (exit: ${result.exitCode})`,
+          level as 'SUCCESS' | 'ERROR',
+        );
         resolvePromise();
       });
     }
@@ -339,9 +368,12 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
   log(`Leader synthesizing ${allResults.length} worker results...`, 'INFO');
   leaderSynthesize(allResults, subTasks, opts.task);
 
-  const completed = allResults.filter(r => r.status === 'completed').length;
-  const failed = allResults.filter(r => r.status === 'failed').length;
-  log(`🏁 Swarm complete: ${completed} completed, ${failed} failed of ${allResults.length} total`, 'SUCCESS');
+  const completed = allResults.filter((r) => r.status === 'completed').length;
+  const failed = allResults.filter((r) => r.status === 'failed').length;
+  log(
+    `🏁 Swarm complete: ${completed} completed, ${failed} failed of ${allResults.length} total`,
+    'SUCCESS',
+  );
 
   return allResults;
 }
@@ -351,9 +383,11 @@ function actionStop(): void {
   try {
     // Kill any lingering npx tsx processes spawned by team-orchestrator
     if (process.platform === 'win32') {
-      execSync('taskkill /F /IM node.exe /FI "WINDOWTITLE eq *.tsx*" 2>nul', { stdio: 'ignore' });
+      runSyncShell('taskkill /F /IM node.exe /FI "WINDOWTITLE eq *.tsx*" 2>nul', {
+        stdio: 'ignore',
+      });
     } else {
-      execSync('pkill -f "team-orchestrator" 2>/dev/null', { stdio: 'ignore' });
+      runSyncShell('pkill -f "team-orchestrator" 2>/dev/null', { stdio: 'ignore' });
     }
     log('Swarm workers stopped.', 'SUCCESS');
   } catch {
@@ -364,12 +398,16 @@ function actionStop(): void {
 function actionStatus(): void {
   ensureDirs();
   const files = existsSync(RESULTS_DIR)
-    ? readdirSync(RESULTS_DIR).filter(f => f.startsWith('swarm-report') && f.endsWith('.md'))
+    ? readdirSync(RESULTS_DIR).filter((f) => f.startsWith('swarm-report') && f.endsWith('.md'))
     : [];
   const workerDirs = existsSync(SWARM_WORK_DIR)
-    ? readdirSync(SWARM_WORK_DIR).filter(d => {
+    ? readdirSync(SWARM_WORK_DIR).filter((d) => {
         const full = join(SWARM_WORK_DIR, d);
-        try { return existsSync(full) && !rmSync; } catch { return false; }
+        try {
+          return existsSync(full) && !rmSync;
+        } catch {
+          return false;
+        }
       })
     : [];
 
@@ -384,7 +422,10 @@ function actionStatus(): void {
       const content = readFileSync(join(RESULTS_DIR, f), 'utf-8');
       const taskMatch = content.match(/\*\*Task\*\*: (.+)/);
       const resultsMatch = content.match(/\*\*Results\*\*: (.+)/);
-      log(`  📄 ${f}${taskMatch ? ` — ${taskMatch[1]}` : ''}${resultsMatch ? ` [${resultsMatch[1]}]` : ''}`, 'INFO');
+      log(
+        `  📄 ${f}${taskMatch ? ` — ${taskMatch[1]}` : ''}${resultsMatch ? ` [${resultsMatch[1]}]` : ''}`,
+        'INFO',
+      );
     } catch {
       log(`  📄 ${f} (unreadable)`, 'WARN');
     }
@@ -399,8 +440,13 @@ function actionStatus(): void {
       try {
         const data = JSON.parse(readFileSync(outputFile, 'utf-8'));
         status = data.status;
-      } catch { /* no output yet */ }
-      log(`  🧩 ${d}: ${status}`, status === 'completed' ? 'SUCCESS' : status === 'failed' ? 'ERROR' : 'INFO');
+      } catch {
+        /* no output yet */
+      }
+      log(
+        `  🧩 ${d}: ${status}`,
+        status === 'completed' ? 'SUCCESS' : status === 'failed' ? 'ERROR' : 'INFO',
+      );
     }
   }
 }
@@ -411,7 +457,12 @@ function actionDelegate(opts: OrchestratorOptions): WorkerResult {
   log(`Delegate — invoking skill "${skillName}" as single worker`, 'INFO');
   const swarmId = randomBytes(4).toString('hex');
   const workerId = `${swarmId}-${randomBytes(2).toString('hex')}`;
-  const result = spawnWorker(skillName, `[${skillName}] ${opts.task}`, opts.timeoutSeconds, workerId);
+  const result = spawnWorker(
+    skillName,
+    `[${skillName}] ${opts.task}`,
+    opts.timeoutSeconds,
+    workerId,
+  );
   log(`[DONE] ${skillName}: ${result.status}`, result.status === 'completed' ? 'SUCCESS' : 'ERROR');
   return result;
 }
@@ -424,7 +475,10 @@ function actionRerun(opts: OrchestratorOptions): void {
   }
   log(`Rerunning failed skill: ${skillToRerun}`, 'INFO');
   const result = actionDelegate({ ...opts, skill: skillToRerun });
-  log(`Rerun complete: ${skillToRerun} → ${result.status}`, result.status === 'completed' ? 'SUCCESS' : 'ERROR');
+  log(
+    `Rerun complete: ${skillToRerun} → ${result.status}`,
+    result.status === 'completed' ? 'SUCCESS' : 'ERROR',
+  );
 }
 
 function actionClean(): void {
@@ -436,7 +490,9 @@ function actionClean(): void {
       try {
         rmSync(join(SWARM_WORK_DIR, d), { recursive: true, force: true });
         cleaned++;
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
   }
   log(`Cleaned ${cleaned} worker directories`, 'SUCCESS');
@@ -466,7 +522,7 @@ function parseArgs(): OrchestratorOptions {
         break;
       case '--skills':
         if (args[i + 1] && !args[i + 1].startsWith('-')) {
-          opts.skills = args[++i].split(',').map(s => s.trim());
+          opts.skills = args[++i].split(',').map((s) => s.trim());
         }
         break;
       case '--max-parallel':
@@ -533,9 +589,12 @@ async function main() {
     case 'report': {
       ensureDirs();
       const files = existsSync(RESULTS_DIR)
-        ? readdirSync(RESULTS_DIR).filter(f => f.startsWith('swarm-report') && f.endsWith('.md'))
+        ? readdirSync(RESULTS_DIR).filter((f) => f.startsWith('swarm-report') && f.endsWith('.md'))
         : [];
-      log(`${opts.action === 'report' ? 'Report' : 'Synthesis'} — ${files.length} report(s) available`, 'INFO');
+      log(
+        `${opts.action === 'report' ? 'Report' : 'Synthesis'} — ${files.length} report(s) available`,
+        'INFO',
+      );
       if (files.length > 0) {
         const latest = files[files.length - 1];
         console.log(readFileSync(join(RESULTS_DIR, latest), 'utf-8'));
@@ -543,7 +602,10 @@ async function main() {
       break;
     }
     default:
-      log(`Unknown action: ${opts.action}. Use: start, stop, status, delegate, rerun, clean, report`, 'ERROR');
+      log(
+        `Unknown action: ${opts.action}. Use: start, stop, status, delegate, rerun, clean, report`,
+        'ERROR',
+      );
       process.exit(1);
   }
 }

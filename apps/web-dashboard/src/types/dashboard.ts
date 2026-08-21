@@ -80,10 +80,21 @@ export interface DashboardData {
       bySkill: Record<string, number>;
       lastCall: string | null;
     };
-    performance: { avgResponseTime: number; errorRate: number; responseTimes: Record<string, { avg: number; count: number }> };
+    performance: {
+      avgResponseTime: number;
+      errorRate: number;
+      responseTimes: Record<string, { avg: number; count: number }>;
+    };
   };
   system?: {
-    memory: { rss: number; heapUsed: number; heapTotal: number; total: number; free: number; usagePercent: number };
+    memory: {
+      rss: number;
+      heapUsed: number;
+      heapTotal: number;
+      total: number;
+      free: number;
+      usagePercent: number;
+    };
     cpu: { user: number; system: number; cores: number; loadAverage: number[] };
     uptime: number;
     pid: number;
@@ -98,10 +109,45 @@ export interface DashboardData {
     responseTime95th: number;
     throughput: number;
   };
+  operational?: OperationalMetrics;
   tenantId?: string;
   tenantName?: string;
   sqlite?: SqliteMetrics;
   swarmWorkers?: SwarmWorkerData;
+  stackCapabilities?: StackCapabilities;
+}
+
+export interface OperationalMetrics {
+  velocity: {
+    commitsPerHour: number;
+    filesModifiedPerSession: number;
+    linesAdded: number;
+    linesDeleted: number;
+    avgTimeBetweenCommits: number;
+  };
+  efficiency: {
+    avgToolLatency: number;
+    successRate: number;
+    fastestTool: string;
+    slowestTool: string;
+    responseTimeP95: number;
+  };
+  productivity: {
+    skillsUsed: number;
+    uniqueSkills: string[];
+    agentsActive: number;
+    tasksCompleted: number;
+    sessionsCompleted: number;
+  };
+  quality: {
+    buildSuccessRate: number;
+    testPassRate: number;
+    errorsDetected: number;
+    autoCorrections: number;
+    typeCheckFailures: number;
+  };
+  totalOperations: number;
+  lastUpdated: string;
 }
 
 export interface SwarmWorkerEntry {
@@ -168,6 +214,67 @@ export interface SqliteMetrics {
   tokenTotalCost: number;
   contractPassRate: number;
   routingTotalHits: number;
+}
+
+// ─── Stack Capabilities (Fase 1/2: anomalies, circuit breakers, DB healing) ─────
+
+export interface StackAnomaly {
+  id: string;
+  type: 'CRITICAL' | 'WARNING' | 'PREDICTION';
+  category: string;
+  message: string;
+  confidence: number;
+  detectedAt: string;
+  recommendation?: string;
+  autoHealed?: boolean;
+  autoHealingAction?: string;
+}
+
+export interface StackCircuitBreaker {
+  name: string;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failureThreshold: number;
+  successThreshold: number;
+  resetTimeout: number;
+  failures: number;
+  successes: number;
+  openedAt: number | null;
+  lastStateChange: number;
+}
+
+export interface StackDbHealing {
+  lastHealTime: number;
+  healCount: number;
+  healAttempts: number;
+  lastError: string | null;
+  lastBackup: string | null;
+  metrics: {
+    vacuumCount: number;
+    checkpointCount: number;
+    reindexCount: number;
+    analyzeCount: number;
+    pruneCount: number;
+  };
+}
+
+export interface StackCapabilities {
+  anomalies: {
+    total: number;
+    critical: number;
+    warning: number;
+    predictions: number;
+    autoHealed: number;
+    latest: StackAnomaly[];
+  };
+  circuitBreakers: {
+    total: number;
+    open: number;
+    halfOpen: number;
+    closed: number;
+    breakers: StackCircuitBreaker[];
+  };
+  dbHealing: StackDbHealing | null;
+  lastUpdated: string;
 }
 
 export interface MetricHistory {

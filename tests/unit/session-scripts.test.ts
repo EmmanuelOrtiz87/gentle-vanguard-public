@@ -7,7 +7,7 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('session-scripts', () => {
   it('src/session-autostart.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'Core', 'session-autostart.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'core', 'session-autostart.ts')));
   });
 
   it('src/session-cleanup-start.ts exists', () => {

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Auto Code Review v1.0.0
+ * Auto Code Review
  * Autonomous code review with multi-lens analysis
- * Part of Gentle-Vanguard v6.0
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -40,7 +40,7 @@ export class AutoCodeReview extends EventEmitter {
 
   public async review(filePath: string, content: string, language: string): Promise<CodeReview> {
     const reviewId = `review_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const review: CodeReview = {
       id: reviewId,
       filePath,
@@ -74,19 +74,31 @@ export class AutoCodeReview extends EventEmitter {
     const issues: Issue[] = [];
     const suggestions: string[] = [];
     let score = 1.0;
-    
+
     // Language-specific checks
     const lang = language;
-    if (lang) { /* language-specific analysis would go here */ }
+    if (lang) {
+      /* language-specific analysis would go here */
+    }
 
     // Security lens
     if (lens === 'security') {
       if (content.includes('eval(') || content.includes('Function(')) {
-        issues.push({ line: 1, severity: 'critical', message: 'Dynamic code execution detected', rule: 'no-eval' });
+        issues.push({
+          line: 1,
+          severity: 'critical',
+          message: 'Dynamic code execution detected',
+          rule: 'no-eval',
+        });
         score -= 0.3;
       }
       if (content.includes('password') && !content.includes('hash')) {
-        issues.push({ line: 1, severity: 'error', message: 'Plain text password detected', rule: 'no-plain-password' });
+        issues.push({
+          line: 1,
+          severity: 'error',
+          message: 'Plain text password detected',
+          rule: 'no-plain-password',
+        });
         score -= 0.2;
       }
       suggestions.push('Use parameterized queries to prevent SQL injection');
@@ -96,7 +108,12 @@ export class AutoCodeReview extends EventEmitter {
     if (lens === 'performance') {
       const nestedLoops = (content.match(/for.*for/g) || []).length;
       if (nestedLoops > 2) {
-        issues.push({ line: 1, severity: 'warning', message: 'Nested loops may cause performance issues', rule: 'avoid-nested-loops' });
+        issues.push({
+          line: 1,
+          severity: 'warning',
+          message: 'Nested loops may cause performance issues',
+          rule: 'avoid-nested-loops',
+        });
         score -= 0.1;
       }
       suggestions.push('Consider memoization for expensive calculations');
@@ -106,7 +123,12 @@ export class AutoCodeReview extends EventEmitter {
     if (lens === 'maintainability') {
       const lines = content.split('\n');
       if (lines.length > 200) {
-        issues.push({ line: lines.length, severity: 'warning', message: 'File too long, consider splitting', rule: 'max-lines' });
+        issues.push({
+          line: lines.length,
+          severity: 'warning',
+          message: 'File too long, consider splitting',
+          rule: 'max-lines',
+        });
         score -= 0.1;
       }
       suggestions.push('Add JSDoc comments for public APIs');
@@ -115,7 +137,12 @@ export class AutoCodeReview extends EventEmitter {
     // Style lens
     if (lens === 'style') {
       if (content.includes('var ')) {
-        issues.push({ line: 1, severity: 'info', message: 'Use const or let instead of var', rule: 'no-var' });
+        issues.push({
+          line: 1,
+          severity: 'info',
+          message: 'Use const or let instead of var',
+          rule: 'no-var',
+        });
         score -= 0.05;
       }
       suggestions.push('Follow consistent naming conventions');
@@ -128,9 +155,10 @@ export class AutoCodeReview extends EventEmitter {
     const reviews = Array.from(this.reviews.values());
     return {
       totalReviews: reviews.length,
-      passed: reviews.filter(r => r.status === 'completed').length,
-      failed: reviews.filter(r => r.status === 'failed').length,
-      avgScore: reviews.length > 0 ? reviews.reduce((a, r) => a + r.overallScore, 0) / reviews.length : 0,
+      passed: reviews.filter((r) => r.status === 'completed').length,
+      failed: reviews.filter((r) => r.status === 'failed').length,
+      avgScore:
+        reviews.length > 0 ? reviews.reduce((a, r) => a + r.overallScore, 0) / reviews.length : 0,
     };
   }
 }

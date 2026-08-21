@@ -9,7 +9,7 @@
  *   npx tsx src/semantic-search.ts "error handling" --max-results 15 --format detailed
  */
 
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
@@ -63,20 +63,45 @@ function grepSearch(query: string, maxResults: number): SearchResult[] {
   const keywords = query
     .toLowerCase()
     .split(/\s+/)
-    .filter(w => w.length > 2)
-    .filter(w => !['the', 'for', 'and', 'with', 'that', 'this', 'from', 'what', 'how', 'can', 'you'].includes(w));
+    .filter((w) => w.length > 2)
+    .filter(
+      (w) =>
+        ![
+          'the',
+          'for',
+          'and',
+          'with',
+          'that',
+          'this',
+          'from',
+          'what',
+          'how',
+          'can',
+          'you',
+        ].includes(w),
+    );
 
   // Search via ripgrep for code patterns
   const searchPatterns = [
     ...keywords,
     // Common code patterns derived from NL query
-    query.includes('database') || query.includes('db') ? '(createConnection|connect|query|sql|knex|prisma)' : '',
-    query.includes('auth') || query.includes('login') ? '(authenticate|login|token|jwt|session|middleware)' : '',
-    query.includes('error') || query.includes('handle') ? '(try|catch|error|throw|Error|handleError)' : '',
+    query.includes('database') || query.includes('db')
+      ? '(createConnection|connect|query|sql|knex|prisma)'
+      : '',
+    query.includes('auth') || query.includes('login')
+      ? '(authenticate|login|token|jwt|session|middleware)'
+      : '',
+    query.includes('error') || query.includes('handle')
+      ? '(try|catch|error|throw|Error|handleError)'
+      : '',
     query.includes('config') ? '(config|setting|option|env|environment)' : '',
-    query.includes('route') || query.includes('api') || query.includes('endpoint') ? '(router|route|app\\.(get|post|put|delete)|endpoint)' : '',
+    query.includes('route') || query.includes('api') || query.includes('endpoint')
+      ? '(router|route|app\\.(get|post|put|delete)|endpoint)'
+      : '',
     query.includes('test') ? '(describe|it|test|expect|assert)' : '',
-    query.includes('type') || query.includes('interface') ? '(interface|type|extends|implements)' : '',
+    query.includes('type') || query.includes('interface')
+      ? '(interface|type|extends|implements)'
+      : '',
   ].filter(Boolean);
 
   const seen = new Set<string>();
@@ -85,10 +110,10 @@ function grepSearch(query: string, maxResults: number): SearchResult[] {
     if (seen.size >= maxResults) break;
     try {
       // Use Node.js exec with error suppression (cross-platform)
-      const output = execSync(
-        `rg -n --no-heading -m 3 "${pattern}" --type ts "${srcDir}"`,
-        { encoding: 'utf8', maxBuffer: 1024 * 1024, stdio: ['pipe', 'pipe', 'ignore'] }
-      );
+      const output = runSyncShell(`rg -n --no-heading -m 3 "${pattern}" --type ts "${srcDir}"`, {
+        maxBuffer: 1024 * 1024,
+        stdio: ['pipe', 'pipe', 'ignore'],
+      }).stdout;
 
       for (const line of output.trim().split('\n')) {
         if (seen.size >= maxResults) break;
@@ -101,7 +126,7 @@ function grepSearch(query: string, maxResults: number): SearchResult[] {
           if (!seen.has(key)) {
             seen.add(key);
             const content = match[3].trim();
-            const score = keywords.some(k => content.toLowerCase().includes(k)) ? 2 : 1;
+            const score = keywords.some((k) => content.toLowerCase().includes(k)) ? 2 : 1;
             results.push({
               file,
               line: parseInt(match[2], 10),
@@ -130,7 +155,7 @@ function tryCodeGraphSearch(query: string, maxResults: number): SearchResult[] |
 
     // Simple graphify query as extra source
     try {
-      const output = execSync(
+      const output = runSyncShell(
         `npx --yes tsx -e "
           const fs = require('fs');
           const g = JSON.parse(fs.readFileSync('${codegraphIndex.replace(/\\/g, '\\\\')}', 'utf8'));
@@ -142,8 +167,8 @@ function tryCodeGraphSearch(query: string, maxResults: number): SearchResult[] |
             .map((n: any) => ({ file: n.id || '', line: 0, content: n.label || '', relevance: 3 }));
           console.log(JSON.stringify(matches));
         " 2>nul || echo []`,
-        { encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 10000 }
-      );
+        { maxBuffer: 1024 * 1024, timeout: 10000 },
+      ).stdout;
       const parsed = JSON.parse(output.trim());
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed as SearchResult[];
@@ -163,7 +188,9 @@ function main(): void {
   const startTime = Date.now();
 
   if (!args.query) {
-    console.error('[SEMANTIC-SEARCH] Usage: npx tsx src/semantic-search.ts "<query>" [--max-results N] [--json]');
+    console.error(
+      '[SEMANTIC-SEARCH] Usage: npx tsx src/semantic-search.ts "<query>" [--max-results N] [--json]',
+    );
     process.exit(1);
   }
 
@@ -182,7 +209,7 @@ function main(): void {
 
   // Always complement with grep for freshness
   const grepResults = grepSearch(args.query, args.maxResults);
-  const existingFiles = new Set(results.map(r => r.file));
+  const existingFiles = new Set(results.map((r) => r.file));
 
   for (const gr of grepResults) {
     if (!existingFiles.has(gr.file)) {
@@ -212,7 +239,9 @@ function main(): void {
     process.exit(1);
   }
 
-  console.log(`\n${results.length} result(s) for "${args.query}" (${response.processingTimeMs}ms, source: ${source}):\n`);
+  console.log(
+    `\n${results.length} result(s) for "${args.query}" (${response.processingTimeMs}ms, source: ${source}):\n`,
+  );
 
   for (const r of results) {
     console.log(`  ${r.file}:${r.line}${r.relevance > 2 ? ' ★' : ''}`);

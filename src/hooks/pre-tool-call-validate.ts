@@ -86,10 +86,18 @@ function getSymbolAnalysis(json: string): SymbolAnalysis {
 
     if (!analysis.InString) {
       switch (char) {
-        case '{': analysis.OpenBraces++; break;
-        case '}': analysis.CloseBraces++; break;
-        case '[': analysis.OpenBrackets++; break;
-        case ']': analysis.CloseBrackets++; break;
+        case '{':
+          analysis.OpenBraces++;
+          break;
+        case '}':
+          analysis.CloseBraces++;
+          break;
+        case '[':
+          analysis.OpenBrackets++;
+          break;
+        case ']':
+          analysis.CloseBrackets++;
+          break;
       }
     }
   }
@@ -105,8 +113,18 @@ function getSymbolAnalysis(json: string): SymbolAnalysis {
   return analysis;
 }
 
-function testJsonStructure(json: string): { valid: boolean; error: string | null; position: number; details: SymbolAnalysis } {
-  const result: { valid: boolean; error: string | null; position: number; details: SymbolAnalysis } = {
+function testJsonStructure(json: string): {
+  valid: boolean;
+  error: string | null;
+  position: number;
+  details: SymbolAnalysis;
+} {
+  const result: {
+    valid: boolean;
+    error: string | null;
+    position: number;
+    details: SymbolAnalysis;
+  } = {
     valid: false,
     error: null,
     position: 0,
@@ -121,7 +139,7 @@ function testJsonStructure(json: string): { valid: boolean; error: string | null
   const trimmed = json.trim();
 
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
-    result.error = 'JSON must start with \'{\' or \'[\'';
+    result.error = "JSON must start with '{' or '['";
     result.position = 0;
     return result;
   }
@@ -131,7 +149,7 @@ function testJsonStructure(json: string): { valid: boolean; error: string | null
   result.details = analysis;
 
   if (!endsCorrectly) {
-    result.error = 'JSON must end with \'}\' or \']\'';
+    result.error = "JSON must end with '}' or ']'";
     result.position = trimmed.length - 1;
     return result;
   }
@@ -184,7 +202,11 @@ function repairJsonPayload(json: string, analysis: SymbolAnalysis): RepairResult
     fixes.push(`Added ${analysis.UnmatchedBraces} closing brace(s)`);
   } else if (analysis.UnmatchedBraces < 0) {
     const excess = Math.abs(analysis.UnmatchedBraces);
-    return { Success: false, Error: `Extra ${excess} closing brace(s) '}' - auto-repair not safe`, Fixes: fixes };
+    return {
+      Success: false,
+      Error: `Extra ${excess} closing brace(s) '}' - auto-repair not safe`,
+      Fixes: fixes,
+    };
   }
 
   // Fix 3: Unbalanced brackets
@@ -193,7 +215,11 @@ function repairJsonPayload(json: string, analysis: SymbolAnalysis): RepairResult
     fixes.push(`Added ${analysis.UnmatchedBrackets} closing bracket(s)`);
   } else if (analysis.UnmatchedBrackets < 0) {
     const excess = Math.abs(analysis.UnmatchedBrackets);
-    return { Success: false, Error: `Extra ${excess} closing bracket(s) ']' - auto-repair not safe`, Fixes: fixes };
+    return {
+      Success: false,
+      Error: `Extra ${excess} closing bracket(s) ']' - auto-repair not safe`,
+      Fixes: fixes,
+    };
   }
 
   // Fix 4: Trailing commas
@@ -239,7 +265,12 @@ function getTruncationRisk(json: string, _toolName: string): string[] {
   return risks;
 }
 
-export function validateToolCall(toolName: string, jsonPayload: string, autoFix: boolean, strictMode: boolean): ValidationResult {
+export function validateToolCall(
+  toolName: string,
+  jsonPayload: string,
+  autoFix: boolean,
+  strictMode: boolean,
+): ValidationResult {
   const now = new Date().toISOString();
   const isStrictTool = STRICT_TOOLS.has(toolName);
   const effectiveStrictMode = strictMode || isStrictTool;
@@ -319,7 +350,9 @@ function main(): number {
   }
 
   if (!toolName || !jsonPayload) {
-    console.error('Usage: pre-tool-call-validate --tool-name <name> --json-payload <json> [--auto-fix] [--strict] [--context <ctx>]');
+    console.error(
+      'Usage: pre-tool-call-validate --tool-name <name> --json-payload <json> [--auto-fix] [--strict] [--context <ctx>]',
+    );
     return 1;
   }
 

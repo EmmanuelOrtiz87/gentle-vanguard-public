@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { statSync } from 'fs';
 
 function main(): void {
@@ -9,7 +9,7 @@ function main(): void {
 
   let files: string;
   try {
-    files = execSync('git diff --cached --name-only', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    files = runSync('git', ['diff', '--cached', '--name-only'], { stdio: 'pipe' }).stdout.trim();
   } catch {
     files = '';
   }
@@ -28,7 +28,7 @@ function main(): void {
 
   let content: string;
   try {
-    content = execSync('git diff --cached --unified=0', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    content = runSync('git', ['diff', '--cached', '--unified=0'], { stdio: 'pipe' }).stdout.trim();
   } catch {
     content = '';
   }

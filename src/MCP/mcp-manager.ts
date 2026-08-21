@@ -3,7 +3,8 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
+import { runSync } from '../../adapters/command-runner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(__filename), '..');
@@ -87,13 +88,17 @@ function getProc(name: string): { pid: number } | null {
     process.kill(pid, 0);
     return { pid };
   } catch {
-    try { unlinkSync(lockFile); } catch { /* ignore */ }
+    try {
+      unlinkSync(lockFile);
+    } catch {
+      /* ignore */
+    }
     return null;
   }
 }
 
 function findServer(reg: Registry, name: string): McpServer | undefined {
-  return reg.servers.find(s => s.name === name);
+  return reg.servers.find((s) => s.name === name);
 }
 
 function sleepSync(ms: number) {
@@ -115,9 +120,14 @@ function actionRegister(
   const reg = readRegistry();
   if (findServer(reg, name)) err(`server '${name}' already registered`);
   const entry: McpServer = {
-    name, type: 'user', transport, command,
+    name,
+    type: 'user',
+    transport,
+    command,
     args: args ?? [],
-    enabled: true, autoStart, description,
+    enabled: true,
+    autoStart,
+    description,
   };
   reg.servers.push(entry);
   writeRegistry(reg);
@@ -127,7 +137,7 @@ function actionRegister(
 function actionUnregister(name: string) {
   const reg = readRegistry();
   const before = reg.servers.length;
-  reg.servers = reg.servers.filter(s => s.name !== name);
+  reg.servers = reg.servers.filter((s) => s.name !== name);
   if (reg.servers.length === before) err(`server '${name}' not found`);
   writeRegistry(reg);
   log(`Unregistered MCP server: ${name}`);
@@ -201,9 +211,15 @@ function actionStop(name: string) {
   }
   try {
     process.kill(proc.pid, 'SIGTERM');
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   const lockFile = join(LOCK_DIR, `${name}.pid`);
-  try { unlinkSync(lockFile); } catch { /* ignore */ }
+  try {
+    unlinkSync(lockFile);
+  } catch {
+    /* ignore */
+  }
   log(`Stopped MCP server: ${name}`);
 }
 
@@ -243,16 +259,23 @@ function actionListTemplates() {
 
 function actionQuickstart(templateName: string, path?: string, start?: boolean) {
   const tpl = readTemplates();
-  const tmpl = tpl.templates.find(t => t.name === templateName);
+  const tmpl = tpl.templates.find((t) => t.name === templateName);
   if (!tmpl) err(`template '${templateName}' not found`);
   const resolvedPath = path ?? tmpl.defaultPath ?? undefined;
-  const resolvedArgs = tmpl.args.map(a => resolvedPath ? a.replace('{path}', resolvedPath) : a);
+  const resolvedArgs = tmpl.args.map((a) => (resolvedPath ? a.replace('{path}', resolvedPath) : a));
   if (resolvedPath && resolvedPath !== '.') {
     const absPath = resolve(ROOT, resolvedPath);
     const parent = dirname(absPath);
     if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
   }
-  actionRegister(tmpl.name, tmpl.command, resolvedArgs, tmpl.description, tmpl.transport, tmpl.autoStart);
+  actionRegister(
+    tmpl.name,
+    tmpl.command,
+    resolvedArgs,
+    tmpl.description,
+    tmpl.transport,
+    tmpl.autoStart,
+  );
   if (start || tmpl.autoStart) actionStart(tmpl.name);
   log(`Quickstart complete: ${templateName} \u2014 registered and ready.`);
 }
@@ -262,16 +285,24 @@ function actionCreate(name: string, lang: string, build?: boolean, reg?: boolean
   if (existsSync(serverDir)) err(`directory '${serverDir}' already exists`);
   mkdirSync(serverDir, { recursive: true });
 
-  const packageJson = (main: string, deps: Record<string, string>, devDeps?: Record<string, string>) =>
-    JSON.stringify({
-      name,
-      version: '1.0.0',
-      description: `MCP server: ${name}`,
-      main,
-      scripts: { ...(devDeps ? { build: 'tsc' } : {}), start: `node ${main}` },
-      dependencies: deps,
-      ...(devDeps ? { devDependencies: devDeps } : {}),
-    }, null, 2);
+  const packageJson = (
+    main: string,
+    deps: Record<string, string>,
+    devDeps?: Record<string, string>,
+  ) =>
+    JSON.stringify(
+      {
+        name,
+        version: '1.0.0',
+        description: `MCP server: ${name}`,
+        main,
+        scripts: { ...(devDeps ? { build: 'tsc' } : {}), start: `node ${main}` },
+        dependencies: deps,
+        ...(devDeps ? { devDependencies: devDeps } : {}),
+      },
+      null,
+      2,
+    );
 
   let buildCmd = '';
   let runCmd = '';
@@ -281,17 +312,40 @@ function actionCreate(name: string, lang: string, build?: boolean, reg?: boolean
     case 'ts': {
       const srcDir = join(serverDir, 'src');
       mkdirSync(srcDir, { recursive: true });
-      writeFileSync(join(serverDir, 'package.json'), packageJson('dist/index.js', {
-        '@modelcontextprotocol/sdk': '^1.0.0',
-      }, { typescript: '^5.5.0', '@types/node': '^20.0.0' }) + '\n', 'utf-8');
-      writeFileSync(join(serverDir, 'tsconfig.json'), JSON.stringify({
-        compilerOptions: {
-          target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext',
-          outDir: 'dist', rootDir: 'src', strict: true, declaration: true,
-        },
-        include: ['src'],
-      }, null, 2) + '\n', 'utf-8');
-      writeFileSync(join(srcDir, 'index.ts'), `import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+      writeFileSync(
+        join(serverDir, 'package.json'),
+        packageJson(
+          'dist/index.js',
+          {
+            '@modelcontextprotocol/sdk': '^1.0.0',
+          },
+          { typescript: '^5.5.0', '@types/node': '^20.0.0' },
+        ) + '\n',
+        'utf-8',
+      );
+      writeFileSync(
+        join(serverDir, 'tsconfig.json'),
+        JSON.stringify(
+          {
+            compilerOptions: {
+              target: 'ES2022',
+              module: 'NodeNext',
+              moduleResolution: 'NodeNext',
+              outDir: 'dist',
+              rootDir: 'src',
+              strict: true,
+              declaration: true,
+            },
+            include: ['src'],
+          },
+          null,
+          2,
+        ) + '\n',
+        'utf-8',
+      );
+      writeFileSync(
+        join(srcDir, 'index.ts'),
+        `import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
@@ -310,17 +364,25 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-`, 'utf-8');
+`,
+        'utf-8',
+      );
       buildCmd = 'npm install && npx tsc';
       runCmd = 'node dist/index.js';
       entryPoint = 'dist/index.js';
       break;
     }
     case 'js': {
-      writeFileSync(join(serverDir, 'package.json'), packageJson('index.js', {
-        '@modelcontextprotocol/sdk': '^1.0.0',
-      }) + '\n', 'utf-8');
-      writeFileSync(join(serverDir, 'index.js'), `import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+      writeFileSync(
+        join(serverDir, 'package.json'),
+        packageJson('index.js', {
+          '@modelcontextprotocol/sdk': '^1.0.0',
+        }) + '\n',
+        'utf-8',
+      );
+      writeFileSync(
+        join(serverDir, 'index.js'),
+        `import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
@@ -339,14 +401,18 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-`, 'utf-8');
+`,
+        'utf-8',
+      );
       buildCmd = 'npm install';
       runCmd = 'node index.js';
       entryPoint = 'index.js';
       break;
     }
     case 'py': {
-      writeFileSync(join(serverDir, 'pyproject.toml'), `[build-system]
+      writeFileSync(
+        join(serverDir, 'pyproject.toml'),
+        `[build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.backends._legacy:_Backend"
 
@@ -356,8 +422,12 @@ version = "1.0.0"
 description = "MCP server: ${name}"
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0"]
-`, 'utf-8');
-      writeFileSync(join(serverDir, 'server.py'), `from mcp.server import Server, NotificationOptions
+`,
+        'utf-8',
+      );
+      writeFileSync(
+        join(serverDir, 'server.py'),
+        `from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 import mcp.server.stdio
 import mcp.types as types
@@ -381,20 +451,28 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
-`, 'utf-8');
+`,
+        'utf-8',
+      );
       buildCmd = 'pip install -e . 2>$null';
       runCmd = 'python server.py';
       entryPoint = 'server.py';
       break;
     }
     case 'go': {
-      writeFileSync(join(serverDir, 'go.mod'), `module ${name}
+      writeFileSync(
+        join(serverDir, 'go.mod'),
+        `module ${name}
 
 go 1.21
 
 require github.com/mark3labs/mcp-go v1.0.0
-`, 'utf-8');
-      writeFileSync(join(serverDir, 'main.go'), `package main
+`,
+        'utf-8',
+      );
+      writeFileSync(
+        join(serverDir, 'main.go'),
+        `package main
 
 import (
 	"context"
@@ -418,7 +496,9 @@ func main() {
 		panic(err)
 	}
 }
-`, 'utf-8');
+`,
+        'utf-8',
+      );
       buildCmd = 'go mod tidy && go build -o bin/server .';
       runCmd = './bin/server';
       entryPoint = 'bin/server';
@@ -427,7 +507,9 @@ func main() {
     case 'rs': {
       const rsSrcDir = join(serverDir, 'src');
       mkdirSync(rsSrcDir, { recursive: true });
-      writeFileSync(join(serverDir, 'Cargo.toml'), `[package]
+      writeFileSync(
+        join(serverDir, 'Cargo.toml'),
+        `[package]
 name = "${name}"
 version = "1.0.0"
 edition = "2021"
@@ -437,8 +519,12 @@ rmcp = "0.1"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-`, 'utf-8');
-      writeFileSync(join(rsSrcDir, 'main.rs'), `use rmcp::{ServiceExt, model::*, service::Service};
+`,
+        'utf-8',
+      );
+      writeFileSync(
+        join(rsSrcDir, 'main.rs'),
+        `use rmcp::{ServiceExt, model::*, service::Service};
 use serde_json::json;
 use tokio::io::{stdin, stdout};
 
@@ -479,7 +565,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     service.serve(StdioTransport::new(stdin(), stdout())).await?;
     Ok(())
 }
-`, 'utf-8');
+`,
+        'utf-8',
+      );
       buildCmd = 'cargo build';
       runCmd = `./target/debug/${name}`;
       entryPoint = `target/debug/${name}`;
@@ -494,7 +582,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   if (build) {
     log(`  Building (${lang})...`);
     try {
-      execSync(buildCmd, { cwd: serverDir, stdio: 'inherit' });
+      const parts = buildCmd.split(' ').filter(Boolean);
+      const cmd = parts[0];
+      const args = parts.slice(1);
+      const r = runSync(cmd, args, { cwd: serverDir, stdio: 'inherit' as any, timeout: 120000 });
+      if (r.status !== 0) throw new Error(r.error?.message || r.stderr || 'build failed');
     } catch {
       err(`build failed for ${name}`);
     }
@@ -545,9 +637,16 @@ interface CliArgs {
 
 function parseArgs(argv: string[]): CliArgs {
   const result: CliArgs = {
-    action: 'list', args: [], description: '', transport: 'stdio',
-    lang: 'ts', autoStart: false, start: false, build: false,
-    register: false, quiet: false,
+    action: 'list',
+    args: [],
+    description: '',
+    transport: 'stdio',
+    lang: 'ts',
+    autoStart: false,
+    start: false,
+    build: false,
+    register: false,
+    quiet: false,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -557,35 +656,68 @@ function parseArgs(argv: string[]): CliArgs {
     const next = argv[i + 1];
 
     switch (key) {
-      case 'action': case 'a':
-        if (next && !next.startsWith('-')) { result.action = next; i++; }
-        break;
-      case 'name': case 'n':
-        if (next && !next.startsWith('-')) { result.name = next; i++; }
-        break;
-      case 'command': case 'c':
-        if (next && !next.startsWith('-')) { result.command = next; i++; }
-        break;
-      case 'args':
+      case 'action':
+      case 'a':
         if (next && !next.startsWith('-')) {
-          result.args = next.split(',').map(s => s.trim()).filter(Boolean);
+          result.action = next;
           i++;
         }
         break;
-      case 'description': case 'dsc':
-        if (next && !next.startsWith('-')) { result.description = next; i++; }
+      case 'name':
+      case 'n':
+        if (next && !next.startsWith('-')) {
+          result.name = next;
+          i++;
+        }
+        break;
+      case 'command':
+      case 'c':
+        if (next && !next.startsWith('-')) {
+          result.command = next;
+          i++;
+        }
+        break;
+      case 'args':
+        if (next && !next.startsWith('-')) {
+          result.args = next
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+          i++;
+        }
+        break;
+      case 'description':
+      case 'dsc':
+        if (next && !next.startsWith('-')) {
+          result.description = next;
+          i++;
+        }
         break;
       case 'transport':
-        if (next && !next.startsWith('-')) { result.transport = next; i++; }
+        if (next && !next.startsWith('-')) {
+          result.transport = next;
+          i++;
+        }
         break;
       case 'template':
-        if (next && !next.startsWith('-')) { result.template = next; i++; }
+        if (next && !next.startsWith('-')) {
+          result.template = next;
+          i++;
+        }
         break;
-      case 'path': case 'p':
-        if (next && !next.startsWith('-')) { result.path = next; i++; }
+      case 'path':
+      case 'p':
+        if (next && !next.startsWith('-')) {
+          result.path = next;
+          i++;
+        }
         break;
-      case 'lang': case 'l':
-        if (next && !next.startsWith('-')) { result.lang = next; i++; }
+      case 'lang':
+      case 'l':
+        if (next && !next.startsWith('-')) {
+          result.lang = next;
+          i++;
+        }
         break;
       case 'autostart':
         result.autoStart = true;
@@ -593,13 +725,16 @@ function parseArgs(argv: string[]): CliArgs {
       case 'start':
         result.start = true;
         break;
-      case 'build': case 'b':
+      case 'build':
+      case 'b':
         result.build = true;
         break;
-      case 'register': case 'r':
+      case 'register':
+      case 'r':
         result.register = true;
         break;
-      case 'quiet': case 'q':
+      case 'quiet':
+      case 'q':
         result.quiet = true;
         break;
     }
@@ -618,7 +753,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     case 'register':
       if (!args.name) err('-Name is required');
       if (!args.command) err('-Command is required');
-      actionRegister(args.name, args.command, args.args, args.description, args.transport, args.autoStart);
+      actionRegister(
+        args.name,
+        args.command,
+        args.args,
+        args.description,
+        args.transport,
+        args.autoStart,
+      );
       break;
     case 'unregister':
       if (!args.name) err('-Name is required');
@@ -657,6 +799,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       actionCreate(args.name, args.lang, args.build, args.register, args.start);
       break;
     default:
-      err(`Unknown action: ${args.action}. Valid actions: register, unregister, list, start, stop, restart, health, reload, quickstart, list-templates, create`);
+      err(
+        `Unknown action: ${args.action}. Valid actions: register, unregister, list, start, stop, restart, health, reload, quickstart, list-templates, create`,
+      );
   }
 }

@@ -82,25 +82,4 @@ After 2 fix iterations still issues?
 
 ---
 
-## Runtime Infrastructure
-
-Judgment Day is backed by 5 TypeScript modules in `src/` that provide runtime infrastructure:
-
-| Module | File | Purpose |
-|---|---|---|
-| **Findings Ledger** | `src/findings-ledger.ts` | Structured persistence for findings with lifecycle: open → triage → fix → verify → close. Stores in `.session/findings/`. |
-| **Compact State Machine** | `src/compact-state.ts` | Formal state machine for review transactions with CAS (Compare-And-Swap) guarantees. Phases: initiated → judges_started → verdict_ready → fixes_applied → approved/escalated. Stores in `.session/state-machine/`. |
-| **Review Lenses** | `src/review-lenses.ts` | 4 specific review lenses (security, maintainability, reliability, resilience) with risk-signal-based lens selection. |
-| **Result Gatekeeper** | `src/result-gatekeeper.ts` | Contract validation between pipeline phases — don't trust the phase's word, check the work product. Stores in `.session/contract-results/`. |
-| **Publication Gates** | `src/publication-gates.ts` | TOCTOU (Time-Of-Check/Time-Of-Use) prevention with TTL-based approvals and hash comparison. Stores in `.session/publication-gates/`. |
-| **Bounded Correction Loop** | `src/correction-rules-engine.ts` | Max 4 sweeps, 2 consecutive passes to terminate, auto-escalation after max sweeps. Adds `-Mode bounded` and `-Mode reset` CLI flags. |
-
-These modules run as lazy pipeline steps (phase 99) in `config/session-autostart.config.json`:
-- `findings-ledger-init` — reports open findings
-- `compact-state-init` — garbage collects stale transactions
-- `review-lenses-init` — runs 4-lens review on `src/`
-- `result-gatekeeper-verify` — validates all phase contracts
-- `publication-gates-prune` — removes expired approvals
-- `judgment-day-correction` — bounded correction via correction-rules-engine
-
-> **Referencia detallada**: [references/detail.md](references/detail.md)
+> **Referencia detallada**: [ eferences/detail.md](references/detail.md)

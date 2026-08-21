@@ -52,7 +52,9 @@ function ensureDir(p: string): void {
 function readJson<T>(p: string): T | null {
   try {
     if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8')) as T;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
@@ -66,7 +68,8 @@ function isPeakHour(timeZone: string, peakStart: number, peakEnd: number): boole
   try {
     const formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone,
-      hour: '2-digit', hour12: false,
+      hour: '2-digit',
+      hour12: false,
     });
     const hour = parseInt(formatter.format(new Date()), 10);
     return hour >= peakStart && hour < peakEnd;
@@ -79,7 +82,7 @@ function isPeakHour(timeZone: string, peakStart: number, peakEnd: number): boole
 function isTokenPressure(): boolean {
   const budget = readJson<{ used?: number; limit?: number }>(BUDGET_PATH);
   if (typeof budget?.used === 'number' && typeof budget?.limit === 'number') {
-    return (budget.used / budget.limit) > 0.8;
+    return budget.used / budget.limit > 0.8;
   }
   return false;
 }
@@ -121,20 +124,38 @@ function applyOptimizedOverlay(config: OpenCodeConfig): void {
   config.compaction = { auto: true, prune: true };
   config.watcher = {
     ignore: [
-      'node_modules/**', 'dist/**', 'build/**', '.git/**',
-      '.engram-data/**', 'tmp-session-debug/**', 'logs/**', 'session/**',
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      '.git/**',
+      '.engram-data/**',
+      'tmp-session-debug/**',
+      'logs/**',
+      'session/**',
     ],
   };
   config.permission = {
-    read: 'allow', glob: 'allow', grep: 'allow', skill: 'allow',
-    question: 'allow', todowrite: 'allow', lsp: 'ask',
-    webfetch: 'deny', websearch: 'deny', external_directory: 'ask',
-    doom_loop: 'deny', edit: 'allow',
+    read: 'allow',
+    glob: 'allow',
+    grep: 'allow',
+    skill: 'allow',
+    question: 'allow',
+    todowrite: 'allow',
+    lsp: 'ask',
+    webfetch: 'deny',
+    websearch: 'deny',
+    external_directory: 'ask',
+    doom_loop: 'deny',
+    edit: 'allow',
     bash: {
       '*': 'ask',
-      'git status*': 'allow', 'git log*': 'allow', 'git diff*': 'allow',
-      'git show*': 'allow', 'rg *': 'allow',
-      'Get-ChildItem *': 'allow', 'Test-Path *': 'allow',
+      'git status*': 'allow',
+      'git log*': 'allow',
+      'git diff*': 'allow',
+      'git show*': 'allow',
+      'rg *': 'allow',
+      'Get-ChildItem *': 'allow',
+      'Test-Path *': 'allow',
     },
     task: { '*': 'allow' },
   };
@@ -160,10 +181,18 @@ function applyOptimizedOverlay(config: OpenCodeConfig): void {
 
 function main(): void {
   const args = process.argv.slice(2);
-  const mode = (args.includes('--mode') ? args[args.indexOf('--mode') + 1] : args[0] || 'Auto') as ProfileMode;
-  const timeZone = args.includes('--timezone') ? args[args.indexOf('--timezone') + 1] : 'America/Argentina/Buenos_Aires';
-  const peakStart = args.includes('--peak-start') ? parseInt(args[args.indexOf('--peak-start') + 1], 10) : 9;
-  const peakEnd = args.includes('--peak-end') ? parseInt(args[args.indexOf('--peak-end') + 1], 10) : 15;
+  const mode = (
+    args.includes('--mode') ? args[args.indexOf('--mode') + 1] : args[0] || 'Auto'
+  ) as ProfileMode;
+  const timeZone = args.includes('--timezone')
+    ? args[args.indexOf('--timezone') + 1]
+    : 'America/Argentina/Buenos_Aires';
+  const peakStart = args.includes('--peak-start')
+    ? parseInt(args[args.indexOf('--peak-start') + 1], 10)
+    : 9;
+  const peakEnd = args.includes('--peak-end')
+    ? parseInt(args[args.indexOf('--peak-end') + 1], 10)
+    : 15;
   const silent = args.includes('--silent') || args.includes('-Silent');
 
   // Check opencode.json exists
@@ -179,11 +208,17 @@ function main(): void {
 
   if (mode === 'Status') {
     const state = readJson<AdaptiveState>(STATE_PATH);
-    console.log(`[STATUS] optimizationActive=${state?.optimizationActive ?? false} shouldOptimize=${shouldOptimize} reason=${reason} normalStreak=${state?.normalStreak ?? 0}`);
+    console.log(
+      `[STATUS] optimizationActive=${state?.optimizationActive ?? false} shouldOptimize=${shouldOptimize} reason=${reason} normalStreak=${state?.normalStreak ?? 0}`,
+    );
     process.exit(0);
   }
-  if (mode === 'Optimize') { shouldOptimize = true; }
-  if (mode === 'Restore') { shouldOptimize = false; }
+  if (mode === 'Optimize') {
+    shouldOptimize = true;
+  }
+  if (mode === 'Restore') {
+    shouldOptimize = false;
+  }
 
   const state = ensureState(readJson<AdaptiveState>(STATE_PATH));
 
@@ -232,7 +267,8 @@ function main(): void {
     }
   } else {
     writeJson(STATE_PATH, state);
-    if (!silent) console.log(`  [INFO] No change. reason=${reason} normalStreak=${state.normalStreak}`);
+    if (!silent)
+      console.log(`  [INFO] No change. reason=${reason} normalStreak=${state.normalStreak}`);
   }
 }
 

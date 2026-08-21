@@ -1,8 +1,0 @@
-﻿interface:
-  display_name: 'Architecture Governance'
-  short_description: 'Standardize architecture decisions and project structure'
-  default_prompt:
-    'Use this skill when defining or updating project architecture, structure, compatibility
-    constraints, scaffolding defaults, or architecture decision records. Keep the result
-    technology-agnostic, ask only for high-impact missing choices, and document the selected shape
-    in ARCHITECTURE.md or docs/project-context.md.'

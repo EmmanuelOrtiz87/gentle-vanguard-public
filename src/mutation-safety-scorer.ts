@@ -106,7 +106,20 @@ function getScopeImpact(mutationData: MutationData): number {
 }
 
 function getCapabilityDrift(mutationData: MutationData): number {
-  const driftTargets = ['file-system', 'network', 'database', 'security', 'auth', 'admin', 'sudo', 'root', 'system', 'kernel', 'exec', 'shell'];
+  const driftTargets = [
+    'file-system',
+    'network',
+    'database',
+    'security',
+    'auth',
+    'admin',
+    'sudo',
+    'root',
+    'system',
+    'kernel',
+    'exec',
+    'shell',
+  ];
   const target = (mutationData.target ?? '').toLowerCase();
   for (const dt of driftTargets) {
     if (target.includes(dt)) return 0.3;
@@ -133,16 +146,29 @@ function getHistoricalRisk(agent: string, root: string): number {
   if (!fs.existsSync(agentDir)) return 0.9;
 
   let entries: string[];
-  try { entries = fs.readdirSync(agentDir).filter(f => f.endsWith('.json')); } catch { return 0.9; }
+  try {
+    entries = fs.readdirSync(agentDir).filter((f) => f.endsWith('.json'));
+  } catch {
+    return 0.9;
+  }
   if (entries.length === 0) return 0.9;
 
   let rollbacks = 0;
   let total = 0;
   for (const entry of entries) {
     try {
-      const data: MutationHistoryEntry = JSON.parse(fs.readFileSync(path.join(agentDir, entry), 'utf-8'));
+      const data: MutationHistoryEntry = JSON.parse(
+        fs.readFileSync(path.join(agentDir, entry), 'utf-8'),
+      );
       total++;
-      if (data.status === 'rolled-back' || (data.scoreBefore !== null && data.scoreBefore !== undefined && data.scoreAfter !== null && data.scoreAfter !== undefined && data.scoreAfter < data.scoreBefore)) {
+      if (
+        data.status === 'rolled-back' ||
+        (data.scoreBefore !== null &&
+          data.scoreBefore !== undefined &&
+          data.scoreAfter !== null &&
+          data.scoreAfter !== undefined &&
+          data.scoreAfter < data.scoreBefore)
+      ) {
         rollbacks++;
       }
     } catch {
@@ -163,12 +189,18 @@ function getSimilarityToBadMutations(mutationData: MutationData, root: string): 
   const target = (mutationData.target ?? '').toLowerCase();
 
   let logs: string[];
-  try { logs = fs.readdirSync(badDir).filter(f => f.endsWith('.json')); } catch { return 0.9; }
+  try {
+    logs = fs.readdirSync(badDir).filter((f) => f.endsWith('.json'));
+  } catch {
+    return 0.9;
+  }
 
   let similarCount = 0;
   for (const log of logs) {
     try {
-      const data: MutationHistoryEntry = JSON.parse(fs.readFileSync(path.join(badDir, log), 'utf-8'));
+      const data: MutationHistoryEntry = JSON.parse(
+        fs.readFileSync(path.join(badDir, log), 'utf-8'),
+      );
       const dataStrategy = (data.strategy ?? '').toLowerCase();
       const dataTarget = (data.target ?? '').toLowerCase();
       if (dataStrategy === strategy && dataTarget === target) {
@@ -183,12 +215,30 @@ function getSimilarityToBadMutations(mutationData: MutationData, root: string): 
   return Math.max(0.1, 1.0 - similarCount * 0.2);
 }
 
-function doScore(agentId: string, mutationJson: string, config: SafetyConfig, root: string, auditDir: string): ScorerResult {
-  if (!agentId) { console.error('[SAFETY-SCORER] Provide --agentId'); process.exit(1); }
-  if (!mutationJson) { console.error('[SAFETY-SCORER] Provide --mutation as JSON'); process.exit(1); }
+function doScore(
+  agentId: string,
+  mutationJson: string,
+  config: SafetyConfig,
+  root: string,
+  auditDir: string,
+): ScorerResult {
+  if (!agentId) {
+    console.error('[SAFETY-SCORER] Provide --agentId');
+    process.exit(1);
+  }
+  if (!mutationJson) {
+    console.error('[SAFETY-SCORER] Provide --mutation as JSON');
+    process.exit(1);
+  }
 
   let mutationData: MutationData;
-  try { mutationData = JSON.parse(mutationJson); } catch { console.error('[SAFETY-SCORER] Invalid JSON in --mutation'); process.exit(1); return undefined as never; }
+  try {
+    mutationData = JSON.parse(mutationJson);
+  } catch {
+    console.error('[SAFETY-SCORER] Invalid JSON in --mutation');
+    process.exit(1);
+    return undefined as never;
+  }
 
   const weights = config.scoring.signals;
 
@@ -215,12 +265,16 @@ function doScore(agentId: string, mutationJson: string, config: SafetyConfig, ro
 
   const score = Math.round(Math.max(0.0, Math.min(1.0, rawScore)) * 1000) / 1000;
 
-  const riskLevel = score >= config.scoring.minAutoApproveScore ? 'low'
-    : score >= config.scoring.minAutoEscalateScore ? 'medium'
-    : 'high';
+  const riskLevel =
+    score >= config.scoring.minAutoApproveScore
+      ? 'low'
+      : score >= config.scoring.minAutoEscalateScore
+        ? 'medium'
+        : 'high';
 
   console.log(`\x1b[36m[SAFETY-SCORER] Mutation safety score for ${agentId}:\x1b[0m`);
-  const riskColor = riskLevel === 'low' ? '\x1b[32m' : riskLevel === 'medium' ? '\x1b[33m' : '\x1b[31m';
+  const riskColor =
+    riskLevel === 'low' ? '\x1b[32m' : riskLevel === 'medium' ? '\x1b[33m' : '\x1b[31m';
   console.log(`  Overall score: ${riskColor}${score} (risk: ${riskLevel})\x1b[0m`);
   console.log(`  \x1b[90mSignals:\x1b[0m`);
   for (const [key, val] of Object.entries(signals)) {
@@ -239,7 +293,10 @@ function doScore(agentId: string, mutationJson: string, config: SafetyConfig, ro
     },
   };
 
-  const logFile = path.join(auditDir, `scorer-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+  const logFile = path.join(
+    auditDir,
+    `scorer-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
+  );
   fs.writeFileSync(logFile, JSON.stringify(result, null, 2), 'utf-8');
 
   return result;
@@ -293,6 +350,10 @@ function main(): void {
   }
 }
 
-if (process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('mutation-safety-scorer.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith('mutation-safety-scorer.ts'))
+) {
   main();
 }

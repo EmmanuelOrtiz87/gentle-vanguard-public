@@ -37,7 +37,7 @@ export class EnhancedAuditLogger {
   async log(entry: Omit<AuditEntry, 'timestamp'>): Promise<void> {
     const auditEntry: AuditEntry = {
       ...entry,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Generate correlation ID if not provided
@@ -45,7 +45,7 @@ export class EnhancedAuditLogger {
       auditEntry.correlationId = this.generateCorrelationId(
         auditEntry.sessionId,
         auditEntry.action,
-        auditEntry.component
+        auditEntry.component,
       );
     }
 
@@ -79,10 +79,10 @@ export class EnhancedAuditLogger {
   async searchBySession(sessionId: string): Promise<AuditEntry[]> {
     try {
       const logContent = await fs.readFile(this.logFilePath, 'utf8');
-      const lines = logContent.split('\n').filter(line => line.trim() !== '');
+      const lines = logContent.split('\n').filter((line) => line.trim() !== '');
 
       return lines
-        .map(line => {
+        .map((line) => {
           try {
             return JSON.parse(line) as AuditEntry;
           } catch {
@@ -105,12 +105,14 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   const logger = new EnhancedAuditLogger();
 
   // Example usage
-  logger.log({
-    sessionId: 'sess-12345',
-    userId: 'user-abcde',
-    action: 'security_check',
-    component: 'security-orchestrator',
-    status: 'success',
-    details: 'Prompt injection patterns verified'
-  }).catch(console.error);
+  logger
+    .log({
+      sessionId: 'sess-12345',
+      userId: 'user-abcde',
+      action: 'security_check',
+      component: 'security-orchestrator',
+      status: 'success',
+      details: 'Prompt injection patterns verified',
+    })
+    .catch(console.error);
 }

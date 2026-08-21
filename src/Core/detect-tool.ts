@@ -260,7 +260,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const configPath = configPathIdx > 0 ? process.argv[configPathIdx + 1] : '';
 
   const detected = getDetectedTool();
-  const fullConfig = getToolConfig(detected, configPath || path.join(getRepoRoot(), 'config', 'orchestrator.json'));
+  const fullConfig = getToolConfig(
+    detected,
+    configPath || path.join(getRepoRoot(), 'config', 'orchestrator.json'),
+  );
 
   if (asJson) {
     console.log(JSON.stringify(fullConfig, null, 2));

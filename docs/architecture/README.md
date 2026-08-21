@@ -49,7 +49,7 @@ docs/architecture/
 ┌─────────────────────────────────────────────────────┐
 │  🤖 Layer 1: AGENTS (BA, DEV, QA, OPS, GOV, DOC, SAD)    │
 ├─────────────────────────────────────────────────────┤
-│  ⚡ Layer 2: COMMANDS (gv.ps1, pre-process-input.ps1)    │
+│  ⚡ Layer 2: COMMANDS (src/cli/gv.ts, pre-process-input.ps1)    │
 ├─────────────────────────────────────────────────────┤
 │  🔌 Layer 3: MCP SERVERS (Model Context Protocol)         │
 ├─────────────────────────────────────────────────────┤

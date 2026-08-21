@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "description": "Compact State Machine — formal state machine for review transactions with CAS guarantees",
-  "enabled": true,
-  "outputDir": ".session/state-machine",
-  "gcAfterHours": 24,
-  "maxTransitionsPerInstance": 50,
-  "requireCAS": true
-}

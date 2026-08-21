@@ -6,18 +6,16 @@
  * TS migration of scripts/utilities/session/SESSION-MANAGEMENT/ensure-github-bypass.ps1
  */
 
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { getEffectiveProcessTimeout } from './core/timeout-config';
 
-function run(cmd: string, opts: { quiet?: boolean } = {}): string {
+function run(cmd: string, _opts: { quiet?: boolean } = {}): string {
   try {
-    return execSync(cmd, {
-      encoding: 'utf-8',
+    return runSyncShell(cmd, {
       timeout: getEffectiveProcessTimeout('default'),
-      windowsHide: true,
-      stdio: opts.quiet ? 'pipe' : 'pipe',
-    }).trim();
+      stdio: 'pipe',
+    }).stdout.trim();
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(msg);
@@ -28,14 +26,22 @@ function main(): void {
   const args = process.argv.slice(2);
   const owner = args.includes('--owner') ? args[args.indexOf('--owner') + 1] : 'EmmanuelOrtiz87';
   const branch = args.includes('--branch') ? args[args.indexOf('--branch') + 1] : 'develop';
-  const repos = args.includes('--repos') ? args[args.indexOf('--repos') + 1].split(',') : ['gentle-vanguard', 'gentle-vanguard-public'];
+  const repos = args.includes('--repos')
+    ? args[args.indexOf('--repos') + 1].split(',')
+    : ['gentle-vanguard', 'gentle-vanguard-public'];
   const strict = args.includes('--strict') || args.includes('-Strict');
 
   let hasFailure = false;
 
-  function info(m: string): void { console.log(`[INFO] ${m}`); }
-  function ok(m: string): void { console.log(`[OK] ${m}`); }
-  function warn(m: string): void { console.log(`[WARN] ${m}`); }
+  function info(m: string): void {
+    console.log(`[INFO] ${m}`);
+  }
+  function ok(m: string): void {
+    console.log(`[OK] ${m}`);
+  }
+  function warn(m: string): void {
+    console.log(`[WARN] ${m}`);
+  }
 
   try {
     run('gh --version', { quiet: true });
@@ -61,7 +67,9 @@ function main(): void {
   for (const repo of repos) {
     try {
       info(`Checking rulesets for ${owner}/${repo} (${branchRef})...`);
-      const rulesets: Array<{ id: number }> = JSON.parse(run(`gh api repos/${owner}/${repo}/rulesets`, { quiet: true }));
+      const rulesets: Array<{ id: number }> = JSON.parse(
+        run(`gh api repos/${owner}/${repo}/rulesets`, { quiet: true }),
+      );
 
       let target: Record<string, unknown> | null = null;
       for (const rs of rulesets) {
@@ -84,7 +92,8 @@ function main(): void {
       }
 
       const existingActors = (target.bypass_actors as Array<Record<string, unknown>>) || [];
-      const alreadyBypassed = target.current_user_can_bypass === 'always' ||
+      const alreadyBypassed =
+        target.current_user_can_bypass === 'always' ||
         existingActors.some(
           (a: Record<string, unknown>) =>
             a.actor_type === 'User' && Number(a.actor_id) === actorId && a.bypass_mode === 'always',
@@ -95,7 +104,10 @@ function main(): void {
         continue;
       }
 
-      const newActors = [...existingActors, { actor_id: actorId, actor_type: 'User', bypass_mode: 'always' }];
+      const newActors = [
+        ...existingActors,
+        { actor_id: actorId, actor_type: 'User', bypass_mode: 'always' },
+      ];
 
       const body = JSON.stringify({
         name: target.name,
@@ -106,7 +118,10 @@ function main(): void {
         bypass_actors: newActors,
       });
 
-      run(`echo '${body.replace(/'/g, "'\\''")}' | gh api repos/${owner}/${repo}/rulesets/${target.id} -X PUT --input -`, { quiet: true });
+      run(
+        `echo '${body.replace(/'/g, "'\\''")}' | gh api repos/${owner}/${repo}/rulesets/${target.id} -X PUT --input -`,
+        { quiet: true },
+      );
 
       const check: Record<string, unknown> = JSON.parse(
         run(`gh api repos/${owner}/${repo}/rulesets/${target.id}`, { quiet: true }),

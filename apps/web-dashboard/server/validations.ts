@@ -1,15 +1,19 @@
 import { existsSync, statSync } from 'fs';
 import { join } from 'path';
-import { execSync } from 'child_process';
 import { ROOT, readJson } from './shared.ts';
 import { getProcessExecutionTimeouts } from '@gentle-vanguard/core/timeout-config';
+import { runSync } from '@gentle-vanguard/core/run-command';
 
 const TOKEN_PATH = join(ROOT, '.runtime', 'metrics', 'token.json');
 const SESSIONS_PATH = join(ROOT, '.runtime', 'metrics', 'sessions.json');
 const SESSIONS_HISTORY_PATH = join(ROOT, '.event-bus', 'sessions-history.json');
 function execGit(args: string): string {
   try {
-    return execSync(`git ${args} 2>NUL`, { cwd: ROOT, encoding: 'utf-8', timeout: getProcessExecutionTimeouts().git_operation_ms ?? 3000 }).trim();
+    const result = runSync('git', args.split(' '), {
+      cwd: ROOT,
+      timeout: getProcessExecutionTimeouts().git_operation_ms ?? 3000,
+    });
+    return result.stdout?.trim() ?? '';
   } catch {
     return '';
   }
@@ -128,4 +132,3 @@ export function runValidations(
 
   return results;
 }
-

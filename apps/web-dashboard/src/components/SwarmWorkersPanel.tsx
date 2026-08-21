@@ -20,20 +20,21 @@ function formatDuration(started: string, finished?: string): string {
   const start = new Date(started).getTime();
   const end = finished ? new Date(finished).getTime() : Date.now();
   const durationMs = end - start;
-  
+
   if (durationMs < 1000) return `${durationMs}ms`;
   if (durationMs < 60000) return `${Math.floor(durationMs / 1000)}s`;
-  if (durationMs < 3600000) return `${Math.floor(durationMs / 60000)}m ${Math.floor((durationMs % 60000) / 1000)}s`;
+  if (durationMs < 3600000)
+    return `${Math.floor(durationMs / 60000)}m ${Math.floor((durationMs % 60000) / 1000)}s`;
   return `${Math.floor(durationMs / 3600000)}h ${Math.floor((durationMs % 3600000) / 60000)}m`;
 }
 
 function formatTimestamp(iso: string): string {
   const date = new Date(iso);
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit', 
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
     second: '2-digit',
-    hour12: false 
+    hour12: false,
   });
 }
 
@@ -96,7 +97,9 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadgeColor(worker.status)}`}>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadgeColor(worker.status)}`}
+          >
             {worker.status}
           </span>
           <button
@@ -123,7 +126,9 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
           {duration}
         </span>
         {worker.exitCode !== null && (
-          <span className={`font-mono ${worker.exitCode === 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <span
+            className={`font-mono ${worker.exitCode === 0 ? 'text-green-600' : 'text-red-600'}`}
+          >
             exit: {worker.exitCode}
           </span>
         )}

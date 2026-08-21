@@ -39,21 +39,21 @@ Profiles available in `config/orchestrator.json`:
 
 Operational commands:
 
-```powershell
+```TypeScript
 # Show active communication settings
-.\scripts\utilities\gv.ps1 response-mode
+.\scripts\utilities\src/cli/gv.ts response-mode
 
 # List all options
-.\scripts\utilities\gv.ps1 response-mode list
+.\scripts\utilities\src/cli/gv.ts response-mode list
 
 # Set compression profile
-.\scripts\utilities\gv.ps1 response-mode profile:ultra
+.\scripts\utilities\src/cli/gv.ts response-mode profile:ultra
 
 # Set language
-.\scripts\utilities\gv.ps1 response-mode language:pt-BR
+.\scripts\utilities\src/cli/gv.ts response-mode language:pt-BR
 
 # Set detail level
-.\scripts\utilities\gv.ps1 response-mode detail:expanded
+.\scripts\utilities\src/cli/gv.ts response-mode detail:expanded
 ```
 
 Recommendation:
@@ -74,17 +74,18 @@ The orchestrator can apply consistent settings using communication presets:
 
 Commands:
 
-```powershell
+```TypeScript
 # Apply preset directly
-.\scripts\utilities\gv.ps1 response-mode preset:bugfix
+.\scripts\utilities\src/cli/gv.ts response-mode preset:bugfix
 
 # Ask for recommendation from preset + risk
-.\scripts\utilities\gv.ps1 response-mode recommend:docs:high
+.\scripts\utilities\src/cli/gv.ts response-mode recommend:docs:high
 ```
 
 Orchestrator integration:
 
 1. Run `./scripts/utilities/orchestrator-next-steps.ps1`.
+<!-- REF-OBSOLETA: scripts/utilities/orchestrator-next-steps.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Review recommended preset and risk.
 3. Apply suggested mode before implementation.
 
@@ -165,7 +166,7 @@ API Key format: AIzaSyxxxxx
 
 Create `.env` file in your project root:
 
-```powershell
+```TypeScript
 # Required for Anthropic (Claude)
 ANTHROPIC_API_KEY=sk-ant-xxxxx-xxxxx
 
@@ -181,7 +182,7 @@ DEFAULT_AI_PROVIDER=anthropic
 
 ### Step 3: Verify Configuration
 
-```powershell
+```TypeScript
 # Test Anthropic (Claude)
 claude "Hello, respond with 'Working!'"
 
@@ -194,7 +195,7 @@ opencode --model gemini-1.5-pro "Hello"
 
 ### Recommended Cloud Configuration
 
-```powershell
+```TypeScript
 # .env file - Recommended setup
 
 # Primary provider
@@ -233,7 +234,7 @@ ADVANTAGES                          DISADVANTAGES
 
 #### Windows
 
-```powershell
+```TypeScript
 # Download from ollama.ai
 # Or use winget:
 winget install Ollama.Ollama
@@ -253,7 +254,7 @@ ollama --versión
 
 ### Download Models
 
-```powershell
+```TypeScript
 # Recommended models for coding:
 
 # CodeLlama (good general coding)
@@ -276,7 +277,7 @@ ollama pull codellama:13b
 
 ### Verify Ollama is Running
 
-```powershell
+```TypeScript
 # Start Ollama service (usually auto-starts)
 ollama serve
 
@@ -286,7 +287,7 @@ ollama list  # Shows installed models
 
 ### Configure Gentle-Vanguard for Ollama
 
-```powershell
+```TypeScript
 # Set Ollama as provider
 ollama config set provider ollama
 
@@ -301,7 +302,7 @@ DEFAULT_MODEL=codellama:13b
 
 Use cloud as primary, local as fallback:
 
-```powershell
+```TypeScript
 # .env file - Hybrid setup
 
 # Cloud providers
@@ -355,7 +356,7 @@ Gentle-Vanguard automatically detects availability:
 
 ### Model Selection by Task
 
-```powershell
+```TypeScript
 # .env - Task-based routing
 
 # Simple tasks (fast, cheap)
@@ -379,7 +380,7 @@ REFACTOR_MODEL=claude-opus-4
 
 ### Cost Management
 
-```powershell
+```TypeScript
 # Set spending limits
 MAX_DAILY_SPEND_USD=10
 MAX_MONTHLY_SPEND_USD=100
@@ -392,7 +393,7 @@ LOG_API_CALLS=true
 
 ### Performance Tuning
 
-```powershell
+```TypeScript
 # Response speed vs quality
 PREFER_FAST_RESPONSES=true  # Use smaller models for speed
 CACHE_PROMPTS=true         # Cache similar prompts
@@ -405,7 +406,7 @@ TRUNCATE_OLD_CONTEXT=true  # Remove old messages when full
 
 ### Security Settings
 
-```powershell
+```TypeScript
 # Don't send to AI
 BLOCKED_PATTERNS=password,api_key,secret,token,credential
 SECRET_SCAN_BEFORE_PROMPT=true
@@ -421,7 +422,7 @@ CONVERSATION_RETENTION_DAYS=0  # Don't save on provider servers
 
 ### "API key not valid"
 
-```powershell
+```TypeScript
 # Verify key is correct
 echo $ANTHROPIC_API_KEY
 
@@ -432,7 +433,7 @@ echo $ANTHROPIC_API_KEY
 
 ### "Rate limit exceeded"
 
-```powershell
+```TypeScript
 # Wait and retry, or:
 REDUCE_REQUESTS=true
 BATCH_PROMPTS=true
@@ -440,7 +441,7 @@ BATCH_PROMPTS=true
 
 ### "Model not found"
 
-```powershell
+```TypeScript
 # For Ollama, list available models
 ollama list
 
@@ -450,7 +451,7 @@ ollama pull codellama:13b
 
 ### "Connection timeout"
 
-```powershell
+```TypeScript
 # Check internet connection
 ping console.anthropic.com
 
@@ -462,7 +463,7 @@ USE_LOCAL_FALLBACK=true
 
 ## Quick Reference: .env Template
 
-```powershell
+```TypeScript
 #
 # GENTLE_VANGUARD - AI CONFIGURATION
 #
@@ -534,7 +535,7 @@ STREAM_RESPONSES=true
 
 ## Verification Checklist
 
-```powershell
+```TypeScript
 # Run these to verify setup:
 
 # 1. Check environment variables

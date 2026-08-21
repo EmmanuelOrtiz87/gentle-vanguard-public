@@ -7,7 +7,7 @@
 
 import { existsSync, unlinkSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
 import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
 import { pathToFileURL } from 'url';
@@ -23,9 +23,11 @@ function resolveEngramBinary(): string | null {
     if (existsSync(c)) return c;
   }
   try {
-    const r = execSync('where engram', { encoding: 'utf-8', timeout: 5000, windowsHide: true }).trim();
+    const r = runSync('where', ['engram'], { timeout: 5000 }).stdout.trim();
     if (r) return r.split('\n')[0].trim();
-  } catch { /* not in PATH */ }
+  } catch {
+    /* not in PATH */
+  }
   return null;
 }
 
@@ -34,23 +36,28 @@ function runEngram(args: string[], allowFailure = false): string {
   if (!bin) throw new Error('Engram binary not found');
   const stderrFile = join(tmpdir(), `engram-stderr-${randomUUID()}.txt`);
   try {
-    return execSync(`"${bin}" ${args.join(' ')} 2>"${stderrFile}"`, {
-      encoding: 'utf-8',
+    return runSyncShell(`"${bin}" ${args.join(' ')} 2>"${stderrFile}"`, {
       timeout: 30000,
-      windowsHide: true,
-    });
+    }).stdout;
   } catch (e) {
     if (!allowFailure) throw e;
     return '';
   } finally {
-    try { if (existsSync(stderrFile)) unlinkSync(stderrFile); } catch { /* ignore */ }
+    try {
+      if (existsSync(stderrFile)) unlinkSync(stderrFile);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
 function main(): void {
   const args = process.argv.slice(2);
-  const project = args.includes('--project') ? args[args.indexOf('--project') + 1] :
-                  args.includes('-ProjectName') ? args[args.indexOf('-ProjectName') + 1] : 'gentle-vanguard';
+  const project = args.includes('--project')
+    ? args[args.indexOf('--project') + 1]
+    : args.includes('-ProjectName')
+      ? args[args.indexOf('-ProjectName') + 1]
+      : 'gentle-vanguard';
   // autoApply: args.includes('--auto-apply') || args.includes('-AutoApply')
   // keepDays: args.includes('--keep-days') ? parseInt(args[args.indexOf('--keep-days') + 1], 10) : 7;
 
@@ -65,10 +72,19 @@ function main(): void {
 
   // 1. Find duplicate entries
   console.log('[INFO] Checking for duplicate entries...');
-  const duplicates = runEngram(['search', 'duplicate OR repeated', '--project', project, '--limit', '50'], true);
+  const duplicates = runEngram(
+    ['search', 'duplicate OR repeated', '--project', project, '--limit', '50'],
+    true,
+  );
   if (duplicates) {
     const ts = new Date().toISOString().slice(0, 19);
-    runEngram(['save', 'Duplicate cleanup check', `Duplicate check run at ${ts}. Found entries needing review.`, '--project', project]);
+    runEngram([
+      'save',
+      'Duplicate cleanup check',
+      `Duplicate check run at ${ts}. Found entries needing review.`,
+      '--project',
+      project,
+    ]);
   }
 
   // 2. Run diagnostics
@@ -87,14 +103,20 @@ function main(): void {
   // 5. Show recommendations
   console.log('[OPTIMIZE] Optimization completed');
   console.log('\nRecommendations for better context efficiency:');
-  console.log('  1. Use \'engram search\' before repeating explanations');
+  console.log("  1. Use 'engram search' before repeating explanations");
   console.log('  2. Save decisions > 5min to Engram automatically');
   console.log('  3. Reference Engram IDs instead of full content');
-  console.log("  4. Run this script regularly for maintenance");
+  console.log('  4. Run this script regularly for maintenance');
   console.log("  5. Run 'engram conflicts scan --apply' for explicit conflict cleanup");
 
   const ts = new Date().toISOString().slice(0, 19);
-  runEngram(['save', 'Context efficiency optimization run', `Optimization script executed at ${ts}. Project: ${project}.`, '--project', project]);
+  runEngram([
+    'save',
+    'Context efficiency optimization run',
+    `Optimization script executed at ${ts}. Project: ${project}.`,
+    '--project',
+    project,
+  ]);
 
   console.log('[OK] Engram usage optimization completed');
   process.exit(0);

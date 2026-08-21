@@ -123,13 +123,17 @@ const options: Options = {
   subtitle: args.includes('--subtitle') ? args[args.indexOf('--subtitle') + 1] || '' : '',
 };
 
-function ok(msg: string): void { console.log(`[OK] ${msg}`); }
-function err(msg: string): void { console.error(`[ERROR] ${msg}`); }
+function ok(msg: string): void {
+  console.log(`[OK] ${msg}`);
+}
+function err(msg: string): void {
+  console.error(`[ERROR] ${msg}`);
+}
 
 const brand = loadBrandConfig();
-  const C = brand.colors;
-  const T = brand.typography;
-  const DIM = brand.dimensions;
+const C = brand.colors;
+const T = brand.typography;
+const DIM = brand.dimensions;
 
 // ─── SVG Builders ──────────────────────────────────────────────────────────────
 
@@ -183,7 +187,10 @@ function gridPattern(w: number, h: number): string {
 
 function generateBanner(type: string): string {
   const dims = DIM.banners[type];
-  if (!dims) { err(`Unknown banner type: ${type}`); return ''; }
+  if (!dims) {
+    err(`Unknown banner type: ${type}`);
+    return '';
+  }
 
   const { width: w, height: h } = dims;
   const title = options.text || brand.name;
@@ -291,9 +298,10 @@ function main(): void {
   const outputDir = options.outputDir || join(ROOT, 'docs', 'brand', 'assets');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
 
-  const types = options.type === 'all'
-    ? [...Object.keys(DIM.banners), 'logo-primary', 'logo-icon', 'favicon']
-    : [options.type];
+  const types =
+    options.type === 'all'
+      ? [...Object.keys(DIM.banners), 'logo-primary', 'logo-icon', 'favicon']
+      : [options.type];
 
   let count = 0;
   for (const type of types) {

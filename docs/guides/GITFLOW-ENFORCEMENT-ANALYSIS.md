@@ -23,7 +23,7 @@
 
 - Valida cdigo y polticas de revisión
 
-#### 3. **Validacin GitFlow** (`scripts/diagnostics/validate-gitflow.ps1`)
+#### 3. **Validacin GitFlow** (`src/validate-gitflow.ts`)
 
 - Detecta rama actual
 - Clasifica rama por tipo (feature, bugfix, chore, hotfix, release)
@@ -108,9 +108,9 @@ Use feature/bugfix/chore/hotfix/release branches and PR workflow.
 
 #### 1.1 Enriquecer Mensajes de Error
 
-**Archivo**: `scripts/diagnostics/validate-gitflow.ps1`
+**Archivo**: `src/validate-gitflow.ts`
 
-```powershell
+```TypeScript
 # Agregar funcin de ayuda contextual
 function Show-GitFlowHelp {
     param([string]$CurrentBranch, [string]$Kind)
@@ -150,8 +150,9 @@ function Show-GitFlowHelp {
 #### 1.2 Crear Script Interactivo de Rama
 
 **Archivo**: `scripts/utilities/create-gitflow-branch.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/create-gitflow-branch.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
-```powershell
+```TypeScript
 param(
     [string]$Description,
     [ValidateSet('feature', 'bugfix', 'chore', 'hotfix', 'release')]
@@ -271,9 +272,9 @@ hotfix/, o release/
 
 ### NIVEL 3: automatización Avanzada (Mejora Continua)
 
-#### 3.1 Crear Asistente Interactivo en gv.ps1
-```powershell
-# Agregar comando: gv.ps1 gitflow-setup
+#### 3.1 Crear Asistente Interactivo en src/cli/gv.ts
+```TypeScript
+# Agregar comando: src/cli/gv.ts gitflow-setup
 # Que gue al usuario paso a paso
 ````
 
@@ -306,14 +307,14 @@ hotfix/, o release/
 
 ### Fase 1 (Inmediata - Esta Semana)
 
-1.  Enriquecer mensajes de error en `validate-gitflow.ps1`
-2.  Crear `GITFLOW-QUICK-REFERENCE.md`
-3.  Crear script `create-gitflow-branch.ps1`
+1. Enriquecer mensajes de error en `validate-gitflow.ps1`
+2. Crear `GITFLOW-QUICK-REFERENCE.md`
+3. Crear script `create-gitflow-branch.ps1`
 
 ### Fase 2 (Corto Plazo - 2 Semanas)
 
 1. Integrar validacin de PR base en pre-push hook
-2. Agregar comando `gv.ps1 gitflow-setup` interactivo
+2. Agregar comando `src/cli/gv.ts gitflow-setup` interactivo
 3. Crear GitHub Actions para validacin de PR
 
 ### Fase 3 (Mediano Plazo - 1 Mes)

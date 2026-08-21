@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
+import { pathToFileURL } from 'url';
 
 interface CliArgs {
   action: string;
@@ -23,20 +24,39 @@ function parseArgs(): CliArgs {
 
 const ROOT = path.resolve(process.cwd());
 const SCRIPT_DIR = path.join(ROOT, 'scripts', 'utilities');
-const TARGET = path.join(SCRIPT_DIR, 'token', 'token-metrics-store.ps1');
+const LEGACY_PS1 = path.join(SCRIPT_DIR, 'token', 'token-metrics-store.ps1');
+const TS_ENTRY = path.join(ROOT, 'src', 'token-metrics-store.ts');
 
 function run(): void {
   const { action, quiet } = parseArgs();
 
-  if (fs.existsSync(TARGET)) {
-    const psArgs: string[] = ['-File', TARGET, '-Action', action];
-    if (quiet) { psArgs.push('-Quiet'); }
-    const result = spawnSync('powershell', psArgs, { stdio: 'inherit', cwd: ROOT, shell: true });
+  // TS migration: token-metrics-store.ps1 → src/token-metrics-store.ts
+  if (fs.existsSync(TS_ENTRY)) {
+    const tsArgs: string[] = [TS_ENTRY];
+    if (action) {
+      tsArgs.push('-Action', action);
+    }
+    if (quiet) {
+      tsArgs.push('-Quiet');
+    }
+    const result = runNpxTsxSync(tsArgs[0], tsArgs.slice(1), {
+      stdio: 'inherit',
+      cwd: ROOT,
+    });
+    process.exit(result.status ?? 0);
+  } else if (fs.existsSync(LEGACY_PS1)) {
+    const psArgs: string[] = ['-File', LEGACY_PS1, '-Action', action];
+    if (quiet) {
+      psArgs.push('-Quiet');
+    }
+    const result = runSync('powershell', psArgs, { stdio: 'inherit', cwd: ROOT });
     process.exit(result.status ?? 0);
   } else {
-    console.warn(`[token-usage-notifier] target not found: ${TARGET}`);
+    console.warn(`[token-usage-notifier] target not found: ${TS_ENTRY}`);
     process.exit(1);
   }
 }
 
-run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  run();
+}

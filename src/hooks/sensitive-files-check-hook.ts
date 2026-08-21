@@ -2,13 +2,10 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 
 function main(): number {
-  const staging = spawnSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-  });
+  const staging = runSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM']);
 
   let stagedFiles: string[] = [];
   if (staging.stdout?.trim()) {

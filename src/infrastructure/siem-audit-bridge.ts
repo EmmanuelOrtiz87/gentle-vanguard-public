@@ -1,11 +1,5 @@
 #!/usr/bin/env node
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  appendFileSync,
-  mkdirSync,
-} from 'fs';
+import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -114,7 +108,8 @@ function saveCheckpoint(lineNum: number, lastTs: string) {
 }
 
 function convertToSiemEvent(entry: AuditEntry, source = 'gentle-vanguard-secret-vault'): SiemEvent {
-  const severity = entry.outcome === 'FAILURE' ? 'ERROR' : entry.outcome === 'WARNING' ? 'WARN' : 'INFO';
+  const severity =
+    entry.outcome === 'FAILURE' ? 'ERROR' : entry.outcome === 'WARNING' ? 'WARN' : 'INFO';
   return {
     timestamp: entry.timestamp ?? '',
     source,
@@ -139,8 +134,10 @@ function sendToSiem(siemEvent: SiemEvent, siemConfig: SiemConfig | null): boolea
 
   if (siemConfig?.enabled !== true) return true;
 
-  const endpoint = siemConfig.endpoint ?? ''; void endpoint;
-  const provider = siemConfig.provider ?? ''; void provider;
+  const endpoint = siemConfig.endpoint ?? '';
+  void endpoint;
+  const provider = siemConfig.provider ?? '';
+  void provider;
   try {
     return true;
   } catch {
@@ -153,12 +150,14 @@ function invokeAnomalyDetection(entries: AuditEntry[]): Alert[] {
   const alerts: Alert[] = [];
   const now = new Date();
 
-  const recentAccess = entries.filter(
-    (e) => e.operation === 'get' && e.timestamp,
-  ).filter((e) => {
-    const ts = new Date(e.timestamp!);
-    return !isNaN(ts.getTime()) && (now.getTime() - ts.getTime()) / 60000 <= ALERT_MASS_ACCESS_WINDOW;
-  });
+  const recentAccess = entries
+    .filter((e) => e.operation === 'get' && e.timestamp)
+    .filter((e) => {
+      const ts = new Date(e.timestamp!);
+      return (
+        !isNaN(ts.getTime()) && (now.getTime() - ts.getTime()) / 60000 <= ALERT_MASS_ACCESS_WINDOW
+      );
+    });
 
   if (recentAccess.length >= ALERT_MASS_ACCESS_THRESHOLD) {
     alerts.push({
@@ -169,12 +168,12 @@ function invokeAnomalyDetection(entries: AuditEntry[]): Alert[] {
     });
   }
 
-  const recentFailures = entries.filter(
-    (e) => e.outcome === 'FAILURE' && e.timestamp,
-  ).filter((e) => {
-    const ts = new Date(e.timestamp!);
-    return !isNaN(ts.getTime()) && (now.getTime() - ts.getTime()) / 60000 <= 10;
-  });
+  const recentFailures = entries
+    .filter((e) => e.outcome === 'FAILURE' && e.timestamp)
+    .filter((e) => {
+      const ts = new Date(e.timestamp!);
+      return !isNaN(ts.getTime()) && (now.getTime() - ts.getTime()) / 60000 <= 10;
+    });
 
   if (recentFailures.length >= ALERT_FAILURE_THRESHOLD) {
     alerts.push({
@@ -242,7 +241,9 @@ function invokeTail(auditLog: string) {
   for (const a of alerts) writeAlert(a);
   saveCheckpoint(checkpoint.lastLine + processed, lastTs);
 
-  console.log(`\x1b[32m SIEM bridge processed ${processed} event(s), ${forwarded} forwarded.\x1b[0m`);
+  console.log(
+    `\x1b[32m SIEM bridge processed ${processed} event(s), ${forwarded} forwarded.\x1b[0m`,
+  );
   if (alerts.length > 0) {
     console.log(`\x1b[33m[!] ${alerts.length} alert(s) generated — see: ${AlertLog}\x1b[0m`);
   }
@@ -293,7 +294,9 @@ function invokeStatus(auditLog: string) {
   console.log(`  Last checkpoint: line ${checkpoint.lastLine}`);
 
   if (existsSync(auditLog)) {
-    const totalLines = readFileSync(auditLog, 'utf-8').split('\n').filter((l) => l.trim()).length;
+    const totalLines = readFileSync(auditLog, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim()).length;
     const unprocessed = totalLines - checkpoint.lastLine;
     console.log(`  Total events:   ${totalLines} (${unprocessed} unprocessed)`);
   }
@@ -303,11 +306,15 @@ function invokeStatus(auditLog: string) {
     console.log(`\x1b[32m  Cloud SIEM:     ${siemConfig.provider} — ${siemConfig.endpoint}\x1b[0m`);
   } else {
     console.log(`\x1b[33m  Cloud SIEM:     Not configured (local-only mode)\x1b[0m`);
-    console.log(`\x1b[90m                  Configure via config/observability-config.json#siem\x1b[0m`);
+    console.log(
+      `\x1b[90m                  Configure via config/observability-config.json#siem\x1b[0m`,
+    );
   }
 
   if (existsSync(AlertLog)) {
-    const alertCount = readFileSync(AlertLog, 'utf-8').split('\n').filter((l) => l.trim()).length;
+    const alertCount = readFileSync(AlertLog, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim()).length;
     console.log(`  Active alerts:  ${alertCount}`);
   } else {
     console.log(`\x1b[32m  Active alerts:  0\x1b[0m`);

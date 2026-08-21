@@ -1,5 +1,13 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync, statSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  rmSync,
+  statSync,
+} from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 
@@ -39,7 +47,11 @@ const CRITICAL_FILES = [
 function log(message: string, level: 'INFO' | 'WARN' | 'SUCCESS' = 'INFO', quiet = false): void {
   if (quiet) return;
   const ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  const colors: Record<string, string> = { INFO: '\x1b[35m', WARN: '\x1b[33m', SUCCESS: '\x1b[32m' };
+  const colors: Record<string, string> = {
+    INFO: '\x1b[35m',
+    WARN: '\x1b[33m',
+    SUCCESS: '\x1b[32m',
+  };
   console.log(`${colors[level]}[${ts}] [SNAP] [${level}] ${message}\x1b[0m`);
 }
 
@@ -78,14 +90,22 @@ function actionSnapshot(label?: string, quiet = false): SnapshotMeta {
       try {
         snapshot.files[f] = readFileSync(fp, 'utf-8');
       } catch (err) {
-        log(`Failed to read ${f}: ${err instanceof Error ? err.message : String(err)}`, 'WARN', quiet);
+        log(
+          `Failed to read ${f}: ${err instanceof Error ? err.message : String(err)}`,
+          'WARN',
+          quiet,
+        );
       }
     }
   }
 
   const snapshotPath = join(SNAPSHOT_DIR, `${snapshot.id}.json`);
   writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2), 'utf-8');
-  log(`Snapshot ${snapshot.id} saved (${Object.keys(snapshot.files).length} files)`, 'SUCCESS', quiet);
+  log(
+    `Snapshot ${snapshot.id} saved (${Object.keys(snapshot.files).length} files)`,
+    'SUCCESS',
+    quiet,
+  );
 
   return snapshot;
 }
@@ -94,11 +114,15 @@ function actionList(_quiet = false): SnapshotSummary[] {
   if (!existsSync(SNAPSHOT_DIR)) return [];
 
   const entries = readdirSync(SNAPSHOT_DIR, { withFileTypes: true })
-    .filter(e => e.isFile() && e.name.endsWith('.json'))
-    .map(e => {
+    .filter((e) => e.isFile() && e.name.endsWith('.json'))
+    .map((e) => {
       const fp = join(SNAPSHOT_DIR, e.name);
       let st;
-      try { st = statSync(fp); } catch { st = null; }
+      try {
+        st = statSync(fp);
+      } catch {
+        st = null;
+      }
       return { name: e.name, path: fp, mtime: st ? st.mtimeMs : 0 };
     })
     .sort((a, b) => b.mtime - a.mtime);
@@ -135,8 +159,9 @@ function actionCleanup(retentionDays = 7, quiet = false): CleanupResult {
   let removed = 0;
 
   if (existsSync(SNAPSHOT_DIR)) {
-    const files = readdirSync(SNAPSHOT_DIR, { withFileTypes: true })
-      .filter(e => e.isFile() && e.name.endsWith('.json'));
+    const files = readdirSync(SNAPSHOT_DIR, { withFileTypes: true }).filter(
+      (e) => e.isFile() && e.name.endsWith('.json'),
+    );
 
     for (const f of files) {
       const fp = join(SNAPSHOT_DIR, f.name);
@@ -157,12 +182,24 @@ function actionCleanup(retentionDays = 7, quiet = false): CleanupResult {
     }
   }
 
-  log(`Cleanup complete: ${removed} snapshots removed (retention: ${retentionDays}d)`, 'SUCCESS', quiet);
+  log(
+    `Cleanup complete: ${removed} snapshots removed (retention: ${retentionDays}d)`,
+    'SUCCESS',
+    quiet,
+  );
   return { removed, retentionDays };
 }
 
-async function actionSchedule(intervalSeconds = 300, retentionDays = 7, quiet = false): Promise<void> {
-  log(`Snapshot scheduler started (interval: ${intervalSeconds}s, retention: ${retentionDays}d)`, 'INFO', quiet);
+async function actionSchedule(
+  intervalSeconds = 300,
+  retentionDays = 7,
+  quiet = false,
+): Promise<void> {
+  log(
+    `Snapshot scheduler started (interval: ${intervalSeconds}s, retention: ${retentionDays}d)`,
+    'INFO',
+    quiet,
+  );
   log('Press Ctrl+C to stop', 'INFO', quiet);
   let counter = 0;
   let running = true;
@@ -180,7 +217,7 @@ async function actionSchedule(intervalSeconds = 300, retentionDays = 7, quiet = 
     if (counter % 10 === 0) {
       actionCleanup(retentionDays, quiet);
     }
-    await new Promise(r => setTimeout(r, intervalSeconds * 1000));
+    await new Promise((r) => setTimeout(r, intervalSeconds * 1000));
   }
 }
 

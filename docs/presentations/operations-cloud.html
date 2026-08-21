@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="☁️ Operations, CI/CD & Cloud — Gentle-Vanguard — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>☁️ Operations, CI/CD & Cloud — Gentle-Vanguard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de operations-cloud.html (complementan el design system) --- */
+      .badge-ops {
+        background: rgba(0, 191, 255, 0.15);
+        color: var(--p);
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.35em 0.7em;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 191, 255, 0.2);
+      }
+      .badge-sec {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--er);
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.35em 0.7em;
+        border-radius: 6px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+      .table-ops {
+        --bs-table-bg: transparent;
+        --bs-table-color: #e2e8f0;
+        font-size: 0.85rem;
+      }
+      .table-ops th {
+        border-bottom: 2px solid var(--br);
+        color: var(--p);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+      }
+      .table-ops td {
+        border-color: var(--br);
+        vertical-align: middle;
+      }
+      .table-ops tr:hover {
+        background: rgba(0, 191, 255, 0.04);
+      }
+      .cb-closed {
+        color: var(--ok);
+        font-weight: 600;
+      }
+      .cb-half {
+        color: var(--wn);
+        font-weight: 600;
+      }
+      .cb-open {
+        color: var(--er);
+        font-weight: 600;
+      }
+      .prog-p {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--br);
+      }
+      .prog-p .progress-bar {
+        background: linear-gradient(90deg, var(--p), var(--pl));
+        border-radius: 3px;
+      }
+    </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero fade-in" id="overview">
+      <div class="container">
+        <span class="hero-badge mb-3"
+          ><i class="bi bi-cloud-fill me-1"></i>✦ v4.0 — Operations, CI/CD & Cloud</span
+        >
+        <h1 class="glow">☁️ Operations, CI/CD & Cloud</h1>
+        <p class="lead">
+          Production-grade infrastructure: distributed tracing, state persistence, event
+          sourcing,<br />cloud connectors, and automated CI/CD quality gates.
+        </p>
+        <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
+          <a href="health.html" class="btn-gv"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+          <a href="index.html" class="btn-gv-alt"><i class="bi bi-book me-1"></i>The Book</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 fade-in">
+          <div class="section-card text-center h-100">
+            <div class="stat-n">6</div>
+            <div class="stat-l">CI Jobs</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 fade-in">
+          <div class="section-card text-center h-100">
+            <div class="stat-n">3</div>
+            <div class="stat-l">Cloud Connectors</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 fade-in">
+          <div class="section-card text-center h-100">
+            <div class="stat-n">7</div>
+            <div class="stat-l">Health Components</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 fade-in">
+          <div class="section-card text-center h-100">
+            <div class="stat-n">97</div>
+            <div class="stat-l">Test Files</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_ci_cd">
+              <i class="bi bi-gear-wide-connected me-2"></i>CI/CD Pipeline
+            </h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_2">
+              Quality gates enforced before every merge — 6 parallel jobs + 3 security scans.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge-ops"><i class="bi bi-check-lg me-1"></i>lint-typecheck</span>
+              <span class="badge-ops"><i class="bi bi-check-lg me-1"></i>test</span>
+              <span class="badge-ops"><i class="bi bi-check-lg me-1"></i>dashboard-tests</span>
+              <span class="badge-ops"><i class="bi bi-check-lg me-1"></i>dashboard-build</span>
+              <span class="badge-sec"><i class="bi bi-shield me-1"></i>security-scan</span>
+              <span class="badge-ops"><i class="bi bi-check-lg me-1"></i>workflow-lint</span>
+            </div>
+            <h3 data-i18n="sec_security_wf"><i class="bi bi-shield-check"></i>Security Workflow</h3>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <span class="badge-sec"><i class="bi bi-key me-1"></i>gitleaks</span>
+              <span class="badge-sec"><i class="bi bi-incognito me-1"></i>secretlint</span>
+              <span class="badge-sec"><i class="bi bi-bug me-1"></i>trivy</span>
+            </div>
+            <div class="mt-3">
+              <div class="d-flex justify-content-between small">
+                <span>Quality Gate Score</span><span class="text-white fw-bold">94%</span>
+              </div>
+              <div class="prog-p mt-1"><div class="progress-bar" style="width: 94%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_cloud_conn">
+              <i class="bi bi-cloud-arrow-up me-2"></i>Cloud Connectors
+            </h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_3">
+              Hybrid routing engine with circuit breaker, automatic fallback, and cost/latency-aware
+              load balancing.
+            </p>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">Hybrid Executor</span
+                ><span class="badge-ops"><i class="bi bi-diagram-3 me-1"></i>primary</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">AWS Delegator</span><span class="badge-ops">cloud</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Azure Delegator</span><span class="badge-ops">cloud</span>
+              </div>
+            </div>
+            <h3 data-i18n="sec_cb_states">
+              <i class="bi bi-arrow-repeat"></i>Circuit Breaker States
+            </h3>
+            <div class="d-flex gap-4 mt-2">
+              <div>
+                <span class="cb-closed"><i class="bi bi-check-circle-fill me-1"></i>CLOSED</span>
+                <div class="text-muted small">0 failures</div>
+              </div>
+              <div>
+                <span class="cb-half"
+                  ><i class="bi bi-exclamation-triangle-fill me-1"></i>HALF_OPEN</span
+                >
+                <div class="text-muted small">2 successes</div>
+              </div>
+              <div>
+                <span class="cb-open"><i class="bi bi-x-circle-fill me-1"></i>OPEN</span>
+                <div class="text-muted small">5 failures</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_tracing"><i class="bi bi-diagram-2 me-2"></i>Distributed Tracing</h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_4">
+              Full OpenTelemetry-compatible tracing pipeline with span export and JSONL storage.
+            </p>
+            <div
+              class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3"
+              style="background: rgba(0, 191, 255, 0.05)"
+            >
+              <div><i class="bi bi-filetype-json fs-2" style="color: var(--p)"></i></div>
+              <div><code class="small">.telemetry/spans/ &amp; .telemetry/traces/</code></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <span class="badge-ops">start</span>
+              <span class="badge-ops">end</span>
+              <span class="badge-ops">error</span>
+            </div>
+            <div class="mt-2">
+              <code class="small text-muted">OTLP → http://localhost:4318/v1/traces</code>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_state_persist">
+              <i class="bi bi-database me-2"></i>State Persistence
+            </h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_5">
+              Three-tier persistence: checkpoints (auto), snapshots (manual), rollback (dry-run
+              validated).
+            </p>
+            <div class="mb-2">
+              <span class="badge-ops me-1">checkpoint</span
+              ><span class="text-muted small">create, list, diff, verify, prune</span>
+            </div>
+            <div class="mb-2">
+              <span class="badge-ops me-1">snapshot</span
+              ><span class="text-muted small">snapshot, list, prune</span>
+            </div>
+            <div class="mb-2">
+              <span class="badge-ops me-1">rollback</span
+              ><span class="text-muted small">dry-run validation</span>
+            </div>
+            <div class="mt-2 small text-muted">
+              <i class="bi bi-folder me-1"></i>.session/checkpoints/ · .session/snapshots/
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_event_saga">
+              <i class="bi bi-arrow-right-circle me-2"></i>Event Sourcing + Saga
+            </h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_6">
+              Append-only event store with projection snapshots and distributed saga orchestration
+              with compensation.
+            </p>
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="p-2 rounded-3" style="background: rgba(168, 85, 247, 0.08)">
+                  <span class="fw-semibold small" style="color: var(--a)">Event Store</span>
+                  <div class="text-muted small">append, project, snapshot, prune</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-2 rounded-3" style="background: rgba(0, 191, 255, 0.08)">
+                  <span class="fw-semibold small" style="color: var(--p)">Saga</span>
+                  <div class="text-muted small">
+                    create, register-step, complete, compensate, list
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-2 small text-muted">
+              <i class="bi bi-folder me-1"></i>.session/event-store/ · .session/sagas/
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 fade-in">
+          <div class="section-card h-100">
+            <h2 data-i18n="sec_health_api"><i class="bi bi-heart-pulse me-2"></i>Health API</h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_7">
+              7-component health endpoint with status granularity — all verified operational.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>websocket</span
+              >
+              <span class="badge-ops"><i class="bi bi-check-circle text-success me-1"></i>mcp</span>
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>adaptive</span
+              >
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>cloud</span
+              >
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>tracing</span
+              >
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>checkpoints</span
+              >
+              <span class="badge-ops"
+                ><i class="bi bi-check-circle text-success me-1"></i>audit</span
+              >
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-3 fs-6"
+                >7/7 ✓ OK</span
+              ><span class="text-muted small">All components responsive</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6 fade-in">
+          <div class="section-card">
+            <h2 data-i18n="sec_testing_infra">
+              <i class="bi bi-flask me-2"></i>Testing Infrastructure
+            </h2>
+            <p class="text-muted small" data-i18n="c_operationscloud_8">
+              Multi-suite test strategy across config, CI/CD, research, and dashboard.
+            </p>
+            <div
+              class="d-flex justify-content-between mb-2 p-2 rounded-3"
+              style="background: rgba(34, 197, 94, 0.06)"
+            >
+              <span><i class="bi bi-gear me-2" style="color: var(--ok)"></i>Config Validation</span
+              ><span class="fw-semibold">6 tests</span>
+            </div>
+            <div
+              class="d-flex justify-content-between mb-2 p-2 rounded-3"
+              style="background: rgba(0, 191, 255, 0.06)"
+            >
+              <span><i class="bi bi-github me-2" style="color: var(--p)"></i>CI/CD Workflows</span
+              ><span class="fw-semibold">2 tests</span>
+            </div>
+            <div
+              class="d-flex justify-content-between mb-2 p-2 rounded-3"
+              style="background: rgba(168, 85, 247, 0.06)"
+            >
+              <span><i class="bi bi-search me-2" style="color: var(--a)"></i>Research Scripts</span
+              ><span class="fw-semibold">5 tests</span>
+            </div>
+            <div
+              class="d-flex justify-content-between p-2 rounded-3"
+              style="background: rgba(245, 158, 11, 0.06)"
+            >
+              <span
+                ><i class="bi bi-bar-chart me-2" style="color: var(--wn)"></i>Dashboard
+                (vitest)</span
+              ><span class="fw-semibold">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 fade-in">
+          <div class="section-card">
+            <h2 data-i18n="sec_ops_cmds"><i class="bi bi-terminal me-2"></i>Operations Commands</h2>
+            <table class="table table-ops mb-0">
+              <thead>
+                <tr>
+                  <th>Command</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code class="small">npm run test:config</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_9">Validate JSON schemas</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_9"
+                      title="Validate JSON schemas"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code class="small">npm run test:workflows</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_10">Verify CI/CD workflow syntax</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_10"
+                      title="Verify CI/CD workflow syntax"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code class="small">npm run test:research</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_11">Research script integrity</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_11"
+                      title="Research script integrity"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code class="small">npm run db:health</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_12">Nexus DB health check</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_12"
+                      title="Nexus DB health check"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code class="small">npm run db:backup</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_13">Safe online backup</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_13"
+                      title="Safe online backup"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><code class="small">npm run watchtower</code></td>
+                  <td>
+                    <span data-i18n="c_operationscloud_14">Full maintenance check</span
+                    ><span
+                      class="info-trigger"
+                      data-i18n-title="tip_c_operationscloud_14"
+                      title="Full maintenance check"
+                      >i</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-in">
+        <div class="section-card text-center">
+          <h2 data-i18n="sec_pipe_integ">
+            <i class="bi bi-pipeline me-2"></i>Pipeline Integration
+          </h2>
+          <p class="text-muted small mb-3" data-i18n="c_operationscloud_15">
+            All ops components integrate as lazy, non-blocking steps in the session autostart
+            pipeline.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <span class="badge-ops"><i class="bi bi-magic me-1"></i>tracing-init</span>
+            <span class="badge-ops"><i class="bi bi-save me-1"></i>checkpoint-auto-create</span>
+            <span class="badge-ops"><i class="bi bi-journal me-1"></i>audit-pipeline-init</span>
+            <span class="badge-ops"><i class="bi bi-boxes me-1"></i>event-sourcing-init</span>
+            <span class="badge-ops"><i class="bi bi-cloud me-1"></i>cloud-connectors-init</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagramas -->
+      <div class="fade-in" id="diagrams">
+        <div class="section-title">
+          <h2 data-i18n="sec_diagrams">
+            <i class="bi bi-images me-2" style="color: var(--p)"></i>Diagramas
+          </h2>
+          <p data-i18n="c_operationscloud_16">Arquitectura de datos y operaciones del stack</p>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-8 mx-auto">
+            <img
+              src="diagrams/data-architecture.svg"
+              alt="Data Architecture — Nexus DB"
+              class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2">
+              <i class="bi bi-database me-1"></i>Nexus DB en el centro con 11 repos especializados —
+              SQLite WAL mode con auto-prune y backup.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

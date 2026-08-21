@@ -13,25 +13,75 @@ const ROOT = path.resolve(process.cwd());
 // Schema definitions — known valid properties per tool config
 const SCHEMAS: Record<string, string[]> = {
   'opencode.json': [
-    '$schema', 'agent', 'attachment', 'autoshare', 'autoupdate',
-    'command', 'compaction', 'default_agent',
-    'disabled_providers', 'enabled_providers', 'enterprise', 'experimental',
-    'formatter', 'instructions', 'layout', 'logLevel', 'lsp',
-    'mcp', 'mode', 'model',
-    'permission', 'plugin', 'provider',
-    'reference', 'server', 'share', 'shell', 'skills',
-    'small_model', 'snapshot',
-    'tools', 'tool_output',
-    'username', 'watcher',
+    '$schema',
+    'agent',
+    'attachment',
+    'autoshare',
+    'autoupdate',
+    'command',
+    'compaction',
+    'default_agent',
+    'disabled_providers',
+    'enabled_providers',
+    'enterprise',
+    'experimental',
+    'formatter',
+    'instructions',
+    'layout',
+    'logLevel',
+    'lsp',
+    'mcp',
+    'mode',
+    'model',
+    'permission',
+    'plugin',
+    'provider',
+    'reference',
+    'references',
+    'server',
+    'share',
+    'shell',
+    'skills',
+    'small_model',
+    'snapshot',
+    'tools',
+    'tool_output',
+    'username',
+    'watcher',
   ],
   '.windsurf/config.json': [
-    'name', 'description', 'version', 'rules', 'customRules', 'handle',
-    'mcpServers', 'gentle-vanguard-skills', 'engram', 'codegraph',
+    'name',
+    'description',
+    'version',
+    'rules',
+    'customRules',
+    'handle',
+    'mcpServers',
+    'gentle-vanguard-skills',
+    'engram',
+    'codegraph',
+    'workspace',
+    'aiSettings',
+    'toolPermissions',
+    'contextManagement',
+    'cascade',
+    'preProcessing',
+    'sessionManagement',
+    'language',
   ],
   '.continue/config.json': [
-    'name', 'description', 'version', 'models', 'modelProviders',
-    'tabAutocompleteModel', 'contextProviders', 'slashCommands',
-    'docs', 'experimental', 'allowAnonymousTelemetry', 'disableIndexing',
+    'name',
+    'description',
+    'version',
+    'models',
+    'modelProviders',
+    'tabAutocompleteModel',
+    'contextProviders',
+    'slashCommands',
+    'docs',
+    'experimental',
+    'allowAnonymousTelemetry',
+    'disableIndexing',
     'mcpServers',
   ],
 };
@@ -40,7 +90,13 @@ const SCHEMAS: Record<string, string[]> = {
 const CLINE_IGNORED_SECTIONS = ['system_prompt', 'system_prompt_optimization'];
 
 /** Validate a JSON config file against known valid properties */
-function testConfigFile(configPath: string, validProps: string[], label: string, fix: boolean, quiet: boolean): boolean {
+function testConfigFile(
+  configPath: string,
+  validProps: string[],
+  label: string,
+  fix: boolean,
+  quiet: boolean,
+): boolean {
   const fullPath = path.resolve(ROOT, configPath);
   if (!fs.existsSync(fullPath)) {
     if (!quiet) console.log(`SKIP: ${label} (${configPath} not found)`);
@@ -94,10 +150,15 @@ function testClinerules(configPath: string, fix: boolean, quiet: boolean): boole
     for (const section of CLINE_IGNORED_SECTIONS) {
       const regex = new RegExp(`^${section}:`, 'm');
       if (regex.test(content)) {
-        console.log(`WARN: ${configPath} contiene sección '${section}' que Cline ignora silenciosamente`);
+        console.log(
+          `WARN: ${configPath} contiene sección '${section}' que Cline ignora silenciosamente`,
+        );
         if (fix) {
           const pattern = new RegExp(`(?:^|\\n)${section}:.*?(?=\\n[a-z_]|\\n\\n|\\n$)`, 's');
-          const newContent = content.replace(pattern, `\n# [REMOVED] ${section} — ver config/system-prompt-optimization.json`);
+          const newContent = content.replace(
+            pattern,
+            `\n# [REMOVED] ${section} — ver config/system-prompt-optimization.json`,
+          );
           fs.writeFileSync(fullPath, newContent, 'utf-8');
           console.log(`  → FIXED: removed '${section}' from ${configPath}`);
         }

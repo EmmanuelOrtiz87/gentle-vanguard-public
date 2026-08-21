@@ -53,7 +53,10 @@ function getSourceFiles(): string[] {
   const files: string[] = [];
   for (const dir of SOURCE_DIRS) {
     const fullPath = join(ROOT, dir);
-    if (!existsSync(fullPath)) { warn(`Source dir not found: ${dir}`); continue; }
+    if (!existsSync(fullPath)) {
+      warn(`Source dir not found: ${dir}`);
+      continue;
+    }
     collectFiles(fullPath, files);
   }
   return files;
@@ -110,7 +113,10 @@ function encryptFile(inputPath: string, key: Buffer, outputDir: string): string 
     // Format: IV (16) + AuthTag (16) + Encrypted data
     const payload = Buffer.concat([iv, authTag, encrypted]);
     if (!dryRun) {
-      const outDir = join(outputDir, relative(ROOT, inputPath).split(/[/\\]/).slice(0, -1).join('/'));
+      const outDir = join(
+        outputDir,
+        relative(ROOT, inputPath).split(/[/\\]/).slice(0, -1).join('/'),
+      );
       if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
       writeFileSync(outputPath, payload);
     }
@@ -153,7 +159,8 @@ function main(): void {
 
     // Check file size
     const size = statSync(file).size;
-    if (size > 10 * 1024 * 1024) { // 10MB
+    if (size > 10 * 1024 * 1024) {
+      // 10MB
       warn(`Skipping large file: ${relPath} (${(size / 1024 / 1024).toFixed(2)} MB)`);
       continue;
     }

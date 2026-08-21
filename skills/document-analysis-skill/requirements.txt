@@ -1,9 +1,0 @@
-python-docx
-openpyxl
-PyMuPDF
-python-pptx
-Pillow
-markdown
-PyYAML
-jinja2
-xlsxwriter

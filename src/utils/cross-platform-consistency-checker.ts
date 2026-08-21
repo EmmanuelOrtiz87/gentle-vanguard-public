@@ -23,7 +23,6 @@ interface PlatformConsistencyResult {
  * Cross-platform consistency checker class
  */
 export class CrossPlatformConsistencyChecker {
-
   private readonly targetPlatforms = ['win32', 'linux', 'darwin'];
 
   /**
@@ -51,7 +50,7 @@ export class CrossPlatformConsistencyChecker {
       platform: platformName,
       isConsistent: true,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
@@ -85,9 +84,10 @@ export class CrossPlatformConsistencyChecker {
         result.recommendations.push('Use cross-platform libraries where possible');
         result.recommendations.push('Test on all target platforms regularly');
       }
-
     } catch (error) {
-      result.issues.push(`Error during consistency check: ${error instanceof Error ? error.message : String(error)}`);
+      result.issues.push(
+        `Error during consistency check: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isConsistent = false;
     }
 
@@ -110,10 +110,12 @@ export class CrossPlatformConsistencyChecker {
       for (const file of files) {
         // Check for platform-specific extensions or naming
         const basename = file.substring(file.lastIndexOf('/') + 1);
-        if (basename.includes(`.${platformName}`) ||
-            basename.includes('-win') ||
-            basename.includes('-linux') ||
-            basename.includes('-mac')) {
+        if (
+          basename.includes(`.${platformName}`) ||
+          basename.includes('-win') ||
+          basename.includes('-linux') ||
+          basename.includes('-mac')
+        ) {
           platformFiles.push(file);
         }
       }
@@ -145,10 +147,12 @@ export class CrossPlatformConsistencyChecker {
 
             // Check for platform-specific commands
             for (const command of shellCommands) {
-              if (content.includes(command) &&
-                  ((platformName === 'win32' && command === 'bash') ||
+              if (
+                content.includes(command) &&
+                ((platformName === 'win32' && command === 'bash') ||
                   (platformName === 'linux' && command === 'powershell') ||
-                  (platformName === 'darwin' && command === 'powershell'))) {
+                  (platformName === 'darwin' && command === 'powershell'))
+              ) {
                 issues.push(`Potential compatibility issue in ${file} with ${command} command`);
               }
             }
@@ -251,7 +255,9 @@ export class CrossPlatformConsistencyChecker {
 
     for (const result of results) {
       const statusIcon = result.isConsistent ? '✅' : '❌';
-      reportLines.push(`${statusIcon} ${result.platform}: ${result.isConsistent ? 'Consistent' : 'Inconsistent'}`);
+      reportLines.push(
+        `${statusIcon} ${result.platform}: ${result.isConsistent ? 'Consistent' : 'Inconsistent'}`,
+      );
 
       if (result.issues.length > 0) {
         reportLines.push('Issues:');
@@ -274,7 +280,9 @@ export class CrossPlatformConsistencyChecker {
       }
     }
 
-    reportLines.push(`Overall Status: ${overallConsistent ? '✅ All platforms consistent' : '❌ Some inconsistencies found'}`);
+    reportLines.push(
+      `Overall Status: ${overallConsistent ? '✅ All platforms consistent' : '❌ Some inconsistencies found'}`,
+    );
 
     return reportLines.join('\n');
   }
@@ -286,7 +294,7 @@ export class CrossPlatformConsistencyChecker {
   async checkCurrentPlatformConsistency(): Promise<boolean> {
     const currentPlatform = platform();
     const results = await this.checkConsistency();
-    const currentResult = results.find(r => r.platform === currentPlatform);
+    const currentResult = results.find((r) => r.platform === currentPlatform);
 
     return currentResult ? currentResult.isConsistent : false;
   }
@@ -299,11 +307,12 @@ export const consistencyChecker = new CrossPlatformConsistencyChecker();
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const checker = new CrossPlatformConsistencyChecker();
 
-  checker.checkConsistency()
-    .then(results => {
+  checker
+    .checkConsistency()
+    .then((results) => {
       console.log(checker.generateReport(results));
 
-      const allConsistent = results.every(r => r.isConsistent);
+      const allConsistent = results.every((r) => r.isConsistent);
       if (allConsistent) {
         console.log('✅ All platforms are consistent');
       } else {
@@ -311,7 +320,7 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
         process.exit(1);
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Consistency check error:', error);
       process.exit(1);
     });

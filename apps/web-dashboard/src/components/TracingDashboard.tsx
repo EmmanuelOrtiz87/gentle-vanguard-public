@@ -10,6 +10,9 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from 'lucide-react';
+import { readCached, writeCached } from '../lib/offlineCache';
+
+const TRACES_CACHE_KEY = 'traces';
 
 interface Trace {
   traceId: string;
@@ -222,6 +225,7 @@ export function TracingDashboard() {
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
   const [search, setSearch] = useState('');
   const [filterModel, setFilterModel] = useState('');
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
     const loadTraces = async () => {
@@ -230,8 +234,15 @@ export function TracingDashboard() {
         const data = await response.json();
         setTraces(data.traces || []);
         setStats(data.stats || stats);
+        writeCached(TRACES_CACHE_KEY, { traces: data.traces || [], stats: data.stats || stats });
+        setOffline(false);
       } catch {
-        /* API not available — keep empty */
+        const cached = readCached<{ traces: Trace[]; stats: TraceStats }>(TRACES_CACHE_KEY);
+        if (cached?.data) {
+          setTraces(cached.data.traces || []);
+          setStats(cached.data.stats || stats);
+          setOffline(true);
+        }
       }
     };
     void loadTraces();
@@ -255,6 +266,11 @@ export function TracingDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      {offline && (
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-2 text-sm text-amber-700 dark:text-amber-300">
+          Offline mode — showing cached traces (server unavailable)
+        </div>
+      )}
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card">

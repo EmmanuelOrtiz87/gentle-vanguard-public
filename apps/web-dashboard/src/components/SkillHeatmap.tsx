@@ -9,7 +9,7 @@ interface SkillHeatmapProps {
 
 // Color palette by usage intensity (Tailwind)
 const HEAT_COLORS = [
-  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',   // 0 calls
+  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', // 0 calls
   'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300', // low
   'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   'bg-blue-200 text-blue-800 dark:bg-blue-800/40 dark:text-blue-200',
@@ -17,7 +17,7 @@ const HEAT_COLORS = [
   'bg-indigo-300 text-indigo-900 dark:bg-indigo-700/40 dark:text-indigo-200',
   'bg-purple-300 text-purple-900 dark:bg-purple-700/40 dark:text-purple-200',
   'bg-purple-400 text-white dark:bg-purple-600/60 dark:text-white',
-  'bg-violet-500 text-white dark:bg-violet-500/60 dark:text-white',  // high
+  'bg-violet-500 text-white dark:bg-violet-500/60 dark:text-white', // high
 ];
 
 function getHeatLevel(count: number, maxCount: number): number {
@@ -42,8 +42,7 @@ function getFontSize(calls: number, maxCalls: number): string {
 
 export function SkillHeatmap({ bySkill, totalSkills, totalCalls }: SkillHeatmapProps) {
   const entries = useMemo(() => {
-    return Object.entries(bySkill)
-      .sort(([, a], [, b]) => b - a);
+    return Object.entries(bySkill).sort(([, a], [, b]) => b - a);
   }, [bySkill]);
 
   const maxCount = useMemo(() => {

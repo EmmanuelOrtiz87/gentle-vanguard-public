@@ -2,7 +2,8 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
+import { getTokenUsage } from './token-usage-reader.js';
 
 type Scope = 'full' | 'sessions' | 'token' | 'live' | 'git' | 'pr' | 'cost';
 
@@ -34,8 +35,10 @@ function findRepoRoot(dir: string): string {
 }
 
 const ROOT = resolve(process.cwd());
-const repoRoot = process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
-  ? process.env.GENTLE_VANGUARD_BASE_DIR : findRepoRoot(ROOT);
+const repoRoot =
+  process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
+    ? process.env.GENTLE_VANGUARD_BASE_DIR
+    : findRepoRoot(ROOT);
 const outDir = join(repoRoot, '.runtime', 'metrics');
 const sessionsDir = join(repoRoot, 'session');
 const tokenState = join(repoRoot, '.session', 'token-autopilot-state.json');
@@ -51,7 +54,7 @@ function log(m: string, quiet: boolean): void {
 
 function runGit(args: string[], cwd?: string): string {
   try {
-    return execSync(`git ${args.join(' ')}`, { cwd: cwd || repoRoot, encoding: 'utf8', stdio: 'pipe' }).trim();
+    return runSync('git', args, { cwd: cwd || repoRoot, stdio: 'pipe' }).stdout.trim();
   } catch {
     return '';
   }
@@ -60,7 +63,9 @@ function runGit(args: string[], cwd?: string): string {
 function tryReadJson(p: string): Record<string, unknown> | null {
   try {
     if (existsSync(p)) return JSON.parse(readFileSync(p, 'utf8'));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
@@ -89,9 +94,15 @@ function collectGitMetrics(quiet: boolean): GitMetrics {
   const weekStart = new Date(now.getTime() - now.getDay() * 86400000).toISOString().slice(0, 10);
 
   const totalCommits = parseInt(runGit(['rev-list', '--count', 'HEAD']) || '0', 10);
-  const monthCommits = runGit(['log', '--oneline', `--since="${monthStart}"`]).split('\n').filter(Boolean).length;
-  const weekCommits = runGit(['log', '--oneline', `--since="${weekStart}"`]).split('\n').filter(Boolean).length;
-  const todayCommits = runGit(['log', '--oneline', `--since="${today}"`]).split('\n').filter(Boolean).length;
+  const monthCommits = runGit(['log', '--oneline', `--since="${monthStart}"`])
+    .split('\n')
+    .filter(Boolean).length;
+  const weekCommits = runGit(['log', '--oneline', `--since="${weekStart}"`])
+    .split('\n')
+    .filter(Boolean).length;
+  const todayCommits = runGit(['log', '--oneline', `--since="${today}"`])
+    .split('\n')
+    .filter(Boolean).length;
 
   const authors: Record<string, number> = {};
   const shortlog = runGit(['shortlog', '-sn', '--all']);
@@ -100,7 +111,8 @@ function collectGitMetrics(quiet: boolean): GitMetrics {
     if (m) authors[m[2]] = parseInt(m[1], 10);
   }
 
-  let linesAdded = 0, linesRemoved = 0;
+  let linesAdded = 0,
+    linesRemoved = 0;
   const diffStat = runGit(['diff', '--stat', 'HEAD~30..HEAD']);
   for (const line of diffStat.split('\n')) {
     const addM = line.match(/(\d+) insertion/);
@@ -110,19 +122,27 @@ function collectGitMetrics(quiet: boolean): GitMetrics {
   }
 
   const authorEntries = Object.entries(authors);
-  const topAuthor = authorEntries.length > 0
-    ? authorEntries.sort((a, b) => b[1] - a[1])[0][0]
-    : null;
+  const topAuthor =
+    authorEntries.length > 0 ? authorEntries.sort((a, b) => b[1] - a[1])[0][0] : null;
 
   const gm: GitMetrics = {
     collectedAt: new Date().toISOString(),
-    totalCommits, monthCommits, weekCommits, todayCommits,
-    linesAdded30: linesAdded, linesRemoved30: linesRemoved,
-    authors, authorCount: authorEntries.length, topAuthor,
+    totalCommits,
+    monthCommits,
+    weekCommits,
+    todayCommits,
+    linesAdded30: linesAdded,
+    linesRemoved30: linesRemoved,
+    authors,
+    authorCount: authorEntries.length,
+    topAuthor,
   };
 
   writeJson(join(outDir, 'git.json'), gm);
-  log(`Git: ${totalCommits} total, ${monthCommits} month, ${todayCommits} today, ${linesAdded}+/${linesRemoved}- lines (30 commits)`, quiet);
+  log(
+    `Git: ${totalCommits} total, ${monthCommits} month, ${todayCommits} today, ${linesAdded}+/${linesRemoved}- lines (30 commits)`,
+    quiet,
+  );
   return gm;
 }
 
@@ -142,12 +162,18 @@ function collectPRMetrics(quiet: boolean): PRMetrics {
   log('Collecting PR metrics...', quiet);
   const pm: PRMetrics = {
     collectedAt: new Date().toISOString(),
-    total: 0, open: 0, merged: 0, closed: 0,
-    totalAdditions: 0, totalDeletions: 0, avgReviewTimeHours: 0, recent: [],
+    total: 0,
+    open: 0,
+    merged: 0,
+    closed: 0,
+    totalAdditions: 0,
+    totalDeletions: 0,
+    avgReviewTimeHours: 0,
+    recent: [],
   };
 
   try {
-    execSync('gh --version', { stdio: 'pipe' });
+    runSync('gh', ['--version'], { stdio: 'pipe' });
   } catch {
     writeJson(join(outDir, 'pr.json'), pm);
     log('PR: gh CLI not available', quiet);
@@ -155,28 +181,53 @@ function collectPRMetrics(quiet: boolean): PRMetrics {
   }
 
   try {
-    const raw = execSync('gh pr list --state all --limit 100 --json number,title,state,createdAt,closedAt,mergedAt,additions,deletions,author', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    const raw = runSync(
+      'gh',
+      [
+        'pr',
+        'list',
+        '--state',
+        'all',
+        '--limit',
+        '100',
+        '--json',
+        'number,title,state,createdAt,closedAt,mergedAt,additions,deletions,author',
+      ],
+      { stdio: 'pipe' },
+    ).stdout.trim();
     const prs = JSON.parse(raw) as Array<Record<string, unknown>>;
     pm.total = prs.length;
-    pm.merged = prs.filter(p => (p.state as string)?.toUpperCase() === 'MERGED').length;
-    pm.open = prs.filter(p => (p.state as string)?.toUpperCase() === 'OPEN').length;
-    pm.closed = prs.filter(p => (p.state as string)?.toUpperCase() === 'CLOSED').length;
-    pm.totalAdditions = prs.reduce((s, p) => s + (typeof p.additions === 'number' ? p.additions : 0), 0);
-    pm.totalDeletions = prs.reduce((s, p) => s + (typeof p.deletions === 'number' ? p.deletions : 0), 0);
+    pm.merged = prs.filter((p) => (p.state as string)?.toUpperCase() === 'MERGED').length;
+    pm.open = prs.filter((p) => (p.state as string)?.toUpperCase() === 'OPEN').length;
+    pm.closed = prs.filter((p) => (p.state as string)?.toUpperCase() === 'CLOSED').length;
+    pm.totalAdditions = prs.reduce(
+      (s, p) => s + (typeof p.additions === 'number' ? p.additions : 0),
+      0,
+    );
+    pm.totalDeletions = prs.reduce(
+      (s, p) => s + (typeof p.deletions === 'number' ? p.deletions : 0),
+      0,
+    );
 
     const reviewTimes: number[] = [];
     for (const pr of prs) {
       if (pr.createdAt && (pr.mergedAt || pr.closedAt)) {
         const end = pr.mergedAt || pr.closedAt;
-        const hours = (new Date(end as string).getTime() - new Date(pr.createdAt as string).getTime()) / 3600000;
+        const hours =
+          (new Date(end as string).getTime() - new Date(pr.createdAt as string).getTime()) /
+          3600000;
         if (hours >= 0) reviewTimes.push(hours);
       }
     }
     if (reviewTimes.length > 0) {
-      pm.avgReviewTimeHours = Math.round((reviewTimes.reduce((a, b) => a + b, 0) / reviewTimes.length) * 10) / 10;
+      pm.avgReviewTimeHours =
+        Math.round((reviewTimes.reduce((a, b) => a + b, 0) / reviewTimes.length) * 10) / 10;
     }
 
-    const sorted = [...prs].sort((a, b) => new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime());
+    const sorted = [...prs].sort(
+      (a, b) =>
+        new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime(),
+    );
     pm.recent = sorted.slice(0, 10);
   } catch {
     log('PR: collection failed', quiet);
@@ -217,7 +268,9 @@ function collectSessionMetrics(quiet: boolean): SessionEntry[] {
   today.setHours(0, 0, 0, 0);
 
   if (existsSync(sessionsDir)) {
-    const files = execSync(`dir /b "${sessionsDir}\\session-*.json" 2>nul`, { encoding: 'utf8', stdio: 'pipe' }).trim();
+    const files = runSyncShell(`dir /b "${sessionsDir}\\session-*.json" 2>nul`, {
+      stdio: 'pipe',
+    }).stdout.trim();
     if (files) {
       for (const f of files.split('\n')) {
         const fp = join(sessionsDir, f.trim());
@@ -228,36 +281,52 @@ function collectSessionMetrics(quiet: boolean): SessionEntry[] {
           const stat = existsSync(fp) ? start : new Date();
           const durSec = Math.max(0, Math.floor((stat.getTime() - start.getTime()) / 1000));
           sessions.push({
-            sessionId: s.sessionId, startTime: s.startTime,
-            status: s.status, mode: s.mode, project: s.project,
+            sessionId: s.sessionId,
+            startTime: s.startTime,
+            status: s.status,
+            mode: s.mode,
+            project: s.project,
             durationSec: durSec,
             isToday: start.getTime() >= today.getTime(),
             sourceFile: f.trim(),
           });
-        } catch { /* skip parse errors */ }
+        } catch {
+          /* skip parse errors */
+        }
       }
     }
   }
 
-  const active = sessions.filter(s => s.status === 'active').length;
+  const active = sessions.filter((s) => s.status === 'active').length;
   const total = sessions.length;
-  const todaySessions = sessions.filter(s => s.isToday).length;
-  const durations = sessions.filter(s => s.durationSec > 0).map(s => s.durationSec);
-  const avgDurSec = durations.length > 0 ? Math.floor(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
-  const totalDurMin = durations.length > 0 ? Math.floor(durations.reduce((a, b) => a + b, 0) / 60) : 0;
-  const sorted = [...sessions].sort((a, b) => (a.startTime || '').localeCompare(b.startTime || '') * -1);
+  const todaySessions = sessions.filter((s) => s.isToday).length;
+  const durations = sessions.filter((s) => s.durationSec > 0).map((s) => s.durationSec);
+  const avgDurSec =
+    durations.length > 0 ? Math.floor(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+  const totalDurMin =
+    durations.length > 0 ? Math.floor(durations.reduce((a, b) => a + b, 0) / 60) : 0;
+  const sorted = [...sessions].sort(
+    (a, b) => (a.startTime || '').localeCompare(b.startTime || '') * -1,
+  );
   const latest = sorted[0];
 
   const sm: SessionMetrics = {
-    collectedAt: new Date().toISOString(), total, active,
-    inactive: total - active, today: todaySessions,
-    avgDurationSec: avgDurSec, totalDurationMin: totalDurMin,
+    collectedAt: new Date().toISOString(),
+    total,
+    active,
+    inactive: total - active,
+    today: todaySessions,
+    avgDurationSec: avgDurSec,
+    totalDurationMin: totalDurMin,
     latestId: latest?.sessionId || 'none',
     latestStart: latest?.startTime || '',
   };
 
   writeJson(join(outDir, 'sessions.json'), sm);
-  log(`Sessions: ${total} total, ${active} active, ${todaySessions} today, ${totalDurMin}m total`, quiet);
+  log(
+    `Sessions: ${total} total, ${active} active, ${todaySessions} today, ${totalDurMin}m total`,
+    quiet,
+  );
   return sessions;
 }
 
@@ -280,22 +349,27 @@ function collectTokenMetrics(quiet: boolean): TokenMetrics {
   log('Collecting token metrics...', quiet);
   const tm: TokenMetrics = {
     collectedAt: new Date().toISOString(),
-    status: 'unknown', usedToday: 0, budget: 120000, pct: 0,
-    ratePer1M: 10, estCost: 0, monthForecast: 0, monthForecastCost: 0,
-    baselineTokens: 0, savedTokens: 0, modeledSavings: 0,
+    status: 'unknown',
+    usedToday: 0,
+    budget: 120000,
+    pct: 0,
+    ratePer1M: 10,
+    estCost: 0,
+    monthForecast: 0,
+    monthForecastCost: 0,
+    baselineTokens: 0,
+    savedTokens: 0,
+    modeledSavings: 0,
   };
 
   const tokenData = tryReadJson(tokenState);
   if (tokenData) tm.status = (tokenData.lastStatus as string) || 'unknown';
 
-  const obs = tryReadJson(liveObsPath);
-  if (obs?.token) {
-    const t = obs.token as Record<string, unknown>;
-    tm.usedToday = (t.used_today as number) || 0;
-    tm.budget = (t.budget as number) || 120000;
-    tm.pct = (t.projected_pct as number) || 0;
-    tm.status = (t.status as string) || 'unknown';
-  }
+  const usage = getTokenUsage();
+  tm.usedToday = usage.used;
+  tm.budget = usage.budget;
+  tm.pct = usage.percentage;
+  tm.status = usage.status;
 
   const ratePer1M = 10;
   tm.estCost = Math.round((tm.usedToday / 1e6) * ratePer1M * 10000) / 10000;
@@ -309,7 +383,10 @@ function collectTokenMetrics(quiet: boolean): TokenMetrics {
   tm.modeledSavings = Math.round((tm.savedTokens / 1e6) * ratePer1M * 10000) / 10000;
 
   writeJson(join(outDir, 'token.json'), tm);
-  log(`Tokens: ${tm.usedToday}/${tm.budget} (${tm.pct}%) cost=$${tm.estCost} forecast=$${tm.monthForecastCost} saved=$${tm.modeledSavings}`, quiet);
+  log(
+    `Tokens: ${tm.usedToday}/${tm.budget} (${tm.pct}%) cost=$${tm.estCost} forecast=$${tm.monthForecastCost} saved=$${tm.modeledSavings}`,
+    quiet,
+  );
   return tm;
 }
 
@@ -327,8 +404,12 @@ function collectLiveMetrics(quiet: boolean): LiveMetrics {
   log('Collecting live observability metrics...', quiet);
   const live: LiveMetrics = {
     collectedAt: new Date().toISOString(),
-    trafficLight: 'GREEN', routingTotal: 0, routingAcc: '0%',
-    benchmarkPass: 0, benchmarkFail: 0, hasData: false,
+    trafficLight: 'GREEN',
+    routingTotal: 0,
+    routingAcc: '0%',
+    benchmarkPass: 0,
+    benchmarkFail: 0,
+    hasData: false,
   };
 
   const obs = tryReadJson(liveObsPath);
@@ -374,13 +455,17 @@ function collectCostMetrics(quiet: boolean): CostMetrics {
     baselineTokens: token.baselineTokens,
     savedTokens: token.savedTokens,
     modeledSavings: token.modeledSavings,
-    savingsPct: token.baselineTokens > 0
-      ? Math.round((token.savedTokens / token.baselineTokens) * 1000) / 10
-      : 0,
+    savingsPct:
+      token.baselineTokens > 0
+        ? Math.round((token.savedTokens / token.baselineTokens) * 1000) / 10
+        : 0,
   };
 
   writeJson(join(outDir, 'cost.json'), cost);
-  log(`Cost: actual=$${cost.actualCost} forecast=$${cost.monthForecastCost} saved=$${cost.modeledSavings} (${cost.savingsPct}% savings)`, quiet);
+  log(
+    `Cost: actual=$${cost.actualCost} forecast=$${cost.monthForecastCost} saved=$${cost.modeledSavings} (${cost.savingsPct}% savings)`,
+    quiet,
+  );
   return cost;
 }
 
@@ -392,9 +477,9 @@ function collectAllMetrics(quiet: boolean): void {
   const p = collectPRMetrics(quiet);
   const c = collectCostMetrics(quiet);
 
-  const activeCount = s.filter(x => x.status === 'active').length;
-  const todayCount = s.filter(x => x.isToday).length;
-  const durations = s.filter(x => x.durationSec > 0).map(x => x.durationSec);
+  const activeCount = s.filter((x) => x.status === 'active').length;
+  const todayCount = s.filter((x) => x.isToday).length;
+  const durations = s.filter((x) => x.durationSec > 0).map((x) => x.durationSec);
   const avgDur = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
   const totalMin = durations.length > 0 ? Math.floor(durations.reduce((a, b) => a + b, 0) / 60) : 0;
   const sorted = [...s].sort((a, b) => (a.startTime || '').localeCompare(b.startTime || '') * -1);
@@ -402,29 +487,54 @@ function collectAllMetrics(quiet: boolean): void {
   const all = {
     collectedAt: new Date().toISOString(),
     sessions: {
-      total: s.length, active: activeCount, today: todayCount,
-      avgDurationSec: avgDur, totalDurationMin: totalMin,
+      total: s.length,
+      active: activeCount,
+      today: todayCount,
+      avgDurationSec: avgDur,
+      totalDurationMin: totalMin,
       latest: sorted[0]?.sessionId || null,
     },
-    token: t, live: l, git: g, pr: p, cost: c,
+    token: t,
+    live: l,
+    git: g,
+    pr: p,
+    cost: c,
   };
 
   writeJson(join(outDir, 'consolidated.json'), all);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  copyFileSync(join(outDir, 'consolidated.json'), join(outDir, 'snapshots', `snapshot-${stamp}.json`));
+  copyFileSync(
+    join(outDir, 'consolidated.json'),
+    join(outDir, 'snapshots', `snapshot-${stamp}.json`),
+  );
   log('Consolidated written to .runtime/metrics/consolidated.json', quiet);
 }
 
 function main(): void {
   const args = parseArgs();
   switch (args.scope) {
-    case 'sessions': collectSessionMetrics(args.quiet); break;
-    case 'token': collectTokenMetrics(args.quiet); break;
-    case 'live': collectLiveMetrics(args.quiet); break;
-    case 'git': collectGitMetrics(args.quiet); break;
-    case 'pr': collectPRMetrics(args.quiet); break;
-    case 'cost': collectCostMetrics(args.quiet); break;
-    case 'full': default: collectAllMetrics(args.quiet); break;
+    case 'sessions':
+      collectSessionMetrics(args.quiet);
+      break;
+    case 'token':
+      collectTokenMetrics(args.quiet);
+      break;
+    case 'live':
+      collectLiveMetrics(args.quiet);
+      break;
+    case 'git':
+      collectGitMetrics(args.quiet);
+      break;
+    case 'pr':
+      collectPRMetrics(args.quiet);
+      break;
+    case 'cost':
+      collectCostMetrics(args.quiet);
+      break;
+    case 'full':
+    default:
+      collectAllMetrics(args.quiet);
+      break;
   }
 }
 

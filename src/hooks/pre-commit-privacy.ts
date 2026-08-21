@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync, statSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 
 interface Pattern {
   name: string;
@@ -33,11 +33,11 @@ const CRITICAL_PATTERNS: Pattern[] = [
 const EXCLUDED_PATHS = new Set([
   'config/security-privacy.json',
   'config/security-policy.json',
-  'hooks/pre-commit-privacy.ps1',
-  'hooks/pre-commit.ps1',
-  'scripts/hooks/check-security.ps1',
+  'src/hooks/pre-commit-privacy.ts',
+  'src/hooks/pre-commit.ts',
+  'src/check-security.ts',
   'docs/reference/ARCHITECTURE.md',
-  'scripts/utilities/workflow/WORKFLOW-ORCHESTRATION/gv.ps1',
+  'src/cli/gv.ts',
   'skills/docker-devops-skill/SKILL.md',
   'skills/security-expert-skill/references/security-patterns.md',
 ]);
@@ -114,17 +114,14 @@ function invokePrivacyScan(files: string[]): Violations {
 
 function main(args: string[]): number {
   const staged = args.includes('--staged');
-  const filePaths = args.filter(a => !a.startsWith('--') && !a.startsWith('-'));
+  const filePaths = args.filter((a) => !a.startsWith('--') && !a.startsWith('-'));
 
   console.log('=== PRE-COMMIT PRIVACY SCAN ===');
 
   let files: string[];
 
   if (staged) {
-    const result = spawnSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM'], {
-      encoding: 'utf-8',
-      windowsHide: true,
-    });
+    const result = runSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM']);
     files = result.stdout ? result.stdout.trim().split('\n').filter(Boolean) : [];
   } else {
     files = filePaths;

@@ -2,7 +2,7 @@
 
 import { existsSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 
 interface VulnCounts {
   critical: number;
@@ -18,7 +18,7 @@ interface AuditResult {
 }
 
 const VALID_LEVELS = ['critical', 'high', 'moderate', 'low'] as const;
-type AuditLevel = typeof VALID_LEVELS[number];
+type AuditLevel = (typeof VALID_LEVELS)[number];
 
 const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
   critical: ['critical'],
@@ -49,17 +49,18 @@ function main(): number {
   const { auditLevel, verbose } = parseArgs();
   const cwd = process.cwd();
 
-  console.log(`\n[npm-audit] Running npm vulnerability scan...`);
+  // Detect package manager: pnpm (pnpm-lock.yaml) vs npm (package-lock.json)
+  const isPnpm = existsSync('pnpm-lock.yaml');
+  const pm = isPnpm ? 'pnpm' : 'npm';
+  console.log(`\n[npm-audit] Running ${pm} vulnerability scan...`);
 
   if (!existsSync('package.json')) {
     console.log(`[npm-audit] No package.json found, skipping audit`);
     return 0;
   }
 
-  const auditResult = spawnSync('npm', ['audit', '--json'], {
+  const auditResult = runSync(pm, ['audit', '--json'], {
     cwd,
-    encoding: 'utf-8',
-    windowsHide: true,
   });
 
   let audit: AuditResult | null = null;
@@ -71,18 +72,16 @@ function main(): number {
 
   if (!audit || !audit.metadata?.vulnerabilities) {
     console.log(`[npm-audit] Invalid audit JSON, retrying with text output...`);
-    const textResult = spawnSync('npm', ['audit'], {
+    const textResult = runSync(pm, ['audit'], {
       cwd,
-      encoding: 'utf-8',
-      windowsHide: true,
     });
     console.log(textResult.stdout || textResult.stderr);
 
     if (textResult.status !== 0 && /vulnerabilities/i.test(textResult.stdout)) {
-      console.log(`[BLOCKED] npm audit found vulnerabilities`);
+      console.log(`[BLOCKED] ${pm} audit found vulnerabilities`);
       console.log(`\nTo fix vulnerabilities:`);
-      console.log(`  npm audit fix`);
-      console.log(`  npm audit fix --force  (if needed)`);
+      console.log(`  ${pm} audit fix`);
+      console.log(`  ${pm} audit fix --force  (if needed)`);
       return 1;
     }
     return 0;
@@ -98,9 +97,7 @@ function main(): number {
     console.log(`  Low:       ${vulnerabilities.low}`);
   }
 
-  const hasBlockingVuln = BLOCK_LEVELS[auditLevel].some(
-    (level) => vulnerabilities[level] > 0,
-  );
+  const hasBlockingVuln = BLOCK_LEVELS[auditLevel].some((level) => vulnerabilities[level] > 0);
 
   if (hasBlockingVuln) {
     console.log(`\n[BLOCKED] npm audit found vulnerabilities at ${auditLevel} level or above`);
@@ -108,7 +105,9 @@ function main(): number {
     console.log(`  1. Run: npm audit fix`);
     console.log(`  2. Review changes to package-lock.json`);
     console.log(`  3. Test changes: npm test`);
-    console.log(`  4. Commit: git add package-lock.json && git commit -m 'fix(security): resolve npm vulnerabilities'`);
+    console.log(
+      `  4. Commit: git add package-lock.json && git commit -m 'fix(security): resolve npm vulnerabilities'`,
+    );
     console.log(`  5. Push again`);
     console.log(`\nFor force push (not recommended):`);
     console.log(`  git push --no-verify`);

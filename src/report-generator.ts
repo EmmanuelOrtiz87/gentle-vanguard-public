@@ -37,16 +37,22 @@ function loadTraces(tracesDir: string, dateStr: string): TraceEntry[] {
   if (!existsSync(dir)) return allTraces;
 
   let entries: string[];
-  try { entries = readdirSync(dir); } catch { return allTraces; }
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return allTraces;
+  }
 
   for (const entry of entries) {
     if (entry.includes(`-traces-${dateStr}.jsonl`)) {
       const content = readFileSync(join(dir, entry), 'utf-8');
-      const lines = content.split(/\r?\n/).filter(l => l.trim());
+      const lines = content.split(/\r?\n/).filter((l) => l.trim());
       for (const line of lines) {
         try {
           allTraces.push(JSON.parse(line));
-        } catch { /* skip malformed */ }
+        } catch {
+          /* skip malformed */
+        }
       }
     }
   }
@@ -59,14 +65,20 @@ function loadMetrics(metricsDir: string, dateStr: string): Record<string, unknow
   if (!existsSync(dir)) return allMetrics;
 
   let entries: string[];
-  try { entries = readdirSync(dir); } catch { return allMetrics; }
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return allMetrics;
+  }
 
   for (const entry of entries) {
     if (entry.includes(`metrics-${dateStr}.json`)) {
       try {
         const data = JSON.parse(readFileSync(join(dir, entry), 'utf-8'));
         if (data.Metrics) allMetrics.push(data.Metrics);
-      } catch { /* skip malformed */ }
+      } catch {
+        /* skip malformed */
+      }
     }
   }
   return allMetrics;
@@ -130,7 +142,7 @@ function generateDailyReport(date: Date, outputPath: string, _sessionId?: string
   report += '\n## Performance Metrics\n\n';
 
   if (allTraces.length > 0) {
-    const durations = allTraces.map(t => t.Duration || 0);
+    const durations = allTraces.map((t) => t.Duration || 0);
     const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
     const max = Math.max(...durations);
     const min = Math.min(...durations);
@@ -139,7 +151,7 @@ function generateDailyReport(date: Date, outputPath: string, _sessionId?: string
     report += `- **Min Span Duration**: ${Math.round(min * 100) / 100} ms\n`;
   }
 
-  const errorTraces = allTraces.filter(t => t.Status === 'error');
+  const errorTraces = allTraces.filter((t) => t.Status === 'error');
   if (errorTraces.length > 0) {
     report += '\n## Error Analysis\n\n';
     report += `- **Total Errors**: ${errorTraces.length}\n`;
@@ -184,7 +196,9 @@ function generatePerformanceAnalysis(date: Date, outputPath: string, topN = 10):
 
 `;
 
-  const sorted = [...allTraces].sort((a, b) => (b.Duration || 0) - (a.Duration || 0)).slice(0, topN);
+  const sorted = [...allTraces]
+    .sort((a, b) => (b.Duration || 0) - (a.Duration || 0))
+    .slice(0, topN);
   report += '| Rank | Operation | Duration (ms) | Status |\n';
   report += '|------|-----------|---------------|--------|\n';
 
@@ -193,8 +207,8 @@ function generatePerformanceAnalysis(date: Date, outputPath: string, topN = 10):
   }
 
   report += '\n## Throughput Analysis\n\n';
-  const successTraces = allTraces.filter(t => t.Status === 'success');
-  const errorTraces = allTraces.filter(t => t.Status === 'error');
+  const successTraces = allTraces.filter((t) => t.Status === 'success');
+  const errorTraces = allTraces.filter((t) => t.Status === 'error');
   report += `- **Successful Operations**: ${successTraces.length}\n`;
   report += `- **Failed Operations**: ${errorTraces.length}\n`;
   const successRate = allTraces.length > 0 ? (successTraces.length / allTraces.length) * 100 : 0;
@@ -235,7 +249,7 @@ function generateErrorAnalysis(date: Date, outputPath: string): string {
 
   const tracesDir = '.telemetry/traces';
   const allTraces = loadTraces(tracesDir, dateStr);
-  const errorTraces = allTraces.filter(t => t.Status === 'error');
+  const errorTraces = allTraces.filter((t) => t.Status === 'error');
 
   let report = `# Error Analysis Report - ${dateStr}
 
@@ -301,11 +315,13 @@ function generateDispatchMetricsReport(date: Date, outputPath: string): string {
   const dispatchFile = join(tracesDir, `dispatch-traces-${dateStr}.jsonl`);
   if (existsSync(dispatchFile)) {
     const content = readFileSync(dispatchFile, 'utf-8');
-    const lines = content.split(/\r?\n/).filter(l => l.trim());
+    const lines = content.split(/\r?\n/).filter((l) => l.trim());
     for (const line of lines) {
       try {
         dispatchTraces.push(JSON.parse(line));
-      } catch { /* skip malformed */ }
+      } catch {
+        /* skip malformed */
+      }
     }
   }
 
@@ -320,9 +336,10 @@ function generateDispatchMetricsReport(date: Date, outputPath: string): string {
 `;
 
   if (dispatchTraces.length > 0) {
-    const successCount = dispatchTraces.filter(d => d.Status === 'success').length;
-    const errorCount = dispatchTraces.filter(d => d.Status === 'error').length;
-    const avgDuration = dispatchTraces.reduce((sum, d) => sum + (d.Duration || 0), 0) / dispatchTraces.length;
+    const successCount = dispatchTraces.filter((d) => d.Status === 'success').length;
+    const errorCount = dispatchTraces.filter((d) => d.Status === 'error').length;
+    const avgDuration =
+      dispatchTraces.reduce((sum, d) => sum + (d.Duration || 0), 0) / dispatchTraces.length;
 
     report += `- **Successful Dispatches**: ${successCount}\n`;
     report += `- **Failed Dispatches**: ${errorCount}\n`;
@@ -341,7 +358,7 @@ function generateDispatchMetricsReport(date: Date, outputPath: string): string {
     report += '|---------------|-------|-------------------|--------------|\n';
     for (const [name, entries] of dispatchByName) {
       const avg = entries.reduce((sum, e) => sum + e.Duration, 0) / entries.length;
-      const groupSuccess = entries.filter(e => e.Status === 'success').length;
+      const groupSuccess = entries.filter((e) => e.Status === 'success').length;
       const groupRate = Math.round((groupSuccess / entries.length) * 10000) / 100;
       report += `| ${name} | ${entries.length} | ${Math.round(avg * 100) / 100} | ${groupRate}% |\n`;
     }
@@ -369,14 +386,26 @@ function getReportIndex(outputPath: string): ReportFile[] {
   const dir = resolve(outputPath);
   if (existsSync(dir)) {
     let entries: string[];
-    try { entries = readdirSync(dir); } catch { return reports; }
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return reports;
+    }
     for (const entry of entries) {
       if (!entry.endsWith('.md')) continue;
       const full = join(dir, entry);
       try {
         const s = statSync(full);
-        reports.push({ Name: entry, Path: full, Created: s.birthtime, Modified: s.mtime, Size: s.size });
-      } catch { /* */ }
+        reports.push({
+          Name: entry,
+          Path: full,
+          Created: s.birthtime,
+          Modified: s.mtime,
+          Size: s.size,
+        });
+      } catch {
+        /* */
+      }
     }
   }
   reports.sort((a, b) => b.Modified.getTime() - a.Modified.getTime());

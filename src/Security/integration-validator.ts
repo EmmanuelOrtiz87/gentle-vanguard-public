@@ -22,7 +22,6 @@ interface ValidationResult {
  * Integration point validator class
  */
 export class IntegrationValidator {
-
   /**
    * Validate a skill integration point
    * @param skillPath Path to the skill directory
@@ -33,7 +32,7 @@ export class IntegrationValidator {
       isValid: true,
       errors: [],
       warnings: [],
-      suggestions: []
+      suggestions: [],
     };
 
     try {
@@ -75,7 +74,6 @@ export class IntegrationValidator {
         if (!packageJson.description) {
           result.warnings.push('Skill package.json missing description field');
         }
-
       } catch {
         result.errors.push('Invalid package.json format');
         result.isValid = false;
@@ -86,16 +84,15 @@ export class IntegrationValidator {
       try {
         const skillMdContent = await fs.readFile(skillMdPath, 'utf8');
 
-      // Look for security mentions
-      if (!skillMdContent.toLowerCase().includes('security')) {
-        result.suggestions.push('Consider adding security considerations to SKILL.md');
-      }
+        // Look for security mentions
+        if (!skillMdContent.toLowerCase().includes('security')) {
+          result.suggestions.push('Consider adding security considerations to SKILL.md');
+        }
 
-      // Look for integration points
-      if (!skillMdContent.toLowerCase().includes('integration')) {
-        result.suggestions.push('Consider documenting integration points in SKILL.md');
-      }
-
+        // Look for integration points
+        if (!skillMdContent.toLowerCase().includes('integration')) {
+          result.suggestions.push('Consider documenting integration points in SKILL.md');
+        }
       } catch {
         result.warnings.push('SKILL.md not found for validation');
       }
@@ -106,10 +103,11 @@ export class IntegrationValidator {
         result.isValid = false;
         result.errors.push(...compatibilityCheck.errors);
       }
-
     } catch (error) {
       result.isValid = false;
-      result.errors.push(`Error validating skill: ${error instanceof Error ? error.message : String(error)}`);
+      result.errors.push(
+        `Error validating skill: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     return result;
@@ -120,8 +118,14 @@ export class IntegrationValidator {
    * @param skillPath Path to skill directory
    * @returns Compatibility check result
    */
-  private async checkCompatibility(skillPath: string): Promise<{ isValid: boolean; errors: string[]; suggestions: string[] }> {
-    const result: { isValid: boolean; errors: string[]; suggestions: string[] } = { isValid: true, errors: [], suggestions: [] };
+  private async checkCompatibility(
+    skillPath: string,
+  ): Promise<{ isValid: boolean; errors: string[]; suggestions: string[] }> {
+    const result: { isValid: boolean; errors: string[]; suggestions: string[] } = {
+      isValid: true,
+      errors: [],
+      suggestions: [],
+    };
 
     // Check for conflicting dependencies
     try {
@@ -133,7 +137,9 @@ export class IntegrationValidator {
       if (packageJson.peerDependencies) {
         const peerDeps = Object.keys(packageJson.peerDependencies);
         if (peerDeps.length > 0) {
-          result.suggestions.push(`Peer dependencies detected: ${peerDeps.join(', ')}. Verify compatibility.`);
+          result.suggestions.push(
+            `Peer dependencies detected: ${peerDeps.join(', ')}. Verify compatibility.`,
+          );
         }
       }
 
@@ -141,12 +147,15 @@ export class IntegrationValidator {
       if (packageJson.dependencies) {
         const deps = Object.keys(packageJson.dependencies);
         if (deps.length > 0) {
-          result.suggestions.push(`Dependencies detected: ${deps.join(', ')}. Verify compatibility.`);
+          result.suggestions.push(
+            `Dependencies detected: ${deps.join(', ')}. Verify compatibility.`,
+          );
         }
       }
-
     } catch (error) {
-      result.errors.push(`Error checking compatibility: ${error instanceof Error ? error.message : String(error)}`);
+      result.errors.push(
+        `Error checking compatibility: ${error instanceof Error ? error.message : String(error)}`,
+      );
       result.isValid = false;
     }
 
@@ -158,7 +167,9 @@ export class IntegrationValidator {
    * @param skillPaths Array of skill paths to validate
    * @returns Array of validation results
    */
-  async validateMultipleSkills(skillPaths: string[]): Promise<Array<{ path: string; result: ValidationResult }>> {
+  async validateMultipleSkills(
+    skillPaths: string[],
+  ): Promise<Array<{ path: string; result: ValidationResult }>> {
     const results: Array<{ path: string; result: ValidationResult }> = [];
 
     for (const skillPath of skillPaths) {
@@ -223,11 +234,12 @@ if (process.argv[1] && typeof process !== 'undefined' && process.argv[1]) {
   // Example usage
   const skillPaths = ['./skills/example-skill', './skills/another-skill'];
 
-  validator.validateMultipleSkills(skillPaths)
-    .then(results => {
+  validator
+    .validateMultipleSkills(skillPaths)
+    .then((results) => {
       console.log(validator.generateReport(results));
 
-      const allValid = results.every(r => r.result.isValid);
+      const allValid = results.every((r) => r.result.isValid);
       if (allValid) {
         console.log('✅ All integration points validated successfully');
       } else {
@@ -235,7 +247,7 @@ if (process.argv[1] && typeof process !== 'undefined' && process.argv[1]) {
         process.exit(1);
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Validation error:', error);
       process.exit(1);
     });

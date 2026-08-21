@@ -1,17 +1,24 @@
-# PowerShell files are not supported by prettier (no parser available)
-*.ps1
-*.psd1
-*.psm1
-
-# Template files with {{variables}} that break JSON/YAML parsing
-**/*.template.json
-**/*.template.md
-**/*.template.yml
-
-# lefthook config — inline PowerShell commands break YAML parser
-config/lefthook.yml
-
-# Third-party / generated
-package-lock.json
-pnpm-lock.yaml
+# Directorios de contenido absorbido de terceros o autogenerado.
+# No se gobiernan con nuestro formato (misma política que .markdownlintignore):
+# - skills/ y public/skills/ -> skills absorbidas de repos externos
+# - .opencode/skills/, .windsurf/ -> plugins/capacidades de herramientas
+# - knowledge-base/, reports/ -> artefactos autogenerados de sesiones
+# - node_modules/ -> dependencias
+skills/
+public/skills/
+.opencode/skills/
+.windsurf/
+knowledge-base/
+reports/
+.archive/
+.backups/
+build/
+.session/
+.sdd/
+.engram/
+.plugins/
+demos/
+graphify-out/
+plugins/
 node_modules/
+**/node_modules/

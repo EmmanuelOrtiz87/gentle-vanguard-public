@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Cost Efficiency Scoring System
- * 
+ *
  * Scores sessions based on token efficiency and task completion.
  * Identifies optimal patterns and provides recommendations for improvement.
- * 
+ *
  * Scoring Formula:
  *   Efficiency Score = (Tasks Completed / Total Tokens) * 1000 * Quality Multiplier
- * 
+ *
  * Quality Multipliers:
  *   - High quality output: 1.2x
  *   - No errors: 1.1x
@@ -87,16 +87,27 @@ export class CostEfficiencyScorer {
 
   private loadScores(): void {
     if (!existsSync(SCORES_FILE)) return;
-    const lines = readFileSync(SCORES_FILE, 'utf-8').split('\n').filter(l => l.trim());
+    const lines = readFileSync(SCORES_FILE, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim());
     for (const line of lines) {
-      try { this.scores.push(JSON.parse(line)); } catch {}
+      try {
+        this.scores.push(JSON.parse(line));
+      } catch {}
     }
   }
 
   calculateScore(metrics: SessionMetrics): EfficiencyScore {
-    const rawScore = metrics.totalTokens > 0 ? (metrics.tasksCompleted / metrics.totalTokens) * 1000 : 0;
-    
-    const multipliers: { quality: number; errorFree: number; skillUsage: number; cacheEfficiency: number; total: number } = {
+    const rawScore =
+      metrics.totalTokens > 0 ? (metrics.tasksCompleted / metrics.totalTokens) * 1000 : 0;
+
+    const multipliers: {
+      quality: number;
+      errorFree: number;
+      skillUsage: number;
+      cacheEfficiency: number;
+      total: number;
+    } = {
       quality: metrics.qualityScore >= 90 ? 1.2 : metrics.qualityScore >= 70 ? 1.1 : 1.0,
       errorFree: metrics.errors === 0 ? 1.1 : 1.0,
       skillUsage: 1 + Math.min(metrics.skillsUsed.length * 0.05, 0.25),
@@ -110,15 +121,22 @@ export class CostEfficiencyScorer {
       multipliers.cacheEfficiency = cacheRate >= 0.4 ? 1.15 : cacheRate >= 0.2 ? 1.08 : 1.0;
     }
 
-    multipliers.total = multipliers.quality * multipliers.errorFree * multipliers.skillUsage * multipliers.cacheEfficiency;
+    multipliers.total =
+      multipliers.quality *
+      multipliers.errorFree *
+      multipliers.skillUsage *
+      multipliers.cacheEfficiency;
     const adjustedScore = rawScore * multipliers.total;
     const grade = calculateGrade(adjustedScore);
 
     const recommendations: string[] = [];
     if (metrics.totalTokens / (metrics.tasksCompleted || 1) > 5000) {
-      recommendations.push('High token usage per task. Consider breaking tasks into smaller steps.');
+      recommendations.push(
+        'High token usage per task. Consider breaking tasks into smaller steps.',
+      );
     }
-    if (metrics.errors > 0) recommendations.push(`${metrics.errors} errors detected. Review error patterns.`);
+    if (metrics.errors > 0)
+      recommendations.push(`${metrics.errors} errors detected. Review error patterns.`);
     if (metrics.cacheHits / (totalCache || 1) < 0.2) {
       recommendations.push('Low cache hit rate. Consider enabling response caching.');
     }
@@ -128,8 +146,12 @@ export class CostEfficiencyScorer {
       date: metrics.date,
       rawScore: Math.round(rawScore * 100) / 100,
       adjustedScore: Math.round(adjustedScore * 100) / 100,
-      tokensPerTask: metrics.tasksCompleted > 0 ? Math.round(metrics.totalTokens / metrics.tasksCompleted) : 0,
-      costPerTask: metrics.tasksCompleted > 0 ? Math.round((metrics.totalCost / metrics.tasksCompleted) * 10000) / 10000 : 0,
+      tokensPerTask:
+        metrics.tasksCompleted > 0 ? Math.round(metrics.totalTokens / metrics.tasksCompleted) : 0,
+      costPerTask:
+        metrics.tasksCompleted > 0
+          ? Math.round((metrics.totalCost / metrics.tasksCompleted) * 10000) / 10000
+          : 0,
       grade,
       percentile: 50,
       multipliers,
@@ -172,10 +194,10 @@ function runCLI(): void {
       cacheMisses: 7,
       qualityScore: 85,
     };
-    
+
     const score = scorer.calculateScore(demoMetrics);
     scorer.saveScore(score);
-    
+
     console.log('\n=== Cost Efficiency Score ===\n');
     console.log(`Session: ${score.sessionId}`);
     console.log(`Raw Score: ${score.rawScore} tasks/1K tokens`);

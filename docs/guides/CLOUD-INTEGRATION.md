@@ -29,7 +29,7 @@ cost-optimized routing between AWS Lambda and Azure Functions.
 
 ## Components
 
-### AWS Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1`)
+### AWS Delegator (`src/aws-delegator.ts`)
 
 Invokes skills on AWS Lambda with:
 
@@ -38,15 +38,15 @@ Invokes skills on AWS Lambda with:
 - Session state persistence to S3 (local simulation to `.session/s3-backups/`)
 - Cost tracking ($0.0000167/invocation)
 
-```powershell
+```TypeScript
 # Basic usage
-pwsh scripts/utilities/ops/CLOUD-CONNECTORS/aws-delegator.ps1 `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -RecordMetrics
 ```
 
-### Azure Delegator (`scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1`)
+### Azure Delegator (`src/azure-delegator.ts`)
 
 Invokes skills on Azure Functions with:
 
@@ -56,16 +56,16 @@ Invokes skills on Azure Functions with:
 - Dry-run mode for testing without real invocation
 - Cost tracking ($0.00002/invocation)
 
-```powershell
+```TypeScript
 # Basic usage
-pwsh scripts/utilities/ops/CLOUD-CONNECTORS/azure-delegator.ps1 `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -FunctionUrl "https://myapp.azurewebsites.net/api/skill-executor" `
   -RecordMetrics
 ```
 
-### Hybrid Executor (`scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1`)
+### Hybrid Executor (`src/hybrid-executor.ts`)
 
 Routes between AWS and Azure based on strategy:
 
@@ -74,16 +74,16 @@ Routes between AWS and Azure based on strategy:
 - **load**: Picks least loaded (load/capacity ratio)
 - **Fallback**: If primary fails, automatically tries secondary
 
-```powershell
+```TypeScript
 # Cost-based routing (default)
-pwsh scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1 `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -RoutingStrategy cost `
   -RecordMetrics
 
 # Force specific provider
-pwsh scripts/utilities/ops/CLOUD-CONNECTORS/hybrid-executor.ps1 `
+npx tsx src/cli/gv.ts `
   -SkillId "code-review" `
   -SkillInput @{ query = "Review PR #42" } `
   -PreferredProvider AWS `

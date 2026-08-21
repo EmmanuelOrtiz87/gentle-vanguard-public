@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, readdirSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+  readdirSync,
+} from 'fs';
 import { join, resolve } from 'path';
 import { randomBytes } from 'crypto';
 
@@ -12,6 +19,7 @@ interface AgentMessage {
   correlation_id: string;
   subject: string;
   payload: unknown;
+  compressedPayload?: string;
   timestamp: string;
   expires_at: string | null;
   priority: 'normal' | 'high' | 'low';
@@ -49,9 +57,11 @@ function ensureMailboxDir(): void {
 
 function generateId(prefix = 'msg'): string {
   const now = new Date();
-  const ts = now.getFullYear().toString() +
+  const ts =
+    now.getFullYear().toString() +
     String(now.getMonth() + 1).padStart(2, '0') +
-    String(now.getDate()).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0') +
+    '-' +
     String(now.getHours()).padStart(2, '0') +
     String(now.getMinutes()).padStart(2, '0') +
     String(now.getSeconds()).padStart(2, '0') +
@@ -62,9 +72,11 @@ function generateId(prefix = 'msg'): string {
 
 function generateConversationId(prefix = 'conv'): string {
   const now = new Date();
-  const ts = now.getFullYear().toString() +
+  const ts =
+    now.getFullYear().toString() +
     String(now.getMonth() + 1).padStart(2, '0') +
-    String(now.getDate()).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0') +
+    '-' +
     String(now.getHours()).padStart(2, '0') +
     String(now.getMinutes()).padStart(2, '0') +
     String(now.getSeconds()).padStart(2, '0');
@@ -112,7 +124,11 @@ function createMessage(
   const expires = ttl > 0 ? new Date(Date.now() + ttl * 1000).toISOString() : null;
   let parsedPayload: unknown = null;
   if (payload) {
-    try { parsedPayload = JSON.parse(payload); } catch { parsedPayload = payload; }
+    try {
+      parsedPayload = JSON.parse(payload);
+    } catch {
+      parsedPayload = payload;
+    }
   }
   return {
     id: generateId(),
@@ -134,7 +150,11 @@ function removeExpired(mailbox: Mailbox): Mailbox {
   const now = Date.now();
   mailbox.messages = mailbox.messages.filter((m) => {
     if (!m.expires_at) return true;
-    try { return new Date(m.expires_at).getTime() >= now; } catch { return true; }
+    try {
+      return new Date(m.expires_at).getTime() >= now;
+    } catch {
+      return true;
+    }
   });
   return mailbox;
 }
@@ -155,7 +175,15 @@ function logEvent(msgId: string, from: string, to: string, subject: string, type
 
 function parseArgs(): Record<string, string | boolean | number> {
   const args: Record<string, string | boolean | number> = {};
-  const validActions = ['send', 'poll', 'ack', 'list-conversations', 'list-mailbox', 'purge', 'status'];
+  const validActions = [
+    'send',
+    'poll',
+    'ack',
+    'list-conversations',
+    'list-mailbox',
+    'purge',
+    'status',
+  ];
   const validTypes = ['request', 'response', 'broadcast', 'event'];
   const validPriorities = ['normal', 'high', 'low'];
 
@@ -200,14 +228,18 @@ function log(msg: string, silent: boolean): void {
 }
 
 function cmdSend(args: Record<string, string | boolean | number>): void {
-  const sender = args.fromAgent as string || args.sender as string || '';
-  const recipient = args.recipient as string || '';
+  const sender = (args.fromAgent as string) || (args.sender as string) || '';
+  const recipient = (args.recipient as string) || '';
   if (!sender || !recipient) {
-    if (args.asJson) { console.log(JSON.stringify({ error: 'Sender and Recipient required' })); return; }
-    console.error('[ERROR] Sender and Recipient required'); process.exit(1);
+    if (args.asJson) {
+      console.log(JSON.stringify({ error: 'Sender and Recipient required' }));
+      return;
+    }
+    console.error('[ERROR] Sender and Recipient required');
+    process.exit(1);
   }
 
-  const convId = args.conversationId as string || generateConversationId();
+  const convId = (args.conversationId as string) || generateConversationId();
   const msg = createMessage(
     (args.messageType as AgentMessage['type']) || 'request',
     sender,
@@ -233,10 +265,14 @@ function cmdSend(args: Record<string, string | boolean | number>): void {
 }
 
 function cmdPoll(args: Record<string, string | boolean | number>): void {
-  const recipient = args.recipient as string || '';
+  const recipient = (args.recipient as string) || '';
   if (!recipient) {
-    if (args.asJson) { console.log(JSON.stringify({ error: 'Recipient required' })); return; }
-    console.error('[ERROR] Recipient required'); process.exit(1);
+    if (args.asJson) {
+      console.log(JSON.stringify({ error: 'Recipient required' }));
+      return;
+    }
+    console.error('[ERROR] Recipient required');
+    process.exit(1);
   }
 
   ensureMailboxDir();
@@ -244,7 +280,8 @@ function cmdPoll(args: Record<string, string | boolean | number>): void {
   mb.lastPoll = nowISO();
 
   let results = mb.messages.filter((m) => !m.ack);
-  if (args.conversationId) results = results.filter((m) => m.conversation_id === args.conversationId);
+  if (args.conversationId)
+    results = results.filter((m) => m.conversation_id === args.conversationId);
   if (args.subject) results = results.filter((m) => m.subject === args.subject);
   if (args.sender) results = results.filter((m) => m.sender === args.sender);
 
@@ -263,22 +300,29 @@ function cmdPoll(args: Record<string, string | boolean | number>): void {
   log(`[POLL] ${recipient}: ${results.length} unread messages`, !!args.silent);
 
   if (args.asJson) {
-    console.log(JSON.stringify({ agent: recipient, count: results.length, messages: results }, null, 2));
+    console.log(
+      JSON.stringify({ agent: recipient, count: results.length, messages: results }, null, 2),
+    );
     return;
   }
   if (results.length === 0) return;
   for (const m of results) {
-    const color = m.priority === 'high' ? '\x1b[33m' : m.priority === 'low' ? '\x1b[90m' : '\x1b[37m';
+    const color =
+      m.priority === 'high' ? '\x1b[33m' : m.priority === 'low' ? '\x1b[90m' : '\x1b[37m';
     console.log(`${color}  [${m.priority}] ${m.id} ${m.sender} [${m.type}] ${m.subject}\x1b[0m`);
   }
 }
 
 function cmdAck(args: Record<string, string | boolean | number>): void {
-  const msgId = args.messageId as string || '';
-  const recipient = args.recipient as string || '';
+  const msgId = (args.messageId as string) || '';
+  const recipient = (args.recipient as string) || '';
   if (!msgId || !recipient) {
-    if (args.asJson) { console.log(JSON.stringify({ error: 'MessageId and Recipient required' })); return; }
-    console.error('[ERROR] MessageId and Recipient required'); process.exit(1);
+    if (args.asJson) {
+      console.log(JSON.stringify({ error: 'MessageId and Recipient required' }));
+      return;
+    }
+    console.error('[ERROR] MessageId and Recipient required');
+    process.exit(1);
   }
 
   ensureMailboxDir();
@@ -299,16 +343,25 @@ function cmdAck(args: Record<string, string | boolean | number>): void {
 
 function cmdListConversations(args: Record<string, string | boolean | number>): void {
   ensureMailboxDir();
-  const files = existsSync(MAILBOX_DIR) ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json')) : [];
+  const files = existsSync(MAILBOX_DIR)
+    ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json'))
+    : [];
   const convs: Record<string, Conversation> = {};
 
   for (const f of files) {
     const raw = readFileSync(join(MAILBOX_DIR, f), 'utf-8');
     const mb: Mailbox = JSON.parse(raw);
     for (const m of mb.messages) {
-      if (m.conversation_id && (!args.conversationId || m.conversation_id === args.conversationId)) {
+      if (
+        m.conversation_id &&
+        (!args.conversationId || m.conversation_id === args.conversationId)
+      ) {
         if (!convs[m.conversation_id]) {
-          convs[m.conversation_id] = { conversation_id: m.conversation_id, messages: [], agents: {} };
+          convs[m.conversation_id] = {
+            conversation_id: m.conversation_id,
+            messages: [],
+            agents: {},
+          };
         }
         convs[m.conversation_id].messages.push(m);
         convs[m.conversation_id].agents[m.sender] = true;
@@ -335,10 +388,12 @@ function cmdListConversations(args: Record<string, string | boolean | number>): 
 
 function cmdListMailbox(args: Record<string, string | boolean | number>): void {
   ensureMailboxDir();
-  const recipient = args.recipient as string || '';
+  const recipient = (args.recipient as string) || '';
 
   if (!recipient) {
-    const files = existsSync(MAILBOX_DIR) ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json')) : [];
+    const files = existsSync(MAILBOX_DIR)
+      ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json'))
+      : [];
     log('=== Mailboxes ===', !!args.silent);
     for (const f of files) {
       const raw = readFileSync(join(MAILBOX_DIR, f), 'utf-8');
@@ -361,14 +416,16 @@ function cmdListMailbox(args: Record<string, string | boolean | number>): void {
   for (const m of mb.messages) {
     const mark = m.ack ? '[X]' : '[ ]';
     const color = m.priority === 'high' ? '\x1b[33m' : m.ack ? '\x1b[90m' : '\x1b[37m';
-    console.log(`${color}  ${mark} ${m.id} ${m.sender}->${m.recipient} [${m.type}] ${m.subject}\x1b[0m`);
+    console.log(
+      `${color}  ${mark} ${m.id} ${m.sender}->${m.recipient} [${m.type}] ${m.subject}\x1b[0m`,
+    );
   }
   writeMailbox(recipient, mb);
 }
 
 function cmdPurge(args: Record<string, string | boolean | number>): void {
   ensureMailboxDir();
-  const recipient = args.recipient as string || '';
+  const recipient = (args.recipient as string) || '';
   let count = 0;
 
   if (recipient) {
@@ -386,7 +443,9 @@ function cmdPurge(args: Record<string, string | boolean | number>): void {
     count = before - mb.messages.length;
     writeMailbox(recipient, mb);
   } else {
-    const files = existsSync(MAILBOX_DIR) ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json')) : [];
+    const files = existsSync(MAILBOX_DIR)
+      ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json'))
+      : [];
     for (const f of files) {
       const path = join(MAILBOX_DIR, f);
       try {
@@ -395,7 +454,9 @@ function cmdPurge(args: Record<string, string | boolean | number>): void {
         count += mb.messages.length;
         mb.messages = [];
         writeFileSync(path, JSON.stringify(mb, null, 2), 'utf-8');
-      } catch { /* skip corrupt */ }
+      } catch {
+        /* skip corrupt */
+      }
     }
   }
 
@@ -405,7 +466,9 @@ function cmdPurge(args: Record<string, string | boolean | number>): void {
 
 function cmdStatus(args: Record<string, string | boolean | number>): void {
   ensureMailboxDir();
-  const files = existsSync(MAILBOX_DIR) ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json')) : [];
+  const files = existsSync(MAILBOX_DIR)
+    ? readdirSync(MAILBOX_DIR).filter((f) => f.startsWith('mailbox-') && f.endsWith('.json'))
+    : [];
   let totalMessages = 0;
   let unreadMessages = 0;
   const agentMailboxes: Record<string, AgentStatus> = {};
@@ -424,17 +487,25 @@ function cmdStatus(args: Record<string, string | boolean | number>): void {
     try {
       const content = readFileSync(LOG_FILE, 'utf-8').trim();
       totalLogged = content ? content.split('\n').length : 0;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   if (args.asJson) {
-    console.log(JSON.stringify({
-      mailboxes: agentMailboxes,
-      agentCount: files.length,
-      totalMessages,
-      unreadMessages,
-      totalLogged,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          mailboxes: agentMailboxes,
+          agentCount: files.length,
+          totalMessages,
+          unreadMessages,
+          totalLogged,
+        },
+        null,
+        2,
+      ),
+    );
     return;
   }
 
@@ -451,14 +522,30 @@ function main(): void {
   const action = args.action as string;
 
   switch (action) {
-    case 'send': cmdSend(args); break;
-    case 'poll': cmdPoll(args); break;
-    case 'ack': cmdAck(args); break;
-    case 'list-conversations': cmdListConversations(args); break;
-    case 'list-mailbox': cmdListMailbox(args); break;
-    case 'purge': cmdPurge(args); break;
-    case 'status': cmdStatus(args); break;
-    default: cmdStatus(args); break;
+    case 'send':
+      cmdSend(args);
+      break;
+    case 'poll':
+      cmdPoll(args);
+      break;
+    case 'ack':
+      cmdAck(args);
+      break;
+    case 'list-conversations':
+      cmdListConversations(args);
+      break;
+    case 'list-mailbox':
+      cmdListMailbox(args);
+      break;
+    case 'purge':
+      cmdPurge(args);
+      break;
+    case 'status':
+      cmdStatus(args);
+      break;
+    default:
+      cmdStatus(args);
+      break;
   }
 }
 

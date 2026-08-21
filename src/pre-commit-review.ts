@@ -2,7 +2,7 @@
 
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import { join, resolve, dirname } from 'path';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 interface SecretPattern {
@@ -27,7 +27,7 @@ function main(): void {
 
   const cwd = resolve(process.cwd());
 
-  const gitResult = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd, windowsHide: true, encoding: 'utf-8' });
+  const gitResult = runSync('git', ['rev-parse', '--show-toplevel'], { cwd });
   const gitRoot = gitResult.stdout?.trim();
 
   if (!gitRoot || gitResult.status !== 0) {
@@ -43,7 +43,9 @@ function main(): void {
     process.exit(0);
   }
 
-  const stagedResult = spawnSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM'], { cwd: gitRoot, windowsHide: true, encoding: 'utf-8' });
+  const stagedResult = runSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM'], {
+    cwd: gitRoot,
+  });
   const stagedFiles = stagedResult.stdout?.trim();
 
   if (!stagedFiles) {
@@ -76,9 +78,21 @@ function main(): void {
       { Name: 'GitHub Token', Pattern: 'ghp_[A-Za-z0-9]{36}', Severity: 'CRITICAL' },
       { Name: 'Private Key', Pattern: '-----BEGIN.*PRIVATE KEY-----', Severity: 'CRITICAL' },
       { Name: 'Stripe Key', Pattern: 'sk_live_[0-9a-zA-Z]{24,}', Severity: 'CRITICAL' },
-      { Name: 'SendGrid Key', Pattern: 'SG\\.[A-Za-z0-9_-]{22}\\.[A-Za-z0-9_-]{43}', Severity: 'CRITICAL' },
-      { Name: 'Generic API Key', Pattern: '(?i)(api[_-]?key|apikey)[\\"\'\\s]*[=:][\\"\'\\s]*[A-Za-z0-9]{20,}', Severity: 'HIGH' },
-      { Name: 'Database URL', Pattern: '(?i)(mysql|postgres|mongodb)://[^:\\s]+:[^@\\s]+@', Severity: 'HIGH' },
+      {
+        Name: 'SendGrid Key',
+        Pattern: 'SG\\.[A-Za-z0-9_-]{22}\\.[A-Za-z0-9_-]{43}',
+        Severity: 'CRITICAL',
+      },
+      {
+        Name: 'Generic API Key',
+        Pattern: '(?i)(api[_-]?key|apikey)[\\"\'\\s]*[=:][\\"\'\\s]*[A-Za-z0-9]{20,}',
+        Severity: 'HIGH',
+      },
+      {
+        Name: 'Database URL',
+        Pattern: '(?i)(mysql|postgres|mongodb)://[^:\\s]+:[^@\\s]+@',
+        Severity: 'HIGH',
+      },
     ];
 
     let criticalFound = false;
@@ -87,7 +101,7 @@ function main(): void {
     for (const file of files) {
       if (!file.trim()) continue;
 
-      const showResult = spawnSync('git', ['show', `:0:${file}`], { cwd: gitRoot, windowsHide: true, encoding: 'utf-8' });
+      const showResult = runSync('git', ['show', `:0:${file}`], { cwd: gitRoot });
       const content = showResult.stdout;
       if (!content) continue;
 
@@ -115,19 +129,29 @@ function main(): void {
       console.log('\x1b[90mRun code review for details.\x1b[0m');
       console.log('');
 
-      try { unlinkSync(markerPath); } catch { /* */ }
+      try {
+        unlinkSync(markerPath);
+      } catch {
+        /* */
+      }
       process.exit(1);
     }
 
     if (fast) {
       console.log('\x1b[32m[OK] Fast scan passed (no critical issues)\x1b[0m');
-      try { unlinkSync(markerPath); } catch { /* */ }
+      try {
+        unlinkSync(markerPath);
+      } catch {
+        /* */
+      }
       process.exit(0);
     }
 
     console.log('Running full orchestrator scan...\n');
 
-    const scanResult = spawnSync('npx', ['tsx', reviewScript, '--scope', 'quick', '--path', gitRoot], { cwd: gitRoot, windowsHide: true, encoding: 'utf-8' });
+    const scanResult = runNpxTsxSync(reviewScript, ['--scope', 'quick', '--path', gitRoot], {
+      cwd: gitRoot,
+    });
 
     const exitCode = scanResult.status ?? 0;
 
@@ -138,7 +162,11 @@ function main(): void {
     console.log('\x1b[36m========================================\x1b[0m');
     console.log('');
 
-    try { unlinkSync(markerPath); } catch { /* */ }
+    try {
+      unlinkSync(markerPath);
+    } catch {
+      /* */
+    }
 
     if (exitCode === 1) {
       console.log('\x1b[33mRun code review for detailed report.\x1b[0m');
@@ -146,8 +174,14 @@ function main(): void {
 
     process.exit(exitCode);
   } catch (e: unknown) {
-    console.log(`\x1b[33m[WARN] Pre-commit scan encountered an error: ${e instanceof Error ? e.message : String(e)}\x1b[0m`);
-    try { unlinkSync(markerPath); } catch { /* */ }
+    console.log(
+      `\x1b[33m[WARN] Pre-commit scan encountered an error: ${e instanceof Error ? e.message : String(e)}\x1b[0m`,
+    );
+    try {
+      unlinkSync(markerPath);
+    } catch {
+      /* */
+    }
     process.exit(0);
   }
 }

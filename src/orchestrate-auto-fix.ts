@@ -2,13 +2,18 @@
 
 import { existsSync } from 'fs';
 import { resolve, join } from 'path';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
 
 function getTsEquivalent(psPath: string): string | null {
-  const base = psPath.replace(/\\/g, '/').split('/').pop()?.replace(/\.ps1$/i, '') ?? '';
+  const base =
+    psPath
+      .replace(/\\/g, '/')
+      .split('/')
+      .pop()
+      ?.replace(/\.ps1$/i, '') ?? '';
   const tsPath = join(ROOT, 'src', `${base}.ts`);
   return existsSync(tsPath) ? tsPath : null;
 }
@@ -86,22 +91,26 @@ function success(validator: string, details: string): void {
 
 function findFirstFile(root: string, pattern: string, recursive = true): string | null {
   const cmd = `Get-ChildItem -Path "${root}" -Filter "${pattern}" ${recursive ? '-Recurse' : ''} -File -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = spawnSync('pwsh', ['-NoProfile', '-Command', cmd], { windowsHide: true });
-  const out = result.stdout?.toString().trim();
+  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
+  const out = result.stdout.trim();
   return out || null;
 }
 
-function findFirstFileWithExtension(root: string, pattern: string, extensions: string[]): string | null {
-  const cmd = `Get-ChildItem -Path "${root}" -Filter "${pattern}" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @(${extensions.map(e => `'${e}'`).join(',')}) } | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = spawnSync('pwsh', ['-NoProfile', '-Command', cmd], { windowsHide: true });
-  const out = result.stdout?.toString().trim();
+function findFirstFileWithExtension(
+  root: string,
+  pattern: string,
+  extensions: string[],
+): string | null {
+  const cmd = `Get-ChildItem -Path "${root}" -Filter "${pattern}" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @(${extensions.map((e) => `'${e}'`).join(',')}) } | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
+  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
+  const out = result.stdout.trim();
   return out || null;
 }
 
 function findInDir(root: string, regex: string): string | null {
   const cmd = `Get-ChildItem -Path "${root}" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match "${regex}" } | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = spawnSync('pwsh', ['-NoProfile', '-Command', cmd], { windowsHide: true });
-  const out = result.stdout?.toString().trim();
+  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
+  const out = result.stdout.trim();
   return out || null;
 }
 
@@ -144,9 +153,11 @@ function initializeValidators(): void {
 function runPwsh(scriptPath: string, args: string[] = []): string {
   const tsAlt = getTsEquivalent(scriptPath);
   const result = tsAlt
-    ? spawnSync('npx', ['tsx', tsAlt, ...args], { windowsHide: true })
-    : spawnSync('pwsh', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, ...args], { windowsHide: true });
-  return result.stdout?.toString() || '';
+    ? runNpxTsxSync(tsAlt, args, { stdio: 'pipe' })
+    : runSync('pwsh', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, ...args], {
+        stdio: 'pipe',
+      });
+  return result.stdout || '';
 }
 
 function invokeScriptsValidation(v: Validator): void {
@@ -202,8 +213,10 @@ function invokeConfigValidation(v: Validator): void {
   try {
     const tsAlt = getTsEquivalent(v.path);
     const result = tsAlt
-      ? spawnSync('npx', ['tsx', tsAlt], { windowsHide: true })
-      : spawnSync('pwsh', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', v.path], { windowsHide: true });
+      ? runNpxTsxSync(tsAlt, [], { stdio: 'pipe' })
+      : runSync('pwsh', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', v.path], {
+          stdio: 'pipe',
+        });
     if (result.status === 0) {
       success('Configuration', 'No inconsistencies');
     } else {
@@ -242,14 +255,30 @@ function invokeValidationPhase(): void {
     summary.validated.push(v.name);
 
     switch (key) {
-      case 'scripts': invokeScriptsValidation(v); break;
-      case 'docs': invokeDocsValidation(v); break;
-      case 'skills': invokeSkillsValidation(v); break;
-      case 'config': invokeConfigValidation(v); break;
-      case 'typescript': invokeTypeScriptValidation(); break;
-      case 'docker': invokeDockerValidation(); break;
-      case 'security': invokeSecurityValidation(); break;
-      case 'links': invokeLinksValidation(); break;
+      case 'scripts':
+        invokeScriptsValidation(v);
+        break;
+      case 'docs':
+        invokeDocsValidation(v);
+        break;
+      case 'skills':
+        invokeSkillsValidation(v);
+        break;
+      case 'config':
+        invokeConfigValidation(v);
+        break;
+      case 'typescript':
+        invokeTypeScriptValidation();
+        break;
+      case 'docker':
+        invokeDockerValidation();
+        break;
+      case 'security':
+        invokeSecurityValidation();
+        break;
+      case 'links':
+        invokeLinksValidation();
+        break;
     }
   }
 }
@@ -264,9 +293,11 @@ function invokeAutoFixPhase(_dryRun: boolean, fix: boolean): void {
     return;
   }
 
-  console.log(`\x1b[33m[AUTO-FIX] Attempting fixes for: ${summary.issues.length} validators with issues\x1b[0m`);
+  console.log(
+    `\x1b[33m[AUTO-FIX] Attempting fixes for: ${summary.issues.length} validators with issues\x1b[0m`,
+  );
 
-  if (validators.scripts.exists && summary.issues.some(i => /scripts/i.test(i))) {
+  if (validators.scripts.exists && summary.issues.some((i) => /scripts/i.test(i))) {
     const fixScript = findFirstFile(ROOT, 'auto-fix-delegate.ps1');
     if (fixScript) {
       try {
@@ -274,7 +305,9 @@ function invokeAutoFixPhase(_dryRun: boolean, fix: boolean): void {
         if (/Auto-fixed/i.test(output)) {
           fixed('Scripts', 'Parser patterns corrected');
         }
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     }
   }
 }

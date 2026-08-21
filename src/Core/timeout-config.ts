@@ -15,10 +15,8 @@
  */
 
 import * as fs from 'fs';
-import { resolve } from 'path';
 import * as path from 'path';
-
-const ROOT = resolve(process.cwd());
+import { ROOT } from './repo-root';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -287,7 +285,11 @@ function validateWithSchema(config: TimeoutConfig): string[] {
 function loadConfigFromDisk(): TimeoutConfig {
   const configPath = getConfigPath();
   if (!fs.existsSync(configPath)) {
-    console.warn('[TIMEOUT-CONFIG] Config file not found at', configPath, '— using fallback defaults');
+    console.warn(
+      '[TIMEOUT-CONFIG] Config file not found at',
+      configPath,
+      '— using fallback defaults',
+    );
     return { ...FALLBACK_TIMEOUTS };
   }
 
@@ -387,7 +389,8 @@ function resolveEnvOverride(path: string, baseValue: number): number {
   // Check extended environments
   for (const parent of env.extends) {
     if (parent === 'global') continue;
-    const parentEnv = cfg.environments?.[parent as keyof typeof cfg.environments] as EnvironmentOverride | undefined;
+    const parentEnv = cfg.environments?.[parent as keyof typeof cfg.environments] as
+      EnvironmentOverride | undefined;
     if (parentEnv?.overrides?.[path] !== undefined) {
       return parentEnv.overrides[path];
     }
@@ -485,17 +488,28 @@ export function getCircuitBreakerConfig(): CircuitBreakerConfig | undefined {
  * Get effective timeout for a spawned process.
  * Wraps process_execution timeouts with env resolution.
  */
-export function getEffectiveProcessTimeout(type: 'default' | 'long_running' | 'git' | 'npm' | 'pnpm' | 'tsc' | 'pipeline_step' | 'health_check'): number {
+export function getEffectiveProcessTimeout(
+  type:
+    'default' | 'long_running' | 'git' | 'npm' | 'pnpm' | 'tsc' | 'pipeline_step' | 'health_check',
+): number {
   const p = getProcessExecutionTimeouts();
   switch (type) {
-    case 'default': return getTimeout('process_execution.script_default_ms', p.script_default_ms);
-    case 'long_running': return getTimeout('process_execution.script_long_running_ms', p.script_long_running_ms);
-    case 'git': return getTimeout('process_execution.git_operation_ms', p.git_operation_ms ?? 15000);
-    case 'npm': return getTimeout('process_execution.npm_command_ms', p.npm_command_ms ?? 60000);
-    case 'pnpm': return getTimeout('process_execution.pnpm_command_ms', p.pnpm_command_ms ?? 60000);
-    case 'tsc': return getTimeout('process_execution.tsc_typecheck_ms', p.tsc_typecheck_ms ?? 120000);
-    case 'pipeline_step': return getTimeout('process_execution.pipeline_step_ms', p.pipeline_step_ms ?? 120000);
-    case 'health_check': return getTimeout('process_execution.health_check_ms', p.health_check_ms ?? 15000);
+    case 'default':
+      return getTimeout('process_execution.script_default_ms', p.script_default_ms);
+    case 'long_running':
+      return getTimeout('process_execution.script_long_running_ms', p.script_long_running_ms);
+    case 'git':
+      return getTimeout('process_execution.git_operation_ms', p.git_operation_ms ?? 15000);
+    case 'npm':
+      return getTimeout('process_execution.npm_command_ms', p.npm_command_ms ?? 60000);
+    case 'pnpm':
+      return getTimeout('process_execution.pnpm_command_ms', p.pnpm_command_ms ?? 60000);
+    case 'tsc':
+      return getTimeout('process_execution.tsc_typecheck_ms', p.tsc_typecheck_ms ?? 120000);
+    case 'pipeline_step':
+      return getTimeout('process_execution.pipeline_step_ms', p.pipeline_step_ms ?? 120000);
+    case 'health_check':
+      return getTimeout('process_execution.health_check_ms', p.health_check_ms ?? 15000);
   }
 }
 
@@ -542,7 +556,9 @@ function printTable(label: string, data: Record<string, any>) {
       printTable(`${label} > ${key}`, value);
     } else {
       const suffix = typeof value === 'number' && key.endsWith('_ms') ? 'ms' : '';
-      console.log(`  \x1b[33m${key}\x1b[0m = \x1b[32m${value}\x1b[0m${suffix ? ` \x1b[90m(${suffix})\x1b[0m` : ''}`);
+      console.log(
+        `  \x1b[33m${key}\x1b[0m = \x1b[32m${value}\x1b[0m${suffix ? ` \x1b[90m(${suffix})\x1b[0m` : ''}`,
+      );
     }
   }
 }
@@ -591,6 +607,9 @@ function cliMain() {
 }
 
 // Auto-run if executed directly
-if (process.argv[1] && (process.argv[1].endsWith('timeout-config.ts') || process.argv[1].endsWith('timeout-config.js'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith('timeout-config.ts') || process.argv[1].endsWith('timeout-config.js'))
+) {
   cliMain();
 }

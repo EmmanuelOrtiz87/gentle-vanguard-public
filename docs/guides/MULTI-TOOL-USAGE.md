@@ -15,7 +15,7 @@ correspondiente.
 1. **Variables de entorno** (prioridad alta): `OPENCODE_CHAT_MODE`, `CURSOR_TRACE_ID`, etc.
 2. **Proceso padre** (fallback): Detecta el proceso que ejecuta el script
 3. **Carga de configuración**: `config/tool-{herramienta}.json`
-4. **Pre-procesamiento**: `scripts/utilities/pre-process-input.ps1`
+4. **Pre-procesamiento**: `src/pre-process-input.ts`
 
 ---
 

@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="🧠 Memory & Knowledge — Gentle-Vanguard — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🧠 Memory & Knowledge — Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Clases específicas de memory-knowledge.html (no presentes en gv.css) --- */
+      .dao-card {
+        background: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 12px;
+        padding: 1.2rem;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+      .dao-card:hover {
+        border-color: var(--p);
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.2);
+      }
+      .dao-card h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+      }
+      .dao-card p {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+      }
+      .dao-card code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--pl);
+        background: rgba(0, 191, 255, 0.06);
+        padding: 0.1em 0.4em;
+        border-radius: 3px;
+      }
+      .flow-box {
+        background: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 12px;
+        padding: 0.8rem 1.2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+      .flow-box:hover {
+        border-color: var(--p);
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.2);
+      }
+      .flow-box .label {
+        font-size: 0.68rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .flow-box .value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+    </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <span class="hero-badge mb-3">✦ v4.0 — Knowledge Systems</span>
+      <h1 class="fw-bold z-1"><span class="glow">Memory &amp; Knowledge Systems</span></h1>
+      <p
+        class="lead text-secondary z-1"
+        data-i18n="c_memoryknowledge_2"
+        style="max-width: 650px; font-size: clamp(1rem, 2vw, 1.3rem)"
+      >
+        4 interconnected knowledge systems powering persistent memory, symbol intelligence, and
+        operational data
+      </p>
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
+        <div class="text-center">
+          <div class="stat-n">2078</div>
+          <div class="stat-l">Engram Observations</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">10663</div>
+          <div class="stat-l">CodeGraph Nodes</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">18MB</div>
+          <div class="stat-l">Graph.json</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-n">21</div>
+          <div class="stat-l">Nexus Tables</div>
+        </div>
+      </div>
+    </header>
+
+    <section id="overview" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_mem_stack">🔮 The Memory Stack</h2>
+        <p data-i18n="c_memoryknowledge_3">
+          Four interconnected knowledge systems serving distinct purposes
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🧠</div>
+            <h3 data-i18n="c_memoryknowledge_4">Engram</h3>
+            <p class="mb-1" data-i18n="c_memoryknowledge_5">
+              Persistent memory — cross-session, cross-project, auto-compacting
+            </p>
+            <span class="badge-tag ok">2078 obs</span>
+            <span class="badge-tag">v1.20.0</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🔗</div>
+            <h3 data-i18n="c_memoryknowledge_6">CodeGraph</h3>
+            <p class="mb-1" data-i18n="c_memoryknowledge_7">
+              Symbol intelligence — AST-based, sub-ms queries
+            </p>
+            <span class="badge-tag ok">10663 nodes</span>
+            <span class="badge-tag">21746 edges</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">🌐</div>
+            <h3 data-i18n="c_memoryknowledge_8">Graphify</h3>
+            <p class="mb-1" data-i18n="c_memoryknowledge_9">
+              LLM-extracted knowledge graph with community structure
+            </p>
+            <span class="badge-tag ok">18MB graph</span>
+            <span class="badge-tag ok">LLM</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">💾</div>
+            <h3 data-i18n="c_memoryknowledge_10">Nexus DB</h3>
+            <p class="mb-1" data-i18n="c_memoryknowledge_11">
+              Operational SQLite database — 21 tables, 11 repos
+            </p>
+            <span class="badge-tag ok">WAL mode</span>
+            <span class="badge-tag">7 migrations</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="engram" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_engram">🧠 Engram — Persistent Memory</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_engram"
+          title="Persistent memory: 2,078 observations, 369 sessions. SHA256 integrity, survives compactions."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_12">
+          Cross-session, cross-project memory with conflict resolution
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-7">
+          <div class="section-card">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h3 class="mb-0"><i class="bi bi-memory text-info me-1"></i> Engram v1.20.0</h3>
+              <span
+                class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1"
+                >2078 Observations</span
+              >
+              <span
+                class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-1"
+                >369 Sessions · 284 Prompts</span
+              >
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Storage Used</span><span class="text-info">Active</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-info" style="width: 90%"></div>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-info bg-opacity-10 text-info p-2">mem_save</span>
+              <span class="badge bg-info bg-opacity-10 text-info p-2">mem_search</span>
+              <span class="badge bg-info bg-opacity-10 text-info p-2">mem_context</span>
+              <span class="badge bg-info bg-opacity-10 text-info p-2">mem_session_summary</span>
+              <span class="badge bg-info bg-opacity-10 text-info p-2">mem_compare</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">mem_judge</span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">mem_pin</span>
+            </div>
+            <ul class="list-unstyled mb-0 small text-secondary" style="line-height: 2">
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>Cross-session persistence —
+                never forgets context
+              </li>
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>Auto-compaction and
+                auto-optimization
+              </li>
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>Conflict detection and
+                resolution via
+                <code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                  >mem_judge</code
+                >
+              </li>
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>Retention policy: 90 days with
+                auto-prune
+              </li>
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>MCP server integration for
+                tool-based access
+              </li>
+              <li>
+                <i class="bi bi-check-circle text-success me-2"></i>Integrity SHA256 checksum on
+                every observation
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="section-card">
+            <h3 class="mb-3">
+              <i class="bi bi-diagram-3 text-warning me-1"></i> Observation Types
+            </h3>
+            <div class="d-flex flex-column gap-2">
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded-2"
+                style="background: #1e293b"
+              >
+                <span class="small"><i class="bi bi-tools text-info me-1"></i> tool_use</span>
+                <span class="badge bg-info bg-opacity-10 text-info">Active</span>
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded-2"
+                style="background: #1e293b"
+              >
+                <span class="small"
+                  ><i class="bi bi-pencil-square text-success me-1"></i> file_change</span
+                >
+                <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded-2"
+                style="background: #1e293b"
+              >
+                <span class="small"><i class="bi bi-bug text-danger me-1"></i> bugfix</span>
+                <span class="badge bg-danger bg-opacity-10 text-danger">Active</span>
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded-2"
+                style="background: #1e293b"
+              >
+                <span class="small"
+                  ><i class="bi bi-compass text-a me-1" style="color: var(--a)"></i> decision /
+                  architecture</span
+                >
+                <span
+                  class="badge bg-purple bg-opacity-10"
+                  style="background: rgba(168, 85, 247, 0.1); color: var(--a)"
+                  >Active</span
+                >
+              </div>
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded-2"
+                style="background: #1e293b"
+              >
+                <span class="small"
+                  ><i class="bi bi-star text-warning me-1"></i> learning / discovery</span
+                >
+                <span class="badge bg-warning bg-opacity-10 text-warning">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="codegraph" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_codegraph">🔗 CodeGraph — Symbol Intelligence</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_codegraph"
+          title="Knowledge graph: 10,663 nodes, 21,746 edges. Sub-millisecond symbol queries."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_13">AST-level code graph with cross-file resolution</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-graph-up text-info me-1"></i> Graph Stats</h3>
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center" style="background: #1e293b">
+                  <div class="stat-n" style="font-size: 1.8rem">10663</div>
+                  <div class="stat-l">Nodes</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center" style="background: #1e293b">
+                  <div class="stat-n" style="font-size: 1.8rem">21746</div>
+                  <div class="stat-l">Edges</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center" style="background: #1e293b">
+                  <div class="stat-n" style="font-size: 1.8rem">677</div>
+                  <div class="stat-l">Files Indexed</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center" style="background: #1e293b">
+                  <div class="stat-n" style="font-size: 1.8rem">28MB</div>
+                  <div class="stat-l">Index Size</div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Freshness</span><span class="text-info">14.9 min</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-bar-fill bg-success" style="width: 98%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-link-45deg text-success me-1"></i> Edge Types</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small"
+                  ><code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                    >contains</code
+                  ></span
+                >
+                <span class="small text-secondary">Parent-child containment relationships</span>
+              </div>
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small"
+                  ><code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                    >calls</code
+                  ></span
+                >
+                <span class="small text-secondary">Function/method invocation edges</span>
+              </div>
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small"><span class="text-secondary">⚡ AST-level</span></span>
+                <span class="small text-secondary">Sub-millisecond symbol resolution</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="graphify" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_graphify">🌐 Graphify — Knowledge Graph</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_graphify"
+          title="Community detection, god nodes, cross-file relationships. GraphML + visualizations."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_14">
+          LLM-extracted relationships with community structure and god nodes
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-hdd-stack text-info me-1"></i> Graph Details</h3>
+            <ul class="list-unstyled small text-secondary" style="line-height: 2.2">
+              <li>
+                <i class="bi bi-file-text text-info me-2"></i>Graph file:
+                <code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                  >graphify-out/graph.json</code
+                >
+                (18MB)
+              </li>
+              <li>
+                <i class="bi bi-diagram-3 text-info me-2"></i>LLM-extracted community structure
+              </li>
+              <li>
+                <i class="bi bi-star text-warning me-2"></i>God nodes for high-level architecture
+                navigation
+              </li>
+              <li>
+                <i class="bi bi-tag text-info me-2"></i>Community labeling via Gemini (20 req/day)
+              </li>
+              <li>
+                <i class="bi bi-eye text-info me-2"></i>HTML visualization:
+                <code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                  >graph.html</code
+                >
+                (40k node limit)
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-terminal text-success me-1"></i> CLI Commands</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="p-2 rounded-2" style="background: #1e293b">
+                <code
+                  class="text-info"
+                  style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem"
+                  >npm run graphify -- query "&lt;question&gt;"</code
+                >
+                <div class="small text-secondary mt-1">
+                  Natural language search across the graph
+                </div>
+              </div>
+              <div class="p-2 rounded-2" style="background: #1e293b">
+                <code
+                  class="text-info"
+                  style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem"
+                  >npm run graphify -- explain &lt;node_id&gt;</code
+                >
+                <div class="small text-secondary mt-1">Focused explanation by exact node ID</div>
+              </div>
+              <div class="p-2 rounded-2" style="background: #1e293b">
+                <code
+                  class="text-info"
+                  style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem"
+                  >npm run graphify -- path &lt;A&gt; &lt;B&gt;</code
+                >
+                <div class="small text-secondary mt-1">Path between two graph nodes</div>
+              </div>
+              <div class="p-2 rounded-2" style="background: #1e293b">
+                <code
+                  class="text-info"
+                  style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem"
+                  >npm run graphify -- update .</code
+                >
+                <div class="small text-secondary mt-1">Validate and refresh graph snapshot</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="nexus-db" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_nexus">💾 Nexus DB — Operational Database</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_nexus"
+          title="SQLite WAL mode, 21 tables, 11 repos. Auto-init, prune, backup."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_15">
+          SQLite WAL-mode central nervous system with 21 tables and 11 repos
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-database text-info me-1"></i> Database Details</h3>
+            <ul class="list-unstyled small text-secondary" style="line-height: 2.2">
+              <li>
+                <i class="bi bi-folder text-info me-2"></i>Path:
+                <code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                  >.runtime/gentle-vanguard.db</code
+                >
+              </li>
+              <li><i class="bi bi-gear text-info me-2"></i>Engine: SQLite (WAL mode, FK ON)</li>
+              <li><i class="bi bi-arrow-up-circle text-info me-2"></i>7 migrations, 11 repos</li>
+              <li>
+                <i class="bi bi-table text-info me-2"></i>21 tables with auto-prune and auto-backup
+              </li>
+              <li>
+                <i class="bi bi-shield-check text-info me-2"></i>Monitored by watchtower every cycle
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-activity text-success me-1"></i> Auto-Management</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small">WAL checkpoint &gt;1MB</span>
+                <span class="badge bg-success bg-opacity-10 text-success">Auto</span>
+              </div>
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small">Online backup</span>
+                <span class="badge bg-success bg-opacity-10 text-success">Auto</span>
+              </div>
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small">Prune old data per session</span>
+                <span class="badge bg-success bg-opacity-10 text-success">Auto</span>
+              </div>
+              <div class="d-flex justify-content-between p-2 rounded-2" style="background: #1e293b">
+                <span class="small">VACUUM + REINDEX</span>
+                <span class="badge bg-info bg-opacity-10 text-info">On-demand</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="daos" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_mem_daos">📦 10 Data Access Objects</h2>
+        <p data-i18n="c_memoryknowledge_16">Modular DAOs for every operational concern</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-graph-up text-info me-1"></i>MetricsRepo</h4>
+            <p data-i18n="c_memoryknowledge_17">
+              Time-series metric snapshots — tokens, latency, health every 30s
+            </p>
+            <code>metric_snapshots</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-people text-info me-1"></i>SessionRepo</h4>
+            <p data-i18n="c_memoryknowledge_18">
+              Session history with quality scoring — upsert, active queries
+            </p>
+            <code>sessions</code> <code>session_scoring</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-activity text-info me-1"></i>TraceRepo</h4>
+            <p data-i18n="c_memoryknowledge_19">
+              Distributed tracing waterfall with thumbs up/down feedback
+            </p>
+            <code>traces</code> <code>feedback</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-megaphone text-info me-1"></i>EventRepo</h4>
+            <p data-i18n="c_memoryknowledge_20">
+              Append-only event sourcing — every state change recorded
+            </p>
+            <code>events</code> <code>alerts</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-database text-info me-1"></i>CacheRepo</h4>
+            <p data-i18n="c_memoryknowledge_21">
+              SHA256 response cache with TTL awareness and hit tracking
+            </p>
+            <code>response_cache</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-tools text-info me-1"></i>SkillRepo</h4>
+            <p data-i18n="c_memoryknowledge_22">
+              Skill usage, token accounting, and adaptive routing rules
+            </p>
+            <code>skill_usage</code> <code>token_usage</code> <code>routing_rules</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-file-check text-info me-1"></i>ContractRepo</h4>
+            <p data-i18n="c_memoryknowledge_23">SDD contract validation results persistence</p>
+            <code>contract_results</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-bug text-info me-1"></i>ErrorMemoryRepo</h4>
+            <p data-i18n="c_memoryknowledge_24">
+              Bug tracking with vector search for error pattern matching
+            </p>
+            <code>error_memory</code>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="dao-card">
+            <h4><i class="bi bi-brush text-info me-1"></i>HousekeepingRepo</h4>
+            <p data-i18n="c_memoryknowledge_25">
+              PruneAll, vacuum, WAL checkpoint, and database maintenance
+            </p>
+            <code>pruneAll</code> <code>vacuum</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ml-embeddings" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_ml_emb">🤖 ML Embeddings</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_ml"
+          title="Embeddings for semantic search, skill matching, pattern recognition."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_26">
+          Semantic search, skill matching, and error memory with vector retrieval
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">
+              <i class="bi bi-file-text text-info"></i>
+            </div>
+            <h3 data-i18n="c_memoryknowledge_27">Embedding Files</h3>
+            <p class="mb-0" data-i18n="c_memoryknowledge_28">
+              Pre-computed embeddings for semantic search across all indexed content
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">
+              <i class="bi bi-tag text-success"></i>
+            </div>
+            <h3 data-i18n="c_memoryknowledge_29">Skill Embeddings</h3>
+            <p class="mb-0">
+              <code class="text-info" style="font-family: 'JetBrains Mono', monospace"
+                >skill-embeddings.json</code
+              >
+              — semantic skill matching at runtime
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card text-center">
+            <div class="icon" style="font-size: 2.5rem; margin-bottom: 0.75rem">
+              <i class="bi bi-search text-warning"></i>
+            </div>
+            <h3 data-i18n="c_memoryknowledge_30">Vector Search</h3>
+            <p class="mb-0" data-i18n="c_memoryknowledge_31">
+              Error memory with vector similarity search for pattern recognition
+            </p>
+            <span class="badge-tag ok">Active</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="knowledge-manager" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_kb_manager">📚 Knowledge Base Manager</h2>
+        <span
+          class="info-trigger"
+          data-i18n-title="tip_memory_vault"
+          title="Structured knowledge: skills, patterns, decisions, conventions, standards."
+          >i</span
+        >
+        <p data-i18n="c_memoryknowledge_32">
+          Centralized knowledge vault with cross-workspace sync
+        </p>
+      </div>
+      <div class="row g-3 justify-content-center">
+        <div class="col-lg-8">
+          <div class="section-card">
+            <div class="row g-3">
+              <div class="col-md-4 text-center">
+                <div class="stat-n" style="font-size: 1.5rem">
+                  <i class="bi bi-vault text-info"></i>
+                </div>
+                <div class="stat-l mt-1">Vault Management</div>
+                <p class="small text-secondary mt-1 mb-0" data-i18n="c_memoryknowledge_33">
+                  Structured knowledge organization with versioning
+                </p>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="stat-n" style="font-size: 1.5rem">
+                  <i class="bi bi-arrow-left-right text-success"></i>
+                </div>
+                <div class="stat-l mt-1">Cross-Workspace Sync</div>
+                <p class="small text-secondary mt-1 mb-0" data-i18n="c_memoryknowledge_34">
+                  Bidirectional sync between workspaces
+                </p>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="stat-n" style="font-size: 1.5rem">
+                  <i class="bi bi-lightning text-warning"></i>
+                </div>
+                <div class="stat-l mt-1">Auto-Indexing</div>
+                <p class="small text-secondary mt-1 mb-0" data-i18n="c_memoryknowledge_35">
+                  Incremental indexing with auto-optimization
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="data-flow" class="fade-in">
+      <div class="section-title">
+        <h2 data-i18n="sec_data_flow">🔄 Data Flow Diagram</h2>
+        <p data-i18n="c_memoryknowledge_36">
+          How data moves from session execution to dashboard visualization
+        </p>
+      </div>
+      <div class="d-flex flex-wrap align-items-center justify-content-center gap-2">
+        <div class="flow-box">
+          <div class="label">🚀 Session</div>
+          <div class="value">Autostart Pipeline</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-box">
+          <div class="label">⚙️ Pipeline</div>
+          <div class="value">101 Steps + 70 Lazy</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-box">
+          <div class="label">📊 Metrics</div>
+          <div class="value">Real-time Data</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-box">
+          <div class="label">📁 State.json</div>
+          <div class="value">.session/context-log</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-box" style="border-color: rgba(0, 191, 255, 0.4)">
+          <div class="label"><i class="bi bi-wifi text-info"></i> Dashboard WS</div>
+          <div class="value">WebSocket + REST</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-box" style="border-color: rgba(168, 85, 247, 0.4)">
+          <div class="label">
+            <i class="bi bi-display text-a" style="color: var(--a)"></i> Dashboard UI
+          </div>
+          <div class="value">React + Vite</div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center mt-3 gap-2 flex-wrap">
+        <span class="badge bg-info bg-opacity-10 text-info p-2"
+          ><i class="bi bi-arrow-repeat me-1"></i> 5s push cycle</span
+        >
+        <span class="badge bg-success bg-opacity-10 text-success p-2"
+          ><i class="bi bi-hdd me-1"></i> LRU cache (Map, 2s TTL)</span
+        >
+        <span class="badge bg-warning bg-opacity-10 text-warning p-2"
+          ><i class="bi bi-database me-1"></i> Nexus DB storage</span
+        >
+        <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"
+          ><i class="bi bi-journal me-1"></i> Engram memory</span
+        >
+      </div>
+    </section>
+
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagramas &amp; Visualizaciones</h2>
+        <p data-i18n="c_memoryknowledge_37">
+          Memoria, conocimiento y datos — del grafo de conocimiento al almacenamiento operacional.
+        </p>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-database text-info me-2"></i>Nexus DB &amp; DAOs</h3>
+            <img
+              src="diagrams/data-architecture.svg"
+              alt="Data Architecture — Nexus DB"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>Nexus SQLite central con 11 repos especializados
+              (7 migraciones, 21 tablas).
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i>Arquitectura en Capas</h3>
+            <img
+              src="diagrams/architecture-layers.svg"
+              alt="Architecture Layers"
+              class="svg-diagram img-fluid w-100"
+              loading="lazy"
+            />
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
+              Data → Executive.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

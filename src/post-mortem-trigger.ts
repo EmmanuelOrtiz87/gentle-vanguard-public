@@ -10,7 +10,7 @@
  *   npx tsx src/post-mortem-trigger.ts --incident "DB down" --severity critical
  */
 
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { resolve, join } from 'path';
 
@@ -50,7 +50,13 @@ const POSTMORTEM_DIR = '.runtime/post-mortem';
 const INCIDENTS_FILE = '.runtime/incidents.jsonl';
 const MAX_RECENT_ERRORS = 5;
 
-function parseArgs(): { trigger: 'auto-heal' | 'manual' | 'scheduled'; incident: string; severity: string; json: boolean; afterHeal: boolean } {
+function parseArgs(): {
+  trigger: 'auto-heal' | 'manual' | 'scheduled';
+  incident: string;
+  severity: string;
+  json: boolean;
+  afterHeal: boolean;
+} {
   const raw = process.argv.slice(2);
   const triggerVal: 'auto-heal' | 'manual' = raw.includes('--after-heal') ? 'auto-heal' : 'manual';
   return {
@@ -70,15 +76,23 @@ function extractArg(args: string[], name: string): string | undefined {
 
 function runSelfDiagnosis(): Record<string, unknown> {
   try {
-    const result = spawnSync(
+    const result = runSync(
       process.execPath,
-      ['--experimental-specifier-resolution=node', '--loader', 'tsx', resolve(process.cwd(), 'src/self-diagnosis.ts'), '--json'],
-      { encoding: 'utf8', timeout: 15000 }
+      [
+        '--experimental-specifier-resolution=node',
+        '--loader',
+        'tsx',
+        resolve(process.cwd(), 'src/self-diagnosis.ts'),
+        '--json',
+      ],
+      { timeout: 15000 },
     );
     if (result.status === 0) {
       return JSON.parse(result.stdout);
     }
-  } catch { /* fallback */ }
+  } catch {
+    /* fallback */
+  }
   return { state: 'UNKNOWN', recommendations: ['Self-diagnosis failed'] };
 }
 
@@ -87,14 +101,18 @@ function readHealResults(): HealEntry[] {
     // Read watchtower results from runtime
     const wtDir = resolve(process.cwd(), '.runtime');
     if (existsSync(wtDir)) {
-      const files = readdirSync(wtDir).filter((f: string) => f.startsWith('watchtower-') && f.endsWith('.json'));
+      const files = readdirSync(wtDir).filter(
+        (f: string) => f.startsWith('watchtower-') && f.endsWith('.json'),
+      );
       if (files.length > 0) {
         const latest = files.sort().reverse()[0];
         const data = JSON.parse(readFileSync(join(wtDir, latest), 'utf8'));
         return data.results || data.checks || [];
       }
     }
-  } catch { /* no results */ }
+  } catch {
+    /* no results */
+  }
   return [];
 }
 
@@ -113,16 +131,21 @@ function getSystemState(): SystemState {
         .slice(0, 3);
       for (const f of files) {
         const content = readFileSync(join(logDir, f), 'utf8');
-        const lines = content.split('\n').filter(l => l.includes('[ERROR]')).slice(0, MAX_RECENT_ERRORS);
+        const lines = content
+          .split('\n')
+          .filter((l) => l.includes('[ERROR]'))
+          .slice(0, MAX_RECENT_ERRORS);
         recentErrors.push(...lines);
       }
     }
-  } catch { /* no errors dir */ }
+  } catch {
+    /* no errors dir */
+  }
 
   return {
     memory: {
-      processMb: Math.round(mem.rss / 1024 / 1024 * 100) / 100,
-      heapMb: Math.round(mem.heapUsed / 1024 / 1024 * 100) / 100,
+      processMb: Math.round((mem.rss / 1024 / 1024) * 100) / 100,
+      heapMb: Math.round((mem.heapUsed / 1024 / 1024) * 100) / 100,
     },
     uptime: Math.round(process.uptime()),
     nodeVersion: process.version,
@@ -135,18 +158,25 @@ function recordToNexus(result: PostMortemResult): boolean {
   try {
     const managerPath = resolve(process.cwd(), 'apps/web-dashboard/server/database/manager.ts');
     if (existsSync(managerPath)) {
-      const mod = require(managerPath) as { DatabaseManager: { getInstance: () => { insertMetricSnapshot: (d: Record<string, unknown>) => void } } };
+      const mod = require(managerPath) as {
+        DatabaseManager: {
+          getInstance: () => { insertMetricSnapshot: (d: Record<string, unknown>) => void };
+        };
+      };
       const db = mod.DatabaseManager.getInstance();
       db.insertMetricSnapshot({
         tokens_used: 0,
         latency_avg: 0,
         latency_p95: 0,
-        health_status: result.severity === 'critical' ? 'degraded' : result.diagnosis.state.toLowerCase(),
+        health_status:
+          result.severity === 'critical' ? 'degraded' : result.diagnosis.state.toLowerCase(),
         mcp_calls: result.healResults.length,
       });
       return true;
     }
-  } catch { /* Nexus unavailable */ }
+  } catch {
+    /* Nexus unavailable */
+  }
   return false;
 }
 
@@ -163,12 +193,14 @@ function logToAudit(result: PostMortemResult): boolean {
       trigger: result.trigger,
       severity: result.severity,
       diagnosis: result.diagnosis.state,
-      healedCount: result.healResults.filter(h => h.status === 'PASS').length,
-      failedCount: result.healResults.filter(h => h.status !== 'PASS').length,
+      healedCount: result.healResults.filter((h) => h.status === 'PASS').length,
+      failedCount: result.healResults.filter((h) => h.status !== 'PASS').length,
     };
     writeFileSync(auditFile, JSON.stringify(entry) + '\n', { flag: 'a' });
     return true;
-  } catch { /* audit unavailable */ }
+  } catch {
+    /* audit unavailable */
+  }
   return false;
 }
 
@@ -182,11 +214,13 @@ function recordIncident(result: PostMortemResult): void {
       type: 'incident',
       severity: 'critical',
       diagnosis: result.diagnosis.state,
-      healResults: result.healResults.filter(h => h.status !== 'PASS'),
+      healResults: result.healResults.filter((h) => h.status !== 'PASS'),
       incident: result.incident || 'Unspecified auto-heal failure',
     };
     writeFileSync(filePath, JSON.stringify(entry) + '\n', { flag: 'a' });
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function main(): void {
@@ -196,11 +230,13 @@ function main(): void {
   const diagnosis = runSelfDiagnosis();
   const systemState = getSystemState();
 
-  const failedHeals = healResults.filter(h => h.status !== 'PASS');
+  const failedHeals = healResults.filter((h) => h.status !== 'PASS');
   const severity: PostMortemResult['severity'] =
-    args.severity === 'critical' ? 'critical' :
-    failedHeals.length > 0 || String(diagnosis.state || '') === 'STUCK' ? 'warning' :
-    'info';
+    args.severity === 'critical'
+      ? 'critical'
+      : failedHeals.length > 0 || String(diagnosis.state || '') === 'STUCK'
+        ? 'warning'
+        : 'info';
 
   // Build result object first (no circular refs)
   const result: PostMortemResult = {
@@ -246,8 +282,12 @@ function main(): void {
   console.log(`  Severity: ${result.severity}`);
   console.log(`  Diagnosis: ${result.diagnosis.state}`);
   console.log(`  Heal Results: ${healResults.length} total, ${failedHeals.length} failed`);
-  console.log(`  System: ${result.systemState.memory.processMb}MB RSS, up ${Math.floor(result.systemState.uptime / 60)}m`);
-  console.log(`  Nexus: ${result.nexusRecorded ? '✅' : '❌'} | Audit: ${result.auditLogged ? '✅' : '❌'}`);
+  console.log(
+    `  System: ${result.systemState.memory.processMb}MB RSS, up ${Math.floor(result.systemState.uptime / 60)}m`,
+  );
+  console.log(
+    `  Nexus: ${result.nexusRecorded ? '✅' : '❌'} | Audit: ${result.auditLogged ? '✅' : '❌'}`,
+  );
   console.log(`  Report: ${reportFile}`);
 
   if (failedHeals.length > 0) {

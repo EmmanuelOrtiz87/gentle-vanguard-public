@@ -14,7 +14,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, watchFile } from 'fs';
 import { resolve, dirname, basename } from 'path';
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 
 interface BrandConfig {
   name: string;
@@ -109,8 +109,12 @@ function generateCSS(brand: BrandConfig): string {
   css += '\n  /* Gradients */\n';
   for (const [key, value] of Object.entries(brand.gradients)) {
     const varName = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-    const direction = value.direction === 'vertical' ? 'to bottom' :
-      value.direction === 'diagonal' ? '135deg' : 'to right';
+    const direction =
+      value.direction === 'vertical'
+        ? 'to bottom'
+        : value.direction === 'diagonal'
+          ? '135deg'
+          : 'to right';
     css += `  --gv-gradient-${varName}: linear-gradient(${direction}, ${value.from}, ${value.to});\n`;
   }
 
@@ -137,7 +141,11 @@ function generateJSON(brand: BrandConfig): string {
   flat['typography.bodyFont'] = brand.typography.bodyFont;
   flat['typography.monoFont'] = brand.typography.monoFont;
 
-  return JSON.stringify({ meta: { generated: new Date().toISOString(), source: 'config/brand.json' }, tokens: flat }, null, 2);
+  return JSON.stringify(
+    { meta: { generated: new Date().toISOString(), source: 'config/brand.json' }, tokens: flat },
+    null,
+    2,
+  );
 }
 
 function generateSCSS(brand: BrandConfig): string {
@@ -159,8 +167,12 @@ function generateSCSS(brand: BrandConfig): string {
   scss += '\n// Gradients\n';
   for (const [key, value] of Object.entries(brand.gradients)) {
     const varName = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-    const direction = value.direction === 'vertical' ? 'to bottom' :
-      value.direction === 'diagonal' ? '135deg' : 'to right';
+    const direction =
+      value.direction === 'vertical'
+        ? 'to bottom'
+        : value.direction === 'diagonal'
+          ? '135deg'
+          : 'to right';
     scss += `$gv-gradient-${varName}: linear-gradient(${direction}, ${value.from}, ${value.to});\n`;
   }
 
@@ -171,7 +183,7 @@ function writeTokenFile(filePath: string, content: string): GeneratedFile {
   const fullPath = resolve(process.cwd(), filePath);
   mkdirSync(dirname(fullPath), { recursive: true });
   writeFileSync(fullPath, content);
-  const lines = content.split('\n').filter(l => l.includes(':') || l.includes(';'));
+  const lines = content.split('\n').filter((l) => l.includes(':') || l.includes(';'));
   const tokenCount = lines.length;
   return {
     path: fullPath,
@@ -200,8 +212,9 @@ function main(): void {
 
   // Also regenerate SVG banners
   try {
-    execSync(`npx tsx src/cli/svg-generator.ts --brand "${args.brand}" 2>nul`, {
-      encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'],
+    runSyncShell(`npx tsx src/cli/svg-generator.ts --brand "${args.brand}" 2>nul`, {
+      timeout: 30000,
+      stdio: ['pipe', 'pipe', 'ignore'],
     });
     generated.push({
       path: resolve(process.cwd(), 'assets/'),
@@ -209,7 +222,9 @@ function main(): void {
       size: 0,
       tokens: 0,
     });
-  } catch { /* SVG generation skipped */ }
+  } catch {
+    /* SVG generation skipped */
+  }
 
   if (args.json) {
     console.log(JSON.stringify(generated, null, 2));
@@ -221,7 +236,9 @@ function main(): void {
   console.log(`   Generated:`);
   for (const f of generated) {
     const sizeKB = (f.size / 1024).toFixed(1);
-    console.log(`   ✅ ${f.path.replace(process.cwd() + '\\', '')} (${sizeKB} KB, ${f.tokens} tokens)`);
+    console.log(
+      `   ✅ ${f.path.replace(process.cwd() + '\\', '')} (${sizeKB} KB, ${f.tokens} tokens)`,
+    );
   }
 
   // Watch mode
@@ -232,9 +249,12 @@ function main(): void {
       console.log(`\n   🔄 Change detected, regenerating...`);
       try {
         const updatedBrand = loadBrand(args.brand);
-        if (format === 'all' || format === 'css') writeTokenFile(CSS_FILE, generateCSS(updatedBrand));
-        if (format === 'all' || format === 'json') writeTokenFile(JSON_FILE, generateJSON(updatedBrand));
-        if (format === 'all' || format === 'scss') writeTokenFile(SCSS_FILE, generateSCSS(updatedBrand));
+        if (format === 'all' || format === 'css')
+          writeTokenFile(CSS_FILE, generateCSS(updatedBrand));
+        if (format === 'all' || format === 'json')
+          writeTokenFile(JSON_FILE, generateJSON(updatedBrand));
+        if (format === 'all' || format === 'scss')
+          writeTokenFile(SCSS_FILE, generateSCSS(updatedBrand));
         console.log(`   ✅ Tokens regenerated`);
       } catch (err) {
         console.error(`   ❌ Error: ${err}`);
@@ -242,7 +262,9 @@ function main(): void {
     });
 
     // Keep alive
-    process.on('SIGINT', () => { process.exit(0); });
+    process.on('SIGINT', () => {
+      process.exit(0);
+    });
     setInterval(() => {}, 60000);
   }
 }

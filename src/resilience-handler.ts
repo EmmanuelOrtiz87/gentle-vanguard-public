@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 
 interface CircuitState {
   state: string;
@@ -185,17 +185,25 @@ function resetCircuitState(name: string): void {
 
 function getUserSuggestion(fallback: string): string {
   const suggestions: Record<string, string[]> = {
-    timeout: ['Reintentar con mas tiempo', 'Omitir este paso', 'Continuar con lo demas', 'Cancelar operacion'],
+    timeout: [
+      'Reintentar con mas tiempo',
+      'Omitir este paso',
+      'Continuar con lo demas',
+      'Cancelar operacion',
+    ],
     generic: ['Reintentar', 'Omitir y continuar', 'Reportar falla'],
   };
   const key = fallback === 'timeout' ? 'timeout' : 'generic';
   return suggestions[key].join(', ');
 }
 
-function invokeWithTimeout(command: string, timeoutSec: number): { output: string | null; timedOut: boolean } {
+function invokeWithTimeout(
+  command: string,
+  timeoutSec: number,
+): { output: string | null; timedOut: boolean } {
   try {
-    const result = execSync(command, { timeout: timeoutSec * 1000, cwd: REPO_ROOT });
-    const output = typeof result === 'string' ? result : result.toString('utf-8');
+    const result = runSyncShell(command, { timeout: timeoutSec * 1000, cwd: REPO_ROOT });
+    const output = result.stdout;
     return { output, timedOut: false };
   } catch (e: unknown) {
     if (e instanceof Error && 'killed' in e && (e as { killed?: boolean }).killed) {
@@ -217,24 +225,40 @@ function invokeResilientWrapper(): unknown {
   let fallbackAction = args.fallbackAction;
 
   if (operationConfig) {
-    if (operationConfig.timeout_seconds !== undefined) timeoutSeconds = operationConfig.timeout_seconds;
-    if (operationConfig.retry_attempts !== undefined) retryAttempts = operationConfig.retry_attempts;
+    if (operationConfig.timeout_seconds !== undefined)
+      timeoutSeconds = operationConfig.timeout_seconds;
+    if (operationConfig.retry_attempts !== undefined)
+      retryAttempts = operationConfig.retry_attempts;
     if (operationConfig.retry_delay_ms !== undefined) retryDelayMs = operationConfig.retry_delay_ms;
-    if (operationConfig.retry_backoff_factor !== undefined) retryBackoffFactor = operationConfig.retry_backoff_factor;
-    if (operationConfig.fallback_action !== undefined) fallbackAction = operationConfig.fallback_action as FallbackAction;
+    if (operationConfig.retry_backoff_factor !== undefined)
+      retryBackoffFactor = operationConfig.retry_backoff_factor;
+    if (operationConfig.fallback_action !== undefined)
+      fallbackAction = operationConfig.fallback_action as FallbackAction;
   }
 
   if (args.circuitBreakerName) {
     const circuitState = getCircuitState(args.circuitBreakerName);
     if (circuitState === 'open') {
-      writeResLog(`Circuit breaker OPEN for '${args.circuitBreakerName}' — skipping`, 'WARN', args.operationName);
+      writeResLog(
+        `Circuit breaker OPEN for '${args.circuitBreakerName}' — skipping`,
+        'WARN',
+        args.operationName,
+      );
       const threshold = config.circuit_breakers?.[args.circuitBreakerName]?.failure_threshold ?? 5;
       const resetSec = config.circuit_breakers?.[args.circuitBreakerName]?.reset_seconds ?? 60;
-      writeResLog(`Circuit will reset in ${resetSec}s (threshold: ${threshold} failures)`, 'INFO', args.operationName);
+      writeResLog(
+        `Circuit will reset in ${resetSec}s (threshold: ${threshold} failures)`,
+        'INFO',
+        args.operationName,
+      );
       return null;
     }
     if (circuitState === 'half-open') {
-      writeResLog(`Circuit breaker HALF-OPEN for '${args.circuitBreakerName}' — allowing probe`, 'WARN', args.operationName);
+      writeResLog(
+        `Circuit breaker HALF-OPEN for '${args.circuitBreakerName}' — allowing probe`,
+        'WARN',
+        args.operationName,
+      );
     }
   }
 
@@ -242,7 +266,11 @@ function invokeResilientWrapper(): unknown {
   let currentDelay = retryDelayMs;
 
   for (let attempt = 1; attempt <= retryAttempts; attempt++) {
-    writeResLog(`Attempt ${attempt} of ${retryAttempts} (timeout: ${timeoutSeconds}s)`, 'INFO', args.operationName);
+    writeResLog(
+      `Attempt ${attempt} of ${retryAttempts} (timeout: ${timeoutSeconds}s)`,
+      'INFO',
+      args.operationName,
+    );
     if (!args.command) {
       writeResLog('No command provided', 'ERROR', args.operationName);
       return null;
@@ -268,7 +296,11 @@ function invokeResilientWrapper(): unknown {
 
   if (args.circuitBreakerName) {
     setCircuitState(args.circuitBreakerName, 'open');
-    writeResLog(`Circuit breaker OPENED for '${args.circuitBreakerName}'`, 'ERROR', args.operationName);
+    writeResLog(
+      `Circuit breaker OPENED for '${args.circuitBreakerName}'`,
+      'ERROR',
+      args.operationName,
+    );
   }
 
   writeResLog(`All ${retryAttempts} attempts failed: ${lastError}`, 'ERROR', args.operationName);
@@ -281,7 +313,9 @@ function invokeResilientWrapper(): unknown {
       console.log(`  Detalle: ${lastError}`);
       console.log(`  Intentos: ${retryAttempts}`);
       console.log(`  Timeout: ${timeoutSeconds}s`);
-      console.log(`\n  Sugerencias: ${getUserSuggestion(lastError?.includes('timeout') ? 'timeout' : 'generic')}`);
+      console.log(
+        `\n  Sugerencias: ${getUserSuggestion(lastError?.includes('timeout') ? 'timeout' : 'generic')}`,
+      );
       console.log(`============================================\n`);
       break;
     case 'warn_skip':
@@ -291,7 +325,9 @@ function invokeResilientWrapper(): unknown {
       console.log(`[STACK] WARN: ${args.operationName} falló — continuando (${lastError})`);
       break;
     case 'throw':
-      throw new Error(`[STACK] ERROR: ${args.operationName} falló después de ${retryAttempts} intentos: ${lastError}`);
+      throw new Error(
+        `[STACK] ERROR: ${args.operationName} falló después de ${retryAttempts} intentos: ${lastError}`,
+      );
   }
 
   if (args.passThru) return null;

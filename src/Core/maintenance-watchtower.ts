@@ -1,14 +1,25 @@
 #!/usr/bin/env node
 
 import { readFileSync, existsSync, readdirSync, writeFileSync, statSync } from 'fs';
-import { join, resolve, basename } from 'path';
-import { spawn, spawnSync, execFileSync } from 'child_process';
+import { join, resolve, basename, relative } from 'path';
+import { spawn, execFileSync } from 'child_process';
+import { runSync } from './run-command';
 import { createConnection } from 'net';
-import { getEffectiveProcessTimeout, getHttpServerTimeouts, getExternalApiTimeouts } from './timeout-config';
+import {
+  getEffectiveProcessTimeout,
+  getHttpServerTimeouts,
+  getExternalApiTimeouts,
+} from './timeout-config';
+import { witr, ensureWitrInstalled } from '../witr-wrapper';
 
 const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');
 const SESSION_DIR = join(ROOT, '.session');
+
+// Default port for the CodeGraph MCP server (overridable via CODEGRAPH_PORT env).
+// Note: `codegraph serve --mcp` runs as a stdio MCP server, so the process table
+// and PID file are the primary liveness signals; the port probe is a fallback.
+const CODEGRAPH_PORT = parseInt(process.env.CODEGRAPH_PORT ?? '3000', 10) || 3000;
 
 interface CheckResult {
   component: string;
@@ -70,6 +81,64 @@ function testPort(port: number): Promise<boolean> {
       resolve(false);
     });
   });
+}
+
+/** Resolve the real PID listening on a TCP port (Windows via netstat, Unix via lsof/ss) */
+async function getPidByPort(port: number): Promise<number | null> {
+  try {
+    if (process.platform === 'win32') {
+      const out = execFileSync('netstat', ['-ano', '-p', 'TCP'], {
+        encoding: 'utf-8',
+        timeout: 5000,
+        windowsHide: true,
+      });
+      for (const line of out.split(/\r?\n/)) {
+        if (!line.includes(`:${port}`) || !line.includes('LISTENING')) continue;
+        const parts = line.trim().split(/\s+/);
+        const pid = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(pid)) return pid;
+      }
+    } else {
+      const out = execFileSync('lsof', ['-ti', `:${port}`], {
+        encoding: 'utf-8',
+        timeout: 5000,
+      });
+      const pid = parseInt(out.trim().split('\n')[0], 10);
+      if (!isNaN(pid)) return pid;
+    }
+  } catch {
+    // not found or error
+  }
+  return null;
+}
+
+/**
+ * Detect a running `codegraph serve --mcp` MCP server via the process table.
+ * The server runs as a node process (`...codegraph.js serve --mcp`), so a plain
+ * process-name scan misses it. On Windows we use CIM (wmic is deprecated), on
+ * Unix `ps -ef`. The querying process itself is excluded via `$PID`.
+ */
+function isCodeGraphProcessRunning(): boolean {
+  try {
+    if (process.platform === 'win32') {
+      const r = runSync(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          "@(@(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne `$PID -and $_.CommandLine -match 'codegraph\\.js' -and $_.CommandLine -match 'serve' -and $_.CommandLine -match '--mcp' })).Count",
+        ],
+        { timeout: 15000 },
+      );
+      const count = parseInt((r.stdout ?? '').trim(), 10);
+      return !isNaN(count) && count > 0;
+    }
+    const r = runSync('ps', ['-ef'], { timeout: 15000 });
+    return /codegraph\.js.*(serve|--mcp)/i.test(r.stdout ?? '');
+  } catch {
+    return false;
+  }
 }
 
 function testHttp(url: string): Promise<boolean> {
@@ -207,7 +276,22 @@ async function checkDashboardWs() {
   }
 
   const pidFile = join(RUNTIME_DIR, 'dashboard-ws.pid');
-  if (fileExists(pidFile)) {
+  if (httpOk) {
+    // WS is alive and responding — the PID file may be stale (points to a dead
+    // cmd.exe wrapper). Treat HTTP as source of truth and self-heal the file
+    // with the real PID listening on the port.
+    let pidDetail = 'Responding (PID file stale)';
+    const realPid = await getPidByPort(respondingPort);
+    if (realPid) {
+      pidDetail = `PID ${realPid} running`;
+      try {
+        writeFileSync(pidFile, String(realPid), 'utf-8');
+      } catch {
+        /* non-fatal */
+      }
+    }
+    addResult('dashboard-ws', 'WS server process', 'PASS', pidDetail, 'ok');
+  } else if (fileExists(pidFile)) {
     const wsPid = readFileSync(pidFile, 'utf-8').trim();
     try {
       process.kill(parseInt(wsPid, 10), 0);
@@ -237,7 +321,179 @@ async function checkCodeGraph() {
   const indexOk = fileExists(join(cgDir, 'codegraph.db'));
   addResult('codegraph', 'index database', indexOk ? 'PASS' : 'FAIL', '', 'rebuild');
 
-  addResult('codegraph', 'server process', 'PASS', 'Not running (MCP mode — expected)', 'verify');
+  // A running CodeGraph MCP server is expected. Detect it via the PID file,
+  // a TCP port probe (default 3000), or a process-table scan.
+  const pidFile = join(RUNTIME_DIR, 'codegraph-mcp-server.pid');
+  let pidDetail = 'No PID file';
+  let pidAlive = false;
+  if (fileExists(pidFile)) {
+    const pid = parseInt(readFileSync(pidFile, 'utf-8').trim(), 10);
+    if (isNaN(pid)) {
+      pidDetail = 'PID file unreadable';
+    } else {
+      try {
+        process.kill(pid, 0);
+        pidAlive = true;
+        pidDetail = `PID ${pid} running`;
+      } catch {
+        pidDetail = `PID ${pid} not running`;
+      }
+    }
+  }
+
+  // CodeGraph runs as a stdio MCP server (`codegraph serve --mcp`), so it does
+  // NOT open a TCP port. The port probe is kept only as an optional secondary
+  // signal for non-stdio deployments; the authoritative liveness signals are
+  // the PID file and the process-table scan.
+  const portOpen = await testPort(CODEGRAPH_PORT);
+  const procRunning = isCodeGraphProcessRunning();
+
+  // CodeGraph is configured as an on-demand stdio MCP server in opencode.json
+  // (command: "codegraph serve --mcp"). opencode spawns it lazily when its
+  // tools are used. HOWEVER, the stack ALSO runs a standalone warm daemon
+  // (codegraph-mcp-server-start.ts) that must be alive during the session.
+  // A config entry alone is NOT a healthy state — the daemon must be running.
+  let mcpConfigured = false;
+  try {
+    const oc = readJson(join(ROOT, 'opencode.json'));
+    const cg = (oc.mcp as Record<string, unknown> | undefined)?.['codegraph'] as
+      { enabled?: boolean; command?: string } | undefined;
+    mcpConfigured = !!cg && cg.enabled !== false && typeof cg.command === 'string';
+  } catch {
+    mcpConfigured = false;
+  }
+
+  // The daemon is genuinely running only if a process is alive (PID file or
+  // process-table scan) or the MCP port is open. A bare config entry is not
+  // enough — it must be surfaced as a failure so a dead daemon is detected.
+  const daemonRunning = pidAlive || procRunning || portOpen;
+  if (daemonRunning) {
+    const signals = [
+      pidAlive ? pidDetail : '',
+      portOpen ? `port ${CODEGRAPH_PORT} open` : '',
+      procRunning ? 'process detected' : '',
+    ].filter(Boolean);
+    addResult('codegraph', 'server process', 'PASS', signals.join(', '), 'ok');
+  } else if (mcpConfigured && isCodeGraphRecentlyBooted()) {
+    // The daemon is started lazily by session-autostart and can take ~20s to
+    // boot (npx+tsx resolution under concurrent lazy-step load). During this
+    // boot window a "not running" signal is EXPECTED, not a failure. Report
+    // WARN (no autoheal restart) so the autoheal does NOT spawn a competing
+    // instance that would kill the original daemon once it finishes booting.
+    addResult(
+      'codegraph',
+      'server process',
+      'WARN',
+      `${pidDetail}; daemon still booting (recent PID/session activity)`,
+      'verify',
+    );
+  } else {
+    addResult(
+      'codegraph',
+      'server process',
+      'FAIL',
+      `${pidDetail}; port ${CODEGRAPH_PORT} closed; daemon not running${
+        mcpConfigured ? ' (MCP configured but daemon down)' : ''
+      }`,
+      'restart',
+    );
+  }
+}
+
+/**
+ * True when the codegraph daemon may still be booting: the PID file was written
+ * recently, or the current session is younger than the boot window. This does
+ * NOT depend on session-current.json existing (it can be absent while the
+ * pipeline is still initializing, which previously made the boot tolerance
+ * silently fail and let the autoheal spawn a competing codegraph instance).
+ */
+function isCodeGraphRecentlyBooted(): boolean {
+  const pidFile = join(RUNTIME_DIR, 'codegraph-mcp-server.pid');
+  if (fileExists(pidFile)) {
+    try {
+      const ageMs = Date.now() - statSync(pidFile).mtimeMs;
+      if (ageMs < 90000) return true; // PID file touched in last 90s
+    } catch {
+      /* fall through */
+    }
+  }
+  return getSessionAgeSeconds() < 60;
+}
+
+/** Age of the current session in seconds (0 if unknown / no session file). */
+function getSessionAgeSeconds(): number {
+  try {
+    const sf = join(SESSION_DIR, 'session-current.json');
+    if (!fileExists(sf)) return Number.MAX_SAFE_INTEGER;
+    const data = readJson(sf) as { startTime?: string; timestamp?: string };
+    const t = new Date(data.startTime ?? data.timestamp ?? 0).getTime();
+    if (isNaN(t) || t === 0) return Number.MAX_SAFE_INTEGER;
+    return Math.floor((Date.now() - t) / 1000);
+  } catch {
+    return Number.MAX_SAFE_INTEGER;
+  }
+}
+
+// ─── Component: Timeout Daemon ────────────────────────────────────────────────
+
+async function checkTimeoutDaemon() {
+  if (!quiet) console.log('  [Timeout Daemon] Checking...');
+
+  // The timeout/performance monitor daemon is started by session-autostart
+  // (start-monitor-daemon.ts -> timeout-monitor.ts --daemon). It must be alive
+  // during the session. Check the PID file and the process table.
+  const pidFile = join(RUNTIME_DIR, 'monitor-daemon.pid');
+  let pidAlive = false;
+  let pidDetail = 'No PID file';
+  if (fileExists(pidFile)) {
+    const pid = parseInt(readFileSync(pidFile, 'utf-8').trim(), 10);
+    if (isNaN(pid)) {
+      pidDetail = 'PID file unreadable';
+    } else {
+      try {
+        process.kill(pid, 0);
+        pidAlive = true;
+        pidDetail = `PID ${pid} running`;
+      } catch {
+        pidDetail = `PID ${pid} not running`;
+      }
+    }
+  }
+
+  // Process-table scan as a second source of truth (the PID file can point at
+  // a dead cmd.exe wrapper while the real node process is still alive).
+  let procRunning = false;
+  try {
+    if (process.platform === 'win32') {
+      const psCmd = `@(@(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'timeout-monitor' -and $_.CommandLine -match '--daemon' })).Count`;
+      const r = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
+        timeout: 15000,
+        stdio: 'pipe',
+      });
+      const count = parseInt((r.stdout ?? '').trim(), 10);
+      procRunning = !isNaN(count) && count > 0;
+    } else {
+      const r = runSync('ps', ['-ef'], { timeout: 15000 });
+      procRunning = /timeout-monitor.*--daemon/.test(r.stdout ?? '');
+    }
+  } catch {
+    procRunning = false;
+  }
+
+  if (pidAlive || procRunning) {
+    const signals = [pidAlive ? pidDetail : '', procRunning ? 'process detected' : ''].filter(
+      Boolean,
+    );
+    addResult('timeout-daemon', 'daemon process', 'PASS', signals.join(', '), 'ok');
+  } else {
+    addResult(
+      'timeout-daemon',
+      'daemon process',
+      'FAIL',
+      `${pidDetail}; timeout-monitor daemon not running`,
+      'restart',
+    );
+  }
 }
 
 // ─── Component: ML Embeddings ────────────────────────────────────────────────
@@ -285,10 +541,7 @@ async function checkMlEmbeddings() {
     addResult('ml-embeddings', 'embedding directory', 'FAIL', 'Not found', 'rebuild');
   }
 
-  const scripts = [
-    'src/skills/skill-embedder.ts',
-    'src/ml-router.ts',
-  ];
+  const scripts = ['src/skills/skill-embedder.ts', 'src/ml-router.ts'];
   for (const s of scripts) {
     const name = basename(s);
     addResult('ml-embeddings', name, fileExists(join(ROOT, s)) ? 'PASS' : 'FAIL', '', 'manual');
@@ -350,10 +603,11 @@ async function checkEngram() {
   // If engram MCP server is running, doctor will deadlock on DB lock — skip gracefully
   const engramMcpRunning = (() => {
     try {
-      const r = spawnSync('tasklist', [], {
-        encoding: 'utf-8',
-        timeout: getEffectiveProcessTimeout('default'),
-      });
+      const r = runSync(
+        process.platform === 'win32' ? 'tasklist' : 'ps',
+        process.platform === 'win32' ? [] : ['-ef'],
+        { timeout: getEffectiveProcessTimeout('default') },
+      );
       return (r.stdout ?? '').toLowerCase().includes('engram.exe');
     } catch {
       return false;
@@ -364,24 +618,15 @@ async function checkEngram() {
     addResult('engram', 'doctor', 'PASS', 'MCP server active (skip to avoid deadlock)', 'ok');
   } else {
     try {
-      const output = execFileSync(engramCmd, ['doctor', '--json'], {
-        encoding: 'utf-8',
+      const r = runSync(engramCmd, ['doctor', '--json'], {
         timeout: getExternalApiTimeouts()?.engram_operation_ms ?? 15000,
       });
+      const output = (r.stdout ?? '') + (r.stderr ?? '');
       const ok = /"status"\s*:\s*"ok"/.test(output);
       addResult('engram', 'doctor', ok ? 'PASS' : 'WARN', `Healthy=${ok}`, 'verify');
     } catch (e: unknown) {
-      const err = e as { stdout?: string; stderr?: string };
-      const output = ((err.stdout ?? '') + (err.stderr ?? '')).toString();
-      const ok = /"status"\s*:\s*"ok"/.test(output);
-      addResult(
-        'engram',
-        'doctor',
-        ok ? 'PASS' : 'FAIL',
-        ok ? 'Healthy (stderr)' : 'Not accessible',
-        ok ? 'verify' : 'manual',
-        !ok,
-      );
+      const err = e as Error;
+      addResult('engram', 'doctor', 'FAIL', `Error: ${err?.message ?? String(e)}`, 'manual', true);
     }
   }
 }
@@ -419,12 +664,10 @@ async function checkMcp() {
   const verifyScript = join(ROOT, 'src/mcp/mcp-verify.ts');
   if (fileExists(verifyScript)) {
     try {
-      const r = spawnSync('npx', ['tsx', 'src/mcp/mcp-verify.ts'], {
+      const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+      const r = runSync(cmd, ['tsx', 'src/mcp/mcp-verify.ts'], {
         cwd: ROOT,
-        stdio: 'pipe',
         timeout: getExternalApiTimeouts()?.mcp_request_ms ?? 30000,
-        encoding: 'utf-8',
-        shell: true,
       });
       const output = (r.stdout ?? '') + (r.stderr ?? '');
       const healthOk = r.status === 0 || output.includes('Bridge status: OK');
@@ -438,12 +681,7 @@ async function checkMcp() {
   }
 
   payloadFileOk('mcp', 'mcp-registry.json', join(ROOT, 'config/mcp-registry.json'), 'config');
-  payloadFileOk(
-    'mcp',
-    'mcp-manager.ts',
-    join(ROOT, 'src/mcp/mcp-manager.ts'),
-    'manual',
-  );
+  payloadFileOk('mcp', 'mcp-manager.ts', join(ROOT, 'src/mcp/mcp-manager.ts'), 'manual');
   payloadFileOk('mcp', 'mcp-gateway.ts', join(ROOT, 'src/mcp/mcp-gateway.ts'), 'manual');
   payloadFileOk(
     'mcp',
@@ -494,8 +732,17 @@ async function checkHooks() {
   );
 
   try {
-    const r = spawnSync('lefthook', ['validate'], { cwd: ROOT, stdio: 'pipe', timeout: getEffectiveProcessTimeout('default') });
-    addResult('hooks', 'lefthook validate', r.status === 0 ? 'PASS' : 'FAIL', '', 'manual');
+    const r = runSync('lefthook', ['validate'], {
+      cwd: ROOT,
+      timeout: getEffectiveProcessTimeout('default'),
+    });
+    addResult(
+      'hooks',
+      'lefthook validate',
+      r.status === 0 ? 'PASS' : 'FAIL',
+      r.stderr ?? '',
+      'manual',
+    );
   } catch {
     addResult('hooks', 'lefthook validate', 'FAIL', 'Not installed or invalid', 'manual');
   }
@@ -568,6 +815,88 @@ async function checkSecurity() {
   }
 }
 
+// ─── Component: Secret Scanner (absorbed knowledge, ADR-010) ─────────────────
+
+async function checkSecretScanner() {
+  if (!quiet) console.log('  [Secret Scanner] Checking...');
+
+  const scannerSrc = join(ROOT, 'src', 'secret-scanner.ts');
+  const scannerCli = join(ROOT, 'src', 'secret-scanner-cli.ts');
+  const scannerCfg = join(ROOT, 'config', 'secret-scanner.json');
+  const scannerTest = join(ROOT, 'tests', 'unit', 'secret-scanner.test.ts');
+
+  payloadFileOk('secret-scanner', 'module (src/secret-scanner.ts)', scannerSrc, 'manual', true);
+  payloadFileOk('secret-scanner', 'CLI (src/secret-scanner-cli.ts)', scannerCli, 'manual', true);
+  payloadFileOk('secret-scanner', 'config (config/secret-scanner.json)', scannerCfg, 'manual', true);
+  payloadFileOk('secret-scanner', 'tests (tests/unit/secret-scanner.test.ts)', scannerTest, 'manual', true);
+
+  // Verify pattern catalog size from config (patterns: builtin|all)
+  if (fileExists(scannerCfg)) {
+    try {
+      const cfg = readJson(scannerCfg) as { patterns?: string };
+      if (cfg.patterns === 'builtin' || cfg.patterns === 'all') {
+        addResult('secret-scanner', 'patterns mode', 'PASS', `patterns=${cfg.patterns}`, 'ok');
+      } else {
+        addResult('secret-scanner', 'patterns mode', 'WARN', `Unexpected patterns value: ${String(cfg.patterns)}`, 'manual');
+      }
+    } catch {
+      addResult('secret-scanner', 'patterns mode', 'FAIL', 'Invalid config JSON', 'manual');
+    }
+  }
+}
+
+// ─── Component: CLI Guard (Windows pathToFileURL) ────────────────────────────
+
+async function checkCliGuard() {
+  if (!quiet) console.log('  [CLI Guard] Checking...');
+
+  // Detecta el patrón roto `import.meta.url === \`file://${process.argv[1]}\``
+  // que NO normaliza rutas Windows (backslashes) → main() nunca se ejecuta.
+  // El patrón correcto usa pathToFileURL(process.argv[1]).href.
+  const brokenPattern = /import\.meta\.url\s*===\s*`file:\/\/\$\{process\.argv\[1\]\}`/;
+  const srcDir = join(ROOT, 'src');
+  let brokenCount = 0;
+  const brokenFiles: string[] = [];
+
+  const walk = (dir: string): void => {
+    let dirEntries: import('fs').Dirent[];
+    try {
+      dirEntries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of dirEntries) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.name.endsWith('.ts')) {
+        try {
+          const content = readFileSync(full, 'utf8');
+          if (brokenPattern.test(content)) {
+            brokenCount++;
+            brokenFiles.push(relative(ROOT, full));
+          }
+        } catch {
+          // skip unreadable
+        }
+      }
+    }
+  };
+  walk(srcDir);
+
+  if (brokenCount === 0) {
+    addResult('cli-guard', 'pathToFileURL guard', 'PASS', 'No broken CLI guards found', 'ok');
+  } else {
+    addResult(
+      'cli-guard',
+      'pathToFileURL guard',
+      'FAIL',
+      `${brokenCount} file(s) with broken guard: ${brokenFiles.join(', ')}`,
+      'manual',
+    );
+  }
+}
+
 // ─── Component: Cloud Connectors ────────────────────────────────────────────
 // NOTE: Cloud connectors deprecated - stack operates in local-only mode
 // This check now verifies local execution mode without cloud dependencies
@@ -576,24 +905,12 @@ async function checkCloudConnectors() {
   if (!quiet) console.log('  [Cloud Connectors] Checking...');
 
   // Stack operates in local-only mode - no cloud dependencies
-  addResult(
-    'cloud-connectors',
-    'mode',
-    'PASS',
-    'Local-only mode (no cloud dependencies)',
-    'ok',
-  );
+  addResult('cloud-connectors', 'mode', 'PASS', 'Local-only mode (no cloud dependencies)', 'ok');
 
   // Verify local execution is working
   const localMetrics = join(SESSION_DIR, 'token-budget.json');
   if (fileExists(localMetrics)) {
-    addResult(
-      'cloud-connectors',
-      'local metrics',
-      'PASS',
-      'Token budget tracking active',
-      'ok',
-    );
+    addResult('cloud-connectors', 'local metrics', 'PASS', 'Token budget tracking active', 'ok');
   } else {
     addResult(
       'cloud-connectors',
@@ -612,6 +929,51 @@ async function checkCloudConnectors() {
     'Cloud scripts removed (local-only stack)',
     'ok',
   );
+}
+
+// ─── Component: Web Crawler (Firecrawl) ──────────────────────────────────────
+
+async function checkWebCrawler() {
+  if (!quiet) console.log('  [Web Crawler] Checking...');
+
+  const cfgPath = join(ROOT, 'config', 'web-crawler.json');
+  if (!fileExists(cfgPath)) {
+    addResult('web-crawler', 'config file', 'WARN', 'Not found', 'manual');
+    return;
+  }
+  payloadFileOk('web-crawler', 'config file', cfgPath, 'manual', true);
+
+  const healthFile = join(RUNTIME_DIR, 'web-crawler-health.json');
+  if (fileExists(healthFile)) {
+    try {
+      const health = readJson(healthFile);
+      const apiKeySet = !!health.apiKeyConfigured;
+      const fallbackActive = !!health.fallbackActive;
+      const cacheReady = !!health.cacheDir;
+      addResult(
+        'web-crawler',
+        'provider ready',
+        apiKeySet || fallbackActive ? 'PASS' : 'WARN',
+        apiKeySet
+          ? 'Firecrawl configured'
+          : fallbackActive
+            ? 'Fallback activo (Jina Reader + DDG HTML + Bing RSS), sin API key'
+            : 'No provider configured',
+        'manual',
+      );
+      addResult(
+        'web-crawler',
+        'cache directory',
+        cacheReady ? 'PASS' : 'WARN',
+        cacheReady ? 'Ready' : 'Missing',
+        'manual',
+      );
+    } catch {
+      addResult('web-crawler', 'health snapshot', 'FAIL', 'Invalid JSON', 'manual');
+    }
+  } else {
+    addResult('web-crawler', 'health snapshot', 'WARN', 'Not generated yet', 'manual');
+  }
 }
 
 // ─── Component: Tracing ──────────────────────────────────────────────────────
@@ -726,7 +1088,13 @@ async function checkGentleVanguardDb() {
 
   const dbPath = join(RUNTIME_DIR, 'gentle-vanguard.db');
   const dbExists = fileExists(dbPath);
-  addResult('gentle-vanguard-db', 'database file', dbExists ? 'PASS' : 'FAIL', dbExists ? `${(statSync(dbPath).size / 1024 / 1024).toFixed(2)} MB` : 'Not found', 'init');
+  addResult(
+    'gentle-vanguard-db',
+    'database file',
+    dbExists ? 'PASS' : 'FAIL',
+    dbExists ? `${(statSync(dbPath).size / 1024 / 1024).toFixed(2)} MB` : 'Not found',
+    'init',
+  );
 
   if (dbExists) {
     // Check WAL size — auto-checkpoint if WAL > DB size or > 5MB
@@ -739,11 +1107,24 @@ async function checkGentleVanguardDb() {
       const needsCheckpoint = walMB > 5 || walRatio > 1.5;
       if (needsCheckpoint) {
         try {
-          spawnSync('sqlite3', [dbPath, 'PRAGMA wal_checkpoint(TRUNCATE);'], { encoding: 'utf8', timeout: 30000, shell: true });
+          const cmd = process.platform === 'win32' ? 'sqlite3.exe' : 'sqlite3';
+          runSync(cmd, [dbPath, 'PRAGMA wal_checkpoint(TRUNCATE);'], { timeout: 30000 });
           const newWalBytes = existsSync(walPath) ? statSync(walPath).size : 0;
-          addResult('gentle-vanguard-db', 'WAL auto-checkpoint', 'PASS', `${walMB.toFixed(2)} MB → ${(newWalBytes / 1024 / 1024).toFixed(2)} MB (ratio ${walRatio.toFixed(1)}x)`, 'auto-healed');
+          addResult(
+            'gentle-vanguard-db',
+            'WAL auto-checkpoint',
+            'PASS',
+            `${walMB.toFixed(2)} MB → ${(newWalBytes / 1024 / 1024).toFixed(2)} MB (ratio ${walRatio.toFixed(1)}x)`,
+            'auto-healed',
+          );
         } catch {
-          addResult('gentle-vanguard-db', 'WAL file', 'WARN', `${walMB.toFixed(2)} MB (checkpoint failed)`, 'manual');
+          addResult(
+            'gentle-vanguard-db',
+            'WAL file',
+            'WARN',
+            `${walMB.toFixed(2)} MB (checkpoint failed)`,
+            'manual',
+          );
         }
       } else {
         addResult('gentle-vanguard-db', 'WAL file', 'PASS', `${walMB.toFixed(2)} MB`, 'ok');
@@ -754,15 +1135,15 @@ async function checkGentleVanguardDb() {
 
     // Try integrity check via sqlite3 CLI
     try {
-      const r = spawnSync('sqlite3', [dbPath, 'PRAGMA integrity_check;'], {
-        encoding: 'utf8',
+      const cmd = process.platform === 'win32' ? 'sqlite3.exe' : 'sqlite3';
+      const r = runSync(cmd, [dbPath, 'PRAGMA integrity_check;'], {
         timeout: getEffectiveProcessTimeout('default'),
-        shell: false, // Security: shell false to avoid argument injection
       });
       const output = (r.stdout ?? '').trim();
       const stderr = (r.stderr ?? '').trim();
       const processFailed = r.error || (r.status !== null && r.status !== 0);
-      const isTransient = processFailed || output === '' || /locked|busy|no such|Error/i.test(stderr);
+      const isTransient =
+        processFailed || output === '' || /locked|busy|no such|Error/i.test(stderr);
       const integrityOk = output === 'ok';
 
       let status: 'PASS' | 'WARN' | 'FAIL';
@@ -779,29 +1160,136 @@ async function checkGentleVanguardDb() {
         action = 'restore';
       }
 
-      const detail = integrityOk ? 'ok' : isTransient ? `Transient (${output.substring(0, 40) || stderr.substring(0, 40) || 'process error'})` : output.substring(0, 80);
+      const detail = integrityOk
+        ? 'ok'
+        : isTransient
+          ? `Transient (${output.substring(0, 40) || stderr.substring(0, 40) || 'process error'})`
+          : output.substring(0, 80);
       addResult('gentle-vanguard-db', 'integrity check', status, detail, action);
 
       // Get table and row counts (only on PASS)
       if (integrityOk) {
         try {
-          const tablesOut = execFileSync('sqlite3', [dbPath, '.tables'], { encoding: 'utf8', timeout: 5000 }).trim();
-          const tables = tablesOut.split(/\s+/).filter(t => t.length > 0 && !t.startsWith('_'));
+          const tablesOut = runSync(cmd, [dbPath, '.tables'], { timeout: 5000 }).stdout.trim();
+          const tables = tablesOut.split(/\s+/).filter((t) => t.length > 0 && !t.startsWith('_'));
           let totalRows = 0;
           for (const t of tables) {
             try {
-              const row = execFileSync('sqlite3', [dbPath, `SELECT COUNT(*) FROM [${t}];`], { encoding: 'utf8', timeout: 3000 }).trim();
+              const row = runSync(cmd, [dbPath, `SELECT COUNT(*) FROM [${t}];`], {
+                timeout: 3000,
+              }).stdout.trim();
               totalRows += parseInt(row, 10) || 0;
-            } catch { /* skip */ }
+            } catch {
+              /* skip */
+            }
           }
-          addResult('gentle-vanguard-db', 'size', 'PASS', `${tables.length} tables, ${totalRows} rows`, 'ok');
+          addResult(
+            'gentle-vanguard-db',
+            'size',
+            'PASS',
+            `${tables.length} tables, ${totalRows} rows`,
+            'ok',
+          );
         } catch {
           addResult('gentle-vanguard-db', 'size', 'WARN', 'Could not enumerate tables');
         }
       }
     } catch {
-      addResult('gentle-vanguard-db', 'integrity check', 'WARN', 'sqlite3 CLI not available', 'manual');
+      addResult(
+        'gentle-vanguard-db',
+        'integrity check',
+        'WARN',
+        'sqlite3 CLI not available',
+        'manual',
+      );
     }
+  }
+}
+
+// ─── Component: Model Provider Health ────────────────────────────────────────
+
+async function checkModelHealth() {
+  if (!quiet) console.log('  [model-provider-health] Checking...');
+
+  const statePath = join(RUNTIME_DIR, 'model-health.json');
+  const configPath = join(ROOT, 'config', 'model-health.json');
+  const activePath = join(RUNTIME_DIR, 'model-active.json');
+
+  if (!fileExists(configPath)) {
+    addResult(
+      'model-provider-health',
+      'config',
+      'FAIL',
+      'config/model-health.json not found',
+      'verify',
+    );
+    return;
+  }
+  addResult('model-provider-health', 'config', 'PASS', 'model-health.json present', 'ok');
+
+  let activeModel = 'unknown';
+  if (fileExists(activePath)) {
+    try {
+      const active = JSON.parse(readFileSync(activePath, 'utf-8'));
+      activeModel = active.model || active.activeModel || 'unknown';
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!fileExists(statePath)) {
+    addResult('model-provider-health', 'state', 'PASS', `No unhealthy models tracked`, 'ok');
+    addResult('model-provider-health', 'active model', 'PASS', activeModel, 'ok');
+    return;
+  }
+
+  try {
+    const state = JSON.parse(readFileSync(statePath, 'utf-8'));
+    const models = (state.models ?? {}) as Record<
+      string,
+      { status?: string; reason?: string; cooldownUntil?: string }
+    >;
+    const now = Date.now();
+    const unhealthy = Object.entries(models).filter(
+      ([, m]) =>
+        m.status === 'unhealthy' && m.cooldownUntil && new Date(m.cooldownUntil).getTime() > now,
+    );
+    const healthy = Object.entries(models).filter(([, m]) => m.status === 'healthy');
+
+    if (unhealthy.length > 0) {
+      for (const [name, m] of unhealthy) {
+        addResult(
+          'model-provider-health',
+          `model ${name}`,
+          'WARN',
+          `unhealthy (${m.reason?.slice(0, 60) ?? 'unknown reason'})`,
+          'switch-to-fallback',
+        );
+      }
+    }
+    if (healthy.length > 0) {
+      for (const [name, m] of healthy) {
+        addResult('model-provider-health', `model ${name}`, 'PASS', m.reason ?? 'healthy', 'ok');
+      }
+    }
+    if (unhealthy.length === 0 && healthy.length === 0) {
+      addResult('model-provider-health', 'state', 'PASS', 'No models tracked', 'ok');
+    }
+    addResult(
+      'model-provider-health',
+      'active model',
+      activeModel === 'unknown' ? 'WARN' : 'PASS',
+      activeModel,
+      'ok',
+    );
+  } catch {
+    addResult(
+      'model-provider-health',
+      'state',
+      'WARN',
+      'Could not parse model-health.json',
+      'verify',
+    );
   }
 }
 
@@ -834,8 +1322,13 @@ async function checkAuditPipeline() {
 
   if (fileExists(indexFile)) {
     addResult('audit', 'index', 'PASS', 'Available', 'ok');
+  } else if (fileExists(logDir) && readdirSync(logDir).some((f) => f.endsWith('.jsonl'))) {
+    // Events exist but the index is missing — real inconsistency worth flagging.
+    addResult('audit', 'index', 'WARN', 'No index (events present)', 'ok');
   } else {
-    addResult('audit', 'index', 'WARN', 'No index', 'ok');
+    // No audit events yet — index is legitimately absent until the first event
+    // is recorded (saveAuditEvent creates it). Initial state is not a warning.
+    addResult('audit', 'index', 'PASS', 'No events yet (index pending)', 'ok');
   }
 
   addResult(
@@ -884,7 +1377,7 @@ async function rebuildMlEmbeddings() {
   const skillEmbedder = join(ROOT, 'src/skills/skill-embedder.ts');
   if (fileExists(skillEmbedder)) {
     try {
-      const r = spawnSync('npx', ['tsx', 'src/skills/skill-embedder.ts'], {
+      const r = runSync('npx', ['tsx', 'src/skills/skill-embedder.ts'], {
         cwd: ROOT,
         stdio: 'pipe',
         timeout: getEffectiveProcessTimeout('long_running'),
@@ -908,19 +1401,19 @@ async function rebuildMlEmbeddings() {
 async function reindexEngramRag() {
   if (!quiet) console.log('  [Rebuild] Engram RAG...');
   const ragReindexTs = join(ROOT, 'src', 'engram-rag-reindex.ts');
-  const ragReindexPs1 = join(ROOT, 'scripts/utilities/memory/ENGRAM-RAG/engram-rag-reindex.ps1');
+  const ragReindexPs1 = join(ROOT, 'src/engram-rag-reindex.ts');
   const hasTs = fileExists(ragReindexTs);
   if (hasTs || fileExists(ragReindexPs1)) {
     try {
       let r: { status: number | null };
       if (hasTs) {
-        r = spawnSync('npx', ['tsx', ragReindexTs], {
+        r = runSync('npx', ['tsx', ragReindexTs], {
           cwd: ROOT,
           stdio: 'pipe',
           timeout: getEffectiveProcessTimeout('long_running'),
         });
       } else {
-        r = spawnSync('pwsh', ['-NoProfile', '-File', ragReindexPs1], {
+        r = runSync('pwsh', ['-NoProfile', '-File', ragReindexPs1], {
           cwd: ROOT,
           stdio: 'pipe',
           timeout: getEffectiveProcessTimeout('long_running'),
@@ -967,13 +1460,13 @@ async function autoHeal() {
       try {
         const ports = readJson(portsFile);
         wsPort = typeof ports.wsPort === 'number' ? ports.wsPort : 8080;
-      } catch { /* port file parse error, use default */ }
+      } catch {
+        /* port file parse error, use default */
+      }
     }
 
     const wsRunning = await testPort(wsPort);
-    const wsAutostartPs1 = join(ROOT, 'scripts/utilities/dashboard/dashboard-ws-autostart.ps1');
-    const wsAutostartTs = join(ROOT, 'src', 'dashboard-ws-autostart.ts');
-    const wsAutostart = fileExists(wsAutostartTs) ? wsAutostartTs : wsAutostartPs1;
+    const wsAutostart = join(ROOT, 'src', 'dashboard-ws-autostart.ts');
 
     if (wsRunning) {
       if (!quiet)
@@ -981,55 +1474,72 @@ async function autoHeal() {
       addResult('dashboard-ws', 'autoheal', 'PASS', 'WS alive, watchdog skipped', 'ok');
       healed++;
     } else if (wsAutostart.endsWith('.ts')) {
-      if (!quiet) console.log('  [Heal] Restarting Dashboard WS server (TS)...');
+      // Use TS wrapper for reliable Windows process launching
+      const wrapperTs = join(ROOT, 'src', 'dashboard-ws-launcher.ts');
+      if (!quiet) console.log('  [Heal] Restarting Dashboard WS server via wrapper...');
       try {
+        // Launch via TS wrapper - creates truly detached process
         const child = spawn(
-          process.execPath,
-          ['node_modules/.bin/tsx', wsAutostart, '--quiet'],
+          process.platform === 'win32' ? 'npx.cmd' : 'npx',
+          ['tsx', wrapperTs, '--quiet'],
           {
+            cwd: ROOT,
+            stdio: 'ignore',
+            windowsHide: true,
+            detached: true,
+            shell: true,
+          },
+        );
+        child.unref();
+
+        // Wait for process to start and check if port is up
+        await new Promise((resolve) => setTimeout(resolve, 8000));
+
+        // Verify by checking if port is now responding
+        const isPortUp = await testPort(wsPort);
+        if (isPortUp) {
+          addResult(
+            'dashboard-ws',
+            'autoheal',
+            'PASS',
+            `Restarted (port ${wsPort} responding)`,
+            'ok',
+          );
+          healed++;
+        } else {
+          // Try fallback to direct tsx launch
+          if (!quiet) console.log('  [Heal] Wrapper launch incomplete, trying direct spawn...');
+          const fallback = spawn('npx', ['tsx', wsAutostart, '--quiet'], {
             cwd: ROOT,
             stdio: 'ignore',
             detached: true,
             windowsHide: true,
-          },
-        );
-        child.unref();
-        await new Promise((resolve) => setTimeout(resolve, 15000));
-        if (child.exitCode === null) {
-          addResult('dashboard-ws', 'autoheal', 'PASS', `Restarted PID ${child.pid}`, 'ok');
-          healed++;
-        } else {
-          addResult('dashboard-ws', 'autoheal', 'FAIL', 'Restart failed (TS)', 'manual', true);
-          failed++;
-        }
-      } catch (e: unknown) {
-        addResult(
-          'dashboard-ws',
-          'autoheal',
-          'FAIL',
-          `Error: ${e instanceof Error ? e.message : String(e)}`,
-          'manual',
-          true,
-        );
-        failed++;
-      }
-    } else if (fileExists(wsAutostartPs1)) {
-      if (!quiet) console.log('  [Heal] Restarting Dashboard WS server (PS1 fallback)...');
-      try {
-        const child = spawn('pwsh', ['-NoProfile', '-File', wsAutostartPs1, '-Quiet'], {
-          cwd: ROOT,
-          stdio: 'ignore',
-          detached: true,
-          windowsHide: true,
-        });
-        child.unref();
-        await new Promise((resolve) => setTimeout(resolve, 15000));
-        if (child.exitCode === null) {
-          addResult('dashboard-ws', 'autoheal', 'PASS', `Restarted PID ${child.pid}`, 'ok');
-          healed++;
-        } else {
-          addResult('dashboard-ws', 'autoheal', 'FAIL', 'Restart failed (PS1)', 'manual', true);
-          failed++;
+            shell: true,
+          });
+          fallback.unref();
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+
+          const fallbackCheck = await testPort(wsPort);
+          if (fallbackCheck) {
+            addResult(
+              'dashboard-ws',
+              'autoheal',
+              'PASS',
+              `Restarted via fallback (port ${wsPort} responding)`,
+              'ok',
+            );
+            healed++;
+          } else {
+            addResult(
+              'dashboard-ws',
+              'autoheal',
+              'FAIL',
+              'Restart failed - port not responding',
+              'manual',
+              true,
+            );
+            failed++;
+          }
         }
       } catch (e: unknown) {
         addResult(
@@ -1044,6 +1554,7 @@ async function autoHeal() {
       }
     } else {
       if (!quiet) console.log('    No dashboard-ws-autostart script found');
+      addResult('dashboard-ws', 'autoheal', 'FAIL', 'No autostart script found', 'manual', true);
       failed++;
     }
   }
@@ -1053,18 +1564,64 @@ async function autoHeal() {
   if (cgFail.length > 0) {
     if (!quiet) console.log('  [Heal] Restarting CodeGraph serve...');
     try {
-      const child = spawn('npx.cmd', ['codegraph', 'serve', '--mcp'], {
+      // Delegate to the canonical daemon script (src/codegraph-mcp-server-start.ts).
+      // It spawns `node codegraph.js serve --mcp` with an OPEN stdin pipe (keeping
+      // the stdio MCP server alive) and writes the real server PID itself.
+      //
+      // IMPORTANT: spawning `codegraph serve --mcp` directly with stdio:'ignore'
+      // would close stdin -> the server exits instantly, and a second instance
+      // competing for the codegraph index lock can kill an already-running
+      // daemon. Delegating to the daemon script avoids both failure modes.
+      const child = spawn('npx.cmd', ['tsx', join(ROOT, 'src', 'codegraph-mcp-server-start.ts')], {
         cwd: ROOT,
         stdio: 'ignore',
         detached: true,
         windowsHide: true,
+        shell: true,
       });
       child.unref();
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      if (child.exitCode === null) {
-        addResult('codegraph', 'autoheal', 'PASS', `Restarted PID ${child.pid}`, 'ok');
+      // Give the daemon time to boot (npx+tsx resolution + server start).
+      // The stdio MCP server does NOT open a TCP port, so liveness must be
+      // determined by the process table and the PID file written by the
+      // daemon script. A single 6s probe is racy (spawn + npx+tsx resolution
+      // can exceed it), so poll with retries up to ~20s.
+      let up = false;
+      for (let attempt = 0; attempt < 5 && !up; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+        up = isCodeGraphProcessRunning();
+        if (!up) {
+          // The daemon script writes the real server PID; trust it as a
+          // secondary signal even if the process-table scan is still racing.
+          const pidFile = join(RUNTIME_DIR, 'codegraph-mcp-server.pid');
+          if (fileExists(pidFile)) {
+            try {
+              const pid = parseInt(readFileSync(pidFile, 'utf-8').trim(), 10);
+              if (!isNaN(pid)) {
+                try {
+                  process.kill(pid, 0);
+                  up = true;
+                } catch {
+                  /* PID not alive yet */
+                }
+              }
+            } catch {
+              /* unreadable PID file */
+            }
+          }
+        }
+      }
+      if (up) {
+        addResult('codegraph', 'autoheal', 'PASS', `Restarted (PID ${child.pid})`, 'ok');
         healed++;
       } else {
+        addResult(
+          'codegraph',
+          'autoheal',
+          'FAIL',
+          'Restart failed - no server process detected after 20s',
+          'manual',
+          true,
+        );
         failed++;
       }
     } catch {
@@ -1162,6 +1719,7 @@ async function runAllChecks() {
   const checks = [
     checkDashboardWs,
     checkCodeGraph,
+    checkTimeoutDaemon,
     checkMlEmbeddings,
     checkEngram,
     checkMcp,
@@ -1170,19 +1728,87 @@ async function runAllChecks() {
     checkConfigs,
     checkToolConfigs,
     checkSecurity,
+    checkSecretScanner,
+    checkCliGuard,
     checkCloudConnectors,
     checkTracing,
     checkStatePersistence,
     checkAuditPipeline,
     checkGovernance,
     checkGentleVanguardDb,
+    checkModelHealth,
+    checkWebCrawler,
   ];
-  for (const check of checks) {
+  // Parallelized with Promise.allSettled — each check is I/O-bound (file reads, HTTP, DB)
+  const results = await Promise.allSettled(
+    checks.map(async (check) => {
+      try {
+        await check();
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        addResult('system', check.name, 'FAIL', `Check failed: ${msg}`, 'manual');
+      }
+    }),
+  );
+  const rejected = results.filter((r) => r.status === 'rejected');
+  if (rejected.length > 0 && !quiet) {
+    console.log(`  [WARN] ${rejected.length} check(s) threw unhandled rejection`);
+  }
+}
+
+// ─── Witr Trace Integration ──────────────────────────────────────────────────
+
+/** Well-known ports per component, used when a component reports FAIL/WARN. */
+const COMPONENT_PORTS: Record<string, number[]> = {
+  'dashboard-ws': [8080],
+  codegraph: [3000],
+};
+
+/**
+ * After all checks run, use witr to trace the causal chain of any FAIL/WARN
+ * finding back to its root process. Best-effort: witr is auto-installed on
+ * first use; if it is unavailable the run degrades gracefully.
+ */
+async function traceFindings() {
+  if (quiet) return;
+  const findings = results.filter((r) => r.status === 'FAIL' || r.status === 'WARN');
+  if (findings.length === 0) return;
+
+  if (!ensureWitrInstalled()) {
+    console.log(
+      '  [witr] not available — run scripts/utilities/maintenance/witr-installer.ps1 to enable tracing',
+    );
+    return;
+  }
+
+  const ports = new Set<number>();
+  for (const f of findings) {
+    // Ports named explicitly in the check/detail text (e.g. "HTTP API (port 8080)")
+    const text = `${f.component} ${f.check} ${f.detail}`;
+    const matches = text.matchAll(/port\s+(\d+)/g);
+    for (const m of matches) {
+      const p = parseInt(m[1], 10);
+      if (p > 0 && p <= 65535) ports.add(p);
+    }
+    // Well-known component ports
+    for (const p of COMPONENT_PORTS[f.component] ?? []) ports.add(p);
+  }
+
+  if (ports.size === 0) return;
+  console.log('\n  [witr] tracing causal chain for failing components...');
+  for (const port of ports) {
     try {
-      await check();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      addResult('system', check.name, 'FAIL', `Check failed: ${msg}`, 'manual');
+      const chain = await witr.tracePort(port);
+      const names = chain.causalChain
+        .map((link) => `${link.name} (pid ${link.pid})`)
+        .join(' \u2192 ');
+      console.log(`  [witr] port ${port} \u2192 ${names}`);
+    } catch (e) {
+      if (!quiet) {
+        console.log(
+          `  [witr] trace port ${port} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
     }
   }
 }
@@ -1199,11 +1825,13 @@ async function main() {
   switch (opts.action) {
     case 'health':
       await runAllChecks();
+      await traceFindings();
       generateReport(opts.output);
       break;
 
     case 'rebuild':
       await runAllChecks();
+      await traceFindings();
       if (!quiet) console.log('\n  -- Auto-Rebuild Phase --');
       {
         const needsRebuild = results.filter(
@@ -1238,12 +1866,14 @@ async function main() {
 
     case 'autoheal':
       await runAllChecks();
+      await traceFindings();
       await autoHeal();
       generateReport(opts.output);
       break;
 
     case 'all':
       await runAllChecks();
+      await traceFindings();
       await autoHeal();
       if (!quiet) console.log('\n  -- Rebuild Phase --');
       if (
@@ -1273,6 +1903,7 @@ async function main() {
         if (!quiet) console.log(`\n=== Cycle ${cycle} (${new Date().toLocaleTimeString()}) ===`);
         results.length = 0;
         await runAllChecks();
+        await traceFindings();
         await autoHeal();
         generateReport();
         if (!quiet) console.log(`  Next cycle in ${opts.interval}s...`);
@@ -1287,6 +1918,7 @@ async function main() {
 
     case 'report':
       await runAllChecks();
+      await traceFindings();
       generateReport(opts.output);
       break;
 

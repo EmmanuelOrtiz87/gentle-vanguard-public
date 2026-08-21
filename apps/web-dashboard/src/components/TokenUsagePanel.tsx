@@ -32,11 +32,21 @@ export function TokenUsagePanel({ usage, total }: TokenUsagePanelProps) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-2 pr-2 font-medium text-gray-500 dark:text-gray-400">Session</th>
-              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">Prompt</th>
-              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">Completion</th>
-              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">Cost</th>
-              <th className="text-right py-2 pl-2 font-medium text-gray-500 dark:text-gray-400">Last Used</th>
+              <th className="text-left py-2 pr-2 font-medium text-gray-500 dark:text-gray-400">
+                Session
+              </th>
+              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">
+                Prompt
+              </th>
+              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">
+                Completion
+              </th>
+              <th className="text-right py-2 px-1 font-medium text-gray-500 dark:text-gray-400">
+                Cost
+              </th>
+              <th className="text-right py-2 pl-2 font-medium text-gray-500 dark:text-gray-400">
+                Last Used
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -45,7 +55,10 @@ export function TokenUsagePanel({ usage, total }: TokenUsagePanelProps) {
                 key={row.session_id}
                 className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
-                <td className="py-1.5 pr-2 font-mono text-[10px] text-gray-700 dark:text-gray-300 truncate max-w-[100px]" title={row.session_id}>
+                <td
+                  className="py-1.5 pr-2 font-mono text-[10px] text-gray-700 dark:text-gray-300 truncate max-w-[100px]"
+                  title={row.session_id}
+                >
                   {row.session_id}
                 </td>
                 <td className="py-1.5 px-1 text-right text-gray-600 dark:text-gray-400">

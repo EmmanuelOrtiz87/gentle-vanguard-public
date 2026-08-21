@@ -13,11 +13,9 @@
  */
 
 import * as fs from 'fs';
-import { resolve } from 'path';
 import * as path from 'path';
+import { ROOT } from './repo-root';
 import { getTimeout, getCircuitBreakerConfig, getRetryConfig } from './timeout-config';
-
-const ROOT = resolve(process.cwd());
 
 // ---------------------------------------------------------------------------
 // Types
@@ -215,7 +213,8 @@ export function getResilienceConfig(): {
   const operations = _resilienceConfig?.timeouts ?? {};
 
   const timeoutConfig: Record<string, number> = {};
-  const retryConfig: Record<string, { attempts: number; delayMs: number; backoffFactor: number }> = {};
+  const retryConfig: Record<string, { attempts: number; delayMs: number; backoffFactor: number }> =
+    {};
 
   for (const opName of Object.keys(operations)) {
     timeoutConfig[opName] = getOperationTimeout(opName);
@@ -251,13 +250,17 @@ function printResilienceStatus(): void {
 
   console.log(`\n  \x1b[1mRetry Settings\x1b[0m`);
   for (const [op, retry] of Object.entries(config.retryConfig)) {
-    console.log(`  \x1b[33m${op.padEnd(25)}\x1b[0m ${retry.attempts} attempts, ${retry.delayMs}ms delay, ${retry.backoffFactor}x backoff`);
+    console.log(
+      `  \x1b[33m${op.padEnd(25)}\x1b[0m ${retry.attempts} attempts, ${retry.delayMs}ms delay, ${retry.backoffFactor}x backoff`,
+    );
   }
 
   console.log(`\n  \x1b[1mCircuit Breakers\x1b[0m`);
   for (const [name, cb] of Object.entries(config.circuitBreakers)) {
     if (cb) {
-      console.log(`  \x1b[33m${name.padEnd(25)}\x1b[0m ${cb.failure_threshold} failures, ${cb.reset_seconds}s reset, ${cb.half_open_max_requests} half-open`);
+      console.log(
+        `  \x1b[33m${name.padEnd(25)}\x1b[0m ${cb.failure_threshold} failures, ${cb.reset_seconds}s reset, ${cb.half_open_max_requests} half-open`,
+      );
     } else {
       console.log(`  \x1b[33m${name.padEnd(25)}\x1b[0m \x1b[90mnot configured\x1b[0m`);
     }
@@ -265,6 +268,10 @@ function printResilienceStatus(): void {
   console.log();
 }
 
-if (process.argv[1] && (process.argv[1].endsWith('resilience-bridge.ts') || process.argv[1].endsWith('resilience-bridge.js'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith('resilience-bridge.ts') ||
+    process.argv[1].endsWith('resilience-bridge.js'))
+) {
   printResilienceStatus();
 }

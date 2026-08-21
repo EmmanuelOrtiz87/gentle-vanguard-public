@@ -1,38 +1,24 @@
 #!/usr/bin/env node
 
-import { spawnSync } from 'child_process';
-import { join, resolve } from 'path';
+import { runNpxTsxSync, runSync } from '../core/run-command.js';
+import { resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 function resolveRepoRoot(): string {
-  const result = spawnSync('git', ['rev-parse', '--show-toplevel'], {
-    encoding: 'utf-8',
-    windowsHide: true,
-  });
+  const result = runSync('git', ['rev-parse', '--show-toplevel']);
   return result.stdout?.trim() || resolve(__dirname, '..', '..');
 }
 
 function main(): number {
   const repoRoot = resolveRepoRoot();
-  const handlerScript = join(repoRoot, 'scripts', 'utilities', 'utils', 'resilience-handler.ps1');
-  const auditScript = join(repoRoot, 'scripts', 'utilities', 'utils', 'normative-audit-pipeline.ps1');
-
-  const scriptBlock = `& '${auditScript.replace(/\\/g, '\\\\')}' -Mode pre-commit`;
-
-  const result = spawnSync(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-ExecutionPolicy', 'Bypass',
-      '-Command',
-      `& '${handlerScript}' -ScriptBlock { ${scriptBlock} } -TimeoutSeconds 60 -OperationName normative-audit -FallbackAction warn_skip`,
-    ],
-    { encoding: 'utf-8', windowsHide: true, stdio: 'inherit' }
-  );
-
-  return result.status ?? 0;
+  const result = runNpxTsxSync('src/infrastructure/normative-audit-pipeline.ts', ['--mode', 'pre-commit'], {
+    cwd: repoRoot,
+    timeout: 60_000,
+    stdio: 'inherit',
+  });
+  return result.status ?? 1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

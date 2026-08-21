@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -84,7 +84,9 @@ function loadConfig(): GuardConfig {
         config.daily_budget_tokens = tb.daily ?? config.daily_budget_tokens;
         config.soft_threshold_pct = tb.softThreshold ?? config.soft_threshold_pct;
         config.hard_threshold_pct = tb.hardThreshold ?? config.hard_threshold_pct;
-        console.log(`[TOKEN-BUDGET] Loaded from token-budget-guard.json: daily_budget=${config.daily_budget_tokens}, soft=${config.soft_threshold_pct}%, hard=${config.hard_threshold_pct}%`);
+        console.log(
+          `[TOKEN-BUDGET] Loaded from token-budget-guard.json: daily_budget=${config.daily_budget_tokens}, soft=${config.soft_threshold_pct}%, hard=${config.hard_threshold_pct}%`,
+        );
         return config;
       }
     } catch (err) {
@@ -96,12 +98,15 @@ function loadConfig(): GuardConfig {
   if (existsSync(ORCHESTRATOR_PATH)) {
     try {
       const raw = JSON.parse(readFileSync(ORCHESTRATOR_PATH, 'utf-8'));
-      const custom = raw?.orchestrator?.token_budget_guard || raw?.subagent_orchestration?.token_budget_guard;
+      const custom =
+        raw?.orchestrator?.token_budget_guard || raw?.subagent_orchestration?.token_budget_guard;
       if (custom) {
         for (const key of Object.keys(DEFAULT_CONFIG)) {
           if (key in custom) (config as Record<string, unknown>)[key] = custom[key];
         }
-        console.log(`[TOKEN-BUDGET] Loaded from orchestrator.json (legacy): daily_budget=${config.daily_budget_tokens}, soft=${config.soft_threshold_pct}%, hard=${config.hard_threshold_pct}%`);
+        console.log(
+          `[TOKEN-BUDGET] Loaded from orchestrator.json (legacy): daily_budget=${config.daily_budget_tokens}, soft=${config.soft_threshold_pct}%, hard=${config.hard_threshold_pct}%`,
+        );
       }
     } catch (err) {
       console.warn(`[TOKEN-BUDGET] Failed to load orchestrator.json: ${err}`);
@@ -174,10 +179,19 @@ export function saveUsageRecord(opts: {
 
 export function checkEngram(): { available: boolean; source: string } {
   try {
-    const r = execSync('which engram', { stdio: 'pipe', timeout: 5000 }).toString().trim();
-    if (r) return { available: true, source: r };
+    // Windows compatible: try 'where' first, fallback to direct execution
+    const isWindows = process.platform === 'win32';
+    const cmd = isWindows ? 'where' : 'which';
+    const r = runSync(cmd, ['engram'], { stdio: 'pipe', timeout: 5000 }).stdout.trim();
+    if (r) return { available: true, source: r.split('\n')[0].trim() };
   } catch {
-    /* not found */
+    // Fallback: try to run engram directly
+    try {
+      const ver = runSync('engram', ['--version'], { stdio: 'pipe', timeout: 5000 });
+      if (ver.status === 0) return { available: true, source: 'engram (in PATH)' };
+    } catch {
+      /* not found */
+    }
   }
   return { available: false, source: '' };
 }

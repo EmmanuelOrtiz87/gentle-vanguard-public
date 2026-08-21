@@ -1,20 +1,22 @@
-import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { getExternalApiTimeouts } from '@gentle-vanguard/core/timeout-config';
+import { runNpxTsxSync } from '@gentle-vanguard/core/run-command';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '../../..');
-const GATEWAY_SCRIPT = join(ROOT, 'scripts', 'utilities', 'MCP', 'mcp-gateway.ps1');
-const MANAGER_SCRIPT = join(ROOT, 'scripts', 'utilities', 'MCP', 'mcp-manager.ps1');
+const GATEWAY_SCRIPT = join(ROOT, 'src', 'mcp', 'mcp-gateway.ts');
+const MANAGER_SCRIPT = join(ROOT, 'src', 'mcp', 'mcp-manager.ts');
 const REGISTRY_PATH = join(ROOT, 'config', 'mcp-registry.json');
 
-function pwsh(script: string): string {
+function tsx(script: string): string {
   try {
-    return execSync(`pwsh -NoProfile -Command "${script}"`, { encoding: 'utf-8', timeout: getExternalApiTimeouts()?.mcp_request_ms ?? 15000 });
+    const timeout = getExternalApiTimeouts()?.mcp_request_ms ?? 15000;
+    const result = runNpxTsxSync(script, [], { timeout });
+    return result.status === 0 ? result.stdout : '';
   } catch {
     return '';
   }
@@ -38,7 +40,7 @@ export interface MCPServerEntry {
 
 export function getMCPServersStatus(): MCPServerEntry[] {
   if (existsSync(GATEWAY_SCRIPT)) {
-    const raw = pwsh(`& '${GATEWAY_SCRIPT}' -Action status -Quiet | ConvertTo-Json -Depth 10`);
+    const raw = tsx(`${GATEWAY_SCRIPT} --action status --quiet`);
     if (raw) {
       try {
         return JSON.parse(raw.trim())?.servers || [];
@@ -95,7 +97,7 @@ export function mcpServerActionHandler(
     res.end('Manager not found');
     return;
   }
-  pwsh(`& '${MANAGER_SCRIPT}' -Action ${action} -Name '${name}' -Quiet`);
+  tsx(`${MANAGER_SCRIPT} --action ${action} --name ${name} --quiet`);
   res.writeHead(200, headers);
   res.end(JSON.stringify({ success: true, name, action }));
 }
@@ -117,9 +119,9 @@ export function mcpServerRegisterHandler(
         res.end(JSON.stringify({ error: 'name and command required' }));
         return;
       }
-      const args = (payload.args || []).map((a: string) => `'${a}'`).join(',');
-      const cmd = `& '${MANAGER_SCRIPT}' -Action register -Name '${payload.name}' -Command '${payload.command}' -Args @(${args}) -Description '${payload.description || ''}' -Quiet`;
-      pwsh(cmd);
+      const args = (payload.args || []).join(' ');
+      const cmd = `${MANAGER_SCRIPT} --action register --name ${payload.name} --command ${payload.command} --args "${args}" --description "${payload.description || ''}" --quiet`;
+      tsx(cmd);
       res.writeHead(200, headers);
       res.end(JSON.stringify({ success: true, name: payload.name }));
     } catch {

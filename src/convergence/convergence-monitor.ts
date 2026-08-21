@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * Convergence Monitor v1.0.0
+ * Convergence Monitor
  * Detects convergence, oscillation, or divergence in system behavior
  * Auto-adjusts parameters based on real-time metrics
- * 
- * Part of Gentle-Vanguard v5.0 — Convergence Layer
+ *
+ * Part of Gentle-Vanguard  — Convergence Layer
  */
 
 import { EventEmitter } from 'events';
-// Metrics store will be implemented in v5.0
+// Metrics store will be implemented in
 // import { MetricsStore } from '../utils/token-metrics-store';
 
 interface ConvergenceConfig {
-  windowSize: number;      // Number of samples to analyze
-  threshold: number;       // Convergence threshold (0-1)
+  windowSize: number; // Number of samples to analyze
+  threshold: number; // Convergence threshold (0-1)
   oscillationThreshold: number; // Oscillation detection threshold
-  divergenceThreshold: number;  // Divergence detection threshold
-  autoAdjust: boolean;     // Enable auto-adjustment
+  divergenceThreshold: number; // Divergence detection threshold
+  autoAdjust: boolean; // Enable auto-adjustment
 }
 
 interface SystemMetrics {
@@ -54,7 +54,7 @@ export class ConvergenceMonitor extends EventEmitter {
    */
   public addMetric(metric: SystemMetrics): void {
     this.metricsBuffer.push(metric);
-    
+
     // Keep only the last N samples
     if (this.metricsBuffer.length > this.config.windowSize) {
       this.metricsBuffer.shift();
@@ -71,7 +71,7 @@ export class ConvergenceMonitor extends EventEmitter {
    */
   private analyze(): void {
     const previousState = this.currentState;
-    
+
     // Calculate variance and trend
     const variance = this.calculateVariance();
     const trend = this.calculateTrend();
@@ -117,13 +117,13 @@ export class ConvergenceMonitor extends EventEmitter {
   private calculateVariance(): number {
     if (this.metricsBuffer.length < 2) return 0;
 
-    const values = this.metricsBuffer.map(m => m.healthScore);
+    const values = this.metricsBuffer.map((m) => m.healthScore);
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+    const squaredDiffs = values.map((v) => Math.pow(v - mean, 2));
     const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
-    
+
     // Normalize to 0-1 range (assuming health score is 0-100)
-    return 1 - (variance / 10000);
+    return 1 - variance / 10000;
   }
 
   /**
@@ -148,13 +148,15 @@ export class ConvergenceMonitor extends EventEmitter {
   private detectOscillation(): number {
     if (this.metricsBuffer.length < 20) return 0;
 
-    const values = this.metricsBuffer.map(m => m.healthScore);
+    const values = this.metricsBuffer.map((m) => m.healthScore);
     let crossings = 0;
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
 
     for (let i = 1; i < values.length; i++) {
-      if ((values[i - 1] < mean && values[i] > mean) ||
-          (values[i - 1] > mean && values[i] < mean)) {
+      if (
+        (values[i - 1] < mean && values[i] > mean) ||
+        (values[i - 1] > mean && values[i] < mean)
+      ) {
         crossings++;
       }
     }
@@ -210,10 +212,7 @@ export class ConvergenceMonitor extends EventEmitter {
         this.emit('adjustment', {
           type: 'monitoring',
           message: 'Insufficient data for analysis.',
-          recommendations: [
-            'Continue monitoring',
-            'Collect more samples',
-          ],
+          recommendations: ['Continue monitoring', 'Collect more samples'],
         });
       },
     };
@@ -233,7 +232,7 @@ export class ConvergenceMonitor extends EventEmitter {
    */
   public getCurrentMetrics(): Partial<SystemMetrics> {
     if (this.metricsBuffer.length === 0) return {};
-    
+
     const last = this.metricsBuffer[this.metricsBuffer.length - 1];
     return {
       latency: last.latency,
@@ -265,9 +264,9 @@ export const convergenceMonitor = new ConvergenceMonitor();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Convergence Monitor v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.0 — Convergence Layer\n');
-  
+  console.log('Convergence Monitor ');
+  console.log('Part of Gentle-Vanguard  — Convergence Layer\n');
+
   const monitor = new ConvergenceMonitor({
     windowSize: 50,
     autoAdjust: true,

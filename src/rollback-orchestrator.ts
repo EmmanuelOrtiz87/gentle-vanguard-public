@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, statSync, copyFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  statSync,
+  copyFileSync,
+} from 'fs';
 import { join, dirname } from 'path';
 
-import { spawnSync } from 'child_process';
+import { runNpxTsxSync } from './core/run-command.js';
 
 const ROOT = process.cwd();
 const SESSION_DIR = join(ROOT, '.session');
@@ -85,11 +93,18 @@ function parseArgs() {
 function log(message: string, level: string = 'INFO') {
   const t = new Date().toISOString().replace('T', ' ').slice(0, 19);
   if (!quiet) {
-    const colors: Record<string, string> = { INFO: '\x1b[36m', WARN: '\x1b[33m', ERROR: '\x1b[31m', SUCCESS: '\x1b[32m' };
+    const colors: Record<string, string> = {
+      INFO: '\x1b[36m',
+      WARN: '\x1b[33m',
+      ERROR: '\x1b[31m',
+      SUCCESS: '\x1b[32m',
+    };
     console.log(`${colors[level] || ''}[${t}] [ROLLBACK] [${level}] ${message}\x1b[0m`);
   }
   try {
-    writeFileSync(join(SESSION_DIR, 'rollback.log'), `[${t}] [${level}] ${message}\n`, { flag: 'a' });
+    writeFileSync(join(SESSION_DIR, 'rollback.log'), `[${t}] [${level}] ${message}\n`, {
+      flag: 'a',
+    });
   } catch {
     // silently ignore
   }
@@ -108,8 +123,12 @@ function resolveCheckpointId(): string {
 
   if (label && existsSync(MANIFEST_DIR)) {
     const manifests = readdirSync(MANIFEST_DIR, { withFileTypes: true })
-      .filter(e => e.isFile() && e.name.endsWith('.json'))
-      .sort((a, b) => statSync(join(MANIFEST_DIR, b.name)).mtimeMs - statSync(join(MANIFEST_DIR, a.name)).mtimeMs);
+      .filter((e) => e.isFile() && e.name.endsWith('.json'))
+      .sort(
+        (a, b) =>
+          statSync(join(MANIFEST_DIR, b.name)).mtimeMs -
+          statSync(join(MANIFEST_DIR, a.name)).mtimeMs,
+      );
 
     for (const m of manifests) {
       try {
@@ -123,8 +142,12 @@ function resolveCheckpointId(): string {
   }
 
   const dirs = readdirSync(CHECKPOINT_DIR, { withFileTypes: true })
-    .filter(e => e.isDirectory())
-    .sort((a, b) => statSync(join(CHECKPOINT_DIR, b.name)).birthtimeMs - statSync(join(CHECKPOINT_DIR, a.name)).birthtimeMs);
+    .filter((e) => e.isDirectory())
+    .sort(
+      (a, b) =>
+        statSync(join(CHECKPOINT_DIR, b.name)).birthtimeMs -
+        statSync(join(CHECKPOINT_DIR, a.name)).birthtimeMs,
+    );
 
   if (dirs.length === 0) throw new Error('No checkpoints available');
   return dirs[0].name;
@@ -206,7 +229,9 @@ function testCheckpointValid(id: string): boolean {
 function createPreRollbackBackup(): string {
   const now = new Date();
   const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-  const randomHex = Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const randomHex = Array.from({ length: 4 }, () =>
+    Math.floor(Math.random() * 16).toString(16),
+  ).join('');
   const backupId = `pre-rollback-${dateStr}-${randomHex}`;
   const backupTarget = join(CHECKPOINT_DIR, backupId);
 
@@ -318,7 +343,9 @@ try {
           return walk(getCheckpointPath(checkpointId));
         })()
       : 0;
-    console.log(JSON.stringify({ dryRun: true, checkpointId, valid: status, health, wouldRestore }));
+    console.log(
+      JSON.stringify({ dryRun: true, checkpointId, valid: status, health, wouldRestore }),
+    );
     process.exit(0);
   }
 
@@ -354,7 +381,9 @@ try {
   const result = invokeRollback(checkpointId);
 
   const ckptMgr = join(ROOT, 'src', 'checkpoint-manager.ts');
-  const spawnResult = spawnSync('npx', ['tsx', ckptMgr, 'verify', ROOT, checkpointId], { encoding: 'utf8' });
+  // CLI signature: checkpoint-manager.ts verify <checkpointId>
+  // (root defaults to cwd — the checkpoint store lives under <root>/.session).
+  const spawnResult = runNpxTsxSync(ckptMgr, ['verify', checkpointId], {});
   let verification: VerificationResult | null = null;
   try {
     verification = JSON.parse(spawnResult.stdout) as VerificationResult;
@@ -362,7 +391,10 @@ try {
     log('Verification output could not be parsed', 'WARN');
   }
 
-  log(`Rollback to ${checkpointId} complete: ${result.restored} restored, ${result.errors} errors`, 'SUCCESS');
+  log(
+    `Rollback to ${checkpointId} complete: ${result.restored} restored, ${result.errors} errors`,
+    'SUCCESS',
+  );
 
   const output: Record<string, unknown> = {
     checkpointId,

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Root-Cause Correlator v1.0.0
+ * Root-Cause Correlator
  * Cross-component failure correlation and root cause identification
  * Integrates with Tracing and Event Sourcing
- * 
- * Part of Gentle-Vanguard v5.0 — Convergence Layer
+ *
+ * Part of Gentle-Vanguard  — Convergence Layer
  */
 
 import { EventEmitter } from 'events';
@@ -73,7 +73,7 @@ export class RootCauseCorrelator extends EventEmitter {
       maxCorrelationDepth: config.maxCorrelationDepth || 5,
       enableML: config.enableML !== false,
     };
-    
+
     this.initializeDefaultRules();
   }
 
@@ -173,16 +173,16 @@ export class RootCauseCorrelator extends EventEmitter {
     };
 
     this.failureHistory.push(failureEvent);
-    
+
     // Prune old failures
-    const cutoff = Date.now() - (24 * 60 * 60 * 1000);
-    this.failureHistory = this.failureHistory.filter(f => f.timestamp > cutoff);
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    this.failureHistory = this.failureHistory.filter((f) => f.timestamp > cutoff);
 
     // Attempt correlation
     this.correlate(failureEvent);
 
     this.emit('failureRegistered', failureEvent);
-    
+
     return failureEvent.id;
   }
 
@@ -192,13 +192,13 @@ export class RootCauseCorrelator extends EventEmitter {
   private correlate(event: FailureEvent): void {
     // Find related events within time window
     const relatedEvents = this.findRelatedEvents(event);
-    
+
     if (relatedEvents.length === 0) return;
 
     // Apply correlation rules
     for (const rule of this.correlationRules) {
       const match = this.applyRule(rule, event, relatedEvents);
-      
+
       if (match.confidence >= this.config.minCorrelationConfidence) {
         const correlation: Correlation = {
           id: `corr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -207,19 +207,20 @@ export class RootCauseCorrelator extends EventEmitter {
           rootCause: this.generateRootCause(rule, event, match.matchedEvents),
           confidence: match.confidence,
           correlationChain: this.buildCorrelationChain(event, match.matchedEvents),
-          timeSpan: Math.max(...match.matchedEvents.map(e => e.timestamp)) - 
-                    Math.min(event.timestamp, ...match.matchedEvents.map(e => e.timestamp)),
+          timeSpan:
+            Math.max(...match.matchedEvents.map((e) => e.timestamp)) -
+            Math.min(event.timestamp, ...match.matchedEvents.map((e) => e.timestamp)),
         };
 
         this.correlations.push(correlation);
-        
+
         this.emit('correlationFound', correlation);
-        
+
         // Keep only last 100 correlations
         if (this.correlations.length > 100) {
           this.correlations = this.correlations.slice(-50);
         }
-        
+
         break; // Stop after first match
       }
     }
@@ -231,11 +232,9 @@ export class RootCauseCorrelator extends EventEmitter {
   private findRelatedEvents(event: FailureEvent): FailureEvent[] {
     const windowStart = event.timestamp - this.config.timeWindow;
     const windowEnd = event.timestamp + this.config.timeWindow;
-    
-    return this.failureHistory.filter(f => 
-      f.id !== event.id &&
-      f.timestamp >= windowStart &&
-      f.timestamp <= windowEnd
+
+    return this.failureHistory.filter(
+      (f) => f.id !== event.id && f.timestamp >= windowStart && f.timestamp <= windowEnd,
     );
   }
 
@@ -245,10 +244,10 @@ export class RootCauseCorrelator extends EventEmitter {
   private applyRule(
     rule: CorrelationRule,
     primaryEvent: FailureEvent,
-    candidates: FailureEvent[]
+    candidates: FailureEvent[],
   ): { confidence: number; matchedEvents: FailureEvent[] } {
     const matchedEvents: FailureEvent[] = [];
-    
+
     // Check if primary matches
     const primaryRegex = new RegExp(rule.pattern.primaryError, 'i');
     if (!primaryRegex.test(primaryEvent.errorMessage)) {
@@ -258,11 +257,10 @@ export class RootCauseCorrelator extends EventEmitter {
     // Find related matches
     for (const relatedError of rule.pattern.relatedErrors) {
       const relatedRegex = new RegExp(relatedError, 'i');
-      const match = candidates.find(c => 
-        relatedRegex.test(c.errorMessage) &&
-        !matchedEvents.some(m => m.id === c.id)
+      const match = candidates.find(
+        (c) => relatedRegex.test(c.errorMessage) && !matchedEvents.some((m) => m.id === c.id),
       );
-      
+
       if (match) {
         matchedEvents.push(match);
       }
@@ -272,15 +270,17 @@ export class RootCauseCorrelator extends EventEmitter {
     const expectedMatches = rule.pattern.relatedErrors.length;
     const actualMatches = matchedEvents.length;
     const matchRatio = actualMatches / expectedMatches;
-    
+
     // Component chain bonus
-    const componentBonus = this.checkComponentChain(
-      rule.pattern.componentChain,
-      [primaryEvent, ...matchedEvents]
-    ) ? 0.2 : 0;
+    const componentBonus = this.checkComponentChain(rule.pattern.componentChain, [
+      primaryEvent,
+      ...matchedEvents,
+    ])
+      ? 0.2
+      : 0;
 
     const confidence = Math.min(1, matchRatio + componentBonus);
-    
+
     return { confidence, matchedEvents };
   }
 
@@ -288,19 +288,18 @@ export class RootCauseCorrelator extends EventEmitter {
    * Check if events follow expected component chain
    */
   private checkComponentChain(expectedChain: string[], events: FailureEvent[]): boolean {
-    const actualChain = events.map(e => e.component);
-    
+    const actualChain = events.map((e) => e.component);
+
     // Check if actual chain is a subsequence of expected chain
     let expectedIndex = 0;
     for (const component of actualChain) {
-      while (expectedIndex < expectedChain.length && 
-             expectedChain[expectedIndex] !== component) {
+      while (expectedIndex < expectedChain.length && expectedChain[expectedIndex] !== component) {
         expectedIndex++;
       }
       if (expectedIndex >= expectedChain.length) return false;
       expectedIndex++;
     }
-    
+
     return true;
   }
 
@@ -310,7 +309,7 @@ export class RootCauseCorrelator extends EventEmitter {
   private generateRootCause(
     rule: CorrelationRule,
     primaryEvent: FailureEvent,
-    relatedEvents: FailureEvent[]
+    relatedEvents: FailureEvent[],
   ): RootCause {
     return {
       component: rule.rootCauseTemplate.component || primaryEvent.component,
@@ -318,7 +317,7 @@ export class RootCauseCorrelator extends EventEmitter {
       description: rule.rootCauseTemplate.description || primaryEvent.errorMessage,
       contributingFactors: [
         ...(rule.rootCauseTemplate.contributingFactors || []),
-        ...relatedEvents.map(e => `${e.component}: ${e.errorType}`),
+        ...relatedEvents.map((e) => `${e.component}: ${e.errorType}`),
       ],
       recommendedActions: rule.rootCauseTemplate.recommendedActions || [
         'Investigate primary component',
@@ -333,16 +332,16 @@ export class RootCauseCorrelator extends EventEmitter {
    */
   private buildCorrelationChain(primary: FailureEvent, related: FailureEvent[]): string[] {
     const chain = [primary.component];
-    
+
     // Sort by timestamp
     const sorted = [...related].sort((a, b) => a.timestamp - b.timestamp);
-    
+
     for (const event of sorted) {
       if (!chain.includes(event.component)) {
         chain.push(event.component);
       }
     }
-    
+
     return chain;
   }
 
@@ -350,9 +349,10 @@ export class RootCauseCorrelator extends EventEmitter {
    * Get correlations for a component
    */
   public getCorrelationsForComponent(component: string): Correlation[] {
-    return this.correlations.filter(c => 
-      c.primaryEvent.component === component ||
-      c.relatedEvents.some(e => e.component === component)
+    return this.correlations.filter(
+      (c) =>
+        c.primaryEvent.component === component ||
+        c.relatedEvents.some((e) => e.component === component),
     );
   }
 
@@ -362,8 +362,8 @@ export class RootCauseCorrelator extends EventEmitter {
   public getStats(): object {
     const byComponent: Record<string, number> = {};
     const byErrorType: Record<string, number> = {};
-    
-    this.failureHistory.forEach(f => {
+
+    this.failureHistory.forEach((f) => {
       byComponent[f.component] = (byComponent[f.component] || 0) + 1;
       byErrorType[f.errorType] = (byErrorType[f.errorType] || 0) + 1;
     });
@@ -374,8 +374,10 @@ export class RootCauseCorrelator extends EventEmitter {
       byComponent,
       byErrorType,
       correlationRate: this.correlations.length / Math.max(1, this.failureHistory.length),
-      avgCorrelationConfidence: this.correlations.length > 0 ?
-        this.correlations.reduce((a, c) => a + c.confidence, 0) / this.correlations.length : 0,
+      avgCorrelationConfidence:
+        this.correlations.length > 0
+          ? this.correlations.reduce((a, c) => a + c.confidence, 0) / this.correlations.length
+          : 0,
     };
   }
 
@@ -395,16 +397,16 @@ export const rootCauseCorrelator = new RootCauseCorrelator();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Root-Cause Correlator v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.0 — Convergence Layer\n');
-  
+  console.log('Root-Cause Correlator ');
+  console.log('Part of Gentle-Vanguard  — Convergence Layer\n');
+
   const correlator = new RootCauseCorrelator();
-  
+
   correlator.on('failureRegistered', (event) => {
     console.log(`[${new Date().toISOString()}] Failure registered: ${event.component}`);
     console.log(`  Error: ${event.errorType} - ${event.errorMessage}`);
   });
-  
+
   correlator.on('correlationFound', (correlation) => {
     console.log('\n' + '='.repeat(60));
     console.log('CORRELATION FOUND');
@@ -417,14 +419,14 @@ if (require.main === module) {
     console.log(`  Description: ${correlation.rootCause.description}`);
     console.log(`\nCorrelation Chain: ${correlation.correlationChain.join(' → ')}`);
     console.log(`\nRecommended Actions:`);
-    correlation.rootCause.recommendedActions.forEach(action => {
+    correlation.rootCause.recommendedActions.forEach((action) => {
       console.log(`  • ${action}`);
     });
   });
-  
+
   // Simulate failure cascade
   console.log('Simulating failure cascade...\n');
-  
+
   // Primary failure
   setTimeout(() => {
     correlator.registerFailure({
@@ -436,7 +438,7 @@ if (require.main === module) {
       context: { host: 'db.internal', port: 5432 },
     });
   }, 100);
-  
+
   // Cascade failures
   setTimeout(() => {
     correlator.registerFailure({
@@ -448,7 +450,7 @@ if (require.main === module) {
       context: { query: 'SELECT * FROM users' },
     });
   }, 500);
-  
+
   setTimeout(() => {
     correlator.registerFailure({
       timestamp: Date.now(),
@@ -459,7 +461,7 @@ if (require.main === module) {
       context: { key: 'user:123' },
     });
   }, 1000);
-  
+
   setTimeout(() => {
     console.log('\n\n--- Correlator Statistics ---');
     console.log(JSON.stringify(correlator.getStats(), null, 2));

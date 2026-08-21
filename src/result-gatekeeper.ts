@@ -24,7 +24,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 
@@ -35,7 +35,7 @@ let _db: any = null;
 function getDb(): any {
   if (!_db) {
     try {
-      const mod = _require('../../apps/web-dashboard/server/database/manager');
+      const mod = _require('../apps/web-dashboard/server/database/manager');
       _db = mod.DatabaseManager.getInstance();
     } catch {
       // SQLite not available — skip dual-write
@@ -59,7 +59,14 @@ interface PhaseContract {
 interface Validation {
   id: string;
   description: string;
-  check: 'file_exists' | 'file_not_empty' | 'json_valid' | 'json_has_key' | 'dir_exists' | 'process_running' | 'custom';
+  check:
+    | 'file_exists'
+    | 'file_not_empty'
+    | 'json_valid'
+    | 'json_has_key'
+    | 'dir_exists'
+    | 'process_running'
+    | 'custom';
   target: string;
   param?: string;
 }
@@ -98,9 +105,25 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Session initialization contract',
     preconditions: ['Workspace is accessible', 'Config files exist'],
     validations: [
-      { id: 'session-dir-exists', description: 'Session directory exists', check: 'dir_exists', target: '.session' },
-      { id: 'session-file-exists', description: 'Session file was created', check: 'file_exists', target: '.session/session-current.json' },
-      { id: 'session-id-valid', description: 'Session ID is valid', check: 'json_has_key', target: '.session/session-current.json', param: 'sessionId' },
+      {
+        id: 'session-dir-exists',
+        description: 'Session directory exists',
+        check: 'dir_exists',
+        target: '.session',
+      },
+      {
+        id: 'session-file-exists',
+        description: 'Session file was created',
+        check: 'file_exists',
+        target: '.session/session-current.json',
+      },
+      {
+        id: 'session-id-valid',
+        description: 'Session ID is valid',
+        check: 'json_has_key',
+        target: '.session/session-current.json',
+        param: 'sessionId',
+      },
     ],
     postconditions: ['Session is ready for next phase', 'Engram can be initialized'],
   },
@@ -109,8 +132,18 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Engram integrity contract',
     preconditions: ['Session manager completed', 'Engram CLI available'],
     validations: [
-      { id: 'engram-db-exists', description: 'Engram database exists', check: 'file_exists', target: '.engram/engram.db' },
-      { id: 'engram-config-exists', description: 'Engram policy config exists', check: 'file_exists', target: 'config/engram-policy.json' },
+      {
+        id: 'engram-db-exists',
+        description: 'Engram database exists',
+        check: 'file_exists',
+        target: '.engram/engram.db',
+      },
+      {
+        id: 'engram-config-exists',
+        description: 'Engram policy config exists',
+        check: 'file_exists',
+        target: 'config/engram-policy.json',
+      },
     ],
     postconditions: ['Engram is operational', 'Memory persistence available'],
   },
@@ -119,8 +152,18 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Security initialization contract',
     preconditions: ['Engram is running', 'Config files are valid'],
     validations: [
-      { id: 'security-config-exists', description: 'Security config exists', check: 'file_exists', target: 'config/security-config.json' },
-      { id: 'security-config-valid', description: 'Security config is valid JSON', check: 'json_valid', target: 'config/security-config.json' },
+      {
+        id: 'security-config-exists',
+        description: 'Security config exists',
+        check: 'file_exists',
+        target: 'config/security-config.json',
+      },
+      {
+        id: 'security-config-valid',
+        description: 'Security config is valid JSON',
+        check: 'json_valid',
+        target: 'config/security-config.json',
+      },
     ],
     postconditions: ['Security policies loaded', 'Privacy config applied'],
   },
@@ -129,8 +172,18 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Skill routing contract',
     preconditions: ['Security initialized', 'Skills directory exists'],
     validations: [
-      { id: 'skill-dir-exists', description: 'Skills directory exists', check: 'dir_exists', target: '.opencode/skills' },
-      { id: 'opencode-config-valid', description: 'OpenCode config is valid', check: 'json_valid', target: 'opencode.json' },
+      {
+        id: 'skill-dir-exists',
+        description: 'Skills directory exists',
+        check: 'dir_exists',
+        target: '.opencode/skills',
+      },
+      {
+        id: 'opencode-config-valid',
+        description: 'OpenCode config is valid',
+        check: 'json_valid',
+        target: 'opencode.json',
+      },
     ],
     postconditions: ['Skills are discoverable', 'Router is active'],
   },
@@ -139,7 +192,12 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Karpathy guidelines contract',
     preconditions: ['Router is active'],
     validations: [
-      { id: 'karpathy-config-exists', description: 'Karpathy config exists', check: 'file_exists', target: 'config/karpathy-enforcer.json' },
+      {
+        id: 'karpathy-config-exists',
+        description: 'Karpathy config exists',
+        check: 'file_exists',
+        target: 'config/karpathy-enforcer.json',
+      },
     ],
     postconditions: ['Guidelines enforced for session'],
   },
@@ -148,7 +206,12 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Session metrics contract',
     preconditions: ['Session initialized'],
     validations: [
-      { id: 'metrics-config-exists', description: 'Metrics config exists', check: 'file_exists', target: 'config/session-metrics-tracker.json' },
+      {
+        id: 'metrics-config-exists',
+        description: 'Metrics config exists',
+        check: 'file_exists',
+        target: 'config/session-metrics-tracker.json',
+      },
     ],
     postconditions: ['Metrics collection started'],
   },
@@ -157,7 +220,12 @@ const PHASE_CONTRACTS: PhaseContract[] = [
     description: 'Token budget contract',
     preconditions: ['Metrics initialized'],
     validations: [
-      { id: 'token-config-exists', description: 'Token budget config exists', check: 'file_exists', target: 'config/token-budget-guard.json' },
+      {
+        id: 'token-config-exists',
+        description: 'Token budget config exists',
+        check: 'file_exists',
+        target: 'config/token-budget-guard.json',
+      },
     ],
     postconditions: ['Token budget tracked', 'Budget limits respected'],
   },
@@ -193,7 +261,8 @@ function checkValidation(validation: Validation): { status: ContractStatus; deta
         : { status: 'fail', detail: `Directory not found: ${validation.target}` };
 
     case 'file_not_empty':
-      if (!existsSync(targetPath)) return { status: 'fail', detail: `File not found: ${validation.target}` };
+      if (!existsSync(targetPath))
+        return { status: 'fail', detail: `File not found: ${validation.target}` };
       try {
         const content = readFileSync(targetPath, 'utf-8');
         return content.trim().length > 0
@@ -204,7 +273,8 @@ function checkValidation(validation: Validation): { status: ContractStatus; deta
       }
 
     case 'json_valid':
-      if (!existsSync(targetPath)) return { status: 'fail', detail: `File not found: ${validation.target}` };
+      if (!existsSync(targetPath))
+        return { status: 'fail', detail: `File not found: ${validation.target}` };
       try {
         JSON.parse(readFileSync(targetPath, 'utf-8'));
         return { status: 'pass', detail: `Valid JSON: ${validation.target}` };
@@ -213,26 +283,39 @@ function checkValidation(validation: Validation): { status: ContractStatus; deta
       }
 
     case 'json_has_key':
-      if (!existsSync(targetPath)) return { status: 'fail', detail: `File not found: ${validation.target}` };
+      if (!existsSync(targetPath))
+        return { status: 'fail', detail: `File not found: ${validation.target}` };
       try {
         const data = JSON.parse(readFileSync(targetPath, 'utf-8'));
         const keys = (validation.param ?? '').split('.');
         let current: unknown = data;
         for (const key of keys) {
-          if (current && typeof current === 'object' && key in (current as Record<string, unknown>)) {
+          if (
+            current &&
+            typeof current === 'object' &&
+            key in (current as Record<string, unknown>)
+          ) {
             current = (current as Record<string, unknown>)[key];
           } else {
-            return { status: 'fail', detail: `Key '${validation.param}' not found in ${validation.target}` };
+            return {
+              status: 'fail',
+              detail: `Key '${validation.param}' not found in ${validation.target}`,
+            };
           }
         }
-        return { status: 'pass', detail: `Key '${validation.param}' found in ${validation.target}` };
+        return {
+          status: 'pass',
+          detail: `Key '${validation.param}' found in ${validation.target}`,
+        };
       } catch {
         return { status: 'error', detail: `Cannot parse ${validation.target}` };
       }
 
     case 'process_running':
       try {
-        const result = execSync(`tasklist /FI "IMAGENAME eq ${validation.target}" 2>NUL`, { encoding: 'utf-8', timeout: 5000, windowsHide: true });
+        const result = runSyncShell(`tasklist /FI "IMAGENAME eq ${validation.target}" 2>NUL`, {
+          timeout: 5000,
+        }).stdout;
         return result.includes(validation.target)
           ? { status: 'pass', detail: `Process running: ${validation.target}` }
           : { status: 'fail', detail: `Process not found: ${validation.target}` };
@@ -249,7 +332,7 @@ function checkValidation(validation: Validation): { status: ContractStatus; deta
 
 export function verifyContract(phase: string): ContractResult {
   const config = loadConfig();
-  const contract = PHASE_CONTRACTS.find(c => c.phase === phase);
+  const contract = PHASE_CONTRACTS.find((c) => c.phase === phase);
   if (!contract) {
     return {
       phase,
@@ -262,13 +345,13 @@ export function verifyContract(phase: string): ContractResult {
     };
   }
 
-  const validationResults = contract.validations.map(v => ({
+  const validationResults = contract.validations.map((v) => ({
     id: v.id,
     ...checkValidation(v),
   }));
 
-  const allPassed = validationResults.every(r => r.status === 'pass');
-  const anyFailed = validationResults.some(r => r.status === 'fail');
+  const allPassed = validationResults.every((r) => r.status === 'pass');
+  const anyFailed = validationResults.some((r) => r.status === 'fail');
   const status: ContractStatus = allPassed ? 'pass' : anyFailed ? 'fail' : 'error';
 
   const result: ContractResult = {
@@ -280,7 +363,7 @@ export function verifyContract(phase: string): ContractResult {
     postconditionsMet: allPassed,
     summary: allPassed
       ? `Contract '${phase}': ALL VALIDATIONS PASSED`
-      : `Contract '${phase}': ${validationResults.filter(r => r.status === 'fail').length} FAILURES`,
+      : `Contract '${phase}': ${validationResults.filter((r) => r.status === 'fail').length} FAILURES`,
   };
 
   // Save result
@@ -292,7 +375,12 @@ export function verifyContract(phase: string): ContractResult {
   try {
     const mgr = getDb();
     if (mgr) {
-      mgr.insertContractResult(phase, status, process.env.SESSION_ID, JSON.stringify({ summary: result.summary, validations: validationResults.length }));
+      mgr.insertContractResult(
+        phase,
+        status,
+        process.env.SESSION_ID,
+        JSON.stringify({ summary: result.summary, validations: validationResults.length }),
+      );
     }
   } catch {
     // Dual-write failure is non-critical
@@ -302,7 +390,7 @@ export function verifyContract(phase: string): ContractResult {
 }
 
 export function verifyAllContracts(): ContractResult[] {
-  return PHASE_CONTRACTS.map(c => verifyContract(c.phase));
+  return PHASE_CONTRACTS.map((c) => verifyContract(c.phase));
 }
 
 export function listContracts(): PhaseContract[] {
@@ -310,7 +398,7 @@ export function listContracts(): PhaseContract[] {
 }
 
 export function getContract(phase: string): PhaseContract | undefined {
-  return PHASE_CONTRACTS.find(c => c.phase === phase);
+  return PHASE_CONTRACTS.find((c) => c.phase === phase);
 }
 
 // ─── CLI Handler ───────────────────────────────────────────────────────
@@ -324,11 +412,22 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--verify': action = 'verify'; phase = args[++i] ?? ''; break;
-      case '--list': action = 'list'; break;
-      case '--report': action = 'report'; break;
-      case '--quiet': quiet = true; break;
-      case '--dry-run': dryRun = true; break;
+      case '--verify':
+        action = 'verify';
+        phase = args[++i] ?? '';
+        break;
+      case '--list':
+        action = 'list';
+        break;
+      case '--report':
+        action = 'report';
+        break;
+      case '--quiet':
+        quiet = true;
+        break;
+      case '--dry-run':
+        dryRun = true;
+        break;
     }
   }
 
@@ -343,7 +442,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       console.log('\n=== PHASE CONTRACTS ===');
       for (const c of contracts) {
         console.log(`\n${c.phase}: ${c.description}`);
-        console.log(`  Validations: ${c.validations.map(v => v.id).join(', ')}`);
+        console.log(`  Validations: ${c.validations.map((v) => v.id).join(', ')}`);
       }
       break;
     }
@@ -353,7 +452,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         const results = verifyAllContracts();
         if (!quiet) {
           console.log('\n=== GATEKEEPER RESULTS ===');
-          let pass = 0, fail = 0;
+          let pass = 0,
+            fail = 0;
           for (const r of results) {
             const icon = r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⚠️';
             console.log(`${icon} ${r.phase}: ${r.summary}`);
@@ -381,14 +481,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
     case 'report': {
       const results = verifyAllContracts();
-      const passed = results.filter(r => r.status === 'pass').length;
-      const failed = results.filter(r => r.status === 'fail').length;
+      const passed = results.filter((r) => r.status === 'pass').length;
+      const failed = results.filter((r) => r.status === 'fail').length;
       console.log('\n=== GATEKEEPER COMPLIANCE REPORT ===');
       console.log(`Generated: ${new Date().toISOString()}`);
       console.log(`Contracts: ${results.length}`);
       console.log(`Passed: ${passed}`);
       console.log(`Failed: ${failed}`);
-      console.log(`Compliance: ${results.length > 0 ? Math.round(passed / results.length * 100) : 100}%`);
+      console.log(
+        `Compliance: ${results.length > 0 ? Math.round((passed / results.length) * 100) : 100}%`,
+      );
       break;
     }
   }

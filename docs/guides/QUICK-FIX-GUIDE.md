@@ -6,7 +6,7 @@
 
 ## One-Minute Diagnosis
 
-```powershell
+```TypeScript
 # Check which scripts have issues
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 
@@ -18,12 +18,12 @@ Get-Content .\docs\audit\script-normalization-report.md
 
 ## Top 5 Scripts to Fix First
 
-### 1. gv.ps1
+### 1. src/cli/gv.ts
 
 **Problem**: Missing 1 closing brace, 2 extra closing parentheses  
 **Quick Fix**:
 
-1. Open: `scripts/gentle-vanguard/gv.ps1`
+1. Open: `scripts/gentle-vanguard/src/cli/gv.ts`
 2. Search for: `function` and count braces
 3. Look for unclosed `if` or `foreach` statements
 
@@ -33,6 +33,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/gentle-vanguard/bootstrap-workspace.ps1`
+<!-- REF-OBSOLETA: scripts/gentle-vanguard/bootstrap-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Check all `function` definitions
 3. Verify all `if/else` blocks are closed
 
@@ -42,6 +43,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/diagnostics/validate-script-governance.ps1`
+<!-- REF-OBSOLETA: scripts/diagnostics/validate-script-governance.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Search for: `Script` keyword
 3. Check for incomplete statements
 
@@ -50,7 +52,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Problem**: 2 extra closing parentheses  
 **Quick Fix**:
 
-1. Open: `scripts/utilities/session-manager.ps1`
+1. Open: `src/session-manager.ts`
 2. Remove 2 extra `)` characters
 3. Validate with audit tool
 
@@ -60,6 +62,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 **Quick Fix**:
 
 1. Open: `scripts/validation/homologate-workspace.ps1`
+<!-- REF-OBSOLETA: scripts/validation/homologate-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. Find and remove 5 extra `)` characters
 3. Validate with audit tool
 
@@ -67,7 +70,7 @@ Get-Content .\docs\audit\script-normalization-report.md
 
 ## Validation Commands
 
-```powershell
+```TypeScript
 # Validate single script
 $errors = $null
 [System.Management.Automation.Language.Parser]::ParseFile(
@@ -100,7 +103,7 @@ Get-ChildItem .\scripts\utilities\*.ps1 | ForEach-Object {
 
 ### Extra Closing Parentheses
 
-```powershell
+```TypeScript
 # WRONG - Extra )
 Write-Host "test"))
 
@@ -110,7 +113,7 @@ Write-Host "test"
 
 ### Missing Closing Brace
 
-```powershell
+```TypeScript
 # WRONG - Missing }
 function Test {
     Write-Host "test"
@@ -123,7 +126,7 @@ function Test {
 
 ### Unbalanced Here-Strings
 
-```powershell
+```TypeScript
 # WRONG - Missing "@
 $text = @"
 This is a
@@ -153,3 +156,4 @@ multi-line string
 - **Full Guide**: `docs/guides/REMAINING-SCRIPTS-TO-FIX.md`
 - **Standards**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
 - **Audit Tool**: `scripts/utilities/audit-script-normalization.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/audit-script-normalization.ps1 no tiene equivalente TS (migración PS1→TS) -->

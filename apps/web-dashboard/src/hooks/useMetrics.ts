@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import type { DashboardData, MetricHistory } from '../types/dashboard';
 import { useSharedWs } from './useSharedWs';
 import { saveOfflineCache, loadOfflineCache, hasFreshOfflineCache } from '../lib/offline-storage';
+import { readCached, writeCached } from '../lib/offlineCache';
+
+const metricsCacheKey = (tenantId?: string) => `metrics:${tenantId || 'default'}`;
 
 export interface Notification {
   type: string;
@@ -20,14 +23,21 @@ const FALLBACK_DATA: DashboardData = {
 export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) {
   const [data, setData] = useState<DashboardData>(() => {
     // Try to load from offline cache on init
-    const cached = loadOfflineCache(initialTenantId);
-    return cached ? (cached as DashboardData) : FALLBACK_DATA;
+    const cached = readCached<DashboardData>(metricsCacheKey(initialTenantId));
+    if (cached?.data) return cached.data;
+    const legacy = loadOfflineCache(initialTenantId);
+    return legacy ? (legacy as DashboardData) : FALLBACK_DATA;
   });
   const [tenantId, setTenantId] = useState<string | undefined>(initialTenantId);
   const [history, setHistory] = useState<MetricHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isOffline, setIsOffline] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<number>(() => {
+    const cached = readCached<DashboardData>(metricsCacheKey(initialTenantId));
+    return cached?.cachedAt ?? 0;
+  });
 
   const updateFromPayload = useCallback(
     (payload: Partial<DashboardData> & { timestamp?: string }) => {
@@ -35,16 +45,17 @@ export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) 
         ...payload,
         system: payload.system ?? data.system,
       } as DashboardData;
-      
+
       setData((prev) => ({
         ...prev,
         ...payload,
         system: payload.system ?? prev.system,
       }));
-      
+
       // Save to offline cache
       saveOfflineCache(newData, tenantId);
-      
+      writeCached(metricsCacheKey(tenantId), newData);
+
       setHistory((prev) => {
         const tokens = payload.tokens?.used ?? 0;
         const sessions = payload.sessions?.active ?? 0;
@@ -96,27 +107,45 @@ export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) 
       const message = await res.json();
       if (message.type === 'metrics') {
         updateFromPayload(message.data);
+        writeCached(metricsCacheKey(tenantId), {
+          ...message.data,
+          system: message.data.system ?? data.system,
+        } as DashboardData);
       }
       setError(null);
+      setIsOffline(false);
+      setLastUpdated(Date.now());
     } catch (err) {
-      // Try to load from offline cache on error
-      const cached = loadOfflineCache(tenantId);
-      if (cached) {
-        updateFromPayload(cached as Partial<DashboardData>);
-        setError('Using cached data (server unavailable)');
+      // Serve cached data and flag offline mode
+      const cached = readCached<DashboardData>(metricsCacheKey(tenantId));
+      if (cached?.data) {
+        updateFromPayload(cached.data as Partial<DashboardData>);
+        setError('Offline mode — showing cached data');
+        setIsOffline(true);
+        setLastUpdated(cached.cachedAt ?? 0);
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+        // Try the legacy single-key cache as a fallback
+        const legacy = loadOfflineCache(tenantId);
+        if (legacy) {
+          updateFromPayload(legacy as Partial<DashboardData>);
+          setError('Offline mode — showing cached data');
+          setIsOffline(true);
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+          setIsOffline(false);
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, [updateFromPayload, tenantId]);
+  }, [updateFromPayload, tenantId, data.system]);
 
   useEffect(() => {
-    void fetchMetrics();
+    fetchMetrics();
     const interval = setInterval(fetchMetrics, 5000);
     return () => clearInterval(interval);
-  }, [fetchMetrics]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar al montar, evita recarga infinita
 
   const dismissNotification = useCallback((index: number) => {
     setNotifications((prev) => prev.filter((_, i) => i !== index));
@@ -134,5 +163,7 @@ export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) 
     tenantId,
     setTenantId,
     offlineMode: !wsConnected && hasFreshOfflineCache(tenantId),
+    isOffline,
+    lastUpdated,
   };
 }

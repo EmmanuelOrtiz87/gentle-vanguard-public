@@ -17,8 +17,9 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
+import { assertConfigIntegrity } from './self-mutation-guard.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -49,9 +50,15 @@ interface CorrectionRecord {
 
 interface Pattern {
   id: string;
-  type: 'error_recurrence' | 'config_oscillation' | 'learning_repetition'
-       | 'skill_usage_gap' | 'performance_trend' | 'token_trend'
-       | 'correction_pattern' | 'session_stability';
+  type:
+    | 'error_recurrence'
+    | 'config_oscillation'
+    | 'learning_repetition'
+    | 'skill_usage_gap'
+    | 'performance_trend'
+    | 'token_trend'
+    | 'correction_pattern'
+    | 'session_stability';
   title: string;
   description: string;
   severity: 'info' | 'warning' | 'critical';
@@ -115,14 +122,21 @@ const DEFAULT_CONFIG = {
 
 function log(msg: string, quiet: boolean, level: string = 'INFO'): void {
   if (quiet && level === 'INFO') return;
-  const prefix = level === 'WARN' ? '\x1b[33m[REFLECT]' : level === 'ERR' ? '\x1b[31m[REFLECT]' : '\x1b[36m[REFLECT]';
+  const prefix =
+    level === 'WARN'
+      ? '\x1b[33m[REFLECT]'
+      : level === 'ERR'
+        ? '\x1b[31m[REFLECT]'
+        : '\x1b[36m[REFLECT]';
   console.log(`${prefix} ${msg}\x1b[0m`);
 }
 
 function loadJson<T>(path: string, fallback: T): T {
   try {
     if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf-8')) as T;
-  } catch { /* fallback */ }
+  } catch {
+    /* fallback */
+  }
   return fallback;
 }
 
@@ -130,12 +144,20 @@ function readJsonLines(filePath: string): Record<string, unknown>[] {
   if (!existsSync(filePath)) return [];
   try {
     const raw = readFileSync(filePath, 'utf-8');
-    return raw.split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l));
-  } catch { return []; }
+    return raw
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((l) => JSON.parse(l));
+  } catch {
+    return [];
+  }
 }
 
 function getDateRange(logs: SessionRecord[]): { from: string; to: string } {
-  const dates = logs.map(l => l.date).filter(Boolean).sort();
+  const dates = logs
+    .map((l) => l.date)
+    .filter(Boolean)
+    .sort();
   return { from: dates[0] || 'unknown', to: dates[dates.length - 1] || 'unknown' };
 }
 
@@ -143,19 +165,19 @@ function getDateRange(logs: SessionRecord[]): { from: string; to: string } {
 
 function readAuditSessions(): SessionRecord[] {
   if (!existsSync(AUDIT_DIR)) return [];
-  const files = readdirSync(AUDIT_DIR).filter(f => f.endsWith('.jsonl'));
+  const files = readdirSync(AUDIT_DIR).filter((f) => f.endsWith('.jsonl'));
   const sessions: SessionRecord[] = [];
   for (const file of files) {
     const entries = readJsonLines(join(AUDIT_DIR, file));
     for (const entry of entries) {
-      const ts = (entry.timestamp as string || '');
+      const ts = (entry.timestamp as string) || '';
       sessions.push({
-        id: entry.id as string || '',
+        id: (entry.id as string) || '',
         timestamp: ts,
         type: (entry.type as 'session.start' | 'session.end') || 'session.start',
-        status: entry.status as string || '',
-        message: entry.message as string || '',
-        component: entry.component as string || '',
+        status: (entry.status as string) || '',
+        message: (entry.message as string) || '',
+        component: (entry.component as string) || '',
         date: ts.slice(0, 10),
       });
     }
@@ -170,16 +192,21 @@ function readCorrections(): CorrectionRecord[] {
   if (!existsSync(CORRECTION_ENGINE_LOG)) return [];
   try {
     const raw = readFileSync(CORRECTION_ENGINE_LOG, 'utf-8');
-    return raw.split(/\r?\n/).filter(Boolean).map(line => {
-      const m = line.match(/\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-      return { timestamp: m?.[1] || '', action: 'log', target: 'engine', error: line };
-    });
-  } catch { return []; }
+    return raw
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => {
+        const m = line.match(/\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+        return { timestamp: m?.[1] || '', action: 'log', target: 'engine', error: line };
+      });
+  } catch {
+    return [];
+  }
 }
 
 function countCheckpoints(): number {
   if (!existsSync(CHECKPOINTS_DIR)) return 0;
-  return readdirSync(CHECKPOINTS_DIR).filter(d => d.startsWith('ckpt-')).length;
+  return readdirSync(CHECKPOINTS_DIR).filter((d) => d.startsWith('ckpt-')).length;
 }
 
 function getMetricsSummary(): Record<string, number> {
@@ -193,17 +220,21 @@ function getMetricsSummary(): Record<string, number> {
   };
 }
 
-function getGitHistory(days: number = 7): { commits: number; authors: string[]; recentMessages: string[] } {
+function getGitHistory(days: number = 7): {
+  commits: number;
+  authors: string[];
+  recentMessages: string[];
+} {
   try {
     const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
-    const log = execSync(
-      `git log --since="${since}" --format="%an|%s"`,
-      { cwd: ROOT, encoding: 'utf-8', timeout: 5000, windowsHide: true }
-    ).trim();
+    const log = runSync('git', ['log', `--since=${since}`, '--format=%an|%s'], {
+      cwd: ROOT,
+      timeout: 5000,
+    }).stdout.trim();
     if (!log) return { commits: 0, authors: [], recentMessages: [] };
     const lines = log.split('\n').filter(Boolean);
-    const authors = [...new Set(lines.map(l => l.split('|')[0]))];
-    const messages = lines.map(l => l.split('|')[1]).filter(Boolean);
+    const authors = [...new Set(lines.map((l) => l.split('|')[0]))];
+    const messages = lines.map((l) => l.split('|')[1]).filter(Boolean);
     return { commits: lines.length, authors, recentMessages: messages };
   } catch {
     return { commits: 0, authors: [], recentMessages: [] };
@@ -222,8 +253,8 @@ function detectPatterns(
   const now = new Date().toISOString();
 
   // 1. Session stability
-  const starts = sessions.filter(s => s.type === 'session.start');
-  const ends = sessions.filter(s => s.type === 'session.end');
+  const starts = sessions.filter((s) => s.type === 'session.start');
+  const ends = sessions.filter((s) => s.type === 'session.end');
   const openSessions = starts.length - ends.length;
   if (openSessions > 2) {
     patterns.push({
@@ -234,7 +265,8 @@ function detectPatterns(
       severity: 'warning',
       frequency: openSessions,
       evidence: [`${starts.length} starts vs ${ends.length} ends`],
-      recommendation: 'Review session-cleanup-start.ts for crash handling; consider forced cleanup threshold',
+      recommendation:
+        'Review session-cleanup-start.ts for crash handling; consider forced cleanup threshold',
     });
   }
 
@@ -332,13 +364,14 @@ function generateInsights(
   const insights: Insight[] = [];
 
   // Insight 1: Session consistency
-  const starts = sessions.filter(s => s.type === 'session.start').length;
+  const starts = sessions.filter((s) => s.type === 'session.start').length;
   if (starts > 0) {
     insights.push({
       category: 'session',
       finding: `Total sessions observed: ${starts}`,
       impact: 'Base de referencia para métricas de continuidad',
-      recommendation: starts > 20 ? 'Alta actividad — evaluar necesidad de consolidation' : 'Actividad normal',
+      recommendation:
+        starts > 20 ? 'Alta actividad — evaluar necesidad de consolidation' : 'Actividad normal',
       confidence: 1.0,
     });
   }
@@ -349,10 +382,12 @@ function generateInsights(
     insights.push({
       category: 'quality',
       finding: `Correction density: ${density.toFixed(2)} per session`,
-      impact: density > 0.5 ? 'Alta tasa de correcciones — posible deuda técnica' : 'Baja tasa — estable',
-      recommendation: density > 0.5
-        ? 'Revisar patrones de error recurrentes; fortalecer auto-correction rules'
-        : 'Mantener tendencia actual',
+      impact:
+        density > 0.5 ? 'Alta tasa de correcciones — posible deuda técnica' : 'Baja tasa — estable',
+      recommendation:
+        density > 0.5
+          ? 'Revisar patrones de error recurrentes; fortalecer auto-correction rules'
+          : 'Mantener tendencia actual',
       confidence: 0.85,
     });
   }
@@ -364,21 +399,20 @@ function generateInsights(
       category: 'resilience',
       finding: `${checkpointCount} checkpoint(s) created`,
       impact: 'Capacidad de rollback disponible',
-      recommendation: checkpointCount < 2
-        ? 'Considerar checkpoints más frecuentes'
-        : 'Cobertura adecuada',
+      recommendation:
+        checkpointCount < 2 ? 'Considerar checkpoints más frecuentes' : 'Cobertura adecuada',
       confidence: 0.9,
     });
   }
 
   // Insight 4: Pattern-driven insights
-  const criticalPatterns = patterns.filter(p => p.severity === 'critical');
+  const criticalPatterns = patterns.filter((p) => p.severity === 'critical');
   if (criticalPatterns.length > 0) {
     insights.push({
       category: 'risk',
       finding: `${criticalPatterns.length} critical pattern(s) detected`,
       impact: 'Riesgo operativo identificado',
-      recommendation: `Priorizar: ${criticalPatterns.map(p => p.title).join('; ')}`,
+      recommendation: `Priorizar: ${criticalPatterns.map((p) => p.title).join('; ')}`,
       confidence: 0.95,
     });
   }
@@ -418,8 +452,10 @@ function generateSuggestions(patterns: Pattern[], _insights: Insight[]): Suggest
   // Suggestion: enable reflection step if not in pipeline
   if (existsSync(PIPELINE_CONFIG)) {
     try {
-      const config = JSON.parse(readFileSync(PIPELINE_CONFIG, 'utf-8')) as { pipeline?: { steps?: Array<{ id: string }> } };
-      const hasReflection = config?.pipeline?.steps?.some(s => s.id === 'self-reflection');
+      const config = JSON.parse(readFileSync(PIPELINE_CONFIG, 'utf-8')) as {
+        pipeline?: { steps?: Array<{ id: string }> };
+      };
+      const hasReflection = config?.pipeline?.steps?.some((s) => s.id === 'self-reflection');
       if (!hasReflection) {
         suggestions.push({
           target: 'config/session-autostart.config.json',
@@ -430,11 +466,15 @@ function generateSuggestions(patterns: Pattern[], _insights: Insight[]): Suggest
           autoApplySafe: true,
         });
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 
   // Suggestion: adjustment based on session frequency
-  const highFreqPattern = patterns.find(p => p.type === 'session_stability' && p.title.includes('High session'));
+  const highFreqPattern = patterns.find(
+    (p) => p.type === 'session_stability' && p.title.includes('High session'),
+  );
   if (highFreqPattern) {
     suggestions.push({
       target: 'config/session-autostart.config.json',
@@ -453,19 +493,26 @@ function generateSuggestions(patterns: Pattern[], _insights: Insight[]): Suggest
 
 function applySafeSuggestions(suggestions: Suggestion[], quiet: boolean): string[] {
   const applied: string[] = [];
-  const safeSuggestions = suggestions.filter(s => s.autoApplySafe);
+  const safeSuggestions = suggestions.filter((s) => s.autoApplySafe);
 
   for (const s of safeSuggestions) {
-    if (s.target === 'config/session-autostart.config.json' && s.change.includes('self-reflection')) {
+    if (
+      s.target === 'config/session-autostart.config.json' &&
+      s.change.includes('self-reflection')
+    ) {
       try {
         const raw = readFileSync(PIPELINE_CONFIG, 'utf-8');
         const config = JSON.parse(raw) as {
-          pipeline?: { steps?: Array<Record<string, unknown>>; onStepFailure?: string; requiredStepFailureAction?: string };
+          pipeline?: {
+            steps?: Array<Record<string, unknown>>;
+            onStepFailure?: string;
+            requiredStepFailureAction?: string;
+          };
         };
 
         // Check if step already exists
         const steps = config.pipeline?.steps || [];
-        const exists = steps.some(st => st.id === 'self-reflection');
+        const exists = steps.some((st) => st.id === 'self-reflection');
         if (!exists) {
           steps.push({
             id: 'self-reflection',
@@ -475,14 +522,34 @@ function applySafeSuggestions(suggestions: Suggestion[], quiet: boolean): string
             args: '--quiet',
             required: false,
             phase: 99,
-            description: 'Self-reflection loop — analyze patterns, generate insights, suggest improvements',
+            description:
+              'Self-reflection loop — analyze patterns, generate insights, suggest improvements',
           });
           writeFileSync(PIPELINE_CONFIG, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+          // M7: verify the written config is still valid JSON + schema before
+          // accepting the mutation. If the write corrupted the file, the guard
+          // reports it so the change is flagged instead of silently breaking
+          // the pipeline on next session.
+          try {
+            assertConfigIntegrity('config/session-autostart.config.json');
+          } catch (guardErr) {
+            log(
+              `M7 guard FAILED after self-mutation: ${
+                guardErr instanceof Error ? guardErr.message : String(guardErr)
+              }`,
+              quiet,
+              'ERR',
+            );
+          }
           applied.push(`Added self-reflection step to ${s.target}`);
           log(`Applied: ${s.change}`, quiet, 'OK');
         }
       } catch (e) {
-        log(`Failed to apply: ${s.change} — ${e instanceof Error ? e.message : String(e)}`, quiet, 'ERR');
+        log(
+          `Failed to apply: ${s.change} — ${e instanceof Error ? e.message : String(e)}`,
+          quiet,
+          'ERR',
+        );
       }
     }
   }
@@ -505,7 +572,10 @@ function computeQualityScore(metrics: Record<string, number>, patterns: Pattern[
 
 function saveReflection(output: ReflectionOutput): void {
   if (!existsSync(REFLECTIONS_DIR)) mkdirSync(REFLECTIONS_DIR, { recursive: true });
-  const filePath = join(REFLECTIONS_DIR, `reflection-${output.timestamp.replace(/[:.]/g, '-').slice(0, 19)}.json`);
+  const filePath = join(
+    REFLECTIONS_DIR,
+    `reflection-${output.timestamp.replace(/[:.]/g, '-').slice(0, 19)}.json`,
+  );
   writeFileSync(filePath, JSON.stringify(output, null, 2), 'utf-8');
 }
 
@@ -513,13 +583,15 @@ function saveReflection(output: ReflectionOutput): void {
 
 function printReport(output: ReflectionOutput, quiet: boolean): void {
   if (quiet) {
-    console.log(JSON.stringify({
-      patterns: output.patterns.length,
-      insights: output.insights.length,
-      suggestions: output.suggestions.length,
-      applied: output.appliedChanges.length,
-      qualityScore: output.qualityScore,
-    }));
+    console.log(
+      JSON.stringify({
+        patterns: output.patterns.length,
+        insights: output.insights.length,
+        suggestions: output.suggestions.length,
+        applied: output.appliedChanges.length,
+        qualityScore: output.qualityScore,
+      }),
+    );
     return;
   }
 
@@ -533,8 +605,12 @@ function printReport(output: ReflectionOutput, quiet: boolean): void {
   };
 
   console.log(`\n${colors.bold}=== SELF-REFLECTION REPORT ===${colors.reset}`);
-  console.log(`${colors.dim}${output.timestamp} | Sessions: ${output.sessionCount} (${output.dateRange.from} → ${output.dateRange.to})${colors.reset}`);
-  console.log(`Quality Score: ${output.qualityScore >= 80 ? '\x1b[32m' : output.qualityScore >= 60 ? '\x1b[33m' : '\x1b[31m'}${output.qualityScore}/100${colors.reset}\n`);
+  console.log(
+    `${colors.dim}${output.timestamp} | Sessions: ${output.sessionCount} (${output.dateRange.from} → ${output.dateRange.to})${colors.reset}`,
+  );
+  console.log(
+    `Quality Score: ${output.qualityScore >= 80 ? '\x1b[32m' : output.qualityScore >= 60 ? '\x1b[33m' : '\x1b[31m'}${output.qualityScore}/100${colors.reset}\n`,
+  );
 
   if (output.patterns.length > 0) {
     console.log(`${colors.bold}📊 Patterns Detected (${output.patterns.length}):${colors.reset}`);
@@ -561,13 +637,17 @@ function printReport(output: ReflectionOutput, quiet: boolean): void {
     for (const s of output.suggestions) {
       console.log(`  ${s.autoApplySafe ? '✅' : '⚠️'} [${s.target}] ${s.change}`);
       console.log(`     ${colors.dim}Reason: ${s.reason}${colors.reset}`);
-      console.log(`     ${colors.dim}Current → Proposed: "${s.current}" → "${s.proposed}"${colors.reset}`);
+      console.log(
+        `     ${colors.dim}Current → Proposed: "${s.current}" → "${s.proposed}"${colors.reset}`,
+      );
     }
     console.log();
   }
 
   if (output.appliedChanges.length > 0) {
-    console.log(`${colors.bold}✅ Applied Changes (${output.appliedChanges.length}):${colors.reset}`);
+    console.log(
+      `${colors.bold}✅ Applied Changes (${output.appliedChanges.length}):${colors.reset}`,
+    );
     for (const a of output.appliedChanges) {
       console.log(`  ✔ ${a}`);
     }
@@ -653,7 +733,7 @@ function main(): void {
   printReport(output, args.quiet);
 
   // 10. Exit with status
-  const hasCritical = topPatterns.some(p => p.severity === 'critical');
+  const hasCritical = topPatterns.some((p) => p.severity === 'critical');
   if (hasCritical) {
     log(`Critical patterns found — consider running watchtower autoheal`, args.quiet, 'WARN');
     process.exit(1);

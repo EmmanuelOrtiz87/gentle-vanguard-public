@@ -11,7 +11,8 @@ setup safe to clone on another machine.
 
 1. Keeps the runner configuration in a tracked example file: `config/github-runner.example.json`.
 2. Expects the real machine-specific file in `config/github-runner.local.json`.
-3. Installs and configures the runner with `scripts/utilities/DEPLOYMENT/install-github-runner.ps1`.
+3. Installs and configures the runner with `src/deployment/install-github-runner.ts`.
+<!-- REF-OBSOLETA: src/deployment/install-github-runner.ts no existe (ruta migrada o eliminada) -->
 4. Leaves public-repo workflows operable even if no self-hosted runner is installed.
 
 ## Security Rule
@@ -28,13 +29,13 @@ on a public repository. Keep those jobs on GitHub-hosted infrastructure.
 
 ### Option 1: Explicit install
 
-```powershell
+```TypeScript
 .\scripts\utilities\DEPLOYMENT\install-github-runner.ps1 -ConfigPath .\config\github-runner.local.json
 ```
 
 ### Option 2: Install during bootstrap
 
-```powershell
+```TypeScript
 .\scripts\gentle-vanguard\bootstrap.ps1 -InstallGitHubRunner -GitHubRunnerConfigPath .\config\github-runner.local.json
 ```
 
@@ -55,9 +56,10 @@ You need one of these:
 
 The public sync bundle includes:
 
-1. `scripts/gentle-vanguard/bootstrap.ps1`
-2. `scripts/gentle-vanguard/bootstrap-machine.ps1`
-3. `scripts/utilities/DEPLOYMENT/install-github-runner.ps1`
+1. `src/bootstrap.ts`
+2. `src/bootstrap-machine.ts`
+3. `src/deployment/install-github-runner.ts`
+<!-- REF-OBSOLETA: src/deployment/install-github-runner.ts no existe (ruta migrada o eliminada) -->
 4. `config/workspace.example.json`
 5. `config/workspace.portable.example.json`
 6. `config/github-runner.example.json`

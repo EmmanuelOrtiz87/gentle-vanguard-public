@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Adaptive Router v1.0.0
+ * Adaptive Router
  * Dynamic routing based on historical performance data
  * Learns optimal paths through continuous feedback
- * 
- * Part of Gentle-Vanguard v5.0 — Convergence Layer
+ *
+ * Part of Gentle-Vanguard  — Convergence Layer
  */
 
 import { EventEmitter } from 'events';
@@ -70,7 +70,7 @@ export class AdaptiveRouter extends EventEmitter {
    */
   public registerRoute(path: string[]): string {
     const routeId = `route_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const route: Route = {
       id: routeId,
       path,
@@ -86,22 +86,25 @@ export class AdaptiveRouter extends EventEmitter {
       successCount: 0,
       failureCount: 0,
     };
-    
+
     this.routes.set(routeId, route);
-    
+
     // Normalize weights
     this.normalizeWeights();
-    
+
     this.emit('routeRegistered', { routeId, path });
-    
+
     return routeId;
   }
 
   /**
    * Route a request to the optimal path
    */
-  public route(input: string, constraints?: { maxLatency?: number; maxCost?: number }): RoutingDecision {
-    const availableRoutes = Array.from(this.routes.values()).filter(route => {
+  public route(
+    input: string,
+    constraints?: { maxLatency?: number; maxCost?: number },
+  ): RoutingDecision {
+    const availableRoutes = Array.from(this.routes.values()).filter((route) => {
       if (constraints?.maxLatency && route.metrics.avgLatency > constraints.maxLatency) {
         return false;
       }
@@ -118,13 +121,16 @@ export class AdaptiveRouter extends EventEmitter {
 
     // Exploration vs Exploitation
     const shouldExplore = Math.random() < this.config.explorationRate;
-    
+
     let selectedRoute: Route;
-    
-    if (shouldExplore && availableRoutes.some(r => r.metrics.throughput < this.config.minSamples)) {
+
+    if (
+      shouldExplore &&
+      availableRoutes.some((r) => r.metrics.throughput < this.config.minSamples)
+    ) {
       // Explore: pick under-sampled route
       selectedRoute = availableRoutes
-        .filter(r => r.metrics.throughput < this.config.minSamples)
+        .filter((r) => r.metrics.throughput < this.config.minSamples)
         .sort((a, b) => a.metrics.throughput - b.metrics.throughput)[0];
     } else {
       // Exploit: pick best weighted route
@@ -140,9 +146,9 @@ export class AdaptiveRouter extends EventEmitter {
     };
 
     selectedRoute.lastUsed = Date.now();
-    
+
     this.emit('routed', { input, decision });
-    
+
     return decision;
   }
 
@@ -151,14 +157,14 @@ export class AdaptiveRouter extends EventEmitter {
    */
   public updateOutcome(
     routeId: string,
-    outcome: { latency: number; cost: number; success: boolean }
+    outcome: { latency: number; cost: number; success: boolean },
   ): void {
     const route = this.routes.get(routeId);
     if (!route) return;
 
     // Update metrics using exponential moving average
     const alpha = this.config.learningRate;
-    
+
     if (route.metrics.throughput === 0) {
       // First sample
       route.metrics.avgLatency = outcome.latency;
@@ -167,7 +173,8 @@ export class AdaptiveRouter extends EventEmitter {
     } else {
       route.metrics.avgLatency = (1 - alpha) * route.metrics.avgLatency + alpha * outcome.latency;
       route.metrics.avgCost = (1 - alpha) * route.metrics.avgCost + alpha * outcome.cost;
-      route.metrics.successRate = (1 - alpha) * route.metrics.successRate + alpha * (outcome.success ? 1 : 0);
+      route.metrics.successRate =
+        (1 - alpha) * route.metrics.successRate + alpha * (outcome.success ? 1 : 0);
     }
 
     route.metrics.throughput++;
@@ -186,7 +193,13 @@ export class AdaptiveRouter extends EventEmitter {
     this.decisionHistory.push({
       timestamp: Date.now(),
       input: '',
-      decision: { routeId, confidence: 0, reason: 'feedback', estimatedLatency: 0, estimatedCost: 0 },
+      decision: {
+        routeId,
+        confidence: 0,
+        reason: 'feedback',
+        estimatedLatency: 0,
+        estimatedCost: 0,
+      },
       actualOutcome: outcome,
     });
 
@@ -206,12 +219,12 @@ export class AdaptiveRouter extends EventEmitter {
     const latencyScore = Math.max(0, 1 - route.metrics.avgLatency / 10000); // Normalize to 0-1
     const costScore = Math.max(0, 1 - route.metrics.avgCost / 100); // Normalize to 0-1
     const successScore = route.metrics.successRate;
-    
+
     const performanceScore = (latencyScore + costScore + successScore) / 3;
-    
+
     // Update weight
-    route.weight = (1 - this.config.learningRate) * route.weight + 
-                   this.config.learningRate * performanceScore;
+    route.weight =
+      (1 - this.config.learningRate) * route.weight + this.config.learningRate * performanceScore;
 
     // Normalize all weights
     this.normalizeWeights();
@@ -223,9 +236,9 @@ export class AdaptiveRouter extends EventEmitter {
   private normalizeWeights(): void {
     const routes = Array.from(this.routes.values());
     const totalWeight = routes.reduce((sum, r) => sum + r.weight, 0);
-    
+
     if (totalWeight > 0) {
-      routes.forEach(route => {
+      routes.forEach((route) => {
         route.weight = route.weight / totalWeight;
       });
     }
@@ -246,9 +259,9 @@ export class AdaptiveRouter extends EventEmitter {
    */
   public getOptimalRoute(pattern: string): Route | null {
     const matchingRoutes = Array.from(this.routes.values())
-      .filter(r => r.path.some(p => p.includes(pattern)))
+      .filter((r) => r.path.some((p) => p.includes(pattern)))
       .sort((a, b) => b.weight - a.weight);
-    
+
     return matchingRoutes[0] || null;
   }
 
@@ -257,7 +270,7 @@ export class AdaptiveRouter extends EventEmitter {
    */
   public getStats(): object {
     const routes = Array.from(this.routes.values());
-    
+
     return {
       totalRoutes: routes.length,
       totalDecisions: this.decisionHistory.length,
@@ -267,7 +280,7 @@ export class AdaptiveRouter extends EventEmitter {
       topRoutes: routes
         .sort((a, b) => b.weight - a.weight)
         .slice(0, 5)
-        .map(r => ({
+        .map((r) => ({
           id: r.id,
           path: r.path.join(' → '),
           weight: r.weight.toFixed(3),
@@ -301,14 +314,14 @@ export class AdaptiveRouter extends EventEmitter {
    */
   public applyDecay(): void {
     const now = Date.now();
-    
-    this.routes.forEach(route => {
+
+    this.routes.forEach((route) => {
       const daysSinceUse = (now - route.lastUsed) / (1000 * 60 * 60 * 24);
       if (daysSinceUse > 7) {
         route.weight *= Math.pow(this.config.decayFactor, daysSinceUse / 7);
       }
     });
-    
+
     this.normalizeWeights();
   }
 }
@@ -318,40 +331,42 @@ export const adaptiveRouter = new AdaptiveRouter();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Adaptive Router v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.0 — Convergence Layer\n');
-  
+  console.log('Adaptive Router ');
+  console.log('Part of Gentle-Vanguard  — Convergence Layer\n');
+
   const router = new AdaptiveRouter({
     learningRate: 0.2,
     explorationRate: 0.3,
   });
-  
+
   router.on('routeRegistered', (event) => {
     console.log(`[${new Date().toISOString()}] Route registered: ${event.routeId}`);
   });
-  
+
   router.on('routed', (event) => {
-    console.log(`[${new Date().toISOString()}] Routed to: ${event.decision.routeId} (${event.decision.reason})`);
+    console.log(
+      `[${new Date().toISOString()}] Routed to: ${event.decision.routeId} (${event.decision.reason})`,
+    );
   });
-  
+
   router.on('outcomeUpdated', (event) => {
     console.log(`[${new Date().toISOString()}] Outcome updated for ${event.routeId}`);
     console.log(`  Success: ${event.outcome.success}, Latency: ${event.outcome.latency}ms`);
   });
-  
+
   // Register sample routes
   console.log('Registering routes...\n');
   const route1 = router.registerRoute(['fast-model', 'cache', 'response']);
   const route2 = router.registerRoute(['balanced-model', 'queue', 'response']);
   const route3 = router.registerRoute(['accurate-model', 'process', 'response']);
-  
+
   // Simulate routing decisions
   console.log('Simulating routing decisions...\n');
-  
+
   let count = 0;
   const interval = setInterval(() => {
     const decision = router.route(`request_${count}`);
-    
+
     // Simulate outcome
     const success = Math.random() > 0.1;
     router.updateOutcome(decision.routeId, {
@@ -359,11 +374,11 @@ if (require.main === module) {
       cost: 0.01 + Math.random() * 0.05,
       success,
     });
-    
+
     count++;
     if (count >= 30) {
       clearInterval(interval);
-      
+
       setTimeout(() => {
         console.log('\n\n--- Routing Statistics ---');
         console.log(JSON.stringify(router.getStats(), null, 2));

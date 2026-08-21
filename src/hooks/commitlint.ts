@@ -1,11 +1,26 @@
 #!/usr/bin/env node
 
+/* eslint-disable security/detect-unsafe-regex */
+/* This regex validates conventional commit format - safe static pattern */
+
 import { existsSync, readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
 
-const CONVENTIONAL_COMMIT_PATTERN = /^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .+/;
+const CONVENTIONAL_COMMIT_PATTERN =
+  /^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .+/;
 
-const VALID_TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'perf', 'ci', 'build'];
+const VALID_TYPES = [
+  'feat',
+  'fix',
+  'docs',
+  'style',
+  'refactor',
+  'test',
+  'chore',
+  'perf',
+  'ci',
+  'build',
+];
 
 function main(): number {
   const commitMsgFile = process.argv[2];

@@ -1,18 +1,22 @@
 # Prerequisites - Gentle-Vanguard
 
-**Date**: 2026-05-03  
-**Description**: Complete list of required and optional tools for Gentle-Vanguard.
+**Date**: 2026-08-20  
+**Description**: Required tools and deterministic post-install verification for Gentle-Vanguard.
 
 ---
 
-## Automatic Installation
+## Important distinction
 
-```powershell
-# Option 1: Install everything automatically
-.\scripts\utilities\install-prerequisites.ps1
+The current `.exe` is a launcher/bootstrap artifact, not yet a fully self-contained offline
+installer. It does not silently install external runtimes or embed credentials. Use the installer
+doctor after setup and review every external download.
 
-# Option 2: Check status only
-.\scripts\utilities\install-prerequisites.ps1 -CheckOnly
+## Verification
+
+```bash
+npm run install:doctor -- --strict
+npm run db:init
+npm run watchtower:health
 ```
 
 ---
@@ -21,19 +25,18 @@
 
 | Tool        | Min Version | Purpose            | Installation                       |
 | ----------- | ----------- | ------------------ | ---------------------------------- |
-| **Node.js** | 18+         | JavaScript runtime | [nodejs.org](https://nodejs.org)   |
-| **npm**     | 9+          | Package manager    | Included with Node.js              |
+| **Node.js** | 20+         | JavaScript runtime | [nodejs.org](https://nodejs.org)   |
+| **npm**     | Included    | Package manager    | Included with Node.js              |
+| **pnpm**    | 11+         | Locked dependencies | `corepack enable` / `npm i -g pnpm` |
 | **Git**     | 2.30+       | Version control    | [git-scm.com](https://git-scm.com) |
 
 ---
 
-## Recommended (Automatic Installation)
+## Recommended (project-local tooling)
 
-```powershell
-# These install automatically with the command above
-npm install -g lefthook
-npm install -g prettier
-npm install -g @commitlint/cli @commitlint/config-conventional
+```TypeScript
+# These are installed from package.json by pnpm install
+pnpm install --frozen-lockfile
 ```
 
 | Tool           | Purpose              | Installation                     |
@@ -54,7 +57,7 @@ npm install -g @commitlint/cli @commitlint/config-conventional
 
 ### Python (for Python scripts)
 
-```powershell
+```TypeScript
 # Install Python
 choco install python
 
@@ -87,24 +90,7 @@ pip install safety bandit
 
 - [ ] trufflehog
 - [ ] Python (for Python scripts)
-- [ ] PowerShell Core (pwsh)
-
----
-
-## Verification
-
-```powershell
-# Verify all tools
-.\scripts\utilities\install-prerequisites.ps1 -CheckOnly
-
-# Verify individually
-node --version
-npm --version
-git --version
-lefthook --version
-prettier --version
-trufflehog --version
-```
+- [ ] TypeScript Core (pwsh)
 
 ---
 
@@ -112,7 +98,7 @@ trufflehog --version
 
 1. **trufflehog** is not available via npm - install via Chocolatey or Go
 2. Some tools require administrator permissions
-3. On Windows, run PowerShell as administrator if you encounter issues
+3. On Windows, run TypeScript as administrator if you encounter issues
 
 ---
 
@@ -122,7 +108,7 @@ trufflehog --version
 
 Add to PATH:
 
-```powershell
+```TypeScript
 # For npm global
 $env:PATH += ";$env:APPDATA\npm"
 ```
@@ -131,7 +117,7 @@ $env:PATH += ";$env:APPDATA\npm"
 
 Install Chocolatey:
 
-```powershell
+```TypeScript
 # Run as administrator
 Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))

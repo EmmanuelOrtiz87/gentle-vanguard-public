@@ -19,7 +19,10 @@ function ok(label: string): void {
 function fixDependencySecurityChecker(): void {
   step(1, 'dependency-security-checker.ts');
   const fp = path.join(ROOT, 'src', 'dependency-security-checker.ts');
-  if (!fs.existsSync(fp)) { log('   ⚠️  File not found, skipping'); return; }
+  if (!fs.existsSync(fp)) {
+    log('   ⚠️  File not found, skipping');
+    return;
+  }
   let content = fs.readFileSync(fp, 'utf-8');
   content = content.replace(/import \{ readFileSync \} from 'fs';\n?/g, '');
   content = content.replace(/import \{ join \} from 'path';\n?/g, '');
@@ -30,9 +33,15 @@ function fixDependencySecurityChecker(): void {
 function fixSecurityInitializer(): void {
   step(2, 'security-initializer.ts');
   const fp = path.join(ROOT, 'src', 'security-initializer.ts');
-  if (!fs.existsSync(fp)) { log('   ⚠️  File not found, skipping'); return; }
+  if (!fs.existsSync(fp)) {
+    log('   ⚠️  File not found, skipping');
+    return;
+  }
   let content = fs.readFileSync(fp, 'utf-8');
-  content = content.replace(/import \{ auditLogger \} from '\.\.\/src\/audit-logger-enhanced';\n?/g, '');
+  content = content.replace(
+    /import \{ auditLogger \} from '\.\.\/src\/audit-logger-enhanced';\n?/g,
+    '',
+  );
   fs.writeFileSync(fp, content, 'utf-8');
   ok('security-initializer.ts');
 }
@@ -40,15 +49,22 @@ function fixSecurityInitializer(): void {
 function fixIntegrationValidator(): void {
   step(3, 'integration-validator.ts');
   const fp = path.join(ROOT, 'src', 'integration-validator.ts');
-  if (!fs.existsSync(fp)) { log('   ⚠️  File not found, skipping'); return; }
+  if (!fs.existsSync(fp)) {
+    log('   ⚠️  File not found, skipping');
+    return;
+  }
   const lines = fs.readFileSync(fp, 'utf-8').split('\n');
   const newLines: string[] = [];
   for (const line of lines) {
     if (/result\.suggestions/.test(line)) {
       if (/Consider adding security/.test(line)) {
-        newLines.push("          result.suggestions.push('Consider adding security considerations to SKILL.md');");
+        newLines.push(
+          "          result.suggestions.push('Consider adding security considerations to SKILL.md');",
+        );
       } else if (/Consider documenting/.test(line)) {
-        newLines.push("          result.suggestions.push('Consider documenting integration points in SKILL.md');");
+        newLines.push(
+          "          result.suggestions.push('Consider documenting integration points in SKILL.md');",
+        );
       } else {
         newLines.push(line);
       }

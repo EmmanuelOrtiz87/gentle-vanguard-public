@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "description": "Review Lenses — 4 specific review lenses (security, maintainability, reliability, resilience) with risk-signal selection",
-  "enabled": true,
-  "outputDir": ".session/reviews",
-  "reviewableExts": [".ts", ".tsx", ".js", ".jsx", ".ps1", ".psm1", ".py", ".go", ".rs", ".json", ".yaml", ".yml", ".md"],
-  "maxFileSizeBytes": 1048576,
-  "maxFindingsPerFile": 20
-}

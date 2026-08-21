@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 interface CodeIssue {
@@ -62,7 +62,14 @@ function addIssue(opts: {
   Fix?: string;
 }): void {
   const severity = opts.Severity || 'MEDIUM';
-  const color = severity === 'CRITICAL' ? '\x1b[31m' : severity === 'HIGH' ? '\x1b[35m' : severity === 'MEDIUM' ? '\x1b[33m' : '\x1b[90m';
+  const color =
+    severity === 'CRITICAL'
+      ? '\x1b[31m'
+      : severity === 'HIGH'
+        ? '\x1b[35m'
+        : severity === 'MEDIUM'
+          ? '\x1b[33m'
+          : '\x1b[90m';
 
   const issue: CodeIssue = {
     Id: issues.length + 1,
@@ -81,10 +88,18 @@ function addIssue(opts: {
   issues.push(issue);
 
   switch (severity) {
-    case 'CRITICAL': criticalCount++; break;
-    case 'HIGH': highCount++; break;
-    case 'MEDIUM': mediumCount++; break;
-    case 'LOW': lowCount++; break;
+    case 'CRITICAL':
+      criticalCount++;
+      break;
+    case 'HIGH':
+      highCount++;
+      break;
+    case 'MEDIUM':
+      mediumCount++;
+      break;
+    case 'LOW':
+      lowCount++;
+      break;
   }
 
   const location = issue.Line > 0 ? `${issue.File}:${issue.Line}` : issue.File;
@@ -97,15 +112,21 @@ function findFiles(root: string, extensions: string[], excludePatterns: RegExp[]
     let entries: string[];
     try {
       entries = readdirSync(dir);
-    } catch { return; }
+    } catch {
+      return;
+    }
     for (const e of entries) {
       const full = join(dir, e);
       let stat;
-      try { stat = statSync(full); } catch { continue; }
+      try {
+        stat = statSync(full);
+      } catch {
+        continue;
+      }
       if (stat.isDirectory()) {
-        if (excludePatterns.some(r => r.test(full))) continue;
+        if (excludePatterns.some((r) => r.test(full))) continue;
         walk(full);
-      } else if (extensions.some(ext => e.endsWith(ext))) {
+      } else if (extensions.some((ext) => e.endsWith(ext))) {
         results.push(full);
       }
     }
@@ -115,27 +136,88 @@ function findFiles(root: string, extensions: string[], excludePatterns: RegExp[]
 }
 
 function readFileContent(filePath: string): string | null {
-  try { return readFileSync(filePath, 'utf-8'); } catch { return null; }
+  try {
+    return readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
 }
 
 function invokeSecurityReview(path: string): void {
   writeReviewHeader('Security Review (security-expert-skill)');
 
-  const securityScript = join(skillDir, 'skills', 'security-expert-skill', 'security-scan.ps1');
+  // Use the native TS security scanner (migrated from security-scan.ps1).
+  // The PS1 no longer exists; the TS replacement is the source of truth.
+  const securityScript = join(skillDir, 'security-scan.ts');
   if (existsSync(securityScript)) {
-    spawnSync('pwsh', ['-NoProfile', '-File', securityScript, '-Path', path], { windowsHide: true });
+    runSync('npx', ['tsx', securityScript, '--path', path], { stdio: 'pipe' });
   }
 
   writeReviewHeader('Scanning for code quality issues...');
 
   const qualityPatterns: QualityPattern[] = [
-    { Name: 'Console.log in production', Pattern: 'console\\.(log|debug|info)\\(', Severity: 'LOW', Category: 'Quality', Description: 'Console logging found in code', Impact: 'May expose sensitive data in production logs', Recommendation: 'Use structured logging library', Fix: 'import logger from \'./logger\';\nlogger.info(\'message\', { data });' },
-    { Name: 'TODO without tracking', Pattern: '(?i)(TODO|FIXME|HACK):', Severity: 'LOW', Category: 'Quality', Description: 'TODO comment found', Impact: 'May indicate incomplete implementation', Recommendation: 'Create issue/ticket for tracking' },
-    { Name: 'Empty catch block', Pattern: 'catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}', Severity: 'MEDIUM', Category: 'Quality', Description: 'Empty catch block suppresses errors', Impact: 'Errors may go unnoticed', Recommendation: 'Log or handle the error appropriately', Fix: 'catch (err) {\n  logger.error(\'Error occurred\', { error: err });\n}' },
-    { Name: 'Hardcoded array size', Pattern: '\\[[0-9]+\\]', Severity: 'LOW', Category: 'Quality', Description: 'Magic number used for array access', Recommendation: 'Use named constant' },
-    { Name: 'Synchronous file in async', Pattern: 'async\\s+function.*\\{[^}]*readFileSync', Severity: 'HIGH', Category: 'Quality', Description: 'Synchronous file operation in async function', Impact: 'Blocks event loop', Recommendation: 'Use async file operations' },
-    { Name: 'Nested callbacks', Pattern: '\\.then\\([^)]*\\{[^}]*\\.\\(', Severity: 'MEDIUM', Category: 'Quality', Description: 'Deeply nested promises detected', Recommendation: 'Use async/await for better readability' },
-    { Name: 'Long function', Pattern: 'function\\s+\\w+[^{]*\\{[^}]{500,}', Severity: 'MEDIUM', Category: 'Quality', Description: 'Function exceeds recommended length', Recommendation: 'Break into smaller functions' },
+    {
+      Name: 'Console.log in production',
+      Pattern: 'console\\.(log|debug|info)\\(',
+      Severity: 'LOW',
+      Category: 'Quality',
+      Description: 'Console logging found in code',
+      Impact: 'May expose sensitive data in production logs',
+      Recommendation: 'Use structured logging library',
+      Fix: "import logger from './logger';\nlogger.info('message', { data });",
+    },
+    {
+      Name: 'TODO without tracking',
+      Pattern: '(?i)(TODO|FIXME|HACK):',
+      Severity: 'LOW',
+      Category: 'Quality',
+      Description: 'TODO comment found',
+      Impact: 'May indicate incomplete implementation',
+      Recommendation: 'Create issue/ticket for tracking',
+    },
+    {
+      Name: 'Empty catch block',
+      Pattern: 'catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}',
+      Severity: 'MEDIUM',
+      Category: 'Quality',
+      Description: 'Empty catch block suppresses errors',
+      Impact: 'Errors may go unnoticed',
+      Recommendation: 'Log or handle the error appropriately',
+      Fix: "catch (err) {\n  logger.error('Error occurred', { error: err });\n}",
+    },
+    {
+      Name: 'Hardcoded array size',
+      Pattern: '\\[[0-9]+\\]',
+      Severity: 'LOW',
+      Category: 'Quality',
+      Description: 'Magic number used for array access',
+      Recommendation: 'Use named constant',
+    },
+    {
+      Name: 'Synchronous file in async',
+      Pattern: 'async\\s+function.*\\{[^}]*readFileSync',
+      Severity: 'HIGH',
+      Category: 'Quality',
+      Description: 'Synchronous file operation in async function',
+      Impact: 'Blocks event loop',
+      Recommendation: 'Use async file operations',
+    },
+    {
+      Name: 'Nested callbacks',
+      Pattern: '\\.then\\([^)]*\\{[^}]*\\.\\(',
+      Severity: 'MEDIUM',
+      Category: 'Quality',
+      Description: 'Deeply nested promises detected',
+      Recommendation: 'Use async/await for better readability',
+    },
+    {
+      Name: 'Long function',
+      Pattern: 'function\\s+\\w+[^{]*\\{[^}]{500,}',
+      Severity: 'MEDIUM',
+      Category: 'Quality',
+      Description: 'Function exceeds recommended length',
+      Recommendation: 'Break into smaller functions',
+    },
   ];
 
   const codeExtensions = ['.ps1', '.js', '.ts', '.tsx', '.jsx', '.py', '.go', '.cs', '.java'];
@@ -169,8 +251,22 @@ function invokeQualityReview(path: string): void {
   writeReviewHeader('Quality Review');
 
   const complexityPatterns: QualityPattern[] = [
-    { Name: 'Deeply nested code', Pattern: '(if|for|while)\\s*\\([^)]*\\)\\s*\\{[^}]{50,}\\1\\s*\\(', Severity: 'MEDIUM', Category: 'Quality', Description: 'Deeply nested code structure detected', Recommendation: 'Refactor to improve readability' },
-    { Name: 'Long line detected', Pattern: '^.{150,}$', Severity: 'LOW', Category: 'Quality', Description: 'Line exceeds 150 characters', Recommendation: 'Split long lines for readability' },
+    {
+      Name: 'Deeply nested code',
+      Pattern: '(if|for|while)\\s*\\([^)]*\\)\\s*\\{[^}]{50,}\\1\\s*\\(',
+      Severity: 'MEDIUM',
+      Category: 'Quality',
+      Description: 'Deeply nested code structure detected',
+      Recommendation: 'Refactor to improve readability',
+    },
+    {
+      Name: 'Long line detected',
+      Pattern: '^.{150,}$',
+      Severity: 'LOW',
+      Category: 'Quality',
+      Description: 'Line exceeds 150 characters',
+      Recommendation: 'Split long lines for readability',
+    },
   ];
 
   const codeExtensions = ['.ps1', '.js', '.ts', '.tsx', '.jsx', '.py', '.go', '.cs', '.java'];
@@ -218,7 +314,7 @@ function invokeArchitectureReview(path: string): void {
 
   const entryExtensions = ['.ts', '.tsx', '.js', '.jsx'];
   const excludePatterns = [/node_modules/, /\.git/, /dist/, /build/];
-  const entryFiles = findFiles(path, entryExtensions, excludePatterns).filter(f => {
+  const entryFiles = findFiles(path, entryExtensions, excludePatterns).filter((f) => {
     const base = basename(f);
     return /^(index|main|app)\..*/.test(base);
   });
@@ -235,8 +331,12 @@ function invokeArchitectureReview(path: string): void {
   }
 
   const largeExtensions = ['.ts', '.tsx', '.js', '.jsx'];
-  const bigFiles = findFiles(path, largeExtensions, excludePatterns).filter(f => {
-    try { return statSync(f).size > 100 * 1024; } catch { return false; }
+  const bigFiles = findFiles(path, largeExtensions, excludePatterns).filter((f) => {
+    try {
+      return statSync(f).size > 100 * 1024;
+    } catch {
+      return false;
+    }
   });
 
   for (const bigFile of bigFiles) {
@@ -255,13 +355,20 @@ function invokeArchitectureReview(path: string): void {
 function invokeTestingReview(path: string): void {
   writeReviewHeader('Testing Review (testing-skill)');
 
-  const testPatterns = ['*.spec.ts', '*.test.ts', '*_test.go', '*_test.py', '*.spec.js', '*.test.js'];
+  const testPatterns = [
+    '*.spec.ts',
+    '*.test.ts',
+    '*_test.go',
+    '*_test.py',
+    '*.spec.js',
+    '*.test.js',
+  ];
 
   let hasTests = false;
   for (const pattern of testPatterns) {
     const regex = new RegExp('^' + pattern.replace(/\*/g, '.*').replace(/\./g, '\\.') + '$');
     const allFiles = findAllFiles(path);
-    if (allFiles.some(f => regex.test(basename(f)))) {
+    if (allFiles.some((f) => regex.test(basename(f)))) {
       hasTests = true;
       break;
     }
@@ -281,7 +388,9 @@ function invokeTestingReview(path: string): void {
 
   const srcExtensions = ['.ts', '.tsx', '.js', '.jsx'];
   const excludePatterns = [/node_modules/, /\.git/, /dist/, /build/, /tests?/, /__tests?__/];
-  const srcFiles = findFiles(path, srcExtensions, excludePatterns).filter(f => !/\.(spec|test)\.[^.]+$/.test(f));
+  const srcFiles = findFiles(path, srcExtensions, excludePatterns).filter(
+    (f) => !/\.(spec|test)\.[^.]+$/.test(f),
+  );
 
   const testExtensions = ['.spec.ts', '.test.ts', '.spec.js', '.test.js'];
   const testFiles = findFiles(path, testExtensions, [/node_modules/, /\.git/]);
@@ -306,11 +415,19 @@ function findAllFiles(dir: string): string[] {
   const result: string[] = [];
   function walk(d: string): void {
     let entries: string[];
-    try { entries = readdirSync(d); } catch { return; }
+    try {
+      entries = readdirSync(d);
+    } catch {
+      return;
+    }
     for (const e of entries) {
       const full = join(d, e);
       let s;
-      try { s = statSync(full); } catch { continue; }
+      try {
+        s = statSync(full);
+      } catch {
+        continue;
+      }
       if (s.isDirectory()) {
         if (/node_modules|\.git/.test(full)) continue;
         walk(full);
@@ -368,15 +485,17 @@ function invokeAPIReview(path: string): void {
 
   const apiExtensions = ['.ts', '.js'];
   const excludePatterns = [/node_modules/, /\.git/];
-  const apiFiles = findFiles(path, apiExtensions, excludePatterns).filter(f =>
-    /(route|controller|handler|api|endpoint)/i.test(basename(f))
+  const apiFiles = findFiles(path, apiExtensions, excludePatterns).filter((f) =>
+    /(route|controller|handler|api|endpoint)/i.test(basename(f)),
   );
 
   for (const apiFile of apiFiles) {
     const content = readFileContent(apiFile);
     if (!content) continue;
 
-    const hasRoute = /(app\.(get|post|put|delete|patch)|router\.(get|post|put|delete|patch))/i.test(content);
+    const hasRoute = /(app\.(get|post|put|delete|patch)|router\.(get|post|put|delete|patch))/i.test(
+      content,
+    );
     if (hasRoute) {
       if (!/(error|throw|reject)/i.test(content) && /(async\s+function|await)/i.test(content)) {
         addIssue({
@@ -389,7 +508,10 @@ function invokeAPIReview(path: string): void {
         });
       }
 
-      if (/(req\.(params|query|body))/i.test(content) && !/(validate|sanitize|parse)/i.test(content)) {
+      if (
+        /(req\.(params|query|body))/i.test(content) &&
+        !/(validate|sanitize|parse)/i.test(content)
+      ) {
         addIssue({
           File: apiFile,
           Title: 'Missing input validation in API endpoint',
@@ -449,7 +571,9 @@ function invokeGitWorkflowReview(path: string): void {
           Recommendation: 'Use commitizen or similar for standardized commit messages',
         });
       }
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }
 }
 
@@ -467,7 +591,10 @@ function getReportHeader(_title: string, scope: string, date: Date): string {
   }
 
   const categoryRows = Object.entries(categoryCounts)
-    .map(([cat, counts]) => `| ${cat} | ${counts.Total} | ${counts.CRITICAL} | ${counts.HIGH} | ${counts.MEDIUM} | ${counts.LOW} |`)
+    .map(
+      ([cat, counts]) =>
+        `| ${cat} | ${counts.Total} | ${counts.CRITICAL} | ${counts.HIGH} | ${counts.MEDIUM} | ${counts.LOW} |`,
+    )
     .join('\n');
 
   return `# Code Review Report
@@ -506,7 +633,7 @@ function getReportBody(): string {
   };
 
   for (const sev of severityOrder) {
-    const sevIssues = issues.filter(i => i.Severity === sev);
+    const sevIssues = issues.filter((i) => i.Severity === sev);
     if (sevIssues.length === 0) continue;
 
     body += `\n## ${sectionNames[sev]}\n\n`;
@@ -530,10 +657,21 @@ function getReportBody(): string {
 }
 
 function getReportFooter(path: string): string {
-  const actionItems = issues.map(i => `- [ ] [${i.Severity}] ${i.Title} - ${i.File}`).join('\n');
-  const criticalItems = issues.filter(i => i.Severity === 'CRITICAL').map(i => `1. ${i.Title}`).join('\n');
-  const highItems = issues.filter(i => i.Severity === 'HIGH').slice(0, 5).map(i => `1. ${i.Title}`).join('\n');
-  const mediumItems = issues.filter(i => i.Severity === 'MEDIUM').slice(0, 3).map(i => `1. ${i.Title}`).join('\n');
+  const actionItems = issues.map((i) => `- [ ] [${i.Severity}] ${i.Title} - ${i.File}`).join('\n');
+  const criticalItems = issues
+    .filter((i) => i.Severity === 'CRITICAL')
+    .map((i) => `1. ${i.Title}`)
+    .join('\n');
+  const highItems = issues
+    .filter((i) => i.Severity === 'HIGH')
+    .slice(0, 5)
+    .map((i) => `1. ${i.Title}`)
+    .join('\n');
+  const mediumItems = issues
+    .filter((i) => i.Severity === 'MEDIUM')
+    .slice(0, 3)
+    .map((i) => `1. ${i.Title}`)
+    .join('\n');
 
   const codeExtensions = ['.ps1', '.js', '.ts', '.py', '.go', '.cs'];
   const excludePatterns = [/node_modules/, /\.git/, /dist/];
@@ -624,13 +762,18 @@ function main(): void {
     invokeGitWorkflowReview(path);
     writeReviewProgress(100, 'Complete');
   } else if (scope === 'security') invokeSecurityReview(path);
-  else if (scope === 'quality') { invokeSecurityReview(path); invokeQualityReview(path); }
-  else if (scope === 'architecture') invokeArchitectureReview(path);
+  else if (scope === 'quality') {
+    invokeSecurityReview(path);
+    invokeQualityReview(path);
+  } else if (scope === 'architecture') invokeArchitectureReview(path);
   else if (scope === 'testing') invokeTestingReview(path);
   else if (scope === 'docs') invokeDocumentationReview(path);
   else if (scope === 'api') invokeAPIReview(path);
   else if (scope === 'git') invokeGitWorkflowReview(path);
-  else if (scope === 'quick') { invokeSecurityReview(path); invokeQualityReview(path); }
+  else if (scope === 'quick') {
+    invokeSecurityReview(path);
+    invokeQualityReview(path);
+  }
 
   console.log('');
   writeReviewHeader('Review Complete');
@@ -662,7 +805,9 @@ function main(): void {
       const csvFile = join(reportDir, `${dateStr}-issues.csv`);
       const csvLines = ['Id,Severity,Category,Title,File,Line,Status'];
       for (const iss of issues) {
-        csvLines.push(`${iss.Id},${iss.Severity},${iss.Category},"${iss.Title}",${iss.File},${iss.Line},${iss.Status}`);
+        csvLines.push(
+          `${iss.Id},${iss.Severity},${iss.Category},"${iss.Title}",${iss.File},${iss.Line},${iss.Status}`,
+        );
       }
       writeFileSync(csvFile, csvLines.join('\n'), 'utf-8');
       console.log(`  Issues exported to: ${csvFile}`);
@@ -679,7 +824,9 @@ function main(): void {
   }
 
   if (criticalCount > 0) {
-    console.log('\n\x1b[31m[ACTION REQUIRED] Critical issues found. Review report and fix before proceeding.\x1b[0m');
+    console.log(
+      '\n\x1b[31m[ACTION REQUIRED] Critical issues found. Review report and fix before proceeding.\x1b[0m',
+    );
     process.exit(1);
   }
 

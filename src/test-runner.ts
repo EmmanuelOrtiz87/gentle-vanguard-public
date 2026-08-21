@@ -12,7 +12,7 @@
  * Usage: npx tsx src/test-runner.ts [--all] [--verbose]
  */
 
-import { spawnSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { existsSync } from 'fs';
 
 interface Suite {
@@ -20,7 +20,7 @@ interface Suite {
   cmd: string;
   args: string[];
   required: boolean; // false = optional deps, skip gracefully
-  timeout?: number;  // custom timeout ms (default 120_000)
+  timeout?: number; // custom timeout ms (default 120_000)
 }
 
 const SUITES: Suite[] = [
@@ -167,6 +167,12 @@ const OPTIONAL_SUITES: Suite[] = [
     args: ['tsx', '--test', 'tests/integration/cloud-connectors/*.test.ts'],
     required: false,
   },
+  {
+    name: 'Skills Tests',
+    cmd: 'npx',
+    args: ['tsx', '--test', 'tests/skills/*.test.ts'],
+    required: false,
+  },
 ];
 
 function parseArgs(): { all: boolean; verbose: boolean } {
@@ -180,11 +186,9 @@ function parseArgs(): { all: boolean; verbose: boolean } {
 function runSuite(suite: Suite, verbose: boolean): { passed: boolean; output: string } {
   const label = `[${suite.name}]`;
   try {
-    const result = spawnSync(suite.cmd, suite.args, {
-      encoding: 'utf8',
+    const result = runSyncShell(`${suite.cmd} ${suite.args.join(' ')}`, {
       timeout: suite.timeout ?? 120_000,
       stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true,
     });
     const output = result.stdout + result.stderr;
     const passed = result.status === 0;
@@ -209,16 +213,16 @@ function runSuite(suite: Suite, verbose: boolean): { passed: boolean; output: st
 
 function main(): void {
   const args = parseArgs();
-  const suitesToRun = args.all
-    ? [...SUITES, ...OPTIONAL_SUITES]
-    : SUITES;
+  const suitesToRun = args.all ? [...SUITES, ...OPTIONAL_SUITES] : SUITES;
 
   let passed = 0;
   let failed = 0;
   let skipped = 0;
 
   process.stdout.write(`┌────────────────────────────────────────────────┐\n`);
-  process.stdout.write(`│  TEST RUNNER  —  ${String(suitesToRun.length)} suite(s)                     │\n`);
+  process.stdout.write(
+    `│  TEST RUNNER  —  ${String(suitesToRun.length)} suite(s)                     │\n`,
+  );
   process.stdout.write(`└────────────────────────────────────────────────┘\n\n`);
 
   for (const suite of suitesToRun) {
@@ -241,20 +245,24 @@ function main(): void {
       failed++;
       // Print a summary line for the failure
       const lines = result.output.split('\n');
-      const errLines = lines.filter(l =>
-        l.includes('ERR_') || l.includes('Error:') || l.includes('✖')
-      ).slice(0, 3);
+      const errLines = lines
+        .filter((l) => l.includes('ERR_') || l.includes('Error:') || l.includes('✖'))
+        .slice(0, 3);
       process.stdout.write(`  ⚠  ${suite.name}: ${errLines.join('; ') || 'failed'}\n`);
     }
   }
 
   const total = suitesToRun.length;
   process.stdout.write(`\n┌────────────────────────────────────────────────┐\n`);
-  process.stdout.write(`│  RESULT: ${passed} passed, ${failed} failed${skipped > 0 ? `, ${skipped} skipped` : ''} | ${total} suites        │\n`);
+  process.stdout.write(
+    `│  RESULT: ${passed} passed, ${failed} failed${skipped > 0 ? `, ${skipped} skipped` : ''} | ${total} suites        │\n`,
+  );
   process.stdout.write(`└────────────────────────────────────────────────┘\n`);
 
   if (args.all) {
-    process.stdout.write(`\nℹ  Optional suites that failed may need: npm install uuid @aws-sdk/client-lambda @azure/identity\n`);
+    process.stdout.write(
+      `\nℹ  Optional suites that failed may need: npm install uuid @aws-sdk/client-lambda @azure/identity\n`,
+    );
   }
 
   process.exit(failed > 0 && !args.all ? 1 : 0);

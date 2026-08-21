@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync, statSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { getEffectiveProcessTimeout } from './core/timeout-config';
 
@@ -159,12 +159,11 @@ function main(): void {
       console.log('[REVIEW] Pre-commit review...');
       let stagedFiles: string;
       try {
-        stagedFiles = execSync('git diff --cached --name-only', {
+        const review = runSync('git', ['diff', '--cached', '--name-only'], {
           cwd: repoRoot,
-          encoding: 'utf-8',
           timeout: getEffectiveProcessTimeout('git'),
-          windowsHide: true,
         });
+        stagedFiles = review.stdout;
       } catch {
         stagedFiles = '';
       }

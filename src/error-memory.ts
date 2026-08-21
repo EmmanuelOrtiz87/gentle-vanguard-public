@@ -43,12 +43,16 @@ let _db: any = null;
 function getDb(): any {
   if (!_db) {
     try {
-      const { DatabaseManager } = require(join(resolve(process.cwd()), 'apps/web-dashboard/server/database/manager.ts')) as any;
+      const { DatabaseManager } = require(
+        join(resolve(process.cwd()), 'apps/web-dashboard/server/database/manager.ts'),
+      ) as any;
       _db = DatabaseManager.getInstance();
     } catch {
       // Fallback: try the compiled version
       try {
-        const { DatabaseManager } = require(join(resolve(process.cwd()), 'dist/apps/web-dashboard/server/database/manager.js')) as any;
+        const { DatabaseManager } = require(
+          join(resolve(process.cwd()), 'dist/apps/web-dashboard/server/database/manager.js'),
+        ) as any;
         _db = DatabaseManager.getInstance();
       } catch {
         return null;
@@ -61,19 +65,116 @@ function getDb(): any {
 // ---- Tokenizer (matches skill-router.ts) ----
 
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'is', 'it', 'as', 'be', 'by', 'with',
-  'from', 'that', 'this', 'are', 'was', 'were', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-  'would', 'can', 'could', 'should', 'may', 'might', 'shall', 'not', 'no', 'but', 'if', 'so', 'up', 'out',
-  'about', 'into', 'over', 'after', 'before', 'between', 'under', 'again', 'further', 'then', 'once', 'also',
-  'very', 'just', 'each', 'any', 'all', 'both', 'more', 'most', 'some', 'such', 'only', 'own', 'same', 'than',
-  'too', 'el', 'la', 'los', 'las', 'de', 'del', 'en', 'un', 'una', 'que', 'es', 'se', 'por', 'para', 'con',
-  'una', 'lo', 'como', 'mas', 'pero', 'sus', 'le', 'ya', 'este', 'entre', 'porque', 'todo', 'esta', 'sin', 'son',
+  'a',
+  'an',
+  'the',
+  'in',
+  'on',
+  'at',
+  'to',
+  'for',
+  'of',
+  'and',
+  'or',
+  'is',
+  'it',
+  'as',
+  'be',
+  'by',
+  'with',
+  'from',
+  'that',
+  'this',
+  'are',
+  'was',
+  'were',
+  'been',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'can',
+  'could',
+  'should',
+  'may',
+  'might',
+  'shall',
+  'not',
+  'no',
+  'but',
+  'if',
+  'so',
+  'up',
+  'out',
+  'about',
+  'into',
+  'over',
+  'after',
+  'before',
+  'between',
+  'under',
+  'again',
+  'further',
+  'then',
+  'once',
+  'also',
+  'very',
+  'just',
+  'each',
+  'any',
+  'all',
+  'both',
+  'more',
+  'most',
+  'some',
+  'such',
+  'only',
+  'own',
+  'same',
+  'than',
+  'too',
+  'el',
+  'la',
+  'los',
+  'las',
+  'de',
+  'del',
+  'en',
+  'un',
+  'una',
+  'que',
+  'es',
+  'se',
+  'por',
+  'para',
+  'con',
+  'una',
+  'lo',
+  'como',
+  'mas',
+  'pero',
+  'sus',
+  'le',
+  'ya',
+  'este',
+  'entre',
+  'porque',
+  'todo',
+  'esta',
+  'sin',
+  'son',
 ]);
 
 function tokenize(text: string): string[] {
   if (!text) return [];
   const cleaned = text.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
-  return cleaned.split(/[\s-]+/).filter(t => t.length >= 2 && t.length <= 40 && !STOP_WORDS.has(t));
+  return cleaned
+    .split(/[\s-]+/)
+    .filter((t) => t.length >= 2 && t.length <= 40 && !STOP_WORDS.has(t));
 }
 
 // ---- Core Functions ----
@@ -166,8 +267,10 @@ function findRelevantErrors(context: {
           if (!seen.has(e.id!)) {
             seen.add(e.id!);
             // Score based on token overlap
-            const bugTokens = tokenize((e.bug ?? '') + ' ' + (e.root_cause ?? '') + ' ' + (e.fix ?? ''));
-            const overlap = keywords.filter(k => bugTokens.includes(k)).length;
+            const bugTokens = tokenize(
+              (e.bug ?? '') + ' ' + (e.root_cause ?? '') + ' ' + (e.fix ?? ''),
+            );
+            const overlap = keywords.filter((k) => bugTokens.includes(k)).length;
             const score = Math.min(0.8, 0.3 + (overlap / Math.max(keywords.length, 1)) * 0.5);
             matches.push({ entry: e, score, matchField: 'keyword' });
           }
@@ -178,7 +281,9 @@ function findRelevantErrors(context: {
     // 4. If still no matches and we have a query, show recent errors as fallback
     if (matches.length === 0 && context.query) {
       const recent = db.getRecentErrors(limit) as ErrorEntry[];
-      for (const e of recent) {
+      // Use classic for loop to avoid floating promise false positive
+      for (let i = 0; i < recent.length; i++) {
+        const e = recent[i];
         if (!seen.has(e.id!)) {
           seen.add(e.id!);
           matches.push({ entry: e, score: 0.1, matchField: 'keyword' });
@@ -211,11 +316,7 @@ function getRecentErrors(limit: number = 10): ErrorEntry[] {
  * Generate a pre-commit prompt with relevant error memories.
  * Call this before implementing changes to avoid repeating past bugs.
  */
-function generateErrorContext(context: {
-  query: string;
-  file?: string;
-  pattern?: string;
-}): string {
+function generateErrorContext(context: { query: string; file?: string; pattern?: string }): string {
   const matches = findRelevantErrors({
     query: context.query,
     file: context.file,
@@ -225,14 +326,18 @@ function generateErrorContext(context: {
 
   if (matches.length === 0) return '';
 
-  const lines: string[] = [
-    '⚠️  Error Memory — previous bugs relevant to this context:',
-    '',
-  ];
+  const lines: string[] = ['⚠️  Error Memory — previous bugs relevant to this context:', ''];
 
   for (const m of matches) {
     const e = m.entry;
-    const severityIcon = e.severity === 'critical' ? '🔴' : e.severity === 'high' ? '🟠' : e.severity === 'medium' ? '🟡' : '🟢';
+    const severityIcon =
+      e.severity === 'critical'
+        ? '🔴'
+        : e.severity === 'high'
+          ? '🟠'
+          : e.severity === 'medium'
+            ? '🟡'
+            : '🟢';
     lines.push(`${severityIcon} **${e.bug}** (confidence: ${(m.score * 100).toFixed(0)}%)`);
     if (e.root_cause) lines.push(`   Root cause: ${e.root_cause}`);
     if (e.fix) lines.push(`   Fix: ${e.fix}`);
@@ -388,10 +493,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 // Export for programmatic use
-export {
-  saveError,
-  findRelevantErrors,
-  getRecentErrors,
-  generateErrorContext,
-  tokenize,
-};
+export { saveError, findRelevantErrors, getRecentErrors, generateErrorContext, tokenize };

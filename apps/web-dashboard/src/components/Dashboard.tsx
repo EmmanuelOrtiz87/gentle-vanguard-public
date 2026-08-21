@@ -39,6 +39,7 @@ import { TokenUsagePanel } from './TokenUsagePanel';
 import { ContractResultsPanel } from './ContractResultsPanel';
 import { RoutingRulesPanel } from './RoutingRulesPanel';
 import { SwarmWorkersPanel } from './SwarmWorkersPanel';
+import { StackCapabilitiesPanel } from './StackCapabilitiesPanel';
 import { AlertPanel } from './AlertPanel';
 import { LiveTraceFeed } from './LiveTraceFeed';
 import { SkillHeatmap } from './SkillHeatmap';
@@ -75,13 +76,41 @@ function SectionHeader({ title, infoKey }: { title: string; infoKey?: string }) 
   );
 }
 
+function OfflineBanner({ isOffline, lastUpdated }: { isOffline: boolean; lastUpdated: number }) {
+  if (!isOffline) return null;
+
+  const secondsAgo =
+    lastUpdated > 0 ? Math.max(0, Math.round((Date.now() - lastUpdated) / 1000)) : null;
+  const ageLabel = secondsAgo !== null ? `${secondsAgo}s` : 'unknown';
+
+  return (
+    <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2">
+        <Cloud className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+        <p className="text-sm text-amber-700 dark:text-amber-300">
+          Offline mode — showing cached data from {ageLabel} ago
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function DashboardInner() {
   const [darkMode, setDarkMode] = useState(false);
   const [useWebSocket, setUseWebSocket] = useState(true);
   const [searchParams] = useSearchParams();
   const urlTenantId = searchParams.get('tenantId') || undefined;
-  const { data, history, loading, wsConnected, refetch, notifications, dismissNotification } =
-    useMetrics(useWebSocket, urlTenantId);
+  const {
+    data,
+    history,
+    loading,
+    wsConnected,
+    refetch,
+    notifications,
+    dismissNotification,
+    isOffline,
+    lastUpdated,
+  } = useMetrics(useWebSocket, urlTenantId);
   const { session: agentSession, bridgeConnected, createSession } = useAgentStream();
   const { triggeredAlerts } = useAlerts();
   const sessions = useSessions();
@@ -206,6 +235,8 @@ function DashboardInner() {
           </div>
         </div>
       </header>
+
+      <OfflineBanner isOffline={isOffline} lastUpdated={lastUpdated} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Row 1: Core KPIs */}
@@ -544,6 +575,11 @@ function DashboardInner() {
           <SwarmWorkersPanel data={data.swarmWorkers} />
         </div>
 
+        {/* Row: Stack Capabilities (Fase 1/2: anomalies, circuit breakers, DB healing) */}
+        <div className="mb-8">
+          <StackCapabilitiesPanel data={(data as any).stackCapabilities} />
+        </div>
+
         {/* Row: SQLite Stack Tables (Wave 37) */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -568,23 +604,37 @@ function DashboardInner() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="card">
               <p className="metric-label">Total Sessions</p>
-              <p className="metric-value text-purple-600 dark:text-purple-400">{data.sessions.total}</p>
+              <p className="metric-value text-purple-600 dark:text-purple-400">
+                {data.sessions.total}
+              </p>
               <p className="text-xs text-gray-500 mt-1">{data.sessions.active} active now</p>
             </div>
             <div className="card">
               <p className="metric-label">Git Commits</p>
-              <p className="metric-value text-blue-600 dark:text-blue-400">{(data as any).git?.commits ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">{(data as any).git?.contributors ?? 0} contributors</p>
+              <p className="metric-value text-blue-600 dark:text-blue-400">
+                {(data as any).git?.commits ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).git?.contributors ?? 0} contributors
+              </p>
             </div>
             <div className="card">
               <p className="metric-label">Trace Files</p>
-              <p className="metric-value text-amber-600 dark:text-amber-400">{(data as any).traceFiles ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">{(data as any).checkpoints ?? 0} checkpoints</p>
+              <p className="metric-value text-amber-600 dark:text-amber-400">
+                {(data as any).traceFiles ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).checkpoints ?? 0} checkpoints
+              </p>
             </div>
             <div className="card">
               <p className="metric-label">Audit Logs</p>
-              <p className="metric-value text-emerald-600 dark:text-emerald-400">{(data as any).auditLogs ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">{(data as any).mcp?.skills?.total ?? 0} MCP skills</p>
+              <p className="metric-value text-emerald-600 dark:text-emerald-400">
+                {(data as any).auditLogs ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).mcp?.skills?.total ?? 0} MCP skills
+              </p>
             </div>
           </div>
         </div>

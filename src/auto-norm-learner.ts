@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
  * Auto-Norm-Learner TypeScript Implementation
- * 
+ *
  * Analyzes session patterns, failures, and successes to automatically learn
  * and update norms in rules/adaptive/LEARNED-NORMS.md
- * 
+ *
  * Trigger: session-start, post-session, on-failure
  * Integration: Called from session-autostart pipeline
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync, runSyncShell } from './core/run-command.js';
 
 interface Norm {
   id: string;
@@ -92,12 +92,14 @@ function loadRecentSessions(days = 7): SessionData[] {
   const sessions: SessionData[] = [];
   try {
     // Look for session files
-    const files = execSync(`find "${SESSION_DIR}" -name "session-*.json" -mtime -${days} 2>/dev/null || dir /b "${SESSION_DIR}\\session-*.json" 2>nul`, 
-      { encoding: 'utf-8', cwd: ROOT }).toString().trim();
-    
+    const files = runSyncShell(
+      `find "${SESSION_DIR}" -name "session-*.json" -mtime -${days} 2>/dev/null || dir /b "${SESSION_DIR}\\session-*.json" 2>nul`,
+      { cwd: ROOT },
+    ).stdout.trim();
+
     if (!files) return sessions;
 
-    for (const file of files.split('\n').filter(f => f.trim())) {
+    for (const file of files.split('\n').filter((f) => f.trim())) {
       try {
         const data = readFileSync(join(SESSION_DIR, file.trim()), 'utf-8');
         sessions.push(JSON.parse(data));
@@ -143,8 +145,9 @@ function analyzePatterns(sessions: SessionData[], norms: Norm[]): Norm[] {
   }
 
   for (const [errorType, count] of errorPatterns) {
-    if (count >= 3) { // Threshold for pattern recognition
-      const existing = newNorms.find(n => n.trigger === errorType && n.category === 'avoidance');
+    if (count >= 3) {
+      // Threshold for pattern recognition
+      const existing = newNorms.find((n) => n.trigger === errorType && n.category === 'avoidance');
       if (existing) {
         existing.occurrences = count;
         existing.lastSeen = now;
@@ -160,16 +163,18 @@ function analyzePatterns(sessions: SessionData[], norms: Norm[]): Norm[] {
           firstSeen: now,
           lastSeen: now,
           status: 'proposed',
-          source: 'auto-analysis'
+          source: 'auto-analysis',
         });
       }
     }
   }
 
   // Pattern 2: Successful optimizations
-  const highQualitySessions = sessions.filter(s => s.qualityScore >= 90);
+  const highQualitySessions = sessions.filter((s) => s.qualityScore >= 90);
   if (highQualitySessions.length >= 3) {
-    const existing = newNorms.find(n => n.trigger === 'high-quality-session' && n.category === 'optimization');
+    const existing = newNorms.find(
+      (n) => n.trigger === 'high-quality-session' && n.category === 'optimization',
+    );
     if (!existing) {
       newNorms.push({
         id: `norm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -181,15 +186,19 @@ function analyzePatterns(sessions: SessionData[], norms: Norm[]): Norm[] {
         firstSeen: highQualitySessions[0]?.startTime || now,
         lastSeen: now,
         status: 'proposed',
-        source: 'auto-analysis'
+        source: 'auto-analysis',
       });
     }
   }
 
   // Pattern 3: Token efficiency
-  const efficientSessions = sessions.filter(s => s.toolCalls > 0 && (s.filesRead || 0) / s.toolCalls > 2);
+  const efficientSessions = sessions.filter(
+    (s) => s.toolCalls > 0 && (s.filesRead || 0) / s.toolCalls > 2,
+  );
   if (efficientSessions.length >= 3) {
-    const existing = newNorms.find(n => n.trigger === 'token-efficiency' && n.category === 'optimization');
+    const existing = newNorms.find(
+      (n) => n.trigger === 'token-efficiency' && n.category === 'optimization',
+    );
     if (!existing) {
       newNorms.push({
         id: `norm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -201,7 +210,7 @@ function analyzePatterns(sessions: SessionData[], norms: Norm[]): Norm[] {
         firstSeen: efficientSessions[0]?.startTime || now,
         lastSeen: now,
         status: 'proposed',
-        source: 'auto-analysis'
+        source: 'auto-analysis',
       });
     }
   }
@@ -213,7 +222,7 @@ function analyzePatterns(sessions: SessionData[], norms: Norm[]): Norm[] {
  * Promote norms based on confidence and occurrences
  */
 function promoteNorms(norms: Norm[]): Norm[] {
-  return norms.map(norm => {
+  return norms.map((norm) => {
     if (norm.status === 'proposed' && norm.confidence >= 80 && norm.occurrences >= 5) {
       return { ...norm, status: 'active' };
     }
@@ -231,8 +240,8 @@ function promoteNorms(norms: Norm[]): Norm[] {
 function pruneStaleNorms(norms: Norm[]): Norm[] {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  return norms.filter(norm => {
+
+  return norms.filter((norm) => {
     if (norm.status === 'deprecated') return false;
     if (norm.occurrences < 3 && new Date(norm.lastSeen) < thirtyDaysAgo) {
       return false; // Remove unused proposed norms
@@ -246,9 +255,9 @@ function pruneStaleNorms(norms: Norm[]): Norm[] {
  */
 function generateMarkdownReport(norms: Norm[]): string {
   const now = new Date().toISOString();
-  const activeNorms = norms.filter(n => n.status === 'active');
-  const proposedNorms = norms.filter(n => n.status === 'proposed');
-  const deprecatedNorms = norms.filter(n => n.status === 'deprecated');
+  const activeNorms = norms.filter((n) => n.status === 'active');
+  const proposedNorms = norms.filter((n) => n.status === 'proposed');
+  const deprecatedNorms = norms.filter((n) => n.status === 'deprecated');
 
   return `# Learned Norms (Autonomous)
 
@@ -264,7 +273,12 @@ Auto-maintained by auto-norm-learner.ts — last run: ${now}
 
 ## Active Norms
 
-${activeNorms.length === 0 ? '_No active norms yet. Learning in progress..._' : activeNorms.map(n => `
+${
+  activeNorms.length === 0
+    ? '_No active norms yet. Learning in progress..._'
+    : activeNorms
+        .map(
+          (n) => `
 ### ${n.id}
 - **Category**: ${n.category}
 - **Description**: ${n.description}
@@ -273,11 +287,19 @@ ${activeNorms.length === 0 ? '_No active norms yet. Learning in progress..._' : 
 - **Occurrences**: ${n.occurrences}
 - **First seen**: ${n.firstSeen}
 - **Last seen**: ${n.lastSeen}
-`).join('\n')}
+`,
+        )
+        .join('\n')
+}
 
 ## Proposed Norms
 
-${proposedNorms.length === 0 ? '_No proposed norms pending._' : proposedNorms.map(n => `
+${
+  proposedNorms.length === 0
+    ? '_No proposed norms pending._'
+    : proposedNorms
+        .map(
+          (n) => `
 ### ${n.id}
 - **Category**: ${n.category}
 - **Description**: ${n.description}
@@ -285,11 +307,14 @@ ${proposedNorms.length === 0 ? '_No proposed norms pending._' : proposedNorms.ma
 - **Confidence**: ${n.confidence}%
 - **Occurrences**: ${n.occurrences}
 - **Status**: Pending promotion (needs confidence ≥80 and occurrences ≥5)
-`).join('\n')}
+`,
+        )
+        .join('\n')
+}
 
 ## Deprecated Norms
 
-${deprecatedNorms.length === 0 ? '_No deprecated norms._' : deprecatedNorms.map(n => `- ${n.id}: ${n.description}`).join('\n')}
+${deprecatedNorms.length === 0 ? '_No deprecated norms._' : deprecatedNorms.map((n) => `- ${n.id}: ${n.description}`).join('\n')}
 
 ---
 
@@ -318,19 +343,25 @@ function saveMarkdownReport(content: string): void {
 function logToEngram(norms: Norm[], context: LearningContext): void {
   try {
     // Check if engram CLI is available
-    execSync('engram --version', { stdio: 'pipe' });
-    
+    runSync('engram', ['--version'], { stdio: 'pipe' });
+
     const summary = {
       timestamp: context.timestamp,
       trigger: context.trigger,
       totalNorms: norms.length,
-      newNorms: norms.filter(n => n.firstSeen === context.timestamp).length,
-      activeNorms: norms.filter(n => n.status === 'active').length
+      newNorms: norms.filter((n) => n.firstSeen === context.timestamp).length,
+      activeNorms: norms.filter((n) => n.status === 'active').length,
     };
 
-    execSync(
-      `engram remember "auto-norm-learner: Analyzed ${summary.totalNorms} norms, ${summary.newNorms} new, ${summary.activeNorms} active" --category learning`,
-      { stdio: 'pipe', cwd: ROOT }
+    runSync(
+      'engram',
+      [
+        'remember',
+        `auto-norm-learner: Analyzed ${summary.totalNorms} norms, ${summary.newNorms} new, ${summary.activeNorms} active`,
+        '--category',
+        'learning',
+      ],
+      { stdio: 'pipe', cwd: ROOT },
     );
   } catch {
     // Engram not available, skip
@@ -343,7 +374,8 @@ function logToEngram(norms: Norm[], context: LearningContext): void {
  */
 async function main() {
   const args = process.argv.slice(2);
-  const trigger = (args.find(a => a.startsWith('--trigger='))?.split('=')[1] || 'manual') as LearningContext['trigger'];
+  const trigger = (args.find((a) => a.startsWith('--trigger='))?.split('=')[1] ||
+    'manual') as LearningContext['trigger'];
   const quiet = args.includes('--quiet');
 
   if (!quiet) {
@@ -354,7 +386,7 @@ async function main() {
   const context: LearningContext = {
     sessionId: process.env.SESSION_ID || `session-${Date.now()}`,
     timestamp: new Date().toISOString(),
-    trigger
+    trigger,
   };
 
   // Load existing data
@@ -383,9 +415,28 @@ async function main() {
   // Log to Engram
   logToEngram(norms, context);
 
+  // Signal auto-apply-safe for newly promoted norms
+  const promotedCount =
+    norms.filter((n) => n.status === 'active').length -
+    norms.filter((n) => n.status === 'proposed').length;
+  if (promotedCount > 0) {
+    const triggerDir = join(ROOT, '.session', 'auto-apply');
+    if (!existsSync(triggerDir)) mkdirSync(triggerDir, { recursive: true });
+    writeFileSync(
+      join(triggerDir, 'trigger-norms.json'),
+      JSON.stringify({
+        source: 'auto-norm-learner',
+        type: 'norm-promotion',
+        promotedCount,
+        timestamp: new Date().toISOString(),
+      }),
+      'utf-8',
+    );
+  }
+
   // Output summary
-  const activeCount = norms.filter(n => n.status === 'active').length;
-  const proposedCount = norms.filter(n => n.status === 'proposed').length;
+  const activeCount = norms.filter((n) => n.status === 'active').length;
+  const proposedCount = norms.filter((n) => n.status === 'proposed').length;
 
   if (!quiet) {
     console.log(`[AUTO-NORM] Learning complete:`);
@@ -403,7 +454,7 @@ async function main() {
 import { fileURLToPath } from 'url';
 const _currentFile = fileURLToPath(import.meta.url);
 if (process.argv[1] && import.meta.url === `file://${_currentFile}`) {
-  main().catch(err => {
+  main().catch((err) => {
     console.error('[AUTO-NORM] Fatal error:', err);
     process.exit(1);
   });

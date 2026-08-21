@@ -30,15 +30,20 @@ ensure consistent behavior across all integrations.
 
 **Current Implementation**:
 
-- Token budget guard: `scripts/utilities/token-budget-guard.ps1`
+- Token budget guard: `src/token-budget-guard.ts`
 - Context metrics: `scripts/utilities/context-metrics-report.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/context-metrics-report.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Token telemetry: `scripts/utilities/token-telemetry.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/token-telemetry.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Optimizations Available**:
 
 - Token efficiency matrix: `scripts/utilities/response-mode-efficiency-matrix.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/response-mode-efficiency-matrix.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Context packing: `scripts/utilities/context-pack.ps1`
-- Handoff compression: `scripts/utilities/handoff-compress.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
+- Handoff compression: `src/handoff-compress.ts`
+<!-- REF-OBSOLETA: src/handoff-compress.ts no existe (ruta migrada o eliminada) -->
 
 ---
 
@@ -56,14 +61,20 @@ ensure consistent behavior across all integrations.
 **Current Implementation**:
 
 - IDE session detection: `scripts/utilities/detect-ide-session.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/detect-ide-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Response mode: `scripts/utilities/response-mode.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Enforce response mode: `scripts/utilities/enforce-response-mode.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/enforce-response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 **Optimizations Available**:
 
 - Compact start: `scripts/utilities/compact-start.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/compact-start.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Stack on demand: `scripts/utilities/stack-on-demand.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/stack-on-demand.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Stack dashboard: `scripts/utilities/stack-dashboard.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/stack-dashboard.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 ---
 
@@ -237,7 +248,7 @@ MAXIMUM = 99% token usage (use all available)
     "text": "Response text",
     "code_blocks": [
       {
-        "language": "powershell",
+        "language": "TypeScript",
         "content": "code here",
         "executable": true
       }
@@ -301,7 +312,7 @@ MAXIMUM = 99% token usage (use all available)
 
 #### Session Initialization
 
-```powershell
+```TypeScript
 # Standard session start
 {
   "session_id": "uuid",
@@ -315,7 +326,7 @@ MAXIMUM = 99% token usage (use all available)
 
 #### Session Termination
 
-```powershell
+```TypeScript
 # Standard session end
 {
   "session_id": "uuid",
@@ -369,7 +380,7 @@ MAXIMUM = 99% token usage (use all available)
 You are an AI assistant integrated with Gentle-Vanguard.
 
 CAPABILITIES:
-- PowerShell scripting and execution
+- TypeScript scripting and execution
 - File operations (read/write)
 - Git operations
 - Project management
@@ -460,7 +471,7 @@ CONSTRAINTS:
 ```json
 {
   "type": "command",
-  "command": "powershell command",
+  "command": "TypeScript command",
   "working_directory": "/path",
   "timeout": 30
 }
@@ -497,7 +508,7 @@ CONSTRAINTS:
 ```json
 {
   "type": "code",
-  "language": "powershell|bash|json",
+  "language": "TypeScript|bash|json",
   "content": "code here",
   "executable": true,
   "explanation": "what this does"
@@ -540,8 +551,9 @@ CONSTRAINTS:
 
 #### Tool Detection
 
-```powershell
+```TypeScript
 # scripts/utilities/detect-ide-session.ps1
+<!-- REF-OBSOLETA: scripts/utilities/detect-ide-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Detects active IDE/tool
 - Returns tool identifier
 - Sets environment variables
@@ -549,8 +561,9 @@ CONSTRAINTS:
 
 #### Tool-Specific Routing
 
-```powershell
+```TypeScript
 # scripts/utilities/dispatch-agent.ps1
+<!-- REF-OBSOLETA: scripts/utilities/dispatch-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Routes messages to correct tool
 - Adapts message format
 - Handles tool-specific features
@@ -558,8 +571,9 @@ CONSTRAINTS:
 
 #### Response Mode Management
 
-```powershell
+```TypeScript
 # scripts/utilities/response-mode.ps1
+<!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Manages efficiency modes
 - Adapts token budgets
 - Optimizes context usage
@@ -567,8 +581,8 @@ CONSTRAINTS:
 
 #### Token Management
 
-```powershell
-# scripts/utilities/token-budget-guard.ps1
+```TypeScript
+# src/token-budget-guard.ts
 - Enforces token limits
 - Tracks usage
 - Prevents overflow
@@ -708,8 +722,12 @@ CONSTRAINTS:
 
 ## Resources
 
-- Token Budget Guard: `scripts/utilities/token-budget-guard.ps1`
+- Token Budget Guard: `src/token-budget-guard.ts`
 - Response Mode: `scripts/utilities/response-mode.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Context Pack: `scripts/utilities/context-pack.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Detect IDE Session: `scripts/utilities/detect-ide-session.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/detect-ide-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - Dispatch Agent: `scripts/utilities/dispatch-agent.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/dispatch-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->

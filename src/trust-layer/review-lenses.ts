@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Review Lenses v1.0.0
+ * Review Lenses
  * 4-lens review with risk-based selection
- * Part of Gentle-Vanguard v8.0
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';

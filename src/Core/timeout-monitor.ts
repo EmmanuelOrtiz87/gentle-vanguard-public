@@ -115,12 +115,18 @@ function saveMetrics(): void {
       executions: _records.slice(-1000), // Keep last 1000 in file
       violations: _violations.slice(-100),
       alerts: _alerts.slice(-50),
-      p95LatencyMs: calculatePercentile(_records.map(r => r.durationMs), 95),
-      p99LatencyMs: calculatePercentile(_records.map(r => r.durationMs), 99),
-      avgLatencyMs: calculateAvg(_records.map(r => r.durationMs)),
+      p95LatencyMs: calculatePercentile(
+        _records.map((r) => r.durationMs),
+        95,
+      ),
+      p99LatencyMs: calculatePercentile(
+        _records.map((r) => r.durationMs),
+        99,
+      ),
+      avgLatencyMs: calculateAvg(_records.map((r) => r.durationMs)),
       totalExecutions: _records.length,
       totalViolations: _violations.length,
-      activeAlerts: _alerts.filter(a => !a.acknowledged).length,
+      activeAlerts: _alerts.filter((a) => !a.acknowledged).length,
     };
     fs.writeFileSync(METRICS_FILE, JSON.stringify(state, null, 2), 'utf-8');
   } catch (err) {
@@ -132,7 +138,9 @@ function appendAlert(alert: TimeoutAlert): void {
   ensureDir();
   try {
     fs.appendFileSync(ALERTS_FILE, JSON.stringify(alert) + '\n', 'utf-8');
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +174,7 @@ function calculateAvg(values: number[]): number {
 export function trackExecution(
   operation: string,
   category: string = 'process_execution',
-  timeoutMs?: number
+  timeoutMs?: number,
 ): (success?: boolean) => ExecutionRecord {
   const startTime = Date.now();
   const startIso = new Date().toISOString();
@@ -218,7 +226,7 @@ export async function trackAsync<T>(
   operation: string,
   category: string,
   promise: Promise<T>,
-  timeoutMs?: number
+  timeoutMs?: number,
 ): Promise<T> {
   const stop = trackExecution(operation, category, timeoutMs);
   try {
@@ -239,7 +247,7 @@ export function reportTimeoutViolation(
   category: string,
   durationMs: number,
   threshold: number,
-  details?: string
+  details?: string,
 ): void {
   const record: ExecutionRecord = {
     operation,
@@ -303,9 +311,14 @@ function emitAlert(data: {
   appendAlert(alert);
 
   // Console output for critical alerts
-  const level = data.severity === 'critical' ? '\x1b[31m' :
-                data.severity === 'error' ? '\x1b[33m' :
-                data.severity === 'warning' ? '\x1b[93m' : '\x1b[36m';
+  const level =
+    data.severity === 'critical'
+      ? '\x1b[31m'
+      : data.severity === 'error'
+        ? '\x1b[33m'
+        : data.severity === 'warning'
+          ? '\x1b[93m'
+          : '\x1b[36m';
   console.log(`${level}[ALERT][${data.severity.toUpperCase()}] ${data.message}\x1b[0m`);
 }
 
@@ -313,14 +326,14 @@ function emitAlert(data: {
  * Get all active (non-acknowledged) alerts.
  */
 export function getActiveAlerts(): TimeoutAlert[] {
-  return _alerts.filter(a => !a.acknowledged);
+  return _alerts.filter((a) => !a.acknowledged);
 }
 
 /**
  * Acknowledge an alert by ID.
  */
 export function acknowledgeAlert(alertId: string): boolean {
-  const alert = _alerts.find(a => a.id === alertId);
+  const alert = _alerts.find((a) => a.id === alertId);
   if (alert) {
     alert.acknowledged = true;
     saveMetrics();
@@ -361,7 +374,7 @@ export function getPerformanceMetrics(): {
   activeAlerts: number;
   topSlowest: ExecutionRecord[];
 } {
-  const durations = _records.map(r => r.durationMs);
+  const durations = _records.map((r) => r.durationMs);
   const sortedByDuration = [..._records].sort((a, b) => b.durationMs - a.durationMs);
 
   return {
@@ -371,7 +384,7 @@ export function getPerformanceMetrics(): {
     totalExecutions: _records.length,
     totalViolations: _violations.length,
     violationRate: _records.length > 0 ? _violations.length / _records.length : 0,
-    activeAlerts: _alerts.filter(a => !a.acknowledged).length,
+    activeAlerts: _alerts.filter((a) => !a.acknowledged).length,
     topSlowest: sortedByDuration.slice(0, 10),
   };
 }
@@ -380,7 +393,7 @@ export function getPerformanceMetrics(): {
  * Get violation records for a specific category.
  */
 export function getViolations(category?: string): ExecutionRecord[] {
-  if (category) return _violations.filter(v => v.category === category);
+  if (category) return _violations.filter((v) => v.category === category);
   return [..._violations];
 }
 
@@ -388,7 +401,7 @@ export function getViolations(category?: string): ExecutionRecord[] {
  * Get execution records for a specific operation.
  */
 export function getExecutions(operation: string): ExecutionRecord[] {
-  return _records.filter(r => r.operation === operation);
+  return _records.filter((r) => r.operation === operation);
 }
 
 // ---------------------------------------------------------------------------
@@ -409,9 +422,11 @@ export function startMonitorDaemon(intervalMs?: number): void {
 
   const run = () => {
     const metrics = getPerformanceMetrics();
-    console.log(`[TIMEOUT-MONITOR] Status: ${metrics.totalExecutions} exec | ` +
-      `${metrics.totalViolations} violations | ${metrics.activeAlerts} alerts | ` +
-      `p95: ${metrics.p95Ms}ms | avg: ${metrics.avgMs}ms`);
+    console.log(
+      `[TIMEOUT-MONITOR] Status: ${metrics.totalExecutions} exec | ` +
+        `${metrics.totalViolations} violations | ${metrics.activeAlerts} alerts | ` +
+        `p95: ${metrics.p95Ms}ms | avg: ${metrics.avgMs}ms`,
+    );
 
     saveMetrics();
   };
@@ -444,7 +459,9 @@ function loadPreviousState(): void {
       if (data.violations) _violations = data.violations;
       if (data.alerts) _alerts = data.alerts;
     }
-  } catch { /* silent — fresh start */ }
+  } catch {
+    /* silent — fresh start */
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -470,14 +487,17 @@ function printStatus() {
     console.log(`\n  \x1b[1mTop 10 Slowest Operations\x1b[0m`);
     for (const r of m.topSlowest) {
       const icon = r.violated ? '\x1b[31m⚠\x1b[0m' : ' ';
-      console.log(`  ${icon} ${r.operation.padEnd(30)} ${r.durationMs}ms (threshold: ${r.timeoutMs}ms)`);
+      console.log(
+        `  ${icon} ${r.operation.padEnd(30)} ${r.durationMs}ms (threshold: ${r.timeoutMs}ms)`,
+      );
     }
   }
 
   if (m.activeAlerts > 0) {
     console.log(`\n  \x1b[1mActive Alerts\x1b[0m`);
     for (const a of getActiveAlerts()) {
-      const sev = a.severity === 'critical' ? '\x1b[31m' : a.severity === 'error' ? '\x1b[33m' : '\x1b[93m';
+      const sev =
+        a.severity === 'critical' ? '\x1b[31m' : a.severity === 'error' ? '\x1b[33m' : '\x1b[93m';
       console.log(`  ${sev}[${a.severity.toUpperCase()}]\x1b[0m ${a.message}`);
     }
   }
@@ -522,7 +542,10 @@ function cliMain() {
 loadPreviousState();
 
 // Auto-run if executed directly
-if (process.argv[1] && (process.argv[1].endsWith('timeout-monitor.ts') || process.argv[1].endsWith('timeout-monitor.js'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith('timeout-monitor.ts') || process.argv[1].endsWith('timeout-monitor.js'))
+) {
   cliMain();
 }
 

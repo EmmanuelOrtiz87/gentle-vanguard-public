@@ -1,20 +1,21 @@
-import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { getExternalApiTimeouts } from '@gentle-vanguard/core/timeout-config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '../../..');
 const FED_CONFIG = join(ROOT, 'config', 'federation-config.json');
 
-function pwsh(script: string): string {
+// Utility to check if process is running (cross-platform stub)
+function isProcessRunning(pid: number): boolean {
   try {
-    return execSync(`pwsh -NoProfile -Command "${script}"`, { encoding: 'utf-8', timeout: getExternalApiTimeouts()?.mcp_request_ms ?? 15000 });
+    // Node.js built-in check - works on all platforms
+    process.kill(pid, 0);
+    return true;
   } catch {
-    return '';
+    return false;
   }
 }
 
@@ -71,10 +72,8 @@ function getMeshWorkspaces(): MeshWorkspace[] {
           if (existsSync(lockPath)) {
             try {
               pid = parseInt(readFileSync(lockPath, 'utf-8').trim(), 10);
-              const raw = pwsh(
-                `Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ConvertTo-Json -Compress`,
-              );
-              status = raw ? 'running' : 'error';
+              // Use cross-platform Node.js check instead of PowerShell
+              status = isProcessRunning(pid) ? 'running' : 'error';
               if (status === 'error') pid = null;
             } catch {
               status = 'error';
@@ -121,14 +120,15 @@ export function meshDiscoverHandler(
   res: ServerResponse,
   headers: Record<string, string>,
 ) {
-  const meshScript = join(ROOT, 'scripts', 'utilities', 'MCP', 'mcp-mesh-scan.ps1');
-  if (existsSync(meshScript)) {
-    pwsh(`& '${meshScript}' -Action discover -Quiet`);
-  }
+  // Mesh scan script is deprecated (PS1 -> TS migration)
+  // Discovery is now done via direct workspace registry polling
   const workspaces = getMeshWorkspaces();
   res.writeHead(200, headers);
   res.end(
-    JSON.stringify({ type: 'mesh', data: { workspaces, message: 'Mesh discovery completed' } }),
+    JSON.stringify({
+      type: 'mesh',
+      data: { workspaces, message: 'Mesh discovery completed via registry polling' },
+    }),
   );
 }
 
@@ -137,11 +137,14 @@ export function meshSyncHandler(
   res: ServerResponse,
   headers: Record<string, string>,
 ) {
-  const meshScript = join(ROOT, 'scripts', 'utilities', 'MCP', 'mcp-mesh-scan.ps1');
-  if (existsSync(meshScript)) {
-    pwsh(`& '${meshScript}' -Action sync -Quiet`);
-  }
+  // Mesh sync script is deprecated (PS1 -> TS migration)
+  // Sync is now done via direct workspace registry polling
   const workspaces = getMeshWorkspaces();
   res.writeHead(200, headers);
-  res.end(JSON.stringify({ type: 'mesh', data: { workspaces, message: 'Mesh sync completed' } }));
+  res.end(
+    JSON.stringify({
+      type: 'mesh',
+      data: { workspaces, message: 'Mesh sync completed via registry polling' },
+    }),
+  );
 }

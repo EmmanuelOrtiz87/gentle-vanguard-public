@@ -23,7 +23,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -155,8 +155,14 @@ function loadJsonLines(path: string): Record<string, unknown>[] {
     if (!existsSync(path)) return [];
     return readFileSync(path, 'utf-8')
       .split('\n')
-      .filter(l => l.trim())
-      .map(l => { try { return JSON.parse(l) as Record<string, unknown>; } catch { return null; } })
+      .filter((l) => l.trim())
+      .map((l) => {
+        try {
+          return JSON.parse(l) as Record<string, unknown>;
+        } catch {
+          return null;
+        }
+      })
       .filter(Boolean) as Record<string, unknown>[];
   } catch {
     return [];
@@ -168,7 +174,9 @@ interface Logger {
 }
 
 function getLogger(quiet: boolean): Logger {
-  return (msg: string) => { if (!quiet) console.log(msg); };
+  return (msg: string) => {
+    if (!quiet) console.log(msg);
+  };
 }
 
 function ensureDir(p: string): void {
@@ -196,7 +204,9 @@ interface SessionRecord {
 
 function readAuditSessions(): SessionRecord[] {
   if (!existsSync(AUDIT_DIR)) return [];
-  const files = readdirSync(AUDIT_DIR).filter(f => f.endsWith('.jsonl')).sort();
+  const files = readdirSync(AUDIT_DIR)
+    .filter((f) => f.endsWith('.jsonl'))
+    .sort();
   const sessions: SessionRecord[] = [];
   for (const f of files.slice(-20)) {
     const entries = loadJsonLines(join(AUDIT_DIR, f));
@@ -217,21 +227,21 @@ function readAuditSessions(): SessionRecord[] {
 function readSessionDigests(): string[] {
   if (!existsSync(DIGESTS_DIR)) return [];
   return readdirSync(DIGESTS_DIR)
-    .filter(f => f.endsWith('.md'))
+    .filter((f) => f.endsWith('.md'))
     .sort()
     .reverse()
     .slice(0, 30)
-    .map(f => join(DIGESTS_DIR, f));
+    .map((f) => join(DIGESTS_DIR, f));
 }
 
 function readReflectionOutputs(): SynthOutput[] {
   if (!existsSync(REFLECTIONS_DIR)) return [];
   return readdirSync(REFLECTIONS_DIR)
-    .filter(f => f.startsWith('reflection-') && f.endsWith('.json'))
+    .filter((f) => f.startsWith('reflection-') && f.endsWith('.json'))
     .sort()
     .reverse()
     .slice(0, 20)
-    .map(f => loadJson<SynthOutput>(join(REFLECTIONS_DIR, f), null as unknown as SynthOutput))
+    .map((f) => loadJson<SynthOutput>(join(REFLECTIONS_DIR, f), null as unknown as SynthOutput))
     .filter(Boolean);
 }
 
@@ -245,9 +255,15 @@ function readKnowledgeBaseVaultFiles(): string[] {
         if (e.isDirectory() && !e.name.startsWith('.')) walk(full);
         else if (e.name.endsWith('.md')) files.push(full);
       }
-    } catch { /* skip unreadable */ }
+    } catch {
+      /* skip unreadable */
+    }
   }
-  try { walk(KB_VAULT); } catch { /* vault not available */ }
+  try {
+    walk(KB_VAULT);
+  } catch {
+    /* vault not available */
+  }
   return files.slice(0, 100);
 }
 
@@ -265,14 +281,16 @@ function getMetricsSummary(): Record<string, number> {
 function getGitActivity(): { commits: number; changedFiles: number; recentMessages: string[] } {
   try {
     const since = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
-    const log = execSync(
-      `git log --since="${since}" --format="%s" --name-only`,
-      { cwd: ROOT, encoding: 'utf-8', timeout: 5000, windowsHide: true }
-    ).trim();
+    const log = runSync('git', ['log', `--since=${since}`, '--format=%s', '--name-only'], {
+      cwd: ROOT,
+      timeout: 5000,
+    }).stdout.trim();
     if (!log) return { commits: 0, changedFiles: 0, recentMessages: [] };
     const sections = log.split('\n\n');
-    const messages = sections.map(s => s.split('\n')[0]).filter(Boolean);
-    const files = sections.flatMap(s => s.split('\n').slice(1)).filter(f => f.trim() && !f.startsWith(' '));
+    const messages = sections.map((s) => s.split('\n')[0]).filter(Boolean);
+    const files = sections
+      .flatMap((s) => s.split('\n').slice(1))
+      .filter((f) => f.trim() && !f.startsWith(' '));
     return {
       commits: messages.length,
       changedFiles: [...new Set(files)].length,
@@ -288,10 +306,10 @@ function getGitActivity(): { commits: number; changedFiles: number; recentMessag
 function extractConceptsFromDigests(digestFiles: string[], log: Logger): KnowledgeConcept[] {
   const concepts: Map<string, KnowledgeConcept> = new Map();
   const conceptPatterns = [
-    /## (.+?)(?:\n|$)/g,           // markdown headings
-    /\*\*(.+?)\*\*/g,              // bold text
-    /`([a-z-]+)`/gi,               // inline code terms
-    /([A-Z][a-z]+ [A-Z][a-z]+)/g,  // Proper Noun phrases
+    /## (.+?)(?:\n|$)/g, // markdown headings
+    /\*\*(.+?)\*\*/g, // bold text
+    /`([a-z-]+)`/gi, // inline code terms
+    /([A-Z][a-z]+ [A-Z][a-z]+)/g, // Proper Noun phrases
   ];
 
   for (const fp of digestFiles) {
@@ -307,7 +325,10 @@ function extractConceptsFromDigests(digestFiles: string[], log: Logger): Knowled
           if (name.length < 3 || name.length > 60) continue;
           if (/^[0-9\s]+$/.test(name)) continue;
 
-          const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const id = name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
           if (!id) continue;
 
           const existing = concepts.get(id);
@@ -333,7 +354,9 @@ function extractConceptsFromDigests(digestFiles: string[], log: Logger): Knowled
           }
         }
       }
-    } catch { /* skip unreadable */ }
+    } catch {
+      /* skip unreadable */
+    }
   }
 
   log(`  Extracted ${concepts.size} concepts from digests`);
@@ -391,7 +414,7 @@ function extractConceptsFromReflections(reflections: SynthOutput[]): KnowledgeCo
 }
 
 function categorizeConcepts(concepts: KnowledgeConcept[]): KnowledgeConcept[] {
-  return concepts.map(c => {
+  return concepts.map((c) => {
     if (c.category !== 'unknown') return c;
 
     const name = c.name.toLowerCase();
@@ -428,7 +451,7 @@ function buildKnowledgeMap(
 ): { concepts: KnowledgeConcept[]; relationships: KnowledgeRelationship[] } {
   const maxConcepts = config.knowledgeMap.maxConcepts;
   const topConcepts = concepts
-    .filter(c => c.confidence >= config.knowledgeMap.minConfidence)
+    .filter((c) => c.confidence >= config.knowledgeMap.minConfidence)
     .sort((a, b) => b.frequency - a.frequency)
     .slice(0, maxConcepts);
 
@@ -440,10 +463,13 @@ function buildKnowledgeMap(
     for (let j = i + 1; j < topConcepts.length; j++) {
       const a = topConcepts[i];
       const b = topConcepts[j];
-      const sharedSources = a.sources.filter(s => b.sources.includes(s));
+      const sharedSources = a.sources.filter((s) => b.sources.includes(s));
       if (sharedSources.length > 0) {
         const key = [a.id, b.id].sort().join('||');
-        if (!relationshipSet.has(key) && relationships.length < config.knowledgeMap.maxRelationships) {
+        if (
+          !relationshipSet.has(key) &&
+          relationships.length < config.knowledgeMap.maxRelationships
+        ) {
           relationshipSet.add(key);
           relationships.push({
             from: a.id,
@@ -504,13 +530,13 @@ function analyzeTrends(
       previousCount = isActive ? 1 : 0;
     }
 
-    if (points.filter(p => p.activeSessions > 0).length < minDataPoints) continue;
+    if (points.filter((p) => p.activeSessions > 0).length < minDataPoints) continue;
 
     // Determine trajectory
     const firstThird = points.slice(0, Math.floor(points.length / 3));
     const lastThird = points.slice(-Math.floor(points.length / 3));
-    const firstActivity = firstThird.filter(p => p.conceptCount > 0).length;
-    const lastActivity = lastThird.filter(p => p.conceptCount > 0).length;
+    const firstActivity = firstThird.filter((p) => p.conceptCount > 0).length;
+    const lastActivity = lastThird.filter((p) => p.conceptCount > 0).length;
 
     let trajectory: TrendAnalysis['trajectory'] = 'stable';
     let recommendation = 'Monitor for changes';
@@ -543,10 +569,12 @@ function analyzeTrends(
     });
   }
 
-  return trends.sort((a, b) => {
-    const order: Record<string, number> = { growing: 0, sporadic: 1, stable: 2, declining: 3 };
-    return (order[a.trajectory] ?? 9) - (order[b.trajectory] ?? 9);
-  }).slice(0, config.maxTrends);
+  return trends
+    .sort((a, b) => {
+      const order: Record<string, number> = { growing: 0, sporadic: 1, stable: 2, declining: 3 };
+      return (order[a.trajectory] ?? 9) - (order[b.trajectory] ?? 9);
+    })
+    .slice(0, config.maxTrends);
 }
 
 // ─── Gap Analysis ─────────────────────────────────────────────────────
@@ -562,44 +590,50 @@ function analyzeGaps(
   const gaps: KnowledgeGap[] = [];
 
   // Gap 1: Sessions without corresponding digests
-  const sessionDates = new Set(sessions.map(s => s.date));
-  const digestDates = new Set(digestFiles.map(f => {
-    const m = f.match(/(\d{4}-\d{2}-\d{2})\.md$/);
-    return m ? m[1] : '';
-  }).filter(Boolean));
-  const missingDigests = [...sessionDates].filter(d => d && !digestDates.has(d));
+  const sessionDates = new Set(sessions.map((s) => s.date));
+  const digestDates = new Set(
+    digestFiles
+      .map((f) => {
+        const m = f.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+        return m ? m[1] : '';
+      })
+      .filter(Boolean),
+  );
+  const missingDigests = [...sessionDates].filter((d) => d && !digestDates.has(d));
   if (missingDigests.length > 0) {
     gaps.push({
       area: 'Session Documentation',
       description: `${missingDigests.length} session(s) with audit logs but no digest generated`,
       evidenceCount: missingDigests.length,
-      evidence: missingDigests.slice(0, 5).map(d => `Session on ${d}`),
+      evidence: missingDigests.slice(0, 5).map((d) => `Session on ${d}`),
       suggestedSource: 'Run digest-generator for missing dates',
       priority: missingDigests.length > 5 ? 'high' : 'medium',
     });
   }
 
   // Gap 2: Concepts with low confidence
-  const lowConf = concepts.filter(c => c.confidence < 0.4 && c.frequency >= 2);
+  const lowConf = concepts.filter((c) => c.confidence < 0.4 && c.frequency >= 2);
   if (lowConf.length > 0) {
     gaps.push({
       area: 'Weak Signal Concepts',
       description: `${lowConf.length} concept(s) appear multiple times but with low confidence classification`,
       evidenceCount: lowConf.length,
-      evidence: lowConf.slice(0, 5).map(c => `"${c.name}" (${c.frequency}x, conf: ${c.confidence})`),
+      evidence: lowConf
+        .slice(0, 5)
+        .map((c) => `"${c.name}" (${c.frequency}x, conf: ${c.confidence})`),
       suggestedSource: 'Review and manually categorize in knowledge base vault',
       priority: lowConf.length > 5 ? 'high' : 'medium',
     });
   }
 
   // Gap 3: High-frequency uncategorized concepts
-  const uncategorized = concepts.filter(c => c.category === 'unknown' && c.frequency >= 3);
+  const uncategorized = concepts.filter((c) => c.category === 'unknown' && c.frequency >= 3);
   if (uncategorized.length > 0) {
     gaps.push({
       area: 'Uncategorized Frequent Concepts',
       description: `${uncategorized.length} concept(s) appear frequently but lack categorization`,
       evidenceCount: uncategorized.length,
-      evidence: uncategorized.slice(0, 5).map(c => `"${c.name}" (${c.frequency}x)`),
+      evidence: uncategorized.slice(0, 5).map((c) => `"${c.name}" (${c.frequency}x)`),
       suggestedSource: 'knowledge-base vault, 02-architecture/ or 03-skills/',
       priority: uncategorized.length > 3 ? 'high' : 'medium',
     });
@@ -620,7 +654,9 @@ function analyzeGaps(
 
   // Gap 5: Reflection coverage
   const refDir = REFLECTIONS_DIR;
-  const refCount = existsSync(refDir) ? readdirSync(refDir).filter(f => f.startsWith('reflection-')).length : 0;
+  const refCount = existsSync(refDir)
+    ? readdirSync(refDir).filter((f) => f.startsWith('reflection-')).length
+    : 0;
   if (refCount === 0 && sessions.length > 3) {
     gaps.push({
       area: 'Self-Reflection Coverage',
@@ -632,10 +668,12 @@ function analyzeGaps(
     });
   }
 
-  return gaps.sort((a, b) => {
-    const order: Record<string, number> = { high: 0, medium: 1, low: 2 };
-    return (order[a.priority] ?? 9) - (order[b.priority] ?? 9);
-  }).slice(0, maxGaps || 8);
+  return gaps
+    .sort((a, b) => {
+      const order: Record<string, number> = { high: 0, medium: 1, low: 2 };
+      return (order[a.priority] ?? 9) - (order[b.priority] ?? 9);
+    })
+    .slice(0, maxGaps || 8);
 }
 
 // ─── Quality Scoring ──────────────────────────────────────────────────
@@ -648,11 +686,11 @@ function computeQualityScore(
   let score = 85; // baseline
 
   // Deduct for high-priority gaps
-  const highGaps = gaps.filter(g => g.priority === 'high').length;
+  const highGaps = gaps.filter((g) => g.priority === 'high').length;
   score -= highGaps * 10;
 
   // Deduct for medium gaps
-  const mediumGaps = gaps.filter(g => g.priority === 'medium').length;
+  const mediumGaps = gaps.filter((g) => g.priority === 'medium').length;
   score -= mediumGaps * 5;
 
   // Penalize low quality score from metrics
@@ -683,7 +721,9 @@ function formatMarkdown(output: SynthOutput): string {
   lines.push(`**Quality score**: ${output.qualityScore}/100`);
   lines.push(``);
 
-  lines.push(`## Knowledge Map (${output.concepts.length} concepts, ${output.relationships.length} relationships)`);
+  lines.push(
+    `## Knowledge Map (${output.concepts.length} concepts, ${output.relationships.length} relationships)`,
+  );
   lines.push(``);
   const byCategory = new Map<string, KnowledgeConcept[]>();
   for (const c of output.concepts) {
@@ -704,8 +744,11 @@ function formatMarkdown(output: SynthOutput): string {
     lines.push(`## Trends (${output.trends.length})`);
     lines.push(``);
     for (const t of output.trends) {
-      const icon = { growing: '📈', declining: '📉', stable: '➡️', sporadic: '🔄' }[t.trajectory] || '❓';
-      lines.push(`- ${icon} **${t.concept}** — ${t.trajectory}, accel: ${t.acceleration.toFixed(3)}`);
+      const icon =
+        { growing: '📈', declining: '📉', stable: '➡️', sporadic: '🔄' }[t.trajectory] || '❓';
+      lines.push(
+        `- ${icon} **${t.concept}** — ${t.trajectory}, accel: ${t.acceleration.toFixed(3)}`,
+      );
       lines.push(`  - ${t.recommendation}`);
     }
     lines.push(``);
@@ -785,7 +828,10 @@ function main(): void {
   log(`  Git: ${git.commits} commits, ${git.changedFiles} files`);
 
   // 3. Build date range
-  const dates = sessions.map(s => s.date).filter(Boolean).sort();
+  const dates = sessions
+    .map((s) => s.date)
+    .filter(Boolean)
+    .sort();
   const dateRange = {
     from: dates[0] || getDate(),
     to: dates[dates.length - 1] || getDate(),
@@ -854,13 +900,15 @@ function main(): void {
     const json = formatJson(output);
     if (!args.quiet) {
       // Print summary line for pipeline mode
-      console.log(JSON.stringify({
-        concepts: output.concepts.length,
-        relationships: output.relationships.length,
-        trends: output.trends.length,
-        gaps: output.gaps.length,
-        qualityScore: output.qualityScore,
-      }));
+      console.log(
+        JSON.stringify({
+          concepts: output.concepts.length,
+          relationships: output.relationships.length,
+          trends: output.trends.length,
+          gaps: output.gaps.length,
+          qualityScore: output.qualityScore,
+        }),
+      );
     }
     if (!args.dryRun) {
       const outFile = join(outputDir, `synthesis-${getDate()}.json`);

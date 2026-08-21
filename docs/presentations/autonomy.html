@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="🤖 Autonomous Systems — Gentle-Vanguard — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🤖 Autonomous Systems — Gentle-Vanguard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* --- Estilos específicos de autonomy.html (complementan el design system) --- */
+      .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 1rem 0;
+      }
+      .progress-gv {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--bg2);
+        overflow: hidden;
+      }
+      .progress-gv .progress-bar {
+        background: linear-gradient(90deg, var(--p), var(--a));
+        border-radius: 4px;
+        transition: width 1s ease;
+      }
+    </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="overview">
+      <div>
+        <span class="hero-badge mb-3">✦ v4.0 — Autonomous Executive Layer</span>
+        <h1><span class="glow">Autonomous Systems</span></h1>
+        <p class="lead">
+          The Autonomous Executive Layer coordinates 12 interconnected executive systems operating
+          in a continuous Detection → Evaluation → Decision → Execution → Verification → Learning
+          cycle — enabling 100% autonomous operation with human oversight at critical decision
+          points.
+        </p>
+        <div class="flow-row mt-4">
+          <span class="flow-step"><i class="bi bi-radar me-1"></i>Detection</span>
+          <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+          <span class="flow-step"><i class="bi bi-graph-up me-1"></i>Evaluation</span>
+          <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+          <span class="flow-step"><i class="bi bi-diagram-2 me-1"></i>Decision</span>
+          <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+          <span class="flow-step"><i class="bi bi-play-circle me-1"></i>Execution</span>
+          <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+          <span class="flow-step"><i class="bi bi-check2-circle me-1"></i>Verification</span>
+          <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+          <span class="flow-step"><i class="bi bi-mortarboard me-1"></i>Learning</span>
+        </div>
+        <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center">
+          <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>Overview</a>
+          <a href="architecture.html" class="btn-gv-alt"
+            ><i class="bi bi-diagram-3 me-1"></i>Architecture</a
+          >
+          <a href="agents-pipeline.html" class="btn-gv-alt"
+            ><i class="bi bi-diagram-2 me-1"></i>Agents</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <div class="container-fluid px-4 pb-5" style="max-width: 1400px">
+      <!-- Row 1: Overview Stats -->
+      <div class="row g-4 mb-5 fade-in">
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n" data-count="12">12</div>
+            <div class="stat-l">Executive Systems</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n" data-count="95">95</div>
+            <div class="stat-l">Health Checks</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+<div class="stat-n" data-count="21">21</div>
+          <div class="stat-l">Monitored Components</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <div class="stat-n"><span data-count="95">95</span>/95</div>
+            <div class="stat-l">Watchtower Score</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Executive Overview -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--p)">
+            <i class="bi bi-eye me-2"></i>1. Executive Overview
+          </h2>
+        </div>
+        <div class="col-12">
+          <div class="section-card">
+            <p class="card-text mb-3">
+              The <strong>Autonomous Executive Layer (Layer 6)</strong> is the pinnacle of the
+              Gentle-Vanguard stack — enabling 100% autonomous operation through 12 interconnected
+              executive systems. Each system handles a specific domain of autonomy while sharing
+              state through the centralized Nexus database and coordinating via the event bus.
+            </p>
+            <div class="row g-3">
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--p);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Auto-Apply Safe</small
+                  ><span class="badge badge-p">Executive Engine</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--a);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Circuit Breaker</small
+                  ><span class="badge badge-a">API Protection</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--wn);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Auto-Escalation</small
+                  ><span class="badge badge-wn">3 Levels</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--ok);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Dep. Graph</small
+                  ><span class="badge badge-ok">Dynamic</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--p);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">AB Testing</small
+                  ><span class="badge badge-p">Framework</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--a);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Session Scoring</small
+                  ><span class="badge badge-a">Auto-Compare</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--ok);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Norms Learner</small
+                  ><span class="badge badge-ok">Auto-Promote</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--er);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Watchtower</small
+                  ><span class="badge badge-er">95/95</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--er);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Security Orchestrator</small
+                  ><span class="badge badge-er">Guardrails</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--p);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">State Persistence</small
+                  ><span class="badge badge-p">Checkpoints</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--a);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Distributed Tracing</small
+                  ><span class="badge badge-a">OTLP Spans</span>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div
+                  class="p-3"
+                  style="
+                    background: var(--bg2);
+                    border-radius: 10px;
+                    border-left: 3px solid var(--ok);
+                  "
+                >
+                  <small class="stat-l d-block mb-1">Cloud Connectors</small
+                  ><span class="badge badge-ok">Hybrid Routing</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Auto-Apply Safe -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--p)">
+            <i class="bi bi-shield-plus me-2"></i>2. Auto-Apply Safe
+          </h2>
+        </div>
+        <div class="col-lg-8">
+          <div class="section-card h-100">
+            <p class="card-text">
+              The <strong>Executive Engine</strong> that safely applies autonomous changes. It
+              sources triggers from three distinct systems and enforces strict guardrails before any
+              auto-apply occurs.
+            </p>
+            <div class="row g-3 mt-2">
+              <div class="col-md-4">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-clock-history d-block mb-2"
+                    style="color: var(--p); font-size: 1.5rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_2">Predictive Governor</small
+                  ><br /><span class="badge badge-p mt-1">Timed</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i class="bi bi-stars d-block mb-2" style="color: var(--a); font-size: 1.5rem"></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_3">Skill Evolution</small
+                  ><br /><span class="badge badge-a mt-1">Quality</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-pattern d-block mb-2"
+                    style="color: var(--ok); font-size: 1.5rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_4">Auto-Norm Learner</small
+                  ><br /><span class="badge badge-ok mt-1">Pattern</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="stat-l">Confidence Threshold</span
+              ><span class="badge badge-p">≥80%</span>
+            </div>
+            <div class="progress-gv mb-3"><div class="progress-bar" style="width: 80%"></div></div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="stat-l">Daily Limit</span><span class="badge badge-wn">5 / day</span>
+            </div>
+            <div class="progress-gv mb-3"><div class="progress-bar" style="width: 40%"></div></div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="stat-l">Rollback Degradation</span
+              ><span class="badge badge-er">&gt;15%</span>
+            </div>
+            <div class="progress-gv"><div class="progress-bar" style="width: 15%"></div></div>
+          </div>
+        </div>
+        <div class="col-12 mt-3">
+          <div class="section-card">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-lightning-charge d-block mb-2"
+                    style="color: var(--p); font-size: 1.2rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_5">trigger-manager</small>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-check2-circle d-block mb-2"
+                    style="color: var(--a); font-size: 1.2rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_6">safe-executor</small>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-arrow-counterclockwise d-block mb-2"
+                    style="color: var(--wn); font-size: 1.2rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_7">rollback-handler</small>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <i
+                    class="bi bi-file-earmark-text d-block mb-2"
+                    style="color: var(--ok); font-size: 1.2rem"
+                  ></i
+                  ><small class="fw-semibold" data-i18n="c_autonomy_8">report-generator</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 + 4: Circuit Breaker + Auto-Escalation -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--a)">
+            <i class="bi bi-shield-exclamation me-2"></i>3. Circuit Breaker API
+          </h2>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100 text-center">
+            <div class="stat-n mb-0" style="font-size: 2rem">
+              <span style="color: var(--ok)">CLOSED</span>
+            </div>
+            <div class="stat-l">Normal Operation</div>
+            <div
+              class="my-3"
+              style="
+                height: 2px;
+                background: linear-gradient(90deg, var(--ok), var(--wn), var(--er));
+              "
+            ></div>
+            <div class="stat-n mb-0" style="font-size: 2rem">
+              <span style="color: var(--er)">OPEN</span>
+            </div>
+            <div class="stat-l">Failure Threshold Exceeded</div>
+            <div
+              class="my-3"
+              style="
+                height: 2px;
+                background: linear-gradient(90deg, var(--er), var(--wn), var(--ok));
+              "
+            ></div>
+            <div class="stat-n mb-0" style="font-size: 2rem">
+              <span style="color: var(--wn)">HALF_OPEN</span>
+            </div>
+            <div class="stat-l">Testing Recovery</div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="stat-l">Fail Threshold</span
+              ><span class="mono" style="color: var(--p)">5</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="stat-l">Timeout</span
+              ><span class="mono" style="color: var(--p)">30s</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span class="stat-l">Stale Reset</span
+              ><span class="mono" style="color: var(--p)">300s</span>
+            </div>
+            <div style="background: var(--bg2); border-radius: 10px; padding: 0.75rem">
+              <small class="text-light fw-semibold" data-i18n="c_autonomy_9"
+                >Auto Transitions</small
+              >
+              <div class="mt-2">
+                <code style="color: var(--er); font-size: 0.8rem">OPEN</code>
+                <span style="color: #475569">→ (timeout) →</span>
+                <code style="color: var(--wn); font-size: 0.8rem">HALF_OPEN</code>
+                <span style="color: #475569">→ (success) →</span>
+                <code style="color: var(--ok); font-size: 0.8rem">CLOSED</code>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <i class="bi bi-shield-check" style="color: var(--ok); font-size: 2rem"></i>
+            <p class="card-text mt-2" data-i18n="c_autonomy_10">
+              Prevents cascading failures across the stack. When a service exceeds the failure
+              threshold, the circuit opens — blocking requests and allowing the system to recover
+              before resuming operations.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--wn)">
+            <i class="bi bi-exclamation-triangle me-2"></i>4. Auto-Escalation System
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100 text-center">
+            <div class="badge badge-wn mb-2">Warning</div>
+            <div class="stat-n mb-0">3</div>
+            <div class="stat-l">Events</div>
+            <p class="card-text mt-2 small" data-i18n="c_autonomy_11">
+              Protocol: monitoring alert, log entry, notification to operator
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100 text-center">
+            <div class="badge badge-er mb-2">Critical</div>
+            <div class="stat-n mb-0">5</div>
+            <div class="stat-l">Events</div>
+            <p class="card-text mt-2 small" data-i18n="c_autonomy_12">
+              Protocol: circuit breaker engagement, automated mitigation, escalation to on-call
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100 text-center">
+            <div class="badge badge-er mb-2" style="background: rgba(239, 68, 68, 0.25)">
+              Emergency
+            </div>
+            <div class="stat-n mb-0">10</div>
+            <div class="stat-l">Events</div>
+            <p class="card-text mt-2 small" data-i18n="c_autonomy_13">
+              Protocol: full system halt, human override required, post-mortem trigger
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Dynamic Dependency Graph -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--ok)">
+            <i class="bi bi-diagram-3 me-2"></i>5. Dynamic Dependency Graph
+          </h2>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <i class="bi bi-graph-up-arrow" style="color: var(--p); font-size: 1.8rem"></i>
+            <p class="card-text mt-2">
+              Replaces hardcoded dependency maps with a <strong>dynamic discovery</strong> system
+              that reads from pipeline config in real-time. Topological ordering ensures correct
+              execution sequence across all services.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="section-card h-100">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="stat-l">Discovery</span><span class="badge badge-p">Dynamic</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="stat-l">Ordering</span><span class="badge badge-a">Topological</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="stat-l">Source</span><span class="badge badge-ok">Pipeline Config</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. AB Testing -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--a)">
+            <i class="bi bi-bar-chart-line me-2"></i>6. AB Testing Framework
+          </h2>
+        </div>
+        <div class="col-lg-8">
+          <div class="section-card h-100">
+            <div class="row g-3">
+              <div class="col-md-3 col-6">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <code style="color: var(--p)">createExperiment</code>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <code style="color: var(--a)">assignVariant</code>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <code style="color: var(--ok)">evaluateExperiment</code>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="p-3 text-center" style="background: var(--bg2); border-radius: 10px">
+                  <code style="color: var(--wn)">auto-rollback</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <span class="badge badge-ok mb-2">Statistical Significance</span
+            ><span class="badge badge-wn">Auto Rollback</span>
+            <p class="card-text mt-2 small" data-i18n="c_autonomy_14">
+              Experiments are evaluated with statistical rigor. Negative results trigger automatic
+              rollback to the control variant.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Session Scoring -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--pl)">
+            <i class="bi bi-trophy me-2"></i>7. Session Scoring Auto-Compare
+          </h2>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <i class="bi bi-chat-dots" style="color: var(--p); font-size: 1.5rem"></i>
+            <div class="stat-n mt-2">42</div>
+            <div class="stat-l">Delegations</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <i class="bi bi-check-circle" style="color: var(--ok); font-size: 1.5rem"></i>
+            <div class="stat-n mt-2">18</div>
+            <div class="stat-l">Corrections</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <i class="bi bi-lightbulb" style="color: var(--a); font-size: 1.5rem"></i>
+            <div class="stat-n mt-2">7</div>
+            <div class="stat-l">Proactive Hits</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="section-card text-center">
+            <i class="bi bi-exclamation-diamond" style="color: var(--er); font-size: 1.5rem"></i>
+            <div class="stat-n mt-2">&gt;15%</div>
+            <div class="stat-l">Regression Detection</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Norms Learner -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--ok)">
+            <i class="bi bi-mortarboard me-2"></i>8. Norms Learner
+          </h2>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100 text-center">
+            <div class="stat-n">≥80%</div>
+            <div class="stat-l">Auto-Promote Confidence</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100 text-center">
+            <div class="stat-n">≥5</div>
+            <div class="stat-l">Min Occurrences</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="section-card h-100">
+            <span class="badge badge-er mb-2">Human Approval Required</span>
+            <p class="card-text small">
+              Architecture and security changes are <strong>blocked</strong> from auto-promotion and
+              always require human review.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Watchtower -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--er)">
+            <i class="bi bi-eye-fill me-2"></i>9. Watchtower
+            <span class="badge badge-ok" style="font-size: 0.6rem; vertical-align: middle"
+              >95/95</span
+            >
+          </h2>
+        </div>
+        <div class="col-lg-8">
+          <div class="section-card h-100">
+            <p class="card-text" data-i18n="c_autonomy_15">
+              95 health checks across 21 components with 6 operational modes. Scored 95/95 — all
+              systems operational.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <span class="badge badge-p">dashboard-ws</span
+              ><span class="badge badge-a">codegraph</span
+              ><span class="badge badge-ok">ml-embeddings</span
+              ><span class="badge badge-wn">engram</span><span class="badge badge-er">mcp</span
+              ><span class="badge badge-p">session</span><span class="badge badge-a">hooks</span
+              ><span class="badge badge-ok">configs</span
+              ><span class="badge badge-wn">tool-configs</span
+              ><span class="badge badge-er">security</span
+              ><span class="badge badge-p">cloud-connectors</span
+              ><span class="badge badge-a">tracing</span
+              ><span class="badge badge-ok">state-persistence</span
+              ><span class="badge badge-wn">audit</span
+              ><span class="badge badge-er">governance</span><span class="badge badge-p">gv-db</span
+              ><span class="badge badge-a">event-sourcing</span
+              ><span class="badge badge-ok">saga</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="section-card h-100">
+            <div><span class="stat-l">Modes</span></div>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span class="badge badge-p">health</span><span class="badge badge-a">rebuild</span
+              ><span class="badge badge-ok">report</span><span class="badge badge-wn">autoheal</span
+              ><span class="badge badge-er">continuous</span><span class="badge badge-p">all</span>
+            </div>
+            <hr style="border-color: var(--br)" />
+            <div><span class="stat-l">Score</span></div>
+            <div class="progress-gv mt-2"><div class="progress-bar" style="width: 100%"></div></div>
+            <small class="d-block mt-1 text-end" style="color: var(--ok)">95/95 — 100%</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Performance Optimizations -->
+      <div class="row mb-5 fade-in">
+        <div class="col-12">
+          <h2 class="fw-bold mb-3" style="color: var(--pl)">
+            <i class="bi bi-lightning-charge me-2"></i>10. Performance Optimizations
+          </h2>
+        </div>
+        <div class="col-md-3">
+          <div class="section-card h-100 text-center">
+            <i class="bi bi-cpu" style="color: var(--p); font-size: 1.5rem"></i>
+            <p class="card-text mt-2 small">
+              <strong>Parallel Execution</strong><br /><code class="mono">Promise.allSettled</code>
+              for watchtower checks
+            </p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="section-card h-100 text-center">
+            <i class="bi bi-database" style="color: var(--a); font-size: 1.5rem"></i>
+            <p class="card-text mt-2 small">
+              <strong>LRU Cache</strong><br /><code class="mono">Map(20, TTL 2000ms)</code>
+            </p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="section-card h-100 text-center">
+            <i class="bi bi-database-check" style="color: var(--ok); font-size: 1.5rem"></i>
+            <p class="card-text mt-2 small">
+              <strong>WAL Checkpoint</strong><br />Auto &gt;1MB trigger
+            </p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="section-card h-100 text-center">
+            <i class="bi bi-rocket" style="color: var(--wn); font-size: 1.5rem"></i>
+            <p class="card-text mt-2 small">
+              <strong>Lazy Batch Delay</strong><br />500ms → 100ms
+              <span class="badge badge-ok">5× faster</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagramas -->
+    <section class="fade-in" id="diagrams">
+      <div class="section-title">
+        <div class="display-4 mb-2">🖼️</div>
+        <h2 data-i18n="sec_diagrams">Diagrama — Executive Loop</h2>
+        <p data-i18n="c_autonomy_16">
+          Detection → Evaluation → Decision → Execution → Verification → Learning — el ciclo
+          continuo del Executive Layer. Pasa el cursor sobre los nodos para explorar cada etapa.
+        </p>
+      </div>
+      <div class="container" style="max-width: 1000px">
+        <img
+          src="diagrams/executive-loop.svg"
+          alt="Executive Autonomous Loop"
+          class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
+          loading="lazy"
+        />
+        <p class="text-secondary small mt-2 text-center">
+          <i class="bi bi-arrow-repeat me-1"></i>Executive loop con los 12 sistemas del Layer 6
+          coordinados vía event bus y Nexus DB.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

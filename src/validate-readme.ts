@@ -57,7 +57,11 @@ function findRepoRoot(): string | null {
   return null;
 }
 
-function testReadmeSection(content: string, sectionName: string, requiredPatterns: string[]): string[] {
+function testReadmeSection(
+  content: string,
+  sectionName: string,
+  requiredPatterns: string[],
+): string[] {
   const errors: string[] = [];
   for (const pattern of requiredPatterns) {
     if (!content.includes(pattern)) {
@@ -72,16 +76,33 @@ function getActualStats(root: string): ActualStats {
   const skillsDir = path.join(root, 'skills');
   if (fs.existsSync(skillsDir)) {
     try {
-      skills = fs.readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory()).length;
-    } catch { skills = 0; }
+      skills = fs
+        .readdirSync(skillsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory()).length;
+    } catch {
+      skills = 0;
+    }
+  }
+  // Include .opencode/skills (absorbed/community skills) in the total
+  const opencodeSkillsDir = path.join(root, '.opencode', 'skills');
+  if (fs.existsSync(opencodeSkillsDir)) {
+    try {
+      skills += fs
+        .readdirSync(opencodeSkillsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory()).length;
+    } catch {
+      /* ignore */
+    }
   }
 
   let workflows = 0;
   const workflowsDir = path.join(root, '.github', 'workflows');
   if (fs.existsSync(workflowsDir)) {
     try {
-      workflows = fs.readdirSync(workflowsDir).filter(f => f.endsWith('.yml')).length;
-    } catch { workflows = 0; }
+      workflows = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yml')).length;
+    } catch {
+      workflows = 0;
+    }
   }
 
   let tests = 0;
@@ -89,26 +110,52 @@ function getActualStats(root: string): ActualStats {
   if (fs.existsSync(testsDir)) {
     try {
       tests = walkFiles(testsDir, '.tests.ps1').length;
-    } catch { tests = 0; }
+    } catch {
+      tests = 0;
+    }
   }
 
   let agentCount = 0;
   let keywordMappings = 0;
-  const delegPath = path.join(root, 'config', 'auto-delegation.json');
-  if (fs.existsSync(delegPath)) {
+  // Prefer opencode.json agent registry (source of truth for agent count)
+  const opencodePath = path.join(root, 'opencode.json');
+  if (fs.existsSync(opencodePath)) {
     try {
-      const deleg = JSON.parse(fs.readFileSync(delegPath, 'utf-8'));
-      const routingProfiles = ['hallucinationGuardLevels', 'GITFLOW', 'SCRIPT'];
-      if (deleg.agentProfiles) {
-        agentCount = Object.keys(deleg.agentProfiles).filter(k => !routingProfiles.includes(k)).length + 1;
+      const oc = JSON.parse(fs.readFileSync(opencodePath, 'utf-8'));
+      if (oc.agent && typeof oc.agent === 'object') {
+        agentCount = Object.keys(oc.agent).length;
       }
-      if (deleg.keywordMappings) {
-        keywordMappings = Object.keys(deleg.keywordMappings).length;
+    } catch {
+      /* ignore */
+    }
+  }
+  // Fallback: auto-delegation.json agentProfiles (+1 for orchestrator)
+  if (agentCount === 0) {
+    const delegPath = path.join(root, 'config', 'auto-delegation.json');
+    if (fs.existsSync(delegPath)) {
+      try {
+        const deleg = JSON.parse(fs.readFileSync(delegPath, 'utf-8'));
+        const routingProfiles = ['hallucinationGuardLevels', 'GITFLOW', 'SCRIPT'];
+        if (deleg.agentProfiles) {
+          agentCount =
+            Object.keys(deleg.agentProfiles).filter((k) => !routingProfiles.includes(k)).length + 1;
+        }
+        if (deleg.keywordMappings) {
+          keywordMappings = Object.keys(deleg.keywordMappings).length;
+        }
+      } catch {
+        /* ignore */
       }
-    } catch { /* ignore */ }
+    }
   }
 
-  return { Skills: skills, Workflows: workflows, Tests: tests, Agents: agentCount, KeywordMappings: keywordMappings };
+  return {
+    Skills: skills,
+    Workflows: workflows,
+    Tests: tests,
+    Agents: agentCount,
+    KeywordMappings: keywordMappings,
+  };
 }
 
 function walkFiles(dir: string, ext: string): string[] {
@@ -132,16 +179,49 @@ function testPrivateReadme(filePath: string, actualStats: ActualStats): ReadmeRe
   const allWarnings: string[] = [];
 
   const mandatorySections: Record<string, string[]> = {
-    'Header': ['Gentle-Vanguard', 'img.shields.io/badge/Version', 'img.shields.io/badge/Agents', 'img.shields.io/badge/Skills'],
-    'What is Gentle-Vanguard': ['What is Gentle-Vanguard', 'Routes work', 'Enforces SDD', 'Persists memory', '```mermaid'],
-    'Architecture': ['Work Routing Ladder', 'Delegation Rules', '5-Layer Architecture', '```mermaid'],
-    'Agent Ecosystem': ['Orchestrator', 'BA', 'SAD', 'DEV', 'QA', 'OPS', 'GOV', 'DOC', 'Model Profile'],
-    'Key Capabilities': ['SDD', 'Review Workload Guard', 'Skill Registry', 'Chain-Delivery', 'Cross-Tool'],
+    Header: [
+      'Gentle-Vanguard',
+      'img.shields.io/badge/Version',
+      'img.shields.io/badge/Agents',
+      'img.shields.io/badge/Skills',
+    ],
+    'What is Gentle-Vanguard': [
+      'What is Gentle-Vanguard',
+      'Routes work',
+      'Enforces SDD',
+      'Persists memory',
+      '```mermaid',
+    ],
+    Architecture: ['Work Routing Ladder', 'Delegation Rules', '5-Layer Architecture', '```mermaid'],
+    'Agent Ecosystem': [
+      'Orchestrator',
+      'BA',
+      'SAD',
+      'DEV',
+      'QA',
+      'OPS',
+      'GOV',
+      'DOC',
+      'Model Profile',
+    ],
+    'Key Capabilities': [
+      'SDD',
+      'Review Workload Guard',
+      'Skill Registry',
+      'Chain-Delivery',
+      'Cross-Tool',
+    ],
     'Quick Start': ['git clone', 'session-autostart', 'gv verify'],
-    'Development': ['Invoke-Pester', 'gv verify', 'build'],
+    Development: ['Invoke-Pester', 'gv verify', 'build'],
     'CI/CD Pipeline': ['gentle-vanguard-quality-gate', 'test-suite', 'sync-public'],
     'Project Status': ['Configuration', 'Skills', 'Tests', 'Hooks', 'Structure'],
-    'Key Documentation': ['AGENTS.md', 'Delegation Rules', 'Model Routing', 'SDD Config', 'Skill Registry'],
+    'Key Documentation': [
+      'AGENTS.md',
+      'Delegation Rules',
+      'Model Routing',
+      'SDD Config',
+      'Skill Registry',
+    ],
   };
 
   for (const [section, patterns] of Object.entries(mandatorySections)) {
@@ -157,7 +237,9 @@ function testPrivateReadme(filePath: string, actualStats: ActualStats): ReadmeRe
   } else {
     const readmeAgents = parseInt(agentsMatch[1], 10);
     if (readmeAgents !== actualStats.Agents) {
-      allErrors.push(`STATS: README says ${readmeAgents} agents, actual count is ${actualStats.Agents}`);
+      allErrors.push(
+        `STATS: README says ${readmeAgents} agents, actual count is ${actualStats.Agents}`,
+      );
     }
   }
 
@@ -165,7 +247,9 @@ function testPrivateReadme(filePath: string, actualStats: ActualStats): ReadmeRe
   if (skillsMatch) {
     const readmeSkills = parseInt(skillsMatch[1], 10);
     if (readmeSkills !== actualStats.Skills) {
-      allErrors.push(`STATS: README says ${readmeSkills} skills, actual count is ${actualStats.Skills}`);
+      allErrors.push(
+        `STATS: README says ${readmeSkills} skills, actual count is ${actualStats.Skills}`,
+      );
     }
   }
 
@@ -173,7 +257,9 @@ function testPrivateReadme(filePath: string, actualStats: ActualStats): ReadmeRe
   if (wfMatch) {
     const readmeWf = parseInt(wfMatch[1], 10);
     if (readmeWf !== actualStats.Workflows) {
-      allErrors.push(`STATS: README says ${readmeWf} workflows, actual count is ${actualStats.Workflows}`);
+      allErrors.push(
+        `STATS: README says ${readmeWf} workflows, actual count is ${actualStats.Workflows}`,
+      );
     }
   }
 
@@ -186,7 +272,9 @@ function testPrivateReadme(filePath: string, actualStats: ActualStats): ReadmeRe
       if (versionMatch && badgeMatch && badgeMatch[1] !== versionMatch[1]) {
         allErrors.push(`VERSION: Badge says ${badgeMatch[1]}, CHANGELOG says ${versionMatch[1]}`);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   const mermaidMatches = content.match(/```mermaid/g);
@@ -209,18 +297,28 @@ function testPublicReadme(filePath: string, actualStats: ActualStats): ReadmeRes
   const allWarnings: string[] = [];
 
   const mandatorySections: Record<string, string[]> = {
-    'Header': ['Gentle-Vanguard', 'img.shields.io/badge/Version', 'img.shields.io/badge/Agents', 'img.shields.io/badge/Skills'],
+    Header: [
+      'Gentle-Vanguard',
+      'img.shields.io/badge/Version',
+      'img.shields.io/badge/Agents',
+      'img.shields.io/badge/Skills',
+    ],
     'What It Solves': ['What It Solves', 'Engram', 'SDD', 'judgment-day'],
-    'Architecture': ['```mermaid', '5-Layer Architecture'],
+    Architecture: ['```mermaid', '5-Layer Architecture'],
     'Agent Ecosystem': ['Orchestrator', 'BA', 'SAD', 'DEV', 'QA', 'Model Profile'],
-    'Key Features': ['Specialized Agents', 'On-Demand Skills', 'Persistent Engram Memory', 'Cost-Aware Model Router'],
+    'Key Features': [
+      'Specialized Agents',
+      'On-Demand Skills',
+      'Persistent Engram Memory',
+      'Cost-Aware Model Router',
+    ],
     'Skill Catalog': ['Frontend', 'Backend', 'DevOps', 'Security', 'Testing'],
     'Quick Install': ['git clone', 'bootstrap.ps1'],
-    'Requirements': ['PowerShell', 'Git'],
+    Requirements: ['PowerShell', 'Git'],
     'CI/CD Pipeline': ['gentle-vanguard-quality-gate', 'test-suite', 'sync-public'],
     'Defensive Patterns': ['repoRoot', 'UTF-8', 'ErrorActionPreference'],
-    'Security': ['AES-256', 'SECURITY.md'],
-    'Documentation': ['Getting Started', 'Architecture', 'INSTALLATION'],
+    Security: ['AES-256', 'SECURITY.md'],
+    Documentation: ['Getting Started', 'Architecture', 'INSTALLATION'],
   };
 
   for (const [section, patterns] of Object.entries(mandatorySections)) {
@@ -234,7 +332,9 @@ function testPublicReadme(filePath: string, actualStats: ActualStats): ReadmeRes
   if (agentsMatch) {
     const readmeAgents = parseInt(agentsMatch[1], 10);
     if (readmeAgents !== actualStats.Agents) {
-      allErrors.push(`STATS: README says ${readmeAgents} agents, actual count is ${actualStats.Agents}`);
+      allErrors.push(
+        `STATS: README says ${readmeAgents} agents, actual count is ${actualStats.Agents}`,
+      );
     }
   }
 
@@ -242,7 +342,9 @@ function testPublicReadme(filePath: string, actualStats: ActualStats): ReadmeRes
   if (skillsMatch) {
     const readmeSkills = parseInt(skillsMatch[1], 10);
     if (readmeSkills !== actualStats.Skills) {
-      allErrors.push(`STATS: README says ${readmeSkills} skills, actual count is ${actualStats.Skills}`);
+      allErrors.push(
+        `STATS: README says ${readmeSkills} skills, actual count is ${actualStats.Skills}`,
+      );
     }
   }
 
@@ -265,7 +367,9 @@ function main(): void {
   const repoRoot = findRepoRoot();
 
   if (!repoRoot) {
-    console.error('[ERROR] Cannot determine repo root. Set GENTLE_VANGUARD_BASE_DIR or run from repo directory.');
+    console.error(
+      '[ERROR] Cannot determine repo root. Set GENTLE_VANGUARD_BASE_DIR or run from repo directory.',
+    );
     process.exit(1);
   }
 
@@ -289,11 +393,15 @@ function main(): void {
       console.log('--- Private README (gentle-vanguard) ---');
       const result = testPrivateReadme(privateReadme, actualStats);
       if (result.Errors.length > 0) {
-        for (const e of result.Errors) { console.log(`  [ERROR] ${e}`); }
+        for (const e of result.Errors) {
+          console.log(`  [ERROR] ${e}`);
+        }
         errors.push(...result.Errors);
       }
       if (result.Warnings.length > 0) {
-        for (const w of result.Warnings) { console.log(`  [WARN]  ${w}`); }
+        for (const w of result.Warnings) {
+          console.log(`  [WARN]  ${w}`);
+        }
         warnings.push(...result.Warnings);
       }
       if (result.Errors.length === 0 && result.Warnings.length === 0) {
@@ -321,11 +429,15 @@ function main(): void {
       console.log('--- Public README (gentle-vanguard-public) ---');
       const result = testPublicReadme(publicReadme, actualStats);
       if (result.Errors.length > 0) {
-        for (const e of result.Errors) { console.log(`  [ERROR] ${e}`); }
+        for (const e of result.Errors) {
+          console.log(`  [ERROR] ${e}`);
+        }
         errors.push(...result.Errors);
       }
       if (result.Warnings.length > 0) {
-        for (const w of result.Warnings) { console.log(`  [WARN]  ${w}`); }
+        for (const w of result.Warnings) {
+          console.log(`  [WARN]  ${w}`);
+        }
         warnings.push(...result.Warnings);
       }
       if (result.Errors.length === 0 && result.Warnings.length === 0) {

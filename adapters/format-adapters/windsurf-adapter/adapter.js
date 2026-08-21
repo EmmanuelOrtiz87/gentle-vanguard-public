@@ -1,7 +1,7 @@
 /**
  * Windsurf Adapter
  * Converts Gentle-Vanguard skills to Windsurf plugin format
- * 
+ *
  * Windsurf uses a plugin system with:
  * - Plugin manifest (plugin.json)
  * - Instruction files (for AI context)
@@ -17,13 +17,13 @@ const path = require('path');
 function convertSkillToWindsurf(skillPath, outputDir) {
   const skillContent = fs.readFileSync(skillPath, 'utf-8');
   const parsed = parseSkillMarkdown(skillContent);
-  
+
   // Create plugin structure
   const pluginDir = path.join(outputDir, parsed.name);
   if (!fs.existsSync(pluginDir)) {
     fs.mkdirSync(pluginDir, { recursive: true });
   }
-  
+
   // Generate plugin.json (Windsurf manifest)
   const pluginManifest = {
     name: parsed.name,
@@ -31,21 +31,15 @@ function convertSkillToWindsurf(skillPath, outputDir) {
     description: parsed.description || `Gentle-Vanguard skill: ${parsed.name}`,
     triggers: parsed.triggers || [],
     author: 'Gentle-Vanguard',
-    gentle-vanguard: true
+    'gentle-vanguard': true,
   };
-  
-  fs.writeFileSync(
-    path.join(pluginDir, 'plugin.json'),
-    JSON.stringify(pluginManifest, null, 2)
-  );
-  
+
+  fs.writeFileSync(path.join(pluginDir, 'plugin.json'), JSON.stringify(pluginManifest, null, 2));
+
   // Generate instructions.md (Windsurf reads this for context)
   const instructions = generateWindsurfInstructions(parsed);
-  fs.writeFileSync(
-    path.join(pluginDir, 'instructions.md'),
-    instructions
-  );
-  
+  fs.writeFileSync(path.join(pluginDir, 'instructions.md'), instructions);
+
   console.log(`✓ Converted ${parsed.name} to Windsurf format: ${pluginDir}`);
   return pluginDir;
 }
@@ -58,16 +52,16 @@ function parseSkillMarkdown(content) {
     name: '',
     description: '',
     triggers: [],
-    content: ''
+    content: '',
   };
-  
+
   const startMarker = content.indexOf('---');
   if (startMarker >= 0) {
     const secondMarker = content.indexOf('---', startMarker + 3);
     if (secondMarker >= 0) {
       const frontMatter = content.substring(startMarker + 3, secondMarker);
       const restContent = content.substring(secondMarker + 3);
-      
+
       const lines = frontMatter.split('\n');
       for (const line of lines) {
         if (line.startsWith('name:')) {
@@ -76,14 +70,14 @@ function parseSkillMarkdown(content) {
           result.description = line.substring(12).trim();
         } else if (line.startsWith('trigger:')) {
           const triggerText = line.substring(8).trim();
-          result.triggers = triggerText.split(',').map(t => t.trim().replace(/"/g, ''));
+          result.triggers = triggerText.split(',').map((t) => t.trim().replace(/"/g, ''));
         }
       }
-      
+
       result.content = restContent.trim();
     }
   }
-  
+
   return result;
 }
 
@@ -95,7 +89,7 @@ function generateWindsurfInstructions(parsed) {
   instructions += `> Gentle-Vanguard Skill (converted for Windsurf)\n\n`;
   instructions += `## Description\n${parsed.description}\n\n`;
   instructions += `## Triggers\n`;
-  parsed.triggers.forEach(t => {
+  parsed.triggers.forEach((t) => {
     instructions += `- ${t}\n`;
   });
   instructions += `\n## Instructions\n${parsed.content}\n`;
@@ -106,27 +100,28 @@ function generateWindsurfInstructions(parsed) {
  * Generate windsurf.json config for project
  */
 function generateWindsurfConfig(skillsDir, outputPath) {
-  const files = fs.readdirSync(skillsDir)
-    .filter(f => f.endsWith('SKILL.md'))
-    .map(f => path.join(skillsDir, f));
-  
-  const plugins = files.map(file => {
+  const files = fs
+    .readdirSync(skillsDir)
+    .filter((f) => f.endsWith('SKILL.md'))
+    .map((f) => path.join(skillsDir, f));
+
+  const plugins = files.map((file) => {
     const parsed = parseSkillMarkdown(fs.readFileSync(file, 'utf-8'));
     return {
       name: parsed.name,
       path: `./.windsurf/plugins/${parsed.name}`,
-      enabled: true
+      enabled: true,
     };
   });
-  
+
   const config = {
     plugins: plugins,
     settings: {
-      enableGentle-VanguardSkills: true,
-      autoLoad: true
-    }
+      'enableGentle-VanguardSkills': true,
+      autoLoad: true,
+    },
   };
-  
+
   fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
   console.log(`✓ Generated windsurf.json: ${outputPath}`);
 }
@@ -135,7 +130,7 @@ function generateWindsurfConfig(skillsDir, outputPath) {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   if (command === 'convert-skill') {
     const skillPath = args[1] || 'SKILL.md';
     const outputDir = args[2] || '.windsurf/plugins';
@@ -161,6 +156,5 @@ Examples:
 
 module.exports = {
   convertSkillToWindsurf,
-  generateWindsurfConfig
+  generateWindsurfConfig,
 };
-

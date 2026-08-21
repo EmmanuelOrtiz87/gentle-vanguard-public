@@ -46,9 +46,7 @@ describe('MetricsCard', () => {
   });
 
   it('renders the icon with correct color class', () => {
-    const { container } = renderWithLocale(
-      <MetricsCard {...baseProps} color="green" />,
-    );
+    const { container } = renderWithLocale(<MetricsCard {...baseProps} color="green" />);
     const iconContainer = container.querySelector('.bg-green-50');
     expect(iconContainer).toBeTruthy();
   });

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Eval Quality Gate v1.0.0
+ * Eval Quality Gate
  * Quality gates for evaluation benchmarks
- * Part of Gentle-Vanguard v5.1
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -20,17 +20,25 @@ export class EvalQualityGate extends EventEmitter {
 
   private initializeDefaults(): void {
     this.benchmarks.set('latency', {
-      id: 'latency', name: 'Response Latency',
-      category: 'performance', baseline: 1000, threshold: 2000,
+      id: 'latency',
+      name: 'Response Latency',
+      category: 'performance',
+      baseline: 1000,
+      threshold: 2000,
     });
     this.benchmarks.set('accuracy', {
-      id: 'accuracy', name: 'Response Accuracy',
-      category: 'quality', baseline: 0.95, threshold: 0.85,
+      id: 'accuracy',
+      name: 'Response Accuracy',
+      category: 'quality',
+      baseline: 0.95,
+      threshold: 0.85,
     });
     this.gates.set('pre-deploy', {
-      id: 'pre-deploy', name: 'Pre-Deployment Gate',
+      id: 'pre-deploy',
+      name: 'Pre-Deployment Gate',
       benchmarks: ['latency', 'accuracy'],
-      status: 'pending', minScore: 0.8,
+      status: 'pending',
+      minScore: 0.8,
     });
   }
 
@@ -42,8 +50,11 @@ export class EvalQualityGate extends EventEmitter {
     const gate = this.gates.get(gateId);
     if (!gate) throw new Error('Gate not found');
     const report = {
-      timestamp: Date.now(), gateId,
-      overallScore: 0.85, status: 'passed', results: [],
+      timestamp: Date.now(),
+      gateId,
+      overallScore: 0.85,
+      status: 'passed',
+      results: [],
     };
     this.history.push(report);
     this.emit('evaluationCompleted', report);

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Deterministic Agent Test Framework
- * 
+ *
  * Based on gentle-ai's organic runtime E2E pattern.
- * 
+ *
  * This framework allows testing the orchestrator with a deterministic
  * "model fixture" that returns scripted responses instead of calling
  * a real LLM API. This makes tests:
@@ -11,12 +11,13 @@
  * - Offline (no network dependency)
  * - Deterministic (same sequence every time)
  * - Fast (milliseconds instead of seconds)
- * 
+ *
  * Usage:
  *   npx tsx src/deterministic-test-framework.ts --scenario <name>
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { pathToFileURL } from 'url';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join, resolve } from 'path';
 
@@ -60,7 +61,7 @@ const SCENARIOS: Record<string, TestScenario> = {
       },
     ],
   },
-  
+
   'delegated-direct': {
     name: 'delegated-direct',
     description: 'Test delegated_direct route without SDD lifecycle',
@@ -82,7 +83,7 @@ const SCENARIOS: Record<string, TestScenario> = {
       },
     ],
   },
-  
+
   'sdd-lifecycle': {
     name: 'sdd-lifecycle',
     description: 'Test full SDD lifecycle with BA→SAD→DEV→QA phases',
@@ -119,7 +120,7 @@ const SCENARIOS: Record<string, TestScenario> = {
       },
     ],
   },
-  
+
   'kill-switch': {
     name: 'kill-switch',
     description: 'Test that kill switch stops flow before advance',
@@ -157,7 +158,7 @@ class ModelFixture {
   start(): Promise<number> {
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => this.handleRequest(req, res));
-      
+
       this.server.listen(0, '127.0.0.1', () => {
         const addr = this.server?.address();
         if (addr && typeof addr === 'object') {
@@ -191,19 +192,19 @@ class ModelFixture {
     }
 
     let body = '';
-    req.on('data', chunk => body += chunk);
+    req.on('data', (chunk) => (body += chunk));
     req.on('end', () => {
       try {
         const request = JSON.parse(body);
         this.callCount++;
-        
+
         if (this.callCount > this.scenario.calls.length) {
           this.fail(res, `Unexpected call #${this.callCount}`);
           return;
         }
 
         const call = this.scenario.calls[this.callCount - 1];
-        
+
         // Validate request if validator exists
         if (call.validate) {
           const validation = call.validate(request);
@@ -219,28 +220,34 @@ class ModelFixture {
           object: 'chat.completion',
           created: Date.now(),
           model: 'fixture',
-          choices: [{
-            index: 0,
-            message: {
-              role: 'assistant',
-              content: null,
-              tool_calls: [{
-                id: `call-${this.callCount}`,
-                type: 'function',
-                function: {
-                  name: call.tool,
-                  arguments: JSON.stringify(call.response),
-                },
-              }],
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: 'assistant',
+                content: null,
+                tool_calls: [
+                  {
+                    id: `call-${this.callCount}`,
+                    type: 'function',
+                    function: {
+                      name: call.tool,
+                      arguments: JSON.stringify(call.response),
+                    },
+                  },
+                ],
+              },
+              finish_reason: 'tool_calls',
             },
-            finish_reason: 'tool_calls',
-          }],
+          ],
         };
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(response));
-        
-        console.log(`[FIXTURE] Call ${this.callCount}/${this.scenario.calls.length}: ${call.tool}.${call.action}`);
+
+        console.log(
+          `[FIXTURE] Call ${this.callCount}/${this.scenario.calls.length}: ${call.tool}.${call.action}`,
+        );
       } catch (err) {
         this.fail(res, `Parse error: ${err}`);
       }
@@ -283,7 +290,7 @@ async function runTest(scenarioName: string): Promise<boolean> {
   // Start fixture server
   const fixture = new ModelFixture(scenario);
   let port: number;
-  
+
   try {
     port = await fixture.start();
   } catch (err) {
@@ -308,10 +315,10 @@ async function runTest(scenarioName: string): Promise<boolean> {
   // Run the test (simulated - in real usage would call the orchestrator)
   console.log(`[TEST] Config written to: ${configPath}`);
   console.log(`[TEST] Model endpoint: ${testConfig.provider.fixture.baseURL}`);
-  
+
   // Simulate test execution
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
   // Stop fixture
   await fixture.stop();
 
@@ -322,7 +329,7 @@ async function runTest(scenarioName: string): Promise<boolean> {
 
   if (errors.length > 0) {
     console.error(`\n[TEST] FAILED with errors:`);
-    errors.forEach(e => console.error(`  - ${e}`));
+    errors.forEach((e) => console.error(`  - ${e}`));
     return false;
   }
 
@@ -336,7 +343,9 @@ async function runTest(scenarioName: string): Promise<boolean> {
 }
 
 // CLI
-const isMain = import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.includes('deterministic-test-framework');
+const isMain =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ||
+  process.argv[1]?.includes('deterministic-test-framework');
 
 if (isMain) {
   const args = process.argv.slice(2);
@@ -358,12 +367,14 @@ if (isMain) {
     process.exit(1);
   }
 
-  runTest(scenario).then(passed => {
-    process.exit(passed ? 0 : 1);
-  }).catch(err => {
-    console.error(`[TEST] Error: ${err}`);
-    process.exit(1);
-  });
+  runTest(scenario)
+    .then((passed) => {
+      process.exit(passed ? 0 : 1);
+    })
+    .catch((err) => {
+      console.error(`[TEST] Error: ${err}`);
+      process.exit(1);
+    });
 }
 
 export { runTest, SCENARIOS, ModelFixture };

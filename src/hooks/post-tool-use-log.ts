@@ -2,7 +2,7 @@
 
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { spawnSync } from 'child_process';
+import { runNpxTsxSync } from '../core/run-command.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -28,8 +28,8 @@ function main(): number {
   const repoRoot = join(__dirname, '..', '..');
   const { toolName, toolArgs, inputSummary, outputSummary } = parseArgs();
 
-  const autoScript = join(repoRoot, 'scripts', 'utilities', 'TOKEN', 'token-usage-auto.ps1');
-  const enrichScript = join(repoRoot, 'scripts', 'utilities', 'FINE-TUNING', 'session-enrich.ps1');
+  // TS migration: token-usage-auto.ps1 → src/token-usage-auto.ts
+  const autoScript = join(repoRoot, 'src', 'token-usage-auto.ts');
 
   if (!existsSync(autoScript)) {
     return 0;
@@ -38,38 +38,30 @@ function main(): number {
   const ctxChars = toolArgs ? Math.max(1, Math.floor(toolArgs.length * 1.5)) : 0;
   const turnLabel = toolName ? `tool:${toolName}` : 'auto-hook';
 
-  spawnSync(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-ExecutionPolicy', 'Bypass',
-      '-File', autoScript,
-      '-InputTokens', '0',
-      '-OutputTokens', '0',
-      '-ContextChars', String(ctxChars),
-      '-TurnLabel', turnLabel,
-      '-InputSummary', inputSummary,
-      '-OutputSummary', outputSummary,
-      '-Model', 'auto-detected',
-    ],
-    { encoding: 'utf-8', windowsHide: true, stdio: 'inherit' }
-  );
+  // Estimate tokens from context chars (fallback when real usage not provided).
+  const inputTokens = Math.max(0, Math.floor(ctxChars / 4));
+  const outputTokens = 0;
 
-  if (existsSync(enrichScript) && (inputSummary || outputSummary)) {
-    spawnSync(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-ExecutionPolicy', 'Bypass',
-        '-File', enrichScript,
-        '-TurnLabel', turnLabel,
-        '-InputSummary', inputSummary,
-        '-OutputSummary', outputSummary,
-        '-Silent',
-      ],
-      { encoding: 'utf-8', windowsHide: true, stdio: 'inherit' }
-    );
-  }
+  runNpxTsxSync(
+    autoScript,
+    [
+      '-InputTokens',
+      String(inputTokens),
+      '-OutputTokens',
+      String(outputTokens),
+      '-ContextChars',
+      String(ctxChars),
+      '-TurnLabel',
+      turnLabel,
+      '-InputSummary',
+      inputSummary,
+      '-OutputSummary',
+      outputSummary,
+      '-Model',
+      'auto-detected',
+    ],
+    { cwd: repoRoot, stdio: 'inherit' },
+  );
 
   return 0;
 }

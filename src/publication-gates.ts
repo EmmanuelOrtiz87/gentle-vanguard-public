@@ -25,7 +25,15 @@
  */
 
 import { createHash } from 'crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync, rmSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  statSync,
+  rmSync,
+} from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 
@@ -117,7 +125,9 @@ function computeHash(target: string): string {
         try {
           const s = statSync(entryPath);
           hash.update(`${entry}:${s.size}:${s.mtimeMs}`);
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       }
     }
     return hash.digest('hex').slice(0, 16);
@@ -130,11 +140,13 @@ function loadApprovals(config: PublicationGatesConfig): Approval[] {
   const dir = join(ROOT, config.outputDir);
   if (!existsSync(dir)) return [];
   const approvals: Approval[] = [];
-  const files = readdirSync(dir).filter(f => f.endsWith('.json'));
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json'));
   for (const file of files) {
     try {
       approvals.push(JSON.parse(readFileSync(join(dir, file), 'utf-8')));
-    } catch { /* skip corrupt */ }
+    } catch {
+      /* skip corrupt */
+    }
   }
   return approvals.sort((a, b) => b.approvedAt.localeCompare(a.approvedAt));
 }
@@ -155,7 +167,10 @@ function deleteApproval(config: PublicationGatesConfig, id: string): void {
 function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO', quiet: boolean) {
   if (quiet) return;
   const colors: Record<string, string> = {
-    INFO: '\x1b[36m', WARN: '\x1b[33m', ERROR: '\x1b[31m', SUCCESS: '\x1b[32m',
+    INFO: '\x1b[36m',
+    WARN: '\x1b[33m',
+    ERROR: '\x1b[31m',
+    SUCCESS: '\x1b[32m',
   };
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   console.log(`${colors[level] ?? ''}[${ts}] [${level}] ${msg}\x1b[0m`);
@@ -191,7 +206,11 @@ export function approveTarget(opts: {
   };
 
   saveApproval(config, approval);
-  log(`Approved ${opts.target} (${approval.id}) — expires ${expiresAt.toISOString()}`, 'SUCCESS', opts.quiet ?? false);
+  log(
+    `Approved ${opts.target} (${approval.id}) — expires ${expiresAt.toISOString()}`,
+    'SUCCESS',
+    opts.quiet ?? false,
+  );
   return approval;
 }
 
@@ -202,7 +221,7 @@ export function checkGate(target: string): GateCheck {
   const now = new Date();
 
   // Find the latest open approval for this target
-  const activeApprovals = approvals.filter(a => a.target === target && a.status === 'open');
+  const activeApprovals = approvals.filter((a) => a.target === target && a.status === 'open');
 
   if (activeApprovals.length === 0) {
     return {
@@ -239,7 +258,8 @@ export function checkGate(target: string): GateCheck {
 
   const details: string[] = [];
   if (isExpired) details.push(`Approval expired at ${latest.expiresAt}`);
-  if (isStale) details.push(`Target content changed since approval (hash: ${latest.hash} → ${currentHash})`);
+  if (isStale)
+    details.push(`Target content changed since approval (hash: ${latest.hash} → ${currentHash})`);
   if (!isExpired && !isStale) details.push('Gate is open — approval is valid');
 
   return {
@@ -255,10 +275,14 @@ export function checkGate(target: string): GateCheck {
   };
 }
 
-export function revokeApproval(target: string, reason: string, quiet = false): { success: boolean; approvals?: Approval[]; error?: string } {
+export function revokeApproval(
+  target: string,
+  reason: string,
+  quiet = false,
+): { success: boolean; approvals?: Approval[]; error?: string } {
   const config = loadConfig();
   const approvals = loadApprovals(config);
-  const targetApprovals = approvals.filter(a => a.target === target && a.status === 'open');
+  const targetApprovals = approvals.filter((a) => a.target === target && a.status === 'open');
 
   if (targetApprovals.length === 0) {
     return { success: false, error: `No active approvals found for: ${target}` };
@@ -282,7 +306,8 @@ export function pruneExpired(quiet = false): { removed: number } {
   let removed = 0;
 
   for (const a of approvals) {
-    const isOld = now.getTime() - new Date(a.approvedAt).getTime() > config.pruneAfterHours * 3600000;
+    const isOld =
+      now.getTime() - new Date(a.approvedAt).getTime() > config.pruneAfterHours * 3600000;
     if (a.status === 'expired' || a.status === 'revoked' || (a.status !== 'open' && isOld)) {
       deleteApproval(config, a.id);
       removed++;
@@ -295,7 +320,7 @@ export function pruneExpired(quiet = false): { removed: number } {
 
 export function listActiveApprovals(): Approval[] {
   const config = loadConfig();
-  return loadApprovals(config).filter(a => a.status === 'open');
+  return loadApprovals(config).filter((a) => a.status === 'open');
 }
 
 // ─── CLI Handler ───────────────────────────────────────────────────────
@@ -309,14 +334,33 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--check': action = 'check'; target = args[++i] ?? ''; break;
-      case '--approve': action = 'approve'; target = args[++i] ?? ''; break;
-      case '--revoke': action = 'revoke'; target = args[++i] ?? ''; break;
-      case '--list': action = 'list'; break;
-      case '--prune': action = 'prune'; break;
-      case '--gc': action = 'gc'; break;
-      case '--quiet': quiet = true; break;
-      case '--dry-run': dryRun = true; break;
+      case '--check':
+        action = 'check';
+        target = args[++i] ?? '';
+        break;
+      case '--approve':
+        action = 'approve';
+        target = args[++i] ?? '';
+        break;
+      case '--revoke':
+        action = 'revoke';
+        target = args[++i] ?? '';
+        break;
+      case '--list':
+        action = 'list';
+        break;
+      case '--prune':
+        action = 'prune';
+        break;
+      case '--gc':
+        action = 'gc';
+        break;
+      case '--quiet':
+        quiet = true;
+        break;
+      case '--dry-run':
+        dryRun = true;
+        break;
     }
   }
 
@@ -327,41 +371,79 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   switch (action) {
     case 'check': {
-      if (!target) { console.error('Provide target with --check <target>'); process.exit(1); }
+      if (!target) {
+        console.error('Provide target with --check <target>');
+        process.exit(1);
+      }
       const result = checkGate(target);
-      const icons: Record<string, string> = { open: '✅', closed: '🔴', expired: '🟡', stale: '🟠', revoked: '⛔' };
+      const icons: Record<string, string> = {
+        open: '✅',
+        closed: '🔴',
+        expired: '🟡',
+        stale: '🟠',
+        revoked: '⛔',
+      };
       console.log(`\n=== PUBLICATION GATE: ${target} ===`);
       console.log(`${icons[result.status] ?? '❓'} Status: ${result.status}`);
       console.log(`Detail: ${result.detail}`);
-      console.log(`Hash: ${result.currentHash}${result.isStale ? ` (was ${result.approvedHash})` : ''}`);
+      console.log(
+        `Hash: ${result.currentHash}${result.isStale ? ` (was ${result.approvedHash})` : ''}`,
+      );
       console.log(`Expires: ${result.expiresAt ?? 'N/A'}`);
       console.log(`Approved: ${result.approvedAt ?? 'N/A'}`);
       break;
     }
     case 'approve': {
-      if (!target) { console.error('Provide target with --approve <target>'); process.exit(1); }
+      if (!target) {
+        console.error('Provide target with --approve <target>');
+        process.exit(1);
+      }
       const approvedBy = args.includes('--by') ? args[args.indexOf('--by') + 1] : 'cli';
-      const reason = args.includes('--reason') ? args[args.indexOf('--reason') + 1] : 'CLI approval';
-      const ttl = args.includes('--ttl') ? parseInt(args[args.indexOf('--ttl') + 1], 10) : undefined;
-      const result = approveTarget({ target, targetType: 'file', approvedBy, reason, ttlMinutes: ttl, quiet });
+      const reason = args.includes('--reason')
+        ? args[args.indexOf('--reason') + 1]
+        : 'CLI approval';
+      const ttl = args.includes('--ttl')
+        ? parseInt(args[args.indexOf('--ttl') + 1], 10)
+        : undefined;
+      const result = approveTarget({
+        target,
+        targetType: 'file',
+        approvedBy,
+        reason,
+        ttlMinutes: ttl,
+        quiet,
+      });
       console.log(JSON.stringify(result, null, 2));
       break;
     }
     case 'revoke': {
-      if (!target) { console.error('Provide target with --revoke <target>'); process.exit(1); }
-      const reason = args.includes('--reason') ? args[args.indexOf('--reason') + 1] : 'CLI revocation';
+      if (!target) {
+        console.error('Provide target with --revoke <target>');
+        process.exit(1);
+      }
+      const reason = args.includes('--reason')
+        ? args[args.indexOf('--reason') + 1]
+        : 'CLI revocation';
       const result = revokeApproval(target, reason, quiet);
-      if (!result.success) { console.error(result.error); process.exit(1); }
+      if (!result.success) {
+        console.error(result.error);
+        process.exit(1);
+      }
       console.log(JSON.stringify(result.approvals, null, 2));
       break;
     }
     case 'list': {
       const approvals = listActiveApprovals();
-      if (approvals.length === 0) { console.log('No active approvals.'); break; }
+      if (approvals.length === 0) {
+        console.log('No active approvals.');
+        break;
+      }
       console.log('\n=== ACTIVE APPROVALS ===');
       for (const a of approvals) {
         const expiresIn = Math.round((new Date(a.expiresAt).getTime() - Date.now()) / 60000);
-        console.log(`${a.id} | ${a.target.slice(0, 40).padEnd(40)} | expires in ${expiresIn}min | ${a.approvedBy}`);
+        console.log(
+          `${a.id} | ${a.target.slice(0, 40).padEnd(40)} | expires in ${expiresIn}min | ${a.approvedBy}`,
+        );
       }
       break;
     }

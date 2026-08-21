@@ -34,9 +34,7 @@ describe('InfoPopup', () => {
     render(<InfoPopup info={mockInfo} onClose={mockOnClose} />);
     expect(screen.getByText("How it's calculated")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'Aggregated from .session/context-log/*/.state.json files.',
-      ),
+      screen.getByText('Aggregated from .session/context-log/*/.state.json files.'),
     ).toBeInTheDocument();
   });
 

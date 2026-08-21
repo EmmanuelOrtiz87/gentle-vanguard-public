@@ -31,7 +31,8 @@ export function ContractResultsPanel({ results, total }: ContractResultsPanelPro
       <div className="space-y-2 max-h-[280px] overflow-y-auto">
         {results.map((row, idx) => {
           const iconKey = row.id ?? idx;
-          const passed = row.result === 'pass' || row.result === 'valid' || row.result === 'success';
+          const passed =
+            row.result === 'pass' || row.result === 'valid' || row.result === 'success';
           return (
             <div
               key={iconKey}
@@ -65,12 +66,18 @@ export function ContractResultsPanel({ results, total }: ContractResultsPanelPro
                     <div className="h-1 flex-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          row.score >= 80 ? 'bg-emerald-400' : row.score >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                          row.score >= 80
+                            ? 'bg-emerald-400'
+                            : row.score >= 50
+                              ? 'bg-amber-400'
+                              : 'bg-red-400'
                         }`}
                         style={{ width: `${row.score}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{row.score}%</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                      {row.score}%
+                    </span>
                   </div>
                 )}
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">

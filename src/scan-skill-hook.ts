@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// This file is a module to avoid global scope conflicts
+export {};
 
 interface ScanSkillHookArgs {
   stagedFiles: string;
@@ -20,4 +22,4 @@ function main(): void {
   process.exit(0);
 }
 
-main();
+void main();

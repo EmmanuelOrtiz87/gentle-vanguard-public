@@ -19,10 +19,18 @@ const DEMO_DIR = join(ROOT, 'demos', '07-mixed-cookbook-real-request');
 const args = process.argv.slice(2);
 const skipPreflight = args.includes('--skip-preflight') || args.includes('-SkipPreflight');
 
-function step(msg: string): void { console.log(`\n=== ${msg} ===`); }
-function ok(msg: string): void { console.log(`[OK] ${msg}`); }
-function warn(msg: string): void { console.log(`[WARN] ${msg}`); }
-function info(msg: string): void { console.log(`[INFO] ${msg}`); }
+function step(msg: string): void {
+  console.log(`\n=== ${msg} ===`);
+}
+function ok(msg: string): void {
+  console.log(`[OK] ${msg}`);
+}
+function warn(msg: string): void {
+  console.log(`[WARN] ${msg}`);
+}
+function info(msg: string): void {
+  console.log(`[INFO] ${msg}`);
+}
 
 async function main(): Promise<void> {
   step('Demo 07 - Reset to Clean State');
@@ -51,10 +59,7 @@ async function main(): Promise<void> {
 
   // 2. Clean session-related runtime files
   step('Cleaning session data');
-  const sessionDirs = [
-    join(ROOT, '.session'),
-    join(ROOT, '.telemetry'),
-  ];
+  const sessionDirs = [join(ROOT, '.session'), join(ROOT, '.telemetry')];
   for (const dir of sessionDirs) {
     if (existsSync(dir)) {
       rmSync(dir, { recursive: true, force: true });
@@ -80,7 +85,7 @@ async function main(): Promise<void> {
   info('Demo environment is clean and ready.');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('FATAL:', err.message);
   process.exit(1);
 });

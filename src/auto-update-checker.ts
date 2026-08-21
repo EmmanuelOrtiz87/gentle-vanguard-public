@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * Auto-Update Checker
- * 
+ *
  * Checks for new releases from GitHub and provides update instructions.
  * Can be run manually or as part of the session autostart pipeline.
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 import * as https from 'https';
 
@@ -46,11 +47,11 @@ function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO')
 function getCurrentVersion(): string {
   const versionFile = join(ROOT, 'VERSION');
   const packageJson = join(ROOT, 'package.json');
-  
+
   if (existsSync(versionFile)) {
     return readFileSync(versionFile, 'utf-8').trim();
   }
-  
+
   if (existsSync(packageJson)) {
     try {
       const pkg = JSON.parse(readFileSync(packageJson, 'utf-8'));
@@ -59,7 +60,7 @@ function getCurrentVersion(): string {
       return '0.0.0';
     }
   }
-  
+
   return '0.0.0';
 }
 
@@ -74,7 +75,7 @@ function loadUpdateState(): UpdateState {
       releaseNotes: null,
     };
   }
-  
+
   try {
     return JSON.parse(readFileSync(UPDATE_STATE_FILE, 'utf-8'));
   } catch {
@@ -97,37 +98,41 @@ function saveUpdateState(state: UpdateState): void {
 
 function fetchLatestRelease(): Promise<GitHubRelease | null> {
   return new Promise((resolve) => {
-    const req = https.get(GITHUB_API, {
-      headers: {
-        'User-Agent': 'gentle-vanguard-auto-update',
-        'Accept': 'application/vnd.github.v3+json',
+    const req = https.get(
+      GITHUB_API,
+      {
+        headers: {
+          'User-Agent': 'gentle-vanguard-auto-update',
+          Accept: 'application/vnd.github.v3+json',
+        },
+        timeout: 10000,
       },
-      timeout: 10000,
-    }, (res) => {
-      if (res.statusCode !== 200) {
-        log(`GitHub API returned ${res.statusCode}`, 'WARN');
-        resolve(null);
-        return;
-      }
-      
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => {
-        try {
-          const release = JSON.parse(data) as GitHubRelease;
-          resolve(release);
-        } catch (err) {
-          log(`Failed to parse release JSON: ${err}`, 'ERROR');
+      (res) => {
+        if (res.statusCode !== 200) {
+          log(`GitHub API returned ${res.statusCode}`, 'WARN');
           resolve(null);
+          return;
         }
-      });
-    });
-    
+
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          try {
+            const release = JSON.parse(data) as GitHubRelease;
+            resolve(release);
+          } catch (err) {
+            log(`Failed to parse release JSON: ${err}`, 'ERROR');
+            resolve(null);
+          }
+        });
+      },
+    );
+
     req.on('error', (err) => {
       log(`Failed to fetch release: ${err.message}`, 'WARN');
       resolve(null);
     });
-    
+
     req.on('timeout', () => {
       req.destroy();
       log('Request timeout', 'WARN');
@@ -140,7 +145,7 @@ function compareVersions(current: string, latest: string): boolean {
   const parse = (v: string) => v.replace(/^v/, '').split('.').map(Number);
   const c = parse(current);
   const l = parse(latest);
-  
+
   for (let i = 0; i < Math.max(c.length, l.length); i++) {
     const cv = c[i] ?? 0;
     const lv = l[i] ?? 0;
@@ -153,28 +158,28 @@ function compareVersions(current: string, latest: string): boolean {
 async function checkForUpdates(force = false): Promise<UpdateState> {
   const state = loadUpdateState();
   const currentVersion = getCurrentVersion();
-  
+
   // Check if we should skip (checked within last hour)
   const lastCheck = new Date(state.lastCheck);
   const hoursSinceCheck = (Date.now() - lastCheck.getTime()) / (1000 * 60 * 60);
-  
+
   if (!force && hoursSinceCheck < 1) {
     log(`Skipping check (last check: ${hoursSinceCheck.toFixed(1)}h ago)`, 'INFO');
     return state;
   }
-  
+
   log(`Checking for updates (current: ${currentVersion})...`, 'INFO');
-  
+
   const release = await fetchLatestRelease();
-  
+
   if (!release) {
     log('Could not fetch latest release', 'WARN');
     return state;
   }
-  
+
   const latestVersion = release.tag_name;
   const updateAvailable = compareVersions(currentVersion, latestVersion);
-  
+
   const newState: UpdateState = {
     lastCheck: new Date().toISOString(),
     currentVersion,
@@ -183,27 +188,27 @@ async function checkForUpdates(force = false): Promise<UpdateState> {
     releaseUrl: release.html_url,
     releaseNotes: release.body,
   };
-  
+
   saveUpdateState(newState);
-  
+
   if (updateAvailable) {
     log(`Update available: ${currentVersion} → ${latestVersion}`, 'SUCCESS');
     log(`Release notes: ${release.html_url}`, 'INFO');
   } else {
     log(`Up to date (${currentVersion})`, 'INFO');
   }
-  
+
   return newState;
 }
 
 function showUpdateInstructions(): void {
   const state = loadUpdateState();
-  
+
   if (!state.updateAvailable) {
     log('No update available', 'INFO');
     return;
   }
-  
+
   console.log('\n╔════════════════════════════════════════════════════════════╗');
   console.log('║                    UPDATE AVAILABLE                        ║');
   console.log('╠════════════════════════════════════════════════════════════╣');
@@ -221,23 +226,29 @@ function showUpdateInstructions(): void {
 }
 
 // CLI usage
-const isMain = import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.includes('auto-update-checker');
+const isMain =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ||
+  process.argv[1]?.includes('auto-update-checker');
 
 if (isMain) {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const checkOnly = args.includes('--check-only');
-  
-  checkForUpdates(force).then((state) => {
-    if (!checkOnly && state.updateAvailable) {
-      showUpdateInstructions();
-    }
-    console.log(`\n[RESULT] Current: ${state.currentVersion}, Latest: ${state.latestVersion ?? 'unknown'}, Update available: ${state.updateAvailable}`);
-    process.exit(0);
-  }).catch((err) => {
-    log(`Error: ${err}`, 'ERROR');
-    process.exit(1);
-  });
+
+  checkForUpdates(force)
+    .then((state) => {
+      if (!checkOnly && state.updateAvailable) {
+        showUpdateInstructions();
+      }
+      console.log(
+        `\n[RESULT] Current: ${state.currentVersion}, Latest: ${state.latestVersion ?? 'unknown'}, Update available: ${state.updateAvailable}`,
+      );
+      process.exit(0);
+    })
+    .catch((err) => {
+      log(`Error: ${err}`, 'ERROR');
+      process.exit(1);
+    });
 }
 
 export { checkForUpdates, showUpdateInstructions, loadUpdateState };

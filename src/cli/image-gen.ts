@@ -44,13 +44,27 @@ function parseArgs(): GenArgs {
 
   for (let i = 0; i < raw.length; i++) {
     switch (raw[i]) {
-      case '--provider': provider = (raw[++i] || 'svc') as GenArgs['provider']; break;
-      case '--output': output = raw[++i] || ''; break;
-      case '--format': format = raw[++i] || ''; break;
-      case '--config': config = raw[++i] || ''; break;
-      case '--banner': banner = raw[++i] || ''; break;
-      case '--brand': brandConfig = raw[++i] || ''; break;
-      case '--json': json = true; break;
+      case '--provider':
+        provider = (raw[++i] || 'svc') as GenArgs['provider'];
+        break;
+      case '--output':
+        output = raw[++i] || '';
+        break;
+      case '--format':
+        format = raw[++i] || '';
+        break;
+      case '--config':
+        config = raw[++i] || '';
+        break;
+      case '--banner':
+        banner = raw[++i] || '';
+        break;
+      case '--brand':
+        brandConfig = raw[++i] || '';
+        break;
+      case '--json':
+        json = true;
+        break;
       default:
         if (!raw[i].startsWith('--')) promptParts.push(raw[i]);
     }
@@ -70,12 +84,16 @@ function parseArgs(): GenArgs {
 
 function generateSvg(args: GenArgs): string {
   // Read brand config for colors
-  let brand: Record<string, any> = { colors: { primary: '#3B82F6', secondary: '#8B5CF6', accent: '#10B981' } };
+  let brand: Record<string, any> = {
+    colors: { primary: '#3B82F6', secondary: '#8B5CF6', accent: '#10B981' },
+  };
   const brandPath = resolve(process.cwd(), args.brandConfig || 'config/brand.json');
   if (existsSync(brandPath)) {
     try {
       brand = JSON.parse(readFileSync(brandPath, 'utf8'));
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
   }
 
   const colors = brand.colors || {};
@@ -138,7 +156,11 @@ function generateSvg(args: GenArgs): string {
 }
 
 function escapeXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 async function callDalle(prompt: string): Promise<Buffer | null> {
@@ -153,7 +175,7 @@ async function callDalle(prompt: string): Promise<Buffer | null> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'dall-e-3',
@@ -169,7 +191,7 @@ async function callDalle(prompt: string): Promise<Buffer | null> {
       return null;
     }
 
-    const data = await response.json() as { data: { url: string }[] };
+    const data = (await response.json()) as { data: { url: string }[] };
     if (data.data?.[0]?.url) {
       const imgResponse = await fetch(data.data[0].url);
       return Buffer.from(await imgResponse.arrayBuffer());
@@ -188,16 +210,15 @@ async function callReplicate(prompt: string, model: 'stability' | 'flux'): Promi
     return null;
   }
 
-  const modelVersion = model === 'flux'
-    ? 'black-forest-labs/flux-1.1-pro'
-    : 'stability-ai/stable-diffusion-3';
+  const modelVersion =
+    model === 'flux' ? 'black-forest-labs/flux-1.1-pro' : 'stability-ai/stable-diffusion-3';
 
   try {
     const response = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
       },
       body: JSON.stringify({
         version: modelVersion,
@@ -211,17 +232,17 @@ async function callReplicate(prompt: string, model: 'stability' | 'flux'): Promi
       return null;
     }
 
-    const data = await response.json() as { urls?: { get?: string } };
+    const data = (await response.json()) as { urls?: { get?: string } };
     const getUrl = data.urls?.get;
     if (!getUrl) return null;
 
     // Poll for completion
     for (let attempt = 0; attempt < 30; attempt++) {
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       const statusResponse = await fetch(getUrl, {
-        headers: { 'Authorization': `Bearer ${apiToken}` },
+        headers: { Authorization: `Bearer ${apiToken}` },
       });
-      const status = await statusResponse.json() as { status?: string; output?: string[] };
+      const status = (await statusResponse.json()) as { status?: string; output?: string[] };
       if (status.status === 'succeeded' && status.output?.[0]) {
         const imgResponse = await fetch(status.output[0]);
         return Buffer.from(await imgResponse.arrayBuffer());
@@ -272,7 +293,9 @@ async function main(): Promise<void> {
 
   // Single mode
   if (!args.prompt) {
-    console.error('[IMAGE-GEN] Usage: npx tsx src/cli/image-gen.ts "prompt" [--provider dall-e|stability|flux|svg] [--output file.png]');
+    console.error(
+      '[IMAGE-GEN] Usage: npx tsx src/cli/image-gen.ts "prompt" [--provider dall-e|stability|flux|svg] [--output file.png]',
+    );
     process.exit(1);
   }
 
@@ -334,27 +357,30 @@ async function generateImage(args: GenArgs): Promise<boolean> {
   writeFileSync(fullPath, imageBuffer);
 
   if (args.json) {
-    console.log(JSON.stringify({
-      success: true,
-      path: fullPath,
-      format: finalFormat,
-      size: imageBuffer.length,
-      provider: args.provider,
-    }));
+    console.log(
+      JSON.stringify({
+        success: true,
+        path: fullPath,
+        format: finalFormat,
+        size: imageBuffer.length,
+        provider: args.provider,
+      }),
+    );
   } else {
-    console.log(`[IMAGE-GEN] ✅ Saved: ${fullPath} (${(imageBuffer.length / 1024).toFixed(1)} KB, ${finalFormat})`);
+    console.log(
+      `[IMAGE-GEN] ✅ Saved: ${fullPath} (${(imageBuffer.length / 1024).toFixed(1)} KB, ${finalFormat})`,
+    );
   }
 
   return true;
 }
 
 // CLI entry
-const isMain = process.argv[1] && (
-  process.argv[1].endsWith('image-gen.ts') ||
-  process.argv[1].endsWith('image-gen.js')
-);
+const isMain =
+  process.argv[1] &&
+  (process.argv[1].endsWith('image-gen.ts') || process.argv[1].endsWith('image-gen.js'));
 if (isMain) {
-  main().catch(err => {
+  main().catch((err) => {
     console.error('[IMAGE-GEN] Fatal error:', err);
     process.exit(1);
   });

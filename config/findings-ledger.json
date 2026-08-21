@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "description": "Findings Ledger — structured lifecycle for review findings with state transitions",
-  "enabled": true,
-  "outputDir": ".session/findings",
-  "autoArchiveDays": 90,
-  "maxFindingsPerSource": 500,
-  "requireEvidence": true
-}

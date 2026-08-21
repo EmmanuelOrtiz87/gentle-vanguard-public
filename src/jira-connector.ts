@@ -14,7 +14,7 @@
  *     --quiet         Minimal output
  */
 
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -33,7 +33,7 @@ function fetchFromJira(issueKey: string, baseUrl: string, token: string): any {
   try {
     const url = `${baseUrl}/rest/api/3/issue/${issueKey}`;
     const curlCmd = `curl -s -H "Authorization: Basic ${Buffer.from(`:${token}`).toString('base64')}" -H "Accept: application/json" "${url}"`;
-    const output = execSync(curlCmd, { encoding: 'utf-8', stdio: 'pipe' });
+    const output = runSyncShell(curlCmd, { stdio: 'pipe' }).stdout;
     return JSON.parse(output);
   } catch {
     return { error: 'Failed to fetch from JIRA API' };
@@ -45,8 +45,14 @@ function fetchFromJira(issueKey: string, baseUrl: string, token: string): any {
 const quiet = args.includes('--quiet');
 const issueKey = args.indexOf('--issue') >= 0 ? args[args.indexOf('--issue') + 1] : undefined;
 const outputPath = args.indexOf('--output') >= 0 ? args[args.indexOf('--output') + 1] : undefined;
-const baseUrl = args.indexOf('--base-url') >= 0 ? args[args.indexOf('--base-url') + 1] : process.env.JIRA_BASE_URL || 'https://your-domain.atlassian.net';
-const token = args.indexOf('--token') >= 0 ? args[args.indexOf('--token') + 1] : process.env.JIRA_API_TOKEN || '';
+const baseUrl =
+  args.indexOf('--base-url') >= 0
+    ? args[args.indexOf('--base-url') + 1]
+    : process.env.JIRA_BASE_URL || 'https://your-domain.atlassian.net';
+const token =
+  args.indexOf('--token') >= 0
+    ? args[args.indexOf('--token') + 1]
+    : process.env.JIRA_API_TOKEN || '';
 
 const result: ConnectorResult = {
   source: `jira:${issueKey || 'query'}`,

@@ -75,8 +75,8 @@ function verifyMCPBridge(): boolean {
 
   // Output results
   console.log('MCP Bridge Verification:');
-  checks.forEach(check => console.log(check));
-  
+  checks.forEach((check) => console.log(check));
+
   if (allOk) {
     console.log('Bridge status: OK');
     return true;

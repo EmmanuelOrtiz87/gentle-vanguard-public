@@ -5,7 +5,7 @@
  * TS migration of scripts/gentle-vanguard/engram-policy.ps1
  */
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { getExternalApiTimeouts } from './core/timeout-config';
 
@@ -22,11 +22,9 @@ function main(): void {
   const engramBin = process.env.ENGRAM_BIN || 'engram';
 
   try {
-    const version = execSync(`${engramBin} --version`, {
-      encoding: 'utf-8',
+    const version = runSync(engramBin, ['--version'], {
       timeout: getExternalApiTimeouts()?.engram_operation_ms ?? 5000,
-      windowsHide: true,
-    }).trim();
+    }).stdout.trim();
     log(`Engram available: ${version}`);
   } catch {
     log('Engram not available, skipping policy enforcement');
@@ -40,10 +38,8 @@ function main(): void {
   // Check Engram memory integrity
   log('Checking memory integrity...');
   try {
-    execSync(`${engramBin} doctor --project ${projectName}`, {
-      encoding: 'utf-8',
+    runSync(engramBin, ['doctor', '--project', projectName], {
       timeout: getExternalApiTimeouts()?.engram_operation_ms ?? 10000,
-      windowsHide: true,
     });
     log('Memory integrity verified');
   } catch {

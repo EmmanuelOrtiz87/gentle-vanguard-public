@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, appendFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { getEffectiveProcessTimeout } from './core/timeout-config';
 
 const ROOT = resolve(process.cwd());
@@ -81,6 +81,24 @@ const TRIGGERS: Record<string, (score: number) => boolean> = {
   SkillVersionMismatch: (s) => s < 55,
   EngineOverload: (s) => s < 50,
   MemoryFragmentation: (s) => s < 65,
+  ModelProviderUnsupported: () => {
+    // Trigger only when an unhealthy model is persisted in model-health state
+    try {
+      const healthPath = join(ROOT, '.runtime', 'model-health.json');
+      if (!existsSync(healthPath)) return false;
+      const health = JSON.parse(readFileSync(healthPath, 'utf-8'));
+      const models = health.models as
+        Record<string, { status?: string; cooldownUntil?: string }> | undefined;
+      if (!models) return false;
+      const now = Date.now();
+      return Object.values(models).some(
+        (m) =>
+          m.status === 'unhealthy' && m.cooldownUntil && new Date(m.cooldownUntil).getTime() > now,
+      );
+    } catch {
+      return false;
+    }
+  },
 };
 
 export function testRuleTrigger(rule: CorrectionRule, score: number): boolean {
@@ -177,7 +195,7 @@ function executeRule(rule: CorrectionRule, _score: number): CorrectionResult {
       case 'MemoryFragmentation': {
         const integrityScript = join(ROOT, 'src/engram-integrity-check.ts');
         if (existsSync(integrityScript)) {
-          spawnSync('npx', ['tsx', integrityScript, '-Mode', 'checksums', '-Quiet'], {
+          runNpxTsxSync(integrityScript, ['-Mode', 'checksums', '-Quiet'], {
             cwd: ROOT,
             stdio: 'pipe',
             timeout: getEffectiveProcessTimeout('default'),
@@ -185,6 +203,38 @@ function executeRule(rule: CorrectionRule, _score: number): CorrectionResult {
           result = { success: true, message: 'Memory corrected: regenerated Engram checksums' };
         } else {
           result = { success: false, reason: 'Engram integrity check not found' };
+        }
+        break;
+      }
+      case 'ModelProviderUnsupported': {
+        const healer = join(ROOT, 'src', 'model-provider-healer.ts');
+        if (existsSync(healer)) {
+          const res = runNpxTsxSync(healer, ['--quiet'], {
+            cwd: ROOT,
+            stdio: 'pipe',
+            timeout: getEffectiveProcessTimeout('default'),
+          });
+          const out = res.stdout;
+          let switched = false;
+          try {
+            const parsed = JSON.parse(
+              out
+                .split('\n')
+                .filter((l) => l.trim().startsWith('{'))
+                .join('\n'),
+            );
+            switched = parsed?.status === 'recovered' || parsed?.switched === true;
+          } catch {
+            /* ignore */
+          }
+          result = {
+            success: true,
+            message: switched
+              ? 'Provider model error corrected: auto-switched to native fallback'
+              : 'Provider model health checked: unhealthy models marked, active model OK',
+          };
+        } else {
+          result = { success: false, reason: 'model-provider-healer.ts not found' };
         }
         break;
       }
@@ -199,7 +249,7 @@ function executeRule(rule: CorrectionRule, _score: number): CorrectionResult {
       log(`Correction failed: ${result.reason}. Rolling back...`, 'WARN');
       if (rule.rollback) {
         try {
-          spawnSync('pwsh', ['-Command', rule.rollback], { cwd: ROOT, stdio: 'pipe' });
+          runSync('pwsh', ['-Command', rule.rollback], { cwd: ROOT, stdio: 'pipe' });
         } catch {
           log('Rollback failed', 'ERROR');
         }
@@ -370,7 +420,12 @@ export function invokeBoundedCorrection(
   // Check if already escalated
   if (state.escalated) {
     if (!quiet) log('Sweep already escalated — no more corrections will execute', 'WARN');
-    return { executed: false, results: [], sweepState: state, escalationReason: 'Already escalated' };
+    return {
+      executed: false,
+      results: [],
+      sweepState: state,
+      escalationReason: 'Already escalated',
+    };
   }
 
   // Check max sweeps
@@ -390,7 +445,8 @@ export function invokeBoundedCorrection(
 
   // Check if we already have enough consecutive passes
   if (state.consecutivePasses >= consecutivePassesRequired) {
-    if (!quiet) log(`${state.consecutivePasses} consecutive passes — no corrections needed`, 'SUCCESS');
+    if (!quiet)
+      log(`${state.consecutivePasses} consecutive passes — no corrections needed`, 'SUCCESS');
     return { executed: false, results: [], sweepState: state };
   }
 
@@ -400,7 +456,7 @@ export function invokeBoundedCorrection(
   const results = triggeredRules.map((r) => executeRule(r, score));
 
   // Determine if this sweep passed (no triggered rules or all successful)
-  const passed = triggeredRules.length === 0 || results.every(r => r.success);
+  const passed = triggeredRules.length === 0 || results.every((r) => r.success);
 
   // Update sweep state
   state.totalSweeps++;
@@ -419,7 +475,8 @@ export function invokeBoundedCorrection(
 
   // Check if we've reached consecutive passes required
   if (state.consecutivePasses >= consecutivePassesRequired) {
-    if (!quiet) log(`${state.consecutivePasses} consecutive passes — correction loop terminated`, 'SUCCESS');
+    if (!quiet)
+      log(`${state.consecutivePasses} consecutive passes — correction loop terminated`, 'SUCCESS');
   }
 
   // Check escalation
@@ -432,7 +489,11 @@ export function invokeBoundedCorrection(
   }
 
   saveSweepState(state);
-  if (!quiet) log(`Sweep ${state.totalSweeps}/${maxSweeps}: ${passed ? 'PASS' : 'FAIL'} (${state.consecutivePasses}/${consecutivePassesRequired} consecutive)`, passed ? 'SUCCESS' : 'WARN');
+  if (!quiet)
+    log(
+      `Sweep ${state.totalSweeps}/${maxSweeps}: ${passed ? 'PASS' : 'FAIL'} (${state.consecutivePasses}/${consecutivePassesRequired} consecutive)`,
+      passed ? 'SUCCESS' : 'WARN',
+    );
   return { executed: results.length > 0, results, sweepState: state };
 }
 
@@ -479,7 +540,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         invokeClear();
         break;
       case 'bounded':
-        console.log(JSON.stringify(invokeBoundedCorrection(sessionScore, { quiet: args.includes('-Quiet') }), null, 2));
+        console.log(
+          JSON.stringify(
+            invokeBoundedCorrection(sessionScore, { quiet: args.includes('-Quiet') }),
+            null,
+            2,
+          ),
+        );
         break;
       case 'reset':
         resetSweepState(args.includes('-Quiet'));

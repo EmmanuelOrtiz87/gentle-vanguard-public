@@ -39,7 +39,10 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
           return (
             <div key={skill.skillId} className="group">
               <div className="flex items-center justify-between text-xs mb-0.5">
-                <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[160px]" title={skill.skillId}>
+                <span
+                  className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[160px]"
+                  title={skill.skillId}
+                >
                   {skill.skillId}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">

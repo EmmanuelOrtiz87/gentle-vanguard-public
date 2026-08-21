@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Self-Reflection Loop v1.0.0
+ * Self-Reflection Loop
  * Meta-cognitive analysis and improvement suggestions
  * Continuous self-optimization through introspection
- * 
- * Part of Gentle-Vanguard v5.0 — Convergence Layer
+ *
+ * Part of Gentle-Vanguard  — Convergence Layer
  */
 
 import { EventEmitter } from 'events';
 
 interface ReflectionConfig {
-  reflectionInterval: number;    // Minutes between reflections
-  minObservations: number;        // Minimum observations before reflection
-  suggestionThreshold: number;    // Confidence threshold for suggestions
-  maxSuggestions: number;         // Maximum suggestions per reflection
+  reflectionInterval: number; // Minutes between reflections
+  minObservations: number; // Minimum observations before reflection
+  suggestionThreshold: number; // Confidence threshold for suggestions
+  maxSuggestions: number; // Maximum suggestions per reflection
 }
 
 interface PerformanceMetrics {
@@ -69,7 +69,7 @@ export class SelfReflectionLoop extends EventEmitter {
       suggestionThreshold: config.suggestionThreshold || 0.7,
       maxSuggestions: config.maxSuggestions || 5,
     };
-    
+
     this.startReflectionLoop();
   }
 
@@ -78,10 +78,12 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   public recordMetric(metric: PerformanceMetrics): void {
     this.metrics.push(metric);
-    
+
     // Trigger reflection if we have enough observations
-    if (this.metrics.length >= this.config.minObservations && 
-        this.metrics.length % this.config.minObservations === 0) {
+    if (
+      this.metrics.length >= this.config.minObservations &&
+      this.metrics.length % this.config.minObservations === 0
+    ) {
       this.triggerReflection();
     }
   }
@@ -91,16 +93,19 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   private startReflectionLoop(): void {
     if (this.reflectionTimer) return;
-    
-    this.reflectionTimer = setInterval(() => {
-      if (this.metrics.length >= this.config.minObservations) {
-        this.triggerReflection();
-      }
-    }, this.config.reflectionInterval * 60 * 1000);
-    
-    this.emit('loopStarted', { 
+
+    this.reflectionTimer = setInterval(
+      () => {
+        if (this.metrics.length >= this.config.minObservations) {
+          this.triggerReflection();
+        }
+      },
+      this.config.reflectionInterval * 60 * 1000,
+    );
+
+    this.emit('loopStarted', {
       timestamp: Date.now(),
-      interval: this.config.reflectionInterval 
+      interval: this.config.reflectionInterval,
     });
   }
 
@@ -115,16 +120,16 @@ export class SelfReflectionLoop extends EventEmitter {
     const now = Date.now();
     const periodStart = this.metrics[0].timestamp;
     const periodEnd = this.metrics[this.metrics.length - 1].timestamp;
-    
+
     // Analyze patterns
     const patterns = this.analyzePatterns();
-    
+
     // Generate suggestions
     const suggestions = this.generateSuggestions(patterns);
-    
+
     // Generate insights
     const insights = this.generateInsights(patterns);
-    
+
     // Create reflection
     const reflection: Reflection = {
       id: `reflection_${now}_${Math.random().toString(36).substr(2, 9)}`,
@@ -135,16 +140,16 @@ export class SelfReflectionLoop extends EventEmitter {
       suggestions,
       insights,
     };
-    
+
     this.reflections.push(reflection);
-    
+
     // Emit reflection event
     this.emit('reflection', reflection);
-    
+
     // Clear processed metrics (keep last 20% for continuity)
     const keepCount = Math.floor(this.metrics.length * 0.2);
     this.metrics = this.metrics.slice(-keepCount);
-    
+
     return reflection;
   }
 
@@ -153,19 +158,21 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   private analyzePatterns(): Pattern[] {
     const patterns: Pattern[] = [];
-    
+
     // Pattern 1: Success rate by task type
     const byTaskType = this.groupBy(this.metrics, 'taskType');
     for (const [taskType, metrics] of Object.entries(byTaskType)) {
-      const successRate = metrics.filter(m => m.success).length / metrics.length;
-      
+      const successRate = metrics.filter((m) => m.success).length / metrics.length;
+
       if (successRate > 0.9) {
         patterns.push({
           type: 'strength',
           description: `High success rate (${(successRate * 100).toFixed(1)}%) in ${taskType} tasks`,
           frequency: metrics.length,
           confidence: successRate,
-          examples: metrics.slice(0, 3).map(m => `${m.taskType}: ${m.success ? 'success' : 'failure'}`),
+          examples: metrics
+            .slice(0, 3)
+            .map((m) => `${m.taskType}: ${m.success ? 'success' : 'failure'}`),
         });
       } else if (successRate < 0.5) {
         patterns.push({
@@ -173,46 +180,45 @@ export class SelfReflectionLoop extends EventEmitter {
           description: `Low success rate (${(successRate * 100).toFixed(1)}%) in ${taskType} tasks`,
           frequency: metrics.length,
           confidence: 1 - successRate,
-          examples: metrics.filter(m => !m.success).slice(0, 3).map(m => 
-            `${m.taskType}: ${m.errorType || 'unknown error'}`
-          ),
+          examples: metrics
+            .filter((m) => !m.success)
+            .slice(0, 3)
+            .map((m) => `${m.taskType}: ${m.errorType || 'unknown error'}`),
         });
       }
     }
-    
+
     // Pattern 2: Token usage inefficiency
     const avgTokenUsage = this.metrics.reduce((a, m) => a + m.tokenUsage, 0) / this.metrics.length;
-    const highTokenTasks = this.metrics.filter(m => m.tokenUsage > avgTokenUsage * 1.5);
-    
+    const highTokenTasks = this.metrics.filter((m) => m.tokenUsage > avgTokenUsage * 1.5);
+
     if (highTokenTasks.length > this.metrics.length * 0.3) {
       patterns.push({
         type: 'inefficiency',
         description: `High token usage detected in ${highTokenTasks.length} tasks (>1.5x average)`,
         frequency: highTokenTasks.length,
         confidence: 0.8,
-        examples: highTokenTasks.slice(0, 3).map(m => 
-          `${m.taskType}: ${m.tokenUsage} tokens`
-        ),
+        examples: highTokenTasks.slice(0, 3).map((m) => `${m.taskType}: ${m.tokenUsage} tokens`),
       });
     }
-    
+
     // Pattern 3: Duration vs complexity
     const highDurationLowComplexity = this.metrics.filter(
-      m => m.complexity === 'low' && m.duration > 60000
+      (m) => m.complexity === 'low' && m.duration > 60000,
     );
-    
+
     if (highDurationLowComplexity.length > 3) {
       patterns.push({
         type: 'inefficiency',
         description: 'Simple tasks taking too long - potential optimization opportunity',
         frequency: highDurationLowComplexity.length,
         confidence: 0.75,
-        examples: highDurationLowComplexity.slice(0, 3).map(m => 
-          `${m.taskType}: ${(m.duration / 1000).toFixed(1)}s`
-        ),
+        examples: highDurationLowComplexity
+          .slice(0, 3)
+          .map((m) => `${m.taskType}: ${(m.duration / 1000).toFixed(1)}s`),
       });
     }
-    
+
     return patterns;
   }
 
@@ -221,10 +227,10 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   private generateSuggestions(patterns: Pattern[]): Suggestion[] {
     const suggestions: Suggestion[] = [];
-    
-    patterns.forEach(pattern => {
+
+    patterns.forEach((pattern) => {
       if (pattern.confidence < this.config.suggestionThreshold) return;
-      
+
       switch (pattern.type) {
         case 'failure':
           suggestions.push({
@@ -243,7 +249,7 @@ export class SelfReflectionLoop extends EventEmitter {
             ],
           });
           break;
-          
+
         case 'inefficiency':
           if (pattern.description.includes('token')) {
             suggestions.push({
@@ -279,7 +285,7 @@ export class SelfReflectionLoop extends EventEmitter {
             });
           }
           break;
-          
+
         case 'strength':
           suggestions.push({
             id: `sugg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -299,7 +305,7 @@ export class SelfReflectionLoop extends EventEmitter {
           break;
       }
     });
-    
+
     // Sort by priority and confidence, take top N
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     suggestions.sort((a, b) => {
@@ -307,7 +313,7 @@ export class SelfReflectionLoop extends EventEmitter {
       if (priorityDiff !== 0) return priorityDiff;
       return b.confidence - a.confidence;
     });
-    
+
     return suggestions.slice(0, this.config.maxSuggestions);
   }
 
@@ -316,27 +322,27 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   private generateInsights(patterns: Pattern[]): string[] {
     const insights: string[] = [];
-    
+
     // Calculate overall statistics
-    const successRate = this.metrics.filter(m => m.success).length / this.metrics.length;
+    const successRate = this.metrics.filter((m) => m.success).length / this.metrics.length;
     const avgDuration = this.metrics.reduce((a, m) => a + m.duration, 0) / this.metrics.length;
     const avgTokens = this.metrics.reduce((a, m) => a + m.tokenUsage, 0) / this.metrics.length;
-    
+
     insights.push(`Overall success rate: ${(successRate * 100).toFixed(1)}%`);
     insights.push(`Average task duration: ${(avgDuration / 1000).toFixed(1)}s`);
     insights.push(`Average token usage: ${avgTokens.toFixed(0)} tokens per task`);
-    
+
     // Add pattern-based insights
-    const failurePatterns = patterns.filter(p => p.type === 'failure');
+    const failurePatterns = patterns.filter((p) => p.type === 'failure');
     if (failurePatterns.length > 0) {
       insights.push(`Identified ${failurePatterns.length} areas needing improvement`);
     }
-    
-    const strengthPatterns = patterns.filter(p => p.type === 'strength');
+
+    const strengthPatterns = patterns.filter((p) => p.type === 'strength');
     if (strengthPatterns.length > 0) {
       insights.push(`Leveraging ${strengthPatterns.length} identified strengths`);
     }
-    
+
     return insights;
   }
 
@@ -344,8 +350,9 @@ export class SelfReflectionLoop extends EventEmitter {
    * Extract observations from metrics
    */
   private extractObservations(): string[] {
-    return this.metrics.map(m => 
-      `${m.taskType} (${m.complexity}): ${m.success ? 'completed' : 'failed'} in ${(m.duration / 1000).toFixed(1)}s`
+    return this.metrics.map(
+      (m) =>
+        `${m.taskType} (${m.complexity}): ${m.success ? 'completed' : 'failed'} in ${(m.duration / 1000).toFixed(1)}s`,
     );
   }
 
@@ -353,12 +360,15 @@ export class SelfReflectionLoop extends EventEmitter {
    * Group array by key
    */
   private groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
-    return array.reduce((result, item) => {
-      const groupKey = String(item[key]);
-      result[groupKey] = result[groupKey] || [];
-      result[groupKey].push(item);
-      return result;
-    }, {} as Record<string, T[]>);
+    return array.reduce(
+      (result, item) => {
+        const groupKey = String(item[key]);
+        result[groupKey] = result[groupKey] || [];
+        result[groupKey].push(item);
+        return result;
+      },
+      {} as Record<string, T[]>,
+    );
   }
 
   /**
@@ -380,15 +390,14 @@ export class SelfReflectionLoop extends EventEmitter {
    */
   public getSummary(): object {
     const total = this.metrics.length;
-    const successful = this.metrics.filter(m => m.success).length;
-    const avgDuration = total > 0 ? 
-      this.metrics.reduce((a, m) => a + m.duration, 0) / total : 0;
-    
+    const successful = this.metrics.filter((m) => m.success).length;
+    const avgDuration = total > 0 ? this.metrics.reduce((a, m) => a + m.duration, 0) / total : 0;
+
     return {
       totalTasks: total,
       successfulTasks: successful,
       failedTasks: total - successful,
-      successRate: total > 0 ? (successful / total) : 0,
+      successRate: total > 0 ? successful / total : 0,
       averageDuration: avgDuration,
       totalReflections: this.reflections.length,
       totalSuggestions: this.reflections.reduce((a, r) => a + r.suggestions.length, 0),
@@ -412,47 +421,51 @@ export const selfReflectionLoop = new SelfReflectionLoop();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Self-Reflection Loop v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.0 — Convergence Layer\n');
-  
+  console.log('Self-Reflection Loop ');
+  console.log('Part of Gentle-Vanguard  — Convergence Layer\n');
+
   const loop = new SelfReflectionLoop({
     reflectionInterval: 1, // 1 minute for demo
     minObservations: 5,
   });
-  
+
   loop.on('reflection', (reflection) => {
     console.log('\n' + '='.repeat(60));
     console.log('REFLECTION GENERATED');
     console.log('='.repeat(60));
     console.log(`ID: ${reflection.id}`);
-    console.log(`Period: ${new Date(reflection.period.start).toISOString()} - ${new Date(reflection.period.end).toISOString()}`);
+    console.log(
+      `Period: ${new Date(reflection.period.start).toISOString()} - ${new Date(reflection.period.end).toISOString()}`,
+    );
     console.log(`\nPatterns detected: ${reflection.patterns.length}`);
-    reflection.patterns.forEach(p => {
-      console.log(`  [${p.type.toUpperCase()}] ${p.description} (confidence: ${(p.confidence * 100).toFixed(0)}%)`);
+    reflection.patterns.forEach((p) => {
+      console.log(
+        `  [${p.type.toUpperCase()}] ${p.description} (confidence: ${(p.confidence * 100).toFixed(0)}%)`,
+      );
     });
-    
+
     console.log(`\nSuggestions: ${reflection.suggestions.length}`);
-    reflection.suggestions.forEach(s => {
+    reflection.suggestions.forEach((s) => {
       console.log(`  [${s.priority.toUpperCase()}] ${s.description}`);
       console.log(`    Expected impact: ${s.expectedImpact}`);
     });
-    
+
     console.log(`\nInsights:`);
-    reflection.insights.forEach(i => console.log(`  • ${i}`));
+    reflection.insights.forEach((i) => console.log(`  • ${i}`));
   });
-  
+
   // Simulate metrics
   console.log('Simulating performance metrics...\n');
-  
+
   const taskTypes = ['code-review', 'refactoring', 'documentation', 'testing'];
   const complexities: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
-  
+
   let count = 0;
   const interval = setInterval(() => {
     const taskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
     const complexity = complexities[Math.floor(Math.random() * complexities.length)];
     const success = Math.random() > 0.2; // 80% success rate
-    
+
     loop.recordMetric({
       timestamp: Date.now(),
       taskType,
@@ -462,11 +475,11 @@ if (require.main === module) {
       complexity,
       errorType: success ? undefined : 'timeout',
     });
-    
+
     count++;
     if (count >= 20) {
       clearInterval(interval);
-      
+
       setTimeout(() => {
         console.log('\n\n--- Final Summary ---');
         console.log(JSON.stringify(loop.getSummary(), null, 2));

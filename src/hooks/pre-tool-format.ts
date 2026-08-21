@@ -2,7 +2,7 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 import { extname, basename, dirname, join } from 'path';
 
 interface FormatCommand {
@@ -21,7 +21,15 @@ const FORMATTERS: Record<string, FormatterConfig> = {
   '.ps1': {
     name: 'PowerShell',
     formats: [
-      { cmd: 'pwsh', args: ['-NoProfile', '-Command', `Get-Content 'FILEPATH' | Out-String | Set-Content 'FILEPATH' -Encoding UTF8`], ext: '.ps1' },
+      {
+        cmd: 'pwsh',
+        args: [
+          '-NoProfile',
+          '-Command',
+          `Get-Content 'FILEPATH' | Out-String | Set-Content 'FILEPATH' -Encoding UTF8`,
+        ],
+        ext: '.ps1',
+      },
     ],
   },
   '.js': {
@@ -43,16 +51,12 @@ const FORMATTERS: Record<string, FormatterConfig> = {
   '.tsx': {
     name: 'React/TSX',
     checkFiles: ['package.json', 'tsconfig.json'],
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.tsx' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.tsx' }],
   },
   '.jsx': {
     name: 'React/JSX',
     checkFiles: ['package.json'],
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.jsx' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.jsx' }],
   },
   '.py': {
     name: 'Python',
@@ -73,47 +77,43 @@ const FORMATTERS: Record<string, FormatterConfig> = {
   '.rs': {
     name: 'Rust',
     checkFiles: ['Cargo.toml'],
-    formats: [
-      { cmd: 'rustfmt', args: ['FILEPATH'], ext: '.rs' },
-    ],
+    formats: [{ cmd: 'rustfmt', args: ['FILEPATH'], ext: '.rs' }],
   },
   '.java': {
     name: 'Java',
     checkFiles: ['pom.xml', 'build.gradle', 'gradlew'],
-    formats: [
-      { cmd: 'google-java-format', args: ['-i', 'FILEPATH'], ext: '.java' },
-    ],
+    formats: [{ cmd: 'google-java-format', args: ['-i', 'FILEPATH'], ext: '.java' }],
   },
   '.cs': {
     name: 'C#',
     checkFiles: ['*.sln', '*.csproj'],
-    formats: [
-      { cmd: 'dotnet', args: ['format', 'FILEPATH'], ext: '.cs' },
-    ],
+    formats: [{ cmd: 'dotnet', args: ['format', 'FILEPATH'], ext: '.cs' }],
   },
   '.json': {
     name: 'JSON',
     formats: [
-      { cmd: 'pwsh', args: ['-NoProfile', '-Command', `Get-Content 'FILEPATH' | ConvertFrom-Json | ConvertTo-Json -Depth 10 | Set-Content 'FILEPATH' -Encoding UTF8`], ext: '.json' },
+      {
+        cmd: 'pwsh',
+        args: [
+          '-NoProfile',
+          '-Command',
+          `Get-Content 'FILEPATH' | ConvertFrom-Json | ConvertTo-Json -Depth 10 | Set-Content 'FILEPATH' -Encoding UTF8`,
+        ],
+        ext: '.json',
+      },
     ],
   },
   '.md': {
     name: 'Markdown',
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.md' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.md' }],
   },
   '.yaml': {
     name: 'YAML',
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.yaml' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.yaml' }],
   },
   '.yml': {
     name: 'YAML',
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.yml' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.yml' }],
   },
   '.css': {
     name: 'CSS',
@@ -124,33 +124,35 @@ const FORMATTERS: Record<string, FormatterConfig> = {
   },
   '.html': {
     name: 'HTML',
-    formats: [
-      { cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.html' },
-    ],
+    formats: [{ cmd: 'npx', args: ['prettier', '--write', 'FILEPATH'], ext: '.html' }],
   },
   '.sql': {
     name: 'SQL',
-    formats: [
-      { cmd: 'npx', args: ['sqlformat', '--write', 'FILEPATH'], ext: '.sql' },
-    ],
+    formats: [{ cmd: 'npx', args: ['sqlformat', '--write', 'FILEPATH'], ext: '.sql' }],
   },
   '.sh': {
     name: 'Shell',
-    formats: [
-      { cmd: 'shfmt', args: ['-w', 'FILEPATH'], ext: '.sh' },
-    ],
+    formats: [{ cmd: 'shfmt', args: ['-w', 'FILEPATH'], ext: '.sh' }],
   },
 };
 
 function substitutePath(args: string[], filePath: string): string[] {
-  return args.map(a => a === 'FILEPATH' ? filePath : a);
+  return args.map((a) => (a === 'FILEPATH' ? filePath : a));
 }
 
 function checkConfigExists(dir: string, checkFiles: string[]): boolean {
   for (const check of checkFiles) {
     if (check.includes('*')) {
       const pattern = check.replace(/\.\*/g, '.*').replace(/\*/g, '');
-      const files = ['package.json', 'tsconfig.json', 'prettier.config.js', '.prettierrc', '.prettierrc.json', 'go.mod', 'Cargo.toml'];
+      const files = [
+        'package.json',
+        'tsconfig.json',
+        'prettier.config.js',
+        '.prettierrc',
+        '.prettierrc.json',
+        'go.mod',
+        'Cargo.toml',
+      ];
       for (const f of files) {
         if (f.includes(pattern.replace(/\./g, '')) || pattern === '.*') {
           if (existsSync(join(dir, f))) return true;
@@ -188,9 +190,7 @@ function invokeFormatter(filePath: string, formatter: FormatterConfig, dryRun: b
   for (const formatCmd of formatter.formats) {
     try {
       const args = substitutePath(formatCmd.args, filePath);
-      const result = spawnSync(formatCmd.cmd, args, {
-        encoding: 'utf-8',
-        windowsHide: true,
+      const result = runSync(formatCmd.cmd, args, {
         stdio: 'pipe',
       });
       if (result.status === 0 || result.status === null) {

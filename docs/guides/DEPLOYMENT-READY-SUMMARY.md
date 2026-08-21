@@ -266,25 +266,25 @@ cd gentle-vanguard
 
 ### 2. Install Hooks
 
-```powershell
+```TypeScript
 .\scripts\testing\setup-normalization-hooks.ps1
 ```
 
 ### 3. Run Optimizations
 
-```powershell
+```TypeScript
 .\scripts\utilities\optimize-performance.ps1 -Optimization all
 ```
 
 ### 4. Setup Monitoring
 
-```powershell
+```TypeScript
 .\scripts\utilities\setup-monitoring.ps1 -Component all
 ```
 
 ### 5. Verify Installation
 
-```powershell
+```TypeScript
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 ```
 

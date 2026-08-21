@@ -35,7 +35,7 @@ function fixOpenCodeJson(): void {
     if ('references' in config && config.references !== undefined) {
       delete config.references;
       fs.writeFileSync(filePath, JSON.stringify(config, null, 2), 'utf-8');
-      console.log('Corregido opencode.json: removida propiedad \'references\'');
+      console.log("Corregido opencode.json: removida propiedad 'references'");
     } else {
       console.log('[FIX-CONFIGS] opencode.json has no references property');
     }
@@ -54,9 +54,17 @@ function fixWindsurfConfig(): void {
     const raw = fs.readFileSync(filePath, 'utf-8');
     const config = JSON.parse(raw) as WindsurfConfig;
     const standardProps = [
-      'name', 'version', 'description', 'workspace', 'aiSettings',
-      'toolPermissions', 'contextManagement', 'cascade',
-      'preProcessing', 'sessionManagement', 'language',
+      'name',
+      'version',
+      'description',
+      'workspace',
+      'aiSettings',
+      'toolPermissions',
+      'contextManagement',
+      'cascade',
+      'preProcessing',
+      'sessionManagement',
+      'language',
     ] as const;
     const newConfig: WindsurfConfig = {};
     for (const prop of standardProps) {

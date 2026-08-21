@@ -41,7 +41,9 @@ export function LiveTraceFeed() {
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      items = items.filter((t) => t.id.toLowerCase().includes(q) || t.model.toLowerCase().includes(q));
+      items = items.filter(
+        (t) => t.id.toLowerCase().includes(q) || t.model.toLowerCase().includes(q),
+      );
     }
     return items;
   }, [traces, filter, search]);
@@ -52,11 +54,14 @@ export function LiveTraceFeed() {
     }
   }, [filtered.length, autoScroll]);
 
-  const filterCounts = useMemo(() => ({
-    all: traces.length,
-    active: traces.filter((t) => t.model && t.turnCount > 0).length,
-    completed: traces.filter((t) => !t.model || t.turnCount === 0).length,
-  }), [traces]);
+  const filterCounts = useMemo(
+    () => ({
+      all: traces.length,
+      active: traces.filter((t) => t.model && t.turnCount > 0).length,
+      completed: traces.filter((t) => !t.model || t.turnCount === 0).length,
+    }),
+    [traces],
+  );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
@@ -120,13 +125,21 @@ export function LiveTraceFeed() {
                 key={t.id}
                 className="flex items-center gap-2 px-2 py-1.5 rounded bg-blue-50 dark:bg-blue-900/10 text-xs hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors"
               >
-                <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[status] || 'bg-gray-400'} ${status === 'active' ? 'animate-pulse' : ''}`} />
-                <span className="font-mono text-gray-600 dark:text-gray-400 truncate min-w-0 flex-1" title={t.id}>
+                <span
+                  className={`w-2 h-2 rounded-full ${STATUS_COLORS[status] || 'bg-gray-400'} ${status === 'active' ? 'animate-pulse' : ''}`}
+                />
+                <span
+                  className="font-mono text-gray-600 dark:text-gray-400 truncate min-w-0 flex-1"
+                  title={t.id}
+                >
                   {t.id.length > 20 ? `${t.id.slice(0, 20)}...` : t.id}
                 </span>
                 <span className="text-gray-500 whitespace-nowrap">{t.turnCount} turns</span>
                 <span className="text-gray-400 ml-auto hidden sm:inline">{t.model}</span>
-                <span className="text-gray-400 whitespace-nowrap" title={new Date(t.timestamp).toLocaleString()}>
+                <span
+                  className="text-gray-400 whitespace-nowrap"
+                  title={new Date(t.timestamp).toLocaleString()}
+                >
                   {timeAgo(t.timestamp)}
                 </span>
               </div>

@@ -4,7 +4,7 @@
  * TS migration of scripts/utilities/lefthook-verify.ps1
  */
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
@@ -15,7 +15,7 @@ function main(): number {
   // Check if lefthook is installed
   let lefthookVersion: string | null = null;
   try {
-    const output = execSync('lefthook version', { encoding: 'utf-8', timeout: 5000, windowsHide: true });
+    const output = runSync('lefthook', ['version'], { timeout: 5000 }).stdout;
     lefthookVersion = output.trim();
   } catch {
     console.log('lefthook is not installed — hooks will not run');

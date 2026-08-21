@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * CI Rollback Engine v1.0.0
+ * CI Rollback Engine
  * Self-healing CI/CD with automatic rollback
- * Part of Gentle-Vanguard v5.1
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -105,9 +105,9 @@ export class CIRollbackEngine extends EventEmitter {
     const deps = Array.from(this.deployments.values());
     return {
       totalDeployments: deps.length,
-      successful: deps.filter(d => d.status === 'success').length,
-      failed: deps.filter(d => d.status === 'failed').length,
-      rolledback: deps.filter(d => d.status === 'rolledback').length,
+      successful: deps.filter((d) => d.status === 'success').length,
+      failed: deps.filter((d) => d.status === 'failed').length,
+      rolledback: deps.filter((d) => d.status === 'rolledback').length,
       autoRollbackEnabled: this.config.autoRollback,
     };
   }

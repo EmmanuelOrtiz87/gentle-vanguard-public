@@ -37,14 +37,20 @@ interface VerifyIssue {
 const ROOT = process.cwd();
 let dbPath = path.join(ROOT, '.runtime', 'hashline-db.json');
 
-const EXTENSIONS = /\.(ps1|psm1|psd1|ts|tsx|js|jsx|json|yml|yaml|md|css|scss|html|cs|go|py|rs|java|kt|swift)$/;
-const EXCLUDE_DIRS = /\\node_modules\\|\\\.git\\|\\dist\\|\\\.runtime\\|\\coverage\\|\\\.engram-data\\|\\session\\|\\\.event-bus\\|\\deprecated\\|\\tools\\/;
+const EXTENSIONS =
+  /\.(ps1|psm1|psd1|ts|tsx|js|jsx|json|yml|yaml|md|css|scss|html|cs|go|py|rs|java|kt|swift)$/;
+const EXCLUDE_DIRS =
+  /\\node_modules\\|\\\.git\\|\\dist\\|\\\.runtime\\|\\coverage\\|\\\.engram-data\\|\\session\\|\\\.event-bus\\|\\deprecated\\|\\tools\\/;
 
 function log(msg: string, color?: string, quiet?: boolean) {
   if (quiet) return;
   const colors: Record<string, string> = {
-    red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m',
-    cyan: '\x1b[36m', gray: '\x1b[90m', white: '\x1b[37m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    cyan: '\x1b[36m',
+    gray: '\x1b[90m',
+    white: '\x1b[37m',
   };
   const reset = '\x1b[0m';
   console.log(`${(color ? colors[color] : '') || ''}${msg}${reset}`);
@@ -132,7 +138,10 @@ function actionInit(targetPath?: string, quiet?: boolean, asJson?: boolean) {
   const files = targetPath
     ? (() => {
         const stat = fs.statSync(targetPath, { throwIfNoEntry: false });
-        if (!stat) { log('[ERROR] Path not found: ' + targetPath, 'red', quiet); process.exit(1); }
+        if (!stat) {
+          log('[ERROR] Path not found: ' + targetPath, 'red', quiet);
+          process.exit(1);
+        }
         return stat.isDirectory() ? walkDir(targetPath) : [targetPath];
       })()
     : walkDir(ROOT);
@@ -188,8 +197,10 @@ function actionVerify(filePath: string, fix?: boolean, quiet?: boolean, asJson?:
       const currentHash = getLineHash(currentLine);
       if (currentHash !== storedLine.hash) {
         issues.push({
-          line: lineNum, type: 'modified',
-          stored_hash: storedLine.hash, current_hash: currentHash,
+          line: lineNum,
+          type: 'modified',
+          stored_hash: storedLine.hash,
+          current_hash: currentHash,
           stored_preview: storedLine.content_preview,
           current_preview: makePreview(currentLine),
         });
@@ -231,9 +242,13 @@ function actionVerify(filePath: string, fix?: boolean, quiet?: boolean, asJson?:
   }
 
   if (asJson) {
-    console.log(JSON.stringify({
-      status: issues.length === 0 ? 'ok' : 'issues', path: relPath, issues,
-    }));
+    console.log(
+      JSON.stringify({
+        status: issues.length === 0 ? 'ok' : 'issues',
+        path: relPath,
+        issues,
+      }),
+    );
   }
 }
 
@@ -262,7 +277,8 @@ function actionUpdate(filePath: string, quiet?: boolean, asJson?: boolean) {
   };
   writeDb(db);
   log(`[HASHLINE] Updated: ${relPath} (${lines.length} lines)`, 'green', quiet);
-  if (asJson) console.log(JSON.stringify({ status: 'updated', path: relPath, lines: lines.length }));
+  if (asJson)
+    console.log(JSON.stringify({ status: 'updated', path: relPath, lines: lines.length }));
 }
 
 function actionStatus(quiet?: boolean, asJson?: boolean) {
@@ -275,7 +291,8 @@ function actionStatus(quiet?: boolean, asJson?: boolean) {
     totalHashes += Object.keys(db.files[key].line_hashes).length;
   }
   const dbSize = fs.existsSync(dbPath)
-    ? `${(fs.statSync(dbPath).size / 1024).toFixed(2)} KB` : '0 KB';
+    ? `${(fs.statSync(dbPath).size / 1024).toFixed(2)} KB`
+    : '0 KB';
 
   log('=== HASHLINE STATUS ===', 'cyan', quiet);
   log(`  Database: ${dbPath} (${dbSize})`, 'gray', quiet);
@@ -286,11 +303,18 @@ function actionStatus(quiet?: boolean, asJson?: boolean) {
   log(`  Last init: ${db.last_init}`, 'gray', quiet);
 
   if (asJson) {
-    console.log(JSON.stringify({
-      status: 'active', version: db.version, files_tracked: fileCount,
-      total_lines: totalLines, total_hashes: totalHashes,
-      database: dbPath, created: db.created, last_init: db.last_init,
-    }));
+    console.log(
+      JSON.stringify({
+        status: 'active',
+        version: db.version,
+        files_tracked: fileCount,
+        total_lines: totalLines,
+        total_hashes: totalHashes,
+        database: dbPath,
+        created: db.created,
+        last_init: db.last_init,
+      }),
+    );
   }
 }
 
@@ -313,12 +337,24 @@ function parseArgs() {
   const result: Record<string, string | boolean | undefined> = { action: 'status' };
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--action': result.action = args[++i] || 'status'; break;
-      case '--file': result.file = args[++i] || ''; break;
-      case '--storage': result.storage = args[++i]; break;
-      case '--fix': result.fix = true; break;
-      case '--json': result.asJson = true; break;
-      case '--quiet': result.quiet = true; break;
+      case '--action':
+        result.action = args[++i] || 'status';
+        break;
+      case '--file':
+        result.file = args[++i] || '';
+        break;
+      case '--storage':
+        result.storage = args[++i];
+        break;
+      case '--fix':
+        result.fix = true;
+        break;
+      case '--json':
+        result.asJson = true;
+        break;
+      case '--quiet':
+        result.quiet = true;
+        break;
     }
   }
   return result;
@@ -338,11 +374,22 @@ function main() {
       actionInit(cli.file as string | undefined, cli.quiet as boolean, cli.asJson as boolean);
       break;
     case 'verify':
-      if (!cli.file) { log('[ERROR] --file required for verify', 'red', cli.quiet as boolean); process.exit(1); }
-      actionVerify(cli.file as string, cli.fix as boolean, cli.quiet as boolean, cli.asJson as boolean);
+      if (!cli.file) {
+        log('[ERROR] --file required for verify', 'red', cli.quiet as boolean);
+        process.exit(1);
+      }
+      actionVerify(
+        cli.file as string,
+        cli.fix as boolean,
+        cli.quiet as boolean,
+        cli.asJson as boolean,
+      );
       break;
     case 'update':
-      if (!cli.file) { log('[ERROR] --file required for update', 'red', cli.quiet as boolean); process.exit(1); }
+      if (!cli.file) {
+        log('[ERROR] --file required for update', 'red', cli.quiet as boolean);
+        process.exit(1);
+      }
       actionUpdate(cli.file as string, cli.quiet as boolean, cli.asJson as boolean);
       break;
     case 'status':

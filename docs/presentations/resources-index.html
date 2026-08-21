@@ -1,0 +1,2710 @@
+<!doctype html>
+<html lang="es" class="gv-document-page" data-bs-theme="dark">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Gentle-Vanguard CMS — Panel de Control de Marketing — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gentle-Vanguard CMS — Panel de Control de Marketing</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      /* ===== PANEL DE CONTROL PRINCIPAL ===== */
+      .control-panel {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+        gap: 0;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background: var(--bg2);
+        border-right: 1px solid var(--br-soft);
+        padding: 1.5rem;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--br-soft);
+      }
+      .sidebar-logo .icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--p), var(--a));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+      }
+      .sidebar-logo h1 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2;
+      }
+      .sidebar-logo span {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+
+      .nav-section {
+        margin-bottom: 1.5rem;
+      }
+      .nav-section h3 {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-faint);
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-dim);
+        margin-bottom: 0.35rem;
+      }
+      .nav-item:hover,
+      .nav-item.active {
+        background: oklch(0.8 0.14 210 / 0.1);
+        color: var(--p);
+      }
+      .nav-item.active {
+        border-left: 3px solid var(--p);
+      }
+      .nav-item i {
+        font-size: 1rem;
+        width: 24px;
+        text-align: center;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 2rem;
+        max-width: 1200px;
+      }
+      .content-section {
+        display: none;
+      }
+      .content-section.active {
+        display: block;
+      }
+
+      /* ===== CHAT/AGENT INTERFACE ===== */
+      .chat-panel {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-lg);
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+      }
+      .chat-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--br-soft);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .chat-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--ok);
+      }
+      .chat-status::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: var(--ok);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+      }
+      .chat-message {
+        margin-bottom: 1rem;
+        max-width: 80%;
+      }
+      .chat-message.user {
+        margin-left: auto;
+      }
+      .chat-message.agent {
+        margin-right: auto;
+      }
+      .chat-message .bubble {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .chat-message.user .bubble {
+        background: var(--p);
+        color: #0a0e1a;
+      }
+      .chat-message.agent .bubble {
+        background: var(--bg2);
+        border: 1px solid var(--br-soft);
+      }
+      .chat-input {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--br-soft);
+        display: flex;
+        gap: 0.75rem;
+      }
+      .chat-input input {
+        flex: 1;
+        background: var(--bg);
+        border: 1px solid var(--br-soft);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+      .chat-input input:focus {
+        outline: none;
+        border-color: var(--p);
+      }
+
+      /* Quick Actions */
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .action-card {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .action-card:hover {
+        border-color: var(--p);
+        transform: translateY(-2px);
+      }
+      .action-card h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+      .action-card p {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin: 0;
+      }
+
+      /* Generation Forms */
+      .gen-form {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-lg);
+        padding: 1.5rem;
+      }
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text);
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--br-soft);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+      .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--p);
+      }
+
+      /* Preview Area */
+      .preview-area {
+        background: var(--bg);
+        border: 2px dashed var(--br);
+        border-radius: var(--r-md);
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1.5rem;
+        position: relative;
+      }
+      .preview-area.has-content {
+        border-style: solid;
+        border-color: var(--p);
+      }
+      .preview-area canvas,
+      .preview-area svg {
+        max-width: 100%;
+        max-height: 500px;
+      }
+      .preview-actions {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      /* Downloads Manager */
+      .downloads-list {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+      }
+      .download-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--br-soft);
+        transition: background 0.2s;
+      }
+      .download-item:last-child {
+        border-bottom: none;
+      }
+      .download-item:hover {
+        background: oklch(0.8 0.14 210 / 0.05);
+      }
+      .download-item .info {
+        flex: 1;
+      }
+      .download-item .name {
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      .download-item .meta {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+      .download-item .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      .download-item .status.ready {
+        background: oklch(0.75 0.15 155 / 0.2);
+        color: var(--ok);
+      }
+      .download-item .status.processing {
+        background: oklch(0.8 0.15 75 / 0.2);
+        color: var(--wn);
+      }
+
+      /* Stats Dashboard */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: var(--card);
+        border: 1px solid var(--br-soft);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        text-align: center;
+      }
+      .stat-card .value {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--p), var(--a));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .stat-card .label {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin-top: 0.25rem;
+      }
+
+      /* Process Steps */
+      .process-steps {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+      .step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+      }
+      .step::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background: var(--br);
+        z-index: 0;
+      }
+      .step:last-child::after {
+        display: none;
+      }
+      .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg2);
+        border: 2px solid var(--br);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+      }
+      .step.active .step-number {
+        background: var(--p);
+        border-color: var(--p);
+        color: #0a0e1a;
+      }
+      .step.completed .step-number {
+        background: var(--ok);
+        border-color: var(--ok);
+        color: #0a0e1a;
+      }
+      .step-label {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+
+      @media (max-width: 1024px) {
+        .control-panel {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+      }
+    </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body class="grain">
+<nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="scroll-progress"></div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="control-panel">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="icon">⚡</div>
+          <div>
+            <h1>Gentle-Vanguard</h1>
+            <span>CMS de Marketing</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <h3>Principal</h3>
+          <div class="nav-item active" data-section="dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="nav-item" data-section="agent">
+            <i class="bi bi-robot"></i>
+            <span>Asistente IA</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <h3>Generar Contenido</h3>
+          <div class="nav-item" data-section="images">
+            <i class="bi bi-image"></i>
+            <span>Imágenes</span>
+          </div>
+          <div class="nav-item" data-section="videos">
+            <i class="bi bi-film"></i>
+            <span>Videos</span>
+          </div>
+          <div class="nav-item" data-section="social">
+            <i class="bi bi-share"></i>
+            <span>Redes Sociales</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <h3>Gestión</h3>
+          <div class="nav-item" data-section="downloads">
+            <i class="bi bi-download"></i>
+            <span>Descargas</span>
+          </div>
+          <div class="nav-item" data-section="contracts">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Contratos</span>
+          </div>
+          <div class="nav-item" data-section="products">
+            <i class="bi bi-box"></i>
+            <span>Productos</span>
+          </div>
+          <div class="nav-item" data-section="content-ops">
+            <i class="bi bi-kanban"></i>
+            <span>Content Ops</span>
+          </div>
+        </div>
+
+        <div class="nav-section" style="margin-top: auto">
+          <h3>Sistema</h3>
+          <div class="nav-item" data-section="settings">
+            <i class="bi bi-gear"></i>
+            <span>Configuración</span>
+          </div>
+          <a href="index.html" class="nav-item">
+            <i class="bi bi-arrow-left"></i>
+            <span>Volver al Sitio</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Dashboard Section -->
+        <section class="content-section active" id="dashboard">
+          <h2><i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i>Dashboard</h2>
+          <p class="text-secondary mb-4">Panel de control del sistema de marketing nativo.</p>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="value" id="stat-images">0</div>
+              <div class="label">Imágenes Generadas</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-videos">0</div>
+              <div class="label">Videos Generados</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-posts">0</div>
+              <div class="label">Posts Creados</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-contracts">2</div>
+              <div class="label">Contratos Disponibles</div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <div class="action-card" onclick="navigateTo('images')">
+              <h4><i class="bi bi-image me-2"></i>Generar Imagen</h4>
+              <p>Crear banners, thumbnails, carousels para redes sociales</p>
+            </div>
+            <div class="action-card" onclick="navigateTo('videos')">
+              <h4><i class="bi bi-film me-2"></i>Generar Video</h4>
+              <p>Crear demos, tutoriales y visualizaciones de arquitectura</p>
+            </div>
+            <div class="action-card" onclick="navigateTo('social')">
+              <h4><i class="bi bi-share me-2"></i>Crear Post</h4>
+              <p>Generar contenido para LinkedIn, Twitter, Instagram</p>
+            </div>
+            <div class="action-card" onclick="navigateTo('agent')">
+              <h4><i class="bi bi-robot me-2"></i>Pedir Ayuda</h4>
+              <p>Consultar con el asistente de marketing</p>
+            </div>
+          </div>
+
+          <h4 class="mb-3">Proceso de Trabajo</h4>
+          <div class="process-steps">
+            <div class="step active">
+              <div class="step-number">1</div>
+              <div class="step-label">Seleccionar</div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-label">Configurar</div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-label">Generar</div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-label">Descargar</div>
+            </div>
+          </div>
+
+          <div
+            class="alert"
+            style="
+              background: oklch(0.8 0.14 210 / 0.1);
+              border: 1px solid oklch(0.8 0.14 210 / 0.2);
+              border-radius: 8px;
+              padding: 1rem;
+            "
+          >
+            <i class="bi bi-info-circle me-2" style="color: var(--p)"></i>
+            <strong>Sistema 100% Local:</strong> Todo el procesamiento se realiza en tu navegador.
+            No se envían datos a servidores externos.
+          </div>
+        </section>
+
+        <!-- AI Agent Section -->
+        <section class="content-section" id="agent">
+          <h2><i class="bi bi-robot me-2" style="color: var(--p)"></i>Asistente de Marketing</h2>
+          <p class="text-secondary mb-4">
+            Agente nativo que ayuda con estrategia, contenido y planificación.
+          </p>
+
+          <div class="chat-panel">
+            <div class="chat-header">
+              <div class="d-flex align-items-center gap-2">
+                <div
+                  style="
+                    width: 40px;
+                    height: 40px;
+                    background: linear-gradient(135deg, var(--p), var(--a));
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.25rem;
+                  "
+                >
+                  🤖
+                </div>
+                <div>
+                  <div style="font-weight: 600">Marketing Assistant</div>
+                  <div class="chat-status">Online — Operando localmente</div>
+                </div>
+              </div>
+              <div style="margin-left: auto">
+                <select
+                  id="agent-lang"
+                  class="form-select"
+                  style="
+                    width: auto;
+                    background: var(--bg);
+                    border: 1px solid var(--br-soft);
+                    color: var(--text);
+                    font-size: 0.85rem;
+                  "
+                >
+                  <option value="es">🇪🇸 Español</option>
+                  <option value="en">🇬🇧 English</option>
+                  <option value="pt">🇧🇷 Português</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+              <!-- Welcome message loaded automatically -->
+            </div>
+
+            <div class="chat-input">
+              <input
+                type="text"
+                id="chat-input"
+                placeholder="Escribe tu consulta... (ej: 'Crear un post sobre Doc-Gentle')"
+              />
+              <button class="btn-gv" onclick="sendMessage()">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h4>Acciones Rápidas</h4>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <button class="btn-gv-alt" onclick="quickAsk('Crear post de lanzamiento')">
+                <i class="bi bi-rocket me-1"></i>Post de lanzamiento
+              </button>
+              <button class="btn-gv-alt" onclick="quickAsk('Generar imagen para Twitter')">
+                <i class="bi bi-image me-1"></i>Imagen Twitter
+              </button>
+              <button class="btn-gv-alt" onclick="quickAsk('Video demo del stack')">
+                <i class="bi bi-film me-1"></i>Video demo
+              </button>
+              <button class="btn-gv-alt" onclick="quickAsk('Explicar modelo de precios')">
+                <i class="bi bi-currency-dollar me-1"></i>Modelo de precios
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Images Section - Image Studio -->
+        <section class="content-section" id="images">
+          <h2><i class="bi bi-image me-2" style="color: var(--p)"></i>Image Studio</h2>
+          <p class="text-secondary mb-4">
+            Generador de imágenes 100% nativo - Alternativa local a herramientas cloud como
+            nano-banana.
+          </p>
+
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div
+                class="p-3 rounded"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    rgba(34, 211, 238, 0.1) 0%,
+                    rgba(167, 139, 250, 0.1) 100%
+                  );
+                  border: 1px solid var(--bg2);
+                "
+              >
+                <h5 style="color: var(--p); margin-bottom: 0.75rem">
+                  <i class="bi bi-stars me-2"></i>
+                  ✨ Generación Nativa de Imágenes
+                </h5>
+                <p class="text-secondary mb-2" style="font-size: 0.875rem">
+                  Sin APIs, sin costos, sin registro. Algoritmos procedurales ejecutándose
+                  localmente en tu navegador:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-grid-3x3 me-1"></i>Grids Futuristas
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-circle me-1"></i>Partículas
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-water me-1"></i>Ondas Abstractas
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-diagram-3 me-1"></i>Network Graphs
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-shapes me-1"></i>Geométrico
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex flex-column gap-2 h-100 justify-content-center">
+                <button
+                  class="btn-gv"
+                  onclick="window.open('image-studio.html', '_blank', 'width=1400,height=900')"
+                  style="font-size: 1rem; padding: 1rem 1.5rem"
+                >
+                  <i class="bi bi-rocket-takeoff me-2"></i>
+                  Abrir Image Studio
+                </button>
+                <div class="text-center" style="font-size: 0.75rem; color: var(--text-faint)">
+                  <i class="bi bi-shield-check me-1" style="color: var(--a)"></i>
+                  100% Offline • Sin APIs • Sin Costos
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--p)">
+                  <i class="bi bi-brush me-2"></i>Estilos Predefinidos
+                </h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Neo Cyberpunk
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Minimal Clean
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Gradient Flow
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Dark Tech
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Geometric
+                  </li>
+                  <li><i class="bi bi-check2" style="color: var(--a)"></i> Organic</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--s)">
+                  <i class="bi bi-download me-2"></i>Exportar Formatos
+                </h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2"><i class="bi bi-image me-1"></i> PNG (con transparencia)</li>
+                  <li class="mb-2"><i class="bi bi-file-image me-1"></i> JPG (comprimido)</li>
+                  <li class="mb-2"><i class="bi bi-filetype-webp me-1"></i> WebP (moderno)</li>
+                  <li class="mb-2"><i class="bi bi-vector-pen me-1"></i> SVG (vector)</li>
+                  <li><i class="bi bi-file-code me-1"></i> CSS/SCSS (code)</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--a)"><i class="bi bi-cpu me-2"></i>Features</h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2"><i class="bi bi-infinity me-1"></i> Generación ilimitada</li>
+                  <li class="mb-2"><i class="bi bi-eye-slash me-1"></i> 100% privado</li>
+                  <li class="mb-2"><i class="bi bi-wifi-off me-1"></i> Funciona offline</li>
+                  <li class="mb-2"><i class="bi bi-lightning me-1"></i> Instantáneo</li>
+                  <li><i class="bi bi-gear me-1"></i> Totalmente configurable</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 p-3 rounded"
+            style="background: var(--bg0); border: 1px dashed var(--bg2)"
+          >
+            <h6 style="color: var(--text-dim); margin-bottom: 0.75rem">
+              <i class="bi bi-terminal me-2"></i>Ejemplos de Prompts
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openStudioWithPrompt('Banner futurista con neón cian y grid de perspectiva')
+                "
+              >
+                "Banner futurista con neón..." <i class="bi bi-arrow-right-short"></i>
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="openStudioWithPrompt('Fondo orgánico con partículas flotantes de colores')"
+              >
+                "Fondo orgánico con partículas..." <i class="bi bi-arrow-right-short"></i>
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="openStudioWithPrompt('Diagrama de red con nodos brillantes y conexiones')"
+              >
+                "Diagrama de red con nodos..." <i class="bi bi-arrow-right-short"></i>
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="openStudioWithPrompt('Ondas abstractas degradado cian a púrpura')"
+              >
+                "Ondas abstractas degradado..." <i class="bi bi-arrow-right-short"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Videos Section - Video Studio -->
+        <section class="content-section" id="videos">
+          <h2><i class="bi bi-film me-2" style="color: var(--p)"></i>Video Studio</h2>
+          <p class="text-secondary mb-4">
+            Generador de video 100% nativo - Animaciones procedurales sin APIs externas.
+          </p>
+
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div
+                class="p-3 rounded"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    rgba(34, 211, 238, 0.1) 0%,
+                    rgba(167, 139, 250, 0.1) 100%
+                  );
+                  border: 1px solid var(--bg2);
+                "
+              >
+                <h5 style="color: var(--p); margin-bottom: 0.75rem">
+                  <i class="bi bi-film me-2"></i>
+                  🎬 Generación Nativa de Video
+                </h5>
+                <p class="text-secondary mb-2" style="font-size: 0.875rem">
+                  Crea videos animados offline con algoritmos Canvas 2D procedurales:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-grid-3x3 me-1"></i>10+ Animaciones
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-water me-1"></i>6 Generadores
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-timeline me-1"></i>Timeline Visual
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-filetype-gif me-1"></i>Export GIF
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-images me-1"></i>Frames PNG
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex flex-column gap-2 h-100 justify-content-center">
+                <button
+                  class="btn-gv"
+                  onclick="window.open('video-studio.html', '_blank', 'width=1600,height=900')"
+                  style="font-size: 1rem; padding: 1rem 1.5rem"
+                >
+                  <i class="bi bi-rocket-takeoff me-2"></i>
+                  Abrir Video Studio
+                </button>
+                <div class="text-center" style="font-size: 0.75rem; color: var(--text-faint)">
+                  <i class="bi bi-shield-check me-1" style="color: var(--a)"></i>
+                  100% Offline • Sin APIs • Sin Costos
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--p)">
+                  <i class="bi bi-bounding-box-circles me-2"></i>Generadores
+                </h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Futuristic Grid
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Partículas Orgánicas
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Ondas Abstractas
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Network Graph
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Geométrico
+                  </li>
+                  <li><i class="bi bi-check2" style="color: var(--a)"></i> Gradiente</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--s)"><i class="bi bi-activity me-2"></i>Animaciones</h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Zoom In/Out
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Pan (4 direcciones)
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Fade In/Out
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Rotate 360°
+                  </li>
+                  <li class="mb-2"><i class="bi bi-check2" style="color: var(--a)"></i> Pulse</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--a)"><i class="bi bi-download me-2"></i>Export</h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2"><i class="bi bi-image me-1"></i> Frames PNG secuencia</li>
+                  <li class="mb-2"><i class="bi bi-filetype-gif me-1"></i> GIF animado</li>
+                  <li class="mb-2"><i class="bi bi-camera-video me-1"></i> WebM/MP4 (WebCodecs)</li>
+                  <li class="mb-2"><i class="bi bi-timeline me-1"></i> Timeline con preview</li>
+                  <li><i class="bi bi-keyboard me-1"></i> Atajos de teclado</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 p-3 rounded"
+            style="background: var(--bg0); border: 1px dashed var(--bg2)"
+          >
+            <h6 style="color: var(--text-dim); margin-bottom: 0.75rem">
+              <i class="bi bi-terminal me-2"></i>Ejemplos Rápidos
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openVideoStudioWithConfig({
+                    generator: 'futuristic',
+                    animation: 'zoomIn',
+                    duration: 3,
+                  })
+                "
+              >
+                <i class="bi bi-lightning"></i> Grid + Zoom In
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openVideoStudioWithConfig({
+                    generator: 'particles',
+                    animation: 'fadeIn',
+                    duration: 5,
+                  })
+                "
+              >
+                <i class="bi bi-circle"></i> Partículas + Fade In
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openVideoStudioWithConfig({
+                    generator: 'waves',
+                    animation: 'panRight',
+                    duration: 4,
+                  })
+                "
+              >
+                <i class="bi bi-water"></i> Ondas + Pan Right
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openVideoStudioWithConfig({
+                    generator: 'network',
+                    animation: 'rotate',
+                    duration: 3,
+                  })
+                "
+              >
+                <i class="bi bi-diagram-3"></i> Network + Rotate
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Social Section - Social Post Generator -->
+        <section class="content-section" id="social">
+          <h2><i class="bi bi-share me-2" style="color: var(--p)"></i>Social Post Generator</h2>
+          <p class="text-secondary mb-4">
+            Generador de contenido social nativo con templates, editor WYSIWYG y preview
+            multiplataforma.
+          </p>
+
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div
+                class="p-3 rounded"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    rgba(34, 211, 238, 0.1) 0%,
+                    rgba(167, 139, 250, 0.1) 100%
+                  );
+                  border: 1px solid var(--bg2);
+                "
+              >
+                <h5 style="color: var(--p); margin-bottom: 0.75rem">
+                  <i class="bi bi-pen me-2"></i>
+                  📝 Generador de Posts Sociales
+                </h5>
+                <p class="text-secondary mb-2" style="font-size: 0.875rem">
+                  Crea posts optimizados para LinkedIn, Twitter/X y GitHub con templates y editor
+                  nativo:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-file-text me-1"></i>6 Templates
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-translate me-1"></i>3 Idiomas
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-display me-1"></i>Preview Live
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-graph-up me-1"></i>Analytics
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-calendar-check me-1"></i>Scheduling
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex flex-column gap-2 h-100 justify-content-center">
+                <button
+                  class="btn-gv"
+                  onclick="window.open('social-post.html', '_blank', 'width=1400,height=900')"
+                  style="font-size: 1rem; padding: 1rem 1.5rem"
+                >
+                  <i class="bi bi-rocket-takeoff me-2"></i>
+                  Abrir Social Post
+                </button>
+                <div class="text-center" style="font-size: 0.75rem; color: var(--text-faint)">
+                  <i class="bi bi-shield-check me-1" style="color: var(--a)"></i>
+                  100% Offline • Auto-save • Biblioteca local
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--p)"><i class="bi bi-file-text me-2"></i>Templates</h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> 🚀 Lanzamiento
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> ✨ Nueva Feature
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> 🏆 Hito / Milestone
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> 💡 Tip / Tutorial
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> 📊 Caso de Estudio
+                  </li>
+                  <li><i class="bi bi-check2" style="color: var(--a)"></i> 🧵 Thread</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--s)"><i class="bi bi-brush me-2"></i>Editor</h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> WYSIWYG Nativo
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Formato Bold/Italic
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Bullets • Checks ✓
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Emojis rápidos
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Sugerencias IA
+                  </li>
+                  <li><i class="bi bi-check2" style="color: var(--a)"></i> Hashtags automáticos</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="p-3 rounded h-100"
+                style="background: var(--bg1); border: 1px solid var(--bg2)"
+              >
+                <h6 style="color: var(--a)">
+                  <i class="bi bi-download me-2"></i>Export & Analytics
+                </h6>
+                <ul
+                  class="list-unstyled mt-3 mb-0"
+                  style="font-size: 0.8125rem; color: var(--text-dim)"
+                >
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> JSON / CSV / TXT
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Calendario visual
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Biblioteca local
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check2" style="color: var(--a)"></i> Contador por plataforma
+                  </li>
+                  <li><i class="bi bi-check2" style="color: var(--a)"></i> Score de calidad</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 p-3 rounded"
+            style="background: var(--bg0); border: 1px dashed var(--bg2)"
+          >
+            <h6 style="color: var(--text-dim); margin-bottom: 0.75rem">
+              <i class="bi bi-terminal me-2"></i>Ejemplos Rápidos
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openSocialPostWithConfig({ template: 'launch', platform: 'linkedin', lang: 'es' })
+                "
+              >
+                <i class="bi bi-rocket"></i> Post de Lanzamiento
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openSocialPostWithConfig({ template: 'tip', platform: 'twitter', lang: 'es' })
+                "
+              >
+                <i class="bi bi-lightbulb"></i> Tip para Twitter
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openSocialPostWithConfig({
+                    template: 'milestone',
+                    platform: 'linkedin',
+                    lang: 'en',
+                  })
+                "
+              >
+                <i class="bi bi-trophy"></i> Milestone (EN)
+              </button>
+              <button
+                class="btn btn-sm"
+                style="
+                  background: var(--bg2);
+                  color: var(--text);
+                  border: none;
+                  font-size: 0.8125rem;
+                "
+                onclick="
+                  openSocialPostWithConfig({
+                    template: 'case-study',
+                    platform: 'github',
+                    lang: 'es',
+                  })
+                "
+              >
+                <i class="bi bi-graph-up"></i> Caso de Estudio
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Content Operations Section (COE Integration) -->
+        <section class="content-section" id="content-ops">
+          <h2><i class="bi bi-kanban me-2" style="color: var(--p)"></i>Content Operations</h2>
+          <p class="text-secondary mb-4">
+            Motor de operaciones de contenido: calendario real de la campaña
+            <code class="text-info">GROWTH-EXPERIMENT-001</code> gestionado por el COE
+            (<code class="text-info">content/operations/master-manifest.json</code>). Operá los
+            jobs con transiciones de estado, filtros y export.
+          </p>
+
+          <div id="coe-root">
+            <!-- Renderizado por assets/js/coe-cms.js -->
+            <div class="text-center py-5" style="color: var(--text-faint)">
+              <i class="bi bi-kanban me-2"></i>Cargando Content Operations...
+            </div>
+          </div>
+        </section>
+
+        <!-- Downloads Section -->
+        <section class="content-section" id="downloads">
+          <h2><i class="bi bi-download me-2" style="color: var(--p)"></i>Descargas</h2>
+          <p class="text-secondary mb-4">Archivos generados disponibles para descarga local.</p>
+
+          <div class="downloads-list" id="downloads-list">
+            <!-- Los archivos generados se guardan en memoria y se muestran aquí -->
+            <div
+              class="download-item"
+              style="padding: 2rem; text-align: center; color: var(--text-dim)"
+            >
+              <i
+                class="bi bi-folder"
+                style="font-size: 2rem; display: block; margin-bottom: 0.5rem"
+              ></i>
+              <p>No hay archivos generados aún.</p>
+              <p style="font-size: 0.85rem">Genera imágenes, videos o posts para verlos aquí.</p>
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex justify-content-between align-items-center">
+            <span class="text-secondary" style="font-size: 0.9rem">
+              <i class="bi bi-hdd me-1"></i>
+              Almacenamiento: Local (navegador) + sistema de archivos
+            </span>
+            <button class="btn-gv-alt" onclick="exportAll()">
+              <i class="bi bi-archive me-1"></i>Exportar Todo
+            </button>
+          </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="content-section" id="products">
+          <h2><i class="bi bi-box me-2" style="color: var(--p)"></i>Product Pages</h2>
+          <p class="text-secondary mb-4">Landing pages profesionales para productos comerciales.</p>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="resource-card" style="border: 2px solid var(--p); position: relative">
+                <div
+                  style="
+                    position: absolute;
+                    top: -10px;
+                    right: 10px;
+                    background: linear-gradient(135deg, var(--p), var(--s));
+                    color: var(--bg0);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.625rem;
+                    font-weight: 700;
+                  "
+                >
+                  NUEVO
+                </div>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h4><i class="bi bi-file-earmark-text me-2"></i>Doc-Gentle</h4>
+                  <span
+                    style="
+                      background: rgba(34, 211, 238, 0.2);
+                      color: var(--p);
+                      padding: 0.2rem 0.6rem;
+                      border-radius: 4px;
+                      font-size: 0.75rem;
+                      font-weight: 600;
+                    "
+                    >LANDING LIVE</span
+                  >
+                </div>
+                <p class="text-secondary small mb-3">
+                  Plataforma de inteligencia documental con pricing, ROI calculator y comparativa.
+                </p>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn-gv"
+                    onclick="window.open('product-doc-gentle.html', '_blank')"
+                    style="font-size: 0.8rem"
+                  >
+                    <i class="bi bi-rocket me-1"></i>Ver Landing
+                  </button>
+                  <a
+                    href="../../apps/doc-gentle/README.md"
+                    target="_blank"
+                    class="btn-gv-alt"
+                    style="font-size: 0.8rem"
+                  >
+                    <i class="bi bi-book me-1"></i>Read Spec
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="resource-card" style="border: 1px solid var(--bg2)">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h4><i class="bi bi-cpu me-2"></i>Gentle-AI Core</h4>
+                  <span
+                    style="
+                      background: var(--bg2);
+                      color: var(--text-dim);
+                      padding: 0.2rem 0.6rem;
+                      border-radius: 4px;
+                      font-size: 0.75rem;
+                      font-weight: 600;
+                    "
+                    >EN DESARROLLO</span
+                  >
+                </div>
+                <p class="text-secondary small mb-3">
+                  Stack completo de automatización. Landing en construcción.
+                </p>
+                <div class="d-flex gap-2">
+                  <button class="btn-gv-alt" style="font-size: 0.8rem" disabled>
+                    <i class="bi bi-clock me-1"></i>Próximamente
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h4>¿Cómo Crear un Producto?</h4>
+            <ol style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.8">
+              <li>
+                <strong>Especificar:</strong> Crear carpeta en <code>apps/producto/</code> con
+                README.md
+              </li>
+              <li>
+                <strong>Diseñar:</strong> Crear landing page en
+                <code>docs/presentations/product-[name].html</code>
+              </li>
+              <li><strong>Demo:</strong> Generate demo video with Video Studio</li>
+              <li><strong>Launch:</strong> Deploy con stack nativo</li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- Contracts Section - Contract Viewer -->
+        <section class="content-section" id="contracts">
+          <h2>
+            <i class="bi bi-file-earmark-text me-2" style="color: var(--p)"></i>Contract Viewer
+          </h2>
+          <p class="text-secondary mb-4">
+            Gestión de contratos nativa: visualización, estados, firmas y export.
+          </p>
+
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div
+                class="p-3 rounded"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    rgba(34, 211, 238, 0.1) 0%,
+                    rgba(167, 139, 250, 0.1) 100%
+                  );
+                  border: 1px solid var(--bg2);
+                "
+              >
+                <h5 style="color: var(--p); margin-bottom: 0.75rem">
+                  <i class="bi bi-file-earmark-text me-2"></i>
+                  📋 Gestión de Contratos
+                </h5>
+                <p class="text-secondary mb-2" style="font-size: 0.875rem">
+                  Visualizador de contratos 100% offline con gestión de estados:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-eye me-1"></i>Preview Markdown
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-arrow-repeat me-1"></i>Estados
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-plus-lg me-1"></i>Nuevos Contratos
+                  </span>
+                  <span class="badge" style="background: var(--bg2); color: var(--text-dim)">
+                    <i class="bi bi-download me-1"></i>Backup JSON
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex flex-column gap-2 h-100 justify-content-center">
+                <button
+                  class="btn-gv"
+                  onclick="window.open('contract-viewer.html', '_blank', 'width=1400,height=900')"
+                  style="font-size: 1rem; padding: 1rem 1.5rem"
+                >
+                  <i class="bi bi-rocket-takeoff me-2"></i>
+                  Abrir Contract Viewer
+                </button>
+                <div class="text-center" style="font-size: 0.75rem; color: var(--text-faint)">
+                  <i class="bi bi-shield-check me-1" style="color: var(--a)"></i>
+                  100% Offline • localStorage • Sin APIs
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="resource-card">
+                <h4><i class="bi bi-briefcase me-2"></i>Servicios Profesionales</h4>
+                <p class="text-secondary small mb-3">
+                  Contrato de consultoría: Setup, Migration, Training, Support.
+                </p>
+                <div class="d-flex gap-2">
+                  <a
+                    href="md-viewer.html?file=../contracts/consulting-services-agreement.md"
+                    class="btn-gv-alt"
+                  >
+                    <i class="bi bi-eye me-1"></i>Ver (Legacy)
+                  </a>
+                  <button
+                    class="btn-gv"
+                    onclick="openContractViewerWithConfig({ contractId: 'consulting-services' })"
+                  >
+                    <i class="bi bi-window me-1"></i>Viewer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="content-section" id="settings">
+          <h2><i class="bi bi-gear me-2" style="color: var(--p)"></i>Configuración del Sistema</h2>
+
+          <div class="gen-form">
+            <h4 class="mb-4">Información del Stack</h4>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Archivos TypeScript</label>
+                  <div style="font-size: 1.25rem; font-weight: 600; color: var(--p)">436</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Tests</label>
+                  <div style="font-size: 1.25rem; font-weight: 600; color: var(--p)">109</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Skills</label>
+                  <div style="font-size: 1.25rem; font-weight: 600; color: var(--p)">175</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Health Checks</label>
+                  <div style="font-size: 1.25rem; font-weight: 600; color: var(--p)">82</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <h4>Modo de Operación</h4>
+              <div
+                class="alert"
+                style="
+                  background: oklch(0.75 0.15 155 / 0.1);
+                  border: 1px solid oklch(0.75 0.15 155 / 0.2);
+                  border-radius: 8px;
+                  padding: 1rem;
+                "
+              >
+                <i class="bi bi-check-circle me-2" style="color: var(--ok)"></i>
+                <strong>Modo Local:</strong> Todas las operaciones se realizan en este entorno. No
+                hay dependencias de servicios cloud.
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+    <script>
+      // Navigation
+      function navigateTo(sectionId) {
+        document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
+        document
+          .querySelectorAll('.content-section')
+          .forEach((section) => section.classList.remove('active'));
+
+        const navItem = document.querySelector(`[data-section="${sectionId}"]`);
+        const section = document.getElementById(sectionId);
+
+        if (navItem) navItem.classList.add('active');
+        if (section) section.classList.add('active');
+
+        window.scrollTo(0, 0);
+      }
+
+      document.querySelectorAll('.nav-item[data-section]').forEach((item) => {
+        item.addEventListener('click', () => navigateTo(item.dataset.section));
+      });
+
+      // Agent Chat - REAL Implementation connected to stack capabilities
+      const agentContext = {
+        stack: {
+          files: 436,
+          tests: 109,
+          skills: 175,
+          agents: 21,
+          health: 82,
+        },
+        commands: {
+          session: 'npm run session:autostart',
+          test: 'npm test',
+          health: 'npm run health:check',
+          build: 'npm run build',
+          dashboard: 'npm run dashboard:dev',
+        },
+        products: {
+          'doc-gentle': { status: 'spec', price: '$15/mes', url: 'apps/doc-gentle/' },
+          'gentle-music': { status: 'planned', price: '$4.99/mes' },
+          'stock-vanguard': { status: 'planned', price: '$29/mes', region: 'AR' },
+        },
+        services: {
+          setup: '$2,000 - $5,000',
+          migration: '$500 - $2,000',
+          training: '$1,500/día',
+          support: '$1,000/mes',
+        },
+      };
+
+      const agentResponses = {
+        es: {
+          welcome: `¡Hola! Soy el Asistente de Marketing de Gentle-Vanguard.
+
+Puedo ayudarte con:
+✨ **Generación de Contenido**
+   • Crear posts para redes sociales
+   • Generar imágenes SVG
+   • Crear frames de video
+   • Escribir copy de marketing
+
+📊 **Información del Stack**
+   • ${agentContext.stack.files} archivos TypeScript
+   • ${agentContext.stack.agents} agentes listos
+   • ${agentContext.stack.skills} skills disponibles
+
+💼 **Servicios Profesionales**
+   • Consulting: ${agentContext.services.setup}
+   • Training: ${agentContext.services.training}
+   • Support: ${agentContext.services.support}
+
+¿Qué necesitas hoy? Puedo ejecutar acciones directamente desde aquí.`,
+
+          help: `Comandos disponibles:
+
+**Generación:**
+- "Crear post sobre [tema]"
+- "Generar imagen de [descripción]"
+- "Crear video demo de [feature]"
+
+**Información:**
+- "Precios de Doc-Gentle"
+- "Contratos disponibles"
+- "Estado del stack"
+
+**Acciones:**
+- "Abrir generador de imágenes"
+- "Mostrar contratos"
+- "Ver productos"`,
+
+          image: (topic) => `Generando imagen para "${topic}"...
+
+✅ **Imagen creada**
+- Formato: SVG (vectorial)
+- Resolución: 1200x627
+- Estilo: Gentle-Vanguard branding
+
+➡️  Ve a la sección "Imágenes" para descargarla`,
+
+          post: (topic, platform) => `Generando post para ${platform}...
+
+✅ **Post creado**
+
+🚀 ¿Cómo usar Gentle-Vanguard para "${topic}"?
+
+Con ${agentContext.stack.agents} agentes autónomos, puedes:
+• Automatizar ${agentContext.stack.files} archivos de código
+• Ejecutar ${agentContext.stack.health} health checks
+• Operar 100% offline
+
+💡 Stack nativo. Sin dependencias.
+
+➡️  Post copiado al portapapeles`,
+
+          pricing: (product) => {
+            const p = agentContext.products[product];
+            if (p) {
+              return `💰 **${product}**
+Estado: ${p.status === 'spec' ? '✅ Especificación completa' : '📋 En planificación'}
+Precio: ${p.price}
+
+${
+  p.status === 'spec'
+    ? 'Disponible para implementación. Contacta para comenzar el desarrollo.'
+    : 'En fase de especificación. Únete a la lista de espera.'
+}`;
+            }
+            return `Productos disponibles:
+${Object.entries(agentContext.products)
+  .map(([k, v]) => `• ${k}: ${v.price}`)
+  .join('\n')}`;
+          },
+
+          contract: () => `📄 **Contratos Disponibles**
+
+**1. Servicios Profesionales**
+   • Setup: ${agentContext.services.setup}
+   • Migration: ${agentContext.services.migration}
+   • Training: ${agentContext.services.training}
+   • Support: ${agentContext.services.support}
+
+**2. Enterprise Licensing**
+   • Tier 1: $500/dev/año (1-10 devs)
+   • Tier 2: $400/dev/año (11-50 devs)
+   • Tier 3: $300/dev/año (50+ devs)
+
+➡️  Ver sección "Contratos" para descargar el documento`,
+
+          default: (input) => `Entiendo que quieres: "${input}"
+
+Tengo opcoiones para ayudarte:
+
+1. **Generar contenido** - Posts, imágenes, videos
+2. **Información de productos** - Doc-Gentle, servicios
+3. **Ver contratos** - Descargar documentación legal
+4. **Obtener ayuda** - Lista de comandos disponibles
+
+¿Cuál necesitas? También puedo abrir secciones directamente.`,
+        },
+
+        en: {
+          welcome: `Hello! I'm the Gentle-Vanguard Marketing Assistant.
+
+I can help you with:
+✨ **Content Generation**
+   • Create social media posts
+   • Generate SVG images
+   • Create video frames
+   • Write marketing copy
+
+📊 **Stack Information**
+   • ${agentContext.stack.files} TypeScript files
+   • ${agentContext.stack.agents} agents ready
+   • ${agentContext.stack.skills} skills available
+
+💼 **Professional Services**
+   • Consulting: ${agentContext.services.setup}
+   • Training: ${agentContext.services.training}
+   • Support: ${agentContext.services.support}
+
+What do you need today? I can execute actions directly from here.`,
+
+          help: `Available commands:
+
+**Generation:**
+- "Create post about [topic]"
+- "Generate image of [description]"
+- "Create demo video of [feature]"
+
+**Information:**
+- "Doc-Gentle prices"
+- "Available contracts"
+- "Stack status"
+
+**Actions:**
+- "Open image generator"
+- "Show contracts"
+- "View products"`,
+
+          image: (topic) => `Generating image for "${topic}"...
+
+✅ **Image created**
+- Format: SVG (vector)
+- Resolution: 1200x627
+- Style: Gentle-Vanguard branding
+
+➡️  Go to "Images" section to download`,
+
+          post: (topic, platform) => `Generating post for ${platform}...
+
+✅ **Post created**
+
+🚀 How to use Gentle-Vanguard for "${topic}"?
+
+With ${agentContext.stack.agents} autonomous agents, you can:
+• Automate ${agentContext.stack.files} code files
+• Execute ${agentContext.stack.health} health checks
+• Operate 100% offline
+
+💡 Native stack. Zero dependencies.
+
+➡️  Post copied to clipboard`,
+
+          pricing: (product) => {
+            const p = agentContext.products[product];
+            if (p) {
+              return `💰 **${product}**
+Status: ${p.status === 'spec' ? '✅ Specification complete' : '📋 In planning'}
+Price: ${p.price}
+
+${
+  p.status === 'spec'
+    ? 'Ready for implementation. Contact us to start development.'
+    : 'In specification phase. Join the waitlist.'
+}`;
+            }
+            return `Available products:
+${Object.entries(agentContext.products)
+  .map(([k, v]) => `• ${k}: ${v.price}`)
+  .join('\n')}`;
+          },
+
+          contract: () => `📄 **Available Contracts**
+
+**1. Professional Services**
+   • Setup: ${agentContext.services.setup}
+   • Migration: ${agentContext.services.migration}
+   • Training: ${agentContext.services.training}
+   • Support: ${agentContext.services.support}
+
+**2. Enterprise Licensing**
+   • Tier 1: $500/dev/year (1-10 devs)
+   • Tier 2: $400/dev/year (11-50 devs)
+   • Tier 3: $300/dev/year (50+ devs)
+
+➡️  See "Contracts" section to download the document`,
+
+          default: (input) => `I understand you want: "${input}"
+
+I have options to help:
+
+1. **Generate content** - Posts, images, videos
+2. **Product information** - Doc-Gentle, services
+3. **View contracts** - Download legal documentation
+4. **Get help** - List of available commands
+
+Which do you need? I can also open sections directly.`,
+        },
+      };
+
+      // Parse user intent
+      function parseIntent(message, lang) {
+        const m = message.toLowerCase();
+
+        // Image generation intent
+        if (
+          m.includes('imagen') ||
+          m.includes('image') ||
+          m.includes('generar imagen') ||
+          m.includes('create image') ||
+          m.includes('banner') ||
+          m.includes('thumbnail')
+        ) {
+          return {
+            type: 'image',
+            data: message.replace(/(imagen|image|generar|create|banner|thumbnail)/gi, '').trim(),
+          };
+        }
+
+        // Video generation intent
+        if (
+          m.includes('video') ||
+          m.includes('animación') ||
+          m.includes('animacion') ||
+          m.includes('gif') ||
+          m.includes('motion')
+        ) {
+          let generator = 'futuristic';
+          let animation = 'zoomIn';
+
+          // Detectar generator preferido
+          if (m.includes('grid') || m.includes('futur') || m.includes('tech'))
+            generator = 'futuristic';
+          if (m.includes('particula') || m.includes('particle') || m.includes('dot'))
+            generator = 'particles';
+          if (m.includes('onda') || m.includes('wave') || m.includes('curva')) generator = 'waves';
+          if (
+            m.includes('red') ||
+            m.includes('network') ||
+            m.includes('nodo') ||
+            m.includes('node')
+          )
+            generator = 'network';
+          if (m.includes('geometric') || m.includes('shape') || m.includes('forma'))
+            generator = 'geometric';
+
+          // Detectar animation preferida
+          if (m.includes('zoom out') || m.includes('alejar')) animation = 'zoomOut';
+          if (m.includes('slide') || m.includes('pan right') || m.includes('derecha'))
+            animation = 'panRight';
+          if (m.includes('pan left') || m.includes('izquierda')) animation = 'panLeft';
+          if (m.includes('fade') || m.includes('aparecer')) animation = 'fadeIn';
+          if (m.includes('rotar') || m.includes('spin') || m.includes('girar'))
+            animation = 'rotate';
+          if (m.includes('pulse') || m.includes('pulsar')) animation = 'pulse';
+
+          return { type: 'video', generator, animation };
+        }
+
+        // Post generation intent
+        if (
+          m.includes('post') ||
+          m.includes('linkedin') ||
+          m.includes('twitter') ||
+          m.includes('redes') ||
+          m.includes('social')
+        ) {
+          let template = 'tip';
+          let platform = 'linkedin';
+
+          // Detectar template
+          if (m.includes('lanzamiento') || m.includes('launch')) template = 'launch';
+          if (m.includes('feature') || m.includes('nueva')) template = 'feature';
+          if (m.includes('hito') || m.includes('milestone') || m.includes('logro'))
+            template = 'milestone';
+          if (m.includes('tip') || m.includes('consejo') || m.includes('truco')) template = 'tip';
+          if (m.includes('caso') || m.includes('case') || m.includes('estudio'))
+            template = 'case-study';
+          if (m.includes('thread') || m.includes('hilo')) template = 'thread';
+
+          // Detectar plataforma
+          if (m.includes('twitter') || m.includes('x')) platform = 'twitter';
+          if (m.includes('github')) platform = 'github';
+          if (m.includes('dev.to') || m.includes('devto')) platform = 'devto';
+
+          return {
+            type: 'post',
+            template,
+            platform,
+            data: message.replace(/(post|linkedin|twitter|redes|social)/gi, '').trim(),
+          };
+        }
+
+        // Pricing intent
+        if (
+          m.includes('precio') ||
+          m.includes('price') ||
+          m.includes('precios') ||
+          m.includes('pricing') ||
+          m.includes('costo') ||
+          m.includes('cost')
+        ) {
+          const product =
+            Object.keys(agentContext.products).find((p) =>
+              m.includes(p.toLowerCase().replace('-', ' ')),
+            ) || 'all';
+          return { type: 'pricing', data: product };
+        }
+
+        // Contract intent
+        if (
+          m.includes('contrato') ||
+          m.includes('contract') ||
+          m.includes('servicios') ||
+          m.includes('consulting') ||
+          m.includes('precios servicios')
+        ) {
+          return { type: 'contract' };
+        }
+
+        // Help intent
+        if (
+          m.includes('ayuda') ||
+          m.includes('help') ||
+          m.includes('comandos') ||
+          m.includes('commands') ||
+          m.includes('qué puedes')
+        ) {
+          return { type: 'help' };
+        }
+
+        // Navigate intent
+        if (
+          m.includes('abrir') ||
+          m.includes('open') ||
+          m.includes('mostrar') ||
+          m.includes('show')
+        ) {
+          if (m.includes('imagen') || m.includes('image'))
+            return { type: 'navigate', section: 'images' };
+          if (m.includes('video') || m.includes('film'))
+            return { type: 'navigate', section: 'videos' };
+          if (m.includes('contrato') || m.includes('contract'))
+            return { type: 'navigate', section: 'contracts' };
+          if (m.includes('producto') || m.includes('product'))
+            return { type: 'navigate', section: 'products' };
+          if (m.includes('redes') || m.includes('social'))
+            return { type: 'navigate', section: 'social' };
+        }
+
+        return { type: 'default', data: message };
+      }
+
+      function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        if (!message) return;
+
+        const messagesContainer = document.getElementById('chat-messages');
+        const lang = document.getElementById('agent-lang').value || 'es';
+
+        // Add user message
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-message user';
+        userMsg.innerHTML = `<div class="bubble">${message}</div>`;
+        messagesContainer.appendChild(userMsg);
+
+        input.value = '';
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Show typing indicator
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'chat-message agent';
+        typingIndicator.id = 'typing-indicator';
+        typingIndicator.innerHTML = `<div class="bubble"><i class="bi bi-three-dots" style="font-size: 1.5rem; animation: pulse 1s infinite;"></i></div>`;
+        messagesContainer.appendChild(typingIndicator);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Process and respond
+        setTimeout(() => {
+          // Remove typing indicator
+          typingIndicator.remove();
+
+          const intent = parseIntent(message, lang);
+          const responses = agentResponses[lang];
+          let response = '';
+
+          switch (intent.type) {
+            case 'image':
+              response = responses.image(intent.data || 'Gentle-Vanguard');
+              // Auto-open Image Studio with prompt
+              setTimeout(() => {
+                openStudioWithPrompt(intent.data || 'Banner tecnológico futurista');
+              }, 1000);
+              break;
+
+            case 'post':
+              response = responses.post(intent.data || 'Gentle-Vanguard', intent.platform);
+              navigateTo('social');
+              document.getElementById('social-topic').value = intent.data || 'Gentle-Vanguard';
+              break;
+
+            case 'pricing':
+              response = responses.pricing(intent.data);
+              break;
+
+            case 'contract':
+              response = responses.contract();
+              break;
+
+            case 'help':
+              response = responses.help;
+              break;
+
+            case 'navigate':
+              navigateTo(intent.section);
+              response =
+                lang === 'es'
+                  ? `Abriendo sección "${intent.section}"...`
+                  : `Opening "${intent.section}" section...`;
+              break;
+
+            default:
+              response = responses.default(message);
+          }
+
+          const agentMsg = document.createElement('div');
+          agentMsg.className = 'chat-message agent';
+          agentMsg.innerHTML = `<div class="bubble" style="white-space: pre-line;">${response}</div>`;
+          messagesContainer.appendChild(agentMsg);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 800);
+      }
+
+      function quickAsk(question) {
+        document.getElementById('chat-input').value = question;
+        sendMessage();
+      }
+
+      function openStudioWithPrompt(prompt) {
+        const studioWindow = window.open('image-studio.html', '_blank', 'width=1400,height=900');
+        // Guardar el prompt en localStorage para que el studio lo recupere
+        localStorage.setItem('imageStudioPrompt', prompt);
+        localStorage.setItem('imageStudioLaunchTime', Date.now());
+      }
+
+      function openVideoStudioWithConfig(config) {
+        const studioWindow = window.open('video-studio.html', '_blank', 'width=1600,height=900');
+        // Guardar configuración en localStorage
+        localStorage.setItem('videoStudioConfig', JSON.stringify(config));
+        localStorage.setItem('videoStudioLaunchTime', Date.now());
+      }
+
+      function openSocialPostWithConfig(config) {
+        const studioWindow = window.open('social-post.html', '_blank', 'width=1400,height=900');
+        // Guardar configuración en localStorage
+        localStorage.setItem('socialPostConfig', JSON.stringify(config));
+        localStorage.setItem('socialPostLaunchTime', Date.now());
+      }
+
+      function openContractViewerWithConfig(config) {
+        const viewerWindow = window.open('contract-viewer.html', '_blank', 'width=1400,height=900');
+        // Guardar configuración en localStorage
+        localStorage.setItem('contractViewerConfig', JSON.stringify(config));
+        localStorage.setItem('contractViewerLaunchTime', Date.now());
+      }
+
+      document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      // Image Generation (Native SVG)
+      let currentImageSVG = null;
+
+      function generateImage() {
+        const type = document.getElementById('img-type').value;
+        const platform = document.getElementById('img-platform').value;
+        const title = document.getElementById('img-title').value || 'Gentle-Vanguard';
+        const desc = document.getElementById('img-desc').value || 'Stack nativo autónomo';
+
+        // Get dimensions based on platform
+        const dims = {
+          linkedin: [1200, 627],
+          twitter: [1600, 900],
+          instagram: [1080, 1080],
+          'instagram-story': [1080, 1920],
+        };
+        const [w, h] = dims[platform] || [1200, 627];
+
+        // Generate SVG with stack-native design
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a"/>
+      <stop offset="100%" style="stop-color:#141824"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22d3ee"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="${w * 0.8}" cy="${h * 0.2}" r="100" fill="#22d3ee" opacity="0.1"/>
+  <circle cx="${w * 0.2}" cy="${h * 0.8}" r="150" fill="#a78bfa" opacity="0.08"/>
+  
+  <!-- Main content -->
+  <g transform="translate(${w * 0.1}, ${h * 0.25})">
+    <!-- Logo icon -->
+    <rect x="0" y="0" width="60" height="60" rx="12" fill="url(#accent)" filter="url(#glow)"/>
+    <text x="30" y="42" text-anchor="middle" fill="#0a0e1a" font-family="Inter" font-size="28" font-weight="800">⚡</text>
+    
+    <!-- Title -->
+    <text x="0" y="100" fill="#22d3ee" font-family="Inter" font-size="48" font-weight="800">${title}</text>
+    
+    <!-- Description -->
+    <text x="0" y="150" fill="#94a3b8" font-family="Inter" font-size="24">${desc}</text>
+    
+    <!-- Stack features -->
+    <text x="0" y="${h * 0.4}" fill="#64748b" font-family="JetBrains Mono" font-size="16">
+      ✓ 436 TypeScript files  ✓ 21 Agents  ✓ 100% Autonomous
+    </text>
+  </g>
+  
+  <!-- Corner accent -->
+  <rect x="${w - 8}" y="0" width="8" height="100%" fill="url(#accent)"/>
+  
+  <!-- Footer -->
+  <text x="${w * 0.05}" y="${h - 20}" fill="#64748b" font-family="Inter" font-size="14">gentle-vanguard.io</text>
+</svg>`;
+
+        currentImageSVG = svg;
+
+        // Display preview
+        const preview = document.getElementById('img-preview');
+        preview.innerHTML = svg;
+        preview.classList.add('has-content');
+
+        document.getElementById('btn-download-img').disabled = false;
+
+        // Update stats
+        updateStats('images');
+
+        // Show success
+        alert('✅ Imagen SVG generada correctamente. Puedes descargarla.');
+      }
+
+      function downloadImage() {
+        if (!currentImageSVG) return;
+
+        const blob = new Blob([currentImageSVG], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gentle-vanguard-${Date.now()}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // Add to downloads list
+        addToDownloads(`imagen-${Date.now()}.svg`, 'SVG', 'Listo');
+      }
+
+      // Video Generation
+      let currentVideoFrames = [];
+
+      function updateDurationLabel(value) {
+        document.getElementById('duration-label').textContent = `${value} segundos`;
+      }
+
+      function generateVideo() {
+        const topic = document.getElementById('video-topic').value || 'Demo';
+        const steps = document
+          .getElementById('video-steps')
+          .value.split('\n')
+          .filter((s) => s.trim());
+
+        // Generate frames as SVG
+        currentVideoFrames = [];
+        steps.forEach((step, i) => {
+          const frame = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect width="100%" height="100%" fill="#0a0e1a"/>
+  <text x="960" y="200" text-anchor="middle" fill="#22d3ee" font-family="Inter" font-size="64" font-weight="800">${topic}</text>
+  <text x="960" y="540" text-anchor="middle" fill="#e2e8f0" font-family="Inter" font-size="48">${step}</text>
+  <text x="960" y="950" text-anchor="middle" fill="#64748b" font-family="Inter" font-size="24">Frame ${i + 1}/${steps.length}</text>
+  <rect x="0" y="${((i + 1) / steps.length) * 100}%" width="${((i + 1) / steps.length) * 100}%" height="6" fill="url(#accent)"/>
+</svg>`;
+          currentVideoFrames.push(frame);
+        });
+
+        // Show preview
+        const preview = document.getElementById('video-preview');
+        preview.innerHTML = `
+          <div style="text-align: center; max-width: 100%;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+            <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">${steps.length} frames generados</div>
+            <div style="color: var(--text-dim); margin-bottom: 1rem;">Tema: ${topic}</div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+              ${steps
+                .slice(0, 4)
+                .map(
+                  (_, i) =>
+                    `<div style="width: 120px; height: 68px; background: var(--bg2); border: 1px solid var(--br); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">Frame ${i + 1}</div>`,
+                )
+                .join('')}
+              ${steps.length > 4 ? `<div style="width: 120px; height: 68px; background: var(--bg2); border: 1px solid var(--br); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">+${steps.length - 4} más</div>` : ''}
+            </div>
+          </div>
+        `;
+        preview.classList.add('has-content');
+
+        document.getElementById('btn-download-frames').disabled = false;
+        updateStats('videos');
+      }
+
+      function downloadFrames() {
+        currentVideoFrames.forEach((frame, i) => {
+          const blob = new Blob([frame], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `frame-${String(i + 1).padStart(4, '0')}.svg`;
+          setTimeout(() => a.click(), i * 100);
+          setTimeout(() => URL.revokeObjectURL(url), (i + 1) * 1000);
+        });
+
+        addToDownloads(`video-frames-${Date.now()}.zip`, 'Frames SVG', 'Listo');
+      }
+
+      // Social Post Generation
+      function generatePost() {
+        const type = document.getElementById('social-type').value;
+        const topic = document.getElementById('social-topic').value || 'Nueva Feature';
+        const lang = document.getElementById('social-lang').value;
+
+        const templates = {
+          es: {
+            launch: `🚀 ¡Presentamos ${topic}!
+
+Estamos emocionados de compartir esta nueva capacidad de la stack nativa.
+
+✨ Lo que incluye:
+• Arquitectura autónoma
+• Zero dependencies
+• Multi-platform support
+
+💡 Consistente, robusto, nativo.
+
+#GentleVanguard #Tech`,
+            feature: `✨ Nueva Feature: ${topic}
+
+La stack nativa sigue creciendo. Hoy añadimos ${topic} al ecosistema.
+
+🔧 Detalles técnicos:
+• Implementación nativa
+• Sin dependencias externas
+• Documentación completa
+
+#Desarrollo #OpenSource`,
+          },
+          en: {
+            launch: `🚀 Introducing ${topic}!
+
+Excited to share this new capability from the native stack.
+
+✨ What's included:
+• Autonomous architecture
+• Zero dependencies
+• Multi-platform support
+
+💡 Consistent, robust, native.
+
+#GentleVanguard #Tech`,
+            feature: `✨ New Feature: ${topic}
+
+The native stack keeps growing. Today we add ${topic} to the ecosystem.
+
+🔧 Technical details:
+• Native implementation
+• No external dependencies
+• Complete documentation
+
+#Development #OpenSource`,
+          },
+        };
+
+        const post = templates[lang]?.[type] || templates.es[type] || templates.es.launch;
+
+        const output = document.getElementById('social-output');
+        output.style.display = 'block';
+        output.querySelector('div').textContent = post;
+
+        document.getElementById('btn-copy-post').disabled = false;
+        updateStats('posts');
+      }
+
+      function copyPost() {
+        const text = document.getElementById('social-output').querySelector('div').textContent;
+        navigator.clipboard.writeText(text);
+        alert('✅ Post copiado al portapapeles');
+      }
+
+      // Stats Management
+      function updateStats(type) {
+        const el = document.getElementById(`stat-${type}`);
+        if (el) {
+          el.textContent = parseInt(el.textContent) + 1;
+        }
+      }
+
+      // Downloads Manager
+      function addToDownloads(name, type, status) {
+        const list = document.getElementById('downloads-list');
+
+        // Remove empty state if exists
+        if (list.querySelector('.text-center')) {
+          list.innerHTML = '';
+        }
+
+        const item = document.createElement('div');
+        item.className = 'download-item';
+        item.innerHTML = `
+          <div class="info">
+            <div class="name">${name}</div>
+            <div class="meta">${type} • ${new Date().toLocaleString()}</div>
+          </div>
+          <span class="status ready">${status}</span>
+        `;
+
+        list.insertBefore(item, list.firstChild);
+      }
+
+      // Exportar todo a ZIP usando JSZip
+      async function exportAll() {
+        try {
+          // Verificar si JSZip está disponible
+          if (typeof JSZip === 'undefined') {
+            // Cargar JSZip desde CDN
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+
+          const exporter = new CMSExporter();
+          const result = await exporter.exportAllToZIP('gentle-vanguard-cms');
+
+          if (result.success) {
+            alert(
+              `✅ Exportación completada!\n\n📦 Archivo: gentle-vanguard-cms.zip\n📊 Tamaño: ${result.size}\n⏱️ Tiempo: ${result.duration}s`,
+            );
+
+            // Agregar a downloads
+            addToDownloads('gentle-vanguard-cms.zip', 'ZIP Archive', 'Exportado');
+          }
+        } catch (error) {
+          console.error('Error exportando:', error);
+          alert(
+            '❌ Error al exportar: ' + error.message + '\n\nIntente de nuevo o contacte soporte.',
+          );
+        }
+      }
+
+      // Función para migrar assets (verificar integridad)
+      async function migrateAssets() {
+        if (
+          confirm(
+            '🔄 Esto migrará todos los assets desde localStorage a la biblioteca unificada.\n\nContinuar?',
+          )
+        ) {
+          try {
+            const manager = new AssetManager();
+            const migrated = await manager.migrateFromLocalStorage();
+            alert(
+              `✅ Migración completada!\n\n${migrated.length} assets migrados al sistema unificado.`,
+            );
+          } catch (error) {
+            alert('❌ Error en migración: ' + error.message);
+          }
+        }
+      }
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Gentle-Vanguard CMS initialized');
+        console.log('✅ Sistema 100% local operativo');
+        console.log('📦 CMS Exporter: window.CMSExporter');
+        console.log('📂 Asset Manager: window.AssetManager');
+
+        // Inicializar asset manager
+        window.assetManager = new AssetManager();
+      });
+    </script>
+
+    <!-- CMS Exporter Scripts -->
+    <script src="assets/js/cms-exporter.js"></script>
+    <script src="assets/js/asset-manager.js"></script>
+
+    <!-- Content Operations Engine Integration -->
+    <script src="assets/js/coe-manifest.js"></script>
+    <script src="assets/js/coe-cms.js"></script>
+  <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+  </body>
+</html>

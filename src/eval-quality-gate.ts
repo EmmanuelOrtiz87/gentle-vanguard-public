@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 
@@ -117,7 +112,12 @@ function runCase(caseEl: SuiteCase): EvalCase {
   return result;
 }
 
-function runEval(suite: string, suitePath: string, outputDir: string, exportResult: boolean): EvalResult {
+function runEval(
+  suite: string,
+  suitePath: string,
+  outputDir: string,
+  exportResult: boolean,
+): EvalResult {
   const repoRoot = getRepoRoot();
 
   let suiteFile: string;
@@ -141,9 +141,11 @@ function runEval(suite: string, suitePath: string, outputDir: string, exportResu
 
   console.log(`\x1b[36m[EVAL] Suite: ${suiteName} v${suiteVer}\x1b[0m`);
 
-  const baseDir = outputDir || (process.env.GENTLE_TENANT_EVAL_DIR
-    ? join(process.env.GENTLE_TENANT_EVAL_DIR, 'results')
-    : join(getRepoRoot(), '.session', 'eval', 'results'));
+  const baseDir =
+    outputDir ||
+    (process.env.GENTLE_TENANT_EVAL_DIR
+      ? join(process.env.GENTLE_TENANT_EVAL_DIR, 'results')
+      : join(getRepoRoot(), '.session', 'eval', 'results'));
   const runDir = join(baseDir, suiteName);
   mkdirSync(runDir, { recursive: true });
 
@@ -187,7 +189,9 @@ function runEval(suite: string, suitePath: string, outputDir: string, exportResu
   writeFileSync(resultFile, JSON.stringify(runResult, null, 2), 'utf-8');
 
   const color = failCount === 0 ? '\x1b[32m' : '\x1b[33m';
-  console.log(`${color}[EVAL] Complete: ${passCount} passed, ${failCount} failed, avg ${avgScore} (${duration}s)\x1b[0m`);
+  console.log(
+    `${color}[EVAL] Complete: ${passCount} passed, ${failCount} failed, avg ${avgScore} (${duration}s)\x1b[0m`,
+  );
   console.log(`\x1b[90m[EVAL] Results: ${resultFile}\x1b[0m`);
 
   if (exportResult) console.log(JSON.stringify(runResult, null, 2));
@@ -198,9 +202,9 @@ function main() {
   const args = process.argv.slice(2);
   const suite = args.find((a) => a.startsWith('--suite='))?.split('=')[1] ?? '';
   const suitePathIdx = args.indexOf('--suitePath');
-  const suitePath = suitePathIdx >= 0 ? args[suitePathIdx + 1] ?? '' : '';
+  const suitePath = suitePathIdx >= 0 ? (args[suitePathIdx + 1] ?? '') : '';
   const outputDirIdx = args.indexOf('--outputDir');
-  const outputDir = outputDirIdx >= 0 ? args[outputDirIdx + 1] ?? '' : '';
+  const outputDir = outputDirIdx >= 0 ? (args[outputDirIdx + 1] ?? '') : '';
   const exportResult = args.includes('--export');
 
   try {

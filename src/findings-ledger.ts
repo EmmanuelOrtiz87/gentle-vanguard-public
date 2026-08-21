@@ -27,7 +27,15 @@ import { pathToFileURL } from 'url';
 
 type FindingState = 'open' | 'triage' | 'fix' | 'verify' | 'close' | 'wont-fix' | 'escalated';
 type FindingSeverity = 'info' | 'warning' | 'critical' | 'blocker';
-type FindingLens = 'security' | 'maintainability' | 'reliability' | 'resilience' | 'general' | 'style' | 'performance' | 'sdd';
+type FindingLens =
+  | 'security'
+  | 'maintainability'
+  | 'reliability'
+  | 'resilience'
+  | 'general'
+  | 'style'
+  | 'performance'
+  | 'sdd';
 
 interface Finding {
   id: string;
@@ -87,13 +95,13 @@ const DEFAULT_CONFIG: LedgerConfig = {
 };
 
 const VALID_TRANSITIONS: Record<FindingState, FindingState[]> = {
-  'open': ['triage', 'wont-fix', 'escalated'],
-  'triage': ['fix', 'wont-fix', 'escalated'],
-  'fix': ['verify', 'escalated'],
-  'verify': ['close', 'fix', 'escalated'],
-  'close': [],
+  open: ['triage', 'wont-fix', 'escalated'],
+  triage: ['fix', 'wont-fix', 'escalated'],
+  fix: ['verify', 'escalated'],
+  verify: ['close', 'fix', 'escalated'],
+  close: [],
   'wont-fix': [],
-  'escalated': [],
+  escalated: [],
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────
@@ -119,11 +127,13 @@ function loadFindings(config: LedgerConfig): Finding[] {
   const dir = join(ROOT, config.outputDir);
   if (!existsSync(dir)) return [];
   const findings: Finding[] = [];
-  const files = readdirSync(dir).filter(f => f.endsWith('.json'));
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json'));
   for (const file of files) {
     try {
       findings.push(JSON.parse(readFileSync(join(dir, file), 'utf-8')));
-    } catch { /* skip corrupt */ }
+    } catch {
+      /* skip corrupt */
+    }
   }
   return findings.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
@@ -138,7 +148,10 @@ function saveFinding(config: LedgerConfig, finding: Finding): void {
 function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO', quiet: boolean) {
   if (quiet) return;
   const colors: Record<string, string> = {
-    INFO: '\x1b[36m', WARN: '\x1b[33m', ERROR: '\x1b[31m', SUCCESS: '\x1b[32m',
+    INFO: '\x1b[36m',
+    WARN: '\x1b[33m',
+    ERROR: '\x1b[31m',
+    SUCCESS: '\x1b[32m',
   };
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   console.log(`${colors[level] ?? ''}[${ts}] [${level}] ${msg}\x1b[0m`);
@@ -169,12 +182,14 @@ export function createFinding(opts: {
     description: opts.description,
     evidence: opts.evidence ?? [],
     state: 'open',
-    stateHistory: [{
-      from: 'open' as FindingState,
-      to: 'open' as FindingState,
-      timestamp: new Date().toISOString(),
-      reason: 'Finding created',
-    }],
+    stateHistory: [
+      {
+        from: 'open' as FindingState,
+        to: 'open' as FindingState,
+        timestamp: new Date().toISOString(),
+        reason: 'Finding created',
+      },
+    ],
     file: opts.file,
     line: opts.line,
     assignee: opts.assignee,
@@ -195,7 +210,7 @@ export function transitionFinding(
 ): { success: boolean; finding?: Finding; error?: string } {
   const config = loadConfig();
   const findings = loadFindings(config);
-  const finding = findings.find(f => f.id === id);
+  const finding = findings.find((f) => f.id === id);
   if (!finding) return { success: false, error: `Finding not found: ${id}` };
 
   const currentState = finding.state;
@@ -227,11 +242,11 @@ export function queryFindings(query: LedgerQuery): Finding[] {
   const config = loadConfig();
   let findings = loadFindings(config);
 
-  if (query.lens) findings = findings.filter(f => f.lens === query.lens);
-  if (query.severity) findings = findings.filter(f => f.severity === query.severity);
-  if (query.state) findings = findings.filter(f => f.state === query.state);
-  if (query.source) findings = findings.filter(f => f.source === query.source);
-  if (query.file) findings = findings.filter(f => f.file === query.file);
+  if (query.lens) findings = findings.filter((f) => f.lens === query.lens);
+  if (query.severity) findings = findings.filter((f) => f.severity === query.severity);
+  if (query.state) findings = findings.filter((f) => f.state === query.state);
+  if (query.source) findings = findings.filter((f) => f.source === query.source);
+  if (query.file) findings = findings.filter((f) => f.file === query.file);
   if (query.limit) findings = findings.slice(0, query.limit);
 
   return findings;
@@ -240,7 +255,7 @@ export function queryFindings(query: LedgerQuery): Finding[] {
 export function getFinding(id: string): Finding | null {
   const config = loadConfig();
   const findings = loadFindings(config);
-  return findings.find(f => f.id === id) ?? null;
+  return findings.find((f) => f.id === id) ?? null;
 }
 
 export function generateReport(): LedgerReport {
@@ -251,9 +266,29 @@ export function generateReport(): LedgerReport {
   const bySeverity = {} as Record<FindingSeverity, number>;
   const byLens = {} as Record<FindingLens, number>;
 
-  for (const s of ['open', 'triage', 'fix', 'verify', 'close', 'wont-fix', 'escalated'] as FindingState[]) byState[s] = 0;
-  for (const s of ['info', 'warning', 'critical', 'blocker'] as FindingSeverity[]) bySeverity[s] = 0;
-  for (const s of ['security', 'maintainability', 'reliability', 'resilience', 'general', 'style', 'performance', 'sdd'] as FindingLens[]) byLens[s] = 0;
+  for (const s of [
+    'open',
+    'triage',
+    'fix',
+    'verify',
+    'close',
+    'wont-fix',
+    'escalated',
+  ] as FindingState[])
+    byState[s] = 0;
+  for (const s of ['info', 'warning', 'critical', 'blocker'] as FindingSeverity[])
+    bySeverity[s] = 0;
+  for (const s of [
+    'security',
+    'maintainability',
+    'reliability',
+    'resilience',
+    'general',
+    'style',
+    'performance',
+    'sdd',
+  ] as FindingLens[])
+    byLens[s] = 0;
 
   let oldestOpen: string | null = null;
   let totalCloseTimeMs = 0;
@@ -293,30 +328,59 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--list': action = 'list'; break;
-      case '--get': action = 'get'; findingId = args[++i] ?? ''; break;
-      case '--create': action = 'create'; break;
-      case '--update': action = 'update'; findingId = args[++i] ?? ''; break;
-      case '--query': action = 'query'; break;
-      case '--report': action = 'report'; break;
-      case '--quiet': quiet = true; break;
-      case '--dry-run': dryRun = true; break;
+      case '--list':
+        action = 'list';
+        break;
+      case '--get':
+        action = 'get';
+        findingId = args[++i] ?? '';
+        break;
+      case '--create':
+        action = 'create';
+        break;
+      case '--update':
+        action = 'update';
+        findingId = args[++i] ?? '';
+        break;
+      case '--query':
+        action = 'query';
+        break;
+      case '--report':
+        action = 'report';
+        break;
+      case '--quiet':
+        quiet = true;
+        break;
+      case '--dry-run':
+        dryRun = true;
+        break;
     }
   }
 
   switch (action) {
     case 'list': {
       const findings = queryFindings({});
-      if (findings.length === 0) { console.log('No findings recorded.'); break; }
+      if (findings.length === 0) {
+        console.log('No findings recorded.');
+        break;
+      }
       for (const f of findings) {
-        console.log(`${f.id} | ${f.state.padEnd(8)} | ${f.severity.padEnd(8)} | ${f.lens.padEnd(14)} | ${f.title}`);
+        console.log(
+          `${f.id} | ${f.state.padEnd(8)} | ${f.severity.padEnd(8)} | ${f.lens.padEnd(14)} | ${f.title}`,
+        );
       }
       break;
     }
     case 'get': {
-      if (!findingId) { console.error('Provide finding ID with --get <id>'); process.exit(1); }
+      if (!findingId) {
+        console.error('Provide finding ID with --get <id>');
+        process.exit(1);
+      }
       const f = getFinding(findingId);
-      if (!f) { console.error(`Finding not found: ${findingId}`); process.exit(1); }
+      if (!f) {
+        console.error(`Finding not found: ${findingId}`);
+        process.exit(1);
+      }
       console.log(JSON.stringify(f, null, 2));
       break;
     }
@@ -333,22 +397,38 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       break;
     }
     case 'update': {
-      if (!findingId) { console.error('Provide finding ID with --update <id>'); process.exit(1); }
-      const toState = args.includes('--to') ? args[args.indexOf('--to') + 1] as FindingState : 'close';
-      const reason = args.includes('--reason') ? args[args.indexOf('--reason') + 1] : 'Updated via CLI';
+      if (!findingId) {
+        console.error('Provide finding ID with --update <id>');
+        process.exit(1);
+      }
+      const toState = args.includes('--to')
+        ? (args[args.indexOf('--to') + 1] as FindingState)
+        : 'close';
+      const reason = args.includes('--reason')
+        ? args[args.indexOf('--reason') + 1]
+        : 'Updated via CLI';
       if (dryRun) {
         console.log(`[DRY-RUN] Would transition ${findingId} → ${toState}: ${reason}`);
         break;
       }
       const result = transitionFinding(findingId, toState, reason, quiet);
-      if (!result.success) { console.error(result.error); process.exit(1); }
+      if (!result.success) {
+        console.error(result.error);
+        process.exit(1);
+      }
       console.log(JSON.stringify(result.finding, null, 2));
       break;
     }
     case 'query': {
-      const lens = args.includes('--lens') ? args[args.indexOf('--lens') + 1] as FindingLens : undefined;
-      const severity = args.includes('--severity') ? args[args.indexOf('--severity') + 1] as FindingSeverity : undefined;
-      const state = args.includes('--state') ? args[args.indexOf('--state') + 1] as FindingState : undefined;
+      const lens = args.includes('--lens')
+        ? (args[args.indexOf('--lens') + 1] as FindingLens)
+        : undefined;
+      const severity = args.includes('--severity')
+        ? (args[args.indexOf('--severity') + 1] as FindingSeverity)
+        : undefined;
+      const state = args.includes('--state')
+        ? (args[args.indexOf('--state') + 1] as FindingState)
+        : undefined;
       const results = queryFindings({ lens, severity, state });
       console.log(JSON.stringify(results, null, 2));
       break;

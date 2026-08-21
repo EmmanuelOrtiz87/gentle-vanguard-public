@@ -37,8 +37,10 @@ function findRepoRoot(dir: string): string {
   return dir;
 }
 
-const repoRoot = process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
-  ? process.env.GENTLE_VANGUARD_BASE_DIR : findRepoRoot(ROOT);
+const repoRoot =
+  process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
+    ? process.env.GENTLE_VANGUARD_BASE_DIR
+    : findRepoRoot(ROOT);
 const tenantRegistryPath = join(repoRoot, 'config', 'tenant-registry.json');
 const sessionRoot = join(repoRoot, '.session');
 const codegraphRoot = join(repoRoot, '.codegraph');
@@ -52,7 +54,9 @@ function getTenantId(): string {
     try {
       const config = JSON.parse(readFileSync(tenantConfigPath, 'utf-8'));
       if (config.tenantId) return config.tenantId;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   const workspaceName = repoRoot.split(/[\\/]/).pop() || '';
   if (workspaceName && workspaceName !== 'gentle-vanguard') return workspaceName;
@@ -99,19 +103,30 @@ function getTenantContext(): TenantContext {
 }
 
 function setTenantContext(tenantId: string): void {
-  if (!tenantId) { console.warn('[TENANT] Tenant ID cannot be empty'); return; }
+  if (!tenantId) {
+    console.warn('[TENANT] Tenant ID cannot be empty');
+    return;
+  }
   process.env.GENTLE_TENANT_ID = tenantId;
   console.log(`[TENANT] Tenant set to: ${tenantId}`);
 }
 
 function getTenantRegistry(): TenantRegistry {
   if (existsSync(tenantRegistryPath)) {
-    try { return JSON.parse(readFileSync(tenantRegistryPath, 'utf-8')); } catch { /* ignore */ }
+    try {
+      return JSON.parse(readFileSync(tenantRegistryPath, 'utf-8'));
+    } catch {
+      /* ignore */
+    }
   }
   return { tenants: [] };
 }
 
-interface ValidationResult { pass: boolean; errors: string[]; context: TenantContext }
+interface ValidationResult {
+  pass: boolean;
+  errors: string[];
+  context: TenantContext;
+}
 
 function validateIsolation(): ValidationResult {
   const errors: string[] = [];
@@ -128,7 +143,10 @@ function validateIsolation(): ValidationResult {
     }
   }
   if (errors.length === 0) console.log('[TENANT] Isolation validation PASS');
-  else { console.log('[TENANT] Isolation validation FAIL'); for (const e of errors) console.log(`  - ${e}`); }
+  else {
+    console.log('[TENANT] Isolation validation FAIL');
+    for (const e of errors) console.log(`  - ${e}`);
+  }
   return { pass: errors.length === 0, errors, context: ctx };
 }
 
@@ -146,7 +164,10 @@ function main(): void {
       break;
     }
     case 'set': {
-      if (!tenantId) { console.error('[TENANT] TenantId required for set action'); process.exit(1); }
+      if (!tenantId) {
+        console.error('[TENANT] TenantId required for set action');
+        process.exit(1);
+      }
       setTenantContext(tenantId);
       break;
     }

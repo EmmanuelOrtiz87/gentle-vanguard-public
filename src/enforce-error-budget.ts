@@ -75,7 +75,9 @@ function getErrorBudgetState(budget: ErrorBudget, currentConsumption: Consumptio
 function tryReadJson(p: string): Record<string, unknown> | null {
   try {
     if (existsSync(p)) return JSON.parse(readFileSync(p, 'utf8'));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 

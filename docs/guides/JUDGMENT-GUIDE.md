@@ -7,7 +7,7 @@ for the Gentle-Vanguard stack.
 
 ## Quick Start
 
-```powershell
+```TypeScript
 # Run full judgment with remediation
 .\scripts\utilities\invoke-judgment.ps1 -Scope Full -Remediate
 
@@ -89,9 +89,9 @@ Timestamp,SessionID,Category,Status,Agent,Message,SLO_ms
 
 ## Using Judgment Trends
 
-```powershell
+```TypeScript
 # View trends (future implementation)
-.\scripts\utilities\gv.ps1 judgment-trends
+.\scripts\utilities\src/cli/gv.ts judgment-trends
 
 # This will read dashboard.csv and show:
 # - Failure rate over last 7 days
@@ -118,7 +118,7 @@ Multiple concurrent executions can lock `draft-report.md`. Wait for previous exe
 
 If remediation fails after 3 iterations, run manual recovery:
 
-```powershell
+```TypeScript
 .\scripts\utilities\manual-recovery.ps1
 ```
 

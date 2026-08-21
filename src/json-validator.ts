@@ -56,16 +56,30 @@ function testJsonValidStrict(json: string): ValidationResult {
       else if (char === '[') bracketCount++;
       else if (char === ']') bracketCount--;
 
-      if (braceCount < 0) return { Valid: false, Error: "Unmatched closing brace '}'", Position: i };
-      if (bracketCount < 0) return { Valid: false, Error: "Unmatched closing bracket ']'", Position: i };
+      if (braceCount < 0)
+        return { Valid: false, Error: "Unmatched closing brace '}'", Position: i };
+      if (bracketCount < 0)
+        return { Valid: false, Error: "Unmatched closing bracket ']'", Position: i };
     }
   }
 
   if (inString) return { Valid: false, Error: 'Unterminated string', Position: trimmed.length };
-  if (braceCount > 0) return { Valid: false, Error: `Missing ${braceCount} closing brace(s) '}'`, Position: trimmed.length };
-  if (braceCount < 0) return { Valid: false, Error: 'Extra closing brace(s)', Position: trimmed.length };
-  if (bracketCount > 0) return { Valid: false, Error: `Missing ${bracketCount} closing bracket(s) ']'`, Position: trimmed.length };
-  if (bracketCount < 0) return { Valid: false, Error: 'Extra closing bracket(s)', Position: trimmed.length };
+  if (braceCount > 0)
+    return {
+      Valid: false,
+      Error: `Missing ${braceCount} closing brace(s) '}'`,
+      Position: trimmed.length,
+    };
+  if (braceCount < 0)
+    return { Valid: false, Error: 'Extra closing brace(s)', Position: trimmed.length };
+  if (bracketCount > 0)
+    return {
+      Valid: false,
+      Error: `Missing ${bracketCount} closing bracket(s) ']'`,
+      Position: trimmed.length,
+    };
+  if (bracketCount < 0)
+    return { Valid: false, Error: 'Extra closing bracket(s)', Position: trimmed.length };
 
   const noTrailing = trimmed.replace(/,(\s*[}\]])/g, '$1');
   if (noTrailing !== trimmed) {
@@ -120,7 +134,12 @@ function repairCommonJsonErrors(json: string): RepairResult {
   return { Json: repaired, Fixes: fixes };
 }
 
-function validateJson(jsonString: string, context: string, throwOnError: boolean, fixCommonErrors: boolean): string {
+function validateJson(
+  jsonString: string,
+  context: string,
+  throwOnError: boolean,
+  fixCommonErrors: boolean,
+): string {
   const result = testJsonValidStrict(jsonString);
 
   if (result.Valid) {
@@ -168,7 +187,12 @@ function validateJson(jsonString: string, context: string, throwOnError: boolean
 function main() {
   const args = process.argv.slice(2);
   // Support both --json=<string> and --json-string <value> formats
-  let jsonString = args.find((a) => a.startsWith('--json='))?.split('=').slice(1).join('=') ?? '';
+  let jsonString =
+    args
+      .find((a) => a.startsWith('--json='))
+      ?.split('=')
+      .slice(1)
+      .join('=') ?? '';
   if (!jsonString) {
     const nsIdx = args.indexOf('--json-string');
     if (nsIdx >= 0 && nsIdx + 1 < args.length) {
@@ -179,12 +203,19 @@ function main() {
       }
     }
   }
-  const context = args.find((a) => a.startsWith('--context='))?.split('=').slice(1).join('=') ?? 'unspecified';
+  const context =
+    args
+      .find((a) => a.startsWith('--context='))
+      ?.split('=')
+      .slice(1)
+      .join('=') ?? 'unspecified';
   const throwOnError = args.includes('--throwOnError');
   const fixCommonErrors = args.includes('--fixCommonErrors');
 
   if (!jsonString) {
-    console.error('Usage: --json=<string> | --json-string <value> [--context=<name>] [--throwOnError] [--fixCommonErrors]');
+    console.error(
+      'Usage: --json=<string> | --json-string <value> [--context=<name>] [--throwOnError] [--fixCommonErrors]',
+    );
     process.exit(1);
   }
 

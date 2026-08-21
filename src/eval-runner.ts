@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-} from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -171,7 +166,8 @@ function main() {
   console.log(`\x1b[36m[EVAL] Suite: ${suiteName} v${suiteVer}\x1b[0m`);
   console.log(`\x1b[90m[EVAL] Cases: ${cases.length}\x1b[0m`);
 
-  const baseDir = outputDir ||
+  const baseDir =
+    outputDir ||
     (process.env.GENTLE_TENANT_EVAL_DIR
       ? join(process.env.GENTLE_TENANT_EVAL_DIR, 'results')
       : join(repoRoot, '.session', 'eval', 'results'));
@@ -216,9 +212,7 @@ function main() {
   }
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-  const avgScore = results.length > 0
-    ? Number((totalScore / results.length).toFixed(2))
-    : 0;
+  const avgScore = results.length > 0 ? Number((totalScore / results.length).toFixed(2)) : 0;
   const passCount = results.filter((r) => r.status === 'pass').length;
   const failCount = results.filter((r) => r.status === 'fail' || r.status === 'error').length;
 
@@ -240,7 +234,9 @@ function main() {
   writeFileSync(resultFile, JSON.stringify(runResult, null, 2), 'utf-8');
 
   const color = failCount === 0 ? 32 : 33;
-  console.log(`\x1b[${color}m[EVAL] Complete: ${passCount} passed, ${failCount} failed, avg ${avgScore} (${duration}s)\x1b[0m`);
+  console.log(
+    `\x1b[${color}m[EVAL] Complete: ${passCount} passed, ${failCount} failed, avg ${avgScore} (${duration}s)\x1b[0m`,
+  );
   console.log(`\x1b[90m[EVAL] Results: ${resultFile}\x1b[0m`);
 
   if (doExport) {

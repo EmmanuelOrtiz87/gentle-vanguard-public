@@ -39,13 +39,108 @@ interface MatchResult {
 // ---- Stop Words (matches skill-embedder.ts) ----
 
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'is', 'it', 'as', 'be', 'by', 'with',
-  'from', 'that', 'this', 'are', 'was', 'were', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-  'would', 'can', 'could', 'should', 'may', 'might', 'shall', 'not', 'no', 'but', 'if', 'so', 'up', 'out',
-  'about', 'into', 'over', 'after', 'before', 'between', 'under', 'again', 'further', 'then', 'once', 'also',
-  'very', 'just', 'each', 'any', 'all', 'both', 'more', 'most', 'some', 'such', 'only', 'own', 'same', 'than',
-  'too', 'el', 'la', 'los', 'las', 'de', 'del', 'en', 'un', 'una', 'que', 'es', 'se', 'por', 'para', 'con',
-  'una', 'lo', 'como', 'mas', 'pero', 'sus', 'le', 'ya', 'este', 'entre', 'porque', 'todo', 'esta', 'sin', 'son',
+  'a',
+  'an',
+  'the',
+  'in',
+  'on',
+  'at',
+  'to',
+  'for',
+  'of',
+  'and',
+  'or',
+  'is',
+  'it',
+  'as',
+  'be',
+  'by',
+  'with',
+  'from',
+  'that',
+  'this',
+  'are',
+  'was',
+  'were',
+  'been',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'can',
+  'could',
+  'should',
+  'may',
+  'might',
+  'shall',
+  'not',
+  'no',
+  'but',
+  'if',
+  'so',
+  'up',
+  'out',
+  'about',
+  'into',
+  'over',
+  'after',
+  'before',
+  'between',
+  'under',
+  'again',
+  'further',
+  'then',
+  'once',
+  'also',
+  'very',
+  'just',
+  'each',
+  'any',
+  'all',
+  'both',
+  'more',
+  'most',
+  'some',
+  'such',
+  'only',
+  'own',
+  'same',
+  'than',
+  'too',
+  'el',
+  'la',
+  'los',
+  'las',
+  'de',
+  'del',
+  'en',
+  'un',
+  'una',
+  'que',
+  'es',
+  'se',
+  'por',
+  'para',
+  'con',
+  'una',
+  'lo',
+  'como',
+  'mas',
+  'pero',
+  'sus',
+  'le',
+  'ya',
+  'este',
+  'entre',
+  'porque',
+  'todo',
+  'esta',
+  'sin',
+  'son',
 ]);
 
 // ---- Tokenizer (identical to skill-embedder.ts) ----
@@ -53,8 +148,8 @@ const STOP_WORDS = new Set([
 function tokenize(text: string): string[] {
   if (!text) return [];
   const cleaned = text.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
-  const parts = cleaned.split(/[\s-]+/).filter(t => t.length >= 2 && t.length <= 40);
-  return parts.filter(t => !STOP_WORDS.has(t));
+  const parts = cleaned.split(/[\s-]+/).filter((t) => t.length >= 2 && t.length <= 40);
+  return parts.filter((t) => !STOP_WORDS.has(t));
 }
 
 // ---- Embeddings loader (lazy singleton) ----
@@ -63,9 +158,15 @@ let _embeddings: EmbeddingsIndex | null = null;
 
 function getEmbeddings(): EmbeddingsIndex {
   if (!_embeddings) {
-    const embPath = join(resolve(process.env.GENTLE_VANGUARD_BASE_DIR ?? process.cwd()), '.atl', 'skill-embeddings.json');
+    const embPath = join(
+      resolve(process.env.GENTLE_VANGUARD_BASE_DIR ?? process.cwd()),
+      '.atl',
+      'skill-embeddings.json',
+    );
     if (!existsSync(embPath)) {
-      throw new Error(`Embeddings not found at ${embPath}. Run 'npx tsx src/skills/skill-embedder.ts' first.`);
+      throw new Error(
+        `Embeddings not found at ${embPath}. Run 'npx tsx src/skills/skill-embedder.ts' first.`,
+      );
     }
     _embeddings = JSON.parse(readFileSync(embPath, 'utf-8')) as EmbeddingsIndex;
   }
@@ -74,7 +175,11 @@ function getEmbeddings(): EmbeddingsIndex {
 
 // ---- Query vector computation ----
 
-function computeQueryVector(tokens: string[], vocab: string[], idf: Record<string, number>): Record<string, number> {
+function computeQueryVector(
+  tokens: string[],
+  vocab: string[],
+  idf: Record<string, number>,
+): Record<string, number> {
   const tf: Record<string, number> = {};
   for (const t of tokens) tf[t] = (tf[t] || 0) + 1;
 
@@ -102,7 +207,10 @@ function computeQueryVector(tokens: string[], vocab: string[], idf: Record<strin
 
 // ---- Cosine similarity (dot product of L2-normalized vectors) ----
 
-function cosineSimilarity(queryVec: Record<string, number>, skillVec: Record<string, number>): number {
+function cosineSimilarity(
+  queryVec: Record<string, number>,
+  skillVec: Record<string, number>,
+): number {
   let dot = 0;
   // Iterate over the smaller vector (usually queryVec)
   for (const [term, qv] of Object.entries(queryVec)) {
@@ -160,7 +268,7 @@ function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
   if (tokens.length === 0) {
     // No meaningful tokens — try fuzzy fallback
     const fuzzy = fuzzyFallback(query);
-    return fuzzy.map(s => ({
+    return fuzzy.map((s) => ({
       skill: s,
       agent: 'unknown',
       confidence: 0.1,
@@ -192,7 +300,7 @@ function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
   // If top result has very low confidence, supplement with fuzzy fallback
   if (topResults.length === 0 || topResults[0].confidence < 0.05) {
     const fuzzy = fuzzyFallback(query);
-    const known = new Set(topResults.map(r => r.skill));
+    const known = new Set(topResults.map((r) => r.skill));
     for (const f of fuzzy) {
       if (!known.has(f)) {
         topResults.push({ skill: f, agent: 'unknown', confidence: 0.05, triggers: [] });
@@ -207,8 +315,12 @@ function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
 
 function main(): void {
   const args = process.argv.slice(2);
-  const queryIdx = args.indexOf('--query') !== -1 ? args.indexOf('--query') + 1 :
-                   args.indexOf('-Query') !== -1 ? args.indexOf('-Query') + 1 : -1;
+  const queryIdx =
+    args.indexOf('--query') !== -1
+      ? args.indexOf('--query') + 1
+      : args.indexOf('-Query') !== -1
+        ? args.indexOf('-Query') + 1
+        : -1;
   const query = queryIdx >= 0 ? args[queryIdx] : '';
   const topKIdx = args.indexOf('--top-k');
   const topK = topKIdx >= 0 ? parseInt(args[topKIdx + 1] ?? '5', 10) : 5;
@@ -223,13 +335,19 @@ function main(): void {
     const results = findRelevantSkills(query, topK);
 
     if (jsonFlag) {
-      console.log(JSON.stringify({
-        Status: results.length > 0 ? 'Routed' : 'NoMatch',
-        Skills: results.map(r => r.skill),
-        Agents: [...new Set(results.map(r => r.agent))],
-        Query: query,
-        Matches: results,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            Status: results.length > 0 ? 'Routed' : 'NoMatch',
+            Skills: results.map((r) => r.skill),
+            Agents: [...new Set(results.map((r) => r.agent))],
+            Query: query,
+            Matches: results,
+          },
+          null,
+          2,
+        ),
+      );
       return;
     }
 
@@ -237,20 +355,26 @@ function main(): void {
       console.log(`SKILL-ROUTER: Found ${results.length} matching skill(s) for "${query}"`);
       for (const r of results) {
         const bar = confidenceBar(r.confidence);
-        console.log(`  ${bar} ${r.skill} (agent: ${r.agent}, confidence: ${(r.confidence * 100).toFixed(1)}%)`);
+        console.log(
+          `  ${bar} ${r.skill} (agent: ${r.agent}, confidence: ${(r.confidence * 100).toFixed(1)}%)`,
+        );
       }
-      console.log(JSON.stringify({
-        Status: 'Routed',
-        Skills: results.map(r => r.skill),
-        Query: query,
-      }));
+      console.log(
+        JSON.stringify({
+          Status: 'Routed',
+          Skills: results.map((r) => r.skill),
+          Query: query,
+        }),
+      );
     } else {
       console.log(`SKILL-ROUTER: No skills matched for "${query}"`);
       console.log(JSON.stringify({ Status: 'NoMatch', Skills: [], Query: query }));
     }
   } catch (err) {
     // Fallback to fuzzy if embeddings not available
-    console.error(`SKILL-ROUTER: Embeddings unavailable (${err instanceof Error ? err.message : String(err)}), using fuzzy fallback`);
+    console.error(
+      `SKILL-ROUTER: Embeddings unavailable (${err instanceof Error ? err.message : String(err)}), using fuzzy fallback`,
+    );
     const fuzzy = fuzzyFallback(query);
     if (fuzzy.length > 0) {
       console.log(`SKILL-ROUTER: Found ${fuzzy.length} matching skill(s) via fuzzy fallback`);

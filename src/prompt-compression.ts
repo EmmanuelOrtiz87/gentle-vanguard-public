@@ -19,6 +19,8 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { getTokenUsage } from './token-usage-reader.js';
+import { compressStructural } from './structural-compression.js';
 
 // ---- Types ----
 
@@ -92,7 +94,15 @@ function getConfig(): CompressionConfig {
         tokenBudgetAware: true,
         deduplicateLines: true,
         removeBoilerplate: true,
-        boilerplatePatterns: ['por favor', 'please', 'thank you', 'gracias', 'thanks', 'saludos', 'regards'],
+        boilerplatePatterns: [
+          'por favor',
+          'please',
+          'thank you',
+          'gracias',
+          'thanks',
+          'saludos',
+          'regards',
+        ],
         lowInfoPatterns: ['^[-=_*]{3,}$', '^\\s*$'],
         skills: {},
       };
@@ -110,7 +120,9 @@ function getSkillConfig(skill: string): SkillCompressionConfig {
   // Exact match
   if (config.skills[skill]) return config.skills[skill];
   // Partial match: check if any configured skill key is contained in the given skill name
-  const matchedKey = Object.keys(config.skills).find(k => skill.toLowerCase().includes(k.toLowerCase()));
+  const matchedKey = Object.keys(config.skills).find((k) =>
+    skill.toLowerCase().includes(k.toLowerCase()),
+  );
   if (matchedKey) return config.skills[matchedKey];
   // Default
   return {
@@ -122,16 +134,7 @@ function getSkillConfig(skill: string): SkillCompressionConfig {
 // ---- Token budget awareness ----
 
 function getTokenBudgetUsage(): number {
-  try {
-    const budgetPath = join(ROOT, '.session', 'token-budget.json');
-    if (!existsSync(budgetPath)) return 0;
-    const budget = JSON.parse(readFileSync(budgetPath, 'utf-8'));
-    const used = budget.usedToday ?? 0;
-    const limit = budget.dailyLimit ?? 120000;
-    return limit > 0 ? used / limit : 0;
-  } catch {
-    return 0;
-  }
+  return getTokenUsage().percentage / 100;
 }
 
 function adjustRatioForBudget(baseRatio: number): number {
@@ -178,7 +181,9 @@ function isLowInfo(line: string): boolean {
   for (const pattern of config.lowInfoPatterns) {
     try {
       if (new RegExp(pattern).test(line)) return true;
-    } catch { /* skip invalid patterns */ }
+    } catch {
+      /* skip invalid patterns */
+    }
   }
   return false;
 }
@@ -201,7 +206,14 @@ function parseSections(input: string): ParsedSection[] {
 
     // Detect code block start
     if (line.trimStart().startsWith('```') || line.trimStart().startsWith('~~~')) {
-      if (current && current.type === 'code' && (line.trimStart() === '```' || line.trimStart() === '~~~' || line.trimStart().startsWith('```') || line.trimStart().startsWith('~~~'))) {
+      if (
+        current &&
+        current.type === 'code' &&
+        (line.trimStart() === '```' ||
+          line.trimStart() === '~~~' ||
+          line.trimStart().startsWith('```') ||
+          line.trimStart().startsWith('~~~'))
+      ) {
         // Close code block
         current.lines.push(line);
         sections.push(current);
@@ -235,19 +247,20 @@ function parseSections(input: string): ParsedSection[] {
     }
 
     // Text
-    if (!current || current.type === 'code') {
-      // If we were in code and this line doesn't close it, keep it in code
-      // Actually for code blocks we already handle the closing above
-      if (current && current.type === 'code') {
-        current.lines.push(line);
-        continue;
-      }
-      if (current) sections.push(current);
-      current = { type: 'text', lines: [line], startLine: i };
+    if (current && current.type === 'code') {
+      // Inside a code block — keep the line in the code section
+      current.lines.push(line);
       continue;
     }
-
-    current.lines.push(line);
+    if (current && current.type === 'text') {
+      // Continue an existing text section
+      current.lines.push(line);
+      continue;
+    }
+    // Header or list section: close it and start a new text section
+    if (current) sections.push(current);
+    current = { type: 'text', lines: [line], startLine: i };
+    continue;
   }
 
   if (current) sections.push(current);
@@ -256,7 +269,11 @@ function parseSections(input: string): ParsedSection[] {
 
 // ---- Core compression ----
 
-function compressPrompt(input: string, skill: string = 'default'): CompressionResult {
+function compressPrompt(
+  input: string,
+  skill: string = 'default',
+  options: { previousTurns?: string[]; query?: string } = {},
+): CompressionResult {
   const startTime = Date.now();
 
   if (!input || input.trim().length === 0) {
@@ -279,6 +296,29 @@ function compressPrompt(input: string, skill: string = 'default'): CompressionRe
   const effectiveRatio = adjustRatioForBudget(baseRatio);
   const config = getConfig();
   const maxLines = config.maxPreservedLines;
+
+  // Structural compression (JSON arrays, logs, prose) — complements the
+  // extractive section processing below. Applied first when it yields a
+  // smaller result, so prompts/delegation prompts also benefit.
+  const structural = compressStructural(input, {
+    query: options.query,
+    previousTurns: options.previousTurns,
+    mode: 'input',
+  });
+  if (structural.strategy !== 'none' && structural.compressed.length < input.length) {
+    return {
+      original: input,
+      compressed: structural.compressed,
+      originalChars: input.length,
+      compressedChars: structural.compressed.length,
+      originalLines: input.split('\n').length,
+      compressedLines: structural.compressed.split('\n').length,
+      compressionRatio: structural.compressed.length / input.length,
+      skill,
+      sections: [{ type: 'text', originalLines: 1, compressedLines: 1, preserved: true }],
+      durationMs: Date.now() - startTime,
+    };
+  }
 
   // Parse sections
   const sections = parseSections(input);
@@ -313,7 +353,7 @@ function compressPrompt(input: string, skill: string = 'default'): CompressionRe
         listLines = deduplicateLines(listLines);
       }
       if (config.removeBoilerplate) {
-        listLines = listLines.filter(l => !isBoilerplate(l) && !isLowInfo(l));
+        listLines = listLines.filter((l) => !isBoilerplate(l) && !isLowInfo(l));
       }
       // Apply ratio: keep first N lines
       const targetLines = Math.max(1, Math.floor(listLines.length * effectiveRatio));
@@ -332,7 +372,7 @@ function compressPrompt(input: string, skill: string = 'default'): CompressionRe
         textLines = deduplicateLines(textLines);
       }
       if (config.removeBoilerplate) {
-        textLines = textLines.filter(l => !isBoilerplate(l) && !isLowInfo(l));
+        textLines = textLines.filter((l) => !isBoilerplate(l) && !isLowInfo(l));
       }
       // Apply ratio: keep first and last portions
       const targetLines = Math.max(1, Math.floor(textLines.length * effectiveRatio));
@@ -345,10 +385,20 @@ function compressPrompt(input: string, skill: string = 'default'): CompressionRe
           preserved: true,
         });
       } else {
-        // Keep first 60% of target from start, 40% from end
-        const firstCount = Math.ceil(targetLines * 0.6);
-        const lastCount = targetLines - firstCount;
-        const kept = [...textLines.slice(0, firstCount), ...textLines.slice(-lastCount)];
+        // Keep first 60% of target from start, 40% from end.
+        // IMPORTANT: guard against lastCount === 0 — slice(-0) === slice(0)
+        // returns the WHOLE array, causing duplicated lines.
+        const firstCount = Math.min(textLines.length, Math.ceil(targetLines * 0.6));
+        let lastCount = targetLines - firstCount;
+        let kept: string[];
+        if (lastCount <= 0) {
+          kept = textLines.slice(0, firstCount);
+        } else {
+          // Prevent overlap when firstCount + lastCount exceeds the available lines
+          const maxLast = Math.max(0, textLines.length - firstCount);
+          lastCount = Math.min(lastCount, maxLast);
+          kept = [...textLines.slice(0, firstCount), ...textLines.slice(-lastCount)];
+        }
         compressedLines.push(...kept);
         sectionInfos.push({
           type: 'text',
@@ -364,13 +414,16 @@ function compressPrompt(input: string, skill: string = 'default'): CompressionRe
   let finalLines = compressedLines;
   if (finalLines.length > maxLines) {
     // Keep header section, first 60% of remaining, last 40% of remaining
-    const headerEnd = sections.findIndex(s => s.type === 'header');
+    const headerEnd = sections.findIndex((s) => s.type === 'header');
     const nonHeaderLines = finalLines.slice(headerEnd >= 0 ? headerEnd : 0);
     const targetNonHeader = maxLines - (headerEnd >= 0 ? headerEnd : 0);
     if (targetNonHeader > 0 && nonHeaderLines.length > targetNonHeader) {
       const firstCount = Math.ceil(targetNonHeader * 0.6);
       const lastCount = targetNonHeader - firstCount;
-      const keptNonHeader = [...nonHeaderLines.slice(0, firstCount), ...nonHeaderLines.slice(-lastCount)];
+      const keptNonHeader = [
+        ...nonHeaderLines.slice(0, firstCount),
+        ...nonHeaderLines.slice(-lastCount),
+      ];
       finalLines = [...finalLines.slice(0, headerEnd >= 0 ? headerEnd : 0), ...keptNonHeader];
     }
   }
@@ -398,7 +451,9 @@ function loadStats(): CompressionStats {
     if (existsSync(STATS_PATH)) {
       return JSON.parse(readFileSync(STATS_PATH, 'utf-8')) as CompressionStats;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { totalCompressed: 0, totalOriginal: 0, averageRatio: 1, runs: 0, bySkill: {} };
 }
 
@@ -415,10 +470,13 @@ function saveStats(result: CompressionResult): void {
     }
     const skillStats = stats.bySkill[result.skill];
     skillStats.runs++;
-    skillStats.avgRatio = skillStats.avgRatio + (result.compressionRatio - skillStats.avgRatio) / skillStats.runs;
+    skillStats.avgRatio =
+      skillStats.avgRatio + (result.compressionRatio - skillStats.avgRatio) / skillStats.runs;
 
     writeFileSync(STATS_PATH, JSON.stringify(stats, null, 2), 'utf-8');
-  } catch { /* stats are non-critical */ }
+  } catch {
+    /* stats are non-critical */
+  }
 }
 
 // ---- Display helpers ----
@@ -446,14 +504,22 @@ function formatResult(result: CompressionResult): string {
   ];
 
   for (const s of result.sections) {
-    const icon = s.type === 'code' ? '📄' : s.type === 'header' ? '📌' : s.type === 'list' ? '📋' : '📝';
-    const saved = s.originalLines > 0 ? ((1 - s.compressedLines / s.originalLines) * 100).toFixed(0) : '0';
-    lines.push(`    ${icon} ${s.type.padEnd(6)} ${s.originalLines}→${s.compressedLines} lines (-${saved}%)`);
+    const icon =
+      s.type === 'code' ? '📄' : s.type === 'header' ? '📌' : s.type === 'list' ? '📋' : '📝';
+    const saved =
+      s.originalLines > 0 ? ((1 - s.compressedLines / s.originalLines) * 100).toFixed(0) : '0';
+    lines.push(
+      `    ${icon} ${s.type.padEnd(6)} ${s.originalLines}→${s.compressedLines} lines (-${saved}%)`,
+    );
   }
 
   if (result.compressedLines < result.originalLines) {
     lines.push('', '  ⚡ Compressed output:');
-    lines.push('', result.compressed.slice(0, 500) + (result.compressed.length > 500 ? '\n  ... (truncated)' : ''));
+    lines.push(
+      '',
+      result.compressed.slice(0, 500) +
+        (result.compressed.length > 500 ? '\n  ... (truncated)' : ''),
+    );
   }
 
   return lines.join('\n');
@@ -523,7 +589,9 @@ function main(): void {
 
     if (!stdin) {
       console.error('Usage:');
-      console.error('  npx tsx src/prompt-compression.ts --input "prompt text" [--skill <name>] [--json]');
+      console.error(
+        '  npx tsx src/prompt-compression.ts --input "prompt text" [--skill <name>] [--json]',
+      );
       console.error('  npx tsx src/prompt-compression.ts --file prompt.txt [--skill <name>]');
       console.error('  npx tsx src/prompt-compression.ts --stats');
       console.error('');

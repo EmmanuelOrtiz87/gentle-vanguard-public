@@ -1,6 +1,6 @@
 /**
  * Dashboard Offline Storage
- * 
+ *
  * Provides localStorage-based persistence for dashboard data when
  * the WebSocket server is unavailable. Enables offline mode operation.
  */
@@ -43,17 +43,17 @@ export function loadOfflineCache(tenantId?: string): unknown | null {
     if (!stored) return null;
 
     const cache: CachedDashboardData = JSON.parse(stored);
-    
+
     // Version check
     if (cache.version !== STORAGE_VERSION) return null;
-    
+
     // Tenant check
     if (cache.tenantId !== tenantId) return null;
-    
+
     // Staleness check
     const age = Date.now() - new Date(cache.timestamp).getTime();
     if (age > MAX_AGE_MS) return null;
-    
+
     return cache.data;
   } catch {
     return null;
@@ -85,7 +85,7 @@ export function getOfflineCacheInfo(): { timestamp: string | null; age: number }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return { timestamp: null, age: 0 };
-    
+
     const cache: CachedDashboardData = JSON.parse(stored);
     const age = Date.now() - new Date(cache.timestamp).getTime();
     return { timestamp: cache.timestamp, age };

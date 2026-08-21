@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Tenant Context v1.0.0
+ * Tenant Context
  * Multi-tenant context resolution and isolation
  * Secure tenant boundaries with complete separation
- * 
- * Part of Gentle-Vanguard v5.1 — Multi-Tenant Isolation
+ *
+ * Part of Gentle-Vanguard  — Multi-Tenant Isolation
  */
 
 import { EventEmitter } from 'events';
@@ -91,7 +91,7 @@ export class TenantContextManager extends EventEmitter {
   public createTenant(
     name: string,
     tier: Tenant['tier'] = 'basic',
-    customConfig?: Partial<TenantConfig>
+    customConfig?: Partial<TenantConfig>,
   ): Tenant {
     if (this.tenants.size >= this.config.defaultMaxTenants) {
       throw new Error('Maximum number of tenants reached');
@@ -201,8 +201,9 @@ export class TenantContextManager extends EventEmitter {
     }
 
     // Check if max sessions reached
-    const activeSessions = Array.from(this.activeContexts.values())
-      .filter(ctx => ctx.tenant.id === tenantId).length;
+    const activeSessions = Array.from(this.activeContexts.values()).filter(
+      (ctx) => ctx.tenant.id === tenantId,
+    ).length;
 
     if (activeSessions >= tenant.config.maxSessions) {
       this.logAccess(tenantId, 'RESOLVE', false, 'Max sessions reached');
@@ -255,14 +256,19 @@ export class TenantContextManager extends EventEmitter {
     const tenant = this.tenants.get(tenantId);
     if (!tenant) return false;
 
-    return tenant.config.allowedFeatures.includes(feature) ||
-           tenant.config.allowedFeatures.includes('all');
+    return (
+      tenant.config.allowedFeatures.includes(feature) ||
+      tenant.config.allowedFeatures.includes('all')
+    );
   }
 
   /**
    * Check rate limits
    */
-  public checkRateLimit(tenantId: string, contextId: string): { allowed: boolean; remaining: number } {
+  public checkRateLimit(
+    tenantId: string,
+    contextId: string,
+  ): { allowed: boolean; remaining: number } {
     const context = this.activeContexts.get(contextId);
     if (!context) return { allowed: false, remaining: 0 };
 
@@ -272,9 +278,7 @@ export class TenantContextManager extends EventEmitter {
 
     // Count requests in last minute
     const recentRequests = this.accessLog.filter(
-      log => log.tenantId === tenantId &&
-             log.timestamp > minuteAgo &&
-             log.action === 'REQUEST'
+      (log) => log.tenantId === tenantId && log.timestamp > minuteAgo && log.action === 'REQUEST',
     ).length;
 
     const allowed = recentRequests < tenant.config.rateLimits.requestsPerMinute;
@@ -286,7 +290,10 @@ export class TenantContextManager extends EventEmitter {
   /**
    * Update resource usage
    */
-  public updateResourceUsage(contextId: string, resources: Partial<TenantContext['resources']>): void {
+  public updateResourceUsage(
+    contextId: string,
+    resources: Partial<TenantContext['resources']>,
+  ): void {
     const context = this.activeContexts.get(contextId);
     if (!context) return;
 
@@ -311,11 +318,19 @@ export class TenantContextManager extends EventEmitter {
     const { tenant, resources } = context;
 
     if (resources.tokensUsed > tenant.config.maxTokensPerDay) {
-      this.emit('limitExceeded', { tenant: tenant.id, resource: 'tokens', limit: tenant.config.maxTokensPerDay });
+      this.emit('limitExceeded', {
+        tenant: tenant.id,
+        resource: 'tokens',
+        limit: tenant.config.maxTokensPerDay,
+      });
     }
 
     if (resources.storageUsed > tenant.config.maxStorage) {
-      this.emit('limitExceeded', { tenant: tenant.id, resource: 'storage', limit: tenant.config.maxStorage });
+      this.emit('limitExceeded', {
+        tenant: tenant.id,
+        resource: 'storage',
+        limit: tenant.config.maxStorage,
+      });
     }
   }
 
@@ -349,7 +364,12 @@ export class TenantContextManager extends EventEmitter {
 
     // Check if data isolation is enforced
     if (policy.dataIsolation && sourceTenantId !== targetTenantId) {
-      this.logAccess(sourceTenantId, 'ISOLATION_CHECK', false, `Access to ${targetTenantId} blocked`);
+      this.logAccess(
+        sourceTenantId,
+        'ISOLATION_CHECK',
+        false,
+        `Access to ${targetTenantId} blocked`,
+      );
       return false;
     }
 
@@ -384,12 +404,12 @@ export class TenantContextManager extends EventEmitter {
     const activeContexts = this.activeContexts.size;
 
     const byTier: Record<string, number> = {};
-    tenants.forEach(t => {
+    tenants.forEach((t) => {
       byTier[t.tier] = (byTier[t.tier] || 0) + 1;
     });
 
     const byStatus: Record<string, number> = {};
-    tenants.forEach(t => {
+    tenants.forEach((t) => {
       byStatus[t.status] = (byStatus[t.status] || 0) + 1;
     });
 
@@ -441,70 +461,79 @@ export const tenantContextManager = new TenantContextManager();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Tenant Context Manager v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.1 — Multi-Tenant Isolation\n');
-  
+  console.log('Tenant Context Manager ');
+  console.log('Part of Gentle-Vanguard  — Multi-Tenant Isolation\n');
+
   const manager = new TenantContextManager({
     enforceIsolation: true,
     auditAccess: true,
   });
-  
+
   manager.on('tenantCreated', (tenant) => {
     console.log(`[${new Date().toISOString()}] Tenant created: ${tenant.name} (${tenant.tier})`);
   });
-  
+
   manager.on('contextResolved', (context) => {
-    console.log(`[${new Date().toISOString()}] Context resolved for tenant: ${context.tenant.name}`);
+    console.log(
+      `[${new Date().toISOString()}] Context resolved for tenant: ${context.tenant.name}`,
+    );
     console.log(`  Session: ${context.session.id}`);
     console.log(`  Isolation: ${context.tenant.config.isolationLevel}`);
   });
-  
+
   manager.on('limitExceeded', (event) => {
-    console.log(`[${new Date().toISOString()}] LIMIT EXCEEDED: ${event.tenant} - ${event.resource}`);
+    console.log(
+      `[${new Date().toISOString()}] LIMIT EXCEEDED: ${event.tenant} - ${event.resource}`,
+    );
   });
-  
+
   // Create sample tenants
   console.log('Creating sample tenants...\n');
-  
+
   const tenant1 = manager.createTenant('Acme Corp', 'enterprise');
   const tenant2 = manager.createTenant('Startup Inc', 'basic');
   const tenant3 = manager.createTenant('Freelancer', 'free');
-  
+
   // Resolve contexts
   console.log('Resolving contexts...\n');
-  
+
   try {
     const ctx1 = manager.resolveContext(tenant1.id, 'user_001');
     const ctx2 = manager.resolveContext(tenant2.id, 'user_002');
-    
+
     // Check features
     console.log('Feature checks:');
-    console.log(`  Enterprise has 'custom-features': ${manager.isFeatureAllowed(tenant1.id, 'custom-features')}`);
-    console.log(`  Basic has 'refactoring': ${manager.isFeatureAllowed(tenant2.id, 'refactoring')}`);
+    console.log(
+      `  Enterprise has 'custom-features': ${manager.isFeatureAllowed(tenant1.id, 'custom-features')}`,
+    );
+    console.log(
+      `  Basic has 'refactoring': ${manager.isFeatureAllowed(tenant2.id, 'refactoring')}`,
+    );
     console.log(`  Free has 'basic-chat': ${manager.isFeatureAllowed(tenant3.id, 'basic-chat')}`);
-    
+
     // Check rate limits
     console.log('\nRate limit checks:');
     const rate1 = manager.checkRateLimit(tenant1.id, ctx1.session.id);
-    console.log(`  Enterprise: ${rate1.allowed ? 'ALLOWED' : 'BLOCKED'} (${rate1.remaining} remaining)`);
-    
+    console.log(
+      `  Enterprise: ${rate1.allowed ? 'ALLOWED' : 'BLOCKED'} (${rate1.remaining} remaining)`,
+    );
+
     // Update resource usage
     manager.updateResourceUsage(ctx1.session.id, { tokensUsed: 5000, requestsMade: 10 });
     console.log('\nResource usage updated for enterprise tenant');
-    
+
     // Check isolation
     console.log('\nIsolation checks:');
     const isolation = manager.enforceIsolation(tenant1.id, tenant2.id);
     console.log(`  Cross-tenant access: ${isolation ? 'ALLOWED' : 'BLOCKED'}`);
-    
+
     // Release contexts
     manager.releaseContext(ctx1.session.id);
     manager.releaseContext(ctx2.session.id);
-    
   } catch (error: any) {
     console.error('Error:', error?.message || error);
   }
-  
+
   console.log('\n\n--- Tenant Statistics ---');
   console.log(JSON.stringify(manager.getStats(), null, 2));
 }

@@ -15,7 +15,7 @@
 
 
        Developer               CLI                  Skills
-        Input      (gv.ps1)     System
+        Input      (src/cli/gv.ts)     System
 
 
 
@@ -867,7 +867,7 @@ my-service/
 
 
 
-          GIT              POWERSHELL            GIT
+          GIT              TypeScript            GIT
        versión 2.30+       Core 7+            configured
 
       Windows           Windows           user.name
@@ -916,7 +916,7 @@ my-service/
 
 
 
-     Check PowerShell execution policy
+     Check TypeScript execution policy
 
 
 
@@ -924,7 +924,7 @@ my-service/
 
 
      Set policy:            Use full path:
-     Set-Execution           .\scripts\utilities\gv.ps1
+     Set-Execution           .\scripts\utilities\src/cli/gv.ts
      Policy -Scope           init
      CurrentUser
      -Execution

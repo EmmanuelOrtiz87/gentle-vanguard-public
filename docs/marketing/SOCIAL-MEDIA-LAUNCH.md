@@ -73,7 +73,7 @@ What makes Gentle-Vanguard different:
 • **SDD enforcement**: Every agent works from formal Specification-Driven Development documents •
 **Adversarial review**: Agents review each other's output before acceptance • **Pre-commit hooks
 with 7D validation**: Catch issues before they hit the repo • **Token budget guard**: No runaway
-costs • **PowerShell 7+ CLI**: One command to scaffold, validate, test, and deploy
+costs • **TypeScript 7+ CLI**: One command to scaffold, validate, test, and deploy
 
 We believe AI-assisted development shouldn't mean sacrificing quality, security, or control.
 
@@ -81,7 +81,7 @@ It's free. It's open source. Try it today.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #OpenSource #DevTools #SoftwareEngineering #Governance #LocalFirst #DeveloperExperience
+# AI #OpenSource #DevTools #SoftwareEngineering #Governance #LocalFirst #DeveloperExperience
 
 ### Post 2 — Adaptive System Angle
 
@@ -104,7 +104,7 @@ No more repeating yourself. No more context loss. Just better code, faster.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #MachineLearning #DeveloperExperience #SoftwareEngineering #DevTools
+# AI #MachineLearning #DeveloperExperience #SoftwareEngineering #DevTools
 
 ### Post 3 — Quality First Angle
 
@@ -125,7 +125,7 @@ Quality isn't a phase. It's built into every commit.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#SoftwareQuality #AI #DevTools #Engineering #BestPractices
+# SoftwareQuality #AI #DevTools #Engineering #BestPractices
 
 ### Post 4 — Open Source Angle
 
@@ -134,7 +134,7 @@ https://github.com/EmmanuelOrtiz87/gentle-vanguard
 Gentle-Vanguard v3.3.0:
 
 ✅ 18 AI agents ✅ 385 skills ✅ 10+ tool integrations (OpenCode, Claude, Cursor, and more) ✅
-PowerShell 7+ CLI ✅ Cross-platform (Windows, Linux, macOS) ✅ Zero telemetry ✅ Zero data
+TypeScript 7+ CLI ✅ Cross-platform (Windows, Linux, macOS) ✅ Zero telemetry ✅ Zero data
 exfiltration ✅ 100% local execution
 
 Your code stays on your machine. Your decisions stay in your control. Your architecture stays
@@ -147,7 +147,7 @@ MIT licensed. Fork it. Modify it. Ship with it.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#OpenSource #LocalFirst #Privacy #AI #DevTools #DeveloperFreedom
+# OpenSource #LocalFirst #Privacy #AI #DevTools #DeveloperFreedom
 
 ---
 
@@ -166,7 +166,7 @@ No SaaS. No telemetry leaks. Your code stays yours.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #DevTools #OpenSource #LocalFirst #SoftwareEngineering
+# AI #DevTools #OpenSource #LocalFirst #SoftwareEngineering
 
 ### Post 2 — Adaptive System Angle
 
@@ -181,7 +181,7 @@ Your AI learns. You stop repeating yourself.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#AI #DevTools #MachineLearning #DeveloperExperience
+# AI #DevTools #MachineLearning #DeveloperExperience
 
 ### Post 3 — Quality First Angle
 
@@ -193,7 +193,7 @@ Gentle-Vanguard v3.3.0 measures quality and enforces standards. Zero bugs shippe
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#SoftwareQuality #AI #DevTools #Engineering
+# SoftwareQuality #AI #DevTools #Engineering
 
 ### Post 4 — Open Source Angle
 
@@ -204,7 +204,7 @@ machine, your rules.
 
 https://github.com/EmmanuelOrtiz87/gentle-vanguard
 
-#OpenSource #LocalFirst #Privacy #AI #DevTools
+# OpenSource #LocalFirst #Privacy #AI #DevTools
 
 ---
 
@@ -236,7 +236,7 @@ Version 3.3.0 is a major release with:
 - **Pre-commit 7D validation**: Seven dimensions of checks run before anything touches the repo
 - **100% local-first**: No cloud dependency. No data leaves your machine. Cross-platform (Windows,
   Linux, macOS)
-- **PowerShell 7+ CLI**: One command to scaffold, validate, test, and deploy
+- **TypeScript 7+ CLI**: One command to scaffold, validate, test, and deploy
 
 We use it daily to build production AI systems. It's fully open source under MIT license.
 
@@ -326,7 +326,7 @@ Gentle-Vanguard v3.3.0:
 - **18 AI agents** collaborating on your machine
 - **385 skills** covering the full dev lifecycle
 - **10+ tool integrations** (OpenCode, Claude, Cursor, and more)
-- **PowerShell 7+ CLI** for Windows, Linux, macOS
+- **TypeScript 7+ CLI** for Windows, Linux, macOS
 - **Zero telemetry** — nothing leaves your machine
 - **Zero cloud dependency** — works offline
 - **MIT licensed** — fork it, modify it, ship it
@@ -367,7 +367,7 @@ those guardrails in from the start.
 - Engram persistent memory — the stack remembers context across sessions
 - Token budget guard so you don't burn through credits
 - Pre-commit hooks with 7D validation
-- PowerShell CLI (`gv.ps1`) for scaffolding, testing, and deployment
+- TypeScript CLI (`src/cli/gv.ts`) for scaffolding, testing, and deployment
 - 100% local, cross-platform (Windows, Linux, macOS)
 - Tool-agnostic: works with OpenCode, Claude, Cursor, and 10+ other tools
 
@@ -470,7 +470,7 @@ So we built Gentle-Vanguard v3.3.0:
 - 18 AI agents collaborating on your machine
 - 385 skills covering the full dev lifecycle
 - 10+ tool integrations (OpenCode, Claude, Cursor, and more)
-- PowerShell 7+ CLI for Windows, Linux, macOS
+- TypeScript 7+ CLI for Windows, Linux, macOS
 - Zero telemetry — nothing leaves your machine
 - Zero cloud dependency — works offline
 - MIT license — fork it, modify it, ship it

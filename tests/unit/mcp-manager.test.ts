@@ -7,10 +7,10 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('mcp-manager', () => {
   it('src/mcp-manager.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'MCP', 'mcp-manager.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'mcp', 'mcp-manager.ts')));
   });
 
   it('src/mcp-bridge.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'MCP', 'mcp-bridge.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'mcp', 'mcp-bridge.ts')));
   });
 });

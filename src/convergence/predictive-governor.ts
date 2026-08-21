@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Predictive Governor v1.0.0
+ * Predictive Governor
  * Anticipates load and adjusts budgets proactively
  * Prevents resource exhaustion through prediction
- * 
- * Part of Gentle-Vanguard v5.0 — Convergence Layer
+ *
+ * Part of Gentle-Vanguard  — Convergence Layer
  */
 
 import { EventEmitter } from 'events';
@@ -39,9 +39,9 @@ interface BudgetAdjustment {
 }
 
 interface GovernorConfig {
-  predictionHorizon: number;      // minutes
-  updateInterval: number;         // minutes
-  safetyMargin: number;           // 0-1
+  predictionHorizon: number; // minutes
+  updateInterval: number; // minutes
+  safetyMargin: number; // 0-1
   minBudget: number;
   maxBudget: number;
   smoothingFactor: number;
@@ -69,7 +69,7 @@ export class PredictiveGovernor extends EventEmitter {
       smoothingFactor: config.smoothingFactor || 0.3,
     };
     this.currentBudget = this.config.minBudget;
-    
+
     this.startPredictionLoop();
   }
 
@@ -78,11 +78,11 @@ export class PredictiveGovernor extends EventEmitter {
    */
   public recordMetrics(metrics: LoadMetrics): void {
     this.metricsHistory.push(metrics);
-    
+
     // Keep only last 24 hours of data
-    const cutoff = Date.now() - (24 * 60 * 60 * 1000);
-    this.metricsHistory = this.metricsHistory.filter(m => m.timestamp > cutoff);
-    
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    this.metricsHistory = this.metricsHistory.filter((m) => m.timestamp > cutoff);
+
     this.emit('metricsRecorded', metrics);
   }
 
@@ -112,15 +112,19 @@ export class PredictiveGovernor extends EventEmitter {
       cost: recent.reduce((a, m) => a + m.cost, 0) / recent.length,
     };
 
-    const olderAvg = older.length > 0 ? {
-      load: older.reduce((a, m) => a + m.requestsPerMinute, 0) / older.length,
-      tokens: older.reduce((a, m) => a + m.tokenUsage, 0) / older.length,
-      cost: older.reduce((a, m) => a + m.cost, 0) / older.length,
-    } : recentAvg;
+    const olderAvg =
+      older.length > 0
+        ? {
+            load: older.reduce((a, m) => a + m.requestsPerMinute, 0) / older.length,
+            tokens: older.reduce((a, m) => a + m.tokenUsage, 0) / older.length,
+            cost: older.reduce((a, m) => a + m.cost, 0) / older.length,
+          }
+        : recentAvg;
 
     // Calculate growth rates
     const loadGrowth = olderAvg.load > 0 ? (recentAvg.load - olderAvg.load) / olderAvg.load : 0;
-    const tokenGrowth = olderAvg.tokens > 0 ? (recentAvg.tokens - olderAvg.tokens) / olderAvg.tokens : 0;
+    const tokenGrowth =
+      olderAvg.tokens > 0 ? (recentAvg.tokens - olderAvg.tokens) / olderAvg.tokens : 0;
     const costGrowth = olderAvg.cost > 0 ? (recentAvg.cost - olderAvg.cost) / olderAvg.cost : 0;
 
     // Predict future values
@@ -148,14 +152,14 @@ export class PredictiveGovernor extends EventEmitter {
     };
 
     this.predictions.push(prediction);
-    
+
     // Keep only last 100 predictions
     if (this.predictions.length > 100) {
       this.predictions = this.predictions.slice(-50);
     }
 
     this.emit('prediction', prediction);
-    
+
     return prediction;
   }
 
@@ -164,7 +168,7 @@ export class PredictiveGovernor extends EventEmitter {
    */
   public adjustBudget(): BudgetAdjustment {
     const prediction = this.predict();
-    
+
     if (prediction.confidence < 0.3) {
       return {
         type: 'maintain',
@@ -177,7 +181,7 @@ export class PredictiveGovernor extends EventEmitter {
 
     const requiredBudget = prediction.predictedCost * (1 + this.config.safetyMargin);
     const currentBudget = this.currentBudget;
-    
+
     let adjustment: BudgetAdjustment;
 
     if (requiredBudget > currentBudget * 1.2) {
@@ -213,12 +217,13 @@ export class PredictiveGovernor extends EventEmitter {
 
     // Apply smoothing
     if (adjustment.type !== 'maintain') {
-      this.currentBudget = this.config.smoothingFactor * this.currentBudget + 
-                           (1 - this.config.smoothingFactor) * adjustment.newBudget;
+      this.currentBudget =
+        this.config.smoothingFactor * this.currentBudget +
+        (1 - this.config.smoothingFactor) * adjustment.newBudget;
     }
 
     this.emit('budgetAdjusted', adjustment);
-    
+
     return adjustment;
   }
 
@@ -226,17 +231,24 @@ export class PredictiveGovernor extends EventEmitter {
    * Start prediction loop
    */
   private startPredictionLoop(): void {
-    setInterval(() => {
-      if (this.metricsHistory.length >= 10) {
-        this.adjustBudget();
-      }
-    }, this.config.updateInterval * 60 * 1000);
+    setInterval(
+      () => {
+        if (this.metricsHistory.length >= 10) {
+          this.adjustBudget();
+        }
+      },
+      this.config.updateInterval * 60 * 1000,
+    );
   }
 
   /**
    * Check if budget will be exhausted
    */
-  public checkExhaustionRisk(): { atRisk: boolean; minutesUntilExhaustion: number; confidence: number } {
+  public checkExhaustionRisk(): {
+    atRisk: boolean;
+    minutesUntilExhaustion: number;
+    confidence: number;
+  } {
     if (this.metricsHistory.length < 10) {
       return { atRisk: false, minutesUntilExhaustion: Infinity, confidence: 0 };
     }
@@ -244,14 +256,14 @@ export class PredictiveGovernor extends EventEmitter {
     const recent = this.metricsHistory.slice(-10);
     const avgConsumption = recent.reduce((a, m) => a + m.cost, 0) / recent.length;
     const remaining = this.currentBudget - recent[recent.length - 1].cost;
-    
+
     if (avgConsumption <= 0) {
       return { atRisk: false, minutesUntilExhaustion: Infinity, confidence: 0 };
     }
 
     const minutesUntilExhaustion = remaining / avgConsumption;
     const atRisk = minutesUntilExhaustion < this.config.predictionHorizon;
-    
+
     return {
       atRisk,
       minutesUntilExhaustion,
@@ -265,12 +277,12 @@ export class PredictiveGovernor extends EventEmitter {
   public getStatus(): object {
     const risk = this.checkExhaustionRisk();
     const latest = this.metricsHistory[this.metricsHistory.length - 1];
-    
+
     return {
       currentBudget: this.currentBudget,
       currentUsage: latest?.cost || 0,
       remaining: this.currentBudget - (latest?.cost || 0),
-      utilization: latest ? (latest.cost / this.currentBudget) : 0,
+      utilization: latest ? latest.cost / this.currentBudget : 0,
       exhaustionRisk: risk,
       lastPrediction: this.predictions[this.predictions.length - 1] || null,
       totalAdjustments: this.adjustmentHistory.length,
@@ -293,40 +305,44 @@ export const predictiveGovernor = new PredictiveGovernor();
 
 // CLI execution
 if (require.main === module) {
-  console.log('Predictive Governor v1.0.0');
-  console.log('Part of Gentle-Vanguard v5.0 — Convergence Layer\n');
-  
+  console.log('Predictive Governor ');
+  console.log('Part of Gentle-Vanguard  — Convergence Layer\n');
+
   const governor = new PredictiveGovernor({
     predictionHorizon: 30,
     updateInterval: 1,
     safetyMargin: 0.25,
   });
-  
+
   governor.on('metricsRecorded', (metrics) => {
-    console.log(`[${new Date().toISOString()}] Metrics recorded: ${metrics.requestsPerMinute} req/min`);
+    console.log(
+      `[${new Date().toISOString()}] Metrics recorded: ${metrics.requestsPerMinute} req/min`,
+    );
   });
-  
+
   governor.on('prediction', (prediction) => {
     console.log(`[${new Date().toISOString()}] Prediction: ${prediction.trend}`);
-    console.log(`  Load: ${prediction.predictedLoad.toFixed(1)}, Cost: ${prediction.predictedCost.toFixed(2)}`);
+    console.log(
+      `  Load: ${prediction.predictedLoad.toFixed(1)}, Cost: ${prediction.predictedCost.toFixed(2)}`,
+    );
     console.log(`  Confidence: ${(prediction.confidence * 100).toFixed(0)}%`);
   });
-  
+
   governor.on('budgetAdjusted', (adjustment) => {
     console.log(`[${new Date().toISOString()}] Budget ${adjustment.type.toUpperCase()}`);
     console.log(`  Reason: ${adjustment.reason}`);
     console.log(`  New budget: ${adjustment.newBudget.toFixed(2)}`);
   });
-  
+
   // Simulate load
   console.log('Simulating load patterns...\n');
-  
+
   let count = 0;
   const interval = setInterval(() => {
     // Simulate increasing load
     const baseLoad = 10 + count * 2;
     const variance = Math.random() * 10;
-    
+
     governor.recordMetrics({
       timestamp: Date.now(),
       requestsPerMinute: baseLoad + variance,
@@ -336,16 +352,16 @@ if (require.main === module) {
       latency: 100 + Math.random() * 200,
       activeSessions: Math.floor(baseLoad / 2),
     });
-    
+
     // Generate prediction every 5 samples
     if (count % 5 === 0 && count > 0) {
       governor.adjustBudget();
     }
-    
+
     count++;
     if (count >= 30) {
       clearInterval(interval);
-      
+
       setTimeout(() => {
         console.log('\n\n--- Governor Status ---');
         console.log(JSON.stringify(governor.getStatus(), null, 2));

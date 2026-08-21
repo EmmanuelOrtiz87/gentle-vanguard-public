@@ -75,19 +75,26 @@ function edgesOf(graph: Graph): GraphEdge[] {
 }
 
 function normalize(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9_.:/\\-]+/g, ' ').trim();
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9_.:/\\-]+/g, ' ')
+    .trim();
 }
 
 function scoreNode(node: GraphNode, terms: string[]): number {
-  const haystack = normalize([
-    node.id,
-    node.label,
-    node.norm_label,
-    node.source_file,
-    node.source_location,
-    node.file_type,
-    node.community?.toString(),
-  ].filter(Boolean).join(' '));
+  const haystack = normalize(
+    [
+      node.id,
+      node.label,
+      node.norm_label,
+      node.source_file,
+      node.source_location,
+      node.file_type,
+      node.community?.toString(),
+    ]
+      .filter(Boolean)
+      .join(' '),
+  );
 
   let score = 0;
   for (const term of terms) {
@@ -107,7 +114,9 @@ function print(data: unknown, json: boolean): void {
     for (const item of data) {
       if ('id' in item) {
         const node = item as GraphNode & { score?: number };
-        console.log(`${node.id}  ${node.label ?? ''}  ${node.source_file ?? ''}${node.source_location ? `:${node.source_location}` : ''}`);
+        console.log(
+          `${node.id}  ${node.label ?? ''}  ${node.source_file ?? ''}${node.source_location ? `:${node.source_location}` : ''}`,
+        );
       } else {
         console.log(JSON.stringify(item));
       }
@@ -134,7 +143,9 @@ function status(json: boolean): void {
 function query(text: string, max: number, json: boolean): void {
   if (!text) usage();
   const graph = loadGraph();
-  const terms = normalize(text).split(/\s+/).filter((term) => term.length > 1);
+  const terms = normalize(text)
+    .split(/\s+/)
+    .filter((term) => term.length > 1);
   const matches = graph.nodes
     .map((node) => ({ ...node, score: scoreNode(node, terms) }))
     .filter((node) => node.score > 0)
@@ -159,7 +170,10 @@ function explain(id: string, json: boolean): void {
 function affected(idOrFile: string, max: number, json: boolean): void {
   if (!idOrFile) usage();
   const graph = loadGraph();
-  const nodes = graph.nodes.filter((node) => node.id === idOrFile || node.source_file === idOrFile || node.source_file?.includes(idOrFile));
+  const nodes = graph.nodes.filter(
+    (node) =>
+      node.id === idOrFile || node.source_file === idOrFile || node.source_file?.includes(idOrFile),
+  );
   const ids = new Set(nodes.map((node) => node.id));
   const relatedIds = new Set<string>();
   for (const edge of edgesOf(graph)) {
@@ -206,7 +220,9 @@ function update(target: string, json: boolean): void {
   if (target !== '.' && target !== ROOT) usage();
   status(json);
   if (!json) {
-    console.log('Graphify update uses the existing graphify-out/graph.json snapshot in this environment.');
+    console.log(
+      'Graphify update uses the existing graphify-out/graph.json snapshot in this environment.',
+    );
     console.log('CodeGraph freshness is handled separately by src/codegraph-sync-autostart.ts.');
   }
 }

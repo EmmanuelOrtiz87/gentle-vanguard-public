@@ -15,7 +15,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import { join, extname, basename, dirname } from 'path';
-import { execSync } from 'child_process';
+import { runSyncShell } from '../core/run-command.js';
 
 const args = process.argv.slice(2);
 
@@ -36,17 +36,29 @@ const options: Options = {
   inputDir: args.includes('--input-dir') ? args[args.indexOf('--input-dir') + 1] || '' : '',
   output: args.includes('--output') ? args[args.indexOf('--output') + 1] || '' : '',
   outputDir: args.includes('--output-dir') ? args[args.indexOf('--output-dir') + 1] || '' : '',
-  format: (args.includes('--format') ? args[args.indexOf('--format') + 1] || 'svg' : 'svg') as 'svg' | 'png' | 'html',
+  format: (args.includes('--format') ? args[args.indexOf('--format') + 1] || 'svg' : 'svg') as
+    'svg' | 'png' | 'html',
   watch: args.includes('--watch') || args.includes('-Watch'),
   theme: args.includes('--theme') ? args[args.indexOf('--theme') + 1] || 'default' : 'default',
   backgroundColor: args.includes('--bg') ? args[args.indexOf('--bg') + 1] || 'white' : 'white',
-  width: parseInt(args.includes('--width') ? args[args.indexOf('--width') + 1] || '1200' : '1200', 10),
+  width: parseInt(
+    args.includes('--width') ? args[args.indexOf('--width') + 1] || '1200' : '1200',
+    10,
+  ),
 };
 
-function ok(msg: string): void { console.log(`[OK] ${msg}`); }
-function warn(msg: string): void { console.log(`[WARN] ${msg}`); }
-function err(msg: string): void { console.error(`[ERROR] ${msg}`); }
-function step(msg: string): void { console.log(`\n=== ${msg} ===`); }
+function ok(msg: string): void {
+  console.log(`[OK] ${msg}`);
+}
+function warn(msg: string): void {
+  console.log(`[WARN] ${msg}`);
+}
+function err(msg: string): void {
+  console.error(`[ERROR] ${msg}`);
+}
+function step(msg: string): void {
+  console.log(`\n=== ${msg} ===`);
+}
 
 const MERMAID_THEMES: Record<string, string> = {
   default: 'default',
@@ -65,8 +77,8 @@ function resolveTheme(t: string): string {
  */
 function hasMmdc(): boolean {
   try {
-    execSync('npx.cmd mmdc --version', { stdio: 'pipe', timeout: 10000 });
-    return true;
+    const r = runSyncShell('npx.cmd mmdc --version', { stdio: 'pipe', timeout: 10000 });
+    return r.status === 0;
   } catch {
     return false;
   }
@@ -81,11 +93,11 @@ function renderWithMmdc(inputFile: string, outputFile: string): boolean {
   const width = options.width;
 
   try {
-    execSync(
+    const r = runSyncShell(
       `npx.cmd mmdc -i "${inputFile}" -o "${outputFile}" -t ${theme} -b ${bgColor} -w ${width}`,
-      { stdio: 'pipe', timeout: 60000 }
+      { stdio: 'pipe', timeout: 60000 },
     );
-    return true;
+    return r.status === 0;
   } catch (e) {
     err(`mmdc render failed for ${basename(inputFile)}: ${(e as Error).message}`);
     return false;
@@ -220,7 +232,7 @@ async function main(): Promise<void> {
     const outDir = options.outputDir || options.inputDir;
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
-    const mmdFiles = readdirSync(options.inputDir).filter(f => f.endsWith('.mmd'));
+    const mmdFiles = readdirSync(options.inputDir).filter((f) => f.endsWith('.mmd'));
     step(`Found ${mmdFiles.length} .mmd files in ${options.inputDir}`);
 
     let successCount = 0;
@@ -228,7 +240,10 @@ async function main(): Promise<void> {
 
     for (const file of mmdFiles) {
       const inputFile = join(options.inputDir, file);
-      const outputName = file.replace('.mmd', `.${options.format === 'png' ? 'png' : options.format === 'html' ? 'html' : 'svg'}`);
+      const outputName = file.replace(
+        '.mmd',
+        `.${options.format === 'png' ? 'png' : options.format === 'html' ? 'html' : 'svg'}`,
+      );
       const outputFile = join(outDir, outputName);
 
       process.stdout.write(`  Rendering ${file}... `);
@@ -251,8 +266,12 @@ async function main(): Promise<void> {
   console.log('');
   console.log('Usage:');
   console.log('  npx tsx src/cli/mermaid-renderer.ts --input <file.mmd> --output <file.svg>');
-  console.log('  npx tsx src/cli/mermaid-renderer.ts --input-dir docs/diagrams/ --output-dir docs/assets/');
-  console.log('  npx tsx src/cli/mermaid-renderer.ts --input file.mmd --output file.svg --format png --theme dark');
+  console.log(
+    '  npx tsx src/cli/mermaid-renderer.ts --input-dir docs/diagrams/ --output-dir docs/assets/',
+  );
+  console.log(
+    '  npx tsx src/cli/mermaid-renderer.ts --input file.mmd --output file.svg --format png --theme dark',
+  );
   console.log('');
   console.log('Options:');
   console.log('  --input FILE         Single .mmd file to render');
@@ -268,4 +287,7 @@ async function main(): Promise<void> {
   console.log('Note: For SVG/PNG output, install: npm install -g @mermaid-js/mermaid-cli');
 }
 
-main().catch(e => { err(e.message); process.exit(1); });
+main().catch((e) => {
+  err(e.message);
+  process.exit(1);
+});

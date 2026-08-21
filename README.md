@@ -1,177 +1,149 @@
+# Gentle-Vanguard
+
 <p align="center">
-  <img src="docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
+  <img src="https://raw.githubusercontent.com/EmmanuelOrtiz87/gentle-vanguard-public/main/docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-8.0.1-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
-  <img src="https://img.shields.io/badge/Status-Public%20Release-22C55E?style=flat-square&labelColor=0D1117" alt="Status">
+  <img src="https://img.shields.io/badge/Version-3.8.1-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
-  <img src="https://img.shields.io/badge/PowerShell-7+-A855F7?style=flat-square&labelColor=0D1117" alt="PowerShell">
-  <img src="https://img.shields.io/badge/Zero_Dependency-%E2%9C%93-22C55E?style=flat-square&labelColor=0D1117" alt="Zero Dependency">
-  <img src="https://img.shields.io/badge/Dashboard_Ready-%E2%9C%93-22C55E?style=flat-square&labelColor=0D1117" alt="Dashboard Ready">
+  <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
+  <img src="https://img.shields.io/badge/Skills-263-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
 </p>
 
-<p align="center">
-  <a href="docs/agents/AGENTS.md">Agent Bootstrap</a> &nbsp;·&nbsp;
-  <a href="CHANGELOG.md">Changelog</a> &nbsp;·&nbsp;
-  <a href="docs/product/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
-  <a href="rules/NORMATIVES.md">Normatives</a> &nbsp;·&nbsp;
-  <a href="docs/operations/procedures/QUICK-COMMANDS.md">Quick Commands</a>
-</p>
+> An AI development orchestrator that adds structure, memory and verification to your existing
+> coding tools.
 
-<p align="center">
-  <strong>AI-powered development orchestrator — zero-dependency, auto-installable</strong><br>
-  <em>Tool-agnostic · SDD Lifecycle · Hashline · Adaptive Feedback Loop · Engram Memory · Proactive Delivery</em>
-</p>
+## What It Solves
 
----
+AI-assisted coding is powerful, but sessions can lose context and quality can vary. Gentle-Vanguard
+routes work to specialized agents, enforces an SDD workflow, remembers previous decisions through
+Engram and reports what happened through a local dashboard.
 
-## Quick Start
+It works alongside OpenCode, Claude Code, Cline, Cursor, Windsurf and Codex. It does not require a
+hosted Gentle-Vanguard account or a mandatory cloud service.
 
-```powershell
-# Clone anywhere — no dependencies required beyond PowerShell 7+
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
-cd gentle-vanguard
+## Quick Install
 
-# Auto-install (checks prerequisites, builds dashboard, installs hooks)
-.\scripts\setup-complete.ps1
-
-# Or run the dashboard directly (WS server + Vite + auto-open browser)
-.\scripts\utilities\dashboard\dashboard-start.ps1
+```bash
+git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
+cd gentle-vanguard-public
+pnpm install
+npx tsx src/setup-complete.ts
+npm run start
 ```
 
-That's it. One command installs everything. Works on Windows, macOS, and Linux.
+Requirements: Node.js 20+, pnpm 11+ and Git. Windows, macOS and Linux are supported.
 
----
-
-## What is Gentle-Vanguard?
-
-A full **AI orchestration layer** that gives structure, memory, and governance to AI-assisted
-development. Works across any coding tool — OpenCode, Claude Code, Cline, Cursor, Windsurf, Codex,
-GitHub Copilot, Continue.dev.
-
-**No cloud services required. No API keys needed. Zero dependencies beyond PowerShell 7+.**
-
----
+```mermaid
+flowchart LR
+  U[Your request] --> O[Orchestrator]
+  O --> A[Specialized agents]
+  A --> S[Skills]
+  A --> M[Engram memory]
+  A --> Q[Quality checks]
+  Q --> R[Verified result]
+```
 
 ## Architecture
 
+Gentle-Vanguard is organized around five practical layers: user tools, orchestration, agents and
+skills, memory, and observability.
+
 ```mermaid
 flowchart TB
-  classDef layer fill:#1a2035,stroke:#a855f7,color:#e0e0e0,stroke-width:2px
-  classDef agent fill:#1a2035,stroke:#00bfff,color:#e0e0e0
-  classDef dash fill:#1a2035,stroke:#22c55e,color:#e0e0e0
-
-  subgraph L5["Layer 5: AGENTS — 18 Specialized Agents"]
-    A1[BA / SAD / DEV / QA / OPS / GOV / DOC / SEC]
-  end
-  subgraph L4["Layer 4: DASHBOARD — Real-time Observability"]
-    D1[Multi-repo Mesh · Knowledge Panel · Tracing · Alerts]
-    D2[WebSocket + HTTP API · i18n (en/es/pt-BR) · 14 metrics]
-  end
-  subgraph L3["Layer 3: MCP — Model Context Protocol"]
-    M1[Gateway · Bridge · Registry · 8 pre-built templates]
-    M2[Multi-language scaffold (ts/js/py/go/rs)]
-  end
-  subgraph L2["Layer 2: MEMORY & KNOWLEDGE"]
-    K1[Engram · CodeGraph · Event Store · Checkpoints]
-    K2[Unified knowledge query across all sources]
-  end
-  subgraph L1["Layer 1: ORCHESTRATION"]
-    O1[SDD lifecycle · Auto-delegation · Adaptive feedback]
-    O2[Session pipeline · Audit · Tracing · Cloud connectors]
-  end
-
-  L5 --> L4 --> L3 --> L2 --> L1
+  T[CLI / IDE / Dashboard] --> O[Orchestration]
+  O --> A[21 agents]
+  A --> K[263 on-demand skills]
+  A --> E[Engram persistent memory]
+  O --> D[Local dashboard]
 ```
 
----
+## Agent Ecosystem
 
-## Features
+| Agent | Role |
+| --- | --- |
+| Orchestrator | Routes work and manages sessions |
+| BA | Requirements exploration |
+| SAD | Architecture and contracts |
+| DEV | Implementation and refactoring |
+| QA | Testing and verification |
+| OPS | CI/CD and infrastructure |
+| GOV | Security, compliance and audit |
+| DOC | Documentation and ADRs |
 
-| Capability                | Description                                                                              |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| **Multi-repo Mesh**       | Cross-workspace MCP orchestration with auto-discovery and template sync                  |
-| **Dashboard UI**          | Real-time observability: metrics, tracing, alerts, knowledge, multi-repo, MCP management |
-| **Knowledge Base**        | Unified search across events, traces, feedback, checkpoints, and Engram memory           |
-| **Engram Memory**         | Persistent memory across sessions with hot/warm/cold tiers and auto-repair               |
-| **MCP Ecosystem**         | Gateway, bridge, registry, 8 pre-built templates, multi-language SDK scaffold            |
-| **18 Specialized Agents** | BA, SAD, DEV, QA, OPS, GOV, DOC, SEC — each with model routing and enforcement           |
-| **SDD Lifecycle**         | BA explore → SAD design → DEV implement → QA verify                                      |
-| **Adaptive Feedback**     | Auto-learn norms from corrections, session scoring, pattern detection                    |
-| **Governance**            | 60+ normatives, pre-commit hooks, CI/CD, audit pipeline, safety layer                    |
-| **Federation**            | Cross-org auth with RSA handshake, capability-based authorization                        |
-| **Multi-tenant**          | Per-tenant isolation across session, engram, codegraph, audit, RBAC                      |
-| **Zero-dependency**       | Works with just PowerShell 7+ — no cloud, no API keys, no external services              |
+Each phase can use a different Model Profile. The router and fallback chain are configurable and
+local providers are optional.
 
----
+## Key Features
 
-## Dashboard
+| Feature | Description |
+| --- | --- |
+| Specialized Agents | 21 roles for analysis, design, coding, QA and operations |
+| On-Demand Skills | 263 skills for development, security, documentation and research |
+| Persistent Engram Memory | Decisions and context survive across sessions |
+| Cost-Aware Model Router | Selects models by task and supports safe fallbacks |
+| Dashboard | Local metrics, traces, alerts and feedback |
+| Security Controls | Secret scanning, SBOM, provenance and quality gates |
 
-The real-time observability dashboard is included and ready to run:
-
-```
-apps/web-dashboard/          # React + TypeScript + Vite + WebSocket
-├── server/                  # WS + HTTP API (dynamic port, auto-recovery watchdog)
-│   ├── websocket-server.ts  # 25+ REST endpoints + WebSocket push every 5s
-│   ├── mesh-api.ts          # Multi-repo mesh endpoints
-│   ├── knowledge-api.ts     # Knowledge query endpoint
-│   ├── mcp-gateway-api.ts   # MCP server management
-│   └── real-data.ts         # Real metrics from .session/ traces
-└── src/components/          # 10 routes with code splitting
-    ├── Dashboard.tsx        # 7-section main view
-    ├── KnowledgePanel.tsx   # Unified knowledge search (events, traces, feedback, checkpoints, engram)
-    ├── MultiRepoView.tsx    # Cross-workspace MCP orchestration (auto-refresh 30s)
-    ├── TracingDashboard.tsx # Waterfall view with feedback
-    ├── MCPServers.tsx       # MCP server registry management
-    └── TenantSelector.tsx   # Multi-tenant filter
+```mermaid
+flowchart TD
+  S[Session] --> E[Engram]
+  S --> N[Nexus operational database]
+  S --> W[Watchtower health checks]
+  E --> D[Dashboard]
+  N --> D
+  W --> D
+  D --> F[Feedback and adaptive routing]
 ```
 
-Start with one command: `.\scripts\utilities\dashboard\dashboard-start.ps1`
+## Getting Started
 
----
+1. Install the prerequisites.
+2. Clone this repository.
+3. Run `pnpm install` and `npx tsx src/setup-complete.ts`.
+4. Start with `npm run start`.
+5. Run `gv verify` if the command is available, or `npm run watchtower:health`.
 
-## Quick Commands
+## Development
 
-| Command                                                             | Description                                         |
-| ------------------------------------------------------------------- | --------------------------------------------------- |
-| `.\scripts\setup-complete.ps1`                                      | Auto-install: prerequisites, hooks, dashboard build |
-| `.\scripts\utilities\dashboard\dashboard-start.ps1`                 | Start dashboard (WS + Vite + browser)               |
-| `.\scripts\utilities\dashboard\dashboard-stop.ps1`                  | Stop dashboard gracefully                           |
-| `.\scripts\maintenance\maintenance-watchtower.ps1 -Action health`   | Run 79 health checks                                |
-| `.\scripts\maintenance\maintenance-watchtower.ps1 -Action autoheal` | Health + auto-restart failed processes              |
+```bash
+npm run typecheck
+npm run lint
+npm test
+```
 
-See [docs/operations/procedures/QUICK-COMMANDS.md](docs/operations/procedures/QUICK-COMMANDS.md)
-for the full reference.
+The project follows Spec-Driven Development: explore, design, implement and verify.
 
----
+## CI/CD Pipeline
+
+The public distribution is checked by `gentle-vanguard-quality-gate`, `test-suite`, `security.yml`
+and `sync-public`. The public repository receives a curated set of build, documentation and example
+files from the development repository.
+
+## Defensive Patterns
+
+- Scripts resolve paths from `repoRoot`.
+- File operations use explicit UTF-8 encoding.
+- PowerShell scripts use `ErrorActionPreference = Stop`.
+- Setup and validation commands are designed to be idempotent.
+
+## Security
+
+Never commit API keys. Use environment variables or ignored local configuration. Secret scanning,
+SBOM generation and release provenance are part of the delivery process. See
+[`SECURITY.md`](SECURITY.md) and [`docs/security/README.md`](docs/security/README.md).
 
 ## Documentation
 
-| Resource         | Path                     |
-| ---------------- | ------------------------ |
-| Agent Bootstrap  | `docs/agents/AGENTS.md`  |
-| Quick Commands   | `docs/operations/procedures/QUICK-COMMANDS.md` |
-| Normatives Index | `rules/NORMATIVES.md`    |
-| Changelog        | `CHANGELOG.md`           |
-| Roadmap          | `docs/product/ROADMAP.md` |
-
----
-
-## Requirements
-
-- **PowerShell 7+** — the only hard requirement
-- **Node.js 18+** — optional, only needed for dashboard development (build step)
-- **Git** — optional, only needed for clone and hooks
-
----
+| Resource | Description |
+| --- | --- |
+| [Getting Started](docs/getting-started/README.md) | First-time setup |
+| [Architecture](docs/technical/STACK-DOCUMENTATION.md) | Detailed technical reference |
+| [Installation](docs/getting-started/installation.md) | Installation options |
+| [Examples](docs/EXAMPLES.md) | Usage examples |
+| [Changelog](CHANGELOG.md) | Version history |
 
 ## License
 
 MIT © 2026 Emmanuel Ortiz
-
----
-
-<p align="center">
-  <sub>Gentle-Vanguard v8.0.1 — Don't let your mellow hustle be faded.</sub>
-</p>

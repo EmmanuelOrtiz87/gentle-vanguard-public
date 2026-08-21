@@ -1,11 +1,5 @@
 #!/usr/bin/env node
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-  readdirSync,
-} from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -46,7 +40,14 @@ function resolveProjectRoot(): string {
 
 const results: FTRecord[] = [];
 
-function addRecord(instruction: string, input: string, output: string, domain: string, source: string, sourceRef: string) {
+function addRecord(
+  instruction: string,
+  input: string,
+  output: string,
+  domain: string,
+  source: string,
+  sourceRef: string,
+) {
   results.push({
     instruction,
     input,
@@ -73,8 +74,9 @@ function collectSessionLogs(projectRoot: string) {
   const ctxDir = join(projectRoot, '.session', 'context-log');
   if (!existsSync(ctxDir)) return;
 
-  const sessions = readdirSync(ctxDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name !== 'live-traceability-session' && d.name !== '__archive');
+  const sessions = readdirSync(ctxDir, { withFileTypes: true }).filter(
+    (d) => d.isDirectory() && d.name !== 'live-traceability-session' && d.name !== '__archive',
+  );
 
   for (const s of sessions) {
     const sessionDir = join(ctxDir, s.name);
@@ -99,7 +101,7 @@ function collectSessionLogs(projectRoot: string) {
       const inTokens = inTokensMatch ? parseInt(inTokensMatch[1], 10) : 0;
       const outTokensMatch = content.match(/Output Tokens\s*\|\s*(\d+)/);
       const outTokens = outTokensMatch ? parseInt(outTokensMatch[1], 10) : 0;
-      void inTokens, outTokens;
+      (void inTokens, outTokens);
 
       addRecord(
         `Process turn in session ${s.name}`,
@@ -144,7 +146,12 @@ function collectEngram(projectRoot: string) {
     else if (/\b(QA|test|verify|validate|bug)\b/i.test(content)) domain = 'QA';
 
     const titleMatch = content.match(/^#+\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1] : f.split(/[\\/]/).pop()?.replace(/\.\w+$/, '') ?? '';
+    const title = titleMatch
+      ? titleMatch[1]
+      : (f
+          .split(/[\\/]/)
+          .pop()
+          ?.replace(/\.\w+$/, '') ?? '');
 
     addRecord(
       `Learn from past observation: ${title}`,
@@ -237,7 +244,8 @@ function main() {
   const args = process.argv.slice(2);
   const source = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'all';
   const outputPath = args.includes('--output-path') ? args[args.indexOf('--output-path') + 1] : '';
-  const _force = args.includes('--force'); void _force;
+  const _force = args.includes('--force');
+  void _force;
 
   const validSources = ['session', 'engram', 'skills', 'routing', 'all'];
   const resolvedSource = validSources.includes(source) ? source : 'all';
@@ -248,9 +256,8 @@ function main() {
 
   console.log(`\x1b[36m=== FT Data Collector ===\x1b[0m`);
 
-  const sources = resolvedSource === 'all'
-    ? ['session', 'engram', 'skills', 'routing']
-    : [resolvedSource];
+  const sources =
+    resolvedSource === 'all' ? ['session', 'engram', 'skills', 'routing'] : [resolvedSource];
 
   for (const s of sources) {
     switch (s) {

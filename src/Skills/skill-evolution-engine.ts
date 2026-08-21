@@ -24,6 +24,7 @@ interface EvoArgs {
   mode: 'all' | 'analyze' | 'gaps' | 'refine' | 'deprecate';
   quiet: boolean;
   dryRun: boolean;
+  autoArchive: boolean;
 }
 
 interface SkillInfo {
@@ -96,7 +97,14 @@ const EVO_CONFIG = join(ROOT, 'config', 'skill-evolution-engine.json');
 const ROUTER_SRC = join(ROOT, 'src', 'skill-router.ts');
 
 const DEFAULT_CONFIG = {
-  usageAnalysis: { minDataPoints: 2, staleDays: 30, deprecateDays: 60, archiveDays: 90, lowSuccessThreshold: 0.4, highSuccessThreshold: 0.85 },
+  usageAnalysis: {
+    minDataPoints: 2,
+    staleDays: 30,
+    deprecateDays: 60,
+    archiveDays: 90,
+    lowSuccessThreshold: 0.4,
+    highSuccessThreshold: 0.85,
+  },
   gapDetection: { enabled: true, minFrequency: 2, maxSuggestions: 8 },
   refinements: { enabled: true, maxSuggestions: 10, minImprovementPotential: 0.2 },
   deprecation: { enabled: true, autoDeprecate: false, requireConfirmation: true },
@@ -111,19 +119,34 @@ function loadJson<T>(path: string, fallback: T): T {
   try {
     if (!existsSync(path)) return fallback;
     return JSON.parse(readFileSync(path, 'utf-8')) as T;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
 function loadJsonLines(path: string): Record<string, unknown>[] {
   try {
     if (!existsSync(path)) return [];
-    return readFileSync(path, 'utf-8').split('\n').filter(l => l.trim())
-      .map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
-  } catch { return []; }
+    return readFileSync(path, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim())
+      .map((l) => {
+        try {
+          return JSON.parse(l);
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 function getLogger(quiet: boolean): LogFn {
-  return (msg: string) => { if (!quiet) console.log(msg); };
+  return (msg: string) => {
+    if (!quiet) console.log(msg);
+  };
 }
 
 function ensureDir(p: string): void {
@@ -142,7 +165,9 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
     return [];
   }
 
-  const files = readdirSync(SKILL_USAGE_DIR).filter(f => f.endsWith('.json')).sort();
+  const files = readdirSync(SKILL_USAGE_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort();
   const skills: SkillInfo[] = [];
   const now_ = Date.now();
 
@@ -154,12 +179,15 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
       const name = (data.skillName as string) || f.replace(/\.json$/, '');
       const useCount = (data.useCount as number) || (data.totalCalls as number) || 0;
       const failCount = (data.failureCount as number) || 0;
-      const successRate = (data.successRate as number) ?? (useCount > 0 ? (useCount - failCount) / useCount : 1);
+      const successRate =
+        (data.successRate as number) ?? (useCount > 0 ? (useCount - failCount) / useCount : 1);
       const lastUsed = (data.lastUsedAt as string) || (data.lastUsed as string) || null;
       const lastOutcome = (data.lastOutcome as string) || null;
       const avgTokens = (data.avgTokensUsed as number) || 0;
 
-      const daysSinceUse = lastUsed ? Math.round((now_ - new Date(lastUsed).getTime()) / 86400000) : null;
+      const daysSinceUse = lastUsed
+        ? Math.round((now_ - new Date(lastUsed).getTime()) / 86400000)
+        : null;
 
       // Infer domain from skill name
       const domain = inferDomain(name);
@@ -176,7 +204,9 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
         domain,
         daysSinceUse,
       });
-    } catch { /* skip corrupt files */ }
+    } catch {
+      /* skip corrupt files */
+    }
   }
 
   skills.sort((a, b) => b.useCount - a.useCount);
@@ -186,15 +216,21 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
 
 function inferDomain(skillName: string): string {
   const n = skillName.toLowerCase();
-  if (n.includes('angular') || n.includes('react') || n.includes('vue') || n.includes('svelte')) return 'frontend';
-  if (n.includes('api') || n.includes('backend') || n.includes('server') || n.includes('node')) return 'backend';
+  if (n.includes('angular') || n.includes('react') || n.includes('vue') || n.includes('svelte'))
+    return 'frontend';
+  if (n.includes('api') || n.includes('backend') || n.includes('server') || n.includes('node'))
+    return 'backend';
   if (n.includes('test') || n.includes('qa') || n.includes('quality')) return 'testing';
   if (n.includes('security') || n.includes('audit') || n.includes('vulner')) return 'security';
-  if (n.includes('deploy') || n.includes('docker') || n.includes('ci') || n.includes('pipeline')) return 'devops';
-  if (n.includes('data') || n.includes('ml') || n.includes('ai') || n.includes('train')) return 'data-ml';
+  if (n.includes('deploy') || n.includes('docker') || n.includes('ci') || n.includes('pipeline'))
+    return 'devops';
+  if (n.includes('data') || n.includes('ml') || n.includes('ai') || n.includes('train'))
+    return 'data-ml';
   if (n.includes('doc') || n.includes('adr') || n.includes('readme')) return 'documentation';
-  if (n.includes('architect') || n.includes('design') || n.includes('pattern')) return 'architecture';
-  if (n.includes('skill') || n.includes('agent') || n.includes('orchestr') || n.includes('router')) return 'orchestration';
+  if (n.includes('architect') || n.includes('design') || n.includes('pattern'))
+    return 'architecture';
+  if (n.includes('skill') || n.includes('agent') || n.includes('orchestr') || n.includes('router'))
+    return 'orchestration';
   if (n.includes('session') || n.includes('memory') || n.includes('engram')) return 'memory';
   return 'general';
 }
@@ -207,7 +243,10 @@ function getRouterSkills(): string[] {
   let m: RegExpExecArray | null;
   while ((m = re.exec(content)) !== null) {
     const s = m[1];
-    if (s.length > 2 && !['query', 'project', 'status', 'routed', 'skills', 'querylower'].includes(s)) {
+    if (
+      s.length > 2 &&
+      !['query', 'project', 'status', 'routed', 'skills', 'querylower'].includes(s)
+    ) {
       skills.add(s);
     }
   }
@@ -216,7 +255,11 @@ function getRouterSkills(): string[] {
 
 function collectRecentTasks(log: LogFn): string[] {
   if (!existsSync(AUDIT_DIR)) return [];
-  const files = readdirSync(AUDIT_DIR).filter(f => f.endsWith('.jsonl')).sort().reverse().slice(0, 5);
+  const files = readdirSync(AUDIT_DIR)
+    .filter((f) => f.endsWith('.jsonl'))
+    .sort()
+    .reverse()
+    .slice(0, 5);
   const tasks: string[] = [];
 
   for (const f of files) {
@@ -244,7 +287,10 @@ function analyzeSkillUsage(
   const stale: SkillInfo[] = [];
 
   for (const s of skills) {
-    if (s.useCount >= ua.minDataPoints && (s.daysSinceUse === null || s.daysSinceUse <= ua.staleDays)) {
+    if (
+      s.useCount >= ua.minDataPoints &&
+      (s.daysSinceUse === null || s.daysSinceUse <= ua.staleDays)
+    ) {
       active.push(s);
     } else {
       stale.push(s);
@@ -268,10 +314,10 @@ function detectSkillGaps(
 ): SkillGap[] {
   if (!config.gapDetection.enabled) return [];
   const gaps: SkillGap[] = [];
-  const existingSkills = new Set(skills.map(s => s.name.toLowerCase()));
+  const existingSkills = new Set(skills.map((s) => s.name.toLowerCase()));
 
   // Gap 1: Router skills not in usage tracker
-  const untrackedRouterSkills = routerSkills.filter(s => {
+  const untrackedRouterSkills = routerSkills.filter((s) => {
     const baseName = s.replace(/-skill$/, '').toLowerCase();
     return !existingSkills.has(s.toLowerCase()) && !existingSkills.has(baseName);
   });
@@ -288,55 +334,66 @@ function detectSkillGaps(
   }
 
   // Gap 2: Low-usage skills in router
-  const lowUsageRouterSkills = skills.filter(s =>
-    routerSkills.some(rs => s.name.toLowerCase().includes(rs)) && s.useCount < config.gapDetection.minFrequency
+  const lowUsageRouterSkills = skills.filter(
+    (s) =>
+      routerSkills.some((rs) => s.name.toLowerCase().includes(rs)) &&
+      s.useCount < config.gapDetection.minFrequency,
   );
   if (lowUsageRouterSkills.length > 0) {
     gaps.push({
       domain: 'routing-utilization',
       description: `${lowUsageRouterSkills.length} router skill(s) with < ${config.gapDetection.minFrequency} uses — may be too niche or misconfigured`,
       frequency: lowUsageRouterSkills.length,
-      evidence: lowUsageRouterSkills.slice(0, 5).map(s => `${s.name} (${s.useCount}x)`),
+      evidence: lowUsageRouterSkills.slice(0, 5).map((s) => `${s.name} (${s.useCount}x)`),
       suggestedSkillName: 'Review and consolidate niche skills',
       priority: lowUsageRouterSkills.length > 5 ? 'medium' : 'low',
     });
   }
 
   // Gap 3: Domains with no skill coverage
-  const coveredDomains = new Set(skills.map(s => s.domain));
-  const commonDomains = ['frontend', 'backend', 'testing', 'security', 'devops', 'data-ml', 'documentation', 'architecture'];
-  const missingDomains = commonDomains.filter(d => !coveredDomains.has(d));
+  const coveredDomains = new Set(skills.map((s) => s.domain));
+  const commonDomains = [
+    'frontend',
+    'backend',
+    'testing',
+    'security',
+    'devops',
+    'data-ml',
+    'documentation',
+    'architecture',
+  ];
+  const missingDomains = commonDomains.filter((d) => !coveredDomains.has(d));
   if (missingDomains.length > 0) {
     gaps.push({
       domain: 'domain-coverage',
       description: `No skills found for domain(s): ${missingDomains.join(', ')}`,
       frequency: missingDomains.length,
-      evidence: missingDomains.map(d => `Missing: ${d}`),
+      evidence: missingDomains.map((d) => `Missing: ${d}`),
       suggestedSkillName: `Create skills for ${missingDomains[0]}`,
       priority: 'medium',
     });
   }
 
-  return gaps.sort((a, b) => {
-    const order: Record<string, number> = { high: 0, medium: 1, low: 2 };
-    return (order[a.priority] ?? 9) - (order[b.priority] ?? 9);
-  }).slice(0, config.gapDetection.maxSuggestions);
+  return gaps
+    .sort((a, b) => {
+      const order: Record<string, number> = { high: 0, medium: 1, low: 2 };
+      return (order[a.priority] ?? 9) - (order[b.priority] ?? 9);
+    })
+    .slice(0, config.gapDetection.maxSuggestions);
 }
 
 // ─── Refinement Suggestions ────────────────────────────────────────────
 
-function suggestRefinements(
-  skills: SkillInfo[],
-  config: typeof DEFAULT_CONFIG,
-): SkillRefinement[] {
+function suggestRefinements(skills: SkillInfo[], config: typeof DEFAULT_CONFIG): SkillRefinement[] {
   if (!config.refinements.enabled) return [];
   const refinements: SkillRefinement[] = [];
   const threshold = config.refinements.minImprovementPotential;
 
   // Refinement 1: Skills with low success rate
-  const lowSuccess = skills.filter(s =>
-    s.useCount >= config.usageAnalysis.minDataPoints &&
-    s.successRate < config.usageAnalysis.lowSuccessThreshold
+  const lowSuccess = skills.filter(
+    (s) =>
+      s.useCount >= config.usageAnalysis.minDataPoints &&
+      s.successRate < config.usageAnalysis.lowSuccessThreshold,
   );
 
   for (const s of lowSuccess) {
@@ -354,7 +411,9 @@ function suggestRefinements(
   }
 
   // Refinement 2: Skills with high token consumption
-  const highTokens = skills.filter(s => s.avgTokens > 5000 && s.useCount >= config.usageAnalysis.minDataPoints);
+  const highTokens = skills.filter(
+    (s) => s.avgTokens > 5000 && s.useCount >= config.usageAnalysis.minDataPoints,
+  );
   for (const s of highTokens.slice(0, 3)) {
     refinements.push({
       skillName: s.name,
@@ -367,10 +426,12 @@ function suggestRefinements(
   }
 
   // Refinement 3: Stale skills with good history — still useful
-  const staleButGood = skills.filter(s =>
-    s.daysSinceUse !== null && s.daysSinceUse > config.usageAnalysis.staleDays &&
-    s.daysSinceUse <= config.usageAnalysis.deprecateDays &&
-    s.successRate >= config.usageAnalysis.highSuccessThreshold
+  const staleButGood = skills.filter(
+    (s) =>
+      s.daysSinceUse !== null &&
+      s.daysSinceUse > config.usageAnalysis.staleDays &&
+      s.daysSinceUse <= config.usageAnalysis.deprecateDays &&
+      s.successRate >= config.usageAnalysis.highSuccessThreshold,
   );
   for (const s of staleButGood.slice(0, 3)) {
     refinements.push({
@@ -383,7 +444,8 @@ function suggestRefinements(
     });
   }
 
-  return refinements.sort((a, b) => b.potentialImprovement - a.potentialImprovement)
+  return refinements
+    .sort((a, b) => b.potentialImprovement - a.potentialImprovement)
     .slice(0, config.refinements.maxSuggestions);
 }
 
@@ -456,7 +518,7 @@ function detectDeprecations(
 // ─── Main ─────────────────────────────────────────────────────────────
 
 function parseArgs(argv: string[]): EvoArgs {
-  const args: EvoArgs = { mode: 'all', quiet: false, dryRun: false };
+  const args: EvoArgs = { mode: 'all', quiet: false, dryRun: false, autoArchive: false };
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--analyze') args.mode = 'analyze';
@@ -465,8 +527,44 @@ function parseArgs(argv: string[]): EvoArgs {
     else if (arg === '--deprecate') args.mode = 'deprecate';
     else if (arg === '--quiet') args.quiet = true;
     else if (arg === '--dry-run') args.dryRun = true;
+    else if (arg === '--auto-archive') args.autoArchive = true;
   }
   return args;
+}
+
+// ─── Auto-Archive Integration ─────────────────────────────────────────
+
+function autoArchiveDeprecations(deprecations: DeprecationCandidate[]): number {
+  const archives = deprecations.filter((d) => d.suggestedAction === 'archive');
+  if (archives.length === 0) return 0;
+
+  const triggerDir = join(ROOT, '.session', 'auto-apply');
+  if (!existsSync(triggerDir)) mkdirSync(triggerDir, { recursive: true });
+
+  let archived = 0;
+  for (const dep of archives) {
+    const triggerFile = join(triggerDir, `trigger-archive-${dep.skillName}.json`);
+    writeFileSync(
+      triggerFile,
+      JSON.stringify(
+        {
+          source: 'skill-evolution-engine',
+          type: 'deprecation',
+          skillName: dep.skillName,
+          daysSinceUse: dep.daysSinceUse,
+          reason: dep.reason,
+          confidence: dep.daysSinceUse > 60 ? 0.95 : 0.85,
+          timestamp: now(),
+          autoApply: true,
+        },
+        null,
+        2,
+      ),
+      'utf-8',
+    );
+    archived++;
+  }
+  return archived;
 }
 
 function main(): void {
@@ -499,7 +597,9 @@ function main(): void {
       log(`    [ACTIVE] ${s.name}: ${s.useCount}x, ${(s.successRate * 100).toFixed(0)}% success`);
     }
     for (const s of staleSkills.slice(0, 3)) {
-      log(`    [STALE] ${s.name}: ${s.useCount}x, ${s.daysSinceUse !== null ? `${s.daysSinceUse}d since use` : 'never used'}`);
+      log(
+        `    [STALE] ${s.name}: ${s.useCount}x, ${s.daysSinceUse !== null ? `${s.daysSinceUse}d since use` : 'never used'}`,
+      );
     }
   }
 
@@ -521,7 +621,9 @@ function main(): void {
     refinements = suggestRefinements(allSkills, config);
     log(`  Refinements: ${refinements.length}`);
     for (const r of refinements.slice(0, 3)) {
-      log(`    ${r.skillName}: +${(r.potentialImprovement * 100).toFixed(0)}% potential (${r.effort} effort)`);
+      log(
+        `    ${r.skillName}: +${(r.potentialImprovement * 100).toFixed(0)}% potential (${r.effort} effort)`,
+      );
     }
   }
 
@@ -545,6 +647,13 @@ function main(): void {
   else if (staleRatio < 0.25 && deprecations.length < 10) health = 'good';
   else if (staleRatio < 0.4) health = 'fair';
   else health = 'poor';
+
+  // 6.5 Auto-archive if enabled
+  let archivedCount = 0;
+  if (args.autoArchive && deprecations.length > 0) {
+    archivedCount = autoArchiveDeprecations(deprecations);
+    log(`  Auto-archive triggered for ${archivedCount} skills`);
+  }
 
   // 7. Output
   const output: EvoOutput = {
@@ -572,15 +681,17 @@ function main(): void {
   }
 
   if (!args.quiet) {
-    console.log(JSON.stringify({
-      total: output.summary.totalSkills,
-      active: output.summary.activeSkills,
-      stale: output.summary.staleSkills,
-      gaps: output.summary.gapsFound,
-      refinements: output.summary.refinementsSuggested,
-      deprecations: output.summary.deprecationsSuggested,
-      health: output.summary.overallHealth,
-    }));
+    console.log(
+      JSON.stringify({
+        total: output.summary.totalSkills,
+        active: output.summary.activeSkills,
+        stale: output.summary.staleSkills,
+        gaps: output.summary.gapsFound,
+        refinements: output.summary.refinementsSuggested,
+        deprecations: output.summary.deprecationsSuggested,
+        health: output.summary.overallHealth,
+      }),
+    );
   }
 
   log('[SKILL-EVOLUTION-ENGINE] Done');

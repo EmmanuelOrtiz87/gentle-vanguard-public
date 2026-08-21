@@ -10,9 +10,9 @@
 
 These scripts are essential for project functionality and must be fixed first.
 
-### 1. gv.ps1 (Gentle-Vanguard - CRITICAL)
+### 1. src/cli/gv.ts (Gentle-Vanguard - CRITICAL)
 
-**Location**: `scripts/gentle-vanguard/gv.ps1`  
+**Location**: `scripts/gentle-vanguard/src/cli/gv.ts`  
 **Issues**:
 
 - Unbalanced braces: 501 open, 500 closed (missing 1 closing brace)
@@ -26,7 +26,7 @@ These scripts are essential for project functionality and must be fixed first.
 2. Use Find & Replace to locate unmatched braces
 3. Check function definitions and here-strings
 4. Validate with:
-   `[System.Management.Automation.Language.Parser]::ParseFile('.\scripts\gentle-vanguard\gv.ps1', [ref]$null, [ref]$errors)`
+   `[System.Management.Automation.Language.Parser]::ParseFile('.\scripts\gentle-vanguard\src/cli/gv.ts', [ref]$null, [ref]$errors)`
 
 **Estimated Effort**: 30-45 minutes
 
@@ -35,6 +35,7 @@ These scripts are essential for project functionality and must be fixed first.
 ### 2. bootstrap-workspace.ps1 (Gentle-Vanguard)
 
 **Location**: `scripts/gentle-vanguard/bootstrap-workspace.ps1`  
+<!-- REF-OBSOLETA: scripts/gentle-vanguard/bootstrap-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced braces: 219 open, 217 closed (missing 2 closing braces)
@@ -53,6 +54,7 @@ These scripts are essential for project functionality and must be fixed first.
 ### 3. validate-script-governance.ps1 (Diagnostics)
 
 **Location**: `scripts/diagnostics/validate-script-governance.ps1`  
+<!-- REF-OBSOLETA: scripts/diagnostics/validate-script-governance.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Syntax error: Token 'Script' unexpected
@@ -74,7 +76,7 @@ These scripts are used in important workflows but not critical path.
 
 ### 4. session-manager.ps1 (Utilities)
 
-**Location**: `scripts/utilities/session-manager.ps1`  
+**Location**: `src/session-manager.ts`  
 **Issues**:
 
 - Unbalanced parentheses: 78 open, 80 closed (2 extra closing)
@@ -93,6 +95,7 @@ These scripts are used in important workflows but not critical path.
 ### 5. homologate-workspace.ps1 (Validation)
 
 **Location**: `scripts/validation/homologate-workspace.ps1`  
+<!-- REF-OBSOLETA: scripts/validation/homologate-workspace.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 119 open, 124 closed (5 extra closing)
@@ -111,6 +114,7 @@ These scripts are used in important workflows but not critical path.
 ### 6. judgment-day.ps1 (Utilities)
 
 **Location**: `scripts/utilities/judgment-day.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/judgment-day.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 57 open, 60 closed (3 extra closing)
@@ -129,6 +133,7 @@ These scripts are used in important workflows but not critical path.
 ### 7. create-gitflow-branch.ps1 (Utilities - RECENTLY CREATED)
 
 **Location**: `scripts/utilities/create-gitflow-branch.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/create-gitflow-branch.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 35 open, 40 closed (5 extra closing)
@@ -151,6 +156,7 @@ These scripts have less critical impact but should be fixed for completeness.
 ### 8. session-idle-monitor.ps1 (Utilities)
 
 **Location**: `scripts/utilities/session-idle-monitor.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/session-idle-monitor.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 36 open, 40 closed (4 extra closing)
@@ -162,6 +168,7 @@ These scripts have less critical impact but should be fixed for completeness.
 ### 9. simplify-text.ps1 (Utilities)
 
 **Location**: `scripts/utilities/simplify-text.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/simplify-text.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 73 open, 74 closed (1 extra closing)
@@ -173,6 +180,7 @@ These scripts have less critical impact but should be fixed for completeness.
 ### 10. enable-optional-post-commit.ps1 (Utilities)
 
 **Location**: `scripts/utilities/enable-optional-post-commit.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/enable-optional-post-commit.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 38 open, 40 closed (2 extra closing)
@@ -184,6 +192,7 @@ These scripts have less critical impact but should be fixed for completeness.
 ### 11. input-validator.ps1 (Security)
 
 **Location**: `scripts/security/input-validator.ps1`  
+<!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 36 open, 35 closed (1 missing closing)
@@ -195,6 +204,7 @@ These scripts have less critical impact but should be fixed for completeness.
 ### 12. migrate.ps1 (Project)
 
 **Location**: `scripts/project/migrate.ps1`  
+<!-- REF-OBSOLETA: scripts/project/migrate.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced parentheses: 37 open, 36 closed (1 missing closing)
@@ -212,6 +222,7 @@ These scripts have syntax issues but are less frequently used.
 ### 13. encryption-manager.ps1 (Security)
 
 **Location**: `scripts/security/encryption-manager.ps1`  
+<!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced braces: 15 open, 13 closed (missing 2 closing)
@@ -224,6 +235,7 @@ These scripts have syntax issues but are less frequently used.
 ### 14. git-hooks-setup.ps1 (Testing)
 
 **Location**: `scripts/testing/git-hooks-setup.ps1`  
+<!-- REF-OBSOLETA: scripts/testing/git-hooks-setup.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced braces: 7 open, 4 closed (missing 3 closing)
@@ -236,6 +248,7 @@ These scripts have syntax issues but are less frequently used.
 ### 15. end-session.ps1 (Utilities)
 
 **Location**: `scripts/utilities/end-session.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/end-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced here-strings: 1 open, 3 closed
@@ -247,6 +260,7 @@ These scripts have syntax issues but are less frequently used.
 ### 16. generate-audit-report.ps1 (Utilities)
 
 **Location**: `scripts/utilities/generate-audit-report.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/generate-audit-report.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced here-strings: 3 open, 2 closed
@@ -259,6 +273,7 @@ These scripts have syntax issues but are less frequently used.
 ### 17. invoke-ai-review.ps1 (Utilities)
 
 **Location**: `scripts/utilities/invoke-ai-review.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/invoke-ai-review.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Unbalanced here-strings: 3 open, 4 closed
@@ -271,6 +286,7 @@ These scripts have syntax issues but are less frequently used.
 ### 18. export-backlog-csv.ps1 (Utilities)
 
 **Location**: `scripts/utilities/export-backlog-csv.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/export-backlog-csv.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Missing parameter argument
@@ -282,6 +298,7 @@ These scripts have syntax issues but are less frequently used.
 ### 19. create-skill.ps1 (Utilities)
 
 **Location**: `scripts/utilities/create-skill.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/create-skill.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Multiple syntax errors from escape sequence fixes
@@ -294,6 +311,7 @@ These scripts have syntax issues but are less frequently used.
 ### 20. migrate-structure.ps1 (Utilities)
 
 **Location**: `scripts/utilities/migrate-structure.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/migrate-structure.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**:
 
 - Syntax errors from null-coalescing operator removal
@@ -306,6 +324,7 @@ These scripts have syntax issues but are less frequently used.
 ### 21. create-gitflow-branch.ps1 (Utilities - DUPLICATE)
 
 **Location**: `scripts/utilities/create-gitflow-branch.ps1`  
+<!-- REF-OBSOLETA: scripts/utilities/create-gitflow-branch.ps1 no tiene equivalente TS (migración PS1→TS) -->
 **Issues**: Already listed as #7
 
 ---
@@ -314,7 +333,7 @@ These scripts have syntax issues but are less frequently used.
 
 ### Phase 1 - Critical (This Week)
 
-1. **gv.ps1** - Core workflow
+1. **src/cli/gv.ts** - Core workflow
 2. **bootstrap-workspace.ps1** - Initialization
 3. **validate-script-governance.ps1** - Validation
 4. **session-manager.ps1** - Session management
@@ -348,7 +367,7 @@ These scripts have syntax issues but are less frequently used.
 
 ### Step 1: Identify the Issue
 
-```powershell
+```TypeScript
 $errors = $null
 [System.Management.Automation.Language.Parser]::ParseFile(
     '.\scripts\path\to\script.ps1',
@@ -363,7 +382,7 @@ $errors | ForEach-Object { Write-Host $_.Message }
 1. Open script in VS Code
 2. Use Ctrl+H (Find & Replace)
 3. Use Ctrl+Shift+P (Command Palette)
-4. Search for "PowerShell: Show Errors"
+4. Search for "TypeScript: Show Errors"
 
 ### Step 3: Common Fixes
 
@@ -386,7 +405,7 @@ $errors | ForEach-Object { Write-Host $_.Message }
 
 ### Step 4: Validate
 
-```powershell
+```TypeScript
 .\scripts\utilities\audit-script-normalization.ps1 -Report
 ```
 
@@ -395,9 +414,11 @@ $errors | ForEach-Object { Write-Host $_.Message }
 ## Resources
 
 - **Audit Tool**: `scripts/utilities/audit-script-normalization.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/audit-script-normalization.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - **Fix Tool**: `scripts/utilities/fix-remaining-scripts.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/fix-remaining-scripts.ps1 no tiene equivalente TS (migración PS1→TS) -->
 - **Standards**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
-- **PowerShell Docs**: https://docs.microsoft.com/en-us/powershell/
+- **TypeScript Docs**: https://docs.microsoft.com/en-us/TypeScript/
 
 ---
 

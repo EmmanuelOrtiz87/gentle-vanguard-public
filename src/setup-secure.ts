@@ -27,7 +27,9 @@ function parseArgs(): SetupSecureArgs {
 function newApiKey(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, 14);
   const bytes = randomBytes(24);
-  const random = Array.from(bytes).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+  const random = Array.from(bytes)
+    .map((b: number) => b.toString(16).padStart(2, '0'))
+    .join('');
   return `fnd_${timestamp}_${random}`;
 }
 
@@ -64,16 +66,14 @@ function initializeDeveloperAuth(force: boolean): AuthResult {
     apiKey,
     createdAt: new Date().toISOString(),
     securityQuestions: {
-      q1: { question: 'What is your favorite programming language?', answerHash: 'sha256:placeholder' },
+      q1: {
+        question: 'What is your favorite programming language?',
+        answerHash: 'sha256:placeholder',
+      },
       q2: { question: 'What city were you born in?', answerHash: 'sha256:placeholder' },
       q3: { question: 'What is your favorite food?', answerHash: 'sha256:placeholder' },
     },
-    permissions: [
-      'run-skill-optimizer',
-      'modify-skills',
-      'run-tests',
-      'access-workspace-config',
-    ],
+    permissions: ['run-skill-optimizer', 'modify-skills', 'run-tests', 'access-workspace-config'],
   };
 
   writeFileSync(ownerAuthFile, JSON.stringify(auth, null, 2), 'utf8');

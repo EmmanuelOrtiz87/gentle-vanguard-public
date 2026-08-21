@@ -14,7 +14,7 @@
  *     --quiet         Minimal output
  */
 
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -34,7 +34,7 @@ function fetchFromConfluence(pageId: string, baseUrl: string, token: string): an
   try {
     const url = `${baseUrl}/rest/api/content/${pageId}?expand=body.storage,version`;
     const curlCmd = `curl -s -H "Authorization: Basic ${Buffer.from(`:${token}`).toString('base64')}" -H "Accept: application/json" "${url}"`;
-    const output = execSync(curlCmd, { encoding: 'utf-8', stdio: 'pipe' });
+    const output = runSyncShell(curlCmd, { stdio: 'pipe' }).stdout;
     return JSON.parse(output);
   } catch {
     return { error: 'Failed to fetch from Confluence API' };
@@ -47,8 +47,14 @@ const quiet = args.includes('--quiet');
 const pageId = args.indexOf('--page') >= 0 ? args[args.indexOf('--page') + 1] : undefined;
 const spaceKey = args.indexOf('--space') >= 0 ? args[args.indexOf('--space') + 1] : '';
 const outputPath = args.indexOf('--output') >= 0 ? args[args.indexOf('--output') + 1] : undefined;
-const baseUrl = args.indexOf('--base-url') >= 0 ? args[args.indexOf('--base-url') + 1] : process.env.CONFLUENCE_BASE_URL || 'https://your-domain.atlassian.net/wiki';
-const token = args.indexOf('--token') >= 0 ? args[args.indexOf('--token') + 1] : process.env.CONFLUENCE_API_TOKEN || '';
+const baseUrl =
+  args.indexOf('--base-url') >= 0
+    ? args[args.indexOf('--base-url') + 1]
+    : process.env.CONFLUENCE_BASE_URL || 'https://your-domain.atlassian.net/wiki';
+const token =
+  args.indexOf('--token') >= 0
+    ? args[args.indexOf('--token') + 1]
+    : process.env.CONFLUENCE_API_TOKEN || '';
 
 const result: ConnectorResult = {
   source: `confluence:${spaceKey || pageId || 'unknown'}`,

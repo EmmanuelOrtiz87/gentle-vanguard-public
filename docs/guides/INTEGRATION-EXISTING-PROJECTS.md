@@ -19,7 +19,7 @@ existing code. This guide covers integration into:
 | Tool       | versión | Purpose            |
 | ---------- | ------- | ------------------ |
 | Git        | 2.30+   | versión control    |
-| PowerShell | 7+      | Automation scripts |
+| TypeScript | 7+      | Automation scripts |
 
 ### Optional (Recommended)
 
@@ -31,13 +31,13 @@ existing code. This guide covers integration into:
 
 ### Verify Installation
 
-```powershell
+```TypeScript
 # Check prerequisites
 git --versión
 pwsh --versión
 
-# If PowerShell 7 not installed:
-winget install Microsoft.PowerShell
+# If TypeScript 7 not installed:
+winget install Microsoft.TypeScript
 ```
 
 ## Integration Scenarios
@@ -60,7 +60,7 @@ C:\my-project\           C:\my-project\
 
 **Steps:**
 
-```powershell
+```TypeScript
 # 1. Navigate to your existing project
 cd C:\my-existing-project
 
@@ -91,7 +91,7 @@ my-repo.git       my-repo/
 
 **Steps:**
 
-```powershell
+```TypeScript
 # 1. Clone the repository
 git clone https://github.com/your-org/your-project.git
 cd your-project
@@ -116,7 +116,7 @@ C:\Projects\
 
 **Steps:**
 
-```powershell
+```TypeScript
 # Each project is independent
 cd C:\Projects\project-alpha
 .\path\to\gentle-vanguard\\scripts\init-workspace.ps1
@@ -200,7 +200,7 @@ See: `docs/guides/GENTLE_VANGUARD-SYNC.md` for full behavior and examples.
 
 ### Force Apply (If Needed)
 
-```powershell
+```TypeScript
 # If you want to overwrite existing Gentle-Vanguard files
 .\scripts\init-workspace.ps1 -Force
 
@@ -212,7 +212,7 @@ See: `docs/guides/GENTLE_VANGUARD-SYNC.md` for full behavior and examples.
 
 ## Post-Integration Checklist
 
-```powershell
+```TypeScript
 # 1. Verify audit system
 Test-Path .audit\sessions
 
@@ -261,7 +261,7 @@ Edit `AGENTS.md` to match your project standards:
 
 ### Configuring AI Tools
 
-```powershell
+```TypeScript
 # Set default AI provider
 opencode config set default-model claude-sonnet-4
 
@@ -276,7 +276,7 @@ claude "Hello, verify you're working"
 
 ### Development Machine Configuration
 
-```powershell
+```TypeScript
 # Local config (not committed)
 .env.local
  AI_PROVIDER=claude
@@ -288,7 +288,7 @@ claude "Hello, verify you're working"
 
 All team members integrate Gentle-Vanguard the same way:
 
-```powershell
+```TypeScript
 # 1. Clone repo
 git clone https://github.com/team/project.git
 
@@ -306,7 +306,7 @@ git clone https://github.com/team/project.git
 
 ### Quick Health Check
 
-```powershell
+```TypeScript
 # Run validation script
 .\scripts\validate-workspace.ps1
 
@@ -319,7 +319,7 @@ git clone https://github.com/team/project.git
 
 ### Detailed Verification
 
-```powershell
+```TypeScript
 # 1. Check Gentle-Vanguard files exist
 Get-ChildItem .audit/
 Get-ChildItem AGENTS.md
@@ -341,7 +341,7 @@ Get-ChildItem .audit/sessions/
 
 ### Remove Gentle-Vanguard (Keep Code)
 
-```powershell
+```TypeScript
 # This removes Gentle-Vanguard but keeps your code
 Remove-Item -Recurse .audit/
 Remove-Item AGENTS.md
@@ -355,7 +355,7 @@ git push
 
 ### Re-Integrate
 
-```powershell
+```TypeScript
 # To bring Gentle-Vanguard back
 cd your-project
 .\path\to\gentle-vanguard\\scripts\init-workspace.ps1
@@ -365,7 +365,7 @@ cd your-project
 
 ### "Git repository not found"
 
-```powershell
+```TypeScript
 # Initialize Git first
 git init
 git remote add origin your-repo-url
@@ -373,7 +373,7 @@ git remote add origin your-repo-url
 
 ### "Permission denied"
 
-```powershell
+```TypeScript
 # Check execution policy
 Get-ExecutionPolicy
 
@@ -383,14 +383,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### "AI tools not found"
 
-```powershell
+```TypeScript
 # Re-run bootstrap with tool installation
 .\scripts\init-workspace.ps1 -RunToolInstallers
 ```
 
 ### "Audit not capturing"
 
-```powershell
+```TypeScript
 # Manually start session
 .\scripts\generate-session-audit.ps1 -Start
 

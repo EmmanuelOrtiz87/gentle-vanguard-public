@@ -6,7 +6,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
@@ -33,18 +33,30 @@ interface KBConfig {
 
 function getConfig(): KBConfig | null {
   if (existsSync(configPath)) {
-    try { return JSON.parse(readFileSync(configPath, 'utf-8')); } catch { /* */ }
+    try {
+      return JSON.parse(readFileSync(configPath, 'utf-8'));
+    } catch {
+      /* */
+    }
   }
   return null;
 }
 
 function initializeVault(force: boolean, quiet: boolean): boolean {
   const config = getConfig();
-  if (!config) { console.log('[ERROR] Config not found'); return false; }
+  if (!config) {
+    console.log('[ERROR] Config not found');
+    return false;
+  }
 
   let needsInit = false;
-  if (!existsSync(vaultPath)) { if (!quiet) console.log('[WARN] Vault root not found - creating...'); needsInit = true; }
-  else if (force) { if (!quiet) console.log('[INFO] Force init requested'); needsInit = true; }
+  if (!existsSync(vaultPath)) {
+    if (!quiet) console.log('[WARN] Vault root not found - creating...');
+    needsInit = true;
+  } else if (force) {
+    if (!quiet) console.log('[INFO] Force init requested');
+    needsInit = true;
+  }
 
   if (needsInit) {
     mkdirSync(vaultPath, { recursive: true });
@@ -52,7 +64,10 @@ function initializeVault(force: boolean, quiet: boolean): boolean {
     const folderValues = Object.values(config.folders);
     for (const folder of folderValues) {
       const fp = join(vaultPath, folder);
-      if (!existsSync(fp)) { mkdirSync(fp, { recursive: true }); if (!quiet) console.log(`[OK] Created folder: ${folder}`); }
+      if (!existsSync(fp)) {
+        mkdirSync(fp, { recursive: true });
+        if (!quiet) console.log(`[OK] Created folder: ${folder}`);
+      }
     }
 
     const templatesFolder = join(vaultPath, '06-templates');
@@ -67,7 +82,10 @@ function initializeVault(force: boolean, quiet: boolean): boolean {
 
     for (const [name, content] of Object.entries(templateFiles)) {
       const tp = join(templatesFolder, name);
-      if (!existsSync(tp)) { writeFileSync(tp, content, 'utf-8'); if (!quiet) console.log(`[OK] Created template: ${name}`); }
+      if (!existsSync(tp)) {
+        writeFileSync(tp, content, 'utf-8');
+        if (!quiet) console.log(`[OK] Created template: ${name}`);
+      }
     }
 
     const readmePath = join(vaultPath, 'README.md');
@@ -85,7 +103,11 @@ function initializeVault(force: boolean, quiet: boolean): boolean {
   const folderVals = Object.values(config.folders);
   for (const folder of folderVals) {
     const fp = join(vaultPath, folder);
-    if (!existsSync(fp)) { mkdirSync(fp, { recursive: true }); if (!quiet) console.log(`[WARN] Created missing folder: ${folder}`); allFoldersExist = false; }
+    if (!existsSync(fp)) {
+      mkdirSync(fp, { recursive: true });
+      if (!quiet) console.log(`[WARN] Created missing folder: ${folder}`);
+      allFoldersExist = false;
+    }
   }
 
   if (allFoldersExist && !quiet) console.log('[OK] Vault structure validated');
@@ -93,34 +115,53 @@ function initializeVault(force: boolean, quiet: boolean): boolean {
 }
 
 function getVaultStats(): { notes: number; sizeKB: number } {
-  let notes = 0, size = 0;
+  let notes = 0,
+    size = 0;
   function walk(d: string): void {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const full = join(d, e.name);
       if (e.isDirectory()) walk(full);
-      else if (e.name.endsWith('.md')) { notes++; size += statSync(full).size; }
+      else if (e.name.endsWith('.md')) {
+        notes++;
+        size += statSync(full).size;
+      }
     }
   }
   if (existsSync(vaultPath)) {
     walk(vaultPath);
   }
-  return { notes, sizeKB: Math.round(size / 1024 * 100) / 100 };
+  return { notes, sizeKB: Math.round((size / 1024) * 100) / 100 };
 }
 
 function runFullSync(quiet: boolean): boolean {
   const syncScriptTs = join(projectRoot, 'src', 'knowledge-base-sync.ts');
-  const syncScriptPs1 = join(projectRoot, 'scripts', 'utilities', 'knowledge-base', 'knowledge-base-sync.ps1');
+  const syncScriptPs1 = join(
+    projectRoot,
+    'scripts',
+    'utilities',
+    'knowledge-base',
+    'knowledge-base-sync.ps1',
+  );
   const hasTs = existsSync(syncScriptTs);
   if (hasTs || existsSync(syncScriptPs1)) {
     try {
       if (hasTs) {
-        execSync(`npx tsx "${syncScriptTs}" --mode full --quiet`, { cwd: projectRoot, timeout: 60000, windowsHide: true });
+        runNpxTsxSync(syncScriptTs, ['--mode', 'full', '--quiet'], {
+          cwd: projectRoot,
+          timeout: 60000,
+        });
       } else {
-        execSync(`pwsh -NoProfile "${syncScriptPs1}" -Mode full -Quiet`, { cwd: projectRoot, timeout: 60000, windowsHide: true });
+        runSync('pwsh', ['-NoProfile', syncScriptPs1, '-Mode', 'full', '-Quiet'], {
+          cwd: projectRoot,
+          timeout: 60000,
+        });
       }
       if (!quiet) console.log('[OK] Full sync completed');
       return true;
-    } catch (e: unknown) { console.log(`[ERROR] Sync failed: ${e instanceof Error ? e.message : String(e)}`); return false; }
+    } catch (e: unknown) {
+      console.log(`[ERROR] Sync failed: ${e instanceof Error ? e.message : String(e)}`);
+      return false;
+    }
   }
   console.log(`[ERROR] Sync script not found: ${syncScriptPs1}`);
   return false;

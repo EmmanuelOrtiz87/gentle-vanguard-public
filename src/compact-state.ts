@@ -87,14 +87,14 @@ const DEFAULT_CONFIG: StateMachineConfig = {
 };
 
 const VALID_TRANSITIONS: Record<TransactionPhase, TransactionPhase[]> = {
-  'initiated': ['judges_started', 'failed', 'rolled_back'],
-  'judges_started': ['verdict_ready', 'failed', 'rolled_back', 'initiated'],
-  'verdict_ready': ['fixes_applied', 'approved', 'escalated', 'failed', 'rolled_back'],
-  'fixes_applied': ['judges_started', 'approved', 'escalated', 'failed', 'rolled_back'],
-  'approved': [],
-  'escalated': [],
-  'failed': ['initiated', 'rolled_back'],
-  'rolled_back': [],
+  initiated: ['judges_started', 'failed', 'rolled_back'],
+  judges_started: ['verdict_ready', 'failed', 'rolled_back', 'initiated'],
+  verdict_ready: ['fixes_applied', 'approved', 'escalated', 'failed', 'rolled_back'],
+  fixes_applied: ['judges_started', 'approved', 'escalated', 'failed', 'rolled_back'],
+  approved: [],
+  escalated: [],
+  failed: ['initiated', 'rolled_back'],
+  rolled_back: [],
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────
@@ -124,11 +124,13 @@ function loadTransactions(config: StateMachineConfig): CompactTransaction[] {
   const dir = join(ROOT, config.outputDir);
   if (!existsSync(dir)) return [];
   const txs: CompactTransaction[] = [];
-  const files = readdirSync(dir).filter(f => f.endsWith('.json'));
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json'));
   for (const file of files) {
     try {
       txs.push(JSON.parse(readFileSync(join(dir, file), 'utf-8')));
-    } catch { /* skip corrupt */ }
+    } catch {
+      /* skip corrupt */
+    }
   }
   return txs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
@@ -142,7 +144,10 @@ function saveTransaction(config: StateMachineConfig, tx: CompactTransaction): vo
 function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO', quiet: boolean) {
   if (quiet) return;
   const colors: Record<string, string> = {
-    INFO: '\x1b[36m', WARN: '\x1b[33m', ERROR: '\x1b[31m', SUCCESS: '\x1b[32m',
+    INFO: '\x1b[36m',
+    WARN: '\x1b[33m',
+    ERROR: '\x1b[31m',
+    SUCCESS: '\x1b[32m',
   };
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   console.log(`${colors[level] ?? ''}[${ts}] [${level}] ${msg}\x1b[0m`);
@@ -163,13 +168,15 @@ export function createTransaction(opts: {
     id: generateId(),
     type: opts.type,
     phase: 'initiated',
-    phaseHistory: [{
-      from: 'initiated',
-      to: 'initiated',
-      timestamp: new Date().toISOString(),
-      reason: 'Transaction created',
-      casToken,
-    }],
+    phaseHistory: [
+      {
+        from: 'initiated',
+        to: 'initiated',
+        timestamp: new Date().toISOString(),
+        reason: 'Transaction created',
+        casToken,
+      },
+    ],
     scope: opts.scope,
     data: opts.data ?? {},
     recoveryPoint: null,
@@ -191,7 +198,7 @@ export function transitionPhase(
 ): { success: boolean; transaction?: CompactTransaction; error?: string } {
   const config = loadConfig();
   const txs = loadTransactions(config);
-  const tx = txs.find(t => t.id === id);
+  const tx = txs.find((t) => t.id === id);
   if (!tx) return { success: false, error: `Transaction not found: ${id}` };
 
   const currentPhase = tx.phase;
@@ -248,14 +255,17 @@ export function rollbackTransaction(
 ): { success: boolean; transaction?: CompactTransaction; error?: string } {
   const config = loadConfig();
   const txs = loadTransactions(config);
-  const tx = txs.find(t => t.id === id);
+  const tx = txs.find((t) => t.id === id);
   if (!tx) return { success: false, error: `Transaction not found: ${id}` };
   if (!tx.recoveryPoint) return { success: false, error: 'No recovery point available' };
 
   // CAS check on recovery point
   const lastEntry = tx.phaseHistory[tx.phaseHistory.length - 1];
   if (config.requireCAS && lastEntry.casToken !== tx.recoveryPoint.casToken) {
-    return { success: false, error: 'CAS mismatch on recovery point. Manual intervention required.' };
+    return {
+      success: false,
+      error: 'CAS mismatch on recovery point. Manual intervention required.',
+    };
   }
 
   const previousPhase = tx.phaseHistory[tx.phaseHistory.length - 1].from;
@@ -279,7 +289,7 @@ export function rollbackTransaction(
 export function getTransaction(id: string): CompactTransaction | null {
   const config = loadConfig();
   const txs = loadTransactions(config);
-  return txs.find(t => t.id === id) ?? null;
+  return txs.find((t) => t.id === id) ?? null;
 }
 
 export function queryTransactions(filter: {
@@ -290,10 +300,10 @@ export function queryTransactions(filter: {
 }): CompactTransaction[] {
   const config = loadConfig();
   let txs = loadTransactions(config);
-  if (filter.type) txs = txs.filter(t => t.type === filter.type);
-  if (filter.phase) txs = txs.filter(t => t.phase === filter.phase);
+  if (filter.type) txs = txs.filter((t) => t.type === filter.type);
+  if (filter.phase) txs = txs.filter((t) => t.phase === filter.phase);
   const scopeFilter = filter.scope;
-  if (scopeFilter) txs = txs.filter(t => t.scope.includes(scopeFilter));
+  if (scopeFilter) txs = txs.filter((t) => t.scope.includes(scopeFilter));
   if (filter.limit) txs = txs.slice(0, filter.limit);
   return txs;
 }
@@ -302,9 +312,17 @@ export function garbageCollect(quiet = false): GcResult {
   const config = loadConfig();
   const txs = loadTransactions(config);
   const cutoff = Date.now() - config.gcAfterHours * 3600000;
-  const toRemove = txs.filter(t => {
-    if (t.phase !== 'approved' && t.phase !== 'escalated' && t.phase !== 'rolled_back' && t.phase !== 'failed') return false;
-    const completed = t.completedAt ? new Date(t.completedAt).getTime() : new Date(t.updatedAt).getTime();
+  const toRemove = txs.filter((t) => {
+    if (
+      t.phase !== 'approved' &&
+      t.phase !== 'escalated' &&
+      t.phase !== 'rolled_back' &&
+      t.phase !== 'failed'
+    )
+      return false;
+    const completed = t.completedAt
+      ? new Date(t.completedAt).getTime()
+      : new Date(t.updatedAt).getTime();
     return completed < cutoff;
   });
 
@@ -315,11 +333,17 @@ export function garbageCollect(quiet = false): GcResult {
       if (existsSync(filePath)) {
         rmSync(filePath, { force: true });
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
-  log(`GC removed ${toRemove.length} stale transactions`, toRemove.length > 0 ? 'INFO' : 'SUCCESS', quiet);
-  return { removed: toRemove.length, freed: toRemove.map(t => t.id) };
+  log(
+    `GC removed ${toRemove.length} stale transactions`,
+    toRemove.length > 0 ? 'INFO' : 'SUCCESS',
+    quiet,
+  );
+  return { removed: toRemove.length, freed: toRemove.map((t) => t.id) };
 }
 
 // ─── CLI Handler ───────────────────────────────────────────────────────
@@ -333,69 +357,134 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--status': action = 'status'; break;
-      case '--create': action = 'create'; txId = args[++i] ?? ''; break;
-      case '--transition': action = 'transition'; txId = args[++i] ?? ''; break;
-      case '--recovery': action = 'recovery'; txId = args[++i] ?? ''; break;
-      case '--rollback': action = 'rollback'; txId = args[++i] ?? ''; break;
-      case '--gc': action = 'gc'; break;
-      case '--quiet': quiet = true; break;
-      case '--dry-run': dryRun = true; break;
+      case '--status':
+        action = 'status';
+        break;
+      case '--create':
+        action = 'create';
+        txId = args[++i] ?? '';
+        break;
+      case '--transition':
+        action = 'transition';
+        txId = args[++i] ?? '';
+        break;
+      case '--recovery':
+        action = 'recovery';
+        txId = args[++i] ?? '';
+        break;
+      case '--rollback':
+        action = 'rollback';
+        txId = args[++i] ?? '';
+        break;
+      case '--gc':
+        action = 'gc';
+        break;
+      case '--quiet':
+        quiet = true;
+        break;
+      case '--dry-run':
+        dryRun = true;
+        break;
     }
   }
 
   switch (action) {
     case 'status': {
       const txs = queryTransactions({});
-      if (txs.length === 0) { console.log('No state machine instances.'); break; }
+      if (txs.length === 0) {
+        console.log('No state machine instances.');
+        break;
+      }
       console.log('\n=== COMPACT STATE MACHINE STATUS ===');
       for (const t of txs) {
-        console.log(`${t.id} | ${t.phase.padEnd(16)} | ${t.type.padEnd(14)} | ${t.scope.slice(0, 40)}`);
+        console.log(
+          `${t.id} | ${t.phase.padEnd(16)} | ${t.type.padEnd(14)} | ${t.scope.slice(0, 40)}`,
+        );
       }
       break;
     }
     case 'create': {
-      if (dryRun) { console.log('[DRY-RUN] Would create transaction'); break; }
-      const txType = (args.includes('--type') ? args[args.indexOf('--type') + 1] : 'manual') as TransactionType;
+      if (dryRun) {
+        console.log('[DRY-RUN] Would create transaction');
+        break;
+      }
+      const txType = (
+        args.includes('--type') ? args[args.indexOf('--type') + 1] : 'manual'
+      ) as TransactionType;
       const scope = args.includes('--scope') ? args[args.indexOf('--scope') + 1] : 'cli';
       const tx = createTransaction({ type: txType, scope, quiet });
       console.log(JSON.stringify(tx, null, 2));
       break;
     }
     case 'transition': {
-      if (!txId) { console.error('Provide ID with --transition <id>'); process.exit(1); }
-      const toPhase = (args.includes('--to') ? args[args.indexOf('--to') + 1] : 'approved') as TransactionPhase;
-      const reason = args.includes('--reason') ? args[args.indexOf('--reason') + 1] : 'CLI transition';
-      if (dryRun) { console.log(`[DRY-RUN] Would transition ${txId} → ${toPhase}`); break; }
+      if (!txId) {
+        console.error('Provide ID with --transition <id>');
+        process.exit(1);
+      }
+      const toPhase = (
+        args.includes('--to') ? args[args.indexOf('--to') + 1] : 'approved'
+      ) as TransactionPhase;
+      const reason = args.includes('--reason')
+        ? args[args.indexOf('--reason') + 1]
+        : 'CLI transition';
+      if (dryRun) {
+        console.log(`[DRY-RUN] Would transition ${txId} → ${toPhase}`);
+        break;
+      }
       const result = transitionPhase(txId, toPhase, reason, { quiet });
-      if (!result.success) { console.error(result.error); process.exit(1); }
+      if (!result.success) {
+        console.error(result.error);
+        process.exit(1);
+      }
       console.log(JSON.stringify(result.transaction, null, 2));
       break;
     }
     case 'recovery': {
-      if (!txId) { console.error('Provide ID with --recovery <id>'); process.exit(1); }
+      if (!txId) {
+        console.error('Provide ID with --recovery <id>');
+        process.exit(1);
+      }
       const tx = getTransaction(txId);
-      if (!tx) { console.error(`Transaction not found: ${txId}`); process.exit(1); }
+      if (!tx) {
+        console.error(`Transaction not found: ${txId}`);
+        process.exit(1);
+      }
       console.log('\n=== RECOVERY INFO ===');
       console.log(`Current phase: ${tx.phase}`);
       console.log(`Recovery point: ${tx.recoveryPoint ? tx.recoveryPoint.timestamp : 'None'}`);
-      console.log(`Last transition: ${tx.phaseHistory[tx.phaseHistory.length - 1]?.reason ?? 'N/A'}`);
+      console.log(
+        `Last transition: ${tx.phaseHistory[tx.phaseHistory.length - 1]?.reason ?? 'N/A'}`,
+      );
       console.log(`Created: ${tx.createdAt}`);
       console.log(`Updated: ${tx.updatedAt}`);
       console.log(`Completed: ${tx.completedAt ?? 'Not completed'}`);
       break;
     }
     case 'rollback': {
-      if (!txId) { console.error('Provide ID with --rollback <id>'); process.exit(1); }
-      const reason = args.includes('--reason') ? args[args.indexOf('--reason') + 1] : 'CLI rollback';
-      if (dryRun) { console.log(`[DRY-RUN] Would rollback ${txId}`); break; }
+      if (!txId) {
+        console.error('Provide ID with --rollback <id>');
+        process.exit(1);
+      }
+      const reason = args.includes('--reason')
+        ? args[args.indexOf('--reason') + 1]
+        : 'CLI rollback';
+      if (dryRun) {
+        console.log(`[DRY-RUN] Would rollback ${txId}`);
+        break;
+      }
       const result = rollbackTransaction(txId, reason, quiet);
-      if (!result.success) { console.error(result.error); process.exit(1); }
+      if (!result.success) {
+        console.error(result.error);
+        process.exit(1);
+      }
       console.log(JSON.stringify(result.transaction, null, 2));
       break;
     }
     case 'gc': {
-      if (dryRun) { console.log('[DRY-RUN] Would garbage collect stale transactions'); break; }
+      if (dryRun) {
+        console.log('[DRY-RUN] Would garbage collect stale transactions');
+        break;
+      }
       const result = garbageCollect(quiet);
       console.log(`Removed ${result.removed} stale transactions`);
       break;

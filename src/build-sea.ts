@@ -22,9 +22,12 @@
  *   https://nodejs.org/api/single-executable-applications.html
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, statSync } from 'fs';
 import { resolve, dirname, basename, extname } from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { createRequire } from 'module';
+import { runSync, runSyncShell } from './core/run-command.js';
+
+const require = createRequire(import.meta.url);
 
 interface SEATarget {
   name: string;
@@ -69,7 +72,7 @@ function parseArgs(): { targets: string[]; nodePath: string; json: boolean; skip
   const raw = process.argv.slice(2);
   const targetArg = extractArg(raw, '--target') || 'all';
   return {
-    targets: targetArg === 'all' ? TARGETS.map(t => t.name) : targetArg.split(','),
+    targets: targetArg === 'all' ? TARGETS.map((t) => t.name) : targetArg.split(','),
     nodePath: extractArg(raw, '--node-path') || process.execPath,
     json: raw.includes('--json'),
     skipBuild: raw.includes('--skip-build'),
@@ -99,24 +102,92 @@ function compileTS(entry: string): string | null {
 
   mkdirSync(dirname(outJs), { recursive: true });
 
-  // Use esbuild for fast bundling (preferred) or fallback to tsc
+  // Record the previous bundle state so we can detect a stale (unregenerated) build.
+  const prevMtime = existsSync(outJs) ? statSync(outJs).mtimeMs : 0;
+  const prevSize = existsSync(outJs) ? statSync(outJs).size : 0;
+
+  // Use esbuild's JS API directly (no shell) — avoids cmd.exe quoting bugs
+  // that corrupt Windows paths (e.g. leading spaces) and lets us check the
+  // real exit status. Fallback to tsc if esbuild is unavailable.
   try {
-    execSync(
-      `npx esbuild "${resolve(process.cwd(), entry)}" --bundle --platform=node --target=node20 --outfile="${outJs}" --format=cjs --external:better-sqlite3 2>&1`,
-      { encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'inherit'] }
-    );
-    return outJs;
-  } catch {
-    // esbuild not available, try tsc
-    try {
-      execSync(
-        `npx tsc "${resolve(process.cwd(), entry)}" --outDir "${resolve(process.cwd(), SEA_DIR)}" --module commonjs --target es2020 --moduleResolution node --skipLibCheck 2>&1`,
-        { encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'inherit'] }
-      );
+    const esbuild = require('esbuild') as {
+      buildSync: (opts: Record<string, unknown>) => { errors: unknown[] };
+    };
+    esbuild.buildSync({
+      entryPoints: [resolve(process.cwd(), entry)],
+      bundle: true,
+      platform: 'node',
+      target: 'node20',
+      outfile: outJs,
+      format: 'cjs',
+      external: ['better-sqlite3'],
+      logLevel: 'silent',
+    });
+    if (bundleChanged(outJs, prevMtime, prevSize)) {
+      patchSeaBundle(outJs);
       return outJs;
-    } catch {
-      return null;
     }
+    console.error(`[SEA] esbuild did not produce ${basename(outJs)} — falling back to tsc`);
+  } catch (err) {
+    console.error(
+      `[SEA] esbuild failed (${err instanceof Error ? err.message : String(err)}) — falling back to tsc`,
+    );
+  }
+
+  // esbuild not available or failed — try tsc
+  try {
+    const tscResult = runSyncShell(
+      `npx tsc "${resolve(process.cwd(), entry)}" --outDir "${resolve(process.cwd(), SEA_DIR)}" --module commonjs --target es2020 --moduleResolution node --skipLibCheck`,
+      { timeout: 60000 },
+    );
+    if (tscResult.status === 0 && bundleChanged(outJs, prevMtime, prevSize)) {
+      patchSeaBundle(outJs);
+      return outJs;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * True when the bundle file was actually rewritten by the compiler
+ * (mtime or size changed vs the recorded previous state).
+ */
+function bundleChanged(outJs: string, prevMtime: number, prevSize: number): boolean {
+  if (!existsSync(outJs)) return false;
+  const cur = statSync(outJs);
+  return cur.mtimeMs !== prevMtime || cur.size !== prevSize;
+}
+
+/**
+ * Patch esbuild's CJS output for SEA compatibility.
+ *
+ * esbuild emits `var import_meta = {};` followed by
+ * `createRequire(import_meta.url)` when the source uses `import.meta.url`.
+ * Inside a Node SEA binary `import.meta` is `{}`, so `import_meta.url` is
+ * `undefined` and `createRequire(undefined)` throws
+ * `ERR_INVALID_ARG_VALUE`. Replace the empty shim with a real file URL
+ * derived from `__filename`.
+ */
+function patchSeaBundle(outJs: string): void {
+  try {
+    let content = readFileSync(outJs, 'utf8');
+    const brokenShim = /var import_meta = \{\};/;
+    if (brokenShim.test(content)) {
+      content = content.replace(
+        brokenShim,
+        'var import_meta = { url: require("url").pathToFileURL(__filename).href };',
+      );
+      writeFileSync(outJs, content, 'utf8');
+      console.error(`[SEA] Patched import_meta shim in ${basename(outJs)}`);
+    }
+  } catch (err) {
+    console.error(
+      `[SEA] Warning: could not patch import_meta shim in ${basename(outJs)}: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
   }
 }
 
@@ -136,10 +207,18 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
       }
     } else {
       // Use pre-built file from dist/
-      const jsPath = resolve(process.cwd(), DIST_DIR, target.entryTs.replace(/\.ts$/, '.js').replace('src/', ''));
+      const jsPath = resolve(
+        process.cwd(),
+        DIST_DIR,
+        target.entryTs.replace(/\.ts$/, '.js').replace('src/', ''),
+      );
       if (existsSync(jsPath)) jsFile = jsPath;
       else {
-        const altPath = resolve(process.cwd(), DIST_DIR, target.entryTs.replace(/\.ts$/, '.mjs').replace('src/', ''));
+        const altPath = resolve(
+          process.cwd(),
+          DIST_DIR,
+          target.entryTs.replace(/\.ts$/, '.mjs').replace('src/', ''),
+        );
         if (existsSync(altPath)) jsFile = altPath;
       }
       if (!jsFile) {
@@ -167,16 +246,15 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
 
     // Step 4: Generate SEA blob
     const nodeMajor = parseInt(process.version.match(/^v(\d+)/)?.[1] ?? '0', 10);
-    const seaConfigFlag = nodeMajor >= 22 ? '--experimental-sea-config' : '--experimental-sea-config';
+    const seaConfigFlag =
+      nodeMajor >= 22 ? '--experimental-sea-config' : '--experimental-sea-config';
 
-    const blobResult = spawnSync(process.execPath, [seaConfigFlag, configPath], {
-      encoding: 'utf8',
+    const blobResult = runSync('node', [seaConfigFlag, configPath], {
       timeout: 30000,
-      stdio: ['pipe', 'pipe', 'inherit'],
     });
 
     if (blobResult.status !== 0) {
-      result.error = `SEA blob generation failed (exit code: ${blobResult.status})`;
+      result.error = `SEA blob generation failed (exit code: ${blobResult.status ?? 'unknown'})`;
       return result;
     }
 
@@ -186,8 +264,13 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
 
     // Remove existing output first to ensure clean copy (prevents locked file issues)
     if (existsSync(outputPath)) {
-      try { execSync(`del "${outputPath}" 2>nul`, { stdio: 'ignore' }); }
-      catch { try { require('fs').unlinkSync(outputPath); } catch {} }
+      try {
+        runSyncShell(`del "${outputPath}" 2>nul`);
+      } catch {
+        try {
+          require('fs').unlinkSync(outputPath);
+        } catch {}
+      }
     }
 
     // Copy node.exe as base
@@ -232,18 +315,16 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
       outputPath,
       'NODE_SEA_BLOB',
       blobFile,
-      '--sentinel-fuse', 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
-      '--macho-segment-name', 'NODE_SEA',
+      '--sentinel-fuse',
+      'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
+      '--macho-segment-name',
+      'NODE_SEA',
       '--overwrite',
     ];
 
-    const postjectResult = spawnSync(
-      postjectCmd,
-      postjectCallArgs,
-      { encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'inherit'] }
-    );
+    const postjectResult = runSync(postjectCmd, postjectCallArgs, { timeout: 30000 });
 
-    if (postjectResult.status !== 0) {
+    if (postjectResult.status !== 0 && postjectResult.status !== null) {
       // postject not available or failed — the blob was still generated,
       // but the .exe won't be self-contained. Provide instructions.
       result.error = `Postject failed (install with: npm install -g postject). Blob available at ${blobFile}`;
@@ -276,18 +357,24 @@ function main(): void {
   const results: BuildResult[] = [];
 
   console.error(`\n╔═══ Node SEA Builder ═══════════════════`);
-  console.error(`║ Node: ${versionCheck.version} ${versionCheck.ok ? '✅' : '⚠️  (SEA requires Node >= 20.11.0)'}`);
+  console.error(
+    `║ Node: ${versionCheck.version} ${versionCheck.ok ? '✅' : '⚠️  (SEA requires Node >= 20.11.0)'}`,
+  );
   console.error(`║ Targets: ${args.targets.join(', ')}`);
   console.error(`╚${'═'.repeat(40)}`);
 
   if (!versionCheck.ok) {
-    console.error(`\n[SEA] ⚠️  Node ${versionCheck.version} may not support SEA fully. Node 22+ recommended.`);
+    console.error(
+      `\n[SEA] ⚠️  Node ${versionCheck.version} may not support SEA fully. Node 22+ recommended.`,
+    );
   }
 
   for (const targetName of args.targets) {
-    const target = TARGETS.find(t => t.name === targetName);
+    const target = TARGETS.find((t) => t.name === targetName);
     if (!target) {
-      console.error(`[SEA] Unknown target: ${targetName}. Available: ${TARGETS.map(t => t.name).join(', ')}`);
+      console.error(
+        `[SEA] Unknown target: ${targetName}. Available: ${TARGETS.map((t) => t.name).join(', ')}`,
+      );
       results.push({ target: targetName, success: false, output: '', error: 'Unknown target' });
       continue;
     }
@@ -297,7 +384,7 @@ function main(): void {
 
   if (args.json) {
     console.log(JSON.stringify(results, null, 2));
-    process.exit(results.every(r => r.success) ? 0 : 1);
+    process.exit(results.every((r) => r.success) ? 0 : 1);
   }
 
   console.error(`\n📦 SEA Build Results:`);
@@ -310,7 +397,7 @@ function main(): void {
     }
   }
 
-  if (!results.every(r => r.success)) {
+  if (!results.every((r) => r.success)) {
     console.error(`\n⚠️  Some builds failed. Install postject for full SEA support:`);
     console.error(`   npm install -g postject`);
     process.exit(1);

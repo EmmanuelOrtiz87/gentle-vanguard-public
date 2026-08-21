@@ -46,7 +46,9 @@ export function SloPanel() {
         .then((json) => {
           if (json?.data) setSloData(json.data);
         })
-        .catch(() => { /* dashboard not available */ })
+        .catch(() => {
+          /* dashboard not available */
+        })
         .finally(() => setLoading(false));
     };
     fetchSlo();
@@ -78,22 +80,37 @@ export function SloPanel() {
         </div>
         <div className="card text-center py-6 text-gray-400 dark:text-gray-500">
           <Gauge className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Run <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">npm run perf:slo</code> to generate SLO metrics</p>
+          <p className="text-sm">
+            Run{' '}
+            <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
+              npm run perf:slo
+            </code>{' '}
+            to generate SLO metrics
+          </p>
         </div>
       </div>
     );
   }
 
-  const total = sloData.overall || { total: sloData.checks.length, passed: 0, warned: 0, failed: 0 };
+  const total = sloData.overall || {
+    total: sloData.checks.length,
+    passed: 0,
+    warned: 0,
+    failed: 0,
+  };
 
   return (
     <div className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <Gauge className="w-5 h-5 text-teal-500" />
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Performance SLO</h2>
-        <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
-          sloData.passed ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-        }`}>
+        <span
+          className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+            sloData.passed
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+          }`}
+        >
           {sloData.passed ? 'PASS' : 'WARN'}
         </span>
         <span className="text-xs text-gray-400">
@@ -117,19 +134,26 @@ export function SloPanel() {
               ❌ {total.failed} failed
             </span>
           )}
-          <span className="text-gray-400">
-            of {total.total} checks
-          </span>
+          <span className="text-gray-400">of {total.total} checks</span>
         </div>
       </div>
 
       {/* SLO Checks grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sloData.checks.map((check, i) => {
-          const pct = check.threshold > 0 ? Math.min(100, (check.current / check.threshold) * 100) : 0;
-          const barColor = check.status === 'PASS' ? 'bg-green-500' : check.status === 'WARN' ? 'bg-yellow-500' : 'bg-red-500';
+          const pct =
+            check.threshold > 0 ? Math.min(100, (check.current / check.threshold) * 100) : 0;
+          const barColor =
+            check.status === 'PASS'
+              ? 'bg-green-500'
+              : check.status === 'WARN'
+                ? 'bg-yellow-500'
+                : 'bg-red-500';
           return (
-            <div key={`${check.name}-${i}`} className={`card border-l-4 ${STATUS_COLORS[check.status]}`}>
+            <div
+              key={`${check.name}-${i}`}
+              className={`card border-l-4 ${STATUS_COLORS[check.status]}`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <CheckIcon name={check.name} />
@@ -141,10 +165,12 @@ export function SloPanel() {
               </div>
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {check.current}{check.unit}
+                  {check.current}
+                  {check.unit}
                 </span>
                 <span className="text-xs text-gray-500">
-                  / {check.threshold}{check.unit}
+                  / {check.threshold}
+                  {check.unit}
                 </span>
               </div>
               <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -154,7 +180,9 @@ export function SloPanel() {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Target: {'<'}{check.threshold}{check.unit}
+                Target: {'<'}
+                {check.threshold}
+                {check.unit}
               </p>
             </div>
           );

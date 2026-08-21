@@ -60,8 +60,8 @@ export function RoutingRulesPanel({ rules, total }: RoutingRulesPanelProps) {
                 rule.priority >= 10
                   ? 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                   : rule.priority >= 5
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
               }`}
             >
               P{rule.priority}

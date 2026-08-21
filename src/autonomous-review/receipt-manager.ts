@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Receipt Manager v1.0.0
+ * Receipt Manager
  * Structured review receipts with decision tracking
- * Part of Gentle-Vanguard v6.0
+ * Part of Gentle-Vanguard
  */
 
 import { EventEmitter } from 'events';
@@ -38,7 +38,7 @@ export class ReceiptManager extends EventEmitter {
 
   public createReceipt(reviewId: string): string {
     const receiptId = `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const receipt: Receipt = {
       id: receiptId,
       reviewId,
@@ -65,10 +65,10 @@ export class ReceiptManager extends EventEmitter {
     };
 
     receipt.decisions.push(fullDecision);
-    
+
     // Update approval status
-    const approvals = receipt.decisions.filter(d => d.type === 'approve').length;
-    const rejects = receipt.decisions.filter(d => d.type === 'reject').length;
+    const approvals = receipt.decisions.filter((d) => d.type === 'approve').length;
+    const rejects = receipt.decisions.filter((d) => d.type === 'reject').length;
     receipt.approved = approvals > 0 && rejects === 0;
 
     this.emit('decisionAdded', { receiptId, decision: fullDecision });
@@ -89,7 +89,8 @@ export class ReceiptManager extends EventEmitter {
   }
 
   private generateHash(receipt: Receipt): string {
-    return require('crypto').createHash('sha256')
+    return require('crypto')
+      .createHash('sha256')
       .update(JSON.stringify(receipt.decisions))
       .digest('hex')
       .substring(0, 16);
@@ -103,8 +104,8 @@ export class ReceiptManager extends EventEmitter {
     const receipts = Array.from(this.receipts.values());
     return {
       totalReceipts: receipts.length,
-      approved: receipts.filter(r => r.approved).length,
-      pending: receipts.filter(r => !r.approved).length,
+      approved: receipts.filter((r) => r.approved).length,
+      pending: receipts.filter((r) => !r.approved).length,
       totalDecisions: receipts.reduce((a, r) => a + r.decisions.length, 0),
     };
   }

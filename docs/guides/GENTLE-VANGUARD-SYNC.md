@@ -63,15 +63,15 @@ Each asset can define a `strategy`:
 
 1. Run check first:
 
-```powershell
-.\scripts\utilities\gv.ps1 gentle-vanguard-sync
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts gentle-vanguard-sync
 ```
 
 2. Review drifted files and strategy (`replace` vs `preserve-local`).
 3. Adjust `config/gentle-vanguard-sync.json` before apply if needed.
 4. Ensure a clean working tree before apply:
 
-```powershell
+```TypeScript
 # Option A: Commit your changes
 git add .
 git commit -m "chore: save local changes"
@@ -82,8 +82,8 @@ git stash push -u -m "pre-gentle-vanguard-sync"
 
 5. Apply with PR for traceability:
 
-```powershell
-.\scripts\utilities\gv.ps1 gentle-vanguard-sync apply -CreatePr
+```TypeScript
+.\scripts\utilities\src/cli/gv.ts gentle-vanguard-sync apply -CreatePr
 ```
 
 6. Review PR and merge.
@@ -109,8 +109,8 @@ Custom files outside managed assets are not touched.
   "toversión": "0.2.1",
   "assets": [
     {
-      "source": "scripts/utilities/gv.ps1",
-      "target": "scripts/utilities/gv.ps1",
+      "source": "src/cli/gv.ts",
+      "target": "src/cli/gv.ts",
       "strategy": "replace"
     },
     {
@@ -125,5 +125,6 @@ Custom files outside managed assets are not touched.
 ## Related Files
 
 1. `scripts/utilities/UTILITIES/gentle-vanguard-sync.ps1`
+<!-- REF-OBSOLETA: scripts/utilities/UTILITIES/gentle-vanguard-sync.ps1 no tiene equivalente TS (migración PS1→TS) -->
 2. `config/gentle-vanguard-sync.json`
-3. `scripts/utilities/gv.ps1`
+3. `src/cli/gv.ts`

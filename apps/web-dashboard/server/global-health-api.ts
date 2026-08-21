@@ -1,9 +1,9 @@
-import { execSync } from 'child_process';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import type { GlobalHealth, RepositoryHealth } from '../src/types/dashboard';
 import { getProcessExecutionTimeouts } from '@gentle-vanguard/core/timeout-config';
+import { runSync } from '@gentle-vanguard/core/run-command';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,7 +11,11 @@ const ROOT = resolve(__dirname, '../../..');
 
 function execGit(args: string, cwd: string = ROOT): string {
   try {
-    return execSync(`git ${args}`, { cwd, encoding: 'utf-8', timeout: getProcessExecutionTimeouts().git_operation_ms ?? 3000 }).trim();
+    const result = runSync('git', args.split(' '), {
+      cwd,
+      timeout: getProcessExecutionTimeouts().git_operation_ms ?? 3000,
+    });
+    return result.stdout?.trim() ?? '';
   } catch {
     return '';
   }
@@ -87,12 +91,11 @@ function getCIStatus(): 'passing' | 'failing' | 'unknown' {
 
 function getOpenPRCount(): number {
   try {
-    const out = execSync('gh pr list --json number --jq length', {
+    const result = runSync('gh', ['pr', 'list', '--json', 'number', '--jq', 'length'], {
       cwd: ROOT,
-      encoding: 'utf-8',
       timeout: getProcessExecutionTimeouts().git_operation_ms ?? 5000,
-    }).trim();
-    const n = parseInt(out, 10);
+    });
+    const n = parseInt(result.stdout?.trim() ?? '0', 10);
     if (!isNaN(n)) return n;
   } catch {
     /* fallback */
@@ -186,4 +189,3 @@ export function getGlobalHealth(): GlobalHealth {
     lastUpdated: new Date().toISOString(),
   };
 }
-

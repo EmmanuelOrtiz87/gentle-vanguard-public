@@ -37,7 +37,9 @@ export function readJsonFile<T>(path: string): T | null {
   try {
     const raw = readFileSync(path, 'utf8');
     if (raw) return JSON.parse(raw) as T;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
@@ -61,7 +63,8 @@ export function ensureStateProperties(state: AdaptiveState | null): AdaptiveStat
   if (!state) return getDefaultState();
   const defaults = getDefaultState();
   for (const key of Object.keys(defaults) as Array<keyof AdaptiveState>) {
-    if (state[key] === undefined) (state as unknown as Record<string, unknown>)[key] = defaults[key];
+    if (state[key] === undefined)
+      (state as unknown as Record<string, unknown>)[key] = defaults[key];
   }
   return state;
 }
@@ -81,13 +84,26 @@ export function testPeakHour(timeZone: string, peakStart = 9, peakEnd = 15): boo
 function getTimezoneOffset(tz: string): number {
   // Approximate offset lookup for common timezones
   const offsets: Record<string, number> = {
-    'UTC': 0, 'GMT': 0,
-    'America/New_York': -5, 'America/Chicago': -6, 'America/Denver': -7, 'America/Los_Angeles': -8,
-    'Europe/London': 0, 'Europe/Paris': 1, 'Europe/Berlin': 1, 'Europe/Madrid': 1, 'Europe/Rome': 1,
-    'Asia/Tokyo': 9, 'Asia/Shanghai': 8, 'Asia/Hong_Kong': 8, 'Asia/Singapore': 8,
-    'Australia/Sydney': 11, 'Australia/Melbourne': 11,
+    UTC: 0,
+    GMT: 0,
+    'America/New_York': -5,
+    'America/Chicago': -6,
+    'America/Denver': -7,
+    'America/Los_Angeles': -8,
+    'Europe/London': 0,
+    'Europe/Paris': 1,
+    'Europe/Berlin': 1,
+    'Europe/Madrid': 1,
+    'Europe/Rome': 1,
+    'Asia/Tokyo': 9,
+    'Asia/Shanghai': 8,
+    'Asia/Hong_Kong': 8,
+    'Asia/Singapore': 8,
+    'Australia/Sydney': 11,
+    'Australia/Melbourne': 11,
     'Pacific/Auckland': 13,
-    'America/Sao_Paulo': -3, 'America/Argentina/Buenos_Aires': -3,
+    'America/Sao_Paulo': -3,
+    'America/Argentina/Buenos_Aires': -3,
   };
   if (offsets[tz] !== undefined) return offsets[tz];
   // Try to extract offset from Windows timezone ID
@@ -102,7 +118,7 @@ export function testTokenPressure(repoRoot?: string): boolean {
   const budget = readJsonFile<{ used?: number; limit?: number }>(budgetFile);
   if (!budget) return false;
   if (budget.used && budget.limit) {
-    return (budget.used / budget.limit) > 0.8;
+    return budget.used / budget.limit > 0.8;
   }
   return false;
 }
@@ -114,9 +130,15 @@ export function getAdaptiveReason(peak: boolean, pressure: boolean): string {
   return 'normal';
 }
 
-export function logOk(msg: string): void { console.log(`  [OK] ${msg}`); }
-export function logWarn(msg: string): void { console.log(`  [WARN] ${msg}`); }
-export function logInfo(msg: string): void { console.log(`  [INFO] ${msg}`); }
+export function logOk(msg: string): void {
+  console.log(`  [OK] ${msg}`);
+}
+export function logWarn(msg: string): void {
+  console.log(`  [WARN] ${msg}`);
+}
+export function logInfo(msg: string): void {
+  console.log(`  [INFO] ${msg}`);
+}
 
 // CLI entry point
 function main(): void {
@@ -137,6 +159,9 @@ function main(): void {
   console.log(`Default state: ${JSON.stringify(getDefaultState())}`);
 }
 
-if (process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('adaptive-common.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === __filename || process.argv[1].endsWith('adaptive-common.ts'))
+) {
   main();
 }

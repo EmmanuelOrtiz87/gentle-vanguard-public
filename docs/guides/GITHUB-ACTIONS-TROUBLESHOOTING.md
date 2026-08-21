@@ -30,14 +30,14 @@ Missing closing '}' in statement block or type definition.
    - `validate-script-governance.ps1` OK
    - `validate-sdd-governance.ps1` OK (205 lines, well-formed)
    - `agent-process-alert.ps1` OK (140 lines, well-formed)
-3. ERROR - Error is PowerShell parsing, not YAML
+3. ERROR - Error is TypeScript parsing, not YAML
 4. ERROR - Error mentions "Missing closing '}'" - script syntax problem
 
 ### Root Cause
 
 The error is NOT due to Node.js 20 vs 24. It is a problem with:
 
-1. **PowerShell script encoding** (UTF-8 BOM or special characters)
+1. **TypeScript script encoding** (UTF-8 BOM or special characters)
 2. **Special characters or emojis** in script files
 3. **Incorrect quote characters** (curly quotes instead of straight)
 4. **Unclosed here-strings** (@" ... "@)
@@ -47,11 +47,11 @@ The error is NOT due to Node.js 20 vs 24. It is a problem with:
 
 ## Solutions
 
-### Solution 1: Validate PowerShell Script Syntax
+### Solution 1: Validate TypeScript Script Syntax
 
 **On your local machine**:
 
-```powershell
+```TypeScript
 # Validate each script
 $scripts = @(
     '.\scripts\diagnostics\validate-script-governance.ps1',
@@ -82,7 +82,7 @@ foreach ($script in $scripts) {
 
 **Problem**: Files with UTF-8 BOM or special characters
 
-```powershell
+```TypeScript
 # Check encoding
 $scripts = @(
     '.\scripts\diagnostics\validate-script-governance.ps1',
@@ -110,7 +110,7 @@ foreach ($script in $scripts) {
 
 **If you find files with BOM**:
 
-```powershell
+```TypeScript
 # Convert file to UTF-8 without BOM
 $scriptPath = '.\scripts\diagnostics\validate-script-governance.ps1'
 $content = Get-Content $scriptPath -Raw
@@ -130,7 +130,7 @@ Write-Host "File converted to UTF-8 without BOM" -ForegroundColor Green
 
 **Clean script example**:
 
-```powershell
+```TypeScript
 # GOOD - No special characters
 Write-Host "[OK] Validation passed" -ForegroundColor Green
 
@@ -142,7 +142,7 @@ Write-Host "[OK] Validation passed" -ForegroundColor Green
 
 **Check for unclosed here-strings**:
 
-```powershell
+```TypeScript
 $scriptPath = '.\scripts\diagnostics\validate-script-governance.ps1'
 $content = Get-Content $scriptPath -Raw
 
@@ -163,7 +163,7 @@ if ($openCount -ne $closeCount) {
 
 Run these commands in order:
 
-```powershell
+```TypeScript
 # 1. Validate syntax of all scripts
 Write-Host "1. Validating syntax..." -ForegroundColor Cyan
 $scripts = @(
@@ -207,7 +207,7 @@ if (-not $hasErrors) {
 
 ### Step 1: Run Diagnostic Locally
 
-```powershell
+```TypeScript
 # Create diagnostic script
 $diagnosticScript = @'
 param([switch]$Fix)
@@ -219,7 +219,7 @@ $scripts = @(
     '.\scripts\utilities\gentle-vanguard-sync.ps1'
 )
 
-Write-Host "=== PowerShell Script Diagnostics
+Write-Host "=== TypeScript Script Diagnostics
 {
   "prompt_tokens": 69705,
   "prompt_unit_price": "0",

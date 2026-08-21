@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Lockfile Lint Pre-Commit Hook
- * 
+ *
  * Validates package-lock.json integrity before commit.
  * Prevents corrupted or malicious lockfile edits.
  */
@@ -76,7 +76,7 @@ function validateLockfile(): number {
 
   if (duplicates.length > 0) {
     console.error(`[BLOCKED] Duplicate entries found in lockfile:`);
-    duplicates.forEach(d => console.error(`  - ${d}`));
+    duplicates.forEach((d) => console.error(`  - ${d}`));
     console.error('\nTo fix: rm package-lock.json && npm install');
     return 1;
   }

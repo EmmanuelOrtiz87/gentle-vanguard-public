@@ -12,6 +12,7 @@ import {
   Sparkles,
   Bug,
   TestTube,
+  Square,
 } from 'lucide-react';
 import { useAgentStream } from '../hooks/useAgentStream';
 import { AgentMessage } from './AgentMessage';
@@ -66,6 +67,8 @@ export default function AgentChat() {
     createSession,
     sendMessage,
     executeSkill,
+    cancelExecution,
+    listSkills,
     listSessions,
     getSession,
     listTools,
@@ -200,6 +203,9 @@ export default function AgentChat() {
     ? `${session.agent} — ${session.messages.length} messages`
     : 'No active session';
 
+  const lastMessage = session?.messages[session.messages.length - 1];
+  const isStreaming = lastMessage?.streaming === true;
+
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -284,7 +290,7 @@ export default function AgentChat() {
           )}
 
           {session?.messages.map((msg) => (
-            <AgentMessage key={msg.id} message={msg} />
+            <AgentMessage key={msg.id} message={msg} onListItemClick={handleExecuteSkill} />
           ))}
 
           {session && session.messages.length === 0 && (
@@ -330,6 +336,26 @@ export default function AgentChat() {
               className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               disabled={!connected}
             />
+            <button
+              onClick={() => session && listSkills(session.id)}
+              disabled={!connected || !session}
+              className="flex items-center gap-1 px-2 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="List available skills"
+            >
+              <Terminal className="w-4 h-4" />
+              <span className="text-xs font-medium hidden sm:inline">Skills</span>
+            </button>
+            {isStreaming && (
+              <button
+                onClick={() => session && cancelExecution(session.id)}
+                disabled={!connected}
+                className="flex items-center gap-1 px-2 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                title="Cancel current execution"
+              >
+                <Square className="w-4 h-4" />
+                <span className="text-xs font-medium hidden sm:inline">Cancel</span>
+              </button>
+            )}
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || !connected}
@@ -453,7 +479,7 @@ export default function AgentChat() {
       </div>
       <HitlModal
         request={hitlRequest}
-        onResolve={(requestId, response) => resolveHitl(requestId, response)}
+        onResolve={(response) => resolveHitl(response)}
         onDismiss={() => {
           /* Modal stays until resolved */
         }}

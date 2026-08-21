@@ -55,7 +55,6 @@ async function initializeSecurity() {
     console.log('\n✅ Security initialization completed');
     console.log('   ℹ️  Note: Some security policies may have warnings. Review output above.');
     return true;
-
   } catch (error) {
     console.error('❌ Security initialization failed:', error);
     return false;
@@ -65,13 +64,11 @@ async function initializeSecurity() {
 // If called directly, run initialization
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   initializeSecurity()
-    .then(success => {
+    .then((success) => {
       if (!success) {
-
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Initialization error:', error);
-
     });
 }

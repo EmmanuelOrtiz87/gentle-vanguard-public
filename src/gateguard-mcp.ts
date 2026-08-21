@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -116,7 +116,7 @@ function main(): void {
 
   try {
     if (server === 'codegraph') {
-      const proc = spawnSync('codegraph', ['status'], { stdio: 'pipe', encoding: 'utf-8' });
+      const proc = runSync('codegraph', ['status'], { stdio: 'pipe' });
       if (proc.status === 0) {
         healthy = true;
       } else {
@@ -127,7 +127,7 @@ function main(): void {
       const serverJs = join(serverDir, `${server}-server.js`);
       if (existsSync(serverJs)) {
         const input = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} });
-        const proc = spawnSync('node', [serverJs], { input, stdio: 'pipe', encoding: 'utf-8' });
+        const proc = runSync('node', [serverJs], { input, stdio: 'pipe' });
         if (proc.status === 0 || proc.status === null) {
           healthy = true;
         } else {
@@ -147,13 +147,18 @@ function main(): void {
       try {
         const retryStart = Date.now();
         if (server === 'codegraph') {
-          const proc = spawnSync('codegraph', ['status'], { stdio: 'pipe', encoding: 'utf-8' });
+          const proc = runSync('codegraph', ['status'], { stdio: 'pipe' });
           if (proc.status === 0) healthy = true;
         } else {
           const serverJs = join(getProjectRoot(), 'scripts', 'mcp', `${server}-server.js`);
           if (existsSync(serverJs)) {
-            const input = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} });
-            spawnSync('node', [serverJs], { input, stdio: 'pipe', encoding: 'utf-8' });
+            const input = JSON.stringify({
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'tools/list',
+              params: {},
+            });
+            runSync('node', [serverJs], { input, stdio: 'pipe' });
             healthy = true;
           }
         }
@@ -186,6 +191,10 @@ function main(): void {
   console.log(JSON.stringify(result));
 }
 
-if (process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('gateguard-mcp.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith('gateguard-mcp.ts'))
+) {
   main();
 }

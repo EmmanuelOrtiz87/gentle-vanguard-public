@@ -136,8 +136,14 @@ function invokeSanitization(inputText: string, level: string): string {
 
   switch (level) {
     case 'high':
-      sanitized = sanitized.replace(/(ignore|forget|disregard|override)\s.*(instructions|rules|previous|all|system)/gi, '[REDACTED]');
-      sanitized = sanitized.replace(/system\s*(prompt|message|instruction|override)/gi, '[SYSTEM-REDACTED]');
+      sanitized = sanitized.replace(
+        /(ignore|forget|disregard|override)\s.*(instructions|rules|previous|all|system)/gi,
+        '[REDACTED]',
+      );
+      sanitized = sanitized.replace(
+        /system\s*(prompt|message|instruction|override)/gi,
+        '[SYSTEM-REDACTED]',
+      );
       sanitized = sanitized.replace(/[A-Za-z0-9+/]{50,}={0,2}/g, '[BASE64-DATA]');
       break;
     case 'medium':
@@ -153,7 +159,10 @@ function invokeSanitization(inputText: string, level: string): string {
 }
 
 function doScan(text: string, knownPatterns: string[], auditDir: string): ScanResult {
-  if (!text) { console.error('[INJECTION-GUARD] Provide --text to scan'); process.exit(1); }
+  if (!text) {
+    console.error('[INJECTION-GUARD] Provide --text to scan');
+    process.exit(1);
+  }
 
   const result = getInjectionScore(text, knownPatterns);
   const detected = result.score > 0;
@@ -176,14 +185,20 @@ function doScan(text: string, knownPatterns: string[], auditDir: string): ScanRe
     riskScore: result.score,
     patterns: result.detectedPatterns,
   };
-  const logFile = path.join(auditDir, `injection-scan-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+  const logFile = path.join(
+    auditDir,
+    `injection-scan-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
+  );
   fs.writeFileSync(logFile, JSON.stringify(logEntry, null, 2), 'utf-8');
 
   return { detected, riskScore: result.score, patterns: result.detectedPatterns };
 }
 
 function doSanitize(text: string, strictness: string): SanitizeResult {
-  if (!text) { console.error('[INJECTION-GUARD] Provide --text to sanitize'); process.exit(1); }
+  if (!text) {
+    console.error('[INJECTION-GUARD] Provide --text to sanitize');
+    process.exit(1);
+  }
 
   const sanitized = invokeSanitization(text, strictness);
   const wasModified = sanitized !== text;
@@ -198,7 +213,9 @@ function doSanitize(text: string, strictness: string): SanitizeResult {
 }
 
 function doPatterns(knownPatterns: string[]): void {
-  console.log(`\x1b[36m[INJECTION-GUARD] Known injection patterns (${knownPatterns.length}):\x1b[0m`);
+  console.log(
+    `\x1b[36m[INJECTION-GUARD] Known injection patterns (${knownPatterns.length}):\x1b[0m`,
+  );
   for (const p of knownPatterns) {
     console.log(`  \x1b[33m• ${p}\x1b[0m`);
   }
@@ -247,6 +264,10 @@ function main(): void {
   }
 }
 
-if (process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('prompt-injection-guard.ts'))) {
+if (
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith('prompt-injection-guard.ts'))
+) {
   main();
 }

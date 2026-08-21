@@ -12,7 +12,7 @@
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { getExternalApiTimeouts } from './core/timeout-config';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -66,33 +66,41 @@ function compareVersions(current: string, latest: string): number {
 
 // ─── GitHub API ───────────────────────────────────────────────────────────────
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 1000): Promise<Response | null> {
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  retries = 3,
+  delay = 1000,
+): Promise<Response | null> {
   for (let i = 0; i < retries; i++) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), getExternalApiTimeouts()?.http_client_default_ms ?? 10000);
-      
+      const timeout = setTimeout(
+        () => controller.abort(),
+        getExternalApiTimeouts()?.http_client_default_ms ?? 10000,
+      );
+
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeout);
       return response;
     } catch (err: any) {
       const isLastAttempt = i === retries - 1;
       const errorMsg = err?.message || String(err);
-      
+
       // Handle UV_HANDLE_CLOSING and other fetch errors
       if (errorMsg.includes('UV_HANDLE_CLOSING') || errorMsg.includes('fetch failed')) {
         log(`Fetch attempt ${i + 1}/${retries} failed: ${errorMsg}`, 'WARN');
         if (!isLastAttempt) {
           log(`Waiting ${delay}ms before retry...`, 'INFO');
-          await new Promise(resolve => setTimeout(resolve, delay)); // delay from param (1000ms default)
+          await new Promise((resolve) => setTimeout(resolve, delay)); // delay from param (1000ms default)
           continue;
         }
       }
-      
+
       if (isLastAttempt) {
         log(`All ${retries} fetch attempts failed: ${errorMsg}`, 'ERROR');
         return null;
@@ -143,9 +151,14 @@ async function getLatestVersion(): Promise<string | null> {
 function getCurrentVersion(): string | null {
   try {
     // Include Go bin path to find engram
-    const goBinPath = join(process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'), 'bin');
+    const goBinPath = join(
+      process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'),
+      'bin',
+    );
     const enhancedPath = `${goBinPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH || ''}`;
-    const output = execSync('engram --version', { encoding: 'utf-8', env: { ...process.env, PATH: enhancedPath } });
+    const output = runSync('engram', ['--version'], {
+      env: { ...process.env, PATH: enhancedPath },
+    }).stdout;
     return parseVersion(output);
   } catch {
     return null;
@@ -155,8 +168,7 @@ function getCurrentVersion(): string | null {
 function installEngram(): boolean {
   try {
     log('Installing engram@latest...', 'INFO');
-    execSync('go install github.com/Gentleman-Programming/engram/cmd/engram@latest', {
-      encoding: 'utf-8',
+    runSync('go', ['install', 'github.com/Gentleman-Programming/engram/cmd/engram@latest'], {
       stdio: 'pipe',
     });
     return true;
@@ -175,11 +187,17 @@ function validateEngram(): boolean {
     }
 
     // Include Go bin path for validation
-    const goBinPath = join(process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'), 'bin');
+    const goBinPath = join(
+      process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'),
+      'bin',
+    );
     const enhancedPath = `${goBinPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH || ''}`;
 
     // Try a simple engram command to verify it works
-    execSync('engram doctor --json', { encoding: 'utf-8', stdio: 'pipe', env: { ...process.env, PATH: enhancedPath } });
+    runSync('engram', ['doctor', '--json'], {
+      stdio: 'pipe',
+      env: { ...process.env, PATH: enhancedPath },
+    });
     log(`Validation passed: engram ${version} is working`, 'SUCCESS');
     return true;
   } catch (err) {

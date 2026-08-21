@@ -34,17 +34,13 @@ if (fs.existsSync(PID_FILE)) {
 }
 
 // On Windows: npx.cmd needs shell:true + full command string (no args array => no deprecation warning)
-const child = spawn(
-  'npx tsx src/core/timeout-monitor.ts --daemon --interval 60000',
-  [],
-  {
-    cwd: ROOT,
-    detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    windowsHide: true,
-    shell: true,
-  }
-);
+const child = spawn('npx tsx src/core/timeout-monitor.ts --daemon --interval 60000', [], {
+  cwd: ROOT,
+  detached: true,
+  stdio: ['ignore', 'pipe', 'pipe'],
+  windowsHide: true,
+  shell: true,
+});
 
 // Error handler
 child.on('error', (err: any) => {

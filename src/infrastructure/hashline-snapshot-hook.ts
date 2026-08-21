@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { runSync, runNpxTsxSync } from '../core/run-command.js';
 import { existsSync } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -22,7 +22,9 @@ function main(): void {
 
   let changed: string;
   try {
-    changed = execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    changed = runSync('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], {
+      stdio: 'pipe',
+    }).stdout.trim();
   } catch {
     return;
   }
@@ -34,9 +36,11 @@ function main(): void {
     const p = rawPath.trim();
     if (p && existsSync(p)) {
       const hashlineScript = join(resolve(__dirname, '..'), 'src', 'hashline.ts');
-      const quietFlag = args.quiet ? '--quiet' : '';
+      const quietArgs = args.quiet ? ['--quiet'] : [];
       try {
-        execSync(`npx tsx ${hashlineScript} --action update --path "${p}" ${quietFlag}`, { stdio: 'pipe' });
+        runNpxTsxSync(hashlineScript, ['--action', 'update', '--path', p, ...quietArgs], {
+          stdio: 'pipe',
+        });
       } catch {
         // silently continue on error
       }

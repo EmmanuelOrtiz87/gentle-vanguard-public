@@ -13,7 +13,7 @@
 
 import { existsSync, writeFileSync, mkdirSync, unlinkSync, statSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { runSyncShell } from './core/run-command.js';
 
 interface Args {
   Mode?: 'check' | 'sync' | 'monitor';
@@ -72,8 +72,8 @@ function runIntegrityScript(mode: string): number {
     ? `npx tsx "${script}" -Mode ${mode} -Quiet`
     : `& "${script}" -Mode ${mode} -Quiet`;
   try {
-    execSync(cmd, { cwd: ROOT, stdio: 'pipe' });
-    return 0;
+    const r = runSyncShell(cmd, { cwd: ROOT, stdio: 'pipe' });
+    return r.status ?? 1;
   } catch (e: unknown) {
     const err = e as { status?: number };
     return err.status ?? 1;

@@ -25,6 +25,8 @@ function ToolCallBadge({ status }: { status: AgentToolCall['status'] }) {
       return <CheckCircle className="w-3.5 h-3.5 text-green-500" />;
     case 'error':
       return <XCircle className="w-3.5 h-3.5 text-red-500" />;
+    case 'cancelled':
+      return <XCircle className="w-3.5 h-3.5 text-gray-400" />;
   }
 }
 
@@ -288,7 +290,7 @@ function MetricHint({ hint }: { hint: UIHint }) {
   );
 }
 
-function ListHint({ hint }: { hint: UIHint }) {
+function ListHint({ hint, onItemClick }: { hint: UIHint; onItemClick?: (item: string) => void }) {
   const colorMap: Record<string, string> = {
     info: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     warning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
@@ -311,12 +313,25 @@ function ListHint({ hint }: { hint: UIHint }) {
         <span className="text-sm font-medium">{hint.label || 'List'}</span>
       </div>
       <ul className="space-y-1">
-        {hint.items?.map((item, i) => (
-          <li key={i} className="text-sm flex items-start gap-2">
-            <span className="mt-1 w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
-            {item}
-          </li>
-        ))}
+        {hint.items?.map((item, i) =>
+          onItemClick ? (
+            <li key={i}>
+              <button
+                onClick={() => onItemClick(item)}
+                title={`Execute ${item}`}
+                className="w-full text-left text-sm flex items-start gap-2 px-2 py-1 rounded hover:bg-white/60 dark:hover:bg-black/20 transition-colors"
+              >
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
+                {item}
+              </button>
+            </li>
+          ) : (
+            <li key={i} className="text-sm flex items-start gap-2">
+              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
+              {item}
+            </li>
+          ),
+        )}
       </ul>
     </div>
   );
@@ -350,15 +365,17 @@ function AlertHint({ hint }: { hint: UIHint }) {
 function UIHintBadge({
   hint,
   onFormAction,
+  onItemClick,
 }: {
   hint: UIHint;
   onFormAction?: (action: string, values: Record<string, unknown>) => void;
+  onItemClick?: (item: string) => void;
 }) {
   switch (hint.type) {
     case 'metric':
       return <MetricHint hint={hint} />;
     case 'list':
-      return <ListHint hint={hint} />;
+      return <ListHint hint={hint} onItemClick={onItemClick} />;
     case 'alert':
       return <AlertHint hint={hint} />;
     case 'datatable':
@@ -382,9 +399,10 @@ function UIHintBadge({
 interface AgentMessageProps {
   message: AgentMessageType;
   onFormAction?: (action: string, values: Record<string, unknown>) => void;
+  onListItemClick?: (item: string) => void;
 }
 
-export function AgentMessage({ message, onFormAction }: AgentMessageProps) {
+export function AgentMessage({ message, onFormAction, onListItemClick }: AgentMessageProps) {
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
 
@@ -415,9 +433,9 @@ export function AgentMessage({ message, onFormAction }: AgentMessageProps) {
           }`}
         >
           {message.streaming && (
-            <span className="inline-flex items-center gap-1 text-sm">
+            <span className="inline-flex items-center text-sm whitespace-pre-wrap">
               {message.content}
-              <span className="animate-pulse">▊</span>
+              <span className="streaming-cursor" aria-hidden="true" />
             </span>
           )}
           {!message.streaming && (
@@ -436,7 +454,12 @@ export function AgentMessage({ message, onFormAction }: AgentMessageProps) {
         {message.uiHints && message.uiHints.length > 0 && (
           <div className="mt-2 space-y-2 w-full">
             {message.uiHints.map((hint, i) => (
-              <UIHintBadge key={i} hint={hint} onFormAction={onFormAction} />
+              <UIHintBadge
+                key={i}
+                hint={hint}
+                onFormAction={onFormAction}
+                onItemClick={onListItemClick}
+              />
             ))}
           </div>
         )}

@@ -9,7 +9,7 @@
 import { existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { runSync, runNpxTsxSync } from '../core/run-command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,12 +60,11 @@ function getWorkspaceContext(): string {
   const analyzerPath = join(resolveProjectRoot(), 'src', 'context-analyzer.ts');
   if (!existsSync(analyzerPath)) return '';
   try {
-    const result = execSync(`npx tsx "${analyzerPath}" --raw`, {
+    const result = runNpxTsxSync(analyzerPath, ['--raw'], {
       timeout: 15000,
-      encoding: 'utf-8',
       cwd: PROJECT_ROOT,
       stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    }).stdout.trim();
     if (result) {
       const parsed = JSON.parse(result);
       if (parsed?.contextText) return parsed.contextText;
@@ -82,10 +81,14 @@ function invokeSkillRecommendation(queryText: string, topN: number): SkillRecomm
     return [];
   }
   try {
-    const raw = execSync(
-      `npx tsx src/ml-router.ts --query "${queryText.replace(/"/g, '\\"')}" --topn ${topN * 2} --raw`,
-      { encoding: 'utf-8', cwd: PROJECT_ROOT, stdio: ['pipe', 'pipe', 'pipe'] },
-    ).trim();
+    const raw = runNpxTsxSync(
+      'src/ml-router.ts',
+      ['--query', queryText, '--topn', String(topN * 2), '--raw'],
+      {
+        cwd: PROJECT_ROOT,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      },
+    ).stdout.trim();
     if (!raw) return [];
     let parsed: unknown;
     try {
@@ -120,10 +123,9 @@ function getBranchSkillHint(branch: string): string {
 
 function getGitBranch(): string | null {
   try {
-    return execSync(`git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD`, {
-      encoding: 'utf-8',
+    return runSync('git', ['-C', PROJECT_ROOT, 'rev-parse', '--abbrev-ref', 'HEAD'], {
       stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    }).stdout.trim();
   } catch {
     return null;
   }

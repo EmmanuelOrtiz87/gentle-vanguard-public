@@ -41,7 +41,7 @@ helper and should not be committed to shared repositories.
 
 Example:
 
-```powershell
+```TypeScript
 .\tools\enforce-response-mode.ps1
 ```
 
@@ -69,8 +69,8 @@ Current local baseline for this workspace:
 Preset workflow:
 
 1. Ask orchestrator recommendation (`orchestrator-next-steps`).
-2. Apply preset (`gv.ps1 response-mode preset:<name>`).
-3. Escalate by risk when needed (`gv.ps1 response-mode recommend:<name>:high`).
+2. Apply preset (`src/cli/gv.ts response-mode preset:<name>`).
+3. Escalate by risk when needed (`src/cli/gv.ts response-mode recommend:<name>:high`).
 
 Session auto-apply workflow:
 
@@ -108,14 +108,14 @@ To make chat behavior predictable, the workspace defines explicit chat levels:
 
 Activation commands:
 
-1. `gv.ps1 response-mode chat:chat-compact`
-2. `gv.ps1 response-mode chat:chat-balanced`
-3. `gv.ps1 response-mode chat:chat-detailed`
+1. `src/cli/gv.ts response-mode chat:chat-compact`
+2. `src/cli/gv.ts response-mode chat:chat-balanced`
+3. `src/cli/gv.ts response-mode chat:chat-detailed`
 
 Inspection commands:
 
-1. `gv.ps1 response-mode`
-2. `gv.ps1 response-mode list`
+1. `src/cli/gv.ts response-mode`
+2. `src/cli/gv.ts response-mode list`
 
 Architecture baseline for session start:
 
@@ -146,6 +146,7 @@ Default rule:
 ## Engram Traceability for Communication Mode
 
 Communication mode changes executed through `scripts/utilities/response-mode.ps1` are persisted as
+<!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->
 Engram observations.
 
 Observation key:
@@ -258,5 +259,6 @@ Classical Chinese variants are deprecated and out of scope for Gentle-Vanguard a
 This policy is enforced as a required governance artifact by:
 
 - `scripts/diagnostics/validate-script-governance.ps1`
+<!-- REF-OBSOLETA: scripts/diagnostics/validate-script-governance.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 Any removal or relocation must be approved by the developer and updated in governance rules.

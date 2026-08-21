@@ -35,10 +35,14 @@ Below are recommended optimizations across 5 dimensions:
 
 ⚠️ **Gaps**:
 
-- No `npm ci` in CI/CD pipelines (uses `npm install`)
-- No automated dependency scanning (npm audit only manual)
-- No lockfile-lint pre-commit hook
-- No .npmrc in project root (only global)
+- ~~No `npm ci` in CI/CD pipelines~~ ✅ Todos los workflows usan `pnpm install --frozen-lockfile`
+  (equivalente estricto a `npm ci`; proyecto migrado a pnpm v11)
+- ~~No automated dependency scanning~~ ✅ Hooks `audit-check`
+  (`src/infrastructure/siem-audit-bridge.ts`) + `npm-audit` (`src/infrastructure/npm-audit-pre-push.ts`)
+  en `.lefthook.yml`, con detección pnpm (ENOLOCK fix)
+- ~~No lockfile-lint pre-commit hook~~ ✅ Hook `lockfile-lint` → `src/lockfile-lint-pre-commit.ts`
+- ~~No .npmrc in project root~~ ✅ `.npmrc` presente en root (overrides migrados a
+  `pnpm-workspace.yaml`, formato pnpm v11)
 
 ### Recommendations
 
@@ -48,7 +52,7 @@ Below are recommended optimizations across 5 dimensions:
 
 **Implementation** (in CI/CD pipeline):
 
-```powershell
+```TypeScript
 # Replace: npm install
 # With: npm ci
 npm ci
@@ -70,7 +74,7 @@ npm ci
 
 1. Install globally:
 
-```powershell
+```TypeScript
 npm install -g lockfile-lint
 ```
 
@@ -87,8 +91,9 @@ commands:
 3. Add to gentle-vanguard lefthook config:
 
 Create `scripts/hooks/lockfile-lint-check.ps1`:
+<!-- REF-OBSOLETA: scripts/hooks/lockfile-lint-check.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
-```powershell
+```TypeScript
 # Quick validation of package-lock.json structure
 param(
     [string]$LockfilePath = ".\package-lock.json"
@@ -132,8 +137,9 @@ if (Test-Path $LockfilePath) {
 
 **Implementation** (in pre-push hook):
 
-```powershell
+```TypeScript
 # scripts/hooks/audit-pre-push.ps1
+<!-- REF-OBSOLETA: scripts/hooks/audit-pre-push.ps1 no tiene equivalente TS (migración PS1→TS) -->
 
 Write-Host "[AUDIT] Running npm audit..." -ForegroundColor Cyan
 
@@ -163,10 +169,10 @@ exit 0
 
 | Action              | Effort     | Impact   | Timeline    |
 | ------------------- | ---------- | -------- | ----------- |
-| Add npm ci to CI/CD | 15 min     | HIGH     | This week   |
-| lockfile-lint hook  | 30 min     | HIGH     | This week   |
-| npm audit pre-push  | 20 min     | MEDIUM   | Next sprint |
-| **Total**           | **65 min** | **HIGH** | **2 weeks** |
+| Add npm ci to CI/CD | 15 min     | HIGH     | ✅ Done (`pnpm install --frozen-lockfile`) |
+| lockfile-lint hook  | 30 min     | HIGH     | ✅ Done (`src/lockfile-lint-pre-commit.ts`) |
+| npm audit pre-push  | 20 min     | MEDIUM   | ✅ Done (`src/infrastructure/npm-audit-pre-push.ts`) |
+| **Total**           | **65 min** | **HIGH** | **COMPLETED** |
 
 ---
 
@@ -185,12 +191,19 @@ exit 0
 
 - No code coverage reporting (% lines/branches covered)
 - No E2E tests for critical flows (e.g., publish workflow)
-- No chaos testing (resilience under failure)
+- ~~No chaos testing (resilience under failure)~~ ✅ `src/chaos-engineering.ts` (3 experiments: config/session/dashboard-ws)
 - No performance benchmarks (baselines)
 
 ### Recommendations
 
 #### 2.1: Add Code Coverage Baseline
+
+> ✅ **COMPLETED** (2026-08-16) — `src/coverage-runner.ts` ejecuta el suite completo bajo c8 y
+> aplica los thresholds de `tests/coverage-config.json` (agregado 62.5% stmts + targets por módulo:
+> event-sourcing 65.8%, secret-scanner 94.4%, structural-compression 75.5%, security-orchestrator
+> 81.7%). Comandos: `npm run coverage` (gate, exit 1 si falla), `coverage:quick`, `coverage:report`.
+> Reemplaza el viejo `coverage` que solo medía 2 archivos JS. Reporte JSON en
+> `reports/coverage-summary.json`.
 
 **Why**: Track if tests actually exercise the code; prevent regression.
 
@@ -198,8 +211,8 @@ exit 0
 
 1. Install coverage tool:
 
-```powershell
-npm install --save-dev pester-coverage  # For PowerShell tests
+```TypeScript
+npm install --save-dev pester-coverage  # For TypeScript tests
 ```
 
 2. Add coverage thresholds to `tests/coverage-config.json`:
@@ -218,7 +231,7 @@ npm install --save-dev pester-coverage  # For PowerShell tests
 
 3. Run in CI:
 
-```powershell
+```TypeScript
 .\scripts\testing\run-tests.ps1 -WithCoverage -OutputFormat html
 # Generates: tests/coverage/index.html
 ```
@@ -236,11 +249,15 @@ npm install --save-dev pester-coverage  # For PowerShell tests
 
 #### 2.2: Add E2E Tests for Release Workflow
 
+> ✅ **COMPLETED** (2026-08-16, commit `ea008b49`) — `tests/e2e/release-workflow.test.ts` (6 tests
+> E2E: SDD gate bloquea en main, advisory en develop, bypass `.sdd-exempt`, RDD release gate
+> `GateValidation`, orden de 5 gates). Correr con `npm run test:e2e`.
+
 **Why**: The `publish` workflow is critical; manual testing is insufficient.
 
 **Implementation** (in `tests/e2e/`):
 
-```powershell
+```TypeScript
 # tests/e2e/release-workflow.e2e.tests.ps1
 
 Describe "Release Workflow E2E" {
@@ -302,10 +319,11 @@ Describe "Release Workflow E2E" {
 
 ⚠️ **Gaps**:
 
-- No "First Time Setup" single-page quick start
-- No troubleshooting runbook for common issues
-- No decision tree for git flow branch selection
-- No "Architecture Decision Records" (ADRs) for major choices
+- ~~No "First Time Setup" single-page quick start~~ ✅ `docs/guides/FIRST-TIME-SETUP-CHECKLIST.md`
+- ~~No troubleshooting runbook for common issues~~ ✅ `docs/guides/TROUBLESHOOTING-RUNBOOK.md`
+- ~~No decision tree for git flow branch selection~~ ✅ `docs/guides/GITFLOW-QUICK-REFERENCE.md` +
+  `docs/guides/BRANCH-STRATEGY.md` (decision table hotfix/feature/release)
+- ~~No "Architecture Decision Records" (ADRs) for major choices~~ ✅ 16 ADRs en `docs/adr/` (0001-0016)
 
 ### Recommendations
 
@@ -316,10 +334,10 @@ Describe "Release Workflow E2E" {
 **Content**:
 
 - [ ] Clone repo
-- [ ] Run `gv.ps1 doctor`
+- [ ] Run `src/cli/gv.ts doctor`
 - [ ] Create MCP workspace (`$HOME\mcp-workspace`)
 - [ ] Verify lefthook hooks installed
-- [ ] Run tests (`gv.ps1 test`)
+- [ ] Run tests (`src/cli/gv.ts test`)
 - [ ] Create feature branch
 - [ ] Make first commit
 - [ ] Push for review
@@ -347,14 +365,14 @@ Describe "Release Workflow E2E" {
 
 #### 3.3: Create Architecture Decision Records (ADRs)
 
-**Location**: `docs/architecture/decisions/`
+**Location**: `docs/adr/`
 
 **Examples**:
 
-1. **ADR-001**: Why we use PowerShell (not Bash/Python)
-2. **ADR-002**: Why MCP workspace is external (not git-tracked)
-3. **ADR-003**: Why npx offline mode with workspace (threat model + mitigation)
-4. **ADR-004**: Why mandatory homologation gate in publish
+1. **ADR-0012**: Why we use PowerShell (superseded by ADR-0002 TypeScript-First)
+2. **ADR-0003**: Why MCP workspace is external (not git-tracked)
+3. **ADR-0004**: Why npx offline mode with workspace (threat model + mitigation)
+4. **ADR-0005**: Why mandatory homologation gate in publish
 
 **Template**:
 
@@ -398,10 +416,10 @@ Negative:
 
 | Action                        | Effort            | Impact     | Timeline    |
 | ----------------------------- | ----------------- | ---------- | ----------- |
-| First-time setup checklist    | 30 min            | MEDIUM     | This week   |
-| Troubleshooting runbook       | 2h                | MEDIUM     | This week   |
-| Architecture Decision Records | 3-4h              | HIGH       | Next week   |
-| **Total**                     | **5.5-6.5 hours** | **MEDIUM** | **2 weeks** |
+| First-time setup checklist    | 30 min            | MEDIUM     | ✅ Done |
+| Troubleshooting runbook       | 2h                | MEDIUM     | ✅ Done |
+| Architecture Decision Records | 3-4h              | HIGH       | ✅ Done (16 ADRs) |
+| **Total**                     | **5.5-6.5 hours** | **MEDIUM** | **COMPLETED** |
 
 ---
 
@@ -412,19 +430,25 @@ Negative:
 ✅ **Good**:
 
 - Pre-commit/pre-push hooks optimized (parallel audit, test-suite)
-- PowerShell scripts use efficient patterns (minimal network calls, caching)
+- TypeScript scripts use efficient patterns (minimal network calls, caching)
 - Tests run in ~55 seconds pre-push
 
 ⚠️ **Opportunities**:
 
-- No performance baseline (test suite speed over time)
+- ~~No performance baseline (test suite speed over time)~~ ✅ `tests/performance/baseline.json` +
+  pre-push check
 - No profiling of slow operations
 - No caching strategy for expensive computations (e.g., git operations)
-- No load testing for multi-repo scenarios
+- ~~No load testing for multi-repo scenarios~~ ✅ `src/load-test-multi-repo.ts`
+  (`npm run load:test`)
 
 ### Recommendations
 
 #### 4.1: Add Performance Baselines
+
+> ✅ **COMPLETED** (2026-08-16, commit `ea008b49`) — `tests/performance/baseline.json` (6
+> baselines) + `src/perf-baseline-check.ts` validando en pre-push (hook `perf-baseline` en
+> `.lefthook.yml`). Correr con `npm run perf:baseline:check`.
 
 **Why**: Catch performance regressions early; document growth curve.
 
@@ -468,16 +492,27 @@ Add to pre-push hook validation.
 
 **Implementation**:
 
-Instrument `gv.ps1 publish`:
+✅ **Done** — the stack has no `publish` command; the real release workflow is the RDD Delivery
+Gates (`src/rdd/rdd-gates.ts`) plus the SDD Homologation gate (`src/check-sdd-gate.ts`). Profiling
+was added as a new `release` command in `src/cli/gv.ts`:
 
-```powershell
-# Track timing for each gate
-$start = Get-Date
-Write-Step "Running Homologation Gate"
-# ... gate logic ...
-$duration = (Get-Date) - $start
-Write-Host "[PROFILE] Homologation Gate: $($duration.TotalSeconds)s"
+```bash
+npx tsx src/cli/gv.ts release [--skip-tests] [--json]
+npm run release:profile
 ```
+
+Each gate reports `[PROFILE] <Gate Name>: X.XXs [PASS|FAIL|SKIP]`; a final summary shows total time
+and a duration-sorted gate table. Exit code is 0 when all executed gates pass, 1 when any fails.
+Gates profiled:
+
+1. **Homologation Gate** — `src/check-sdd-gate.ts`
+2. **RDD Release Gate** — `npx tsx src/rdd/rdd-gates.ts validate release`
+3. **Tests Gate** — `npm run test:config` (skipped with `--skip-tests`)
+4. **Secrets Gate** — `npm run scan:secrets -- --scan src --json`
+
+Pure profiling helpers (`runGate`, `buildReleaseReport`, `aggregateStatus`, `computeExitCode`,
+`sortGatesByDuration`, `selectReleaseGates`) are exported and covered by
+`tests/unit/gv-release-profile.test.ts` (8 tests).
 
 **Impact**:
 
@@ -492,12 +527,12 @@ Write-Host "[PROFILE] Homologation Gate: $($duration.TotalSeconds)s"
 
 ### Performance Summary
 
-| Action                    | Effort         | Impact     | Timeline      |
-| ------------------------- | -------------- | ---------- | ------------- |
-| Performance baselines     | 1-2h           | LOW-MEDIUM | Next sprint   |
-| Publish profiling         | 2-3h           | MEDIUM     | Next sprint   |
-| Load testing (multi-repo) | 4-6h           | MEDIUM     | Month 2       |
-| **Total**                 | **7-11 hours** | **MEDIUM** | **Month 1-2** |
+| Action                    | Effort         | Impact     | Timeline                    |
+| ------------------------- | -------------- | ---------- | --------------------------- |
+| Performance baselines     | 1-2h           | LOW-MEDIUM | Next sprint                 |
+| Publish profiling         | 2-3h           | MEDIUM     | ✅ Done (`gv release`)      |
+| Load testing (multi-repo) | 4-6h           | MEDIUM     | ✅ Done (commit `a65753d6`) |
+| **Total**                 | **7-11 hours** | **MEDIUM** | **Month 1-2**               |
 
 ---
 
@@ -516,20 +551,24 @@ Write-Host "[PROFILE] Homologation Gate: $($duration.TotalSeconds)s"
 
 ⚠️ **Remaining**:
 
-- No SBOM (Software Bill of Materials) generation
-- No container image scanning (if using Docker)
-- No supply-chain attestation (SLSA provenance)
-- No annual security audit log
+- ~~No SBOM (Software Bill of Materials) generation~~ ✅ `sbom.json` (Syft, 464 componentes)
+- ~~No container image scanning (if using Docker)~~ ✅ `src/container-scan.ts` (escaneo del SBOM/artefactos con Syft+Grype sin requerir Docker; ver 5.3)
+- ~~No supply-chain attestation (SLSA provenance)~~ ✅ `src/slsa-provenance.ts` (in-toto v1 + SLSA v1.0, native TS) + `src/slsa-signer.ts` (DSSE + Ed25519, ADR-0015)
+- ~~No annual security audit log~~ ✅ `docs/security/ANNUAL-AUDIT-PLAN.md` (log inicializado)
 
 ### Recommendations
 
 #### 5.1: Generate SBOM for Release
 
+> ✅ **COMPLETED** (2026-08-16, commit `79ae5435`) — `sbom.json` (CycloneDX 1.7, 464 componentes)
+> generado con Syft 1.51.0 desde `pnpm-lock.yaml`. Escaneado con Grype: 0 vulnerabilidades tras
+> remediación. Nota: generar desde el lockfile (no `dir:.`) evita ruido del cache `.pnpm-store`.
+
 **Why**: Track all dependencies for compliance; easier vulnerability remediation.
 
 **Implementation** (in release pipeline):
 
-```powershell
+```TypeScript
 npm install -g @cyclonedx/npm
 
 # Generate SBOM
@@ -548,6 +587,10 @@ cyclonedx-npm --output-format json --output-file sbom.json
 ---
 
 #### 5.2: Add Annual Security Audit
+
+> ✅ **PLAN COMPLETED** (2026-08-16, commit `79ae5435`) — `docs/security/ANNUAL-AUDIT-PLAN.md` (26
+> controles inventariados, checklist pre-audit de 15 items, log del audit inicializado). Ejecución
+> externa programada Q4 2026.
 
 **Why**: Third-party validation; catch systemic issues.
 
@@ -568,14 +611,45 @@ cyclonedx-npm --output-format json --output-file sbom.json
 
 ---
 
+#### 5.3: Container/Artifact Vulnerability Scanning (Native TS)
+
+> ✅ **COMPLETED** (2026-08-17, ADR-0017) — `src/container-scan.ts` envuelve la cadena
+> **Syft (SBOM) + Grype (correlación CVE)** con fallback a **Trivy filesystem**, sin requerir
+> Docker. Comandos: `npm run container:scan` (escanea `sbom.json`), `container:scan-dir`
+> (SBOM de un directorio), `container:status` (toolchain), `container:report` (último resultado).
+> Exit codes: 0 = limpio / 1 = vulns ≥ `--fail-on` / 2 = error. Resultados persistidos en
+> `.session/container-scan/latest.json`. Verificado: scan real de `sbom.json` → 464 paquetes,
+> 0 vulnerabilidades, exit 0 (1.4s). 14/14 tests (`tests/unit/container-scan.test.ts`).
+
+**Why**: Track known vulnerabilities in the release SBOM and artifacts without depending on Docker.
+
+**Implementation** (in release pipeline):
+
+```bash
+npm run container:scan                    # gate: exit 1 si hay vulns ≥ high
+npm run container:scan -- --fail-on critical --json   # gate estricto, output JSON
+```
+
+**Impact**:
+
+- ✅ Compliance with vulnerability scanning requirements
+- ✅ Faster incident response (know exactly what's in release)
+- ✅ CI-gateable (exit codes + JSON) sin Docker
+
+**Effort**: 2 hours  
+**Value**: HIGH (supply-chain + compliance)
+
+---
+
 ### Security & Compliance Summary
 
 | Action                 | Effort       | Impact   | Timeline      |
 | ---------------------- | ------------ | -------- | ------------- |
-| SBOM generation        | 1h           | HIGH     | Next sprint   |
-| Annual audit (plan)    | 4h           | HIGH     | Q3 planning   |
+| SBOM generation        | 1h           | HIGH     | ✅ Done |
+| Container/artifact scan| 2h           | HIGH     | ✅ Done (ADR-0017) |
+| Annual audit (plan)    | 4h           | HIGH     | ✅ Done (Q3 planning) |
 | Annual audit (execute) | 80h          | HIGH     | Q4 2026       |
-| **Total**              | **85 hours** | **HIGH** | **Year 2026** |
+| **Total**              | **87 hours** | **HIGH** | **Year 2026** |
 
 ---
 
@@ -584,13 +658,14 @@ cyclonedx-npm --output-format json --output-file sbom.json
 ### This Week (Quick Wins)
 
 ```
-Day 1-2:  Add lockfile-lint hook + npm ci to CI/CD
-Day 3-4:  Create First-Time Setup Checklist + Troubleshooting Runbook
-Day 5:    Review & test all changes
+Day 1-2:  Add lockfile-lint hook + npm ci to CI/CD          ✅ DONE
+Day 3-4:  Create First-Time Setup Checklist + Troubleshooting Runbook  ✅ DONE
+Day 5:    Review & test all changes                          ✅ DONE
 ```
 
 **Effort**: ~2 hours dev + testing  
-**Impact**: HIGH (supply-chain + onboarding)
+**Impact**: HIGH (supply-chain + onboarding)  
+**Status**: ✅ COMPLETED
 
 ---
 
@@ -598,13 +673,15 @@ Day 5:    Review & test all changes
 
 ```
 Sprint 1:
-  - Code coverage baseline (2-3h)
-  - E2E release workflow tests (3-4h)
-  - npm audit pre-push hook (1h)
-  - SBOM generation setup (1h)
-  - ADR-001 through ADR-004 (4h)
+  - Code coverage baseline (2-3h)                            ✅ DONE
+  - E2E release workflow tests (3-4h)                        ✅ DONE
+  - npm audit pre-push hook (1h)                             ✅ DONE
+  - SBOM generation setup (1h)                               ✅ DONE
+  - Container/artifact scanning (2h)                         ✅ DONE (ADR-0017)
+  - ADR-0003 through ADR-0006 + ADR-0012 (4h)                ✅ DONE (16 ADRs)
 
 Total: 11-13 hours
+Status: ✅ COMPLETED
 ```
 
 ---
@@ -612,11 +689,12 @@ Total: 11-13 hours
 ### Q3 2026 (Long Term)
 
 ```
-- Performance baselines + profiling (3-5h)
-- Load testing for multi-repo (4-6h)
-- Plan annual security audit (4h)
-- Consider: chaos testing, chaos engineering
-- Consider: supply-chain attestation (SLSA L3)
+- Performance baselines + profiling (3-5h)                   ✅ DONE
+- Load testing for multi-repo (4-6h)                         ✅ DONE
+- Plan annual security audit (4h)                            ✅ DONE (plan Q3, execute Q4)
+- ~~Consider: chaos testing, chaos engineering~~ ✅ `src/chaos-engineering.ts` (native TS, ADR-0016) + **L4 automated en CI/CD** (job `chaos` en `scheduled.yml`, semanal)
+- ~~Consider: supply-chain attestation (SLSA L3)~~ ✅ `src/slsa-signer.ts` (DSSE + Ed25519, ADR-0015)
+- ~~Consider: container image scanning~~ ✅ `src/container-scan.ts` (Syft+Grype, ADR-0017)
 ```
 
 ---
@@ -630,6 +708,8 @@ Total: 11-13 hours
 │      │ (lockfile)│ E2E Tests           │
 │      │ npm audit │ SBOM                │
 │      │ ADRs      │ Audit Plan          │
+│      │ Container │                     │
+│      │ Scan      │                     │
 ├──────┼───────────┼─────────────────────┤
 │MEDIUM│ Perf      │ Troubleshoot Runbook│
 │      │ Baseline  │ First-Setup         │
@@ -642,6 +722,8 @@ Total: 11-13 hours
 **Recommended Priority**: Dependency Mgmt (HIGH impact, LOW effort) → Tests (HIGH impact, MEDIUM
 effort) → Documentation (MEDIUM impact, LOW effort)
 
+**Status**: ✅ All quick wins + sprint 1 items completed (2026-08-17)
+
 ---
 
 ## Stack Summary
@@ -649,11 +731,11 @@ effort) → Documentation (MEDIUM impact, LOW effort)
 | Layer               | Current                     | Recommendation             | Timeline |
 | ------------------- | --------------------------- | -------------------------- | -------- |
 | **Supply Chain**    | ✅ Advanced (npx hardening) | ✅ Complete                | Done     |
-| **Dependency Mgmt** | Good ⚠️                     | Add lockfile-lint + npm ci | Week 1   |
-| **Testing**         | Strong ✅                   | Add coverage + E2E         | Sprint 1 |
-| **Documentation**   | Strong ✅                   | Add ADRs + Runbooks        | Week 1   |
-| **Security**        | Excellent ✅                | Add SBOM                   | Sprint 1 |
-| **Performance**     | Good ⚠️                     | Add baselines              | Sprint 2 |
+| **Dependency Mgmt** | ✅ Complete                 | ✅ lockfile-lint + npm ci  | Done     |
+| **Testing**         | ✅ Strong                   | ✅ coverage + E2E          | Done     |
+| **Documentation**   | ✅ Strong                   | ✅ ADRs + Runbooks         | Done     |
+| **Security**        | ✅ Excellent                | ✅ SBOM + container scan   | Done     |
+| **Performance**     | ✅ Good                     | ✅ baselines + profiling   | Done     |
 
 ---
 
@@ -662,11 +744,12 @@ effort) → Documentation (MEDIUM impact, LOW effort)
 The gentle-vanguard project is **production-ready** with excellent security gentle-vanguards. The
 recent npx hardening represents mature supply-chain thinking.
 
-**Next focus**: Dependency management (lockfile validation + npm ci) and testing completeness
-(coverage + E2E) provide HIGH impact for MEDIUM effort over the next 1-2 sprints.
+**Next focus**: All quick wins and sprint-1 items are complete (2026-08-17). Remaining work is
+long-term: annual security audit execution (Q4 2026), SLSA L3 hardening, and chaos engineering
+maturity — **L4 (automated in CI/CD) achieved 2026-08-18** (weekly `chaos:run-all` job).
 
 **12-month vision**: Evolve toward SLSA L3 supply-chain provenance, annual security audits, and
-chaos engineering maturity.
+chaos engineering maturity — all foundations now in place (SBOM + signing + scanning + chaos L4).
 
 ---
 

@@ -1,15 +1,8 @@
 #!/usr/bin/env node
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-  copyFileSync,
-} from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { spawnSync } from 'child_process';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,8 +58,18 @@ type Action =
   | 'mutate';
 
 const VALID_ACTIONS: readonly Action[] = [
-  'init', 'meta', 'save-target', 'feedback', 'save-review',
-  'status', 'score', 'adapt', 'learn', 'reflect', 'optimize', 'mutate',
+  'init',
+  'meta',
+  'save-target',
+  'feedback',
+  'save-review',
+  'status',
+  'score',
+  'adapt',
+  'learn',
+  'reflect',
+  'optimize',
+  'mutate',
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -177,10 +180,7 @@ Options:
 `);
 }
 
-function output(
-  data: Record<string, unknown>,
-  asJson: boolean,
-): void {
+function output(data: Record<string, unknown>, asJson: boolean): void {
   if (asJson) {
     console.log(JSON.stringify(data, null, 2));
   } else {
@@ -197,7 +197,12 @@ function extractScore(text: string): number {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
-function cmdInit(sid: string | undefined, taskSpec: string | undefined, outputDir: string, asJson: boolean): void {
+function cmdInit(
+  sid: string | undefined,
+  taskSpec: string | undefined,
+  outputDir: string,
+  asJson: boolean,
+): void {
   const sessionId = sid ?? `sia-${new Date().toISOString().replace(/[:.]/g, '').slice(0, 15)}`;
   if (!taskSpec) throw new Error('init requires --task-spec');
   const dir = sessionDir(sessionId, outputDir);
@@ -219,7 +224,9 @@ function cmdMeta(sid: string, outputDir: string, asJson: boolean): void {
   const feedback = existsSync(prevReviewPath) ? readText(prevReviewPath) : null;
 
   const promptTemplatePath = join(ROOT, 'config', 'agent-prompts', 'SIA-META.md');
-  const promptTemplate = existsSync(promptTemplatePath) ? readText(promptTemplatePath) : '# Generate an implementation plan.';
+  const promptTemplate = existsSync(promptTemplatePath)
+    ? readText(promptTemplatePath)
+    : '# Generate an implementation plan.';
 
   let prompt = `## TASK\n${spec}\n`;
   if (feedback) {
@@ -229,10 +236,24 @@ function cmdMeta(sid: string, outputDir: string, asJson: boolean): void {
 
   const promptPath = join(dir, `prompt-meta-${state.iteration}.md`);
   writeText(promptPath, prompt);
-  output({ sessionId: sid, iteration: state.iteration, action: 'meta', promptFile: promptPath, status: 'pending-agent' }, asJson);
+  output(
+    {
+      sessionId: sid,
+      iteration: state.iteration,
+      action: 'meta',
+      promptFile: promptPath,
+      status: 'pending-agent',
+    },
+    asJson,
+  );
 }
 
-function cmdSaveTarget(sid: string, targetPath: string | undefined, outputDir: string, asJson: boolean): void {
+function cmdSaveTarget(
+  sid: string,
+  targetPath: string | undefined,
+  outputDir: string,
+  asJson: boolean,
+): void {
   const dir = sessionDir(sid, outputDir);
   const state = readJson<SiaState>(join(dir, 'state.json'));
   const dest = join(dir, `target-${state.iteration}.ps1`);
@@ -252,7 +273,16 @@ function cmdSaveTarget(sid: string, targetPath: string | undefined, outputDir: s
 
   state.status = 'target-saved';
   writeJson(join(dir, 'state.json'), state);
-  output({ sessionId: sid, iteration: state.iteration, action: 'save-target', dest, status: 'pending-feedback' }, asJson);
+  output(
+    {
+      sessionId: sid,
+      iteration: state.iteration,
+      action: 'save-target',
+      dest,
+      status: 'pending-feedback',
+    },
+    asJson,
+  );
 }
 
 function cmdFeedback(sid: string, outputDir: string, asJson: boolean): void {
@@ -262,7 +292,9 @@ function cmdFeedback(sid: string, outputDir: string, asJson: boolean): void {
   const spec = readText(join(dir, 'spec.md'));
 
   const promptTemplatePath = join(ROOT, 'config', 'agent-prompts', 'SIA-FEEDBACK.md');
-  const promptTemplate = existsSync(promptTemplatePath) ? readText(promptTemplatePath) : '# Review the target implementation.';
+  const promptTemplate = existsSync(promptTemplatePath)
+    ? readText(promptTemplatePath)
+    : '# Review the target implementation.';
 
   const prompt = `## SPEC\n${spec}\n\n## TARGET (iteration ${state.iteration})\n${target}\n\n## INSTRUCTIONS\n${promptTemplate}`;
   const promptPath = join(dir, `prompt-feedback-${state.iteration}.md`);
@@ -270,10 +302,25 @@ function cmdFeedback(sid: string, outputDir: string, asJson: boolean): void {
 
   state.status = 'feedback-pending';
   writeJson(join(dir, 'state.json'), state);
-  output({ sessionId: sid, iteration: state.iteration, action: 'feedback', promptFile: promptPath, status: 'pending-agent' }, asJson);
+  output(
+    {
+      sessionId: sid,
+      iteration: state.iteration,
+      action: 'feedback',
+      promptFile: promptPath,
+      status: 'pending-agent',
+    },
+    asJson,
+  );
 }
 
-function cmdSaveReview(sid: string, reviewPath: string | undefined, scoreThreshold: number, outputDir: string, asJson: boolean): void {
+function cmdSaveReview(
+  sid: string,
+  reviewPath: string | undefined,
+  scoreThreshold: number,
+  outputDir: string,
+  asJson: boolean,
+): void {
   const dir = sessionDir(sid, outputDir);
   const state = readJson<SiaState>(join(dir, 'state.json'));
   const dest = join(dir, `review-${state.iteration}.md`);
@@ -297,14 +344,17 @@ function cmdSaveReview(sid: string, reviewPath: string | undefined, scoreThresho
   state.status = score >= scoreThreshold ? 'passed' : 'needs-retry';
   writeJson(join(dir, 'state.json'), state);
 
-  output({
-    sessionId: sid,
-    iteration: state.iteration,
-    score,
-    threshold: scoreThreshold,
-    passed: score >= scoreThreshold,
-    status: state.status,
-  }, asJson);
+  output(
+    {
+      sessionId: sid,
+      iteration: state.iteration,
+      score,
+      threshold: scoreThreshold,
+      passed: score >= scoreThreshold,
+      status: state.status,
+    },
+    asJson,
+  );
 }
 
 function cmdStatus(sid: string, scoreThreshold: number, outputDir: string, asJson: boolean): void {
@@ -320,15 +370,18 @@ function cmdStatus(sid: string, scoreThreshold: number, outputDir: string, asJso
   }
   const state = readJson<SiaState>(statePath);
   const files = readdirSync(dir);
-  output({
-    sessionId: sid,
-    status: state.status,
-    iteration: state.iteration,
-    score: state.score,
-    threshold: scoreThreshold,
-    files,
-    dir,
-  }, asJson);
+  output(
+    {
+      sessionId: sid,
+      status: state.status,
+      iteration: state.iteration,
+      score: state.score,
+      threshold: scoreThreshold,
+      files,
+      dir,
+    },
+    asJson,
+  );
 }
 
 function cmdScore(sid: string, scoreThreshold: number, outputDir: string, asJson: boolean): void {
@@ -339,13 +392,16 @@ function cmdScore(sid: string, scoreThreshold: number, outputDir: string, asJson
     return;
   }
   const state = readJson<SiaState>(statePath);
-  output({
-    sessionId: sid,
-    iteration: state.iteration,
-    score: state.score,
-    threshold: scoreThreshold,
-    passed: state.score >= scoreThreshold,
-  }, asJson);
+  output(
+    {
+      sessionId: sid,
+      iteration: state.iteration,
+      score: state.score,
+      threshold: scoreThreshold,
+      passed: state.score >= scoreThreshold,
+    },
+    asJson,
+  );
 }
 
 // ── SIA Extension Actions ─────────────────────────────────────────────────────
@@ -412,7 +468,10 @@ function cmdLearn(sid: string, outputDir: string, asJson: boolean): void {
   state.lessons = lessons;
   writeJson(join(dir, 'state.json'), state);
 
-  output({ sessionId: sid, action: 'learn', lessonCount: lessons.length, lessonFile: lessonPath }, asJson);
+  output(
+    { sessionId: sid, action: 'learn', lessonCount: lessons.length, lessonFile: lessonPath },
+    asJson,
+  );
 }
 
 function cmdReflect(sid: string, outputDir: string, asJson: boolean): void {
@@ -446,7 +505,12 @@ function cmdReflect(sid: string, outputDir: string, asJson: boolean): void {
   output(reflection as unknown as Record<string, unknown>, asJson);
 }
 
-function cmdOptimize(sid: string, outputDir: string, scoreThreshold: number, asJson: boolean): void {
+function cmdOptimize(
+  sid: string,
+  outputDir: string,
+  scoreThreshold: number,
+  asJson: boolean,
+): void {
   const dir = sessionDir(sid, outputDir);
   const state = readJson<SiaState>(join(dir, 'state.json'));
 
@@ -468,7 +532,7 @@ function cmdOptimize(sid: string, outputDir: string, scoreThreshold: number, asJ
   const recommendedThreshold = Math.max(50, Math.round(avgScore - stdev));
 
   // Run git log as a sub-process (spawnSync) to correlate commits with scores
-  const gitLog = spawnSync('git', ['log', '--oneline', '-5'], { cwd: ROOT, encoding: 'utf-8' });
+  const gitLog = runSync('git', ['log', '--oneline', '-5'], { cwd: ROOT });
   const recentCommits = gitLog.status === 0 ? gitLog.stdout.trim().split('\n') : [];
 
   const optimization: Record<string, unknown> = {
@@ -493,12 +557,7 @@ function cmdMutate(sid: string, outputDir: string, asJson: boolean): void {
   const dir = sessionDir(sid, outputDir);
   const state = readJson<SiaState>(join(dir, 'state.json'));
 
-  const strategies = [
-    'template-swap',
-    'feedback-driven',
-    'evolutionary',
-    'adversarial',
-  ];
+  const strategies = ['template-swap', 'feedback-driven', 'evolutionary', 'adversarial'];
 
   // Score-based strategy selection
   const score = state.score;
@@ -518,25 +577,35 @@ function cmdMutate(sid: string, outputDir: string, asJson: boolean): void {
   writeJson(join(dir, 'state.json'), state);
 
   // Write mutation plan
-  const plan = `## Mutation Strategy: ${selected}\n\n` +
+  const plan =
+    `## Mutation Strategy: ${selected}\n\n` +
     `Based on score ${score}, applying "${selected}" at iteration ${state.iteration}.\n\n` +
-    (selected === 'template-swap' ? '- Use alternative template structure\n- Rotate prompt framing\n' : '') +
-    (selected === 'feedback-driven' ? '- Incorporate specific feedback items\n- Focus on weakest scoring areas\n' : '') +
-    (selected === 'evolutionary' ? '- Generate N variants\n- Select top performer by score\n' : '') +
+    (selected === 'template-swap'
+      ? '- Use alternative template structure\n- Rotate prompt framing\n'
+      : '') +
+    (selected === 'feedback-driven'
+      ? '- Incorporate specific feedback items\n- Focus on weakest scoring areas\n'
+      : '') +
+    (selected === 'evolutionary'
+      ? '- Generate N variants\n- Select top performer by score\n'
+      : '') +
     (selected === 'adversarial' ? '- Generate counter-examples\n- Stress-test edge cases\n' : '');
 
   const mutationPath = join(dir, `mutation-${state.iteration}.md`);
   writeText(mutationPath, plan);
 
-  output({
-    sessionId: sid,
-    action: 'mutate',
-    iteration: state.iteration,
-    strategy: selected,
-    score,
-    mutationFile: mutationPath,
-    availableStrategies: strategies,
-  }, asJson);
+  output(
+    {
+      sessionId: sid,
+      action: 'mutate',
+      iteration: state.iteration,
+      strategy: selected,
+      score,
+      mutationFile: mutationPath,
+      availableStrategies: strategies,
+    },
+    asJson,
+  );
 }
 
 // ── Learning Loop ─────────────────────────────────────────────────────────────
@@ -548,22 +617,32 @@ function learningLoop(
   outputDir: string,
   asJson: boolean,
 ): void {
-  console.log(`SIA learning loop: session=${sessionId}, maxIter=${maxIterations}, threshold=${scoreThreshold}`);
+  console.log(
+    `SIA learning loop: session=${sessionId}, maxIter=${maxIterations}, threshold=${scoreThreshold}`,
+  );
 
   for (let i = 1; i <= maxIterations; i++) {
     console.log(`\n--- Iteration ${i}/${maxIterations} ---`);
 
     // 1. Generate meta-prompt
-    try { cmdMeta(sessionId, outputDir, asJson); } catch (e) { console.error(`meta failed: ${e}`); break; }
+    try {
+      cmdMeta(sessionId, outputDir, asJson);
+    } catch (e) {
+      console.error(`meta failed: ${e}`);
+      break;
+    }
 
     // 2. Simulate target generation via sub-process call
     const dir = sessionDir(sessionId, outputDir);
     const targetPath = join(dir, `target-${i}.ps1`);
-    const genResult = spawnSync('npx', ['tsx', 'src/sia-orchestrator.ts', '--action', 'init', '--task-spec', 'placeholder'], {
-      cwd: ROOT,
-      encoding: 'utf-8',
-      timeout: 10000,
-    });
+    const genResult = runNpxTsxSync(
+      'src/sia-orchestrator.ts',
+      ['--action', 'init', '--task-spec', 'placeholder'],
+      {
+        cwd: ROOT,
+        timeout: 10000,
+      },
+    );
     if (genResult.status !== 0) {
       // Fallback: write a stub target
       writeText(targetPath, `# target iteration ${i}\n# generated by SIA loop\n`);
@@ -578,14 +657,25 @@ function learningLoop(
     }
 
     // 4. Generate feedback prompt
-    try { cmdFeedback(sessionId, outputDir, asJson); } catch (e) { console.error(`feedback failed: ${e}`); break; }
+    try {
+      cmdFeedback(sessionId, outputDir, asJson);
+    } catch (e) {
+      console.error(`feedback failed: ${e}`);
+      break;
+    }
 
     // 5. Score review
     const reviewPath = join(dir, `review-${i}.md`);
-    writeText(reviewPath, `# Review iteration ${i}\nScore: ${Math.min(100, scoreThreshold - 10 + i * 5)}\n`);
+    writeText(
+      reviewPath,
+      `# Review iteration ${i}\nScore: ${Math.min(100, scoreThreshold - 10 + i * 5)}\n`,
+    );
     try {
       cmdSaveReview(sessionId, reviewPath, scoreThreshold, outputDir, asJson);
-    } catch (e) { console.error(`save-review failed: ${e}`); break; }
+    } catch (e) {
+      console.error(`save-review failed: ${e}`);
+      break;
+    }
 
     // 6. Reflect each milestone
     cmdReflect(sessionId, outputDir, asJson);
@@ -609,7 +699,16 @@ function learningLoop(
 
 function main(): void {
   const args = parseArgs();
-  const { action, sessionId, taskSpec, targetPath, reviewPath, outputDir, scoreThreshold, json: asJson } = args;
+  const {
+    action,
+    sessionId,
+    taskSpec,
+    targetPath,
+    reviewPath,
+    outputDir,
+    scoreThreshold,
+    json: asJson,
+  } = args;
 
   try {
     switch (action) {

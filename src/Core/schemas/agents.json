@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gentle-Vanguard Agent Configuration",
+  "description": "Schema for agent definitions in Gentle-Vanguard stack",
+  "type": "object",
+  "required": ["version", "description", "agents"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Configuration description"
+    },
+    "agents": {
+      "type": "object",
+      "description": "Agent definitions",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "$ref": "#/definitions/agent"
+        }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "properties": {
+        "defaultAgent": { "type": "string" },
+        "fallbackAgent": { "type": "string" },
+        "confidenceThreshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "mode": { "enum": ["native", "opencode"] },
+        "preferNpxTsx": { "type": "boolean" },
+        "timeoutMs": { "type": "integer", "minimum": 1000 },
+        "maxRetries": { "type": "integer", "minimum": 0 },
+        "parallel": { "type": "boolean" }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "requireTypecheck": { "type": "boolean" },
+        "requireLint": { "type": "boolean" },
+        "requireTests": { "type": "boolean" },
+        "autoFix": { "type": "boolean" }
+      }
+    }
+  },
+  "definitions": {
+    "agent": {
+      "type": "object",
+      "required": ["name", "description", "type", "capability", "model", "executionCommand"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "enum": ["primary", "subagent"] },
+        "capability": { "type": "string" },
+        "model": { "type": "string" },
+        "fallbackModels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "maxTokens": { "type": "integer", "minimum": 100 },
+        "maxSteps": { "type": "integer", "minimum": 1 },
+        "executionCommand": { "type": "string" },
+        "script": { "type": "string" },
+        "triggers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "read": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "write": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "websearch": { "type": "boolean" },
+            "webfetch": { "type": "boolean" }
+          }
+        },
+        "qualityGates": {
+          "type": "object",
+          "additionalProperties": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

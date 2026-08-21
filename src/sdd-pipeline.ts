@@ -2,9 +2,10 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 
-type PhaseName = 'INIT' | 'EXPLORE' | 'PROPOSE' | 'SPEC' | 'TASKS' | 'DESIGN' | 'APPLY' | 'VERIFY' | 'ARCHIVE';
+type PhaseName =
+  'INIT' | 'EXPLORE' | 'PROPOSE' | 'SPEC' | 'TASKS' | 'DESIGN' | 'APPLY' | 'VERIFY' | 'ARCHIVE';
 
 interface PhaseGate {
   phase: string;
@@ -24,7 +25,17 @@ interface PipelineOptions {
   dryRun: boolean;
 }
 
-const PHASE_ORDER: PhaseName[] = ['INIT', 'EXPLORE', 'PROPOSE', 'SPEC', 'TASKS', 'DESIGN', 'APPLY', 'VERIFY', 'ARCHIVE'];
+const PHASE_ORDER: PhaseName[] = [
+  'INIT',
+  'EXPLORE',
+  'PROPOSE',
+  'SPEC',
+  'TASKS',
+  'DESIGN',
+  'APPLY',
+  'VERIFY',
+  'ARCHIVE',
+];
 
 function getRoot(): string {
   if (process.env.GENTLE_VANGUARD_BASE_DIR) {
@@ -33,7 +44,12 @@ function getRoot(): string {
   return resolve(process.cwd());
 }
 
-function writePhaseGate(sddDir: string, phase: string, status: PhaseGate['status'], artifact: string): void {
+function writePhaseGate(
+  sddDir: string,
+  phase: string,
+  status: PhaseGate['status'],
+  artifact: string,
+): void {
   const gate: PhaseGate = { phase, status, timestamp: new Date().toISOString(), artifact };
   const gatePath = join(sddDir, `gate-${phase}.json`);
   writeFileSync(gatePath, JSON.stringify(gate, null, 2), 'utf-8');
@@ -43,7 +59,7 @@ function writePhaseGate(sddDir: string, phase: string, status: PhaseGate['status
 
 function runGit(args: string[], cwd: string): string {
   try {
-    const result = spawnSync('git', args, { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = runSync('git', args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     return result.status === 0 ? result.stdout.trim() : 'unknown';
   } catch {
     return 'unknown';
@@ -115,7 +131,9 @@ function parseArgs(): PipelineOptions {
           if (PHASE_ORDER.includes(p)) {
             opts.phase = p;
           } else {
-            console.error(`\x1b[31mInvalid phase: ${args[i]}. Valid: ${PHASE_ORDER.join(', ')}\x1b[0m`);
+            console.error(
+              `\x1b[31mInvalid phase: ${args[i]}. Valid: ${PHASE_ORDER.join(', ')}\x1b[0m`,
+            );
             process.exit(1);
           }
         }
@@ -184,82 +202,92 @@ function main(): void {
       continue;
     }
 
-    const result = invokePhase(p, () => {
-      switch (p) {
-        case 'INIT': {
-          const date = new Date().toISOString().slice(0, 16).replace('T', ' ');
-          const version = tryReadPackageVersion(root);
-          const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD'], root);
-          const initContent = [
-            `# SDD INIT: ${opts.feature}`,
-            `**Description**: ${opts.description}`,
-            `**Date**: ${date}`,
-            `**Stack**: ${version}`,
-            `**Branch**: ${branch}`,
-          ].join('\n');
-          writeFileSync(join(sddDir, 'INIT/artifact.md'), initContent, 'utf-8');
-          console.log(`  \x1b[37m[INIT] Feature: ${opts.feature}\x1b[0m`);
-          return { feature: opts.feature, description: opts.description };
-        }
+    const result = invokePhase(
+      p,
+      () => {
+        switch (p) {
+          case 'INIT': {
+            const date = new Date().toISOString().slice(0, 16).replace('T', ' ');
+            const version = tryReadPackageVersion(root);
+            const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD'], root);
+            const initContent = [
+              `# SDD INIT: ${opts.feature}`,
+              `**Description**: ${opts.description}`,
+              `**Date**: ${date}`,
+              `**Stack**: ${version}`,
+              `**Branch**: ${branch}`,
+            ].join('\n');
+            writeFileSync(join(sddDir, 'INIT/artifact.md'), initContent, 'utf-8');
+            console.log(`  \x1b[37m[INIT] Feature: ${opts.feature}\x1b[0m`);
+            return { feature: opts.feature, description: opts.description };
+          }
 
-        case 'EXPLORE': {
-          console.log(`  \x1b[37m[EXPLORE] Discovering requirements for: ${opts.description}\x1b[0m`);
-          const explore = `## Requirements (EXPLORE)\n- ${opts.description}\n- TBD after exploration\n`;
-          writeFileSync(join(sddDir, 'EXPLORE/artifact.md'), explore, 'utf-8');
-          return { requirements: [opts.description] };
-        }
+          case 'EXPLORE': {
+            console.log(
+              `  \x1b[37m[EXPLORE] Discovering requirements for: ${opts.description}\x1b[0m`,
+            );
+            const explore = `## Requirements (EXPLORE)\n- ${opts.description}\n- TBD after exploration\n`;
+            writeFileSync(join(sddDir, 'EXPLORE/artifact.md'), explore, 'utf-8');
+            return { requirements: [opts.description] };
+          }
 
-        case 'PROPOSE': {
-          const propose = `## Proposal (PROPOSE)\n**Feature**: ${opts.feature}\n**Approach**: TBD\n**Risks**: TBD\n`;
-          writeFileSync(join(sddDir, 'PROPOSE/artifact.md'), propose, 'utf-8');
-          console.log('  \x1b[37m[PROPOSE] Proposal drafted\x1b[0m');
-          return { approach: 'TBD' };
-        }
+          case 'PROPOSE': {
+            const propose = `## Proposal (PROPOSE)\n**Feature**: ${opts.feature}\n**Approach**: TBD\n**Risks**: TBD\n`;
+            writeFileSync(join(sddDir, 'PROPOSE/artifact.md'), propose, 'utf-8');
+            console.log('  \x1b[37m[PROPOSE] Proposal drafted\x1b[0m');
+            return { approach: 'TBD' };
+          }
 
-        case 'SPEC': {
-          const spec = `# Specification: ${opts.feature}\n## Overview\n${opts.description}\n## Acceptance Criteria\n- [ ] TBD\n## Technical Notes\n- TBD\n`;
-          writeFileSync(join(sddDir, 'SPEC/artifact.md'), spec, 'utf-8');
-          console.log('  \x1b[37m[SPEC] Specification written\x1b[0m');
-          return { spec: 'draft' };
-        }
+          case 'SPEC': {
+            const spec = `# Specification: ${opts.feature}\n## Overview\n${opts.description}\n## Acceptance Criteria\n- [ ] TBD\n## Technical Notes\n- TBD\n`;
+            writeFileSync(join(sddDir, 'SPEC/artifact.md'), spec, 'utf-8');
+            console.log('  \x1b[37m[SPEC] Specification written\x1b[0m');
+            return { spec: 'draft' };
+          }
 
-        case 'TASKS': {
-          const tasks = `## Tasks: ${opts.feature}\n- [ ] TASK-1: Implement core logic\n- [ ] TASK-2: Add tests\n- [ ] TASK-3: Documentation\n`;
-          writeFileSync(join(sddDir, 'TASKS/artifact.md'), tasks, 'utf-8');
-          console.log('  \x1b[37m[TASKS] Task breakdown created\x1b[0m');
-          return { tasks: 3 };
-        }
+          case 'TASKS': {
+            const tasks = `## Tasks: ${opts.feature}\n- [ ] TASK-1: Implement core logic\n- [ ] TASK-2: Add tests\n- [ ] TASK-3: Documentation\n`;
+            writeFileSync(join(sddDir, 'TASKS/artifact.md'), tasks, 'utf-8');
+            console.log('  \x1b[37m[TASKS] Task breakdown created\x1b[0m');
+            return { tasks: 3 };
+          }
 
-        case 'DESIGN': {
-          const design = `## Design: ${opts.feature}\n**Architecture**: TBD\n**Components**:\n- Component A: TBD\n- Component B: TBD\n**Data Flow**: TBD\n`;
-          writeFileSync(join(sddDir, 'DESIGN/artifact.md'), design, 'utf-8');
-          console.log('  \x1b[37m[DESIGN] Architecture designed\x1b[0m');
-          return { architecture: 'draft' };
-        }
+          case 'DESIGN': {
+            const design = `## Design: ${opts.feature}\n**Architecture**: TBD\n**Components**:\n- Component A: TBD\n- Component B: TBD\n**Data Flow**: TBD\n`;
+            writeFileSync(join(sddDir, 'DESIGN/artifact.md'), design, 'utf-8');
+            console.log('  \x1b[37m[DESIGN] Architecture designed\x1b[0m');
+            return { architecture: 'draft' };
+          }
 
-        case 'APPLY': {
-          console.log('  \x1b[37m[APPLY] Implementation phase ready \u2014 use Team Mode for parallel execution\x1b[0m');
-          const apply = `## Implementation: ${opts.feature}\n**Status**: Pending\n**Skills needed**: Determined by Team Mode orchestration\n`;
-          writeFileSync(join(sddDir, 'APPLY/artifact.md'), apply, 'utf-8');
-          return { status: 'pending' };
-        }
+          case 'APPLY': {
+            console.log(
+              '  \x1b[37m[APPLY] Implementation phase ready \u2014 use Team Mode for parallel execution\x1b[0m',
+            );
+            const apply = `## Implementation: ${opts.feature}\n**Status**: Pending\n**Skills needed**: Determined by Team Mode orchestration\n`;
+            writeFileSync(join(sddDir, 'APPLY/artifact.md'), apply, 'utf-8');
+            return { status: 'pending' };
+          }
 
-        case 'VERIFY': {
-          console.log('  \x1b[37m[VERIFY] Running quality gates...\x1b[0m');
-          const verify = `## Verification: ${opts.feature}\n**Lint**: Pending\n**Tests**: Pending\n**Judgment Day**: Pending\n`;
-          writeFileSync(join(sddDir, 'VERIFY/artifact.md'), verify, 'utf-8');
-          return { lint: 'pending', tests: 'pending', judgment: 'pending' };
-        }
+          case 'VERIFY': {
+            console.log('  \x1b[37m[VERIFY] Running quality gates...\x1b[0m');
+            const verify = `## Verification: ${opts.feature}\n**Lint**: Pending\n**Tests**: Pending\n**Judgment Day**: Pending\n`;
+            writeFileSync(join(sddDir, 'VERIFY/artifact.md'), verify, 'utf-8');
+            return { lint: 'pending', tests: 'pending', judgment: 'pending' };
+          }
 
-        case 'ARCHIVE': {
-          const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-          const archive = `## Archive: ${opts.feature}\n**Completed**: ${now}\n**Artifacts**: ${sddDir}\n**Summary**: ${opts.description}\n`;
-          writeFileSync(join(sddDir, 'ARCHIVE/artifact.md'), archive, 'utf-8');
-          console.log(`  \x1b[32m[ARCHIVE] Pipeline complete\x1b[0m`);
-          return { archived: new Date().toISOString() };
+          case 'ARCHIVE': {
+            const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+            const archive = `## Archive: ${opts.feature}\n**Completed**: ${now}\n**Artifacts**: ${sddDir}\n**Summary**: ${opts.description}\n`;
+            writeFileSync(join(sddDir, 'ARCHIVE/artifact.md'), archive, 'utf-8');
+            console.log(`  \x1b[32m[ARCHIVE] Pipeline complete\x1b[0m`);
+            return { archived: new Date().toISOString() };
+          }
         }
-      }
-    }, sddDir, opts.description, opts.dryRun);
+      },
+      sddDir,
+      opts.description,
+      opts.dryRun,
+    );
 
     pipelineResults[p] = result;
   }
@@ -277,7 +305,9 @@ function main(): void {
   console.log(`Artifacts: ${sddDir}`);
 
   if (allPassed && !opts.dryRun) {
-    console.log('\x1b[32m[SDD] Pipeline passed \u2014 ready for implementation via Team Mode\x1b[0m');
+    console.log(
+      '\x1b[32m[SDD] Pipeline passed \u2014 ready for implementation via Team Mode\x1b[0m',
+    );
   }
 }
 

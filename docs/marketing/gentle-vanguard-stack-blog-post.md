@@ -40,7 +40,7 @@ Cada día, más equipos usan AI assistants como **OpenCode, Claude, Cursor o Git
 
 ### 1️⃣ 🎮 Session Manager
 
-```powershell
+```TypeScript
 .\scripts\utilities\session-autostart.cmd
 # Inicia sesión trackeada automáticamente
 ```
@@ -65,7 +65,7 @@ El orquestador detecta qué necesitas y delega al skill/subagente correcto:
 
 ### 3️⃣ 📈 Reporting On-Demand
 
-```powershell
+```TypeScript
 # Informes desde CLI:
 .\scripts\utilities\gv-report.ps1 -Type sessions -Period 7days
 .\scripts\utilities\gv-report.ps1 -Type executive
@@ -118,7 +118,7 @@ El workspace es **agnóstico** - trabaja con la herramienta que vos elijas.
 
 ## 🛠️ Installing
 
-```powershell
+```TypeScript
 # Clone
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 

@@ -13,7 +13,7 @@
  *     --quiet         Minimal output
  */
 
-import { execSync } from 'child_process';
+import { runSync } from './core/run-command.js';
 import { existsSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 
@@ -28,18 +28,23 @@ interface ScanResult {
 }
 
 function runScan(type: string): ScanResult {
-  const result: ScanResult = { type, passed: true, issues: [], timestamp: new Date().toISOString() };
+  const result: ScanResult = {
+    type,
+    passed: true,
+    issues: [],
+    timestamp: new Date().toISOString(),
+  };
 
   try {
     switch (type) {
       case 'deps': {
         // Dependency vulnerability scan
-        execSync('pnpm audit --audit-level=high', { cwd: ROOT, stdio: 'pipe' });
+        runSync('pnpm', ['audit', '--audit-level=high'], { cwd: ROOT, stdio: 'pipe' });
         break;
       }
       case 'code': {
         // Code quality scan
-        execSync('npx tsc --noEmit', { cwd: ROOT, stdio: 'pipe' });
+        runSync('npx', ['tsc', '--noEmit'], { cwd: ROOT, stdio: 'pipe' });
         break;
       }
       case 'compliance': {

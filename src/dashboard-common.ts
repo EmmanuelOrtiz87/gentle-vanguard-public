@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as net from 'net';
-import { execSync } from 'child_process';
+import { runSync } from '../adapters/command-runner.js';
 import { pathToFileURL } from 'url';
 
 const RUNTIME_DIR = path.resolve(process.cwd(), '.runtime');
@@ -76,24 +76,27 @@ export function clearDashboardPorts(): void {
 export async function getProcessIdByPort(port: number): Promise<number | null> {
   try {
     if (process.platform === 'win32') {
-      const output = execSync(`netstat -ano -p TCP | findstr "LISTENING" | findstr ":${port} "`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        windowsHide: true,
-      });
-      const match = output.trim().split(/\s+/).pop();
-      if (match && /^\d+$/.test(match)) return parseInt(match, 10);
+      const r = runSync('netstat', ['-ano', '-p', 'TCP'], { timeout: 5000 });
+      const output = (r.stdout ?? '').toString();
+      for (const line of output.trim().split('\n')) {
+        if (line.includes('LISTENING') && line.includes(`:${port} `)) {
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[parts.length - 1];
+          if (/^\d+$/.test(pid)) return parseInt(pid, 10);
+        }
+      }
     } else {
-      const output = execSync(`lsof -ti :${port} 2>/dev/null || ss -tlnp sport = :${port}`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-      const lines = output.trim().split('\n');
-      for (const line of lines) {
-        const pidMatch = line.match(/pid=(\d+)/i);
-        if (pidMatch) return parseInt(pidMatch[1], 10);
-        const num = line.trim();
-        if (/^\d+$/.test(num)) return parseInt(num, 10);
+      const r = runSync('lsof', ['-ti', `:${port}`], { timeout: 5000 });
+      if (r.status === 0) {
+        const line = (r.stdout ?? '').toString().trim().split('\n')[0];
+        if (/^\d+$/.test(line)) return parseInt(line, 10);
+      } else {
+        const r2 = runSync('ss', ['-tlnp', `sport = :${port}`], { timeout: 5000 });
+        const output = (r2.stdout ?? '').toString();
+        for (const line of output.trim().split('\n')) {
+          const pidMatch = line.match(/pid=(\d+)/i);
+          if (pidMatch) return parseInt(pidMatch[1], 10);
+        }
       }
     }
   } catch {
@@ -104,10 +107,19 @@ export async function getProcessIdByPort(port: number): Promise<number | null> {
 
 /** Check if a process with given PID is alive */
 export function isProcessAlive(pid: number): boolean {
+  if (!pid || pid <= 0) return false;
   try {
     if (process.platform === 'win32') {
-      execSync(`tasklist /FI "PID eq ${pid}" /NH 2>nul`, { windowsHide: true, timeout: 3000 });
-      return true;
+      // NOTE: tasklist /FI returns exit code 0 even when the PID does NOT exist
+      // (it prints "INFO: No tasks are running..."). We must parse the output
+      // instead of relying on the exit code — otherwise stale PID files are
+      // never cleaned and the watchdog falsely believes processes are alive.
+      const r = runSync('tasklist', ['/FI', `PID eq ${pid}`, '/NH', '/FO', 'CSV'], {
+        timeout: 3000,
+      });
+      const output = (r.stdout ?? '').toString();
+      // CSV row looks like: "node.exe","26316","Console","1","12,345 K"
+      return output.includes(`"${pid}"`);
     }
     // Unix: kill -0 checks if process exists
     process.kill(pid, 0);
@@ -121,7 +133,7 @@ export function isProcessAlive(pid: number): boolean {
 export function killProcess(pid: number): void {
   try {
     if (process.platform === 'win32') {
-      execSync(`taskkill /F /PID ${pid}`, { windowsHide: true, timeout: 3000 });
+      runSync('taskkill', ['/F', '/PID', String(pid)], { timeout: 3000 });
     } else {
       process.kill(pid, 'SIGTERM');
     }
@@ -196,6 +208,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       break;
     default:
       console.log('Usage: npx tsx src/dashboard-common.ts <cmd>');
-      console.log('Commands: get-free-port [preferred], get-pid-by-port <port>, read-ports, clear-ports');
+      console.log(
+        'Commands: get-free-port [preferred], get-pid-by-port <port>, read-ports, clear-ports',
+      );
   }
 }

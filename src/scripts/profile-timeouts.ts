@@ -11,9 +11,14 @@
  *   npx tsx src/scripts/profile-timeouts.ts --daemon
  */
 
-import { trackExecution, getPerformanceMetrics, getActiveAlerts, startMonitorDaemon } from '../core/timeout-monitor';
+import {
+  trackExecution,
+  getPerformanceMetrics,
+  getActiveAlerts,
+  startMonitorDaemon,
+} from '../core/timeout-monitor';
 import { getTimeout, getActiveEnvironment } from '../core/timeout-config';
-import { execSync } from 'child_process';
+import { runSync } from '../core/run-command.js';
 import * as fs from 'fs';
 import * as pathModule from 'path';
 
@@ -28,7 +33,7 @@ async function benchmarkOperation(
   name: string,
   category: string,
   timeoutMs: number,
-  fn: () => Promise<void> | void
+  fn: () => Promise<void> | void,
 ): Promise<{ operation: string; durationMs: number; violated: boolean; timeoutMs: number }> {
   const stop = trackExecution(name, category, timeoutMs);
   try {
@@ -57,16 +62,13 @@ async function benchmarkOperation(
 
 async function benchmarkConfigLoad(): Promise<void> {
   console.log(`\n\x1b[36m  ── Config Load ──\x1b[0m`);
-  const result = await benchmarkOperation(
-    'config-load',
-    'process_execution',
-    5000,
-    async () => {
-      const config = await import('../core/timeout-config');
-      config.getTimeoutConfig();
-    }
+  const result = await benchmarkOperation('config-load', 'process_execution', 5000, async () => {
+    const config = await import('../core/timeout-config');
+    config.getTimeoutConfig();
+  });
+  console.log(
+    `    Config Load:          ${result.durationMs}ms ${result.violated ? '\x1b[31m⚠ VIOLATION\x1b[0m' : '\x1b[32m✓\x1b[0m'}`,
   );
-  console.log(`    Config Load:          ${result.durationMs}ms ${result.violated ? '\x1b[31m⚠ VIOLATION\x1b[0m' : '\x1b[32m✓\x1b[0m'}`);
 }
 
 async function benchmarkFilesystemOps(): Promise<void> {
@@ -75,21 +77,27 @@ async function benchmarkFilesystemOps(): Promise<void> {
   const r1 = await benchmarkOperation('read-config', 'process_execution', 5000, () => {
     fs.readFileSync(pathModule.resolve(process.cwd(), 'config', 'timeout-config.json'), 'utf-8');
   });
-  console.log(`    Read config file:     ${r1.durationMs}ms ${r1.violated ? '\x1b[31m⚠\x1b[0m' : '\x1b[32m✓\x1b[0m'}`);
+  console.log(
+    `    Read config file:     ${r1.durationMs}ms ${r1.violated ? '\x1b[31m⚠\x1b[0m' : '\x1b[32m✓\x1b[0m'}`,
+  );
 
   const r2 = await benchmarkOperation('list-dir', 'process_execution', 5000, () => {
     fs.readdirSync(pathModule.resolve(process.cwd(), 'src'));
   });
-  console.log(`    List src/ directory:  ${r2.durationMs}ms ${r2.violated ? '\x1b[31m⚠\x1b[0m' : '\x1b[32m✓\x1b[0m'}`);
+  console.log(
+    `    List src/ directory:  ${r2.durationMs}ms ${r2.violated ? '\x1b[31m⚠\x1b[0m' : '\x1b[32m✓\x1b[0m'}`,
+  );
 }
 
 async function benchmarkTypecheck(): Promise<void> {
   console.log(`\n\x1b[36m  ── TypeScript Typecheck ──\x1b[0m`);
   const tscTimeout = getTimeout('process_execution.tsc_typecheck_ms', 120000);
   const r = await benchmarkOperation('tsc-typecheck', 'process_execution', tscTimeout, () => {
-    execSync('npx tsc --noEmit', { timeout: tscTimeout, stdio: 'pipe' });
+    runSync('npx', ['tsc', '--noEmit'], { timeout: tscTimeout, stdio: 'pipe' });
   });
-  console.log(`    tsc --noEmit:         ${r.durationMs}ms ${r.violated ? '\x1b[31m⚠ VIOLATION\x1b[0m' : '\x1b[32m✓\x1b[0m'} (threshold: ${r.timeoutMs}ms)`);
+  console.log(
+    `    tsc --noEmit:         ${r.durationMs}ms ${r.violated ? '\x1b[31m⚠ VIOLATION\x1b[0m' : '\x1b[32m✓\x1b[0m'} (threshold: ${r.timeoutMs}ms)`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -103,9 +111,13 @@ function printSummary(): void {
   console.log(`  Environment: \x1b[33m${getActiveEnvironment()}\x1b[0m`);
   console.log(`\x1b[36m═══════════════════════════════════════\x1b[0m`);
   console.log(`  Total Executions : \x1b[32m${m.totalExecutions}\x1b[0m`);
-  console.log(`  Total Violations : ${m.totalViolations > 0 ? '\x1b[31m' : '\x1b[32m'}${m.totalViolations}\x1b[0m`);
+  console.log(
+    `  Total Violations : ${m.totalViolations > 0 ? '\x1b[31m' : '\x1b[32m'}${m.totalViolations}\x1b[0m`,
+  );
   console.log(`  Violation Rate   : ${(m.violationRate * 100).toFixed(1)}%`);
-  console.log(`  Active Alerts    : ${m.activeAlerts > 0 ? '\x1b[33m' : '\x1b[32m'}${m.activeAlerts}\x1b[0m`);
+  console.log(
+    `  Active Alerts    : ${m.activeAlerts > 0 ? '\x1b[33m' : '\x1b[32m'}${m.activeAlerts}\x1b[0m`,
+  );
 
   const p95Color = m.p95Ms > 50000 ? '\x1b[31m' : m.p95Ms > 10000 ? '\x1b[33m' : '\x1b[32m';
   const avgColor = m.avgMs > 30000 ? '\x1b[31m' : m.avgMs > 5000 ? '\x1b[33m' : '\x1b[32m';
@@ -117,7 +129,9 @@ function printSummary(): void {
     console.log(`\n  \x1b[1mSlowest Operations\x1b[0m`);
     for (const r of m.topSlowest.slice(0, 5)) {
       const icon = r.violated ? '\x1b[31m⚠\x1b[0m' : '\x1b[32m✓\x1b[0m';
-      console.log(`  ${icon} ${r.operation.padEnd(30)} ${r.durationMs}ms (threshold: ${r.timeoutMs}ms)`);
+      console.log(
+        `  ${icon} ${r.operation.padEnd(30)} ${r.durationMs}ms (threshold: ${r.timeoutMs}ms)`,
+      );
     }
   }
 
@@ -157,7 +171,7 @@ async function main() {
   printSummary();
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('\x1b[31mProfile error:\x1b[0m', err);
   process.exit(1);
 });

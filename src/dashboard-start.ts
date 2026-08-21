@@ -54,11 +54,18 @@ async function waitForServer(url: string, maxAttempts = 20, delayMs = 1000): Pro
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const ok = await new Promise<boolean>((resolve) => {
-        const req = http.get(url, { timeout: getEffectiveProcessTimeout('health_check') }, (res) => {
-          resolve(res.statusCode === 200);
-        });
+        const req = http.get(
+          url,
+          { timeout: getEffectiveProcessTimeout('health_check') },
+          (res) => {
+            resolve(res.statusCode === 200);
+          },
+        );
         req.on('error', () => resolve(false));
-        req.on('timeout', () => { req.destroy(); resolve(false); });
+        req.on('timeout', () => {
+          req.destroy();
+          resolve(false);
+        });
       });
       if (ok) return true;
     } catch {
@@ -86,29 +93,24 @@ async function startViteDev(wsPort: number, vitePort: number): Promise<void> {
   // (already handled by getFreePort)
 
   if (!opts.quiet) {
-    console.log(`[DASHBOARD] Starting Vite on port ${vitePort} (WS backend → localhost:${wsPort})...`);
+    console.log(
+      `[DASHBOARD] Starting Vite on port ${vitePort} (WS backend → localhost:${wsPort})...`,
+    );
   }
 
-  const child = spawn(
-    process.execPath,
-    [
-      path.join(WEB_APP_DIR, 'node_modules', '.bin', 'vite'),
-      '--host',
-      '--port',
-      String(vitePort),
-    ],
-    {
-      cwd: WEB_APP_DIR,
-      stdio: 'ignore',
-      detached: true,
-      windowsHide: true,
-      env: {
-        ...process.env,
-        WS_PORT: String(wsPort),
-        VITE_DEV_PORT: String(vitePort),
-      },
+  // Use .cmd on Windows (vite without .cmd is a Unix shell script, not executable by node.exe)
+  const viteBin = path.join(WEB_APP_DIR, 'node_modules', '.bin', 'vite.cmd');
+  const child = spawn('cmd.exe', ['/c', viteBin, '--host', '--port', String(vitePort)], {
+    cwd: WEB_APP_DIR,
+    stdio: 'ignore',
+    detached: true,
+    windowsHide: true,
+    env: {
+      ...process.env,
+      WS_PORT: String(wsPort),
+      VITE_DEV_PORT: String(vitePort),
     },
-  );
+  });
 
   child.unref();
   if (child.pid) {
@@ -181,7 +183,9 @@ async function main(): Promise<void> {
         windowsHide: true,
       });
       await new Promise<void>((resolve, reject) => {
-        install.on('close', (code) => (code === 0 ? resolve() : reject(new Error('npm install failed'))));
+        install.on('close', (code) =>
+          code === 0 ? resolve() : reject(new Error('npm install failed')),
+        );
         install.on('error', reject);
       });
     }

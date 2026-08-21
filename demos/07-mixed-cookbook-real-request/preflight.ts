@@ -20,11 +20,21 @@ const args = process.argv.slice(2);
 const force = args.includes('--force') || args.includes('-Force');
 const skipPreflight = args.includes('--skip-preflight') || args.includes('-SkipPreflight');
 
-function step(msg: string): void { console.log(`\n=== ${msg} ===`); }
-function ok(msg: string): void { console.log(`[OK] ${msg}`); }
-function warn(msg: string): void { console.log(`[WARN] ${msg}`); }
-function info(msg: string): void { console.log(`[INFO] ${msg}`); }
-function fail(msg: string): void { console.error(`[FAIL] ${msg}`); }
+function step(msg: string): void {
+  console.log(`\n=== ${msg} ===`);
+}
+function ok(msg: string): void {
+  console.log(`[OK] ${msg}`);
+}
+function warn(msg: string): void {
+  console.log(`[WARN] ${msg}`);
+}
+function info(msg: string): void {
+  console.log(`[INFO] ${msg}`);
+}
+function fail(msg: string): void {
+  console.error(`[FAIL] ${msg}`);
+}
 
 function checkCommand(cmd: string): boolean {
   try {
@@ -85,7 +95,11 @@ async function main(): Promise<void> {
   step('Verifying task-tracker CLI');
   const trackerRoot = join(ROOT, 'demos', 'shared', 'task-tracker');
   try {
-    const result = execSync('go run . stats', { cwd: trackerRoot, encoding: 'utf8', timeout: 30000 }).trim();
+    const result = execSync('go run . stats', {
+      cwd: trackerRoot,
+      encoding: 'utf8',
+      timeout: 30000,
+    }).trim();
     ok(`task-tracker CLI works: ${result}`);
   } catch {
     warn('task-tracker CLI had issues (may self-correct on first real run)');
@@ -97,7 +111,7 @@ async function main(): Promise<void> {
   info('  2. Follow recipe in ./demos/07-mixed-cookbook-real-request/DEMO.md');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('FATAL:', err.message);
   process.exit(1);
 });

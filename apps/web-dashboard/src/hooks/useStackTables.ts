@@ -37,7 +37,10 @@ export function useStackTables() {
       setData({
         skillUsage: { skills: skillJson.data?.skills ?? [], total: skillJson.data?.total ?? 0 },
         tokenUsage: { usage: tokenJson.data?.usage ?? [], total: tokenJson.data?.total ?? 0 },
-        contractResults: { results: contractJson.data?.results ?? [], total: contractJson.data?.total ?? 0 },
+        contractResults: {
+          results: contractJson.data?.results ?? [],
+          total: contractJson.data?.total ?? 0,
+        },
         routingRules: { rules: routingJson.data?.rules ?? [], total: routingJson.data?.total ?? 0 },
       });
     } catch (err) {

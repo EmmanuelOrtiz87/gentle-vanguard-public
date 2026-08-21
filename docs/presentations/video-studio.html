@@ -1,0 +1,1746 @@
+<!doctype html>
+<html lang="es" class="gv-document-page" data-bs-theme="dark">
+  <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Gentle-Vanguard Video Studio - Generación Nativa — Gentle-Vanguard documentation" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gentle-Vanguard Video Studio - Generación Nativa</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg0: #0a0e1a;
+        --bg1: #111827;
+        --bg2: #1f2937;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --text-faint: #64748b;
+        --p: #22d3ee;
+        --p-dim: #0891b2;
+        --s: #a78bfa;
+        --a: #34d399;
+        --warn: #fbbf24;
+        --err: #f87171;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        background: var(--bg0);
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--bg0) 0%, #1a0e2e 100%);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(17, 24, 39, 0.95);
+        border-bottom: 1px solid var(--bg2);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.25rem;
+        background: linear-gradient(90deg, var(--p), var(--s));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .studio-title {
+        color: var(--text-dim);
+        font-size: 0.875rem;
+        margin-left: 1rem;
+        padding-left: 1rem;
+        border-left: 1px solid var(--bg2);
+      }
+
+      .main-container {
+        display: flex;
+        min-height: calc(100vh - 60px);
+      }
+
+      .sidebar {
+        width: 320px;
+        background: var(--bg1);
+        border-right: 1px solid var(--bg2);
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px);
+      }
+
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+
+      .sidebar-title {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .control-group {
+        margin-bottom: 1rem;
+      }
+
+      .control-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        margin-bottom: 0.5rem;
+      }
+
+      .control-select,
+      .control-input {
+        width: 100%;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        padding: 0.625rem;
+        color: var(--text);
+        font-size: 0.8125rem;
+      }
+
+      .control-select:focus,
+      .control-input:focus {
+        outline: none;
+        border-color: var(--p);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .slider {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 4px;
+        background: var(--bg2);
+        border-radius: 2px;
+        outline: none;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--p);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .slider-value {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        min-width: 40px;
+        text-align: right;
+      }
+
+      .btn-generate {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--p), var(--s));
+        border: none;
+        border-radius: 8px;
+        color: var(--bg0);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .btn-generate:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+      }
+
+      .btn-generate:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .canvas-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 1rem;
+        min-width: 0;
+      }
+
+      .canvas-container {
+        flex: 1;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #mainCanvas {
+        max-width: 100%;
+        max-height: calc(100% - 180px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .timeline-container {
+        width: 100%;
+        background: var(--bg1);
+        border-top: 1px solid var(--bg2);
+        padding: 1rem;
+        height: 160px;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+
+      .timeline-track {
+        display: flex;
+        gap: 4px;
+        height: 100%;
+        min-width: max-content;
+      }
+
+      .timeline-frame {
+        width: 80px;
+        height: 100%;
+        background: var(--bg2);
+        border: 2px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .timeline-frame:hover {
+        border-color: var(--p);
+      }
+
+      .timeline-frame.active {
+        border-color: var(--a);
+      }
+
+      .timeline-frame canvas {
+        width: 100%;
+        height: calc(100% - 20px);
+        object-fit: cover;
+      }
+
+      .timeline-frame-number {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: var(--bg0);
+        font-size: 0.625rem;
+        color: var(--text-faint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .playback-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--bg1);
+        border-top: 1px solid var(--bg2);
+      }
+
+      .playback-btn {
+        padding: 0.625rem 1.25rem;
+        background: var(--bg2);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .playback-btn:hover {
+        border-color: var(--p);
+        color: var(--p);
+      }
+
+      .playback-btn.primary {
+        background: linear-gradient(135deg, var(--p), var(--s));
+        border: none;
+        color: var(--bg0);
+        font-weight: 600;
+      }
+
+      .playback-btn.primary:hover {
+        opacity: 0.9;
+      }
+
+      .layers-panel {
+        width: 240px;
+        background: var(--bg1);
+        border-left: 1px solid var(--bg2);
+        padding: 1rem;
+      }
+
+      .scene-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem;
+        background: var(--bg0);
+        border: 1px solid var(--bg2);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .scene-item:hover {
+        border-color: var(--p);
+      }
+
+      .scene-item.active {
+        border-color: var(--p);
+        background: rgba(34, 211, 238, 0.1);
+      }
+
+      .scene-thumb {
+        width: 40px;
+        height: 30px;
+        background: var(--bg2);
+        border-radius: 4px;
+      }
+
+      .scene-info {
+        flex: 1;
+      }
+
+      .scene-name {
+        font-size: 0.75rem;
+        color: var(--text);
+        margin-bottom: 0.125rem;
+      }
+
+      .scene-type {
+        font-size: 0.625rem;
+        color: var(--text-faint);
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.625rem 1rem;
+        background: var(--bg1);
+        border-top: 1px solid var(--bg2);
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+
+      .export-btn {
+        padding: 0.5rem 1rem;
+        background: var(--s);
+        border: none;
+        border-radius: 6px;
+        color: var(--bg0);
+        font-weight: 600;
+        font-size: 0.8125rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .export-btn:hover:not(:disabled) {
+        background: #8b5cf6;
+      }
+
+      .export-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .progress-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 14, 26, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+      }
+
+      .progress-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .progress-spinner {
+        width: 60px;
+        height: 60px;
+        border: 3px solid var(--bg2);
+        border-top-color: var(--p);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-text {
+        color: var(--text-dim);
+        font-size: 0.9375rem;
+      }
+
+      .progress-bar {
+        width: 300px;
+        height: 4px;
+        background: var(--bg1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--p), var(--s));
+        width: 0%;
+        transition: width 0.3s;
+      }
+
+      .template-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+
+      .template-item {
+        aspect-ratio: 16/9;
+        background: var(--bg0);
+        border: 2px solid var(--bg2);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+      }
+
+      .template-item:hover {
+        border-color: var(--p);
+      }
+
+      .template-item.active {
+        border-color: var(--p);
+        background: rgba(34, 211, 238, 0.1);
+      }
+
+      .template-icon {
+        font-size: 1.5rem;
+        color: var(--text-dim);
+      }
+
+      .template-name {
+        font-size: 0.625rem;
+        color: var(--text-dim);
+        text-align: center;
+      }
+
+      .stats-display {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+    </style>
+      <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMain"
+        >
+          <i class="bi bi-list" style="color: var(--p)"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">Configuración Principal</div>
+
+          <div class="control-group">
+            <label class="control-label">Plataforma</label>
+            <select class="control-select" id="platformSelect" onchange="updateDimensions()">
+              <option value="1920,1080">Personalizado</option>
+              <option value="1920,1080" selected>YouTube (1920×1080)</option>
+              <option value="1080,1920">TikTok/Reels (1080×1920)</option>
+              <option value="1080,1080">Instagram (1080×1080)</option>
+              <option value="1280,720">720p (1280×720)</option>
+              <option value="640,360">360p (640×360)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Ancho × Alto (px)</label>
+            <div class="d-flex gap-2">
+              <input
+                type="number"
+                class="control-input"
+                id="widthInput"
+                value="1920"
+                min="100"
+                max="4096"
+                style="width: 50%"
+              />
+              <input
+                type="number"
+                class="control-input"
+                id="heightInput"
+                value="1080"
+                min="100"
+                max="4096"
+                style="width: 50%"
+              />
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Duración (segundos)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                class="slider"
+                id="durationSlider"
+                min="1"
+                max="10"
+                value="3"
+                step="0.5"
+                oninput="updateDuration()"
+              />
+              <span class="slider-value" id="durationValue">3s</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">FPS</label>
+            <select class="control-select" id="fpsSelect">
+              <option value="12">12 fps (cinemático)</option>
+              <option value="24">24 fps (cine)</option>
+              <option value="30" selected>30 fps (estándar)</option>
+              <option value="60">60 fps (suave)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Escena / Generator</div>
+          <div class="template-grid" id="templateGrid">
+            <div
+              class="template-item active"
+              data-generator="futuristic"
+              onclick="selectGenerator(this)"
+            >
+              <i class="bi bi-grid-3x3 template-icon"></i>
+              <span class="template-name">Futuristic</span>
+            </div>
+            <div class="template-item" data-generator="particles" onclick="selectGenerator(this)">
+              <i class="bi bi-circle-fill template-icon"></i>
+              <span class="template-name">Partículas</span>
+            </div>
+            <div class="template-item" data-generator="waves" onclick="selectGenerator(this)">
+              <i class="bi bi-water template-icon"></i>
+              <span class="template-name">Ondas</span>
+            </div>
+            <div class="template-item" data-generator="network" onclick="selectGenerator(this)">
+              <i class="bi bi-diagram-3 template-icon"></i>
+              <span class="template-name">Network</span>
+            </div>
+            <div class="template-item" data-generator="geometric" onclick="selectGenerator(this)">
+              <i class="bi bi-square template-icon"></i>
+              <span class="template-name">Geométrico</span>
+            </div>
+            <div class="template-item" data-generator="gradient" onclick="selectGenerator(this)">
+              <i class="bi bi-brush template-icon"></i>
+              <span class="template-name">Gradient</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-title">Animación</div>
+          <div class="control-group">
+            <label class="control-label">Tipo de Animación</label>
+            <select class="control-select" id="animationSelect">
+              <option value="none" selected>Sin animación</option>
+              <option value="zoomIn">Zoom In</option>
+              <option value="zoomOut">Zoom Out</option>
+              <option value="panLeft">Pan Left</option>
+              <option value="panRight">Pan Right</option>
+              <option value="panUp">Pan Up</option>
+              <option value="panDown">Pan Down</option>
+              <option value="fadeIn">Fade In</option>
+              <option value="fadeOut">Fade Out</option>
+              <option value="rotate">Rotación 360°</option>
+              <option value="pulse">Pulso</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Intensidad</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                class="slider"
+                id="intensitySlider"
+                min="0"
+                max="100"
+                value="50"
+                oninput="updateIntensity()"
+              />
+              <span class="slider-value" id="intensityValue">50%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button class="btn-generate" id="generateBtn" onclick="generateVideo()">
+            <i class="bi bi-magic"></i> Generar Video
+          </button>
+        </div>
+      </aside>
+
+      <main class="canvas-area">
+        <div class="canvas-container">
+          <canvas id="mainCanvas"></canvas>
+          <div class="text-secondary" id="emptyState" style="position: absolute">
+            <i class="bi bi-film" style="font-size: 4rem; opacity: 0.3"></i>
+            <p class="mt-3">Configura los parámetros y presiona "Generar Video"</p>
+          </div>
+        </div>
+
+        <div class="playback-controls">
+          <button class="playback-btn" onclick="goToStart()" title="Ir al inicio">
+            <i class="bi bi-skip-start-fill"></i>
+          </button>
+          <button class="playback-btn" onclick="prevFrame()" title="Frame anterior">
+            <i class="bi bi-skip-backward-fill"></i>
+          </button>
+          <button class="playback-btn primary" id="playBtn" onclick="togglePlayback()">
+            <i class="bi bi-play-fill"></i> Play
+          </button>
+          <button class="playback-btn" onclick="nextFrame()" title="Frame siguiente">
+            <i class="bi bi-skip-forward-fill"></i>
+          </button>
+          <button class="playback-btn" onclick="goToEnd()" title="Ir al final">
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+          <div class="vr" style="background: var(--bg2)"></div>
+          <span style="color: var(--text-dim); font-family: 'JetBrains Mono', monospace">
+            Frame <span id="currentFrame">0</span> / <span id="totalFramesDisplay">0</span>
+          </span>
+        </div>
+
+        <div class="timeline-container">
+          <div class="timeline-track" id="timelineTrack">
+            <!-- Frames thumbnails se generan aquí -->
+          </div>
+        </div>
+      </main>
+
+      <aside class="layers-panel">
+        <div class="sidebar-title">Escenas</div>
+        <div id="scenesList">
+          <div class="scene-item active">
+            <div class="scene-thumb" id="scene1-thumb"></div>
+            <div class="scene-info">
+              <div class="scene-name">Principal</div>
+              <div class="scene-type">Escena única</div>
+            </div>
+            <i class="bi bi-eye" style="color: var(--text-faint)"></i>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bg2)">
+          <div class="sidebar-title">Estadísticas</div>
+          <div style="font-size: 0.75rem; color: var(--text-faint)">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Total Frames:</span>
+              <span id="stat-frames">0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Duración:</span>
+              <span id="stat-duration">0s</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Memoria:</span>
+              <span id="stat-memory">0 MB</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
+      <p class="mt-2 mb-0">
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
+      </p>
+    </footer>
+
+    <!-- Overlay de progreso -->
+    <div class="progress-overlay" id="progressOverlay">
+      <div class="progress-spinner"></div>
+      <div class="progress-text" id="progressText">Generando video...</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="mt-2" style="font-size: 0.75rem; color: var(--text-faint)">
+        Frame <span id="progressFrame">0</span> / <span id="progressTotal">0</span>
+      </div>
+    </div>
+
+    <script>
+      // Estado global
+      let frames = [];
+      let currentFrame = 0;
+      let selectedGenerator = 'futuristic';
+      let isPlaying = false;
+      let playbackInterval = null;
+      let isGenerating = false;
+      let totalFrames = 0;
+
+      // Paletas
+      const palettes = {
+        neon: {
+          primary: '#22d3ee',
+          secondary: '#a78bfa',
+          accent: '#f472b6',
+          bg1: '#0a0e1a',
+          bg2: '#1f2937',
+        },
+        sunset: {
+          primary: '#fbbf24',
+          secondary: '#f87171',
+          accent: '#c084fc',
+          bg1: '#1a0e1a',
+          bg2: '#2e1a0e',
+        },
+        forest: {
+          primary: '#34d399',
+          secondary: '#22d3ee',
+          accent: '#a78bfa',
+          bg1: '#0a1a0e',
+          bg2: '#1a2e1a',
+        },
+        monochrome: {
+          primary: '#94a3b8',
+          secondary: '#64748b',
+          accent: '#cbd5e1',
+          bg1: '#0f172a',
+          bg2: '#1e293b',
+        },
+      };
+
+      // Generadores (copiados de Image Studio)
+      const generators = {
+        gradient: (ctx, width, height, palette, complexity) => {
+          const grad = ctx.createLinearGradient(0, 0, width, height);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(0.5, palette.bg2);
+          grad.addColorStop(1, palette.bg1);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          if (complexity > 3) {
+            ctx.globalAlpha = 0.1;
+            for (let i = 0; i < complexity * 50; i++) {
+              const x = Math.random() * width;
+              const y = Math.random() * height;
+              const r = Math.random() * 2 + 1;
+              ctx.beginPath();
+              ctx.arc(x, y, r, 0, Math.PI * 2);
+              ctx.fillStyle = Math.random() > 0.5 ? palette.primary : palette.secondary;
+              ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+          }
+        },
+
+        futuristic: (ctx, width, height, palette, complexity) => {
+          const grad = ctx.createLinearGradient(0, 0, 0, height);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(1, palette.bg2);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          ctx.strokeStyle = palette.primary + '20';
+          ctx.lineWidth = 1;
+          const gridSize = 40 + complexity * 5;
+
+          ctx.beginPath();
+          for (let x = 0; x <= width; x += gridSize) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+          }
+          for (let y = 0; y <= height; y += gridSize) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+          }
+          ctx.stroke();
+
+          ctx.strokeStyle = palette.primary + '30';
+          ctx.lineWidth = 2;
+          for (let i = 0; i < width; i += gridSize * 3) {
+            ctx.beginPath();
+            ctx.moveTo(i, height);
+            ctx.lineTo(width / 2, height / 3);
+            ctx.stroke();
+          }
+
+          for (let i = 0; i < complexity; i++) {
+            const x = (width / complexity) * i + width / (complexity * 2);
+            const y = height * 0.3 + Math.random() * height * 0.4;
+            const r = 50 + Math.random() * 100;
+
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            const glow = ctx.createRadialGradient(x, y, 0, x, y, r);
+            glow.addColorStop(0, palette.primary + '40');
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fill();
+          }
+        },
+
+        particles: (ctx, width, height, palette, complexity) => {
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          const count = complexity * 200;
+          for (let i = 0; i < count; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const r = Math.random() * (complexity / 2) + 0.5;
+            const alpha = Math.random() * 0.8 + 0.2;
+
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle =
+              i % 3 === 0 ? palette.primary : i % 3 === 1 ? palette.secondary : palette.accent;
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        },
+
+        waves: (ctx, width, height, palette, complexity) => {
+          const grad = ctx.createLinearGradient(0, 0, width, 0);
+          grad.addColorStop(0, palette.bg1);
+          grad.addColorStop(0.5, palette.bg2);
+          grad.addColorStop(1, palette.bg1);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          const waveCount = complexity * 3;
+          for (let w = 0; w < waveCount; w++) {
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+
+            const amplitude = 30 + w * 15;
+            const frequency = 0.01 + w * 0.002;
+            const phase = w * 0.5;
+
+            for (let x = 0; x <= width; x += 5) {
+              const y = height / 2 + Math.sin(x * frequency + phase) * amplitude + w * 20;
+              ctx.lineTo(x, y);
+            }
+
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+
+            const alpha = 0.05 + (w / waveCount) * 0.1;
+            ctx.fillStyle = w % 2 === 0 ? palette.primary : palette.secondary;
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        },
+
+        geometric: (ctx, width, height, palette, complexity) => {
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          const count = complexity * 15;
+          for (let i = 0; i < count; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = 20 + Math.random() * 80;
+            const shape = i % 3;
+
+            ctx.fillStyle = i % 2 === 0 ? palette.primary + '20' : palette.secondary + '20';
+            ctx.strokeStyle = i % 2 === 0 ? palette.primary + '60' : palette.secondary + '60';
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            if (shape === 0) {
+              ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+            } else if (shape === 1) {
+              ctx.rect(x - size / 2, y - size / 2, size, size);
+            } else {
+              ctx.moveTo(x, y - size / 2);
+              ctx.lineTo(x - size / 2, y + size / 2);
+              ctx.lineTo(x + size / 2, y + size / 2);
+              ctx.closePath();
+            }
+            ctx.fill();
+            ctx.stroke();
+          }
+        },
+
+        network: (ctx, width, height, palette, complexity) => {
+          ctx.fillStyle = palette.bg1;
+          ctx.fillRect(0, 0, width, height);
+
+          const nodes = [];
+          const nodeCount = complexity * 8;
+          for (let i = 0; i < nodeCount; i++) {
+            nodes.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              r: 3 + Math.random() * 5,
+            });
+          }
+
+          ctx.strokeStyle = palette.primary + '30';
+          ctx.lineWidth = 1;
+          const connectionDist = 150;
+
+          for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+              const dx = nodes[i].x - nodes[j].x;
+              const dy = nodes[i].y - nodes[j].y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist < connectionDist) {
+                const alpha = 1 - dist / connectionDist;
+                ctx.strokeStyle =
+                  palette.primary +
+                  Math.floor(alpha * 50)
+                    .toString(16)
+                    .padStart(2, '0');
+                ctx.beginPath();
+                ctx.moveTo(nodes[i].x, nodes[i].y);
+                ctx.lineTo(nodes[j].x, nodes[j].y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          nodes.forEach((node, i) => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+            ctx.fillStyle =
+              i % 3 === 0 ? palette.primary : i % 3 === 1 ? palette.secondary : palette.accent;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r + 3, 0, Math.PI * 2);
+            const glow = ctx.createRadialGradient(
+              node.x,
+              node.y,
+              node.r,
+              node.x,
+              node.y,
+              node.r + 10,
+            );
+            glow.addColorStop(0, palette.primary + '40');
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fill();
+          });
+        },
+      };
+
+      // Animaciones
+      const applyAnimation = {
+        none: () => {},
+
+        zoomIn: (ctx, width, height, progress, intensity) => {
+          const scale = 1 + progress * (intensity / 100);
+          ctx.translate(width / 2, height / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(-width / 2, -height / 2);
+        },
+
+        zoomOut: (ctx, width, height, progress, intensity) => {
+          const scale = 1 + (1 - progress) * (intensity / 100);
+          ctx.translate(width / 2, height / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(-width / 2, -height / 2);
+        },
+
+        panLeft: (ctx, width, height, progress, intensity) => {
+          const offset = progress * width * (intensity / 200);
+          ctx.translate(-offset, 0);
+        },
+
+        panRight: (ctx, width, height, progress, intensity) => {
+          const offset = progress * width * (intensity / 200);
+          ctx.translate(offset, 0);
+        },
+
+        panUp: (ctx, width, height, progress, intensity) => {
+          const offset = progress * height * (intensity / 200);
+          ctx.translate(0, -offset);
+        },
+
+        panDown: (ctx, width, height, progress, intensity) => {
+          const offset = progress * height * (intensity / 200);
+          ctx.translate(0, offset);
+        },
+
+        fadeIn: (ctx, width, height, progress, intensity) => {
+          ctx.globalAlpha = progress;
+        },
+
+        fadeOut: (ctx, width, height, progress, intensity) => {
+          ctx.globalAlpha = 1 - progress;
+        },
+
+        rotate: (ctx, width, height, progress, intensity) => {
+          ctx.translate(width / 2, height / 2);
+          ctx.rotate(progress * Math.PI * 2 * (intensity / 100));
+          ctx.translate(-width / 2, -height / 2);
+        },
+
+        pulse: (ctx, width, height, progress, intensity) => {
+          const scale = 1 + Math.sin(progress * Math.PI * 2) * (intensity / 200);
+          ctx.translate(width / 2, height / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(-width / 2, -height / 2);
+        },
+      };
+
+      // Inicialización
+      function updateDimensions() {
+        const [w, h] = document.getElementById('platformSelect').value.split(',').map(Number);
+        document.getElementById('widthInput').value = w;
+        document.getElementById('heightInput').value = h;
+        document.getElementById('resolutionDisplay').textContent = `${w}×${h}`;
+      }
+
+      function updateDuration() {
+        const val = document.getElementById('durationSlider').value;
+        document.getElementById('durationValue').textContent = val + 's';
+      }
+
+      function updateIntensity() {
+        const val = document.getElementById('intensitySlider').value;
+        document.getElementById('intensityValue').textContent = val + '%';
+      }
+
+      function selectGenerator(el) {
+        document
+          .querySelectorAll('.template-item')
+          .forEach((item) => item.classList.remove('active'));
+        el.classList.add('active');
+        selectedGenerator = el.dataset.generator;
+      }
+
+      // Generación de video
+      async function generateVideo() {
+        if (isGenerating) return;
+
+        const width = parseInt(document.getElementById('widthInput').value);
+        const height = parseInt(document.getElementById('heightInput').value);
+        const duration = parseFloat(document.getElementById('durationSlider').value);
+        const fps = parseInt(document.getElementById('fpsSelect').value);
+        const complexity = 5;
+        const animation = document.getElementById('animationSelect').value;
+        const intensity = parseInt(document.getElementById('intensitySlider').value);
+
+        totalFrames = Math.floor(duration * fps);
+
+        isGenerating = true;
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('progressOverlay').classList.add('active');
+        document.getElementById('progressTotal').textContent = totalFrames;
+
+        frames = [];
+
+        // Canvas temporal para generar frames
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const palette = palettes.neon;
+
+        for (let i = 0; i < totalFrames; i++) {
+          const progress = i / (totalFrames - 1 || 1);
+
+          // Limpiar canvas
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, width, height);
+          ctx.globalAlpha = 1;
+
+          // Guardar estado
+          ctx.save();
+
+          // Aplicar animación
+          const animFunc = applyAnimation[animation] || applyAnimation.none;
+          animFunc(ctx, width, height, progress, intensity);
+
+          // Generar imagen base
+          const genFunc = generators[selectedGenerator] || generators.gradient;
+          genFunc(ctx, width, height, palette, complexity);
+
+          // Restaurar estado
+          ctx.restore();
+
+          // Guardar frame
+          const frameCanvas = document.createElement('canvas');
+          frameCanvas.width = width;
+          frameCanvas.height = height;
+          frameCanvas.getContext('2d').drawImage(canvas, 0, 0);
+          frames.push(frameCanvas);
+
+          // Actualizar progreso
+          const percent = ((i + 1) / totalFrames) * 100;
+          document.getElementById('progressFill').style.width = percent + '%';
+          document.getElementById('progressFrame').textContent = i + 1;
+
+          // Permitir UI updates
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        // Mostrar en canvas principal
+        const mainCanvas = document.getElementById('mainCanvas');
+        mainCanvas.width = width;
+        mainCanvas.height = height;
+
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Crear timeline
+        createTimeline();
+
+        // Mostrar primer frame
+        currentFrame = 0;
+        displayFrame(0);
+        updateControls();
+
+        // Habilitar exports
+        document.getElementById('exportGifBtn').disabled = false;
+        document.getElementById('exportFramesBtn').disabled = false;
+        document.getElementById('exportMp4Btn').disabled = false;
+
+        // Actualizar estadísticas
+        document.getElementById('stat-frames').textContent = totalFrames;
+        document.getElementById('stat-duration').textContent = duration + 's';
+
+        // Calcular memoria aproximada (bytes: width*height*4*frames / 1024 / 1024)
+        const memoryMB = ((width * height * 4 * totalFrames) / 1024 / 1024).toFixed(1);
+        document.getElementById('stat-memory').textContent = memoryMB + ' MB';
+
+        // Ocultar overlay
+        document.getElementById('progressOverlay').classList.remove('active');
+        document.getElementById('generateBtn').disabled = false;
+        isGenerating = false;
+
+        // Actualizar display
+        document.getElementById('totalFramesDisplay').textContent = totalFrames;
+
+        // PERSISTENCIA: Guardar proyecto en localStorage
+        saveVideoProject();
+      }
+
+      // Guardar proyecto de video
+      function saveVideoProject() {
+        try {
+          // Solo guardar metadata, no todos los frames (demasiado grande)
+          const projectData = {
+            name: `video_${Date.now()}`,
+            generator: selectedGenerator,
+            animation: document.getElementById('animationSelect').value,
+            duration: parseFloat(document.getElementById('durationSlider').value),
+            fps: parseInt(document.getElementById('fpsSelect').value),
+            frameCount: totalFrames,
+            width: parseInt(document.getElementById('widthInput').value),
+            height: parseInt(document.getElementById('heightInput').value),
+            thumbnail: frames.length > 0 ? frames[0].toDataURL('image/png') : null,
+            timestamp: Date.now(),
+            saved: new Date().toISOString(),
+          };
+
+          // Obtener proyectos existentes
+          let projects = JSON.parse(localStorage.getItem('videoStudioProjects') || '[]');
+          projects.push(projectData);
+
+          // Mantener solo últimos 10 proyectos
+          if (projects.length > 10) {
+            projects = projects.slice(-10);
+          }
+
+          localStorage.setItem('videoStudioProjects', JSON.stringify(projects));
+          console.log('✅ Proyecto de video guardado:', projectData.name);
+
+          // También guardar en Asset Manager
+          if (typeof AssetManager !== 'undefined' && window.assetManager) {
+            window.assetManager.videoStudioExport({
+              name: projectData.name,
+              dataUrl: projectData.thumbnail,
+              frameCount: projectData.frameCount,
+              duration: projectData.duration,
+              fps: projectData.fps,
+              generator: projectData.generator,
+              animation: projectData.animation,
+            });
+          }
+        } catch (e) {
+          console.warn('No se pudo guardar proyecto:', e);
+        }
+      }
+
+      // Cargar proyectos guardados
+      function loadVideoProjects() {
+        try {
+          const projects = JSON.parse(localStorage.getItem('videoStudioProjects') || '[]');
+          console.log(`🎬 ${projects.length} proyectos de video guardados`);
+          return projects;
+        } catch (e) {
+          console.warn('Error cargando proyectos:', e);
+          return [];
+        }
+      }
+
+      function createTimeline() {
+        const track = document.getElementById('timelineTrack');
+        track.innerHTML = '';
+
+        // Mostrar frame cada X (para no sobrecargar)
+        const skip = Math.max(1, Math.floor(frames.length / 50));
+
+        frames.forEach((frame, i) => {
+          if (i % skip !== 0 && i !== frames.length - 1) return;
+
+          const frameEl = document.createElement('div');
+          frameEl.className = 'timeline-frame';
+          frameEl.dataset.index = i;
+          frameEl.onclick = () => {
+            currentFrame = i;
+            displayFrame(i);
+            updateControls();
+          };
+
+          const scale = 80 / frame.width;
+          const displayCanvas = document.createElement('canvas');
+          displayCanvas.width = 80;
+          displayCanvas.height = frame.height * scale;
+          const dctx = displayCanvas.getContext('2d');
+          dctx.drawImage(frame, 0, 0, 80, displayCanvas.height);
+
+          frameEl.appendChild(displayCanvas);
+
+          const numEl = document.createElement('div');
+          numEl.className = 'timeline-frame-number';
+          numEl.textContent = i + 1;
+          frameEl.appendChild(numEl);
+
+          track.appendChild(frameEl);
+        });
+      }
+
+      function displayFrame(index) {
+        if (index < 0 || index >= frames.length) return;
+
+        const mainCanvas = document.getElementById('mainCanvas');
+        const ctx = mainCanvas.getContext('2d');
+        ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+        ctx.drawImage(frames[index], 0, 0);
+
+        // Actualizar display
+        document.getElementById('currentFrame').textContent = index + 1;
+
+        // Actualizar timeline activo
+        document.querySelectorAll('.timeline-frame').forEach((el) => el.classList.remove('active'));
+        const activeEl = document.querySelector(`.timeline-frame[data-index="${index}"]`);
+        if (activeEl) activeEl.classList.add('active');
+      }
+
+      function updateControls() {
+        document.getElementById('currentFrame').textContent = currentFrame + 1;
+      }
+
+      // Playback controls
+      function togglePlayback() {
+        if (isPlaying) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      }
+
+      function startPlayback() {
+        if (frames.length === 0) return;
+
+        isPlaying = true;
+        const btn = document.getElementById('playBtn');
+        btn.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+
+        const fps = parseInt(document.getElementById('fpsSelect').value);
+        const interval = 1000 / fps;
+
+        playbackInterval = setInterval(() => {
+          currentFrame++;
+          if (currentFrame >= frames.length) {
+            currentFrame = 0;
+          }
+          displayFrame(currentFrame);
+        }, interval);
+      }
+
+      function stopPlayback() {
+        isPlaying = false;
+        const btn = document.getElementById('playBtn');
+        btn.innerHTML = '<i class="bi bi-play-fill"></i> Play';
+        clearInterval(playbackInterval);
+      }
+
+      function prevFrame() {
+        stopPlayback();
+        if (currentFrame > 0) {
+          currentFrame--;
+          displayFrame(currentFrame);
+        }
+      }
+
+      function nextFrame() {
+        stopPlayback();
+        if (currentFrame < frames.length - 1) {
+          currentFrame++;
+          displayFrame(currentFrame);
+        }
+      }
+
+      function goToStart() {
+        stopPlayback();
+        currentFrame = 0;
+        displayFrame(0);
+      }
+
+      function goToEnd() {
+        stopPlayback();
+        currentFrame = frames.length - 1;
+        displayFrame(currentFrame);
+      }
+
+      // Export
+      function exportGIF() {
+        if (frames.length === 0) return;
+
+        alert('Generando GIF... Esto puede tardar un momento.');
+
+        const fps = parseInt(document.getElementById('fpsSelect').value);
+        const delay = Math.floor(1000 / fps);
+
+        // Usar canvas para crear GIF simple (en una implementación real usaríamos GIF.js)
+        // Por ahora, exportamos frames individuales
+        exportFrames();
+      }
+
+      function exportFrames() {
+        if (frames.length === 0) return;
+
+        const width = frames[0].width;
+        const height = frames[0].height;
+
+        // Descargar cada frame
+        frames.forEach((frame, i) => {
+          setTimeout(() => {
+            const link = document.createElement('a');
+            const num = (i + 1).toString().padStart(4, '0');
+            link.download = `frame_${num}.png`;
+            link.href = frame.toDataURL('image/png');
+            link.click();
+          }, i * 100); // Stagger downloads
+        });
+      }
+
+      function exportMP4() {
+        if (frames.length === 0) return;
+
+        // Usar MediaRecorder si está disponible
+        if (
+          typeof MediaRecorder !== 'undefined' &&
+          typeof document.createElement('canvas').captureStream === 'function'
+        ) {
+          alert('Usando WebCodecs API para MP4... Se abrirá diálogo de grabación.');
+
+          const mainCanvas = document.getElementById('mainCanvas');
+          const stream = mainCanvas.captureStream();
+
+          const options = {
+            mimeType: 'video/webm;codecs=vp9',
+          };
+
+          const mediaRecorder = new MediaRecorder(stream, options);
+          const chunks = [];
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'video_animation.webm';
+            link.href = url;
+            link.click();
+          };
+
+          // Grabar durante el playback
+          mediaRecorder.start();
+          goToStart();
+          startPlayback();
+
+          setTimeout(
+            () => {
+              stopPlayback();
+              mediaRecorder.stop();
+            },
+            (frames.length * 1000) / parseInt(document.getElementById('fpsSelect').value) + 100,
+          );
+        } else {
+          alert(
+            'WebCodecs API no disponible. Exportando frames PNG para composición externa con FFmpeg.',
+          );
+          exportFrames();
+        }
+      }
+
+      // Ayuda
+      function showHelp() {
+        alert(`Gentle-Vanguard Video Studio
+
+🎬 GENERADORES DE VIDEO:
+• Futuristic: Grid cyberpunk con perspective
+• Partículas: Elementos orgánicos flotantes
+• Ondas: Patrones de ondas abstractas
+• Network: Nodos y conexiones tipo tech
+• Geométrico: Formas geométricas
+• Gradient: Fondos suaves con textura
+
+📐 CONFIGURACIÓN:
+• Dimensiones: Personalizar o presets
+• Duración: 1-10 segundos
+• FPS: 12/24/30/60 fps
+• Animaciones: Zoom, pan, fade, rotate, pulse
+
+💾 EXPORTAR:
+• GIF: Animado (frames estáticos)
+• Frames PNG: Secuencia para edición
+• MP4/WebM: Vía WebCodecs API (si disponible)
+
+⌨️ CONTROLES:
+• Play/Pause: Reproducción
+• Arrows/Flechas: Frame anterior/siguiente
+• Home/End: Inicio/final
+• Click en timeline: Ir a frame
+
+✨ 100% NATIVO - Sin APIs externas`);
+      }
+
+      // Event listeners
+      document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'ArrowLeft':
+            prevFrame();
+            break;
+          case 'ArrowRight':
+            nextFrame();
+            break;
+          case 'Home':
+            goToStart();
+            break;
+          case 'End':
+            goToEnd();
+            break;
+          case ' ':
+            e.preventDefault();
+            togglePlayback();
+            break;
+        }
+      });
+
+      document.getElementById('fpsSelect').addEventListener('change', (e) => {
+        document.getElementById('fpsDisplay').textContent = e.target.value + ' fps';
+      });
+
+      // Inicializar
+      updateDimensions();
+      updateDuration();
+
+      // Recuperar configuración del CMS
+      const savedConfig = localStorage.getItem('videoStudioConfig');
+      const launchTime = parseInt(localStorage.getItem('videoStudioLaunchTime') || '0');
+      const timeSinceLaunch = Date.now() - launchTime;
+
+      if (savedConfig && timeSinceLaunch < 10000) {
+        try {
+          const config = JSON.parse(savedConfig);
+
+          // Aplicar configuración
+          if (config.generator) {
+            document.querySelectorAll('.template-item').forEach((el) => {
+              el.classList.remove('active');
+              if (el.dataset.generator === config.generator) {
+                el.classList.add('active');
+                selectedGenerator = config.generator;
+              }
+            });
+          }
+
+          if (config.animation) {
+            document.getElementById('animationSelect').value = config.animation;
+          }
+
+          if (config.duration) {
+            document.getElementById('durationSlider').value = config.duration;
+            updateDuration();
+          }
+
+          // Limpiar para no repetir
+          localStorage.removeItem('videoStudioConfig');
+          localStorage.removeItem('videoStudioLaunchTime');
+        } catch (e) {
+          console.error('Error parsing video studio config:', e);
+        }
+      }
+
+      // Cargar proyectos guardados
+      loadVideoProjects();
+    </script>
+  </body>
+</html>

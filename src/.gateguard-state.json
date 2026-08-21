@@ -1,9 +1,0 @@
-{
-  "codegraph": {
-    "ConsecutiveFailures": 3,
-    "LastFailure": {
-      "Timestamp": "2026-07-24T17:30:26.504Z",
-      "Reason": "codegraph status returned exit code null"
-    }
-  }
-}

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * MCP Bridge
- * 
+ *
  * Bridge between MCP (Model Context Protocol) and the Gentle-Vanguard stack.
  * Provides standardized interface for MCP tool calls.
- * 
+ *
  * Usage: npx tsx src/mcp-bridge.ts [--port PORT]
  */
 
@@ -39,10 +39,10 @@ const tools = [
       type: 'object',
       properties: {
         query: { type: 'string' },
-        limit: { type: 'number', default: 10 }
+        limit: { type: 'number', default: 10 },
       },
-      required: ['query']
-    }
+      required: ['query'],
+    },
   },
   {
     name: 'engram_save',
@@ -52,18 +52,18 @@ const tools = [
       properties: {
         title: { type: 'string' },
         message: { type: 'string' },
-        category: { type: 'string' }
+        category: { type: 'string' },
       },
-      required: ['title', 'message']
-    }
+      required: ['title', 'message'],
+    },
   },
   {
     name: 'session_status',
     description: 'Get current session status',
     parameters: {
       type: 'object',
-      properties: {}
-    }
+      properties: {},
+    },
   },
   {
     name: 'metrics_get',
@@ -71,16 +71,16 @@ const tools = [
     parameters: {
       type: 'object',
       properties: {
-        type: { type: 'string', enum: ['token', 'cost', 'quality'] }
-      }
-    }
-  }
+        type: { type: 'string', enum: ['token', 'cost', 'quality'] },
+      },
+    },
+  },
 ];
 
 function handleRequest(req: MCPRequest): MCPResponse {
   const response: MCPResponse = {
     jsonrpc: '2.0',
-    id: req.id
+    id: req.id,
   };
 
   switch (req.method) {
@@ -88,12 +88,12 @@ function handleRequest(req: MCPRequest): MCPResponse {
       response.result = {
         protocolVersion: '2024-11-05',
         capabilities: {
-          tools: {}
+          tools: {},
         },
         serverInfo: {
           name: 'gentle-vanguard-mcp',
-          version: '1.0.0'
-        }
+          version: '1.0.0',
+        },
       };
       break;
 
@@ -107,16 +107,16 @@ function handleRequest(req: MCPRequest): MCPResponse {
         content: [
           {
             type: 'text',
-            text: `Tool ${toolName} executed successfully`
-          }
-        ]
+            text: `Tool ${toolName} executed successfully`,
+          },
+        ],
       };
       break;
 
     default:
       response.error = {
         code: -32601,
-        message: `Method not found: ${req.method}`
+        message: `Method not found: ${req.method}`,
       };
   }
 
@@ -132,7 +132,7 @@ function main(): void {
     }
 
     let body = '';
-    req.on('data', chunk => body += chunk);
+    req.on('data', (chunk) => (body += chunk));
     req.on('end', () => {
       try {
         const request: MCPRequest = JSON.parse(body);
@@ -141,11 +141,13 @@ function main(): void {
         res.end(JSON.stringify(response));
       } catch {
         res.writeHead(400);
-        res.end(JSON.stringify({
-          jsonrpc: '2.0',
-          id: null,
-          error: { code: -32700, message: 'Parse error' }
-        }));
+        res.end(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            id: null,
+            error: { code: -32700, message: 'Parse error' },
+          }),
+        );
       }
     });
   });
