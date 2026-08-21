@@ -252,9 +252,9 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     }
   }
 
-  // 10. CI scripts (TS migration: original .ps1 paths were migrated to src/)
-  // The public distribution is executable source, not a documentation-only mirror.
-  // Copy the complete TypeScript runtime so transitive imports cannot be orphaned.
+  // 10. Public runtime and CI inputs.
+  // The public distribution is executable source, but its workflow is deliberately
+  // narrower than the private engineering CI.
   rmIf(path.join(targetDir, 'src'), { recurse: true });
   copyIf(path.join(privateRepo, 'src'), path.join(targetDir, 'src'), { recurse: true });
   // Runtime state is local-only and must never cross the publication boundary.
@@ -340,24 +340,13 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     }
   }
 
-  // 10d. CI workflows (adapted: branches develop → main)
+  // 10d. Public workflow only. Private CI and release workflows must not run against
+  // the public distribution: their assertions include private operational assets.
   const workflowSrcDir = path.join(privateRepo, '.github', 'workflows');
   const workflowDstDir = path.join(targetDir, '.github', 'workflows');
+  rmIf(workflowDstDir, { recurse: true });
   mkdirp(workflowDstDir);
-  for (const wf of [
-    'ci.yml',
-    'security.yml',
-    'reusable-lint.yml',
-    'reusable-security.yml',
-    'reusable-test.yml',
-    'reusable-governance.yml',
-    'dashboard-auto-refresh.yml',
-    'labeler.yml',
-    'pr.yml',
-    'push.yml',
-    'release.yml',
-    'sync-public.yml',
-  ]) {
+  for (const wf of ['public-smoke.yml']) {
     const src = path.join(workflowSrcDir, wf);
     if (!fs.existsSync(src)) continue;
     let content = fs.readFileSync(src, 'utf-8');
