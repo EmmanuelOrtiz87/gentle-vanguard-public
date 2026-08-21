@@ -69,14 +69,20 @@ function loadBudget(): { daily: number; perSession: number; soft: number; hard: 
 }
 
 function readSessionId(): string {
-  const fp = path.join(SESSION_DIR, 'session-current.json');
-  try {
-    if (fs.existsSync(fp)) {
+  const candidates = [
+    path.join(SESSION_DIR, 'session-current.json'),
+    path.join(SESSION_DIR, 'token-usage.json'),
+    path.join(RUNTIME_DIR, 'session-current.json'),
+  ];
+  for (const fp of candidates) {
+    try {
+      if (!fs.existsSync(fp)) continue;
       const data = JSON.parse(fs.readFileSync(fp, 'utf-8')) as Record<string, unknown>;
-      return String(data.sessionId ?? data.id ?? '').trim() || 'unknown';
+      const id = String(data.sessionId ?? data.id ?? '').trim();
+      if (id) return id;
+    } catch {
+      /* try the next durable session marker */
     }
-  } catch {
-    /* ignore */
   }
   return 'unknown';
 }

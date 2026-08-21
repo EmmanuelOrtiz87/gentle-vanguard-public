@@ -36,6 +36,22 @@ import { execSync } from 'child_process';
 const LOCKS_DIR = join(resolve(process.cwd()), '.runtime', 'locks');
 // Stale lock threshold: 30 seconds to consider stale
 const STALE_THRESHOLD_MS = 30000;
+const activeLocks = new Set<ProcessLock>();
+let shutdownHandlersInstalled = false;
+
+function installShutdownHandlers(): void {
+  if (shutdownHandlersInstalled) return;
+  shutdownHandlersInstalled = true;
+  process.once('exit', () => {
+    for (const lock of activeLocks) lock.release();
+  });
+  const shutdown = () => {
+    for (const lock of activeLocks) lock.release();
+    process.exit(0);
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+}
 
 // ─── Process Lock Class ──────────────────────────────────────────────────────
 export class ProcessLock {
@@ -115,6 +131,7 @@ export class ProcessLock {
         if (lock && lock.pid === process.pid) {
           unlinkSync(this.lockFile);
           this.acquired = false;
+          activeLocks.delete(this);
           console.log(`[LOCK] ${this.name}: Lock released`);
         }
       }
@@ -169,16 +186,9 @@ export class ProcessLock {
       writeFileSync(this.lockFile, content, 'utf-8');
       this.acquired = true;
       
-      // Auto-release on exit
-      process.once('exit', () => this.release());
-      process.once('SIGINT', () => {
-        this.release();
-        process.exit(0);
-      });
-      process.once('SIGTERM', () => {
-        this.release();
-        process.exit(0);
-      });
+      // Install one shared shutdown handler instead of three listeners per lock.
+      activeLocks.add(this);
+      installShutdownHandlers();
       
       console.log(`[LOCK] ${this.name}: Lock acquired (PID ${process.pid})`);
       return true;

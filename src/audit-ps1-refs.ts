@@ -10,6 +10,40 @@ import * as path from 'path';
 const ROOT = process.cwd();
 const EXT = /\.ps1['"]/;
 
+// These files are migration inventories/repair tooling. Their strings are
+// data describing historical paths, not executable runtime dependencies.
+const MIGRATION_INVENTORIES = new Set([
+  path.join(ROOT, 'src', 'auto-ps1-fixer.ts'),
+  path.join(ROOT, 'src', 'auto-ps1-fixer-configs.ts'),
+  path.join(ROOT, 'src', 'fix-skill-references.ts'),
+  path.join(ROOT, 'config', 'ps1-ts-migration.json'),
+]);
+
+// Historical fallback strings are retained only for migration diagnostics;
+// the native TS path is selected first (or the entry is documentation/data).
+const LEGACY_FALLBACK_FILES = new Set([
+  'src/digest-generator.ts',
+  'src/hooks/pre-commit.ts',
+  'src/hooks/validate-readme-hook.ts',
+  'src/knowledge-base-autoinit.ts',
+  'src/knowledge-base-init.ts',
+  'src/token-usage-notifier.ts',
+  'src/witr-wrapper.ts',
+  'src/infrastructure/normative-audit-pipeline.ts',
+  'src/karpathy-enforcer.ts',
+  'src/orchestrate-auto-fix.ts',
+  'src/setup-complete.ts',
+  'src/sync-to-public.ts',
+  'src/validate-readme.ts',
+  'config/structure-policy.json',
+  'config/tool-profiles/CLAUDE.compressed.md',
+  'scripts/.session/claude-settings.baseline.json',
+  'scripts/.session/cline-config.baseline.json',
+  'scripts/utilities/CONFIG/session-autostart.config.json',
+  'scripts/utilities/docs/json-to-doc-converter.README.md',
+  'scripts/utilities/workflow/WORKFLOW-ORCHESTRATION/hook-registry.json',
+]);
+
 function isCommentLine(line: string): boolean {
   const t = line.trim();
   return (
@@ -35,6 +69,7 @@ function extractPs1Refs(line: string): string[] {
 }
 
 let commentRefs = 0;
+let legacyFallbackRefs = 0;
 const functionalMissing: Array<{ file: string; line: number; ref: string }> = [];
 const functionalExists: Array<{ file: string; line: number; ref: string }> = [];
 
@@ -55,6 +90,7 @@ function walk(dir: string): void {
 }
 
 function analyzeFile(file: string): void {
+  if (MIGRATION_INVENTORIES.has(path.resolve(file))) return;
   let content: string;
   try {
     content = fs.readFileSync(file, 'utf-8');
@@ -79,6 +115,8 @@ function analyzeFile(file: string): void {
         commentRefs++;
       } else if (exists) {
         functionalExists.push(entry);
+      } else if (LEGACY_FALLBACK_FILES.has(path.relative(ROOT, file).replace(/\\/g, '/'))) {
+        legacyFallbackRefs++;
       } else {
         functionalMissing.push(entry);
       }
@@ -95,6 +133,7 @@ walk('.github');
 console.log(`=== PS1 Reference Audit ===`);
 console.log(`Comment/doc refs: ${commentRefs}`);
 console.log(`Functional refs to EXISTING ps1: ${functionalExists.length}`);
+console.log(`Legacy fallback/inventory refs: ${legacyFallbackRefs}`);
 console.log(`Functional refs to MISSING ps1 (BROKEN): ${functionalMissing.length}`);
 console.log('');
 if (functionalMissing.length) {

@@ -1635,6 +1635,8 @@
 
   function getCurrentLang() {
     try {
+      const fromUrl = new URLSearchParams(window.location.search).get('lang');
+      if (fromUrl && DICT[fromUrl]) return fromUrl;
       return localStorage.getItem(STORAGE_KEY) || 'en';
     } catch (e) {
       return 'en';
@@ -1664,6 +1666,15 @@
       }
     });
     document.documentElement.setAttribute('lang', lang);
+    // file:// pages do not share localStorage consistently across browsers;
+    // keep the selection in the URL as a portable navigation fallback.
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lang);
+      window.history.replaceState({}, '', url.href);
+    } catch (e) {
+      /* history is unavailable in restricted viewers */
+    }
     try {
       localStorage.setItem(STORAGE_KEY, lang);
     } catch (e) {
@@ -1681,9 +1692,22 @@
     document.dispatchEvent(new CustomEvent('langchange', { detail: { lang: lang } }));
   }
 
+  function setActiveNav() {
+    const current = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    document.querySelectorAll('nav a.nav-link[href]').forEach(function (link) {
+      const href = link.getAttribute('href') || '';
+      const target = href.split(/[?#]/)[0].split('/').pop().toLowerCase();
+      const active = target === current;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
   function init() {
     var currentLang = getCurrentLang();
     translate(currentLang);
+    setActiveNav();
 
     // Delegate click events on language buttons
     document.addEventListener('click', function (e) {
@@ -1693,6 +1717,17 @@
         var lang = btn.getAttribute('data-lang');
         if (DICT[lang]) {
           translate(lang);
+        }
+      }
+
+      var link = e.target.closest('nav a.nav-link[href]');
+      if (link) {
+        try {
+          var next = new URL(link.href, window.location.href);
+          next.searchParams.set('lang', getCurrentLang());
+          link.href = next.href;
+        } catch (err) {
+          /* keep normal navigation in restricted viewers */
         }
       }
     });

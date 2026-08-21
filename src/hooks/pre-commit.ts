@@ -33,7 +33,6 @@ const EXCLUDED_PATHS = new Set([
   'skills/security-expert-skill/references/security-patterns.md',
   'config/security-privacy.json',
   'config/security-policy.json',
-  'scripts/hooks/hook-output-safety.ps1',
 ]);
 
 function execGit(args: string[], cwd?: string): string {
@@ -89,8 +88,10 @@ function main(_args?: string[]): number {
     console.log('[SKIP] Engram integrity check not available');
   }
 
-  // 7 dimension checks
-  console.log('[INFO] Running 7-dimension checks...');
+  // Run checks that have real TypeScript implementations. The former PS1
+  // dimension scripts were removed during the migration; silently skipping
+  // them made the hook look healthy while providing no coverage.
+  console.log('[INFO] Running core checks...');
 
   const checks = [
     {
@@ -99,17 +100,6 @@ function main(_args?: string[]): number {
       blocking: true,
       label: 'Security',
     },
-    { ts: '', ps1: 'scripts/hooks/check-quality.ps1', blocking: true, label: 'Quality' },
-    { ts: '', ps1: 'scripts/hooks/check-architecture.ps1', blocking: true, label: 'Architecture' },
-    { ts: '', ps1: 'scripts/hooks/check-testing.ps1', blocking: true, label: 'Testing' },
-    { ts: '', ps1: 'scripts/hooks/check-api.ps1', blocking: true, label: 'API' },
-    {
-      ts: '',
-      ps1: 'scripts/hooks/check-documentation.ps1',
-      blocking: false,
-      label: 'Documentation',
-    },
-    { ts: '', ps1: 'scripts/hooks/check-gitflow.ps1', blocking: false, label: 'Gitflow' },
   ];
 
   for (const check of checks) {
@@ -133,7 +123,7 @@ function main(_args?: string[]): number {
     }
   }
 
-  console.log('[OK] 7 dimension checks completed.');
+  console.log('[OK] Core checks completed.');
   console.log('');
 
   // README governance validation

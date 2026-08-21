@@ -1,4 +1,6 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="100%" height="100%">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="100%" height="100%" role="img" aria-labelledby="executive-loop-title executive-loop-desc" focusable="false">
+<title id="executive-loop-title">Executive Loop</title>
+<desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#0a0e1a"/>

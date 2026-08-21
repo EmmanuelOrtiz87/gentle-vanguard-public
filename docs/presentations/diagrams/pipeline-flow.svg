@@ -1,4 +1,6 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" role="img" aria-labelledby="pipeline-flow-title pipeline-flow-desc" focusable="false">
+<title id="pipeline-flow-title">Pipeline Flow</title>
+<desc id="pipeline-flow-desc">Gentle-Vanguard Pipeline Flow diagram showing the main components, relationships and operational flow.</desc>
 <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
 <linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00bfff" stop-opacity=".2"/><stop offset="100%" stop-color="#00bfff" stop-opacity=".05"/></linearGradient>
 <linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a855f7" stop-opacity=".2"/><stop offset="100%" stop-color="#a855f7" stop-opacity=".05"/></linearGradient>

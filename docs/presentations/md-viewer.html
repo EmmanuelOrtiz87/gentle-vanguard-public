@@ -1,6 +1,8 @@
 <!doctype html>
-<html lang="es" data-bs-theme="dark">
+<html lang="es" data-bs-theme="dark" class="gv-document-page">
   <head>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Visor de Documentos — Gentle-Vanguard — Gentle-Vanguard documentation" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Visor de Documentos — Gentle-Vanguard</title>
@@ -249,6 +251,9 @@
         }
       }
     </style>
+      <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
   </head>
   <body class="grain">
     <div class="scroll-progress"></div>
@@ -256,13 +261,9 @@
 
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
-        <a
-          class="navbar-brand text-light fw-bold mono"
-          href="index.html"
-          style="font-size: 0.85rem"
+        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
+          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
         >
-          <i class="bi bi-file-earmark-text me-2" style="color: var(--p)"></i>MD Viewer
-        </a>
         <button
           class="navbar-toggler"
           type="button"
@@ -272,14 +273,99 @@
           <i class="bi bi-list" style="color: var(--p)"></i>
         </button>
         <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto align-items-center">
+          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
             <li class="nav-item">
-              <a class="nav-link" href="resources-index.html"
-                ><i class="bi bi-grid me-1"></i>Recursos</a
+              <a class="nav-link active" href="index.html"
+                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="index.html"><i class="bi bi-house me-1"></i>Presentación</a>
+              <a class="nav-link" href="architecture.html"
+                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="autonomy.html"
+                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html"
+                ><i class="bi bi-speedometer2 me-1"></i
+                ><span data-i18n="nav_dashboard">Dashboard</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="quickstart.html"
+                ><i class="bi bi-rocket-takeoff me-1"></i
+                ><span data-i18n="nav_quickstart">Quickstart</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="memory-knowledge.html"
+                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="security-governance.html"
+                ><i class="bi bi-shield-check me-1"></i
+                ><span data-i18n="nav_security">Security</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="agents-pipeline.html"
+                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="operations-cloud.html"
+                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="patterns-conventions.html"
+                ><i class="bi bi-file-code me-1"></i
+                ><span data-i18n="nav_patterns">Patterns</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="health.html"
+                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="commands.html"
+                ><i class="bi bi-terminal me-1"></i><span data-i18n="nav_commands">Commands</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="glossary.html"
+                ><i class="bi bi-journal-bookmark me-1"></i
+                ><span data-i18n="nav_glossary">Glossary</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="study-material.html"
+                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#diagrams"
+                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
+              >
+            </li>
+            <li class="nav-item ms-2">
+              <div class="lang-seg" role="group" aria-label="Language">
+                <button type="button" data-lang="en" aria-pressed="false">
+                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+                </button>
+                <button type="button" data-lang="es" aria-pressed="false">
+                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
+                </button>
+                <button type="button" data-lang="pt-BR" aria-pressed="false">
+                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
+                </button>
+              </div>
             </li>
           </ul>
         </div>
@@ -325,10 +411,72 @@
       <article class="md-content" id="content"></article>
     </div>
 
-    <footer style="margin-top: 4rem">
-      <p class="mb-2">Documento renderizado nativamente en Gentle-Vanguard</p>
+    <footer>
+      <p class="mb-2">
+        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
+        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
+      </p>
+      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
+        <a
+          href="resources-index.html"
+          style="
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: var(--bg2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+          "
+          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
+        >
+        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
+        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
+        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
+        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
+        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
+        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
+        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
+        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
+        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
+        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
+        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
+          ><i class="bi bi-github me-1"></i>GitHub</a
+        >
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
+        <span
+          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >328 TS Files</span
+        >
+        <span
+          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >109 Test Files</span
+        >
+        <span
+          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >95/95 Health</span
+        >
+        <span
+          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >11 Repos</span
+        >
+        <span
+          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >263 Skills</span
+        >
+        <span
+          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
+          style="font-size: 0.6rem"
+          >60 Normatives</span
+        >
+      </div>
       <p class="mt-2 mb-0">
-        <small><i class="bi bi-cpu me-1"></i>Stack nativo</small>
+        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
       </p>
     </footer>
 

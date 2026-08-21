@@ -57,6 +57,36 @@ export interface DelegationCompression {
   applied: boolean;
 }
 
+const MAX_DELEGATION_TASK_CHARS = 12_000;
+const MAX_DELEGATION_CONTEXT_CHARS = 32_000;
+const MAX_ACTIVE_DELEGATIONS = 2;
+let activeDelegations = 0;
+const delegationWaiters: Array<() => void> = [];
+
+async function acquireDelegationSlot(): Promise<void> {
+  if (activeDelegations < MAX_ACTIVE_DELEGATIONS) {
+    activeDelegations++;
+    return;
+  }
+  await new Promise<void>((resolve) => delegationWaiters.push(resolve));
+  activeDelegations++;
+}
+
+function releaseDelegationSlot(): void {
+  activeDelegations = Math.max(0, activeDelegations - 1);
+  delegationWaiters.shift()?.();
+}
+
+function boundDelegationInput(text: string, maxChars: number, label: string): string {
+  if (text.length <= maxChars) return text;
+  const head = Math.floor(maxChars * 0.72);
+  const tail = maxChars - head;
+  console.warn(
+    `[agent-delegator] ${label} bounded: ${text.length} -> ${maxChars} chars (head/tail preserved)`,
+  );
+  return `${text.slice(0, head)}\n\n[...${label} middle omitted by budget guard...]\n\n${text.slice(-tail)}`;
+}
+
 /**
  * Compress a task/context string with the lossless-only structural pass
  * (mode 'input'). Falls back to the original when the input is too short,
@@ -382,6 +412,9 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
     };
   }
 
+  await acquireDelegationSlot();
+  try {
+
   // M6: effective temperature = tier override ?? agent config default.
   // A tier override of 0 (premium precision) must still be honored — only
   // `undefined` falls back to the hardcoded config value.
@@ -390,12 +423,14 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
   // Check if native agent implementation exists
   const agentScript = join(AGENTS_DIR, `${request.agent}.ts`);
 
-  if (existsSync(agentScript)) {
-    // Use native implementation if available
-    return runNativeAgent(agentScript, request, agentConfig, startTime, effectiveTemp);
-  } else {
+    if (existsSync(agentScript)) {
+      // Use native implementation if available
+      return await runNativeAgent(agentScript, request, agentConfig, startTime, effectiveTemp);
+    }
     // Fallback: Generate agent output directly
     return generateAgentResponse(request, agentConfig, startTime);
+  } finally {
+    releaseDelegationSlot();
   }
 }
 
@@ -451,8 +486,12 @@ async function runNativeAgent(
     // Lossless compression of task/context (defense in depth): the original
     // request stays intact for logging; only the spawned command uses the
     // compressed forms.
-    const taskCompressed = compressDelegationLossless(request.task);
-    const contextCompressed = request.context ? compressDelegationLossless(request.context) : null;
+    const boundedTask = boundDelegationInput(request.task, MAX_DELEGATION_TASK_CHARS, 'task');
+    const boundedContext = request.context
+      ? boundDelegationInput(request.context, MAX_DELEGATION_CONTEXT_CHARS, 'context')
+      : undefined;
+    const taskCompressed = compressDelegationLossless(boundedTask);
+    const contextCompressed = boundedContext ? compressDelegationLossless(boundedContext) : null;
 
     if (taskCompressed.applied) {
       console.log(
@@ -475,8 +514,8 @@ async function runNativeAgent(
       shellQuote(model),
     ];
 
-    if (request.context) {
-      parts.push('--context', shellQuote(contextCompressed ? contextCompressed.text : request.context));
+    if (boundedContext) {
+      parts.push('--context', shellQuote(contextCompressed ? contextCompressed.text : boundedContext));
     }
 
     const command = parts.join(' ');

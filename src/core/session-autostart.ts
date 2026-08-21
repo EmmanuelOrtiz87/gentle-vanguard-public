@@ -1,5 +1,13 @@
 #!/usr/bin/env node
-import { appendFileSync, mkdirSync, readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs';
+import {
+  appendFileSync,
+  mkdirSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+  unlinkSync,
+  statSync,
+} from 'fs';
 import { join, resolve } from 'path';
 import { spawn, type ChildProcess } from 'child_process';
 import { runSync, runNpxTsxSync } from './run-command.js';
@@ -91,9 +99,10 @@ if (AUTOSTART_LOG_FILE) {
   console.error = (...args: unknown[]) => mirror(...args);
 }
 
-// ─── Lock file: prevent running session-autostart more than once ──────
+// ─── Lock file: reuse a recent bootstrap across chat turns ───────────
 
 const LOCK_FILE = join(resolve(process.cwd()), '.runtime', 'session-autostart.lock');
+const SESSION_REUSE_WINDOW_MS = 30 * 60 * 1000;
 
 /**
  * Robust lock-owner liveness check.
@@ -106,7 +115,9 @@ const LOCK_FILE = join(resolve(process.cwd()), '.runtime', 'session-autostart.lo
  * This verifies the PID actually belongs to a `node` process whose command
  * line references `session-autostart` before treating the lock as live.
  * Any ambiguity resolves to "stale" (proceed), matching the lock's intent of
- * preventing accidental duplicates while never wedging the pipeline.
+ * preventing accidental duplicates while never wedging the pipeline. A
+ * recent lock also acts as the chat-turn reuse marker; pass --force when a
+ * real recovery/reinitialization is required.
  */
 function isLockOwnerAlive(pid: number): boolean {
   if (!Number.isInteger(pid) || pid <= 0) return false;
@@ -133,9 +144,40 @@ function isLockOwnerAlive(pid: number): boolean {
   return true; // non-Windows: plain existence check is sufficient
 }
 
+function criticalServicesHealthy(): boolean {
+  if (process.platform !== 'win32') return true;
+  try {
+    const probe =
+      '(Test-NetConnection localhost -Port 8080 -WarningAction SilentlyContinue).TcpTestSucceeded -and ' +
+      '(Test-NetConnection localhost -Port 3000 -WarningAction SilentlyContinue).TcpTestSucceeded';
+    const result = runSync('powershell', ['-NoProfile', '-Command', probe], {
+      timeout: 5000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return result.stdout.trim().toLowerCase() === 'true';
+  } catch {
+    return false;
+  }
+}
+
 function checkLock(): boolean {
   try {
+    const force = process.argv.includes('--force') || process.env.GENTLE_VANGUARD_AUTOSTART_FORCE === '1';
     if (existsSync(LOCK_FILE)) {
+      // The CLI is invoked by multiple tools for every user turn. Reuse a
+      // recent completed bootstrap instead of replaying 29 steps + 77 lazy
+      // launches. Explicit --force remains available for recovery/maintenance.
+      const ageMs = Date.now() - statSync(LOCK_FILE).mtimeMs;
+      const recoverIfUnhealthy = process.env.GENTLE_VANGUARD_RECOVER_IF_UNHEALTHY === '1';
+      if (
+        !force &&
+        ageMs >= 0 &&
+        ageMs < SESSION_REUSE_WINDOW_MS &&
+        (!recoverIfUnhealthy || criticalServicesHealthy())
+      ) {
+        LOG.info(`[LOCK] Recent session bootstrap is active (${Math.floor(ageMs / 1000)}s old). Skipping duplicate.`);
+        return false;
+      }
       const pid = parseInt(readFileSync(LOCK_FILE, 'utf-8').trim(), 10);
       if (isLockOwnerAlive(pid)) {
         LOG.info(`[LOCK] Session-autostart already running (PID ${pid}). Skipping duplicate.`);
@@ -397,7 +439,9 @@ async function main() {
       'skipped',
       'Session autostart skipped - lock active',
     );
-    return;
+    // Imports initialize lightweight observers; terminate the fast path so
+    // a repeated per-turn invocation cannot keep the shell alive.
+    process.exit(0);
   }
 
   // Log session start event
@@ -418,6 +462,17 @@ async function main() {
 
   // Iniciar sesión explícitamente (funciona en TODAS las herramientas, no depende del plugin automático)
   const sessionId = `session-${sessionStartTime.replace(/[:.]/g, '-').slice(0, 19)}`;
+  // Propagate the canonical session identity to every child step and token
+  // tracker. Without this, token-status reports "unknown" and usage is
+  // attributed to ad-hoc sessions.
+  process.env.SESSION_ID = sessionId;
+  process.env.GENTLE_VANGUARD_SESSION_ID = sessionId;
+  mkdirSync(join(ROOT, '.runtime'), { recursive: true });
+  writeFileSync(
+    join(ROOT, '.runtime', 'session-current.json'),
+    JSON.stringify({ sessionId, id: sessionId, startedAt: sessionStartTime, status: 'active' }, null, 2),
+    'utf-8',
+  );
   const engramSession = sessionStart(sessionId);
   if (engramSession.success) {
     LOG.info(`[ENGRAM] Session started explicitly: ${engramSession.sessionId}`);

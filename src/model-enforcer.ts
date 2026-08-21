@@ -15,9 +15,29 @@ import { join } from 'path';
 const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
 const ACTIVE_MODEL_PATH = join(ROOT, '.runtime', 'model-active.json');
+const PREFERENCE_PATH = join(ROOT, 'config', 'model-preference.json');
+const OPENCODE_CONFIG_PATH = join(ROOT, 'opencode.json');
 
 const FREE_MODEL = 'opencode/deepseek-v4-flash-free';
 const FREE_PROVIDER = 'opencode';
+
+function getPreferredModel(): { model: string; provider: string } {
+  try {
+    const preference = JSON.parse(readFileSync(PREFERENCE_PATH, 'utf-8')) as {
+      preferredModel?: string;
+      preferredProvider?: string;
+    };
+    if (preference.preferredModel) {
+      return {
+        model: preference.preferredModel,
+        provider: preference.preferredProvider ?? preference.preferredModel.split('/')[0],
+      };
+    }
+  } catch {
+    /* fall through to the free emergency model */
+  }
+  return { model: FREE_MODEL, provider: FREE_PROVIDER };
+}
 
 interface ModelEntry {
   provider: string;
@@ -83,17 +103,40 @@ function enforceFreeModel(): void {
     process.exit(1);
   }
 
-  // 2. Actualizar registry para que el modelo gratuito sea el primario
+  const preferred = getPreferredModel();
+  const preferredHealthy = status.healthy.includes(preferred.model);
+  const target = preferredHealthy ? preferred : { model: FREE_MODEL, provider: FREE_PROVIDER };
+  log(`Modelo preferido: ${preferred.model}; seleccionado: ${target.model}`);
+
+  // 2. Actualizar registry para que el modelo preferido sea el primario;
+  // solo cae al modelo gratuito si el preferido no está disponible.
   const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
 
-  if (registry.routingRules.orchestrator.primary !== FREE_MODEL) {
-    log(`Cambiando primary: ${registry.routingRules.orchestrator.primary} → ${FREE_MODEL}`);
-    registry.routingRules.orchestrator.primary = FREE_MODEL;
+  // Keep the native OpenCode agent definitions aligned with routing. Otherwise
+  // the registry can select the subscription model while static subagents
+  // silently continue using the old free-model override.
+  try {
+    const opencode = JSON.parse(readFileSync(OPENCODE_CONFIG_PATH, 'utf-8')) as {
+      agent?: Record<string, { model?: string; provider?: string }>;
+    };
+    for (const agent of Object.values(opencode.agent ?? {})) {
+      if (agent.model) agent.model = target.model;
+      if (agent.provider) agent.provider = target.provider;
+    }
+    writeFileSync(OPENCODE_CONFIG_PATH, JSON.stringify(opencode, null, 2) + '\n', 'utf-8');
+    log(`OpenCode agent models aligned to ${target.model}`);
+  } catch (error) {
+    log(`WARN: could not align opencode.json: ${error instanceof Error ? error.message : String(error)}`);
   }
 
-  if (registry.routingRules.subagents.default !== FREE_MODEL) {
-    log(`Cambiando default: ${registry.routingRules.subagents.default} → ${FREE_MODEL}`);
-    registry.routingRules.subagents.default = FREE_MODEL;
+  if (registry.routingRules.orchestrator.primary !== target.model) {
+    log(`Cambiando primary: ${registry.routingRules.orchestrator.primary} → ${target.model}`);
+    registry.routingRules.orchestrator.primary = target.model;
+  }
+
+  if (registry.routingRules.subagents.default !== target.model) {
+    log(`Cambiando default: ${registry.routingRules.subagents.default} → ${target.model}`);
+    registry.routingRules.subagents.default = target.model;
   }
 
   // 3. Guardar cambios
@@ -102,10 +145,10 @@ function enforceFreeModel(): void {
 
   // 4. Guardar modelo activo
   const activeModel = {
-    model: FREE_MODEL,
-    provider: FREE_PROVIDER,
+    model: target.model,
+    provider: target.provider,
     enforcedAt: new Date().toISOString(),
-    reason: 'Auto-enforcement: modelo gratuito y disponible',
+    reason: preferredHealthy ? 'Preferred subscription model available' : 'Fallback: preferred model unavailable',
     previousModel: process.env.GENTLE_VANGUARD_ACTIVE_MODEL || 'unknown',
   };
 
@@ -114,8 +157,8 @@ function enforceFreeModel(): void {
 
   // 5. Exportar para el shell
   console.log('\n=== VARIABLES DE ENTORNO ===');
-  console.log(`export GENTLE_VANGUARD_ACTIVE_MODEL="${FREE_MODEL}"`);
-  console.log(`export GENTLE_VANGUARD_PROVIDER="${FREE_PROVIDER}"`);
+  console.log(`export GENTLE_VANGUARD_ACTIVE_MODEL="${target.model}"`);
+  console.log(`export GENTLE_VANGUARD_PROVIDER="${target.provider}"`);
   console.log(`export GENTLE_VANGUARD_MODEL_ENFORCED="true"`);
 
   log('=== ENFORCEMENT COMPLETADO ===');
