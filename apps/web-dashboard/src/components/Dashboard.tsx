@@ -1,5 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Coins, Users, Activity, Moon, Sun, RefreshCw, Server, Zap, Bot, Cpu, Clock, ThumbsUp, DollarSign, Shield, BarChart3, Gauge, TrendingUp, AlertTriangle, Bell, Info, Languages } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Coins,
+  Users,
+  Activity,
+  Moon,
+  Sun,
+  RefreshCw,
+  Server,
+  Zap,
+  Bot,
+  Cpu,
+  Clock,
+  ThumbsUp,
+  DollarSign,
+  Shield,
+  BarChart3,
+  Gauge,
+  TrendingUp,
+  AlertTriangle,
+  Info,
+  Languages,
+  Cloud,
+} from 'lucide-react';
 import { useMetrics } from '../hooks/useMetrics';
 import { useAlerts } from '../hooks/useAlerts';
 import { useSessions } from '../hooks/useSessions';
@@ -11,9 +34,21 @@ import { GlobalHealth } from './GlobalHealth';
 import { useAgentStream } from '../hooks/useAgentStream';
 import { NotificationToast } from './NotificationToast';
 import { ValidationPanel } from './ValidationPanel';
+import { SkillUsagePanel } from './SkillUsagePanel';
+import { TokenUsagePanel } from './TokenUsagePanel';
+import { ContractResultsPanel } from './ContractResultsPanel';
+import { RoutingRulesPanel } from './RoutingRulesPanel';
+import { SwarmWorkersPanel } from './SwarmWorkersPanel';
+import { StackCapabilitiesPanel } from './StackCapabilitiesPanel';
+import { AlertPanel } from './AlertPanel';
 import { LiveTraceFeed } from './LiveTraceFeed';
+import { SkillHeatmap } from './SkillHeatmap';
+import { SessionActivityHeatmap } from './SessionActivityHeatmap';
+import { ActivityTimeline } from './ActivityTimeline';
+import { SloPanel } from './SloPanel';
 import { InfoPopup } from './InfoPopup';
 import { LocaleContext, useLocale, LOCALE_NAMES, LOCALE_FLAGS, t } from '../hooks/useLocale';
+import { useStackTables } from '../hooks/useStackTables';
 import type { Locale } from '../hooks/useLocale';
 import type { ModelCost, CostInsight } from '../types/dashboard';
 
@@ -41,14 +76,52 @@ function SectionHeader({ title, infoKey }: { title: string; infoKey?: string }) 
   );
 }
 
+function OfflineBanner({ isOffline, lastUpdated }: { isOffline: boolean; lastUpdated: number }) {
+  if (!isOffline) return null;
+
+  const secondsAgo =
+    lastUpdated > 0 ? Math.max(0, Math.round((Date.now() - lastUpdated) / 1000)) : null;
+  const ageLabel = secondsAgo !== null ? `${secondsAgo}s` : 'unknown';
+
+  return (
+    <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2">
+        <Cloud className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+        <p className="text-sm text-amber-700 dark:text-amber-300">
+          Offline mode — showing cached data from {ageLabel} ago
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function DashboardInner() {
   const [darkMode, setDarkMode] = useState(false);
   const [useWebSocket, setUseWebSocket] = useState(true);
-  const { data, history, loading, wsConnected, refetch, notifications, dismissNotification } = useMetrics(useWebSocket);
+  const [searchParams] = useSearchParams();
+  const urlTenantId = searchParams.get('tenantId') || undefined;
+  const {
+    data,
+    history,
+    loading,
+    wsConnected,
+    refetch,
+    notifications,
+    dismissNotification,
+    isOffline,
+    lastUpdated,
+  } = useMetrics(useWebSocket, urlTenantId);
   const { session: agentSession, bridgeConnected, createSession } = useAgentStream();
   const { triggeredAlerts } = useAlerts();
   const sessions = useSessions();
   const { locale, setLocale } = useLocale();
+  const {
+    skillUsage,
+    tokenUsage,
+    contractResults,
+    routingRules,
+    loading: stackLoading,
+  } = useStackTables();
   const [showLangSelector, setShowLangSelector] = useState(false);
 
   useEffect(() => {
@@ -68,7 +141,9 @@ function DashboardInner() {
   const totalCalls = mcpData?.calls?.total || 0;
   const avgResponseTime = mcpData?.performance?.avgResponseTime || 0;
   const recentMessages = agentSession?.messages.slice(-5) || [];
-  const topModel = data.tokens.byModel?.length ? data.tokens.byModel.reduce((a: ModelCost, b: ModelCost) => a.cost > b.cost ? a : b) : null;
+  const topModel = data.tokens.byModel?.length
+    ? data.tokens.byModel.reduce((a: ModelCost, b: ModelCost) => (a.cost > b.cost ? a : b))
+    : null;
 
   const locales: Locale[] = ['en', 'es', 'pt-BR'];
 
@@ -78,12 +153,20 @@ function DashboardInner() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Gentle Vanguard Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                Gentle Vanguard Dashboard
+              </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Real-time metrics and monitoring
                 {wsConnected && <span className="ml-2 text-green-500">● WS Connected</span>}
-                {!wsConnected && useWebSocket && <span className="ml-2 text-yellow-500">● WS Reconnecting...</span>}
-                {triggeredAlerts.length > 0 && <span className="ml-2 text-red-500 font-semibold">● {triggeredAlerts.length} alert(s)</span>}
+                {!wsConnected && useWebSocket && (
+                  <span className="ml-2 text-yellow-500">● WS Reconnecting...</span>
+                )}
+                {triggeredAlerts.length > 0 && (
+                  <span className="ml-2 text-red-500 font-semibold">
+                    ● {triggeredAlerts.length} alert(s)
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -97,12 +180,18 @@ function DashboardInner() {
                 </button>
                 {showLangSelector && (
                   <>
-                    <div className="fixed inset-0 z-10" onClick={() => setShowLangSelector(false)} />
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowLangSelector(false)}
+                    />
                     <div className="absolute right-0 mt-2 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px]">
                       {locales.map((l) => (
                         <button
                           key={l}
-                          onClick={() => { setLocale(l); setShowLangSelector(false); }}
+                          onClick={() => {
+                            setLocale(l);
+                            setShowLangSelector(false);
+                          }}
                           className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
                             locale === l
                               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
@@ -121,8 +210,8 @@ function DashboardInner() {
               <button
                 onClick={() => setUseWebSocket(!useWebSocket)}
                 className={`p-2 rounded-lg transition-colors ${
-                  useWebSocket 
-                    ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' 
+                  useWebSocket
+                    ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 }`}
                 title={useWebSocket ? 'WebSocket Mode' : 'HTTP Polling Mode'}
@@ -147,12 +236,14 @@ function DashboardInner() {
         </div>
       </header>
 
+      <OfflineBanner isOffline={isOffline} lastUpdated={lastUpdated} />
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Row 1: Core KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {loading ? (
             <>
-              {[1,2,3,4,5].map(i => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="card animate-pulse">
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3" />
                   <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2" />
@@ -181,7 +272,11 @@ function DashboardInner() {
               <MetricsCard
                 title="Latency (avg)"
                 value={data.latency ? `${data.latency.avg.toLocaleString()}ms` : 'N/A'}
-                subtitle={data.latency ? `p95: ${data.latency.p95.toLocaleString()}ms · ${data.latency.samples} samples` : ''}
+                subtitle={
+                  data.latency
+                    ? `p95: ${data.latency.p95.toLocaleString()}ms · ${data.latency.samples} samples`
+                    : ''
+                }
                 icon={Clock}
                 color="yellow"
                 infoKey="latency"
@@ -198,6 +293,9 @@ function DashboardInner() {
           )}
         </div>
 
+        {/* Row 1b: Performance SLO */}
+        <SloPanel />
+
         {/* Row 2: Cost, Feedback, SLA, System */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricsCard
@@ -211,7 +309,9 @@ function DashboardInner() {
           <MetricsCard
             title="Feedback Score"
             value={data.feedback ? `${data.feedback.score}%` : 'N/A'}
-            subtitle={data.feedback ? `${data.feedback.thumbsUp}↑ ${data.feedback.thumbsDown}↓` : ''}
+            subtitle={
+              data.feedback ? `${data.feedback.thumbsUp}↑ ${data.feedback.thumbsDown}↓` : ''
+            }
             icon={ThumbsUp}
             color={data.feedback && data.feedback.score >= 80 ? 'green' : 'yellow'}
             infoKey="feedback"
@@ -237,39 +337,7 @@ function DashboardInner() {
         </div>
 
         {/* Row 3: Alerts */}
-        {triggeredAlerts.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-red-500" />
-              Active Alerts ({triggeredAlerts.length})
-            </h2>
-            <div className="space-y-2">
-              {triggeredAlerts.map((alert) => (
-                <div key={alert.name} className={`card flex items-center gap-3 ${
-                  alert.severity === 'error' ? 'border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10' :
-                  alert.severity === 'warning' ? 'border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10' :
-                  'border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10'
-                }`}>
-                  <AlertTriangle className={`w-5 h-5 ${
-                    alert.severity === 'error' ? 'text-red-500' :
-                    alert.severity === 'warning' ? 'text-yellow-500' : 'text-blue-500'
-                  }`} />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{alert.rule}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {alert.actual}{alert.unit} exceeds threshold of {alert.threshold}{alert.unit}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    alert.severity === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-                    alert.severity === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                  }`}>{alert.severity}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <AlertPanel alerts={triggeredAlerts} />
 
         {/* Row 4: Cost by Model */}
         {data.tokens.byModel && data.tokens.byModel.length > 0 && (
@@ -283,23 +351,53 @@ function DashboardInner() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Model</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Input Tokens</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Output Tokens</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Total Tokens</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Cost</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">%</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Model
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Input Tokens
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Output Tokens
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Total Tokens
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Cost
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        %
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.tokens.byModel.map((m: ModelCost) => (
-                      <tr key={m.model} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{m.model}</td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">{m.inputTokens.toLocaleString()}</td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">{m.outputTokens.toLocaleString()}</td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">{m.totalTokens.toLocaleString()}</td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">${m.cost.toFixed(4)}</td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">{data.tokens.cost > 0 ? ((m.cost / data.tokens.cost) * 100).toFixed(1) : '0'}%</td>
+                      <tr
+                        key={m.model}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                          {m.model}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">
+                          {m.inputTokens.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">
+                          {m.outputTokens.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">
+                          {m.totalTokens.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">
+                          ${m.cost.toFixed(4)}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right text-gray-600 dark:text-gray-400">
+                          {data.tokens.cost > 0
+                            ? ((m.cost / data.tokens.cost) * 100).toFixed(1)
+                            : '0'}
+                          %
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -317,25 +415,31 @@ function DashboardInner() {
               <SectionHeader title="Cost Optimization Insights" infoKey="cost_insights" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {data.costInsights.filter((ci: CostInsight) => ci.pct > 5).map((ci: CostInsight) => (
-                <div key={ci.model} className="card">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="metric-label">{ci.model}</p>
-                      <p className="metric-value mt-1">${ci.cost.toFixed(4)}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{ci.tokens.toLocaleString()} tokens ({ci.pct}%)</p>
+              {data.costInsights
+                .filter((ci: CostInsight) => ci.pct > 5)
+                .map((ci: CostInsight) => (
+                  <div key={ci.model} className="card">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="metric-label">{ci.model}</p>
+                        <p className="metric-value mt-1">${ci.cost.toFixed(4)}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {ci.tokens.toLocaleString()} tokens ({ci.pct}%)
+                        </p>
+                      </div>
+                      <div
+                        className={`p-2 rounded-lg ${ci.pct > 30 ? 'bg-red-50 text-red-500' : 'bg-yellow-50 text-yellow-500'}`}
+                      >
+                        <AlertTriangle className="w-5 h-5" />
+                      </div>
                     </div>
-                    <div className={`p-2 rounded-lg ${ci.pct > 30 ? 'bg-red-50 text-red-500' : 'bg-yellow-50 text-yellow-500'}`}>
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
+                    {ci.suggestedAction && (
+                      <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
+                        💡 {ci.suggestedAction}
+                      </p>
+                    )}
                   </div>
-                  {ci.suggestedAction && (
-                    <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                      💡 {ci.suggestedAction}
-                    </p>
-                  )}
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
@@ -349,14 +453,22 @@ function DashboardInner() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {['avg', 'p50', 'p95', 'p99', 'max'].map((p) => {
-                const val = data.latency![p as keyof typeof data.latency] as number;
-                const pct = data.latency!.max > 0 ? (val / data.latency!.max) * 100 : 0;
+                const latency = data.latency;
+                const val = (latency?.[p as keyof typeof latency] as number) ?? 0;
+                const pct = (latency?.max ?? 0) > 0 ? (val / (latency?.max ?? 1)) * 100 : 0;
                 return (
                   <div key={p} className="card text-center">
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{p}</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{val.toLocaleString()}ms</p>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      {p}
+                    </p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                      {val.toLocaleString()}ms
+                    </p>
                     <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 50 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${pct}%` }} />
+                      <div
+                        className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 );
@@ -377,7 +489,10 @@ function DashboardInner() {
                 <p className="metric-label">Uptime</p>
                 <p className="metric-value">{data.sla.uptime.toFixed(2)}%</p>
                 <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-green-500" style={{ width: `${data.sla.uptime}%` }} />
+                  <div
+                    className="h-full rounded-full bg-green-500"
+                    style={{ width: `${data.sla.uptime}%` }}
+                  />
                 </div>
               </div>
               <div className="card">
@@ -388,7 +503,11 @@ function DashboardInner() {
               <div className="card">
                 <p className="metric-label">Incidents</p>
                 <p className="metric-value">{data.sla.incidents}</p>
-                <p className="text-xs text-gray-500 mt-1">{data.sla.lastIncident ? `Last: ${new Date(data.sla.lastIncident).toLocaleDateString()}` : 'No recent incidents'}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {data.sla.lastIncident
+                    ? `Last: ${new Date(data.sla.lastIncident).toLocaleDateString()}`
+                    : 'No recent incidents'}
+                </p>
               </div>
             </div>
           </div>
@@ -416,6 +535,110 @@ function DashboardInner() {
           </div>
         )}
 
+        {/* Skill Activity + Session Activity Heatmaps */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <SkillHeatmap
+            bySkill={(data as any).mcp?.calls?.bySkill ?? {}}
+            totalSkills={(data as any).mcp?.skills?.total ?? 0}
+            totalCalls={(data as any).mcp?.calls?.total ?? 0}
+          />
+          <SessionActivityHeatmap sessions={sessions} />
+        </div>
+
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Cloud className="w-5 h-5 text-blue-500" />
+            <SectionHeader title="Cloud Connectors" infoKey="mcp" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="card">
+              <p className="metric-label">Cloud Executions</p>
+              <p className="metric-value">{(data as any).cloud?.executions ?? 0}</p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Total Cost</p>
+              <p className="metric-value">${((data as any).cloud?.totalCost ?? 0).toFixed(4)}</p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Checkpoints</p>
+              <p className="metric-value">{(data as any).checkpoints ?? 0}</p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Audit Logs</p>
+              <p className="metric-value">{(data as any).auditLogs ?? 0}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Row: Swarm Workers */}
+        <div className="mb-8">
+          <SwarmWorkersPanel data={data.swarmWorkers} />
+        </div>
+
+        {/* Row: Stack Capabilities (Fase 1/2: anomalies, circuit breakers, DB healing) */}
+        <div className="mb-8">
+          <StackCapabilitiesPanel data={(data as any).stackCapabilities} />
+        </div>
+
+        {/* Row: SQLite Stack Tables (Wave 37) */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Server className="w-5 h-5 text-teal-500" />
+            <SectionHeader title="SQLite Stack Tables" infoKey="mcp" />
+            {stackLoading && <RefreshCw className="w-3.5 h-3.5 text-gray-400 animate-spin" />}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SkillUsagePanel skills={skillUsage.skills} total={skillUsage.total} />
+            <TokenUsagePanel usage={tokenUsage.usage} total={tokenUsage.total} />
+            <ContractResultsPanel results={contractResults.results} total={contractResults.total} />
+            <RoutingRulesPanel rules={routingRules.rules} total={routingRules.total} />
+          </div>
+        </div>
+
+        {/* Row: Session & Repository Activity */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-5 h-5 text-purple-500" />
+            <SectionHeader title="Session & Repository Activity" infoKey="active_sessions" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="card">
+              <p className="metric-label">Total Sessions</p>
+              <p className="metric-value text-purple-600 dark:text-purple-400">
+                {data.sessions.total}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{data.sessions.active} active now</p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Git Commits</p>
+              <p className="metric-value text-blue-600 dark:text-blue-400">
+                {(data as any).git?.commits ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).git?.contributors ?? 0} contributors
+              </p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Trace Files</p>
+              <p className="metric-value text-amber-600 dark:text-amber-400">
+                {(data as any).traceFiles ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).checkpoints ?? 0} checkpoints
+              </p>
+            </div>
+            <div className="card">
+              <p className="metric-label">Audit Logs</p>
+              <p className="metric-value text-emerald-600 dark:text-emerald-400">
+                {(data as any).auditLogs ?? 0}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {(data as any).mcp?.skills?.total ?? 0} MCP skills
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <ValidationPanel />
           <LiveTraceFeed />
@@ -433,7 +656,11 @@ function DashboardInner() {
               <SectionHeader title="Agent Activity" infoKey="agent_activity" />
             </div>
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              {bridgeConnected ? <Bot className="w-3.5 h-3.5 text-green-500" /> : <Bot className="w-3.5 h-3.5 text-gray-400" />}
+              {bridgeConnected ? (
+                <Bot className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <Bot className="w-3.5 h-3.5 text-gray-400" />
+              )}
               {bridgeConnected ? 'Bridge Online' : 'Bridge Offline'}
             </span>
           </div>
@@ -460,8 +687,9 @@ function DashboardInner() {
           </div>
         </div>
 
-        <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <LiveChart data={history} />
+          <ActivityTimeline history={history} />
         </div>
 
         <SessionTable sessions={sessions} />

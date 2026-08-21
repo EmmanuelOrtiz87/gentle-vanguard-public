@@ -50,11 +50,17 @@ export function InfoPopup({ info, onClose }: InfoPopupProps) {
           </div>
           <div className="p-5 space-y-4">
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">What it measures</h4>
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{info.what}</p>
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                What it measures
+              </h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {info.what}
+              </p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">How it's calculated</h4>
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                How it's calculated
+              </h4>
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{info.how}</p>
             </div>
           </div>

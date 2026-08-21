@@ -95,6 +95,30 @@ const TRANSLATIONS: Record<Locale, Record<string, MetricInfo>> = {
       what: "Shows the most recent messages from active agent sessions. Agents include DEV (development), BA (business analysis), QA (testing), and others. Each message shows the agent's role and content.",
       how: 'Live stream from the shared state bridge. Messages are pushed via WebSocket as agents process requests. Only the last 5 messages are shown per session.',
     },
+    skill_usage: {
+      label: 'Skill Usage',
+      description: 'Top skills by usage count from SQLite',
+      what: 'Shows which AI skills are being used most frequently, their token consumption, and associated costs. Skills are registered tools and capabilities available to the agent system.',
+      how: 'Data from the skill_usage table in SQLite. Aggregated by skill_id with total count, tokens_used, and cost. Updated in real-time as skills are invoked.',
+    },
+    token_usage: {
+      label: 'Token Usage',
+      description: 'Token consumption per session from SQLite',
+      what: 'Detailed breakdown of token usage across sessions, showing prompt tokens, completion tokens, cost, and last usage time per session.',
+      how: 'Data from the token_usage table in SQLite. Grouped by session_id with SUM of prompt_tokens, completion_tokens, and cost. Sorted by most recently used.',
+    },
+    contract_results: {
+      label: 'Contract Results',
+      description: 'SDD contract validation results from SQLite',
+      what: 'Validation results from Spec-Driven Development contracts. Each contract validates a specific requirement or constraint, with pass/fail status and optional quality score.',
+      how: 'Data from the contract_results table in SQLite. Shows the latest contract validations with their result status and score percentage.',
+    },
+    routing_rules: {
+      label: 'Routing Rules',
+      description: 'Adaptive routing rules from SQLite',
+      what: 'Rules that determine how agent requests are routed to different handlers or models. Priority determines rule precedence, hit count shows how often each rule is matched.',
+      how: 'Data from the routing_rules table in SQLite. Only enabled rules are shown, ordered by priority and hit count.',
+    },
   },
   es: {
     tokens_used: {
@@ -181,6 +205,30 @@ const TRANSLATIONS: Record<Locale, Record<string, MetricInfo>> = {
       what: 'Muestra los mensajes más recientes de sesiones de agente activas. Los agentes incluyen DEV (desarrollo), BA (análisis de negocio), QA (pruebas) y otros. Cada mensaje muestra el rol del agente y su contenido.',
       how: 'Transmisión en vivo desde el puente de estado compartido. Los mensajes se envían vía WebSocket mientras los agentes procesan solicitudes. Solo se muestran los últimos 5 mensajes por sesión.',
     },
+    skill_usage: {
+      label: 'Uso de Skills',
+      description: 'Skills principales por uso desde SQLite',
+      what: 'Muestra qué skills de IA se usan con más frecuencia, su consumo de tokens y costos asociados. Las skills son herramientas y capacidades registradas disponibles para el sistema de agentes.',
+      how: 'Datos de la tabla skill_usage en SQLite. Agregados por skill_id con conteo total, tokens_usados y costo. Actualizado en tiempo real a medida que se invocan skills.',
+    },
+    token_usage: {
+      label: 'Uso de Tokens',
+      description: 'Consumo de tokens por sesión desde SQLite',
+      what: 'Desglose detallado del uso de tokens entre sesiones, mostrando tokens de prompt, tokens de completion, costo y última vez que se usó.',
+      how: 'Datos de la tabla token_usage en SQLite. Agrupados por session_id con SUM de prompt_tokens, completion_tokens y costo. Ordenados por más reciente.',
+    },
+    contract_results: {
+      label: 'Resultados de Contratos',
+      description: 'Resultados de validación de contratos SDD desde SQLite',
+      what: 'Resultados de validación de contratos de Spec-Driven Development. Cada contrato valida un requisito o restricción específica, con estado de aprobación/rechazo y puntuación de calidad opcional.',
+      how: 'Datos de la tabla contract_results en SQLite. Muestra las validaciones de contrato más recientes con su estado y porcentaje de puntuación.',
+    },
+    routing_rules: {
+      label: 'Reglas de Enrutamiento',
+      description: 'Reglas de enrutamiento adaptativo desde SQLite',
+      what: 'Reglas que determinan cómo se enrutan las solicitudes de agentes a diferentes manejadores o modelos. La prioridad determina la precedencia de la regla, el conteo de aciertos muestra la frecuencia de coincidencia.',
+      how: 'Datos de la tabla routing_rules en SQLite. Solo se muestran reglas habilitadas, ordenadas por prioridad y conteo de aciertos.',
+    },
   },
   'pt-BR': {
     tokens_used: {
@@ -266,6 +314,30 @@ const TRANSLATIONS: Record<Locale, Record<string, MetricInfo>> = {
       description: 'Interações recentes do agente de IA',
       what: 'Mostra as mensagens mais recentes de sessões de agente ativas. Agentes incluem DEV (desenvolvimento), BA (análise de negócios), QA (testes) e outros. Cada mensagem mostra o papel do agente e seu conteúdo.',
       how: 'Transmissão ao vivo da ponte de estado compartilhado. Mensagens são enviadas via WebSocket enquanto agentes processam requisições. Apenas as últimas 5 mensagens são mostradas por sessão.',
+    },
+    skill_usage: {
+      label: 'Uso de Skills',
+      description: 'Principais skills por uso do SQLite',
+      what: 'Mostra quais skills de IA estão sendo usadas com mais frequência, seu consumo de tokens e custos associados. Skills são ferramentas e capacidades registradas disponíveis para o sistema de agentes.',
+      how: 'Dados da tabela skill_usage no SQLite. Agregados por skill_id com contagem total, tokens_usados e custo. Atualizado em tempo real conforme skills são invocadas.',
+    },
+    token_usage: {
+      label: 'Uso de Tokens',
+      description: 'Consumo de tokens por sessão do SQLite',
+      what: 'Detalhamento do uso de tokens entre sessões, mostrando tokens de prompt, tokens de completion, custo e última vez utilizado.',
+      how: 'Dados da tabela token_usage no SQLite. Agrupados por session_id com SUM de prompt_tokens, completion_tokens e custo. Ordenados por mais recente.',
+    },
+    contract_results: {
+      label: 'Resultados de Contratos',
+      description: 'Resultados de validação de contratos SDD do SQLite',
+      what: 'Resultados de validação de contratos de Spec-Driven Development. Cada contrato valida um requisito ou restrição específica, com status de aprovação/rejeição e pontuação de qualidade opcional.',
+      how: 'Dados da tabela contract_results no SQLite. Mostra as validações de contrato mais recentes com seu status e percentual de pontuação.',
+    },
+    routing_rules: {
+      label: 'Regras de Roteamento',
+      description: 'Regras de roteamento adaptativo do SQLite',
+      what: 'Regras que determinam como as solicitações de agentes são roteadas para diferentes manipuladores ou modelos. A prioridade determina a precedência da regra, a contagem de acertos mostra a frequência de correspondência.',
+      how: 'Dados da tabela routing_rules no SQLite. Apenas regras habilitadas são mostradas, ordenadas por prioridade e contagem de acertos.',
     },
   },
 };

@@ -34,7 +34,7 @@ export interface AgentToolCall {
   id: string;
   tool: string;
   args?: Record<string, unknown>;
-  status: 'pending' | 'running' | 'completed' | 'error';
+  status: 'pending' | 'running' | 'completed' | 'error' | 'cancelled';
   result?: string;
   error?: string;
   startedAt?: string;
@@ -81,6 +81,31 @@ export interface AgentCommand {
   params?: Record<string, unknown>;
   query?: string;
   message?: string;
+  sessionId?: string;
+}
+
+export type HitlKind = 'confirmation' | 'selection' | 'form' | 'review';
+
+export interface HitlRequest {
+  id: string;
+  kind: HitlKind;
+  title: string;
+  message?: string;
+  options?: string[];
+  fields?: UIFormField[];
+  review?: { label: string; value: string; severity?: 'info' | 'warning' | 'error' }[];
+  timeoutMs?: number;
+  sessionId?: string;
+}
+
+export interface HitlResponse {
+  requestId: string;
+  kind: HitlKind;
+  approved?: boolean;
+  selection?: string;
+  values?: Record<string, unknown>;
+  reviewed?: boolean;
+  timedOut?: boolean;
   sessionId?: string;
 }
 

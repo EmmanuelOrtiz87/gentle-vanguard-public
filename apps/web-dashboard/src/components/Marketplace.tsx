@@ -37,10 +37,21 @@ interface SubmitFormData {
 const API_BASE = '/api/marketplace';
 
 const AGENT_TYPES = [
-  'general', 'doc-agent', 'explore', 'finance-agent',
-  'gov-agent', 'hr-agent', 'legal-agent', 'mkt-agent',
-  'ops-agent', 'sales-agent', 'session-agent',
-  'sdd-design', 'sdd-apply', 'sdd-explore', 'sdd-verify',
+  'general',
+  'doc-agent',
+  'explore',
+  'finance-agent',
+  'gov-agent',
+  'hr-agent',
+  'legal-agent',
+  'mkt-agent',
+  'ops-agent',
+  'sales-agent',
+  'session-agent',
+  'sdd-design',
+  'sdd-apply',
+  'sdd-explore',
+  'sdd-verify',
   'any',
 ];
 
@@ -155,8 +166,14 @@ export function Marketplace() {
           description: submitForm.description,
           author: submitForm.author,
           version: submitForm.version || '1.0.0',
-          tags: submitForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
-          triggers: submitForm.triggers.split(',').map((t) => t.trim()).filter(Boolean),
+          tags: submitForm.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean),
+          triggers: submitForm.triggers
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean),
           agentType: submitForm.agentType,
           skillContent: submitForm.skillContent,
         }),
@@ -184,10 +201,11 @@ export function Marketplace() {
     }
   };
 
-  const filteredListings = listings.filter((l) =>
-    l.name.toLowerCase().includes(filter.toLowerCase()) ||
-    (l.tags || []).some((t) => t.toLowerCase().includes(filter.toLowerCase())) ||
-    (l.description || '').toLowerCase().includes(filter.toLowerCase())
+  const filteredListings = listings.filter(
+    (l) =>
+      l.name.toLowerCase().includes(filter.toLowerCase()) ||
+      (l.tags || []).some((t) => t.toLowerCase().includes(filter.toLowerCase())) ||
+      (l.description || '').toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
@@ -196,7 +214,11 @@ export function Marketplace() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Skill Marketplace</h2>
         <button
-          onClick={() => { setShowSubmitDialog(true); setSubmitErrors([]); setSubmitSuccess(false); }}
+          onClick={() => {
+            setShowSubmitDialog(true);
+            setSubmitErrors([]);
+            setSubmitSuccess(false);
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
@@ -220,7 +242,9 @@ export function Marketplace() {
         <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
           <AlertCircle className="w-5 h-5" />
           <span>{error}</span>
-          <button onClick={loadListings} className="ml-auto underline text-sm">Retry</button>
+          <button onClick={loadListings} className="ml-auto underline text-sm">
+            Retry
+          </button>
         </div>
       )}
 
@@ -236,7 +260,9 @@ export function Marketplace() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredListings.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
-              {filter ? 'No skills match your search.' : 'No skills available yet. Be the first to publish one!'}
+              {filter
+                ? 'No skills match your search.'
+                : 'No skills available yet. Be the first to publish one!'}
             </div>
           ) : (
             filteredListings.map((listing) => (
@@ -246,10 +272,14 @@ export function Marketplace() {
                 onClick={() => setSelectedListing(listing)}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{listing.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {listing.name}
+                  </h3>
                   <span className="text-xs text-gray-500">v{listing.version}</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{listing.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  {listing.description}
+                </p>
 
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                   <span className="flex items-center gap-1">
@@ -270,7 +300,10 @@ export function Marketplace() {
                 {(listing.tags || []).length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {listing.tags.map((tag) => (
-                      <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                      <span
+                        key={tag}
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs"
+                      >
                         <Tag className="w-3 h-3" />
                         {tag}
                       </span>
@@ -289,7 +322,9 @@ export function Marketplace() {
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedListing.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {selectedListing.name}
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">{selectedListing.description}</p>
               </div>
               <button
@@ -324,7 +359,10 @@ export function Marketplace() {
                 ) : (
                   <div className="space-y-2">
                     {selectedListing.reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 dark:border-gray-700 pb-2">
+                      <div
+                        key={review.id}
+                        className="border-b border-gray-200 dark:border-gray-700 pb-2"
+                      >
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{review.user}</span>
                           <span className="flex items-center text-yellow-500">
@@ -353,7 +391,9 @@ export function Marketplace() {
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Submit Community Skill</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Submit Community Skill
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                   Share your skill with the Gentle-Vanguard community.
                 </p>
@@ -369,7 +409,9 @@ export function Marketplace() {
             {submitSuccess && (
               <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg mb-4">
                 <CheckCircle className="w-5 h-5" />
-                <span>Skill submitted successfully! It will appear in the marketplace shortly.</span>
+                <span>
+                  Skill submitted successfully! It will appear in the marketplace shortly.
+                </span>
               </div>
             )}
 
@@ -400,7 +442,9 @@ export function Marketplace() {
                     onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Use kebab-case (e.g., my-awesome-skill)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use kebab-case (e.g., my-awesome-skill)
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -431,7 +475,9 @@ export function Marketplace() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Version</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Version
+                  </label>
                   <input
                     type="text"
                     placeholder="1.0.0"
@@ -441,19 +487,25 @@ export function Marketplace() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Agent Type</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Agent Type
+                  </label>
                   <select
                     value={submitForm.agentType}
                     onChange={(e) => setSubmitForm({ ...submitForm, agentType: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     {AGENT_TYPES.map((at) => (
-                      <option key={at} value={at}>{at}</option>
+                      <option key={at} value={at}>
+                        {at}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tags
+                  </label>
                   <input
                     type="text"
                     placeholder="api, backend, rest"
@@ -465,7 +517,9 @@ export function Marketplace() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Triggers</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Triggers
+                </label>
                 <input
                   type="text"
                   placeholder="openapi, api spec, rest api"
@@ -473,7 +527,9 @@ export function Marketplace() {
                   onChange={(e) => setSubmitForm({ ...submitForm, triggers: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
-                <p className="text-xs text-gray-500 mt-1">Comma-separated words that trigger this skill</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Comma-separated words that trigger this skill
+                </p>
               </div>
 
               <div>
@@ -488,7 +544,8 @@ export function Marketplace() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Must include YAML frontmatter, a Usage/When to Use section, and an Examples section.
+                  Must include YAML frontmatter, a Usage/When to Use section, and an Examples
+                  section.
                 </p>
               </div>
             </div>

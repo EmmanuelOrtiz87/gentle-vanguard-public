@@ -48,6 +48,12 @@ export function useSharedState(url?: string) {
             case 'state_history':
               setEvents(msg.events || []);
               break;
+            case 'state_delta':
+              setEvents((prev) => {
+                const updated = [...(msg.delta || []), ...prev];
+                return updated.slice(0, 50);
+              });
+              break;
             case 'state_event':
               setEvents((prev) => {
                 const updated = [msg.event, ...prev];
@@ -56,6 +62,19 @@ export function useSharedState(url?: string) {
               break;
             case 'state_tasks':
               setTasks(msg.tasks || []);
+              break;
+            case 'task_delta':
+              setTasks((prev) => {
+                const idx = prev.findIndex((t) => t.id === msg.taskId);
+                if (idx === -1) return prev;
+                const updated = [...prev];
+                updated[idx] = {
+                  ...updated[idx],
+                  status: msg.to,
+                  completedAt: msg.at,
+                };
+                return updated;
+              });
               break;
           }
         } catch {

@@ -1,16 +1,20 @@
 import { existsSync, statSync } from 'fs';
 import { join } from 'path';
-import { execSync } from 'child_process';
-import { ROOT, readJson } from './shared.js';
+import { ROOT, readJson } from './shared.ts';
+import { getProcessExecutionTimeouts } from '@gentle-vanguard/core/timeout-config';
+import { runSync } from '@gentle-vanguard/core/run-command';
 
 const TOKEN_PATH = join(ROOT, '.runtime', 'metrics', 'token.json');
 const SESSIONS_PATH = join(ROOT, '.runtime', 'metrics', 'sessions.json');
 const SESSIONS_HISTORY_PATH = join(ROOT, '.event-bus', 'sessions-history.json');
 function execGit(args: string): string {
   try {
-    return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf-8', timeout: 3000 }).trim();
-  } catch (e) {
-    console.warn('[validations] git failed:', (e as Error).message);
+    const result = runSync('git', args.split(' '), {
+      cwd: ROOT,
+      timeout: getProcessExecutionTimeouts().git_operation_ms ?? 3000,
+    });
+    return result.stdout?.trim() ?? '';
+  } catch {
     return '';
   }
 }

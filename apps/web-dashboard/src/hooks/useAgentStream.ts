@@ -1,18 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useSharedWs } from './useSharedWs';
-import type { AgentSession, AgentMessage } from '../types/agent';
-
-interface HitlRequestState {
-  id: string;
-  type: 'confirmation' | 'selection' | 'form' | 'review';
-  title: string;
-  description?: string;
-  agent: string;
-  options?: string[];
-  oldValue?: string;
-  newValue?: string;
-  context?: Record<string, unknown>;
-}
+import type { AgentSession, AgentMessage, HitlRequest, HitlResponse, UIHint } from '../types/agent';
 
 interface UseAgentStreamOptions {
   agent?: string;
@@ -28,7 +16,7 @@ export function useAgentStream(opts: UseAgentStreamOptions = {}) {
     Array<{ id: string; agent: string; status: string; messageCount: number; updatedAt: string }>
   >([]);
   const [tools, setTools] = useState<Array<{ name: string; description: string }>>([]);
-  const [hitlRequest, setHitlRequest] = useState<HitlRequestState | null>(null);
+  const [hitlRequest, setHitlRequest] = useState<HitlRequest | null>(null);
   const [historySessions, setHistorySessions] = useState<AgentSession[]>([]);
 
   const { send } = useSharedWs(
@@ -72,12 +60,37 @@ export function useAgentStream(opts: UseAgentStreamOptions = {}) {
             };
           });
           break;
+        case 'agent_ui_hints':
+          setSession((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: prev.messages.map((m) =>
+                m.id === msg.messageId ? { ...m, uiHints: msg.uiHints as UIHint[] } : m,
+              ),
+            };
+          });
+          break;
+        case 'agent_stream_chunk':
+          setSession((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: prev.messages.map((m) => {
+                if (m.id !== msg.messageId) return m;
+                const chunk = typeof msg.content === 'string' ? msg.content : '';
+                const base = m.content.startsWith('Ejecutando skill') ? '' : m.content;
+                return { ...m, content: base + chunk, streaming: true };
+              }),
+            };
+          });
+          break;
         case 'agent_tools':
           setTools(msg.tools as any[]);
           setBridgeConnected(!!msg.connected);
           break;
         case 'hitl_request':
-          setHitlRequest(msg.hitlRequest as HitlRequestState);
+          setHitlRequest(msg.hitlRequest as HitlRequest);
           setSession((prev) => (prev ? { ...prev, status: 'awaiting_input' } : prev));
           break;
         case 'hitl_resolved':
@@ -112,6 +125,27 @@ export function useAgentStream(opts: UseAgentStreamOptions = {}) {
     [send],
   );
 
+  const cancelExecution = useCallback(
+    (sessionId: string) => {
+      send({ type: 'agent', action: 'cancel', sessionId });
+    },
+    [send],
+  );
+
+  const listSkills = useCallback(
+    (sessionId: string) => {
+      send({ type: 'agent', action: 'list_skills', sessionId });
+    },
+    [send],
+  );
+
+  const searchSkills = useCallback(
+    (sessionId: string, query: string) => {
+      send({ type: 'agent', action: 'search_skills', sessionId, query });
+    },
+    [send],
+  );
+
   const listSessions = useCallback(() => {
     send({ type: 'agent', action: 'list_sessions' });
   }, [send]);
@@ -139,11 +173,8 @@ export function useAgentStream(opts: UseAgentStreamOptions = {}) {
   }, [send]);
 
   const resolveHitl = useCallback(
-    (
-      requestId: string,
-      response: { approved?: boolean; value?: string; values?: Record<string, unknown> },
-    ) => {
-      send({ type: 'agent', action: 'hitl_response', requestId, response });
+    (response: HitlResponse) => {
+      send({ type: 'agent', action: 'hitl_response', ...response });
       setHitlRequest(null);
     },
     [send],
@@ -160,6 +191,9 @@ export function useAgentStream(opts: UseAgentStreamOptions = {}) {
     createSession,
     sendMessage,
     executeSkill,
+    cancelExecution,
+    listSkills,
+    searchSkills,
     listSessions,
     getSession,
     listTools,

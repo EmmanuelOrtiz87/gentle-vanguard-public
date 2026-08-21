@@ -51,7 +51,11 @@ export function MetricsCard({
               )}
             </div>
             <p className="metric-value mt-1">{value}</p>
-            {subtitle && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 break-words">{subtitle}</p>}
+            {subtitle && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 break-words">
+                {subtitle}
+              </p>
+            )}
           </div>
           <div className={`p-3 rounded-lg flex-shrink-0 ml-3 ${colorClasses[color]}`}>
             <Icon className="w-6 h-6" />

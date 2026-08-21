@@ -1,7 +1,0 @@
-Timestamp,User_ID,Session_ID,Request_ID,Provider,Model,InputTokens,OutputTokens,LatencyMs,Status,ErrorMessage
-"2026-04-17 20:39:29","ZW1tYW4=","2026-04-17-203645","0db96100-8444-4088-85aa-5f06d2dc4d05","openai","gpt-4o","0","0","1421","ERROR","Response status code does not indicate success: 401 (Unauthorized)."
-"2026-04-17 20:42:41","ZW1tYW4=","session-test-001","154e67fe-7915-4189-b2f8-cbfc3f5cda01","openai","gpt-4o","0","0","1252","ERROR","Response status code does not indicate success: 401 (Unauthorized)."
-"2026-04-17 20:46:33","ZW1tYW4=","session-test-002","4faa5961-5a57-4a78-8342-dbad6cbb8b4c","openai","gpt-4o","0","0","1098","ERROR","Response status code does not indicate success: 401 (Unauthorized)."
-"2026-04-17 20:49:19","ZW1tYW4=","session-test-003","90f4212e-a79a-4593-8df4-01e1442bec9c","gemini","gemini-2.0-flash","0","0","1410","ERROR","Response status code does not indicate success: 400 (Bad Request)."
-"2026-04-17 21:00:48","ZW1tYW4=","session-test-004","f2bdc8d5-d482-4cea-a608-bede9d390730","openai","gpt-4o","0","0","970","ERROR","Response status code does not indicate success: 401 (Unauthorized)."
-"2026-04-20 14:05:42","ZW1tYW4=","2026-04-20-104743","1180f584-ae59-4337-a6cf-df38ea05e392","custom","","0","0","814","ERROR","Response status code does not indicate success: 401 (Unauthorized)."

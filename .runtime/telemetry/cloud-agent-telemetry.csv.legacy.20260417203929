@@ -1,6 +1,0 @@
-Timestamp,User_ID,Provider,Model,InputTokens,OutputTokens,LatencyMs,Status,ErrorMessage
-2026-04-17 20:23:59,emman,openai,gpt-4o,0,0,962,ERROR,Response status code does not indicate success: 401 (Unauthorized).
-2026-04-17 20:24:00,emman,gemini,gemini-2.0-flash,0,0,1459,ERROR,Response status code does not indicate success: 400 (Bad Request).
-2026-04-17 20:28:31,emman,openai,gpt-4o,0,0,1295,ERROR,Response status code does not indicate success: 401 (Unauthorized).
-"2026-04-17 20:32:27","ZW1tYW4=","openai","gpt-4o","0","0","935","ERROR","Response status code does not indicate success: 401 (Unauthorized)."
-"2026-04-17 20:36:22","ZW1tYW4=","openai","gpt-4o","0","0","1140","ERROR","Response status code does not indicate success: 401 (Unauthorized)."

@@ -1,4 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useSharedWs } from './useSharedWs';
+import { readCached, writeCached } from '../lib/offlineCache';
+
+const ALERTS_CACHE_KEY = 'alerts';
 
 export interface Alert {
   name: string;
@@ -8,26 +12,24 @@ export interface Alert {
   severity: string;
   triggered: boolean;
   unit: string;
+  transition?: string;
 }
 
 export function useAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>(() => {
+    const cached = readCached<Alert[]>(ALERTS_CACHE_KEY);
+    return cached?.data ?? [];
+  });
 
-  const fetchAlerts = useCallback(async () => {
-    try {
-      const res = await fetch('/api/alerts');
-      const data = await res.json();
-      setAlerts(data.alerts || []);
-    } catch {
-      /* best-effort */
+  const handleMessage = useCallback((msg: Record<string, unknown>) => {
+    if (msg.type === 'alerts') {
+      const list = (msg.data as Alert[]) || [];
+      setAlerts(list);
+      writeCached(ALERTS_CACHE_KEY, list);
     }
   }, []);
 
-  useEffect(() => {
-    void fetchAlerts();
-    const interval = setInterval(fetchAlerts, 10000);
-    return () => clearInterval(interval);
-  }, [fetchAlerts]);
+  useSharedWs(handleMessage, [handleMessage]);
 
   const triggeredAlerts = alerts.filter((a) => a.triggered);
 

@@ -7,7 +7,13 @@ const ICONS: Record<string, React.ReactNode> = {
   error: <AlertCircle className="w-4 h-4 text-red-500" />,
 };
 
-export function NotificationToast({ notifications, onClose }: { notifications: Notification[]; onClose: (i: number) => void }) {
+export function NotificationToast({
+  notifications,
+  onClose,
+}: {
+  notifications: Notification[];
+  onClose: (i: number) => void;
+}) {
   if (notifications.length === 0) return null;
 
   return (

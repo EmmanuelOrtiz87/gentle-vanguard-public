@@ -21,17 +21,20 @@ interface GlobalHealthProps {
 const statusBannerConfig = {
   healthy: {
     icon: Shield,
-    color: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300',
+    color:
+      'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300',
     label: 'All Systems Healthy',
   },
   degraded: {
     icon: AlertTriangle,
-    color: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-300',
+    color:
+      'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-300',
     label: 'Systems Degraded',
   },
   critical: {
     icon: XCircle,
-    color: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300',
+    color:
+      'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300',
     label: 'Critical Issues Detected',
   },
 };
@@ -105,11 +108,15 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
           <p className="text-xs text-gray-500 dark:text-gray-400">Total Repos</p>
         </div>
         <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{data.healthyRepos}</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+            {data.healthyRepos}
+          </p>
           <p className="text-xs text-green-600 dark:text-green-400">Healthy</p>
         </div>
         <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{data.degradedRepos}</p>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            {data.degradedRepos}
+          </p>
           <p className="text-xs text-yellow-600 dark:text-yellow-400">Degraded</p>
         </div>
         <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
@@ -127,23 +134,51 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">Repository</th>
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">Last Commit</th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center gap-1"><GitPullRequest className="w-3.5 h-3.5" />PRs</span>
+                  Repository
                 </th>
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">CI</th>
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">Coverage</th>
-                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">Contributors</th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Status
+                </th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Last Commit
+                </th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <GitPullRequest className="w-3.5 h-3.5" />
+                    PRs
+                  </span>
+                </th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  CI
+                </th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Coverage
+                </th>
+                <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Contributors
+                </th>
               </tr>
             </thead>
             <tbody>
               {data.repositories.map((repo) => {
-                const StatusIcon = repo.status === 'healthy' ? CheckCircle : repo.status === 'degraded' ? AlertTriangle : XCircle;
-                const CiIcon = repo.ciStatus === 'passing' ? CheckCircle : repo.ciStatus === 'failing' ? XCircle : Activity;
+                const StatusIcon =
+                  repo.status === 'healthy'
+                    ? CheckCircle
+                    : repo.status === 'degraded'
+                      ? AlertTriangle
+                      : XCircle;
+                const CiIcon =
+                  repo.ciStatus === 'passing'
+                    ? CheckCircle
+                    : repo.ciStatus === 'failing'
+                      ? XCircle
+                      : Activity;
                 return (
-                  <tr key={repo.name} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <tr
+                    key={repo.name}
+                    className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
                     <td className="py-3 px-3">
                       <a
                         href={`https://github.com/gentle-vanguard/${repo.name}`}
@@ -157,7 +192,9 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                       </a>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeColors[repo.status]}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeColors[repo.status]}`}
+                      >
                         <StatusIcon className="w-3 h-3" />
                         {repo.status.charAt(0).toUpperCase() + repo.status.slice(1)}
                       </span>
@@ -169,7 +206,9 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                       {repo.openPRs}
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${ciBadgeColors[repo.ciStatus]}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${ciBadgeColors[repo.ciStatus]}`}
+                      >
                         <CiIcon className="w-3 h-3" />
                         {repo.ciStatus.charAt(0).toUpperCase() + repo.ciStatus.slice(1)}
                       </span>
@@ -179,12 +218,18 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${
-                              repo.coverage >= 80 ? 'bg-green-500' : repo.coverage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                              repo.coverage >= 80
+                                ? 'bg-green-500'
+                                : repo.coverage >= 60
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
                             }`}
                             style={{ width: `${repo.coverage}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-600 dark:text-gray-400 w-10 text-right">{repo.coverage}%</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 w-10 text-right">
+                          {repo.coverage}%
+                        </span>
                       </div>
                     </td>
                     <td className="py-3 px-3 text-sm text-gray-600 dark:text-gray-400">

@@ -1,8 +1,9 @@
 import { spawn, ChildProcess } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EventEmitter } from 'events';
+import { getExternalApiTimeouts } from '@gentle-vanguard/core/timeout-config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,11 +61,27 @@ export class MCPBridge extends EventEmitter {
   }
 
   async start(): Promise<void> {
-    const tsxCli = resolve(
-      PACKAGE_ROOT,
-      'node_modules/.pnpm/tsx@4.22.4/node_modules/tsx/dist/cli.mjs',
-    );
-    const tsxBin = existsSync(tsxCli) ? tsxCli : null;
+    // Find tsx CLI entry point dynamically (pnpm uses versioned paths like tsx@4.23.1)
+    const pnpmDir = resolve(PACKAGE_ROOT, 'node_modules/.pnpm');
+    let tsxBin: string | null = null;
+    try {
+      if (existsSync(pnpmDir)) {
+        const tsxDirs = readdirSync(pnpmDir).filter((d: string) => d.startsWith('tsx@'));
+        if (tsxDirs.length > 0) {
+          // Use the latest installed version
+          tsxDirs.sort().reverse();
+          const candidate = resolve(pnpmDir, tsxDirs[0], 'node_modules/tsx/dist/cli.mjs');
+          if (existsSync(candidate)) tsxBin = candidate;
+        }
+      }
+    } catch {
+      /* fallback to null */
+    }
+    if (!tsxBin) {
+      // Fallback: try standard node_modules
+      const fallback = resolve(PACKAGE_ROOT, 'node_modules/tsx/dist/cli.mjs');
+      if (existsSync(fallback)) tsxBin = fallback;
+    }
     const cwd = existsSync(SERVER_SCRIPT) ? ROOT : undefined;
     if (!cwd || !tsxBin) {
       this._tools = [];
@@ -76,12 +93,13 @@ export class MCPBridge extends EventEmitter {
       this.proc = spawn(process.execPath, [tsxBin, SERVER_SCRIPT], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd,
+        windowsHide: true,
       });
 
       let started = false;
       const timeout = setTimeout(() => {
         if (!started) reject(new Error('MCP bridge start timeout'));
-      }, 15000);
+      }, getExternalApiTimeouts()?.mcp_bridge_start_ms ?? 15000);
 
       this.proc.stdout?.on('data', (data: Buffer) => {
         this.buffer += data.toString();
@@ -92,8 +110,8 @@ export class MCPBridge extends EventEmitter {
           this.retryCount = 0;
           this._connected = true;
           this.emit('connected');
-          void this.discoverTools();
-          resolve();
+          // Await tools discovery before resolving so bridgeToolCount is populated
+          void this.discoverToolsWithTimeout().then(() => resolve());
         }
       });
 
@@ -105,8 +123,8 @@ export class MCPBridge extends EventEmitter {
           this.retryCount = 0;
           this._connected = true;
           this.emit('connected');
-          void this.discoverTools();
-          resolve();
+          // Await tools discovery before resolving so bridgeToolCount is populated
+          void this.discoverToolsWithTimeout().then(() => resolve());
         }
       });
 
@@ -169,6 +187,18 @@ export class MCPBridge extends EventEmitter {
       const result = (await this.request('tools/list')) as { tools: ToolDefinition[] };
       this._tools = result.tools || [];
       this.emit('tools_discovered', this._tools);
+    } catch {
+      this._tools = [];
+    }
+  }
+
+  /** discoverTools with 5s timeout to prevent hanging start() */
+  private async discoverToolsWithTimeout(): Promise<void> {
+    const timeout = new Promise<void>((_, reject) =>
+      setTimeout(() => reject(new Error('discoverTools timeout')), 5000),
+    );
+    try {
+      await Promise.race([this.discoverTools(), timeout]);
     } catch {
       this._tools = [];
     }

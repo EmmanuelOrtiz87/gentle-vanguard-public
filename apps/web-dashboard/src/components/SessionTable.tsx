@@ -33,23 +33,42 @@ export function SessionTable({ sessions }: SessionTableProps) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Session</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Agent</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                <span className="flex items-center gap-1"><Cpu className="w-3.5 h-3.5" />Model</span>
+                Session
               </th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Tokens</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                Agent
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                Status
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-1">
+                  <Cpu className="w-3.5 h-3.5" />
+                  Model
+                </span>
+              </th>
               <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                <span className="flex items-center gap-1 justify-end"><DollarSign className="w-3.5 h-3.5" />Cost</span>
+                Tokens
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Started</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-1 justify-end">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  Cost
+                </span>
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+                Started
+              </th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+                <td
+                  colSpan={7}
+                  className="py-8 text-center text-sm text-gray-400 dark:text-gray-500"
+                >
                   No sessions found. Run a pipeline to generate data.
                 </td>
               </tr>
@@ -57,7 +76,10 @@ export function SessionTable({ sessions }: SessionTableProps) {
               sorted.map((session) => {
                 const StatusIcon = statusIcons[session.status];
                 return (
-                  <tr key={session.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <tr
+                    key={session.id}
+                    className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <td className="py-3 px-4 text-sm text-gray-900 dark:text-white font-mono truncate max-w-[140px]">
                       {session.id}
                     </td>
@@ -65,7 +87,9 @@ export function SessionTable({ sessions }: SessionTableProps) {
                       {session.agent}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[session.status]}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[session.status]}`}
+                      >
                         <StatusIcon className="w-3.5 h-3.5" />
                         {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
                       </span>

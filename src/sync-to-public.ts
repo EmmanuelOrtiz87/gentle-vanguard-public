@@ -257,6 +257,15 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // Copy the complete TypeScript runtime so transitive imports cannot be orphaned.
   rmIf(path.join(targetDir, 'src'), { recurse: true });
   copyIf(path.join(privateRepo, 'src'), path.join(targetDir, 'src'), { recurse: true });
+  // Runtime state is local-only and must never cross the publication boundary.
+  rmIf(path.join(targetDir, 'src', '.gateguard-state.json'));
+  rmIf(path.join(targetDir, '.runtime'), { recurse: true });
+  rmIf(path.join(targetDir, '.session'), { recurse: true });
+  rmIf(path.join(targetDir, '.telemetry'), { recurse: true });
+
+  // The dashboard database manager is a runtime dependency of db-init.
+  rmIf(path.join(targetDir, 'apps', 'web-dashboard'), { recurse: true });
+  copyIf(path.join(privateRepo, 'apps', 'web-dashboard'), path.join(targetDir, 'apps', 'web-dashboard'), { recurse: true });
 
   const ciScripts = [
     'src/installer-doctor.ts',

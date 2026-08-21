@@ -403,9 +403,7 @@ export function InteractiveDocs() {
     return Math.round((done / tutorial.steps.length) * 100);
   };
 
-  const activeTutorial = activeStep
-    ? tutorials.find((t) => t.id === activeStep.tutorialId)
-    : null;
+  const activeTutorial = activeStep ? tutorials.find((t) => t.id === activeStep.tutorialId) : null;
   const activeStepData = activeStep
     ? (activeTutorial?.steps.find((s) => s.id === activeStep.stepId) ?? null)
     : null;
@@ -521,11 +519,7 @@ export function InteractiveDocs() {
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-500'
                               }`}
                             >
-                              {stepCompleted ? (
-                                <CheckCircle className="w-3 h-3" />
-                              ) : (
-                                idx + 1
-                              )}
+                              {stepCompleted ? <CheckCircle className="w-3 h-3" /> : idx + 1}
                             </span>
                             <span
                               className={`truncate ${stepCompleted ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}
@@ -560,9 +554,7 @@ export function InteractiveDocs() {
                 <div className="flex items-center gap-2">
                   {!isStepCompleted(activeStep.tutorialId, activeStep.stepId) && (
                     <button
-                      onClick={() =>
-                        completeStep(activeStep.tutorialId, activeStep.stepId)
-                      }
+                      onClick={() => completeStep(activeStep.tutorialId, activeStep.stepId)}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                     >
                       <CheckCircle className="w-4 h-4" />
@@ -623,9 +615,7 @@ export function InteractiveDocs() {
                           {idx < archLayers.length - 1 && (
                             <ArrowRight
                               className={`w-4 h-4 mx-1 flex-shrink-0 ${
-                                isActive
-                                  ? 'text-blue-500'
-                                  : 'text-gray-300 dark:text-gray-600'
+                                isActive ? 'text-blue-500' : 'text-gray-300 dark:text-gray-600'
                               }`}
                             />
                           )}

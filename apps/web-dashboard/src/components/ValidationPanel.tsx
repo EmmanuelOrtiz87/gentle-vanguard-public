@@ -20,7 +20,9 @@ export function ValidationPanel() {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <div className="flex items-center gap-2 mb-3">
         <RefreshCw className="w-4 h-4 text-gray-500" />
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Validaciones en vivo</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Validaciones en vivo
+        </h3>
       </div>
       {validations.length === 0 ? (
         <p className="text-xs text-gray-400">Esperando datos...</p>
