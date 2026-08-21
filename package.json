@@ -40,6 +40,7 @@
     "chaos:report": "npx tsx src/chaos-engineering.ts report",
     "container:scan": "npx tsx src/container-scan.ts scan",
     "container:scan-dir": "npx tsx src/container-scan.ts scan-dir",
+    "manifest:dir": "tsx src/dir-manifest.ts",
     "container:status": "npx tsx src/container-scan.ts status",
     "container:report": "npx tsx src/container-scan.ts report",
     "container:db-update": "npx tsx src/container-scan.ts db-update",
