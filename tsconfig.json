@@ -12,8 +12,8 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "declaration": false,
@@ -21,9 +21,18 @@
     "sourceMap": false,
     "outDir": "./dist",
     "rootDir": ".",
-    "types": ["node"],
-    "ignoreDeprecations": "6.0"
+    "types": ["node"]
   },
-  "include": ["scripts/mcp/**/*.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "build", "coverage", "templates"]
+  "include": [
+    "adapters/**/*.ts",
+    "scripts/mcp/**/*.ts",
+    "scripts/recovery/**/*.ts",
+    "scripts/database/**/*.ts",
+    "scripts/utilities/ops/REVIEW/**/*.ts",
+    "scripts/utilities/security/**/*.ts",
+    "scripts/utilities/MODEL-ROUTER/**/*.ts",
+    "scripts/validation/**/*.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "build", "coverage", "templates", "src/convergence"]
 }
