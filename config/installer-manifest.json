@@ -27,6 +27,7 @@
     "requiresConsentForExternalDownloads": true,
     "neverBundlesSecrets": true,
     "supportsOfflineInstall": false,
-    "postInstallVerification": "npm run install:doctor -- --strict"
+    "postInstallVerification": "npm run install:doctor -- --strict",
+    "bootstrapCommand": "npm run install:bootstrap -- --full"
   }
 }

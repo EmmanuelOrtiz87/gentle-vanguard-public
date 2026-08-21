@@ -126,6 +126,7 @@
     "deps:check": "npx tsx src/dependency-validator.ts",
     "deps:install": "npx tsx src/dependency-installer.ts",
     "install:doctor": "npx tsx src/installer-doctor.ts",
+    "install:bootstrap": "npx tsx src/installer-bootstrap.ts",
     "deps:check:json": "npx tsx src/dependency-validator.ts --json",
     "deps:check:quiet": "npx tsx src/dependency-validator.ts --quiet",
     "design:generate": "npx tsx src/design-system-cli.ts --generate",
