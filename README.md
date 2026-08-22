@@ -5,25 +5,52 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.8.1-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-3.8.2-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
   <img src="https://img.shields.io/badge/Skills-263-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
 </p>
 
-> An AI development orchestrator that adds structure, memory and verification to your existing
-> coding tools.
+> **Your AI writes code. Gentle-Vanguard makes sure it's done right.**
+> An orchestration layer that adds structure, memory and verification to the AI coding tools you already use.
 
-## What It Solves
+---
 
-AI-assisted coding is powerful, but sessions can lose context and quality can vary. Gentle-Vanguard
-routes work to specialized agents, enforces an SDD workflow, remembers previous decisions through
-Engram and reports what happened through a local dashboard.
+## The Problem You Know Too Well
 
-It works alongside OpenCode, Claude Code, Cline, Cursor, Windsurf and Codex. It does not require a
-hosted Gentle-Vanguard account or a mandatory cloud service.
+AI-assisted coding is fast — until it isn't:
 
-## Quick Install
+| Without Gentle-Vanguard | With Gentle-Vanguard |
+| --- | --- |
+| 🔁 Every session starts from zero | 🧠 Decisions and context persist across sessions |
+| 🎲 Quality depends on luck | ✅ Every change is verified before it's called done |
+| 🌊 One giant prompt tries to do everything | 🎯 Work routes to specialized agents (design, code, QA, security) |
+| 💸 Costs are invisible until the bill arrives | 📊 A local dashboard shows tokens, traces and health in real time |
+| 🔓 Secrets and risky changes slip through | 🛡️ Quality gates, secret scanning and audit trails by default |
+
+## How It Works
+
+One flow, deliberately simple: **understand → design → build → verify**.
+
+```mermaid
+flowchart LR
+  U[Your request] --> O[Orchestrator]
+  O --> B[BA · understand]
+  B --> S[SAD · design]
+  S --> D[DEV · build]
+  D --> Q[QA · verify]
+  Q --> R[Verified result]
+```
+
+It works **alongside** OpenCode, Claude Code, Cline, Cursor, Windsurf and Codex — locally, with no mandatory cloud service.
+
+## Get Started
+
+### Option A — One-click launcher (Windows)
+
+Download `gentle-vanguard-3.8.2.exe` from the [releases page](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest) and run it. No Node.js, no dependencies — a single self-contained binary that guides you through setup.
+
+### Option B — From source (all platforms)
 
 ```bash
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
@@ -35,112 +62,32 @@ npm run start
 
 Requirements: Node.js 20+, pnpm 11+ and Git. Windows, macOS and Linux are supported.
 
-```mermaid
-flowchart LR
-  U[Your request] --> O[Orchestrator]
-  O --> A[Specialized agents]
-  A --> S[Skills]
-  A --> M[Engram memory]
-  A --> Q[Quality checks]
-  Q --> R[Verified result]
-```
+## What's Inside
 
-## Architecture
+A curated look at the core capabilities — the [full documentation](#explore-further) covers everything.
 
-Gentle-Vanguard is organized around five practical layers: user tools, orchestration, agents and
-skills, memory, and observability.
+- **🤖 21 specialized agents** — requirements, architecture, implementation, QA, operations, security and docs, each with its own focus.
+- **📚 263 on-demand skills** — loaded only when a task needs them, from development to compliance.
+- **🧠 Engram memory** — decisions, bugs and conventions survive across sessions and compactions.
+- **📊 Local dashboard** — real-time metrics, tracing waterfall, alerts and feedback. No mock data.
+- **🛡️ Security built-in** — secret scanning, SBOM, provenance and quality gates in the delivery pipeline.
 
 ```mermaid
 flowchart TB
   T[CLI / IDE / Dashboard] --> O[Orchestration]
   O --> A[21 agents]
-  A --> K[263 on-demand skills]
-  A --> E[Engram persistent memory]
+  A --> K[263 skills]
+  A --> E[Persistent memory]
   O --> D[Local dashboard]
 ```
 
-## Agent Ecosystem
-
-| Agent | Role |
-| --- | --- |
-| Orchestrator | Routes work and manages sessions |
-| BA | Requirements exploration |
-| SAD | Architecture and contracts |
-| DEV | Implementation and refactoring |
-| QA | Testing and verification |
-| OPS | CI/CD and infrastructure |
-| GOV | Security, compliance and audit |
-| DOC | Documentation and ADRs |
-
-Each phase can use a different Model Profile. The router and fallback chain are configurable and
-local providers are optional.
-
-## Key Features
-
-| Feature | Description |
-| --- | --- |
-| Specialized Agents | 21 roles for analysis, design, coding, QA and operations |
-| On-Demand Skills | 263 skills for development, security, documentation and research |
-| Persistent Engram Memory | Decisions and context survive across sessions |
-| Cost-Aware Model Router | Selects models by task and supports safe fallbacks |
-| Dashboard | Local metrics, traces, alerts and feedback |
-| Security Controls | Secret scanning, SBOM, provenance and quality gates |
-
-```mermaid
-flowchart TD
-  S[Session] --> E[Engram]
-  S --> N[Nexus operational database]
-  S --> W[Watchtower health checks]
-  E --> D[Dashboard]
-  N --> D
-  W --> D
-  D --> F[Feedback and adaptive routing]
-```
-
-## Getting Started
-
-1. Install the prerequisites.
-2. Clone this repository.
-3. Run `pnpm install` and `npx tsx src/setup-complete.ts`.
-4. Start with `npm run start`.
-5. Run `gv verify` if the command is available, or `npm run watchtower:health`.
-
-## Development
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-```
-
-The project follows Spec-Driven Development: explore, design, implement and verify.
-
-## CI/CD Pipeline
-
-The public distribution is checked by `gentle-vanguard-quality-gate`, `test-suite`, `security.yml`
-and `sync-public`. The public repository receives a curated set of build, documentation and example
-files from the development repository.
-
-## Defensive Patterns
-
-- Scripts resolve paths from `repoRoot`.
-- File operations use explicit UTF-8 encoding.
-- PowerShell scripts use `ErrorActionPreference = Stop`.
-- Setup and validation commands are designed to be idempotent.
-
-## Security
-
-Never commit API keys. Use environment variables or ignored local configuration. Secret scanning,
-SBOM generation and release provenance are part of the delivery process. See
-[`SECURITY.md`](SECURITY.md) and [`docs/security/README.md`](docs/security/README.md).
-
-## Documentation
+## Explore Further
 
 | Resource | Description |
 | --- | --- |
-| [Getting Started](docs/getting-started/README.md) | First-time setup |
-| [Architecture](docs/technical/STACK-DOCUMENTATION.md) | Detailed technical reference |
-| [Installation](docs/getting-started/installation.md) | Installation options |
+| [Getting Started](docs/getting-started/README.md) | First-time setup, step by step |
+| [Architecture](docs/technical/STACK-DOCUMENTATION.md) | Full technical reference |
+| [Installation](docs/getting-started/installation.md) | All installation options |
 | [Examples](docs/EXAMPLES.md) | Usage examples |
 | [Changelog](CHANGELOG.md) | Version history |
 
