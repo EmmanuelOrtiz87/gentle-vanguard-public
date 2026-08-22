@@ -1,15 +1,15 @@
 #!/usr/bin/env tsx
 /**
  * MCP Fetch Server - Native Web Fetch/Scrape para LLMs
- * 
+ *
  * Implementación nativa del patrón @modelcontextprotocol/server-fetch
  * adaptada al stack Gentle-Vanguard. Utiliza el web-crawler nativo
  * (Jina Reader + DDG + Bing) como proveedores de contenido.
- * 
+ *
  * Usage:
  *   npx tsx src/mcp/fetch-server-native.ts          # Servidor MCP stdio
  *   npx tsx src/mcp/fetch-server-native.ts --test   # Test unitario
- * 
+ *
  * Tools expuestas:
  *   fetch_url      - Obtener contenido de una URL (scrape)
  *   search_web     - Buscar en la web (DDG/Bing fallback)
@@ -28,13 +28,17 @@ mkdirSync(CACHE_DIR, { recursive: true });
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const CONFIG = {
-  cacheTtlMs: 15 * 60 * 1000,       // 15 minutos
-  maxContentLength: 50000,           // 50K chars máximo
-  timeoutMs: 20000,                  // 20 segundos
-  userAgent: 'curl/8.0.1',           // Jina Reader bloquea UAs de navegador
+  cacheTtlMs: 15 * 60 * 1000, // 15 minutos
+  maxContentLength: 50000, // 50K chars máximo
+  timeoutMs: 20000, // 20 segundos
+  userAgent: 'curl/8.0.1', // Jina Reader bloquea UAs de navegador
 };
 
-function log(level: 'INFO' | 'WARN' | 'ERROR', message: string, meta?: Record<string, unknown>): void {
+function log(
+  level: 'INFO' | 'WARN' | 'ERROR',
+  message: string,
+  meta?: Record<string, unknown>,
+): void {
   const timestamp = new Date().toISOString();
   const metaStr = meta ? ' ' + JSON.stringify(meta) : '';
   console.error(`[${timestamp}] [${level}] ${message}${metaStr}`);
@@ -46,7 +50,7 @@ function cacheKey(url: string): string {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
     const char = url.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash |= 0;
   }
   return Math.abs(hash).toString(36);
@@ -101,15 +105,20 @@ async function fetchViaJinaReader(url: string): Promise<string> {
 // en lugar de duplicar la lógica de parsing HTML.
 import { createWebCrawler } from '../web-crawler.js';
 
-async function searchViaNativeCrawler(query: string, limit: number): Promise<Array<{ title: string; url: string; snippet: string }>> {
+async function searchViaNativeCrawler(
+  query: string,
+  limit: number,
+): Promise<Array<{ title: string; url: string; snippet: string }>> {
   try {
     const crawler = createWebCrawler();
     const results = await crawler.search(query, limit);
-    return results.map((r: { title?: string; url?: string; description?: string; content?: string }) => ({
-      title: r.title || '',
-      url: r.url || '',
-      snippet: r.description || r.content || '',
-    }));
+    return results.map(
+      (r: { title?: string; url?: string; description?: string; content?: string }) => ({
+        title: r.title || '',
+        url: r.url || '',
+        snippet: r.description || r.content || '',
+      }),
+    );
   } catch (err) {
     log('ERROR', 'Native crawler search failed', { error: String(err) });
     return [];
@@ -149,9 +158,7 @@ server.tool(
         if (cached) {
           log('INFO', 'Cache HIT', { url });
           return {
-            content: [
-              { type: 'text', text: `[CACHED CONTENT]\n\n${cached}` },
-            ],
+            content: [{ type: 'text', text: `[CACHED CONTENT]\n\n${cached}` }],
           };
         }
       }
@@ -171,7 +178,7 @@ server.tool(
         content: [{ type: 'text', text: `Error fetching ${url}: ${String(err)}` }],
       };
     }
-  }
+  },
 );
 
 // Tool: search_web
@@ -208,7 +215,7 @@ server.tool(
         content: [{ type: 'text', text: `Error searching: ${String(err)}` }],
       };
     }
-  }
+  },
 );
 
 // Tool: fetch_info
@@ -240,12 +247,12 @@ server.tool(
               },
             },
             null,
-            2
+            2,
           ),
         },
       ],
     };
-  }
+  },
 );
 
 // ─── Transport ─────────────────────────────────────────────────────────────────
@@ -257,7 +264,11 @@ async function main() {
     log('INFO', 'Running self-test...');
     try {
       const results = await searchViaNativeCrawler('typescript', 2);
-      console.log('search_web test:', results.length > 0 ? 'PASS' : 'FAIL', `(${results.length} results)`);
+      console.log(
+        'search_web test:',
+        results.length > 0 ? 'PASS' : 'FAIL',
+        `(${results.length} results)`,
+      );
     } catch (err) {
       console.log('search_web test: FAIL', String(err));
     }

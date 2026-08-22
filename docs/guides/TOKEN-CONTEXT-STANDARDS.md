@@ -545,7 +545,11 @@ function Check-ToolCompatibility {
 
 - Token Budget Guard: `src/token-budget-guard.ts`
 - Context Pack: `scripts/utilities/context-pack.ps1`
+
 <!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - Dispatch Agent: `scripts/utilities/dispatch-agent.ps1`
+
 <!-- REF-OBSOLETA: scripts/utilities/dispatch-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - Session Manager: `src/session-manager.ts`

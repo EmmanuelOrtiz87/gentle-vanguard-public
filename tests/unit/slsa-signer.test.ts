@@ -26,7 +26,10 @@ function makeStatement(): Record<string, unknown> {
     _type: 'https://in-toto.io/Statement/v1',
     subject: [{ name: 'test.json', digest: { sha256: 'a'.repeat(64) } }],
     predicateType: 'https://slsa.dev/provenance/v1',
-    predicate: { buildDefinition: { buildType: 'test@v1' }, runDetails: { builder: { id: 'test' } } },
+    predicate: {
+      buildDefinition: { buildType: 'test@v1' },
+      runDetails: { builder: { id: 'test' } },
+    },
   };
 }
 
@@ -118,7 +121,9 @@ describe('signStatement + verifyEnvelope', () => {
 
       const { valid, errors } = verifyEnvelope(envelope, wrongKey);
       assert.strictEqual(valid, false);
-      assert.ok(errors.some((e) => e.includes('keyid mismatch') || e.includes('verification failed')));
+      assert.ok(
+        errors.some((e) => e.includes('keyid mismatch') || e.includes('verification failed')),
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

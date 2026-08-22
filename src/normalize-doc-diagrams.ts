@@ -8,7 +8,10 @@ const ROOT = resolve(process.cwd());
 const DIR = join(ROOT, 'docs', 'presentations', 'diagrams');
 
 function label(file: string): string {
-  return file.replace(/\.svg$/i, '').replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return file
+    .replace(/\.svg$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function normalize(file: string): boolean {

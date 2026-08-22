@@ -373,10 +373,7 @@ class COECMS {
         onchange="window.coeCMS.setFilter('${key}', this.value)">
         <option value="all">${label}: Todos</option>
         ${options
-          .map(
-            (o) =>
-              `<option value="${o}" ${current === o ? 'selected' : ''}>${o}</option>`,
-          )
+          .map((o) => `<option value="${o}" ${current === o ? 'selected' : ''}>${o}</option>`)
           .join('')}
       </select>
     `;

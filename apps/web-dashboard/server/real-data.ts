@@ -979,9 +979,7 @@ export function getTraces(): { traces: Trace[]; stats: TraceStats } {
   const durations = traces
     .filter(
       (t): t is typeof t & { duration: number } =>
-        t.duration !== undefined &&
-        t.name !== 'session-start' &&
-        t.duration <= 3600000,
+        t.duration !== undefined && t.name !== 'session-start' && t.duration <= 3600000,
     )
     .map((t) => t.duration);
   const avgDuration =

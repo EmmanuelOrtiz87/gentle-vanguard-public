@@ -62,7 +62,8 @@ export function repoPath(...paths: string[]): string {
 // CLI para debugging
 // @ts-ignore — check if this is the main module (ESM compatible)
 const isMainModule =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href || process.argv[1]?.includes('repo-root');
+  (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) ||
+  process.argv[1]?.includes('repo-root');
 if (isMainModule) {
   console.log(`[REPO-ROOT] ROOT: ${ROOT}`);
   console.log(`[REPO-ROOT] cwd: ${process.cwd()}`);

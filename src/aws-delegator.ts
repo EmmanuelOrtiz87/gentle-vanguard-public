@@ -99,7 +99,11 @@ function startTracingSpan(name: string): { traceId: string } | null {
   if (!existsSync(tracerPath)) return null;
   const traceId = newTraceId();
   _traceId = traceId;
-  spawnSync('npx', ['tsx', tracerPath, '-Action', 'start', '-SpanName', name, '-TraceId', traceId, '-Quiet'], { cwd: ROOT, windowsHide: true });
+  spawnSync(
+    'npx',
+    ['tsx', tracerPath, '-Action', 'start', '-SpanName', name, '-TraceId', traceId, '-Quiet'],
+    { cwd: ROOT, windowsHide: true },
+  );
   return { traceId };
 }
 
@@ -109,9 +113,43 @@ function stopTracingSpan(name: string, success: boolean, error?: string): void {
   const traceId = _traceId ?? newTraceId();
   const spanId = newTraceId().slice(0, 16);
   if (success) {
-    spawnSync('npx', ['tsx', tracerPath, '-Action', 'end', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
+    spawnSync(
+      'npx',
+      [
+        'tsx',
+        tracerPath,
+        '-Action',
+        'end',
+        '-SpanName',
+        name,
+        '-TraceId',
+        traceId,
+        '-SpanId',
+        spanId,
+        '-Quiet',
+      ],
+      { cwd: ROOT, stdio: 'pipe', windowsHide: true },
+    );
   } else {
-    spawnSync('npx', ['tsx', tracerPath, '-Action', 'error', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-ErrorMessage', error ?? 'Unknown error', '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
+    spawnSync(
+      'npx',
+      [
+        'tsx',
+        tracerPath,
+        '-Action',
+        'error',
+        '-SpanName',
+        name,
+        '-TraceId',
+        traceId,
+        '-SpanId',
+        spanId,
+        '-ErrorMessage',
+        error ?? 'Unknown error',
+        '-Quiet',
+      ],
+      { cwd: ROOT, stdio: 'pipe', windowsHide: true },
+    );
   }
 }
 
@@ -120,14 +158,42 @@ function logAudit(status: string, detail: string, skillId: string): void {
   const auditPathLegacy = join(ROOT, 'src', 'audit-pipeline.ts');
   const audit = existsSync(auditPath) ? auditPath : auditPathLegacy;
   if (!existsSync(audit)) return;
-  spawnSync('npx', ['tsx', audit, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'aws-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
+  spawnSync(
+    'npx',
+    [
+      'tsx',
+      audit,
+      '-Action',
+      'log',
+      '-EventType',
+      'skill.exec',
+      '-Component',
+      'cloud',
+      '-Operation',
+      'aws-invoke',
+      '-Actor',
+      'system',
+      '-Target',
+      skillId,
+      '-Status',
+      status,
+      '-Message',
+      detail,
+      '-Quiet',
+    ],
+    { cwd: ROOT, stdio: 'pipe', windowsHide: true },
+  );
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolveFn) => setTimeout(resolveFn, ms));
 }
 
-function httpsPost(url: string, body: string, headers: Record<string, string>): Promise<{ statusCode: number; data: string }> {
+function httpsPost(
+  url: string,
+  body: string,
+  headers: Record<string, string>,
+): Promise<{ statusCode: number; data: string }> {
   return new Promise((resolveFn, reject) => {
     const u = new URL(url);
     const opts: https.RequestOptions = {
@@ -166,7 +232,10 @@ async function invokeSkillOnLambda(
   dryRun: boolean,
   recordMetrics: boolean,
 ): Promise<{ StatusCode: number; Payload: string }> {
-  log(`Invoking skill on AWS Lambda: ${skillId} (url: ${functionUrl}, type: ${invocationType})`, 'INFO');
+  log(
+    `Invoking skill on AWS Lambda: ${skillId} (url: ${functionUrl}, type: ${invocationType})`,
+    'INFO',
+  );
 
   const payload = JSON.stringify({
     skillId,
@@ -177,7 +246,10 @@ async function invokeSkillOnLambda(
 
   if (dryRun || invocationType === 'DryRun') {
     log('Dry run detected, skipping actual Lambda invocation', 'INFO');
-    return { StatusCode: 202, Payload: JSON.stringify({ success: true, skillId, output: 'Dry run completed' }) };
+    return {
+      StatusCode: 202,
+      Payload: JSON.stringify({ success: true, skillId, output: 'Dry run completed' }),
+    };
   }
 
   const headers = getAuthorizationHeaders();
@@ -199,7 +271,11 @@ async function invokeSkillOnLambda(
   }
 }
 
-async function invokeWithRetry<T>(fn: () => Promise<T>, maxRetries: number, initialDelayMs = 1000): Promise<T> {
+async function invokeWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number,
+  initialDelayMs = 1000,
+): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     if (!circuitBreaker.canExecute()) {
       throw new Error('Circuit breaker is OPEN');
@@ -211,7 +287,10 @@ async function invokeWithRetry<T>(fn: () => Promise<T>, maxRetries: number, init
     } catch (err) {
       circuitBreaker.recordFailure();
       if (attempt >= maxRetries) {
-        log(`Failed after ${maxRetries} attempts: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
+        log(
+          `Failed after ${maxRetries} attempts: ${err instanceof Error ? err.message : String(err)}`,
+          'ERROR',
+        );
         throw err;
       }
       const delayMs = initialDelayMs * Math.pow(2, attempt - 1);
@@ -222,10 +301,23 @@ async function invokeWithRetry<T>(fn: () => Promise<T>, maxRetries: number, init
   throw new Error('Unreachable');
 }
 
-export function recordCloudMetrics(provider: string, duration: number, success: boolean, cost: number): void {
+export function recordCloudMetrics(
+  provider: string,
+  duration: number,
+  success: boolean,
+  cost: number,
+): void {
   const metricsDir = join(ROOT, '.session');
   if (!existsSync(metricsDir)) mkdirSync(metricsDir, { recursive: true });
-  let metrics: { executions: Array<{ provider: string; timestamp: string; duration: number; success: boolean; cost: number }> } = { executions: [] };
+  let metrics: {
+    executions: Array<{
+      provider: string;
+      timestamp: string;
+      duration: number;
+      success: boolean;
+      cost: number;
+    }>;
+  } = { executions: [] };
   if (existsSync(METRICS_FILE)) {
     try {
       metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -234,7 +326,13 @@ export function recordCloudMetrics(provider: string, duration: number, success: 
       metrics = { executions: [] };
     }
   }
-  metrics.executions.push({ provider, timestamp: new Date().toISOString(), duration, success, cost });
+  metrics.executions.push({
+    provider,
+    timestamp: new Date().toISOString(),
+    duration,
+    success,
+    cost,
+  });
   writeFileSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
 }
 
@@ -253,7 +351,10 @@ export function saveSessionStateToS3(sessionState: unknown): void {
     writeFileSync(join(S3_BACKUP_DIR, fileName), JSON.stringify(sessionState, null, 2));
     log(`Session state saved: ${fileName}`, 'SUCCESS');
   } catch (err) {
-    log(`Failed to save session state: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
+    log(
+      `Failed to save session state: ${err instanceof Error ? err.message : String(err)}`,
+      'ERROR',
+    );
   }
 }
 
@@ -269,7 +370,9 @@ export interface AwsDelegatorOptions {
   quiet?: boolean;
 }
 
-export async function runAwsDelegator(opts: AwsDelegatorOptions): Promise<{ StatusCode: number; Payload: string }> {
+export async function runAwsDelegator(
+  opts: AwsDelegatorOptions,
+): Promise<{ StatusCode: number; Payload: string }> {
   quiet = opts.quiet ?? false;
   log(`AWS Delegator started for skill: ${opts.skillId}`, 'INFO');
   if (!opts.skillId || !opts.skillInput) {
@@ -299,7 +402,12 @@ export async function runAwsDelegator(opts: AwsDelegatorOptions): Promise<{ Stat
       opts.maxRetries ?? 3,
     );
     if (opts.recordMetrics) {
-      saveSessionStateToS3({ skillId: opts.skillId, result, timestamp: new Date().toISOString(), provider: 'AWS' });
+      saveSessionStateToS3({
+        skillId: opts.skillId,
+        result,
+        timestamp: new Date().toISOString(),
+        provider: 'AWS',
+      });
     }
     stopTracingSpan(spanName, true);
     logAudit('success', `AWS delegator completed for ${opts.skillId}`, opts.skillId);
@@ -340,7 +448,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   const functionUrl = args['function-url'] ?? process.env.AWS_LAMBDA_FUNCTION_URL ?? '';
   if (!functionUrl && args['dry-run'] !== 'true') {
-    log('AWS_LAMBDA_FUNCTION_URL is required (env var or --function-url) unless --dry-run', 'ERROR');
+    log(
+      'AWS_LAMBDA_FUNCTION_URL is required (env var or --function-url) unless --dry-run',
+      'ERROR',
+    );
     process.exit(1);
   }
   runAwsDelegator({

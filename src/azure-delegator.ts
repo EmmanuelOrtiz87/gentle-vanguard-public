@@ -37,7 +37,12 @@ let quiet = false;
 function writeLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO'): void {
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   if (!quiet) {
-    const colors: Record<string, string> = { INFO: '\x1b[36m', WARN: '\x1b[33m', ERROR: '\x1b[31m', SUCCESS: '\x1b[32m' };
+    const colors: Record<string, string> = {
+      INFO: '\x1b[36m',
+      WARN: '\x1b[33m',
+      ERROR: '\x1b[31m',
+      SUCCESS: '\x1b[32m',
+    };
     console.log(`${colors[level] ?? ''}[${ts}] [${level}] ${message}\x1b[0m`);
   }
   try {
@@ -95,7 +100,12 @@ const circuitBreaker = new CircuitBreaker();
 export function startTracingSpan(name: string): void {
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (existsSync(tracer)) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'start', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
+    spawnSync('npx', ['tsx', tracer, '-Action', 'start', '-SpanName', name, '-Quiet'], {
+      cwd: ROOT,
+      stdio: 'pipe',
+      timeout: 10000,
+      windowsHide: true,
+    });
   }
 }
 
@@ -103,9 +113,28 @@ export function stopTracingSpan(name: string, success: boolean, error?: string):
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (!existsSync(tracer)) return;
   if (success) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'end', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
+    spawnSync('npx', ['tsx', tracer, '-Action', 'end', '-SpanName', name, '-Quiet'], {
+      cwd: ROOT,
+      stdio: 'pipe',
+      timeout: 10000,
+      windowsHide: true,
+    });
   } else {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'error', '-SpanName', name, '-ErrorMessage', error ?? '', '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
+    spawnSync(
+      'npx',
+      [
+        'tsx',
+        tracer,
+        '-Action',
+        'error',
+        '-SpanName',
+        name,
+        '-ErrorMessage',
+        error ?? '',
+        '-Quiet',
+      ],
+      { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true },
+    );
   }
 }
 
@@ -114,11 +143,39 @@ export function logAudit(status: string, detail: string): void {
   const auditLegacy = join(ROOT, 'src', 'audit-pipeline.ts');
   const auditPath = existsSync(audit) ? audit : auditLegacy;
   if (existsSync(auditPath)) {
-    spawnSync('npx', ['tsx', auditPath, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'azure-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 15000, windowsHide: true });
+    spawnSync(
+      'npx',
+      [
+        'tsx',
+        auditPath,
+        '-Action',
+        'log',
+        '-EventType',
+        'skill.exec',
+        '-Component',
+        'cloud',
+        '-Operation',
+        'azure-invoke',
+        '-Actor',
+        'system',
+        '-Target',
+        skillId,
+        '-Status',
+        status,
+        '-Message',
+        detail,
+        '-Quiet',
+      ],
+      { cwd: ROOT, stdio: 'pipe', timeout: 15000, windowsHide: true },
+    );
   }
 }
 
-function httpsPost(url: string, body: string, headers: Record<string, string>): Promise<{ statusCode: number; data: string }> {
+function httpsPost(
+  url: string,
+  body: string,
+  headers: Record<string, string>,
+): Promise<{ statusCode: number; data: string }> {
   return new Promise((resolveFn, reject) => {
     const u = new URL(url);
     const opts: https.RequestOptions = {
@@ -147,7 +204,18 @@ function getAuthorizationHeaders(): Record<string, string> {
     return { Authorization: `Bearer ${process.env.AZURE_ACCESS_TOKEN}` };
   }
   try {
-    const result = spawnSync('az', ['account', 'get-access-token', '--resource', 'https://management.azure.com', '--output', 'json'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
+    const result = spawnSync(
+      'az',
+      [
+        'account',
+        'get-access-token',
+        '--resource',
+        'https://management.azure.com',
+        '--output',
+        'json',
+      ],
+      { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true },
+    );
     if (result.status === 0 && result.stdout) {
       const parsed = JSON.parse(result.stdout.toString());
       if (parsed.accessToken) {
@@ -160,7 +228,10 @@ function getAuthorizationHeaders(): Record<string, string> {
   return {};
 }
 
-async function invokeSkillOnAzureFunction(skill: string, input: unknown): Promise<{ StatusCode: number; Payload: string }> {
+async function invokeSkillOnAzureFunction(
+  skill: string,
+  input: unknown,
+): Promise<{ StatusCode: number; Payload: string }> {
   writeLog(`Invoking skill on Azure Function: ${functionUrl}`, 'INFO');
   const payload = JSON.stringify({
     skillId: skill,
@@ -170,7 +241,10 @@ async function invokeSkillOnAzureFunction(skill: string, input: unknown): Promis
   });
   if (invocationType === 'DryRun') {
     writeLog('Dry run detected, skipping actual Azure invocation', 'INFO');
-    return { StatusCode: 202, Payload: JSON.stringify({ success: true, skillId: skill, output: 'Dry run completed' }) };
+    return {
+      StatusCode: 202,
+      Payload: JSON.stringify({ success: true, skillId: skill, output: 'Dry run completed' }),
+    };
   }
   const headers = getAuthorizationHeaders();
   try {
@@ -220,8 +294,21 @@ async function invokeWithRetry<T>(fn: () => Promise<T>, retries: number): Promis
   throw new Error('Unreachable');
 }
 
-function recordCloudMetrics(provider: string, duration: number, success: boolean, cost: number): void {
-  let metrics: { executions: Array<{ provider: string; timestamp: string; duration: number; success: boolean; cost: number }> } = { executions: [] };
+function recordCloudMetrics(
+  provider: string,
+  duration: number,
+  success: boolean,
+  cost: number,
+): void {
+  let metrics: {
+    executions: Array<{
+      provider: string;
+      timestamp: string;
+      duration: number;
+      success: boolean;
+      cost: number;
+    }>;
+  } = { executions: [] };
   if (existsSync(METRICS_PATH)) {
     try {
       metrics = JSON.parse(readFileSync(METRICS_PATH, 'utf-8'));
@@ -229,7 +316,13 @@ function recordCloudMetrics(provider: string, duration: number, success: boolean
       /* ignore */
     }
   }
-  metrics.executions.push({ provider, timestamp: new Date().toISOString(), duration, success, cost });
+  metrics.executions.push({
+    provider,
+    timestamp: new Date().toISOString(),
+    duration,
+    success,
+    cost,
+  });
   writeFileSync(METRICS_PATH, JSON.stringify(metrics, null, 2));
 }
 
@@ -299,13 +392,23 @@ async function main(): Promise<void> {
     throw new Error('SkillId is required');
   }
   if (!functionUrl && invocationType !== 'DryRun') {
-    throw new Error('Azure FunctionUrl is required either via parameter or AZURE_FUNCTION_URL environment variable');
+    throw new Error(
+      'Azure FunctionUrl is required either via parameter or AZURE_FUNCTION_URL environment variable',
+    );
   }
   startTracingSpan('azure-invoke');
   try {
-    const result = await invokeWithRetry(() => invokeSkillOnAzureFunction(skillId, skillInput), maxRetries);
+    const result = await invokeWithRetry(
+      () => invokeSkillOnAzureFunction(skillId, skillInput),
+      maxRetries,
+    );
     if (recordMetrics) {
-      saveSessionStateToCosmos({ skillId, result, timestamp: new Date().toISOString(), provider: 'Azure' });
+      saveSessionStateToCosmos({
+        skillId,
+        result,
+        timestamp: new Date().toISOString(),
+        provider: 'Azure',
+      });
     }
     stopTracingSpan('azure-invoke', true);
     logAudit('success', 'Azure function invocation completed');

@@ -9,7 +9,13 @@ import assert from 'node:assert';
 import { writeFileSync, mkdtempSync, rmSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { pct, parseCoverage, loadConfig, parseArgs, DEFAULT_CONFIG } from '../../src/coverage-runner.ts';
+import {
+  pct,
+  parseCoverage,
+  loadConfig,
+  parseArgs,
+  DEFAULT_CONFIG,
+} from '../../src/coverage-runner.ts';
 
 function sampleCoverageFile(): string {
   const dir = mkdtempSync(join(tmpdir(), 'gv-cov-test-'));
@@ -20,7 +26,11 @@ function sampleCoverageFile(): string {
       'C:\\repo\\src\\mod.ts': {
         path: 'C:\\repo\\src\\mod.ts',
         all: false,
-        statementMap: { '0': { start: { line: 1 } }, '1': { start: { line: 2 } }, '2': { start: { line: 3 } } },
+        statementMap: {
+          '0': { start: { line: 1 } },
+          '1': { start: { line: 2 } },
+          '2': { start: { line: 3 } },
+        },
         s: { '0': 1, '1': 0, '2': 1 },
         fnMap: { '0': { loc: { line: 1 }, name: 'a' }, '1': { loc: { line: 2 }, name: 'b' } },
         f: { '0': 1, '1': 0 },
@@ -74,8 +84,18 @@ describe('Coverage Runner', () => {
   });
 
   it('parseArgs supports --quick, --no-enforce, --json', () => {
-    assert.deepStrictEqual(parseArgs(), { quick: false, enforce: true, json: false, noWrite: false });
-    assert.deepStrictEqual(parseArgs(['--quick']), { quick: true, enforce: true, json: false, noWrite: false });
+    assert.deepStrictEqual(parseArgs(), {
+      quick: false,
+      enforce: true,
+      json: false,
+      noWrite: false,
+    });
+    assert.deepStrictEqual(parseArgs(['--quick']), {
+      quick: true,
+      enforce: true,
+      json: false,
+      noWrite: false,
+    });
     assert.deepStrictEqual(parseArgs(['--no-enforce', '--json']), {
       quick: false,
       enforce: false,
@@ -88,7 +108,12 @@ describe('Coverage Runner', () => {
     const saved = process.argv;
     process.argv = ['node', 'src/coverage-runner.ts', '--quick', '--json'];
     try {
-      assert.deepStrictEqual(parseArgs(), { quick: true, enforce: true, json: true, noWrite: false });
+      assert.deepStrictEqual(parseArgs(), {
+        quick: true,
+        enforce: true,
+        json: true,
+        noWrite: false,
+      });
     } finally {
       process.argv = saved;
     }

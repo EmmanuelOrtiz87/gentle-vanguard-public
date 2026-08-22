@@ -23,9 +23,7 @@ const SRC = join(ROOT, 'src');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // Patrones rotos a reemplazar (comparación directa de strings, sin normalizar)
-const BROKEN_PATTERNS = [
-  /import\.meta\.url === `file:\/\/\$\{process\.argv\[1\]\}`/g,
-];
+const BROKEN_PATTERNS = [/import\.meta\.url === `file:\/\/\$\{process\.argv\[1\]\}`/g];
 
 // Patrón correcto con guard
 const FIX = `process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href`;
@@ -89,7 +87,10 @@ function applyFix(content: string): string {
       const lines = out.split('\n');
       let insertAt = 0;
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('import ')) { insertAt = i + 1; break; }
+        if (lines[i].startsWith('import ')) {
+          insertAt = i + 1;
+          break;
+        }
       }
       lines.splice(insertAt, 0, importLine);
       out = lines.join('\n');
@@ -102,7 +103,9 @@ function main(): void {
   const files = collectTsFiles(SRC);
   let fixed = 0;
 
-  console.log(`auto-url-fix ${DRY_RUN ? '(dry-run)' : '(apply)'} — scanning ${files.length} TS files`);
+  console.log(
+    `auto-url-fix ${DRY_RUN ? '(dry-run)' : '(apply)'} — scanning ${files.length} TS files`,
+  );
 
   for (const file of files) {
     const content = readFileSync(file, 'utf8');

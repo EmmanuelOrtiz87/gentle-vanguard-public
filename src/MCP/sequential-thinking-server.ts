@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * MCP Sequential Thinking Server
- * 
+ *
  * Implementa el patrón de "Sequential Thinking" para LLMs.
  * Permite al modelo pensar paso a paso, revisar sus propios pensamientos,
  * y construir cadenas de razonamiento dinámicas.
- * 
+ *
  * Basado en: @modelcontextprotocol/server-sequential-thinking
  * Versión nativa para Gentle-Vanguard
- * 
+ *
  * Usage:
  *   node dist/mcp/sequential-thinking-server.js
  *   o
@@ -49,7 +49,11 @@ const activeThoughts = new Map<string, Thought[]>();
 
 // ─── Logger ───────────────────────────────────────────────────────────────────
 
-function log(level: 'INFO' | 'WARN' | 'ERROR', message: string, meta?: Record<string, unknown>): void {
+function log(
+  level: 'INFO' | 'WARN' | 'ERROR',
+  message: string,
+  meta?: Record<string, unknown>,
+): void {
   const timestamp = new Date().toISOString();
   const metaStr = meta ? ' ' + JSON.stringify(meta) : '';
   console.error(`[${timestamp}] [${level}] ${message}${metaStr}`);
@@ -73,7 +77,7 @@ function createThoughtChain(): string {
 
 function addThought(
   chainId: string,
-  thoughtData: Omit<Thought, 'id' | 'thoughtNumber' | 'totalThoughts'>
+  thoughtData: Omit<Thought, 'id' | 'thoughtNumber' | 'totalThoughts'>,
 ): Thought | null {
   const chain = thoughtChains.get(chainId);
   if (!chain) {
@@ -83,7 +87,7 @@ function addThought(
 
   const thoughts = chain.thoughts;
   const thoughtNumber = thoughts.length + 1;
-  
+
   const thought: Thought = {
     id: randomUUID(),
     thought: thoughtData.thought,
@@ -99,18 +103,18 @@ function addThought(
 
   thoughts.push(thought);
   chain.updatedAt = new Date();
-  
+
   // Update totalThoughts for all thoughts in chain
   thoughts.forEach((t: Thought) => {
     t.totalThoughts = thoughts.length;
   });
 
-  log('INFO', 'Added thought to chain', { 
-    chainId, 
-    thoughtNumber, 
-    totalThoughts: thoughts.length 
+  log('INFO', 'Added thought to chain', {
+    chainId,
+    thoughtNumber,
+    totalThoughts: thoughts.length,
   });
-  
+
   return thought;
 }
 
@@ -194,10 +198,7 @@ server.tool(
       .number()
       .optional()
       .describe('Total expected thoughts (optional, auto-calculated)'),
-    isRevision: z
-      .boolean()
-      .optional()
-      .describe('Whether this revises a previous thought'),
+    isRevision: z.boolean().optional().describe('Whether this revises a previous thought'),
     revisesThought: z
       .number()
       .optional()
@@ -206,18 +207,12 @@ server.tool(
       .number()
       .optional()
       .describe('The thought number this branches from (for exploring alternatives)'),
-    branchId: z
-      .string()
-      .optional()
-      .describe('A unique identifier for this branch'),
+    branchId: z.string().optional().describe('A unique identifier for this branch'),
     needsMoreThoughts: z
       .boolean()
       .optional()
       .describe('Whether more thoughts are needed beyond current expectations'),
-    chainId: z
-      .string()
-      .optional()
-      .describe('The thought chain ID (creates new if not provided)'),
+    chainId: z.string().optional().describe('The thought chain ID (creates new if not provided)'),
   },
   async (params) => {
     try {
@@ -280,7 +275,7 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 // Tool: get_thought_chain
@@ -297,7 +292,7 @@ server.tool(
   async (params) => {
     try {
       const chain = getThoughtChain(params.chainId);
-      
+
       if (!chain) {
         return {
           isError: true,
@@ -311,7 +306,7 @@ server.tool(
       }
 
       const format = params.format || 'text';
-      
+
       if (format === 'text') {
         return {
           content: [
@@ -343,7 +338,7 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 // Tool: list_thought_chains
@@ -368,7 +363,7 @@ server.tool(
                 chains: limited,
               },
               null,
-              2
+              2,
             ),
           },
         ],
@@ -385,7 +380,7 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 // Tool: delete_thought_chain
@@ -398,7 +393,7 @@ server.tool(
   async (params) => {
     try {
       const deleted = deleteThoughtChain(params.chainId);
-      
+
       return {
         content: [
           {
@@ -421,7 +416,7 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 // Tool: get_thought_summary
@@ -434,7 +429,7 @@ server.tool(
   async (params) => {
     try {
       const chain = getThoughtChain(params.chainId);
-      
+
       if (!chain) {
         return {
           isError: true,
@@ -459,7 +454,9 @@ server.tool(
 
       chain.thoughts.forEach((t) => {
         const prefix = t.isRevision ? '🔁 (Revision)' : t.branchId ? '🌿 (Branch)' : '💭';
-        summary.push(`${prefix} ${t.thought.substring(0, 100)}${t.thought.length > 100 ? '...' : ''}`);
+        summary.push(
+          `${prefix} ${t.thought.substring(0, 100)}${t.thought.length > 100 ? '...' : ''}`,
+        );
       });
 
       if (chain.thoughts.some((t) => t.needsMoreThoughts)) {
@@ -487,17 +484,17 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 // ─── Transport Setup ───────────────────────────────────────────────────────────
 
 async function main() {
   log('INFO', 'Starting Sequential Thinking MCP Server...');
-  
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   log('INFO', 'Sequential Thinking MCP Server running on stdio');
 }
 

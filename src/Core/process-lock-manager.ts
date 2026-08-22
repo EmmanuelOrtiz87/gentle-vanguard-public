@@ -1,20 +1,20 @@
 #!/usr/bin/env tsx
 /**
  * Process Lock Manager - Sistema robusto de prevención de duplicados
- * 
+ *
  * Implementa el patrón "file-based locking with PID tracking" que es el estándar
  * de la industria para prevenir duplicados en procesos de larga duración.
- * 
+ *
  * CARACTERÍSTICAS:
  * - Lock files con PID validation
  * - Stale lock detection (detecta procesos muertos)
  * - Cross-platform (Windows/Unix)
  * - Atomic operations
  * - Graceful handover (si hay proceso nuevo vs viejo)
- * 
+ *
  * USO:
  *   import { ProcessLock } from './process-lock-manager.js';
- *   
+ *
  *   const lock = new ProcessLock('codegraph-server');
  *   if (lock.acquire()) {
  *     // Ejecutar proceso - soy el único
@@ -23,7 +23,7 @@
  *     // Ya hay otro proceso corriendo
  *     console.log('Process already running, PID:', lock.getHolderPid());
  *   }
- * 
+ *
  * @version 1.0.0
  */
 
@@ -83,27 +83,33 @@ export class ProcessLock {
       // Si existe lock file, verificar si es válido
       if (existsSync(this.lockFile)) {
         const existing = this.readLock();
-        
+
         if (existing && this.isProcessAlive(existing.pid)) {
           // Hay un proceso vivo con el lock
           const age = Date.now() - existing.timestamp;
-          
+
           // Si el lock es muy viejo, podría ser stale
           if (age > STALE_THRESHOLD_MS) {
-            console.log(`[LOCK] ${this.name}: Lock file is old (${Math.floor(age/1000)}s), checking process...`);
+            console.log(
+              `[LOCK] ${this.name}: Lock file is old (${Math.floor(age / 1000)}s), checking process...`,
+            );
             // Double-check: el proceso podría estar vivo pero sin responder
             if (!this.isProcessResponsive(existing.pid)) {
-              console.log(`[LOCK] ${this.name}: Process ${existing.pid} is not responsive, taking over`);
+              console.log(
+                `[LOCK] ${this.name}: Process ${existing.pid} is not responsive, taking over`,
+              );
               this.forceUnlock();
               return this.createLock();
             }
           }
-          
+
           // Proceso está vivo, no podemos tomar el lock
           return false;
         } else {
           // Lock file apunta a proceso muerto
-          console.log(`[LOCK] ${this.name}: Stale lock (PID ${existing?.pid} not alive), taking over`);
+          console.log(
+            `[LOCK] ${this.name}: Stale lock (PID ${existing?.pid} not alive), taking over`,
+          );
           this.forceUnlock();
           return this.createLock();
         }
@@ -123,7 +129,7 @@ export class ProcessLock {
    */
   release(): void {
     if (!this.acquired) return;
-    
+
     try {
       if (existsSync(this.lockFile)) {
         const lock = this.readLock();
@@ -153,10 +159,10 @@ export class ProcessLock {
    */
   isLocked(): boolean {
     if (!existsSync(this.lockFile)) return false;
-    
+
     const lock = this.readLock();
     if (!lock) return false;
-    
+
     return this.isProcessAlive(lock.pid);
   }
 
@@ -166,14 +172,14 @@ export class ProcessLock {
     try {
       const content = readFileSync(this.lockFile, 'utf-8');
       const lines = content.split('\n');
-      const pidLine = lines.find(l => l.startsWith('pid='));
-      const timeLine = lines.find(l => l.startsWith('timestamp='));
-      
+      const pidLine = lines.find((l) => l.startsWith('pid='));
+      const timeLine = lines.find((l) => l.startsWith('timestamp='));
+
       if (!pidLine || !timeLine) return null;
-      
+
       const pid = parseInt(pidLine.split('=')[1], 10);
       const timestamp = parseInt(timeLine.split('=')[1], 10);
-      
+
       return { pid, timestamp };
     } catch {
       return null;
@@ -185,11 +191,11 @@ export class ProcessLock {
       const content = `pid=${process.pid}\ntimestamp=${Date.now()}\nprocess=${process.title}\n`;
       writeFileSync(this.lockFile, content, 'utf-8');
       this.acquired = true;
-      
+
       // Install one shared shutdown handler instead of three listeners per lock.
       activeLocks.add(this);
       installShutdownHandlers();
-      
+
       console.log(`[LOCK] ${this.name}: Lock acquired (PID ${process.pid})`);
       return true;
     } catch (err) {
@@ -228,9 +234,9 @@ export class ProcessLock {
     try {
       if (process.platform === 'win32') {
         // En Windows, verificar si el proceso tiene threads activos
-        const result = execSync(`wmic process where ProcessId=${pid} GET ThreadCount /VALUE`, { 
+        const result = execSync(`wmic process where ProcessId=${pid} GET ThreadCount /VALUE`, {
           windowsHide: true,
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
         const threads = result.match(/ThreadCount=(\d+)/);
         return threads ? parseInt(threads[1], 10) > 0 : false;
@@ -257,12 +263,9 @@ export function getProcessLock(name: string): ProcessLock {
  * Wrapper que ejecuta una función solo si puede adquirir el lock.
  * Si no puede, retorna null.
  */
-export function withProcessLock<T>(
-  name: string,
-  fn: () => T
-): T | null {
+export function withProcessLock<T>(name: string, fn: () => T): T | null {
   const lock = getProcessLock(name);
-  
+
   if (lock.acquire()) {
     try {
       return fn();
@@ -279,7 +282,7 @@ export function withProcessLock<T>(
 // ─── Health Check ───────────────────────────────────────────────────────────
 export function checkProcessLocks(): { name: string; pid: number | null; age: number }[] {
   const results: { name: string; pid: number | null; age: number }[] = [];
-  
+
   try {
     const files = readdirSync(LOCKS_DIR);
     for (const file of files) {
@@ -287,7 +290,7 @@ export function checkProcessLocks(): { name: string; pid: number | null; age: nu
         const name = file.slice(0, -5);
         const lock = new ProcessLock(name);
         const info = lock.readLock();
-        
+
         results.push({
           name,
           pid: info?.pid ?? null,
@@ -298,36 +301,36 @@ export function checkProcessLocks(): { name: string; pid: number | null; age: nu
   } catch {
     // Ignore
   }
-  
+
   return results;
 }
 
 // CLI
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--status')) {
     const locks = checkProcessLocks();
     console.log('\n╔════════════════════════════════════════╗');
     console.log('║  Process Locks Status                  ║');
     console.log('╚════════════════════════════════════════╝');
-    
+
     for (const lock of locks) {
       const status = lock.pid ? '🔒 LOCKED' : '🔓 UNLOCKED';
       const age = lock.age > 0 ? `${Math.floor(lock.age / 1000)}s` : 'N/A';
       console.log(`${status} ${lock.name} (PID: ${lock.pid}, Age: ${age})`);
     }
-    
+
     if (locks.length === 0) {
       console.log('No locks found');
     }
     console.log('');
   }
-  
+
   if (args.includes('--test')) {
     const lock = getProcessLock('test-process');
     console.log('Testing lock acquisition...');
-    
+
     if (lock.acquire()) {
       console.log('✅ Lock acquired!');
       setTimeout(() => {

@@ -42,7 +42,9 @@ describe('container-scan parsers', () => {
   });
 
   it('tolerates missing fix/urls/description fields', () => {
-    const json = JSON.stringify({ matches: [{ vulnerability: { id: 'CVE-X', severity: 'critical' } }] });
+    const json = JSON.stringify({
+      matches: [{ vulnerability: { id: 'CVE-X', severity: 'critical' } }],
+    });
     const vulns = parseGrypeJson(json);
     assert.equal(vulns.length, 1);
     assert.equal(vulns[0].fixVersion, null);

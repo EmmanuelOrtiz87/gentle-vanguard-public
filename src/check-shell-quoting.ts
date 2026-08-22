@@ -36,7 +36,8 @@ const dirIdx = args.indexOf('--dir');
 const rootDir = resolve(dirIdx !== -1 ? args[dirIdx + 1] : 'src');
 
 /** Commands whose arguments are single tokens (PIDs, ports, flags) — low risk. */
-const SAFE_COMMANDS = /^(taskkill|netstat|pkill|pgrep|tasklist|start|open|xdg-open|mkdir|rm|del)\b/i;
+const SAFE_COMMANDS =
+  /^(taskkill|netstat|pkill|pgrep|tasklist|start|open|xdg-open|mkdir|rm|del)\b/i;
 
 function* walkTsFiles(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -62,7 +63,8 @@ function hasQuotedInterpolation(line: string): boolean {
 function classify(snippet: string): 'high' | 'medium' | 'low' {
   if (SAFE_COMMANDS.test(snippet.replace(/^.*?runSyncShell\(`?/, ''))) return 'low';
   // Interpolations likely to contain spaces: paths into user dirs, messages, sql, queries.
-  if (/\$\{\s*(msg|message|query|sql|q|pattern|text|title|name|args)\b/.test(snippet)) return 'high';
+  if (/\$\{\s*(msg|message|query|sql|q|pattern|text|title|name|args)\b/.test(snippet))
+    return 'high';
   if (/\$\{[^}]*(path|file|dir|bin|script|db)[^}]*\}/.test(snippet)) return 'medium';
   return 'medium';
 }
@@ -98,8 +100,12 @@ function main(): void {
       console.log(`  ${icon} ${f.file}:${f.line}`);
       console.log(`      ${f.snippet}`);
     }
-    console.log(`\nTotal: ${findings.length} (high: ${byRisk.high}, medium: ${byRisk.medium}, low: ${byRisk.low})`);
-    console.log('Fix: convert to array-form runSync(cmd, [args]) — immune to cmd.exe re-quoting.\n');
+    console.log(
+      `\nTotal: ${findings.length} (high: ${byRisk.high}, medium: ${byRisk.medium}, low: ${byRisk.low})`,
+    );
+    console.log(
+      'Fix: convert to array-form runSync(cmd, [args]) — immune to cmd.exe re-quoting.\n',
+    );
   }
   process.exit(findings.some((f) => f.risk === 'high') ? 1 : 0);
 }

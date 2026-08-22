@@ -827,8 +827,20 @@ async function checkSecretScanner() {
 
   payloadFileOk('secret-scanner', 'module (src/secret-scanner.ts)', scannerSrc, 'manual', true);
   payloadFileOk('secret-scanner', 'CLI (src/secret-scanner-cli.ts)', scannerCli, 'manual', true);
-  payloadFileOk('secret-scanner', 'config (config/secret-scanner.json)', scannerCfg, 'manual', true);
-  payloadFileOk('secret-scanner', 'tests (tests/unit/secret-scanner.test.ts)', scannerTest, 'manual', true);
+  payloadFileOk(
+    'secret-scanner',
+    'config (config/secret-scanner.json)',
+    scannerCfg,
+    'manual',
+    true,
+  );
+  payloadFileOk(
+    'secret-scanner',
+    'tests (tests/unit/secret-scanner.test.ts)',
+    scannerTest,
+    'manual',
+    true,
+  );
 
   // Verify pattern catalog size from config (patterns: builtin|all)
   if (fileExists(scannerCfg)) {
@@ -837,7 +849,13 @@ async function checkSecretScanner() {
       if (cfg.patterns === 'builtin' || cfg.patterns === 'all') {
         addResult('secret-scanner', 'patterns mode', 'PASS', `patterns=${cfg.patterns}`, 'ok');
       } else {
-        addResult('secret-scanner', 'patterns mode', 'WARN', `Unexpected patterns value: ${String(cfg.patterns)}`, 'manual');
+        addResult(
+          'secret-scanner',
+          'patterns mode',
+          'WARN',
+          `Unexpected patterns value: ${String(cfg.patterns)}`,
+          'manual',
+        );
       }
     } catch {
       addResult('secret-scanner', 'patterns mode', 'FAIL', 'Invalid config JSON', 'manual');

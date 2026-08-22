@@ -13,14 +13,14 @@
  *   npx tsx src/context-truncator.ts --info                    # Show current context size
  */
 
-import { readFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, existsSync, mkdirSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { join, resolve } from "path";
+import { join, resolve } from 'path';
 
 // Paths
 const ROOT = resolve(process.cwd());
-const STATE_DIR = join(ROOT, ".session", "context-log");
-const LOG_FILE = join(ROOT, ".runtime", "context-truncator.log");
+const STATE_DIR = join(ROOT, '.session', 'context-log');
+const LOG_FILE = join(ROOT, '.runtime', 'context-truncator.log');
 
 // Default config
 const DEFAULT_CONFIG = {
@@ -34,7 +34,7 @@ const DEFAULT_CONFIG = {
 };
 
 interface Message {
-  role: "system" | "user" | "assistant" | "tool";
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
   tool_calls?: unknown[];
   tool_call_id?: string;
@@ -62,9 +62,9 @@ function log(msg: string): void {
   const line = `[${new Date().toISOString()}] ${msg}`;
   console.log(line);
   try {
-    mkdirSync(join(ROOT, ".runtime"), { recursive: true });
-    const fs = require("fs");
-    fs.appendFileSync(LOG_FILE, line + "\n", "utf-8");
+    mkdirSync(join(ROOT, '.runtime'), { recursive: true });
+    const fs = require('fs');
+    fs.appendFileSync(LOG_FILE, line + '\n', 'utf-8');
   } catch {
     /* non-fatal */
   }
@@ -75,21 +75,21 @@ function log(msg: string): void {
  */
 function summarizeMessages(messages: Message[]): string {
   const userMsgs = messages
-    .filter((m) => m.role === "user")
-    .map((m) => m.content.substring(0, 100) + (m.content.length > 100 ? "..." : ""));
+    .filter((m) => m.role === 'user')
+    .map((m) => m.content.substring(0, 100) + (m.content.length > 100 ? '...' : ''));
   const assistantSummary = messages
-    .filter((m) => m.role === "assistant" && m.content)
+    .filter((m) => m.role === 'assistant' && m.content)
     .map((m) => {
-      const content = m.content || "";
-      if (content.includes("[Tool Call]")) return "[Used tools]";
-      return content.substring(0, 80) + (content.length > 80 ? "..." : "");
+      const content = m.content || '';
+      if (content.includes('[Tool Call]')) return '[Used tools]';
+      return content.substring(0, 80) + (content.length > 80 ? '...' : '');
     })
     .slice(0, 3);
 
   return (
     `[Context: ${messages.length} previous messages summarized]\n` +
-    `User requests: ${userMsgs.slice(0, 3).join(" | ") || "N/A"}\n` +
-    `Assistant actions: ${assistantSummary.join(" | ") || "N/A"}`
+    `User requests: ${userMsgs.slice(0, 3).join(' | ') || 'N/A'}\n` +
+    `Assistant actions: ${assistantSummary.join(' | ') || 'N/A'}`
   );
 }
 
@@ -98,32 +98,30 @@ function summarizeMessages(messages: Message[]): string {
  */
 export function truncateHistory(
   messages: Message[],
-  config: Partial<typeof DEFAULT_CONFIG> = {}
+  config: Partial<typeof DEFAULT_CONFIG> = {},
 ): TruncationResult {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const originalCount = messages.length;
-  const originalTokens = messages.reduce(
-    (acc, m) => acc + estimateTokens(m.content || ""),
-    0
-  );
+  const originalTokens = messages.reduce((acc, m) => acc + estimateTokens(m.content || ''), 0);
 
   // Identify critical messages that must be preserved
   const criticalIndexes: number[] = [];
 
   messages.forEach((m, i) => {
-    if (cfg.preserveSystemMessages && m.role === "system") {
+    if (cfg.preserveSystemMessages && m.role === 'system') {
       criticalIndexes.push(i);
     }
-    if (cfg.preserveFirstUserMessage && m.role === "user" && criticalIndexes.filter(j => messages[j]?.role === "user").length === 0) {
+    if (
+      cfg.preserveFirstUserMessage &&
+      m.role === 'user' &&
+      criticalIndexes.filter((j) => messages[j]?.role === 'user').length === 0
+    ) {
       criticalIndexes.push(i);
     }
   });
 
   // Always keep last N turns
-  const recentStartIndex = Math.max(
-    0,
-    messages.length - cfg.maxTurns
-  );
+  const recentStartIndex = Math.max(0, messages.length - cfg.maxTurns);
 
   // If under limits, no truncation needed
   if (messages.length <= cfg.maxTurns && originalTokens <= cfg.maxTokens) {
@@ -133,7 +131,7 @@ export function truncateHistory(
       originalTokens,
       estimatedTokens: originalTokens,
       savedTokens: 0,
-      summary: "",
+      summary: '',
       removedIndexes: [],
     };
   }
@@ -149,14 +147,17 @@ export function truncateHistory(
   resultMessages.push(...criticalMessages);
 
   // Find middle section to summarize
-  const middleStart = Math.max(criticalIndexes.length > 0 ? Math.max(...criticalIndexes) + 1 : 0, cfg.minTurns);
+  const middleStart = Math.max(
+    criticalIndexes.length > 0 ? Math.max(...criticalIndexes) + 1 : 0,
+    cfg.minTurns,
+  );
   const middleEnd = Math.max(recentStartIndex, middleStart + 1);
 
   if (middleEnd > middleStart && messages.length > cfg.summaryThreshold) {
     const middleMessages = messages.slice(middleStart, middleEnd);
     const summary = summarizeMessages(middleMessages);
     resultMessages.push({
-      role: "system",
+      role: 'system',
       content: summary,
       timestamp: new Date().toISOString(),
     });
@@ -168,8 +169,8 @@ export function truncateHistory(
   resultMessages.push(...recentMessages);
 
   const estimatedTokens = resultMessages.reduce(
-    (acc, m) => acc + estimateTokens(m.content || ""),
-    0
+    (acc, m) => acc + estimateTokens(m.content || ''),
+    0,
   );
 
   return {
@@ -178,7 +179,7 @@ export function truncateHistory(
     originalTokens,
     estimatedTokens,
     savedTokens: originalTokens - estimatedTokens,
-    summary: resultMessages.length > criticalMessages.length ? "[Summarized context applied]" : "",
+    summary: resultMessages.length > criticalMessages.length ? '[Summarized context applied]' : '',
     removedIndexes,
     truncatedMessages: resultMessages, // Internal use
   } as TruncationResult;
@@ -189,7 +190,7 @@ export function truncateHistory(
  */
 function readCurrentSession(): { sessionId: string; messages: Message[] } | null {
   try {
-    const entries = require("fs").readdirSync(STATE_DIR, { withFileTypes: true });
+    const entries = require('fs').readdirSync(STATE_DIR, { withFileTypes: true });
     const sessions = entries
       .filter((e: any) => e.isDirectory())
       .map((e: any) => e.name)
@@ -199,11 +200,11 @@ function readCurrentSession(): { sessionId: string; messages: Message[] } | null
     if (sessions.length === 0) return null;
 
     const latestSession = sessions[0];
-    const statePath = join(STATE_DIR, latestSession, ".state.json");
+    const statePath = join(STATE_DIR, latestSession, '.state.json');
 
     if (!existsSync(statePath)) return null;
 
-    const state = JSON.parse(readFileSync(statePath, "utf-8"));
+    const state = JSON.parse(readFileSync(statePath, 'utf-8'));
     return {
       sessionId: latestSession,
       messages: state.messages || [],
@@ -220,15 +221,12 @@ function readCurrentSession(): { sessionId: string; messages: Message[] } | null
 function getContextInfo(): void {
   const session = readCurrentSession();
   if (!session) {
-    console.log("No active session found");
+    console.log('No active session found');
     return;
   }
 
   const messages = session.messages;
-  const tokens = messages.reduce(
-    (acc, m) => acc + estimateTokens(m.content || ""),
-    0
-  );
+  const tokens = messages.reduce((acc, m) => acc + estimateTokens(m.content || ''), 0);
 
   console.log(`\n=== Context Info: ${session.sessionId} ===`);
   console.log(`Messages: ${messages.length}`);
@@ -240,7 +238,9 @@ function getContextInfo(): void {
     console.log(`⚠️ WARNING: ${messages.length - DEFAULT_CONFIG.maxTurns} turns over limit`);
   }
   if (tokens > DEFAULT_CONFIG.maxTokens) {
-    console.log(`⚠️ WARNING: ${(tokens - DEFAULT_CONFIG.maxTokens).toLocaleString()} tokens over limit`);
+    console.log(
+      `⚠️ WARNING: ${(tokens - DEFAULT_CONFIG.maxTokens).toLocaleString()} tokens over limit`,
+    );
   }
 }
 
@@ -250,17 +250,23 @@ function getContextInfo(): void {
 function monitorAndTruncate(): void {
   const session = readCurrentSession();
   if (!session) {
-    log("No session to monitor");
+    log('No session to monitor');
     return;
   }
 
   const result = truncateHistory(session.messages);
 
   if (result.savedTokens > 0) {
-    log(`[${session.sessionId}] Truncated ${result.originalCount} → ${result.truncatedCount} messages`);
-    log(`Saved ~${result.savedTokens.toLocaleString()} tokens (${((result.savedTokens / result.originalTokens) * 100).toFixed(1)}%)`);
+    log(
+      `[${session.sessionId}] Truncated ${result.originalCount} → ${result.truncatedCount} messages`,
+    );
+    log(
+      `Saved ~${result.savedTokens.toLocaleString()} tokens (${((result.savedTokens / result.originalTokens) * 100).toFixed(1)}%)`,
+    );
   } else {
-    log(`[${session.sessionId}] Context within limits: ${result.originalTokens.toLocaleString()} tokens`);
+    log(
+      `[${session.sessionId}] Context within limits: ${result.originalTokens.toLocaleString()} tokens`,
+    );
   }
 }
 
@@ -268,7 +274,7 @@ function monitorAndTruncate(): void {
 function main(): void {
   const args = process.argv.slice(2);
 
-  if (args.includes("--help") || args.includes("-h")) {
+  if (args.includes('--help') || args.includes('-h')) {
     console.log(`
 Context Truncator — Sliding Window for Conversation History
 
@@ -286,18 +292,18 @@ Config (DEFAULT):
     return;
   }
 
-  if (args.includes("--info")) {
+  if (args.includes('--info')) {
     getContextInfo();
     return;
   }
 
-  if (args.includes("--monitor")) {
+  if (args.includes('--monitor')) {
     monitorAndTruncate();
     return;
   }
 
-  if (args.includes("--config")) {
-    console.log("Default config:\n" + JSON.stringify(DEFAULT_CONFIG, null, 2));
+  if (args.includes('--config')) {
+    console.log('Default config:\n' + JSON.stringify(DEFAULT_CONFIG, null, 2));
     return;
   }
 

@@ -99,7 +99,11 @@ export const EXPERIMENTS: ChaosExperiment[] = [
       if (!restore) return null;
       const original = readFileSync(target, 'utf-8');
       // Inject invalid JSON (truncate + garbage)
-      writeFileSync(target, original.slice(0, Math.floor(original.length / 2)) + '{"broken":', 'utf-8');
+      writeFileSync(
+        target,
+        original.slice(0, Math.floor(original.length / 2)) + '{"broken":',
+        'utf-8',
+      );
       return restore;
     },
     verify: () => {
@@ -195,7 +199,10 @@ export const EXPERIMENTS: ChaosExperiment[] = [
           /* not yet */
         }
         // Wait 1s between checks
-        spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Milliseconds 1000'], { stdio: 'ignore', windowsHide: true });
+        spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Milliseconds 1000'], {
+          stdio: 'ignore',
+          windowsHide: true,
+        });
       }
       details.push(`ws-restarted=${restarted} (15s window)`);
       ok = restarted;
@@ -298,7 +305,14 @@ export function formatResults(results: ExperimentResult[]): string {
   lines.push('╚══════════════════════════════════════════════════════════════════════╝');
   lines.push('');
   for (const r of results) {
-    const icon = r.status === 'passed' ? '✓' : r.status === 'failed' ? '✗' : r.status === 'skipped' ? '○' : '◌';
+    const icon =
+      r.status === 'passed'
+        ? '✓'
+        : r.status === 'failed'
+          ? '✗'
+          : r.status === 'skipped'
+            ? '○'
+            : '◌';
     lines.push(`  ${icon} ${r.name} [${r.status.toUpperCase()}] (${r.durationMs}ms)`);
     for (const d of r.details) lines.push(`      ${d}`);
     lines.push('');
@@ -372,7 +386,9 @@ if (isDirectRun) {
     case 'report': {
       const data = loadResults();
       if (!data) {
-        console.log('No chaos experiment results yet. Run: npx tsx src/chaos-engineering.ts run-all');
+        console.log(
+          'No chaos experiment results yet. Run: npx tsx src/chaos-engineering.ts run-all',
+        );
         break;
       }
       if (asJson) {

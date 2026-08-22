@@ -20,8 +20,8 @@
 
 ### Content Operations Engine (Native TS, Offline-First)
 
-- **Content Operations Engine**: `src/content-operations/` — manifest como fuente de verdad,
-  state machine (`DRAFT → VALIDATED → PACKAGED → REVIEW → APPROVED → PUBLISHED → MEASURED`,
+- **Content Operations Engine**: `src/content-operations/` — manifest como fuente de verdad, state
+  machine (`DRAFT → VALIDATED → PACKAGED → REVIEW → APPROVED → PUBLISHED → MEASURED`,
   `FAILED → DRAFT`), validación contra registry de plataformas, empaquetado idempotente
 - **CLI**: 8 comandos (`list`, `validate`, `prepare`, `status`, `report`, `transition`, `export`,
   `help`) + npm scripts `content:*`

@@ -127,7 +127,10 @@ export function signStatement(
   };
 
   const outputPath = resolve(output);
-  const outputDir = outputPath.slice(0, Math.max(outputPath.lastIndexOf('\\'), outputPath.lastIndexOf('/')));
+  const outputDir = outputPath.slice(
+    0,
+    Math.max(outputPath.lastIndexOf('\\'), outputPath.lastIndexOf('/')),
+  );
   if (outputDir) mkdirSync(outputDir, { recursive: true });
   writeFileSync(outputPath, JSON.stringify(envelope, null, 2) + '\n', 'utf-8');
   return envelope;
@@ -198,9 +201,7 @@ export interface SignerCliArgs {
 
 export function parseSignerArgs(args: string[] = process.argv.slice(2)): SignerCliArgs {
   const action = (['genkey', 'sign', 'verify'].includes(args[0]) ? args[0] : 'sign') as
-    | 'genkey'
-    | 'sign'
-    | 'verify';
+    'genkey' | 'sign' | 'verify';
   const parsed: SignerCliArgs = {
     action,
     statementFile: DEFAULT_SIGNED_OUTPUT,

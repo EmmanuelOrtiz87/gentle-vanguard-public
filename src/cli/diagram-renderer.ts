@@ -10,7 +10,15 @@
  *   npx tsx src/cli/diagram-renderer.ts --from-codegraph --module src/core --output arch.svg
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, statSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+  statSync,
+} from 'fs';
 import { resolve, dirname, extname, basename, relative, join } from 'path';
 import { runSync } from '../core/run-command.js';
 

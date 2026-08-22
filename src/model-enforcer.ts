@@ -126,7 +126,9 @@ function enforceFreeModel(): void {
     writeFileSync(OPENCODE_CONFIG_PATH, JSON.stringify(opencode, null, 2) + '\n', 'utf-8');
     log(`OpenCode agent models aligned to ${target.model}`);
   } catch (error) {
-    log(`WARN: could not align opencode.json: ${error instanceof Error ? error.message : String(error)}`);
+    log(
+      `WARN: could not align opencode.json: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   if (registry.routingRules.orchestrator.primary !== target.model) {
@@ -148,7 +150,9 @@ function enforceFreeModel(): void {
     model: target.model,
     provider: target.provider,
     enforcedAt: new Date().toISOString(),
-    reason: preferredHealthy ? 'Preferred subscription model available' : 'Fallback: preferred model unavailable',
+    reason: preferredHealthy
+      ? 'Preferred subscription model available'
+      : 'Fallback: preferred model unavailable',
     previousModel: process.env.GENTLE_VANGUARD_ACTIVE_MODEL || 'unknown',
   };
 

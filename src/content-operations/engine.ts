@@ -14,23 +14,10 @@
  *  - No secrets in Git.
  */
 import { basename, resolve } from 'node:path';
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 export type Status =
-  | 'DRAFT'
-  | 'VALIDATED'
-  | 'PACKAGED'
-  | 'REVIEW'
-  | 'APPROVED'
-  | 'PUBLISHED'
-  | 'MEASURED'
-  | 'FAILED';
+  'DRAFT' | 'VALIDATED' | 'PACKAGED' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'MEASURED' | 'FAILED';
 
 export type Job = {
   id: string;
@@ -87,7 +74,8 @@ export function validate(job: Job, registry?: PlatformRegistry): string[] {
 
   if (!job.id) errors.push('missing id');
   if (!job.date) errors.push('missing date');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(job.date)) errors.push(`invalid date format: ${job.date} (expected YYYY-MM-DD)`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(job.date))
+    errors.push(`invalid date format: ${job.date} (expected YYYY-MM-DD)`);
   if (!job.platform) errors.push('missing platform');
   if (!job.copy?.trim()) errors.push('missing copy');
   if (!job.campaign) errors.push('missing campaign');
@@ -103,7 +91,9 @@ export function validate(job: Job, registry?: PlatformRegistry): string[] {
 
   if (registry) {
     if (!registry.platforms[job.platform]) {
-      errors.push(`unknown platform: ${job.platform} (not in config/content-operations/platforms.json)`);
+      errors.push(
+        `unknown platform: ${job.platform} (not in config/content-operations/platforms.json)`,
+      );
     } else {
       const cap = registry.platforms[job.platform];
       if (cap.approvalRequired && !job.approvalRequired) {
@@ -148,7 +138,11 @@ export function packageJob(root: string, job: Job): string {
   // Idempotency: if the packet exists and matches, do not rewrite.
   if (existsSync(pubPath)) {
     const existing = JSON.parse(readFileSync(pubPath, 'utf8')) as Job;
-    if (existing.id === job.id && existing.copy === job.copy && existing.platform === job.platform) {
+    if (
+      existing.id === job.id &&
+      existing.copy === job.copy &&
+      existing.platform === job.platform
+    ) {
       return out;
     }
   }

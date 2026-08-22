@@ -44,7 +44,9 @@ interface VerifyReport {
   success: boolean;
 }
 
-function findLatestInstaller(distDir: string = DIST_DIR): { exe: string; sha256File: string } | null {
+function findLatestInstaller(
+  distDir: string = DIST_DIR,
+): { exe: string; sha256File: string } | null {
   if (!existsSync(distDir)) return null;
   const candidates = readdirSync(distDir)
     .filter((f) => /^Gentle-Vanguard-Setup-.*\.exe$/.test(f))
@@ -61,7 +63,11 @@ function sha256(filePath: string): string {
 export { findLatestInstaller, sha256 };
 
 /** Run a program detached-safe and wait for completion. */
-function runExe(exePath: string, args: string[], timeoutMs: number): { code: number | null; error?: string } {
+function runExe(
+  exePath: string,
+  args: string[],
+  timeoutMs: number,
+): { code: number | null; error?: string } {
   const result = spawnSync(exePath, args, { timeout: timeoutMs, windowsHide: true });
   if (result.error) return { code: null, error: result.error.message };
   return { code: result.status };
@@ -93,14 +99,22 @@ function main(): void {
   // Check 1: checksum integrity
   const actualHash = sha256(found.exe);
   if (existsSync(found.sha256File)) {
-    const expectedHash = readFileSync(found.sha256File, 'utf8').trim().split(/\s+/)[0].toLowerCase();
+    const expectedHash = readFileSync(found.sha256File, 'utf8')
+      .trim()
+      .split(/\s+/)[0]
+      .toLowerCase();
     report.results.push({
       check: 'sha256-checksum',
       status: actualHash === expectedHash ? 'pass' : 'fail',
-      detail: actualHash === expectedHash ? actualHash : `expected ${expectedHash}, got ${actualHash}`,
+      detail:
+        actualHash === expectedHash ? actualHash : `expected ${expectedHash}, got ${actualHash}`,
     });
   } else {
-    report.results.push({ check: 'sha256-checksum', status: 'skip', detail: '.sha256 file missing' });
+    report.results.push({
+      check: 'sha256-checksum',
+      status: 'skip',
+      detail: '.sha256 file missing',
+    });
   }
 
   // Check 2: silent install into sandbox
@@ -128,7 +142,10 @@ function main(): void {
     report.results.push({
       check: 'payload-completeness',
       status: missing.length === 0 ? 'pass' : 'fail',
-      detail: missing.length === 0 ? `${expectedEntries.length} key entries present` : `missing: ${missing.join(', ')}`,
+      detail:
+        missing.length === 0
+          ? `${expectedEntries.length} key entries present`
+          : `missing: ${missing.join(', ')}`,
     });
 
     // Check 4: no secrets in installed payload (defense in depth)
@@ -137,7 +154,8 @@ function main(): void {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (/^(node_modules|\.runtime|\.session|\.telemetry|keys|dist)$/i.test(entry.name)) continue;
+          if (/^(node_modules|\.runtime|\.session|\.telemetry|keys|dist)$/i.test(entry.name))
+            continue;
           scanForSecrets(full);
         } else if (/\.(key|pem)$|master\.key|^\.env$/i.test(entry.name)) {
           secretHits.push(full);
@@ -156,7 +174,11 @@ function main(): void {
   if (installedOk) {
     const uninstaller = join(sandbox, 'uninstall.exe');
     if (!existsSync(uninstaller)) {
-      report.results.push({ check: 'silent-uninstall', status: 'fail', detail: 'uninstall.exe not found' });
+      report.results.push({
+        check: 'silent-uninstall',
+        status: 'fail',
+        detail: 'uninstall.exe not found',
+      });
     } else {
       const unRun = runExe(uninstaller, ['/S'], 120000);
       // NSIS uninstaller copies itself to temp and returns immediately; poll for cleanup.

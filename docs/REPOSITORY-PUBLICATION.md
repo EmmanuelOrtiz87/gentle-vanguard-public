@@ -4,10 +4,10 @@
 
 Gentle-Vanguard uses two repositories with different responsibilities:
 
-| Repository | Visibility | Role |
-| --- | --- | --- |
-| `gentle-vanguard` | Private | Development, internal operations, telemetry and unreleased work |
-| `gentle-vanguard-public` | Public | Curated distribution, examples, documentation and releases |
+| Repository               | Visibility | Role                                                            |
+| ------------------------ | ---------- | --------------------------------------------------------------- |
+| `gentle-vanguard`        | Private    | Development, internal operations, telemetry and unreleased work |
+| `gentle-vanguard-public` | Public     | Curated distribution, examples, documentation and releases      |
 
 The public repository is the product surface for users. The private repository is the engineering
 workspace. Keeping both public creates duplicated sources of truth and increases the chance that

@@ -31,7 +31,10 @@ if (args.includes('--skip-encrypt') || args.includes('-SkipEncrypt')) {
   console.log('[WARN] --skip-encrypt is deprecated: the bootstrapper installer never encrypts.');
 }
 
-interface PkgJson { version: string; name: string }
+interface PkgJson {
+  version: string;
+  name: string;
+}
 
 function step(msg: string): void {
   console.log(`[BUILD] ${msg}`);
@@ -81,7 +84,7 @@ function trySignInstaller(installerPath: string): SignOutcome {
     ['signtool.exe', 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64\\signtool.exe'].find(
       (p) => {
         try {
-          return runSync(p, ['/?' ], { timeout: 10000 }).status === 0;
+          return runSync(p, ['/?'], { timeout: 10000 }).status === 0;
         } catch {
           return false;
         }
@@ -260,7 +263,8 @@ function main(): void {
   step('Phase 1: Staging payload (public distribution, no secrets)');
   const staged = stagePayload(ROOT, STAGE_DIR);
   ok(`${staged.copiedEntries.length} entries staged -> ${STAGE_DIR}`);
-  if (staged.skippedSecretPaths.length > 0) ok(`Refused secret paths: ${staged.skippedSecretPaths.join(', ')}`);
+  if (staged.skippedSecretPaths.length > 0)
+    ok(`Refused secret paths: ${staged.skippedSecretPaths.join(', ')}`);
 
   // Phase 2: bootstrap.cmd + repair.cmd shims
   step('Phase 2: Writing bootstrap.cmd and repair.cmd');
@@ -283,7 +287,9 @@ function main(): void {
   step('Phase 4: Compiling installer');
   const makensis = findMakensis();
   if (!makensis) {
-    console.error('  [ERROR] makensis not found. Install NSIS 3+ from https://nsis.sourceforge.io/');
+    console.error(
+      '  [ERROR] makensis not found. Install NSIS 3+ from https://nsis.sourceforge.io/',
+    );
     process.exit(1);
   }
   const build = runSync(makensis, [nsiPath], { timeout: 300000 });
@@ -299,7 +305,11 @@ function main(): void {
     process.exit(1);
   }
   const checksum = sha256(installerPath);
-  writeFileSync(`${installerPath}.sha256`, `${checksum}  ${`Gentle-Vanguard-Setup-${version}.exe`}\n`, 'utf8');
+  writeFileSync(
+    `${installerPath}.sha256`,
+    `${checksum}  ${`Gentle-Vanguard-Setup-${version}.exe`}\n`,
+    'utf8',
+  );
   ok(`Installer: ${installerPath}`);
   ok(`SHA256: ${checksum}`);
 

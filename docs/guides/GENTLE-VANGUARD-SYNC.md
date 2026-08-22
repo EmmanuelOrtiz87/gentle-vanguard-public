@@ -125,6 +125,8 @@ Custom files outside managed assets are not touched.
 ## Related Files
 
 1. `scripts/utilities/UTILITIES/gentle-vanguard-sync.ps1`
+
 <!-- REF-OBSOLETA: scripts/utilities/UTILITIES/gentle-vanguard-sync.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 2. `config/gentle-vanguard-sync.json`
 3. `src/cli/gv.ts`

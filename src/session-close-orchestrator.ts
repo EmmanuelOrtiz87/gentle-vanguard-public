@@ -16,7 +16,15 @@
  *   npx tsx src/session-close-orchestrator.ts --validate --full --auto-fix
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, unlinkSync } from 'fs';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  unlinkSync,
+} from 'fs';
 import { join, resolve, relative } from 'path';
 import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
