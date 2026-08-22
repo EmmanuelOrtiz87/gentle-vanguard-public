@@ -95,7 +95,7 @@ const circuitBreaker = new CircuitBreaker();
 export function startTracingSpan(name: string): void {
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (existsSync(tracer)) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'start', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000 });
+    spawnSync('npx', ['tsx', tracer, '-Action', 'start', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
   }
 }
 
@@ -103,9 +103,9 @@ export function stopTracingSpan(name: string, success: boolean, error?: string):
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (!existsSync(tracer)) return;
   if (success) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'end', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000 });
+    spawnSync('npx', ['tsx', tracer, '-Action', 'end', '-SpanName', name, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
   } else {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'error', '-SpanName', name, '-ErrorMessage', error ?? '', '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000 });
+    spawnSync('npx', ['tsx', tracer, '-Action', 'error', '-SpanName', name, '-ErrorMessage', error ?? '', '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
   }
 }
 
@@ -114,7 +114,7 @@ export function logAudit(status: string, detail: string): void {
   const auditLegacy = join(ROOT, 'src', 'audit-pipeline.ts');
   const auditPath = existsSync(audit) ? audit : auditLegacy;
   if (existsSync(auditPath)) {
-    spawnSync('npx', ['tsx', auditPath, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'azure-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 15000 });
+    spawnSync('npx', ['tsx', auditPath, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'azure-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe', timeout: 15000, windowsHide: true });
   }
 }
 
@@ -147,7 +147,7 @@ function getAuthorizationHeaders(): Record<string, string> {
     return { Authorization: `Bearer ${process.env.AZURE_ACCESS_TOKEN}` };
   }
   try {
-    const result = spawnSync('az', ['account', 'get-access-token', '--resource', 'https://management.azure.com', '--output', 'json'], { cwd: ROOT, stdio: 'pipe', timeout: 10000 });
+    const result = spawnSync('az', ['account', 'get-access-token', '--resource', 'https://management.azure.com', '--output', 'json'], { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true });
     if (result.status === 0 && result.stdout) {
       const parsed = JSON.parse(result.stdout.toString());
       if (parsed.accessToken) {

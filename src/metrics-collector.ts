@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { runSync, runSyncShell } from './core/run-command.js';
+import { runSync } from './core/run-command.js';
 import { getTokenUsage } from './token-usage-reader.js';
 
 type Scope = 'full' | 'sessions' | 'token' | 'live' | 'git' | 'pr' | 'cost';
@@ -268,9 +268,10 @@ function collectSessionMetrics(quiet: boolean): SessionEntry[] {
   today.setHours(0, 0, 0, 0);
 
   if (existsSync(sessionsDir)) {
-    const files = runSyncShell(`dir /b "${sessionsDir}\\session-*.json" 2>nul`, {
-      stdio: 'pipe',
-    }).stdout.trim();
+    // Native directory scan — no shell glob needed (quoting-safe).
+    const files = readdirSync(sessionsDir)
+      .filter((f) => f.startsWith('session-') && f.endsWith('.json'))
+      .join('\n');
     if (files) {
       for (const f of files.split('\n')) {
         const fp = join(sessionsDir, f.trim());

@@ -125,6 +125,7 @@ function runSuite(
     const child = spawn(suite.cmd, suite.args, {
       shell: true,
       stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
     });
 
     let output = '';

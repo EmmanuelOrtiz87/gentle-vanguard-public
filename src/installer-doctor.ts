@@ -15,8 +15,8 @@ const strict = process.argv.includes('--strict');
 
 function commandVersion(command: string): string | null {
   const checker = process.platform === 'win32' ? 'where.exe' : 'which';
-  if (spawnSync(checker, [command], { stdio: 'ignore' }).status !== 0) return null;
-  const result = spawnSync(command, ['--version'], { encoding: 'utf8' });
+  if (spawnSync(checker, [command], { stdio: 'ignore', windowsHide: true }).status !== 0) return null;
+  const result = spawnSync(command, ['--version'], { encoding: 'utf8', windowsHide: true });
   return result.status === 0 ? `${result.stdout || result.stderr}`.trim().split(/\r?\n/)[0] : 'available';
 }
 

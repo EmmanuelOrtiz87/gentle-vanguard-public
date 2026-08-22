@@ -90,7 +90,7 @@ class GentleVideoAgent implements VideoAgent {
   private checkFFmpeg(): boolean {
     try {
       // Check if ffmpeg is available
-      spawn('ffmpeg', ['-version'], { stdio: 'pipe' });
+      spawn('ffmpeg', ['-version'], { stdio: 'pipe', windowsHide: true });
       return true;
     } catch {
       console.log('⚠️ FFmpeg no disponible. Videos se generarán como frames secuenciales.');
@@ -429,6 +429,7 @@ class GentleVideoAgent implements VideoAgent {
         ],
         {
           stdio: ['ignore', 'pipe', 'pipe'],
+          windowsHide: true,
         },
       );
 

@@ -10,9 +10,9 @@
  *   npx tsx src/cli/diagram-renderer.ts --from-codegraph --module src/core --output arch.svg
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, statSync } from 'fs';
 import { resolve, dirname, extname, basename, relative, join } from 'path';
-import { runSync, runSyncShell } from '../core/run-command.js';
+import { runSync } from '../core/run-command.js';
 
 interface RenderArgs {
   input: string;
@@ -144,7 +144,8 @@ async function renderGraphviz(
 
     const outFormat = format === 'svg' ? 'svg' : format === 'png' ? 'png' : 'svg';
     try {
-      const r = runSyncShell(`dot -T${outFormat} "${tmpFile}" -o "${outputPath}"`, {
+      // Array form: paths may contain spaces — shell quoting is unreliable.
+      const r = runSync('dot', ['-T' + outFormat, tmpFile, '-o', outputPath], {
         timeout: 30000,
       });
       if (r.status !== 0) throw new Error(r.stderr || `dot exited ${r.status}`);
@@ -154,7 +155,7 @@ async function renderGraphviz(
       return null;
     } finally {
       try {
-        runSyncShell(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`);
+        rmSync(tmpFile, { force: true });
       } catch {
         /* ignore */
       }
@@ -194,8 +195,9 @@ function renderPlantUml(pumlContent: string, format: string, outputPath: string)
     writeFileSync(tmpFile, pumlContent);
 
     try {
-      const r = runSyncShell(
-        `java -jar "${jarPath}" -t${outFormat} "${tmpFile}" -o "${dirname(outputPath)}"`,
+      const r = runSync(
+        'java',
+        ['-jar', jarPath, '-t' + outFormat, tmpFile, '-o', dirname(outputPath)],
         {
           timeout: 30000,
         },
@@ -207,7 +209,7 @@ function renderPlantUml(pumlContent: string, format: string, outputPath: string)
       return null;
     } finally {
       try {
-        runSyncShell(`del "${tmpFile}" 2>nul || rm "${tmpFile}" 2>/dev/null`);
+        rmSync(tmpFile, { force: true });
       } catch {
         /* ignore */
       }

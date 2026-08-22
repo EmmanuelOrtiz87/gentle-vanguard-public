@@ -54,6 +54,7 @@ function measureStartupTime(filePath: string): Promise<number> {
       cwd: ROOT,
       stdio: 'ignore',
       shell: true,
+      windowsHide: true,
     });
 
     child.on('close', () => {

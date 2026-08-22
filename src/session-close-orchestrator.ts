@@ -18,7 +18,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, unlinkSync } from 'fs';
 import { join, resolve, relative } from 'path';
-import { runSync, runSyncShell, runNpxTsxSync } from './core/run-command.js';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { sessionEnd } from './engram-session-bridge.js';
 
@@ -718,7 +718,8 @@ function isProcessRunning(matcher: string): boolean {
       const count = parseInt((r.stdout ?? '').trim(), 10);
       return !isNaN(count) && count > 0;
     }
-    const r = runSyncShell(`pgrep -f "${matcher}"`, { timeout: 5000 });
+    // Array form: matcher may contain spaces/quotes — shell quoting is unreliable.
+    const r = runSync('pgrep', ['-f', matcher], { timeout: 5000 });
     return r.status === 0;
   } catch {
     return false;
@@ -771,9 +772,9 @@ function killProcessByCommandLine(matcher: string): boolean {
       return out.length > 0; // true if at least one process was killed
     } else {
       // Unix: use pkill -f, excluding the current process
-      runSyncShell(`pkill -f "${matcher}"`, { timeout: 10000, stdio: 'pipe' });
+      runSync('pkill', ['-f', matcher], { timeout: 10000, stdio: 'pipe' });
       // Verify if any matching processes (other than self) were killed
-      const pgrep = runSyncShell(`pgrep -f "${matcher}"`, { timeout: 5000 });
+      const pgrep = runSync('pgrep', ['-f', matcher], { timeout: 5000 });
       return pgrep.status !== 0;
     }
   } catch {

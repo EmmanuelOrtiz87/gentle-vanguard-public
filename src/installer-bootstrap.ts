@@ -19,7 +19,7 @@ const full = process.argv.includes('--full');
 function command(name: string, args: string[], label: string): boolean {
   console.log(`${dryRun ? '[DRY-RUN] ' : ''}${label}`);
   if (dryRun) return true;
-  const result = spawnSync(name, args, { cwd: root, stdio: 'inherit', shell: false });
+  const result = spawnSync(name, args, { cwd: root, stdio: 'inherit', shell: false, windowsHide: true });
   if (result.status !== 0) {
     console.error(`Bootstrap failed in: ${label}`);
     return false;

@@ -11,7 +11,7 @@
  */
 
 import { runSync, runSyncShell } from './core/run-command.js';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { request as httpRequest } from 'http';
 
@@ -212,9 +212,7 @@ function measureLatency(): number {
 
 function saveMetricsSnapshot(snapshot: MetricSnapshot): void {
   try {
-    if (!existsSync(resolve(process.cwd(), METRICS_DIR))) {
-      runSyncShell(`mkdir -p "${resolve(process.cwd(), METRICS_DIR)}"`, {});
-    }
+    mkdirSync(resolve(process.cwd(), METRICS_DIR), { recursive: true });
     const filePath = resolve(process.cwd(), METRICS_DIR, `slo-${Date.now()}.json`);
     writeFileSync(filePath, JSON.stringify(snapshot, null, 2));
   } catch {

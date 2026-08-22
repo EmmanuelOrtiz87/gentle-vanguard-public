@@ -133,6 +133,7 @@ async function runTestSuite(
     const child = spawn(cmd, args, {
       cwd: process.cwd(),
       stdio: 'pipe',
+      windowsHide: true,
       // Windows: .cmd shims (npm.cmd) require shell:true to exec
       shell: process.platform === 'win32',
     });
