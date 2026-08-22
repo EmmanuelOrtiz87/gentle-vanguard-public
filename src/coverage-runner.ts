@@ -15,7 +15,7 @@
  */
 
 import { spawnSync } from 'child_process';
-import { existsSync, readFileSync, rmSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, rmSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -182,6 +182,27 @@ function main(): void {
     if (existsSync(resolve(ROOT, dir))) existing.push(g);
   }
 
+  // Expand globs to concrete files BEFORE handing them to c8/node --test.
+  // Rationale: spawning c8 with shell:true on POSIX lets bash expand unquoted
+  // glob patterns (include/exclude/test globs). The expanded file list then
+  // corrupts c8's argv parsing — the first expanded file is treated as the
+  // command to wrap and the rest as its arguments, producing EACCES on CI
+  // (Linux) while working on Windows (cmd.exe does not expand wildcards).
+  const testFiles: string[] = [];
+  for (const g of existing) {
+    const starIdx = g.indexOf('*');
+    if (starIdx === -1) {
+      testFiles.push(g);
+      continue;
+    }
+    const dir = g.slice(0, starIdx);
+    const suffix = g.slice(starIdx + 1); // e.g. '.test.ts' from 'dir/*.test.ts'
+    const entries = readdirSync(resolve(ROOT, dir))
+      .filter((f) => f.endsWith(suffix))
+      .sort();
+    for (const entry of entries) testFiles.push(`${dir}${entry}`);
+  }
+
   const outDir = resolve(ROOT, config.outputDir);
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
@@ -211,25 +232,27 @@ function main(): void {
     ...includeArgs,
     ...excludeArgs,
     ...checkArgs,
-    'npx',
-    'tsx',
+    process.execPath,
+    resolve(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs'),
     '--test',
-    ...existing,
+    ...testFiles,
   ];
 
-  // Resolve the local c8 binary directly (avoids npx arg-mangling on Windows)
-  const c8Bin = resolve(ROOT, 'node_modules', '.bin', process.platform === 'win32' ? 'c8.cmd' : 'c8');
+  // Run c8 via its JS entry with NO shell: prevents POSIX glob expansion of
+  // include/exclude patterns and Windows cmd quoting issues. Absolute paths
+  // for node/tsx remove any PATH or .cmd-shim dependency.
+  const c8Entry = resolve(ROOT, 'node_modules', 'c8', 'bin', 'c8.js');
 
   process.stdout.write(`\n┌────────────────────────────────────────────────┐\n`);
   process.stdout.write(`│  COVERAGE RUNNER — TypeScript coverage          │\n`);
-  process.stdout.write(`│  ${String(existing.length).padStart(2)} test globs | ${options.quick ? 'QUICK' : 'FULL'} mode                │\n`);
+  process.stdout.write(`│  ${String(testFiles.length).padStart(2)} test files | ${options.quick ? 'QUICK' : 'FULL'} mode                │\n`);
   process.stdout.write(`└────────────────────────────────────────────────┘\n\n`);
 
   const startTime = Date.now();
-  const result = spawnSync(c8Bin, c8Args, {
+  const result = spawnSync(process.execPath, [c8Entry, ...c8Args], {
     cwd: ROOT,
     stdio: 'inherit',
-    shell: true,
+    windowsHide: true,
   });
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 

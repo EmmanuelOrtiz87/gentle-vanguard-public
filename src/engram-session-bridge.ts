@@ -59,7 +59,7 @@ export function sessionStart(sessionId?: string): SessionStartResult {
       'node',
       [
         '-e',
-        `const c=require('child_process');c.spawnSync('npx',['engram','mem','session_start','--id','${sid}'],{stdio:'inherit'})`,
+        `const c=require('child_process');c.spawnSync('npx',['engram','mem','session_start','--id','${sid}'],{stdio:'inherit',windowsHide:true})`,
       ],
       { timeout: 5000 },
     );

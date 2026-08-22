@@ -24,7 +24,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { runSyncShell } from './core/run-command.js';
+import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 
@@ -313,7 +313,7 @@ function checkValidation(validation: Validation): { status: ContractStatus; deta
 
     case 'process_running':
       try {
-        const result = runSyncShell(`tasklist /FI "IMAGENAME eq ${validation.target}" 2>NUL`, {
+        const result = runSync('tasklist', ['/FI', `IMAGENAME eq ${validation.target}`], {
           timeout: 5000,
         }).stdout;
         return result.includes(validation.target)

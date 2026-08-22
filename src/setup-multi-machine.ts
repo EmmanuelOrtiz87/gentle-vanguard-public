@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runSync, runSyncShell } from './core/run-command.js';
+import { runSync, runNpxTsxSync } from './core/run-command.js';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -93,13 +93,14 @@ function main(): void {
     throw new Error(`Bootstrap script not found (TS: ${bootstrapTs}, PS1: ${bootstrapPs1})`);
   }
 
-  const runnerParam = args.installRunner
-    ? ` -InstallGitHubRunner -GitHubRunnerConfigPath "${args.runnerConfigPath}"`
-    : '';
+  const runnerArgs = args.installRunner
+    ? ['-InstallGitHubRunner', '-GitHubRunnerConfigPath', args.runnerConfigPath]
+    : [];
   if (existsSync(bootstrapTs)) {
-    runSyncShell(`npx tsx "${bootstrapTs}"${runnerParam}`, { stdio: 'inherit' });
+    // Array form: paths/args may contain spaces — shell quoting is unreliable.
+    runNpxTsxSync(bootstrapTs, runnerArgs, { stdio: 'inherit' });
   } else {
-    runSyncShell(`powershell -File "${bootstrapPs1}"${runnerParam}`, { stdio: 'inherit' });
+    runSync('powershell', ['-File', bootstrapPs1, ...runnerArgs], { stdio: 'inherit' });
   }
 
   console.log('[OK] Bootstrap completed');

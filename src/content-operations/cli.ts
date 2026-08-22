@@ -185,6 +185,7 @@ switch (command) {
     const res = spawnSync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], {
       cwd: root,
       stdio: 'inherit',
+      windowsHide: true,
     });
     process.exitCode = res.status ?? 1;
     break;

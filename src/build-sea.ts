@@ -22,7 +22,7 @@
  *   https://nodejs.org/api/single-executable-applications.html
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, statSync, unlinkSync } from 'fs';
 import { resolve, dirname, basename, extname } from 'path';
 import { createRequire } from 'module';
 import { runSync, runSyncShell } from './core/run-command.js';
@@ -265,11 +265,9 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
     // Remove existing output first to ensure clean copy (prevents locked file issues)
     if (existsSync(outputPath)) {
       try {
-        runSyncShell(`del "${outputPath}" 2>nul`);
+        unlinkSync(outputPath);
       } catch {
-        try {
-          require('fs').unlinkSync(outputPath);
-        } catch {}
+        /* locked file — copyFileSync below will surface the real error */
       }
     }
 

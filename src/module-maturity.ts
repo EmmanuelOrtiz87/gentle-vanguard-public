@@ -222,6 +222,7 @@ function evaluateCriterion(
         encoding: 'utf-8',
         shell: process.platform === 'win32',
         timeout: 120_000,
+        windowsHide: true,
       });
       const satisfied = run.status === 0;
       return {

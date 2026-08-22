@@ -197,6 +197,7 @@ async function createCheckpoint(reason: string): Promise<boolean> {
     const checkpoint = spawn('npm', ['run', 'checkpoint:create'], {
       cwd: ROOT,
       stdio: 'pipe',
+      windowsHide: true,
     });
     
     return new Promise((resolve) => {

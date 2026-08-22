@@ -99,7 +99,7 @@ function startTracingSpan(name: string): { traceId: string } | null {
   if (!existsSync(tracerPath)) return null;
   const traceId = newTraceId();
   _traceId = traceId;
-  spawnSync('npx', ['tsx', tracerPath, '-Action', 'start', '-SpanName', name, '-TraceId', traceId, '-Quiet'], { cwd: ROOT });
+  spawnSync('npx', ['tsx', tracerPath, '-Action', 'start', '-SpanName', name, '-TraceId', traceId, '-Quiet'], { cwd: ROOT, windowsHide: true });
   return { traceId };
 }
 
@@ -109,9 +109,9 @@ function stopTracingSpan(name: string, success: boolean, error?: string): void {
   const traceId = _traceId ?? newTraceId();
   const spanId = newTraceId().slice(0, 16);
   if (success) {
-    spawnSync('npx', ['tsx', tracerPath, '-Action', 'end', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-Quiet'], { cwd: ROOT, stdio: 'pipe' });
+    spawnSync('npx', ['tsx', tracerPath, '-Action', 'end', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
   } else {
-    spawnSync('npx', ['tsx', tracerPath, '-Action', 'error', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-ErrorMessage', error ?? 'Unknown error', '-Quiet'], { cwd: ROOT, stdio: 'pipe' });
+    spawnSync('npx', ['tsx', tracerPath, '-Action', 'error', '-SpanName', name, '-TraceId', traceId, '-SpanId', spanId, '-ErrorMessage', error ?? 'Unknown error', '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
   }
 }
 
@@ -120,7 +120,7 @@ function logAudit(status: string, detail: string, skillId: string): void {
   const auditPathLegacy = join(ROOT, 'src', 'audit-pipeline.ts');
   const audit = existsSync(auditPath) ? auditPath : auditPathLegacy;
   if (!existsSync(audit)) return;
-  spawnSync('npx', ['tsx', audit, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'aws-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe' });
+  spawnSync('npx', ['tsx', audit, '-Action', 'log', '-EventType', 'skill.exec', '-Component', 'cloud', '-Operation', 'aws-invoke', '-Actor', 'system', '-Target', skillId, '-Status', status, '-Message', detail, '-Quiet'], { cwd: ROOT, stdio: 'pipe', windowsHide: true });
 }
 
 function sleep(ms: number): Promise<void> {

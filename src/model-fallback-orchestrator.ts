@@ -409,6 +409,7 @@ async function executeWithModel(
         FORCE_MODEL: model,
       },
       timeout: 300000, // 5 minute timeout
+      windowsHide: true,
     });
 
     let stdout = '';

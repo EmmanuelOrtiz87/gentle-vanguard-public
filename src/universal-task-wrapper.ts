@@ -385,6 +385,7 @@ async function executeSubagent(
         DELEGATION_MODE: 'fallback',
       },
       timeout: 300000, // 5 minutes
+      windowsHide: true,
     });
 
     let stdout = '';

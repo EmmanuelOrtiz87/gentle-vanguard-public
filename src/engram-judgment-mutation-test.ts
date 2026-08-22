@@ -187,6 +187,7 @@ async function getJudgmentData(judgmentId: string): Promise<{
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe'],
         shell: true,
+        windowsHide: true,
       },
     );
 

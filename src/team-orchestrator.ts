@@ -24,7 +24,7 @@ import {
 } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { runSyncShell } from './core/run-command.js';
+import { runSyncShell, runNpxTsxSync } from './core/run-command.js';
 import { randomBytes } from 'crypto';
 
 // ---- Types ----
@@ -189,9 +189,8 @@ function spawnWorker(
   try {
     log(`[WORKER:${skillName}] Spawning in ${workerDir}`, 'INFO');
 
-    const escapedScript = workerScript.replace(/\\/g, '/');
-    const escapedQuery = subTask.replace(/"/g, '\\"');
-    const proc = runSyncShell(`npx tsx "${escapedScript}" --query "${escapedQuery}" --json`, {
+    // Array form via runNpxTsxSync — no manual escaping, immune to cmd re-quoting.
+    const proc = runNpxTsxSync(workerScript, ['--query', subTask, '--json'], {
       cwd: workerDir,
       timeout: timeoutSec * 1000,
       env: {

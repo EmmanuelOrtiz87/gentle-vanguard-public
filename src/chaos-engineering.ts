@@ -168,7 +168,7 @@ export const EXPERIMENTS: ChaosExperiment[] = [
       const pid = findPidByPort(port);
       if (!pid) return null; // WS not running — skip
       try {
-        spawnSync('taskkill', ['/PID', String(pid), '/F'], { stdio: 'ignore' });
+        spawnSync('taskkill', ['/PID', String(pid), '/F'], { stdio: 'ignore', windowsHide: true });
       } catch {
         /* already dead */
       }
@@ -195,7 +195,7 @@ export const EXPERIMENTS: ChaosExperiment[] = [
           /* not yet */
         }
         // Wait 1s between checks
-        spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Milliseconds 1000'], { stdio: 'ignore' });
+        spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Milliseconds 1000'], { stdio: 'ignore', windowsHide: true });
       }
       details.push(`ws-restarted=${restarted} (15s window)`);
       ok = restarted;
