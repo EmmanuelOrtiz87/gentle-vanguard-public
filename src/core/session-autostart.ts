@@ -162,7 +162,8 @@ function criticalServicesHealthy(): boolean {
 
 function checkLock(): boolean {
   try {
-    const force = process.argv.includes('--force') || process.env.GENTLE_VANGUARD_AUTOSTART_FORCE === '1';
+    const force =
+      process.argv.includes('--force') || process.env.GENTLE_VANGUARD_AUTOSTART_FORCE === '1';
     if (existsSync(LOCK_FILE)) {
       // The CLI is invoked by multiple tools for every user turn. Reuse a
       // recent completed bootstrap instead of replaying 29 steps + 77 lazy
@@ -175,7 +176,9 @@ function checkLock(): boolean {
         ageMs < SESSION_REUSE_WINDOW_MS &&
         (!recoverIfUnhealthy || criticalServicesHealthy())
       ) {
-        LOG.info(`[LOCK] Recent session bootstrap is active (${Math.floor(ageMs / 1000)}s old). Skipping duplicate.`);
+        LOG.info(
+          `[LOCK] Recent session bootstrap is active (${Math.floor(ageMs / 1000)}s old). Skipping duplicate.`,
+        );
         return false;
       }
       const pid = parseInt(readFileSync(LOCK_FILE, 'utf-8').trim(), 10);
@@ -384,20 +387,20 @@ function startLazyStep(step: PipelineStep): { success: boolean; error?: string }
   // ROBUST DEDUPE: Try to acquire lock before starting
   const lockName = `lazy-${step.id}`;
   const lock = new ProcessLock(lockName);
-  
+
   // Primary dedupe: check with old method (fast)
   if (isScriptRunning(scriptPath)) {
     LOG.info(`[DEDUPE] ${step.id} already running — skipping duplicate launch`);
     return { success: true, error: 'skipped-duplicate' };
   }
-  
+
   // Secondary dedupe: try to acquire file lock
   if (!lock.acquire()) {
     const holderPid = lock.getHolderPid();
     LOG.info(`[DEDUPE-LOCK] ${step.id} already running (PID ${holderPid}) — skipping`);
     return { success: true, error: 'skipped-duplicate-lock' };
   }
-  
+
   // Success: we acquired the lock, proceed to start
   LOG.info(`[DEDUPE-LOCK] ${step.id}: Lock acquired, proceeding`);
 
@@ -418,11 +421,11 @@ function startLazyStep(step: PipelineStep): { success: boolean; error?: string }
     //   daemons (setInterval watchers) never keep the
     //   calling shell waiting on an open stdout pipe.
   });
-  
+
   // The lock will auto-release when the child process exits
   // We don't need to maintain our lock - the child will have its own
   lock.release();
-  
+
   child.unref();
   return { success: true };
 }
@@ -470,7 +473,11 @@ async function main() {
   mkdirSync(join(ROOT, '.runtime'), { recursive: true });
   writeFileSync(
     join(ROOT, '.runtime', 'session-current.json'),
-    JSON.stringify({ sessionId, id: sessionId, startedAt: sessionStartTime, status: 'active' }, null, 2),
+    JSON.stringify(
+      { sessionId, id: sessionId, startedAt: sessionStartTime, status: 'active' },
+      null,
+      2,
+    ),
     'utf-8',
   );
   const engramSession = sessionStart(sessionId);

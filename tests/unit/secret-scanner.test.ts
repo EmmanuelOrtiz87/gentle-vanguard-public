@@ -42,10 +42,14 @@ const FAKE = {
 };
 
 function runCli(...args: string[]): { status: number | null; stdout: string; stderr: string } {
-  const res = spawnSync(process.execPath, ['--import', 'tsx', 'src/secret-scanner-cli.ts', ...args], {
-    cwd: ROOT,
-    encoding: 'utf-8',
-  });
+  const res = spawnSync(
+    process.execPath,
+    ['--import', 'tsx', 'src/secret-scanner-cli.ts', ...args],
+    {
+      cwd: ROOT,
+      encoding: 'utf-8',
+    },
+  );
   return { status: res.status, stdout: res.stdout, stderr: res.stderr };
 }
 
@@ -124,7 +128,9 @@ describe('Secret Scanner — pattern detection', () => {
   });
 
   it('should record line numbers and context', () => {
-    const m = scanText('line one\nline two\nSECRET = "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"\nline four');
+    const m = scanText(
+      'line one\nline two\nSECRET = "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"\nline four',
+    );
     assert.strictEqual(m.length, 1);
     assert.strictEqual(m[0].line, 3);
     assert.ok(m[0].context.includes('SECRET'));
@@ -178,13 +184,7 @@ describe('Secret Scanner — redaction', () => {
 
 describe('Secret Scanner — report', () => {
   it('should summarize total, category and risk', () => {
-    const text = [
-      FAKE.github,
-      FAKE.stripe,
-      FAKE.gcp,
-      FAKE.openssh,
-      FAKE.slack,
-    ].join('\n');
+    const text = [FAKE.github, FAKE.stripe, FAKE.gcp, FAKE.openssh, FAKE.slack].join('\n');
     const matches = scanText(text);
     const report = buildReport(matches);
     assert.strictEqual(report.total, 5);

@@ -227,7 +227,7 @@ function showUpdateInstructions(): void {
 
 // CLI usage
 const isMain =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ||
+  (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) ||
   process.argv[1]?.includes('auto-update-checker');
 
 if (isMain) {

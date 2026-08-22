@@ -67,14 +67,18 @@ Day End Closure Flow
 
 ## Files Involved
 
-| File                                    | Purpose                                    | Trigger                   |
-| --------------------------------------- | ------------------------------------------ | ------------------------- |
-| `scripts/utilities/day-end-closure.ps1` | Main orchestrator for daily closure        | Manual or automatic       |
+| File                                    | Purpose                             | Trigger             |
+| --------------------------------------- | ----------------------------------- | ------------------- |
+| `scripts/utilities/day-end-closure.ps1` | Main orchestrator for daily closure | Manual or automatic |
+
 <!-- REF-OBSOLETA: scripts/utilities/day-end-closure.ps1 no tiene equivalente TS (migración PS1→TS) -->
-| `scripts/utilities/end-session.ps1`     | Operational checks and artifact generation | Called by day-end-closure |
+
+| `scripts/utilities/end-session.ps1` | Operational checks and artifact generation | Called by
+day-end-closure |
 <!-- REF-OBSOLETA: scripts/utilities/end-session.ps1 no tiene equivalente TS (migración PS1→TS) -->
-| `src/cli/gv.ts`                         | CLI entry point                            | User command              |
-| `docs/sessions/`                        | Artifact storage                           | Auto-created on closure   |
+
+| `src/cli/gv.ts` | CLI entry point | User command | | `docs/sessions/` | Artifact storage |
+Auto-created on closure |
 
 ## Manual Execution Examples
 

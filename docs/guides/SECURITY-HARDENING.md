@@ -419,13 +419,21 @@ npm audit --workspace $HOME\mcp-workspace
 ## Referencias
 
 - `scripts/security/encryption-manager.ps1` - Encriptación
+
 <!-- REF-OBSOLETA: scripts/security/encryption-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - `scripts/security/input-validator.ps1` - Validación
+
 <!-- REF-OBSOLETA: scripts/security/input-validator.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - `scripts/security/secrets-manager.ps1` - Secretos
+
 <!-- REF-OBSOLETA: scripts/security/secrets-manager.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - `scripts/security/security-logger.ps1` - Logging
+
 <!-- REF-OBSOLETA: scripts/security/security-logger.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 - `tests/security/input-validation.security.tests.ps1` - Tests
 - `config/security-policy.json` - Políticas
 - `opencode.json#mcp` - MCP server configuration

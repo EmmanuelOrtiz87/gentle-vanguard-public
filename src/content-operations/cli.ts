@@ -133,9 +133,7 @@ switch (command) {
       '',
       '| ID | Date | Platform | Status | Campaign |',
       '| --- | --- | --- | --- | --- |',
-      ...jobs.map(
-        (j) => `| ${j.id} | ${j.date} | ${j.platform} | ${j.status} | ${j.campaign} |`,
-      ),
+      ...jobs.map((j) => `| ${j.id} | ${j.date} | ${j.platform} | ${j.status} | ${j.campaign} |`),
       '',
     ];
     const report = lines.join('\n');
@@ -182,11 +180,15 @@ switch (command) {
       process.exitCode = 1;
       break;
     }
-    const res = spawnSync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], {
-      cwd: root,
-      stdio: 'inherit',
-      windowsHide: true,
-    });
+    const res = spawnSync(
+      'powershell',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script],
+      {
+        cwd: root,
+        stdio: 'inherit',
+        windowsHide: true,
+      },
+    );
     process.exitCode = res.status ?? 1;
     break;
   }

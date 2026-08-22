@@ -22,3 +22,18 @@ graphify-out/
 plugins/
 node_modules/
 **/node_modules/
+
+# Artefactos autogenerados por pipelines del stack (se regeneran sin formato
+# prettier; formatearlos seria churn perpetuo):
+pnpm-lock.yaml
+apps/web-dashboard/pnpm-lock.yaml
+sbom.json
+assets/tokens.css
+assets/tokens.json
+config/installer-manifest.json
+content/operations/master-manifest.json
+docs/sessions/
+# Fixtures de test con formato intencionalmente roto:
+test-opcode-broken.json
+test-agent-broken2.json
+test-agent-broken.json

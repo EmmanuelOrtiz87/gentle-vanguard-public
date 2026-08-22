@@ -86,4 +86,4 @@ this plan has failed. Your assigned failure reason: [specific reason]. Write the
 
 ---
 
-> **Referencia detallada**: [ eferences/detail.md](references/detail.md)
+> **Referencia detallada**: [eferences/detail.md](references/detail.md)

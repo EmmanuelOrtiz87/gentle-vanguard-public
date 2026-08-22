@@ -86,7 +86,8 @@ export interface ProvenanceOptions {
 export const IN_TOTO_STATEMENT_V1 = 'https://in-toto.io/Statement/v1';
 export const SLSA_PROVENANCE_V1 = 'https://slsa.dev/provenance/v1';
 export const DEFAULT_BUILD_TYPE = 'https://github.com/gentle-vanguard/gentle-vanguard@v1';
-export const DEFAULT_BUILDER_ID = 'https://github.com/gentle-vanguard/gentle-vanguard/.github/workflows/ci.yml';
+export const DEFAULT_BUILDER_ID =
+  'https://github.com/gentle-vanguard/gentle-vanguard/.github/workflows/ci.yml';
 export const DEFAULT_OUTPUT = 'provenance/gentle-vanguard-provenance.json';
 
 // ---------------------------------------------------------------------------
@@ -278,8 +279,7 @@ export interface CliArgs {
 
 export function parseArgs(args: string[] = process.argv.slice(2)): CliArgs {
   const action = (args[0] === 'generate' || args[0] === 'verify' ? args[0] : 'generate') as
-    | 'generate'
-    | 'verify';
+    'generate' | 'verify';
   const parsed: CliArgs = {
     action,
     artifacts: [],
@@ -404,7 +404,10 @@ function runGenerate(cli: CliArgs): boolean {
   }
 
   const outputPath = resolve(cli.output);
-  const outputDir = outputPath.slice(0, Math.max(outputPath.lastIndexOf('\\'), outputPath.lastIndexOf('/')));
+  const outputDir = outputPath.slice(
+    0,
+    Math.max(outputPath.lastIndexOf('\\'), outputPath.lastIndexOf('/')),
+  );
   if (outputDir) mkdirSync(outputDir, { recursive: true });
   writeFileSync(outputPath, JSON.stringify(statement, null, 2) + '\n', 'utf-8');
 

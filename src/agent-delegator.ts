@@ -414,14 +414,13 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
 
   await acquireDelegationSlot();
   try {
+    // M6: effective temperature = tier override ?? agent config default.
+    // A tier override of 0 (premium precision) must still be honored — only
+    // `undefined` falls back to the hardcoded config value.
+    const effectiveTemp = request.temperature ?? agentConfig.temperature;
 
-  // M6: effective temperature = tier override ?? agent config default.
-  // A tier override of 0 (premium precision) must still be honored — only
-  // `undefined` falls back to the hardcoded config value.
-  const effectiveTemp = request.temperature ?? agentConfig.temperature;
-
-  // Check if native agent implementation exists
-  const agentScript = join(AGENTS_DIR, `${request.agent}.ts`);
+    // Check if native agent implementation exists
+    const agentScript = join(AGENTS_DIR, `${request.agent}.ts`);
 
     if (existsSync(agentScript)) {
       // Use native implementation if available
@@ -515,7 +514,10 @@ async function runNativeAgent(
     ];
 
     if (boundedContext) {
-      parts.push('--context', shellQuote(contextCompressed ? contextCompressed.text : boundedContext));
+      parts.push(
+        '--context',
+        shellQuote(contextCompressed ? contextCompressed.text : boundedContext),
+      );
     }
 
     const command = parts.join(' ');

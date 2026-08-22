@@ -110,7 +110,9 @@ function printSummary(matches: SecretMatch[], patternCount: number): void {
     byRisk.set(m.pattern.risk, (byRisk.get(m.pattern.risk) ?? 0) + 1);
   }
   console.log('');
-  console.log(`Secret Scanner — ${matches.length} match(es) found (${patternCount} patterns active)`);
+  console.log(
+    `Secret Scanner — ${matches.length} match(es) found (${patternCount} patterns active)`,
+  );
   console.log('─'.repeat(60));
   for (const m of matches) {
     console.log(formatMatch(m));
@@ -149,7 +151,8 @@ async function main(): Promise<void> {
   }
 
   const config = loadConfig();
-  const redact = args['no-redact'] === 'true' ? false : args.redact === 'true' ? true : config.redactByDefault;
+  const redact =
+    args['no-redact'] === 'true' ? false : args.redact === 'true' ? true : config.redactByDefault;
   const entropy = args.entropy === 'true';
   const patterns: PatternMode = args.patterns === 'builtin' ? 'builtin' : 'all';
   const ignoreExt = args['ignore-ext']
@@ -205,7 +208,9 @@ async function main(): Promise<void> {
         context: redact ? redactContext(m.context, allSecrets) : m.context,
         line: m.line,
         source: m.source,
-        ...(m.entropyScore !== undefined ? { entropyScore: Number(m.entropyScore.toFixed(2)) } : {}),
+        ...(m.entropyScore !== undefined
+          ? { entropyScore: Number(m.entropyScore.toFixed(2)) }
+          : {}),
       })),
     };
     console.log(JSON.stringify(output, null, 2));

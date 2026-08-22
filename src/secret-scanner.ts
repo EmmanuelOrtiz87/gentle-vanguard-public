@@ -232,8 +232,7 @@ export function loadConfig(): SecretScannerConfig {
   return {
     version: typeof raw.version === 'string' ? raw.version : DEFAULT_CONFIG.version,
     name: typeof raw.name === 'string' ? raw.name : DEFAULT_CONFIG.name,
-    description:
-      typeof raw.description === 'string' ? raw.description : DEFAULT_CONFIG.description,
+    description: typeof raw.description === 'string' ? raw.description : DEFAULT_CONFIG.description,
     enabled: typeof raw.enabled === 'boolean' ? raw.enabled : DEFAULT_CONFIG.enabled,
     patterns: raw.patterns === 'builtin' ? 'builtin' : 'all',
     maxFileSizeMB:
@@ -282,8 +281,7 @@ export const PATTERNS: SecretPattern[] = [
     description: 'AWS IAM access key ID (AKIA/ASIA/A3T… prefixes, 20 chars).',
     category: 'aws',
     risk: 'high',
-    regex:
-      /\b((A3T[A-Z0-9]|AKIA|ACCA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA|ASCA|APKA)[A-Z0-9]{16})\b/,
+    regex: /\b((A3T[A-Z0-9]|AKIA|ACCA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA|ASCA|APKA)[A-Z0-9]{16})\b/,
     falsePositives: [],
   },
   {
@@ -300,8 +298,7 @@ export const PATTERNS: SecretPattern[] = [
     description: 'Amazon Marketplace Web Service key (amzn.mws. UUID).',
     category: 'aws',
     risk: 'high',
-    regex:
-      /amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    regex: /amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
     falsePositives: [],
   },
   {
@@ -606,8 +603,7 @@ export const PATTERNS: SecretPattern[] = [
     description: 'Heroku API key (UUID near a heroku keyword).',
     category: 'cloud',
     risk: 'medium',
-    regex:
-      /(?:heroku)[\s\S]{0,20}?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    regex: /(?:heroku)[\s\S]{0,20}?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
     falsePositives: [],
     builtin: false,
   },
@@ -1062,7 +1058,9 @@ export function scanText(input: string, options: ScanOptions = {}): SecretMatch[
   const seen = new Set<string>();
 
   for (const pattern of patterns) {
-    const flags = pattern.regex.flags.includes('g') ? pattern.regex.flags : `${pattern.regex.flags}g`;
+    const flags = pattern.regex.flags.includes('g')
+      ? pattern.regex.flags
+      : `${pattern.regex.flags}g`;
     const re = new RegExp(pattern.regex.source, flags);
     let m: RegExpExecArray | null;
     let guard = 0;
@@ -1236,10 +1234,7 @@ async function walkDir(
   }
 }
 
-async function expandPaths(
-  paths: string[],
-  skipDirs: ReadonlySet<string>,
-): Promise<string[]> {
+async function expandPaths(paths: string[], skipDirs: ReadonlySet<string>): Promise<string[]> {
   const files: string[] = [];
   for (const path of paths) {
     let st;
@@ -1257,18 +1252,19 @@ async function expandPaths(
   return files;
 }
 
-export async function scanFiles(paths: string[], options: FileScanOptions = {}): Promise<SecretMatch[]> {
+export async function scanFiles(
+  paths: string[],
+  options: FileScanOptions = {},
+): Promise<SecretMatch[]> {
   const cfg = loadConfig();
-  const maxSizeBytes =
-    options.maxFileSizeBytes ?? Math.max(1, cfg.maxFileSizeMB) * 1024 * 1024;
+  const maxSizeBytes = options.maxFileSizeBytes ?? Math.max(1, cfg.maxFileSizeMB) * 1024 * 1024;
   const extraSkip = new Set((options.skipDirs ?? []).map((d) => d.toLowerCase()));
-  const skipDirs = new Set([
-    ...cfg.skipDirs.map((d) => d.toLowerCase()),
-    ...extraSkip,
-  ]);
+  const skipDirs = new Set([...cfg.skipDirs.map((d) => d.toLowerCase()), ...extraSkip]);
   const ignoreExt = new Set([
     ...cfg.ignoreExtensions,
-    ...(options.ignoreExtensions ?? []).map((e) => (e.startsWith('.') ? e.toLowerCase() : `.${e.toLowerCase()}`)),
+    ...(options.ignoreExtensions ?? []).map((e) =>
+      e.startsWith('.') ? e.toLowerCase() : `.${e.toLowerCase()}`,
+    ),
   ]);
   const scanOpts: ScanOptions = {
     entropy: options.entropy,
@@ -1281,9 +1277,7 @@ export async function scanFiles(paths: string[], options: FileScanOptions = {}):
   const files = await expandPaths(paths, skipDirs);
   const results: SecretMatch[] = [];
 
-  const ignoreFileSet = new Set(
-    cfg.ignoreFiles.map((f) => f.replace(/\\/g, '/').toLowerCase()),
-  );
+  const ignoreFileSet = new Set(cfg.ignoreFiles.map((f) => f.replace(/\\/g, '/').toLowerCase()));
 
   for (const file of files) {
     const rel = file.replace(/\\/g, '/').toLowerCase();
@@ -1327,8 +1321,7 @@ function fetchUrl(url: string, timeoutMs: number, redirectsLeft: number): Promis
       rejectPromise(new Error(`Invalid URL: ${url}`));
       return;
     }
-    const lib =
-      u.protocol === 'https:' ? httpsGet : u.protocol === 'http:' ? httpGet : undefined;
+    const lib = u.protocol === 'https:' ? httpsGet : u.protocol === 'http:' ? httpGet : undefined;
     if (!lib) {
       rejectPromise(new Error(`Unsupported URL protocol: ${u.protocol}`));
       return;

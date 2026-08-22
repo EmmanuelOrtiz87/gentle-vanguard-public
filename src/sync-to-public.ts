@@ -265,7 +265,11 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 
   // The dashboard database manager is a runtime dependency of db-init.
   rmIf(path.join(targetDir, 'apps', 'web-dashboard'), { recurse: true });
-  copyIf(path.join(privateRepo, 'apps', 'web-dashboard'), path.join(targetDir, 'apps', 'web-dashboard'), { recurse: true });
+  copyIf(
+    path.join(privateRepo, 'apps', 'web-dashboard'),
+    path.join(targetDir, 'apps', 'web-dashboard'),
+    { recurse: true },
+  );
 
   const ciScripts = [
     'src/installer-doctor.ts',
@@ -302,7 +306,10 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     path.join(privateRepo, 'config', 'installer-manifest.json'),
     path.join(targetDir, 'config', 'installer-manifest.json'),
   );
-  for (const runtimeConfig of ['config/session-autostart.config.json', 'config/model-router.json']) {
+  for (const runtimeConfig of [
+    'config/session-autostart.config.json',
+    'config/model-router.json',
+  ]) {
     copyIf(path.join(privateRepo, runtimeConfig), path.join(targetDir, runtimeConfig));
   }
 
@@ -369,7 +376,9 @@ function pushToAllBranches(opts: SyncOptions): void {
   const git = (args: string[]): string => {
     const r = runSync('git', args, { cwd: publicRepo, timeout: 180000 });
     if (r.status !== 0) {
-      throw new Error(`git ${args.join(' ')} → exit ${r.status}: ${(r.stderr || r.stdout).slice(0, 300)}`);
+      throw new Error(
+        `git ${args.join(' ')} → exit ${r.status}: ${(r.stderr || r.stdout).slice(0, 300)}`,
+      );
     }
     return r.stdout;
   };
@@ -445,7 +454,10 @@ function pushToAllBranches(opts: SyncOptions): void {
       console.log(`[FAIL] git add . on '${branch}': ${(addResult.stderr || '').slice(0, 300)}`);
       continue;
     }
-    const commitResult = runSync('git', ['commit', '-m', commitMsg], { cwd: publicRepo, timeout: 60000 });
+    const commitResult = runSync('git', ['commit', '-m', commitMsg], {
+      cwd: publicRepo,
+      timeout: 60000,
+    });
     if (commitResult.status === 0) {
       console.log(`[OK] Committed to '${branch}': ${commitMsg}`);
     } else if (/nothing to commit/i.test(`${commitResult.stdout}${commitResult.stderr}`)) {
@@ -457,7 +469,10 @@ function pushToAllBranches(opts: SyncOptions): void {
       );
       continue;
     }
-    const pushResult = runSync('git', ['push', 'origin', branch], { cwd: publicRepo, timeout: 180000 });
+    const pushResult = runSync('git', ['push', 'origin', branch], {
+      cwd: publicRepo,
+      timeout: 180000,
+    });
     if (pushResult.status === 0) {
       console.log(`[OK] Pushed to origin/${branch}`);
     } else {

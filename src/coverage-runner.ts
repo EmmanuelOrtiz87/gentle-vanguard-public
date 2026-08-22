@@ -124,7 +124,10 @@ function parseCoverage(
   file: string,
 ): Record<string, { lines: number; functions: number; branches: number; statements: number }> {
   const raw = JSON.parse(readFileSync(file, 'utf8')) as Record<string, FileCoverage>;
-  const out: Record<string, { lines: number; functions: number; branches: number; statements: number }> = {};
+  const out: Record<
+    string,
+    { lines: number; functions: number; branches: number; statements: number }
+  > = {};
   for (const [absPath, fc] of Object.entries(raw)) {
     const stmtTotal = Object.keys(fc.s).length;
     const stmtCovered = Object.values(fc.s).filter((v) => v > 0).length;
@@ -245,7 +248,9 @@ function main(): void {
 
   process.stdout.write(`\n┌────────────────────────────────────────────────┐\n`);
   process.stdout.write(`│  COVERAGE RUNNER — TypeScript coverage          │\n`);
-  process.stdout.write(`│  ${String(testFiles.length).padStart(2)} test files | ${options.quick ? 'QUICK' : 'FULL'} mode                │\n`);
+  process.stdout.write(
+    `│  ${String(testFiles.length).padStart(2)} test files | ${options.quick ? 'QUICK' : 'FULL'} mode                │\n`,
+  );
   process.stdout.write(`└────────────────────────────────────────────────┘\n\n`);
 
   const startTime = Date.now();
@@ -268,7 +273,12 @@ function main(): void {
 
     // Aggregate per top-level dir (src/) and per file for reporting
     const srcPrefix = resolve(ROOT, 'src');
-    const agg = { lines: [0, 0] as [number, number], funcs: [0, 0] as [number, number], branches: [0, 0] as [number, number], stmts: [0, 0] as [number, number] };
+    const agg = {
+      lines: [0, 0] as [number, number],
+      funcs: [0, 0] as [number, number],
+      branches: [0, 0] as [number, number],
+      stmts: [0, 0] as [number, number],
+    };
 
     const raw = JSON.parse(readFileSync(coverageFile, 'utf8')) as Record<string, FileCoverage>;
     for (const [absPath, fc] of Object.entries(raw)) {
@@ -332,7 +342,9 @@ function main(): void {
           path: target.source[0],
         });
         if (options.enforce) {
-          process.stdout.write(`⚠ Target "${target.name}": source not loaded by tests (${target.source[0]}) — add a module-level import to measure it\n`);
+          process.stdout.write(
+            `⚠ Target "${target.name}": source not loaded by tests (${target.source[0]}) — add a module-level import to measure it\n`,
+          );
         }
         continue;
       }
@@ -416,8 +428,7 @@ function main(): void {
 }
 
 // Guard: only run main when invoked directly (not when imported by tests)
-const isDirectRun =
-  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isDirectRun = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isDirectRun) {
   main();
 }

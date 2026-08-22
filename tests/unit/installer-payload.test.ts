@@ -91,7 +91,10 @@ test('stagePayload throws when a required entry is missing', () => {
   const stage = join(repo, '_stage2');
   try {
     rmSync(join(repo, 'pnpm-lock.yaml'));
-    assert.throws(() => stagePayload(repo, stage), /Required payload entry missing: pnpm-lock.yaml/);
+    assert.throws(
+      () => stagePayload(repo, stage),
+      /Required payload entry missing: pnpm-lock.yaml/,
+    );
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }
@@ -99,6 +102,10 @@ test('stagePayload throws when a required entry is missing', () => {
 
 test('payload entry list has no excluded paths by construction', () => {
   for (const entry of PAYLOAD_ENTRIES) {
-    assert.equal(isExcludedPath(entry.path), false, `entry ${entry.path} must not be an excluded path`);
+    assert.equal(
+      isExcludedPath(entry.path),
+      false,
+      `entry ${entry.path} must not be an excluded path`,
+    );
   }
 });

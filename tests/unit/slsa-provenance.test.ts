@@ -106,7 +106,10 @@ describe('buildProvenance', () => {
       assert.equal(stmt.subject[0].name, 'artifact.json');
       assert.ok(stmt.subject[0].digest?.sha256);
       assert.equal(stmt.predicate.buildDefinition.buildType, DEFAULT_BUILD_TYPE);
-      assert.equal(stmt.predicate.buildDefinition.externalParameters.repository, 'https://github.com/gentle-vanguard/gentle-vanguard');
+      assert.equal(
+        stmt.predicate.buildDefinition.externalParameters.repository,
+        'https://github.com/gentle-vanguard/gentle-vanguard',
+      );
       assert.equal(stmt.predicate.runDetails.builder.id, DEFAULT_BUILDER_ID);
       assert.ok(stmt.predicate.runDetails.metadata?.startedOn);
       assert.ok(stmt.predicate.runDetails.metadata?.finishedOn);
@@ -144,7 +147,10 @@ describe('artifactDescriptor', () => {
       assert.equal(desc.name, 'artifact.json');
       assert.ok(desc.digest?.sha256);
       assert.equal(desc.mediaType, 'application/json');
-      assert.match(desc.uri ?? '', /^https:\/\/github\.com\/gentle-vanguard\/gentle-vanguard#artifact\.json$/);
+      assert.match(
+        desc.uri ?? '',
+        /^https:\/\/github\.com\/gentle-vanguard\/gentle-vanguard#artifact\.json$/,
+      );
     } finally {
       rmSync(join(file, '..'), { recursive: true, force: true });
     }

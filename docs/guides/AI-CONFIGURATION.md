@@ -85,7 +85,9 @@ Commands:
 Orchestrator integration:
 
 1. Run `./scripts/utilities/orchestrator-next-steps.ps1`.
+
 <!-- REF-OBSOLETA: scripts/utilities/orchestrator-next-steps.ps1 no tiene equivalente TS (migración PS1→TS) -->
+
 2. Review recommended preset and risk.
 3. Apply suggested mode before implementation.
 

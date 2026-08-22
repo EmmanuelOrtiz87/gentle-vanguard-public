@@ -214,53 +214,53 @@ export function runCleanup(
   if (!skipSessionInit) {
     log('Closing session tracing span...');
     const spanDir = join(repoRoot, '.telemetry', 'spans');
-  if (existsSync(spanDir)) {
-    const spans = readdirSync(spanDir)
-      .filter((f) => f.startsWith('spans-') && f.endsWith('.jsonl'))
-      .sort()
-      .reverse();
-    if (spans.length > 0) {
-      const content = readFileSync(join(spanDir, spans[0]), 'utf-8');
-      const lines = content.split('\n').filter((l) => l.trim());
-      for (const line of lines) {
-        try {
-          const span = JSON.parse(line);
-          if (span.name === 'session-start') {
-            const tracingScript = join(repoRoot, 'src/tracing-instrument.ts');
-            if (existsSync(tracingScript)) {
-              const result = runNpxTsxSync(
-                tracingScript,
-                [
-                  '-Action',
-                  'end',
-                  '-TraceId',
-                  span.traceId,
-                  '-SpanId',
-                  span.spanId,
-                  '-SpanName',
-                  'session-start',
-                  '-Attributes',
-                  JSON.stringify({ startTimeUnixNano: span.startTimeUnixNano }),
-                  '-Quiet',
-                ],
-                { cwd: repoRoot, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
-              );
-              if (result.status === 0) {
-                ok('Tracing span closed');
+    if (existsSync(spanDir)) {
+      const spans = readdirSync(spanDir)
+        .filter((f) => f.startsWith('spans-') && f.endsWith('.jsonl'))
+        .sort()
+        .reverse();
+      if (spans.length > 0) {
+        const content = readFileSync(join(spanDir, spans[0]), 'utf-8');
+        const lines = content.split('\n').filter((l) => l.trim());
+        for (const line of lines) {
+          try {
+            const span = JSON.parse(line);
+            if (span.name === 'session-start') {
+              const tracingScript = join(repoRoot, 'src/tracing-instrument.ts');
+              if (existsSync(tracingScript)) {
+                const result = runNpxTsxSync(
+                  tracingScript,
+                  [
+                    '-Action',
+                    'end',
+                    '-TraceId',
+                    span.traceId,
+                    '-SpanId',
+                    span.spanId,
+                    '-SpanName',
+                    'session-start',
+                    '-Attributes',
+                    JSON.stringify({ startTimeUnixNano: span.startTimeUnixNano }),
+                    '-Quiet',
+                  ],
+                  { cwd: repoRoot, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
+                );
+                if (result.status === 0) {
+                  ok('Tracing span closed');
+                } else {
+                  warn('Tracing span close failed (non-fatal)');
+                }
               } else {
-                warn('Tracing span close failed (non-fatal)');
+                warn('Tracing script not found, span not closed');
               }
-            } else {
-              warn('Tracing script not found, span not closed');
+              break;
             }
-            break;
+          } catch {
+            /* skip */
           }
-        } catch {
-          /* skip */
         }
       }
     }
-  }
   }
 
   log('Pruning old checkpoints...');
@@ -273,53 +273,53 @@ export function runCleanup(
   if (!skipSessionInit) {
     log('Logging session end to audit...');
     const auditScript = join(ROOT, 'src/audit-pipeline.ts');
-  if (existsSync(auditScript)) {
-    runNpxTsxSync(
-      auditScript,
-      [
-        'log',
-        '-EventType',
-        'session.end',
-        '-Component',
-        'system',
-        '-Operation',
-        'cleanup',
-        '-Actor',
-        'system',
-        '-Status',
-        'success',
-        '-Message',
-        'Session cleanup completed',
-        '-Quiet',
-      ],
-      { cwd: ROOT, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
-    );
-    ok('Audit session-end logged');
-  }
+    if (existsSync(auditScript)) {
+      runNpxTsxSync(
+        auditScript,
+        [
+          'log',
+          '-EventType',
+          'session.end',
+          '-Component',
+          'system',
+          '-Operation',
+          'cleanup',
+          '-Actor',
+          'system',
+          '-Status',
+          'success',
+          '-Message',
+          'Session cleanup completed',
+          '-Quiet',
+        ],
+        { cwd: ROOT, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
+      );
+      ok('Audit session-end logged');
+    }
   }
 
   if (!skipSessionInit) {
     log('Recording session-close event...');
-  const evtStore = join(ROOT, 'src/event-sourcing.ts');
-  if (existsSync(evtStore)) {
-    const aggId = `session-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
-    runNpxTsxSync(
-      evtStore,
-      [
-        '-Action',
-        'append',
-        '-AggregateId',
-        aggId,
-        '-EventType',
-        'session.ended',
-        '-EventData',
-        '{"duration":"cleanup"}',
-        '-Quiet',
-      ],
-      { cwd: ROOT, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
-    );
-    ok('Session end event recorded');
-  }
+    const evtStore = join(ROOT, 'src/event-sourcing.ts');
+    if (existsSync(evtStore)) {
+      const aggId = `session-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+      runNpxTsxSync(
+        evtStore,
+        [
+          '-Action',
+          'append',
+          '-AggregateId',
+          aggId,
+          '-EventType',
+          'session.ended',
+          '-EventData',
+          '{"duration":"cleanup"}',
+          '-Quiet',
+        ],
+        { cwd: ROOT, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
+      );
+      ok('Session end event recorded');
+    }
   }
 
   ok('Session cleanup complete');

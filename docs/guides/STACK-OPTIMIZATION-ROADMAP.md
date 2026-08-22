@@ -38,8 +38,8 @@ Below are recommended optimizations across 5 dimensions:
 - ~~No `npm ci` in CI/CD pipelines~~ ✅ Todos los workflows usan `pnpm install --frozen-lockfile`
   (equivalente estricto a `npm ci`; proyecto migrado a pnpm v11)
 - ~~No automated dependency scanning~~ ✅ Hooks `audit-check`
-  (`src/infrastructure/siem-audit-bridge.ts`) + `npm-audit` (`src/infrastructure/npm-audit-pre-push.ts`)
-  en `.lefthook.yml`, con detección pnpm (ENOLOCK fix)
+  (`src/infrastructure/siem-audit-bridge.ts`) + `npm-audit`
+  (`src/infrastructure/npm-audit-pre-push.ts`) en `.lefthook.yml`, con detección pnpm (ENOLOCK fix)
 - ~~No lockfile-lint pre-commit hook~~ ✅ Hook `lockfile-lint` → `src/lockfile-lint-pre-commit.ts`
 - ~~No .npmrc in project root~~ ✅ `.npmrc` presente en root (overrides migrados a
   `pnpm-workspace.yaml`, formato pnpm v11)
@@ -167,12 +167,12 @@ exit 0
 
 ### Dependency Management Summary
 
-| Action              | Effort     | Impact   | Timeline    |
-| ------------------- | ---------- | -------- | ----------- |
-| Add npm ci to CI/CD | 15 min     | HIGH     | ✅ Done (`pnpm install --frozen-lockfile`) |
-| lockfile-lint hook  | 30 min     | HIGH     | ✅ Done (`src/lockfile-lint-pre-commit.ts`) |
+| Action              | Effort     | Impact   | Timeline                                             |
+| ------------------- | ---------- | -------- | ---------------------------------------------------- |
+| Add npm ci to CI/CD | 15 min     | HIGH     | ✅ Done (`pnpm install --frozen-lockfile`)           |
+| lockfile-lint hook  | 30 min     | HIGH     | ✅ Done (`src/lockfile-lint-pre-commit.ts`)          |
 | npm audit pre-push  | 20 min     | MEDIUM   | ✅ Done (`src/infrastructure/npm-audit-pre-push.ts`) |
-| **Total**           | **65 min** | **HIGH** | **COMPLETED** |
+| **Total**           | **65 min** | **HIGH** | **COMPLETED**                                        |
 
 ---
 
@@ -191,7 +191,8 @@ exit 0
 
 - No code coverage reporting (% lines/branches covered)
 - No E2E tests for critical flows (e.g., publish workflow)
-- ~~No chaos testing (resilience under failure)~~ ✅ `src/chaos-engineering.ts` (3 experiments: config/session/dashboard-ws)
+- ~~No chaos testing (resilience under failure)~~ ✅ `src/chaos-engineering.ts` (3 experiments:
+  config/session/dashboard-ws)
 - No performance benchmarks (baselines)
 
 ### Recommendations
@@ -323,7 +324,8 @@ Describe "Release Workflow E2E" {
 - ~~No troubleshooting runbook for common issues~~ ✅ `docs/guides/TROUBLESHOOTING-RUNBOOK.md`
 - ~~No decision tree for git flow branch selection~~ ✅ `docs/guides/GITFLOW-QUICK-REFERENCE.md` +
   `docs/guides/BRANCH-STRATEGY.md` (decision table hotfix/feature/release)
-- ~~No "Architecture Decision Records" (ADRs) for major choices~~ ✅ 16 ADRs en `docs/adr/` (0001-0016)
+- ~~No "Architecture Decision Records" (ADRs) for major choices~~ ✅ 16 ADRs en `docs/adr/`
+  (0001-0016)
 
 ### Recommendations
 
@@ -414,12 +416,12 @@ Negative:
 
 ### Documentation Summary
 
-| Action                        | Effort            | Impact     | Timeline    |
-| ----------------------------- | ----------------- | ---------- | ----------- |
-| First-time setup checklist    | 30 min            | MEDIUM     | ✅ Done |
-| Troubleshooting runbook       | 2h                | MEDIUM     | ✅ Done |
+| Action                        | Effort            | Impact     | Timeline          |
+| ----------------------------- | ----------------- | ---------- | ----------------- |
+| First-time setup checklist    | 30 min            | MEDIUM     | ✅ Done           |
+| Troubleshooting runbook       | 2h                | MEDIUM     | ✅ Done           |
 | Architecture Decision Records | 3-4h              | HIGH       | ✅ Done (16 ADRs) |
-| **Total**                     | **5.5-6.5 hours** | **MEDIUM** | **COMPLETED** |
+| **Total**                     | **5.5-6.5 hours** | **MEDIUM** | **COMPLETED**     |
 
 ---
 
@@ -552,8 +554,10 @@ Pure profiling helpers (`runGate`, `buildReleaseReport`, `aggregateStatus`, `com
 ⚠️ **Remaining**:
 
 - ~~No SBOM (Software Bill of Materials) generation~~ ✅ `sbom.json` (Syft, 464 componentes)
-- ~~No container image scanning (if using Docker)~~ ✅ `src/container-scan.ts` (escaneo del SBOM/artefactos con Syft+Grype sin requerir Docker; ver 5.3)
-- ~~No supply-chain attestation (SLSA provenance)~~ ✅ `src/slsa-provenance.ts` (in-toto v1 + SLSA v1.0, native TS) + `src/slsa-signer.ts` (DSSE + Ed25519, ADR-0015)
+- ~~No container image scanning (if using Docker)~~ ✅ `src/container-scan.ts` (escaneo del
+  SBOM/artefactos con Syft+Grype sin requerir Docker; ver 5.3)
+- ~~No supply-chain attestation (SLSA provenance)~~ ✅ `src/slsa-provenance.ts` (in-toto v1 + SLSA
+  v1.0, native TS) + `src/slsa-signer.ts` (DSSE + Ed25519, ADR-0015)
 - ~~No annual security audit log~~ ✅ `docs/security/ANNUAL-AUDIT-PLAN.md` (log inicializado)
 
 ### Recommendations
@@ -613,13 +617,13 @@ cyclonedx-npm --output-format json --output-file sbom.json
 
 #### 5.3: Container/Artifact Vulnerability Scanning (Native TS)
 
-> ✅ **COMPLETED** (2026-08-17, ADR-0017) — `src/container-scan.ts` envuelve la cadena
-> **Syft (SBOM) + Grype (correlación CVE)** con fallback a **Trivy filesystem**, sin requerir
-> Docker. Comandos: `npm run container:scan` (escanea `sbom.json`), `container:scan-dir`
-> (SBOM de un directorio), `container:status` (toolchain), `container:report` (último resultado).
-> Exit codes: 0 = limpio / 1 = vulns ≥ `--fail-on` / 2 = error. Resultados persistidos en
-> `.session/container-scan/latest.json`. Verificado: scan real de `sbom.json` → 464 paquetes,
-> 0 vulnerabilidades, exit 0 (1.4s). 14/14 tests (`tests/unit/container-scan.test.ts`).
+> ✅ **COMPLETED** (2026-08-17, ADR-0017) — `src/container-scan.ts` envuelve la cadena **Syft
+> (SBOM) + Grype (correlación CVE)** con fallback a **Trivy filesystem**, sin requerir Docker.
+> Comandos: `npm run container:scan` (escanea `sbom.json`), `container:scan-dir` (SBOM de un
+> directorio), `container:status` (toolchain), `container:report` (último resultado). Exit codes: 0
+> = limpio / 1 = vulns ≥ `--fail-on` / 2 = error. Resultados persistidos en
+> `.session/container-scan/latest.json`. Verificado: scan real de `sbom.json` → 464 paquetes, 0
+> vulnerabilidades, exit 0 (1.4s). 14/14 tests (`tests/unit/container-scan.test.ts`).
 
 **Why**: Track known vulnerabilities in the release SBOM and artifacts without depending on Docker.
 
@@ -643,13 +647,13 @@ npm run container:scan -- --fail-on critical --json   # gate estricto, output JS
 
 ### Security & Compliance Summary
 
-| Action                 | Effort       | Impact   | Timeline      |
-| ---------------------- | ------------ | -------- | ------------- |
-| SBOM generation        | 1h           | HIGH     | ✅ Done |
-| Container/artifact scan| 2h           | HIGH     | ✅ Done (ADR-0017) |
-| Annual audit (plan)    | 4h           | HIGH     | ✅ Done (Q3 planning) |
-| Annual audit (execute) | 80h          | HIGH     | Q4 2026       |
-| **Total**              | **87 hours** | **HIGH** | **Year 2026** |
+| Action                  | Effort       | Impact   | Timeline              |
+| ----------------------- | ------------ | -------- | --------------------- |
+| SBOM generation         | 1h           | HIGH     | ✅ Done               |
+| Container/artifact scan | 2h           | HIGH     | ✅ Done (ADR-0017)    |
+| Annual audit (plan)     | 4h           | HIGH     | ✅ Done (Q3 planning) |
+| Annual audit (execute)  | 80h          | HIGH     | Q4 2026               |
+| **Total**               | **87 hours** | **HIGH** | **Year 2026**         |
 
 ---
 
@@ -728,14 +732,14 @@ effort) → Documentation (MEDIUM impact, LOW effort)
 
 ## Stack Summary
 
-| Layer               | Current                     | Recommendation             | Timeline |
-| ------------------- | --------------------------- | -------------------------- | -------- |
-| **Supply Chain**    | ✅ Advanced (npx hardening) | ✅ Complete                | Done     |
-| **Dependency Mgmt** | ✅ Complete                 | ✅ lockfile-lint + npm ci  | Done     |
-| **Testing**         | ✅ Strong                   | ✅ coverage + E2E          | Done     |
-| **Documentation**   | ✅ Strong                   | ✅ ADRs + Runbooks         | Done     |
-| **Security**        | ✅ Excellent                | ✅ SBOM + container scan   | Done     |
-| **Performance**     | ✅ Good                     | ✅ baselines + profiling   | Done     |
+| Layer               | Current                     | Recommendation            | Timeline |
+| ------------------- | --------------------------- | ------------------------- | -------- |
+| **Supply Chain**    | ✅ Advanced (npx hardening) | ✅ Complete               | Done     |
+| **Dependency Mgmt** | ✅ Complete                 | ✅ lockfile-lint + npm ci | Done     |
+| **Testing**         | ✅ Strong                   | ✅ coverage + E2E         | Done     |
+| **Documentation**   | ✅ Strong                   | ✅ ADRs + Runbooks        | Done     |
+| **Security**        | ✅ Excellent                | ✅ SBOM + container scan  | Done     |
+| **Performance**     | ✅ Good                     | ✅ baselines + profiling  | Done     |
 
 ---
 

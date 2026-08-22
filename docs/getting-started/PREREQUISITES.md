@@ -23,12 +23,12 @@ npm run watchtower:health
 
 ## Required (Mandatory)
 
-| Tool        | Min Version | Purpose            | Installation                       |
-| ----------- | ----------- | ------------------ | ---------------------------------- |
-| **Node.js** | 20+         | JavaScript runtime | [nodejs.org](https://nodejs.org)   |
-| **npm**     | Included    | Package manager    | Included with Node.js              |
+| Tool        | Min Version | Purpose             | Installation                        |
+| ----------- | ----------- | ------------------- | ----------------------------------- |
+| **Node.js** | 20+         | JavaScript runtime  | [nodejs.org](https://nodejs.org)    |
+| **npm**     | Included    | Package manager     | Included with Node.js               |
 | **pnpm**    | 11+         | Locked dependencies | `corepack enable` / `npm i -g pnpm` |
-| **Git**     | 2.30+       | Version control    | [git-scm.com](https://git-scm.com) |
+| **Git**     | 2.30+       | Version control     | [git-scm.com](https://git-scm.com)  |
 
 ---
 

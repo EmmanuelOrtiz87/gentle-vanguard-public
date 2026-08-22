@@ -13,11 +13,15 @@ function resolveRepoRoot(): string {
 
 function main(): number {
   const repoRoot = resolveRepoRoot();
-  const result = runNpxTsxSync('src/infrastructure/normative-audit-pipeline.ts', ['--mode', 'pre-commit'], {
-    cwd: repoRoot,
-    timeout: 60_000,
-    stdio: 'inherit',
-  });
+  const result = runNpxTsxSync(
+    'src/infrastructure/normative-audit-pipeline.ts',
+    ['--mode', 'pre-commit'],
+    {
+      cwd: repoRoot,
+      timeout: 60_000,
+      stdio: 'inherit',
+    },
+  );
   return result.status ?? 1;
 }
 

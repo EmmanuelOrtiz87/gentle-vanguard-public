@@ -1,15 +1,15 @@
 #!/usr/bin/env tsx
 /**
  * Multi-Channel Alert System (MCAS)
- * 
+ *
  * Sistema de alertas multi-canal para Gentle-Vanguard.
  * Soporta: CLI, Dashboard, File, Webhook, Discord, Slack.
- * 
+ *
  * Usage:
  *   npx tsx src/multi-channel-alert.ts --send "Test message" --severity warning
  *   npx tsx src/multi-channel-alert.ts --monitor    # Modo monitor
  *   npx tsx src/multi-channel-alert.ts --test         # Test all channels
- * 
+ *
  * @version 1.0.0
  */
 
@@ -148,16 +148,16 @@ async function sendToCli(alert: AlertPayload): Promise<void> {
     critical: '🔴',
     emergency: '🆘',
   }[alert.severity];
-  
+
   const color = {
     info: '\x1b[36m',
     warning: '\x1b[33m',
     critical: '\x1b[31m',
     emergency: '\x1b[35m',
   }[alert.severity];
-  
+
   const reset = '\x1b[0m';
-  
+
   const banner = `
 ${color}╔════════════════════════════════════════════════════════════════════════╗${reset}
 ${color}║ ${emoji} ALERT: ${alert.severity.toUpperCase().padEnd(62)} ${emoji}  ║${reset}
@@ -167,24 +167,24 @@ ${color}║ Time: ${new Date(alert.timestamp).toISOString().padEnd(66)}║${rese
 ${color}╠════════════════════════════════════════════════════════════════════════╣${reset}
 ${color}║ ${alert.message.padEnd(70)}║${reset}
 `;
-  
+
   let details = '';
   if (alert.details) {
     details = `${color}╠════════════════════════════════════════════════════════════════════════╣${reset}
 ${color}║ Details: ${alert.details.substring(0, 62).padEnd(62)}║${reset}
 `;
   }
-  
+
   let recommendation = '';
   if (alert.recommendation) {
     recommendation = `${color}╠════════════════════════════════════════════════════════════════════════╣${reset}
 ${color}║ 💡 ${alert.recommendation.substring(0, 64).padEnd(64)}║${reset}
 `;
   }
-  
+
   const footer = `${color}╚════════════════════════════════════════════════════════════════════════╝${reset}
 `;
-  
+
   console.log(banner + details + recommendation + footer);
 }
 
@@ -199,24 +199,24 @@ async function sendToFile(alert: AlertPayload): Promise<void> {
 async function sendToDashboard(alert: AlertPayload): Promise<void> {
   const dashboardPath = join(ROOT, '.session', 'alerts', 'realtime.json');
   mkdirSync(join(ROOT, '.session', 'alerts'), { recursive: true });
-  
+
   let alerts: AlertPayload[] = [];
   try {
     if (existsSync(dashboardPath)) {
       alerts = JSON.parse(readFileSync(dashboardPath, 'utf-8'));
     }
   } catch {}
-  
+
   alerts.push(alert);
   // Keep last 100 alerts
   if (alerts.length > 100) alerts = alerts.slice(-100);
-  
+
   writeFileSync(dashboardPath, JSON.stringify(alerts, null, 2), 'utf-8');
 }
 
 async function sendToWebhook(alert: AlertPayload, config: AlertConfig): Promise<boolean> {
   if (!config.enabled || !config.webhook) return false;
-  
+
   try {
     const response = await fetch(config.webhook, {
       method: 'POST',
@@ -230,7 +230,7 @@ async function sendToWebhook(alert: AlertPayload, config: AlertConfig): Promise<
         timestamp: alert.timestamp,
       }),
     });
-    
+
     return response.ok;
   } catch (err) {
     log(`Webhook failed: ${err}`, 'ERROR');
@@ -240,9 +240,9 @@ async function sendToWebhook(alert: AlertPayload, config: AlertConfig): Promise<
 
 async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<boolean> {
   if (!config.enabled || !config.discord) return false;
-  
+
   const color = DEFAULT_CONFIG.severityColors[alert.severity];
-  
+
   const embed = {
     title: `${alert.severity.toUpperCase()}: ${alert.category}`,
     description: alert.message,
@@ -253,15 +253,19 @@ async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<
       text: 'Gentle-Vanguard Alert System',
     },
   };
-  
+
   if (alert.details) {
     embed.fields.push({ name: 'Details', value: alert.details.substring(0, 1024), inline: false });
   }
-  
+
   if (alert.recommendation) {
-    embed.fields.push({ name: 'Recommendation', value: alert.recommendation.substring(0, 1024), inline: false });
+    embed.fields.push({
+      name: 'Recommendation',
+      value: alert.recommendation.substring(0, 1024),
+      inline: false,
+    });
   }
-  
+
   if (alert.metrics) {
     Object.entries(alert.metrics).forEach(([key, value]) => {
       embed.fields.push({
@@ -271,7 +275,7 @@ async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<
       });
     });
   }
-  
+
   try {
     const response = await fetch(config.discord, {
       method: 'POST',
@@ -282,7 +286,7 @@ async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<
         embeds: [embed],
       }),
     });
-    
+
     return response.ok;
   } catch (err) {
     log(`Discord failed: ${err}`, 'ERROR');
@@ -292,21 +296,21 @@ async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<
 
 async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<boolean> {
   if (!config.enabled || !config.slack) return false;
-  
+
   const emoji = {
     info: ':information_source:',
     warning: ':warning:',
     critical: ':x:',
     emergency: ':rotating_light:',
   }[alert.severity];
-  
+
   const color = {
     info: '#3498db',
     warning: '#f1c40f',
     critical: '#e74c3c',
     emergency: '#8e44ad',
   }[alert.severity];
-  
+
   const attachment = {
     fallback: `${alert.severity}: ${alert.message}`,
     color: color,
@@ -315,7 +319,7 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
     ts: Math.floor(new Date(alert.timestamp).getTime() / 1000),
     fields: [] as any[],
   };
-  
+
   if (alert.details) {
     attachment.fields.push({
       title: 'Details',
@@ -323,7 +327,7 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
       short: false,
     });
   }
-  
+
   if (alert.recommendation) {
     attachment.fields.push({
       title: 'Recommendation',
@@ -331,7 +335,7 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
       short: false,
     });
   }
-  
+
   try {
     const response = await fetch(config.slack, {
       method: 'POST',
@@ -342,7 +346,7 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
         attachments: [attachment],
       }),
     });
-    
+
     return response.ok;
   } catch (err) {
     log(`Slack failed: ${err}`, 'ERROR');
@@ -351,27 +355,29 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
 }
 
 // ─── Main Alert Handler ─────────────────────────────────────────────────────────
-async function sendAlert(payload: Partial<AlertPayload>): Promise<{ sent: string[]; failed: string[] }> {
+async function sendAlert(
+  payload: Partial<AlertPayload>,
+): Promise<{ sent: string[]; failed: string[] }> {
   const config = DEFAULT_CONFIG;
   const state = loadState();
-  
+
   // Rate limiting check
   const now = Date.now();
   if (now - state.lastMinuteReset > 60000) {
     state.alertsThisMinute = 0;
     state.lastMinuteReset = now;
   }
-  
+
   if (state.alertsThisMinute >= config.defaults.maxAlertsPerMinute) {
     log(`Rate limit exceeded: ${state.alertsThisMinute} alerts this minute`, 'WARN');
     return { sent: [], failed: ['rate-limited'] };
   }
-  
+
   // Cooldown check
   if (now - state.lastAlertTime < config.defaults.cooldownSeconds * 1000) {
     log(`Cooldown active: ${config.defaults.cooldownSeconds}s`, 'INFO');
   }
-  
+
   // Build full payload
   const alert: AlertPayload = {
     id: `alert-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -384,10 +390,10 @@ async function sendAlert(payload: Partial<AlertPayload>): Promise<{ sent: string
     timestamp: new Date().toISOString(),
     sessionId: process.env.SESSION_ID || 'unknown',
   };
-  
+
   const sent: string[] = [];
   const failed: string[] = [];
-  
+
   // Send to each enabled channel
   if (config.channels.cli) {
     try {
@@ -397,7 +403,7 @@ async function sendAlert(payload: Partial<AlertPayload>): Promise<{ sent: string
       failed.push('cli');
     }
   }
-  
+
   if (config.channels.file) {
     try {
       await sendToFile(alert);
@@ -406,7 +412,7 @@ async function sendAlert(payload: Partial<AlertPayload>): Promise<{ sent: string
       failed.push('file');
     }
   }
-  
+
   if (config.channels.dashboard) {
     try {
       await sendToDashboard(alert);
@@ -415,40 +421,40 @@ async function sendAlert(payload: Partial<AlertPayload>): Promise<{ sent: string
       failed.push('dashboard');
     }
   }
-  
+
   if (config.channels.webhook.enabled) {
     const success = await sendToWebhook(alert, config.channels.webhook);
     if (success) sent.push('webhook');
     else failed.push('webhook');
   }
-  
+
   if (config.channels.discord.enabled) {
     const success = await sendToDiscord(alert, config.channels.discord);
     if (success) sent.push('discord');
     else failed.push('discord');
   }
-  
+
   if (config.channels.slack.enabled) {
     const success = await sendToSlack(alert, config.channels.slack);
     if (success) sent.push('slack');
     else failed.push('slack');
   }
-  
+
   // Update state
   state.lastAlertTime = now;
   state.alertCount++;
   state.alertsThisMinute++;
   saveState(state);
-  
+
   log(`Alert sent to: ${sent.join(', ') || 'none'}`, 'INFO');
-  
+
   return { sent, failed };
 }
 
 // ─── Monitor Mode ─────────────────────────────────────────────────────────────────
 async function runMonitor(): Promise<void> {
   log('Starting Multi-Channel Alert System monitor...');
-  
+
   // Monitor interval (cada 10 segundos)
   const monitorInterval = setInterval(async () => {
     try {
@@ -468,21 +474,21 @@ async function runMonitor(): Promise<void> {
       log(`Monitor error: ${err}`, 'ERROR');
     }
   }, 10000);
-  
+
   // Graceful shutdown
   process.on('SIGINT', () => {
     clearInterval(monitorInterval);
     log('Monitor stopped');
     process.exit(0);
   });
-  
+
   log('Monitor running. Press Ctrl+C to stop.');
 }
 
 // ─── Test All Channels ──────────────────────────────────────────────────────────
 async function testAllChannels(): Promise<void> {
   log('Testing all channels...', 'INFO');
-  
+
   const testAlert: Partial<AlertPayload> = {
     severity: 'info',
     category: 'test',
@@ -490,16 +496,16 @@ async function testAllChannels(): Promise<void> {
     details: 'This is a test alert to verify all channels are working',
     recommendation: 'If you see this, the system is working correctly',
   };
-  
+
   const result = await sendAlert(testAlert);
-  
+
   console.log('\n=== TEST RESULTS ===');
   console.log('Sent:', result.sent.join(', ') || 'None');
   console.log('Failed:', result.failed.join(', ') || 'None');
-  
+
   if (result.failed.length > 0) {
     console.log('\nTroubleshooting:');
-    result.failed.forEach(channel => {
+    result.failed.forEach((channel) => {
       if (channel === 'webhook') console.log('  - Webhook: Set ALERT_WEBHOOK_URL env var');
       if (channel === 'discord') console.log('  - Discord: Set DISCORD_WEBHOOK_URL env var');
       if (channel === 'slack') console.log('  - Slack: Set SLACK_WEBHOOK_URL env var');
@@ -510,56 +516,62 @@ async function testAllChannels(): Promise<void> {
 // ─── CLI ──────────────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--send')) {
     const messageIndex = args.indexOf('--send') + 1;
     const message = args[messageIndex] || 'Test alert';
-    
+
     const severityIndex = args.indexOf('--severity') + 1;
     const severity = (args[severityIndex] as any) || 'info';
-    
+
     const categoryIndex = args.indexOf('--category') + 1;
     const category = args[categoryIndex] || 'cli';
-    
+
     const result = await sendAlert({
       severity,
       category,
       message,
     });
-    
+
     console.log('Sent to:', result.sent.join(', ') || 'None');
     process.exit(0);
-    
   } else if (args.includes('--monitor')) {
     await runMonitor();
-    
   } else if (args.includes('--test')) {
     await testAllChannels();
     process.exit(0);
-    
   } else if (args.includes('--status')) {
     const state = loadState();
-    
+
     console.log('\n╔════════════════════════════════════════════════════════════╗');
     console.log('║     Multi-Channel Alert System Status                     ║');
     console.log('╚════════════════════════════════════════════════════════════╝');
     console.log(`Total alerts: ${state.alertCount}`);
-    console.log(`Alerts this minute: ${state.alertsThisMinute}/${DEFAULT_CONFIG.defaults.maxAlertsPerMinute}`);
-    console.log(`Last alert: ${state.lastAlertTime ? new Date(state.lastAlertTime).toISOString() : 'Never'}`);
+    console.log(
+      `Alerts this minute: ${state.alertsThisMinute}/${DEFAULT_CONFIG.defaults.maxAlertsPerMinute}`,
+    );
+    console.log(
+      `Last alert: ${state.lastAlertTime ? new Date(state.lastAlertTime).toISOString() : 'Never'}`,
+    );
     console.log('');
     console.log('Channels:');
     console.log(`  CLI:       ${DEFAULT_CONFIG.channels.cli ? '✅' : '❌'}`);
     console.log(`  File:      ${DEFAULT_CONFIG.channels.file ? '✅' : '❌'}`);
     console.log(`  Dashboard: ${DEFAULT_CONFIG.channels.dashboard ? '✅' : '❌'}`);
-    console.log(`  Webhook:   ${DEFAULT_CONFIG.channels.webhook.enabled ? '✅' : '❌'} ${process.env.ALERT_WEBHOOK_URL ? '(configured)' : '(not set)'}`);
-    console.log(`  Discord:   ${DEFAULT_CONFIG.channels.discord.enabled ? '✅' : '❌'} ${process.env.DISCORD_WEBHOOK_URL ? '(configured)' : '(not set)'}`);
-    console.log(`  Slack:     ${DEFAULT_CONFIG.channels.slack.enabled ? '✅' : '❌'} ${process.env.SLACK_WEBHOOK_URL ? '(configured)' : '(not set)'}`);
+    console.log(
+      `  Webhook:   ${DEFAULT_CONFIG.channels.webhook.enabled ? '✅' : '❌'} ${process.env.ALERT_WEBHOOK_URL ? '(configured)' : '(not set)'}`,
+    );
+    console.log(
+      `  Discord:   ${DEFAULT_CONFIG.channels.discord.enabled ? '✅' : '❌'} ${process.env.DISCORD_WEBHOOK_URL ? '(configured)' : '(not set)'}`,
+    );
+    console.log(
+      `  Slack:     ${DEFAULT_CONFIG.channels.slack.enabled ? '✅' : '❌'} ${process.env.SLACK_WEBHOOK_URL ? '(configured)' : '(not set)'}`,
+    );
     console.log('');
-    
   } else if (args.includes('--demo')) {
     // Demo all severity levels
     console.log('\n=== DEMO: All Severity Levels ===\n');
-    
+
     for (const severity of ['info', 'warning', 'critical', 'emergency'] as const) {
       console.log(`\n--- ${severity.toUpperCase()} ---`);
       await sendAlert({
@@ -567,13 +579,15 @@ async function main(): Promise<void> {
         category: 'demo',
         message: `This is a ${severity} level test alert`,
         details: 'Demo details',
-        recommendation: severity === 'critical' || severity === 'emergency' ? 'Take immediate action' : 'Monitor situation',
+        recommendation:
+          severity === 'critical' || severity === 'emergency'
+            ? 'Take immediate action'
+            : 'Monitor situation',
       });
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
     }
-    
+
     process.exit(0);
-    
   } else {
     console.log('Multi-Channel Alert System v1.0.0');
     console.log('');
@@ -597,7 +611,7 @@ async function main(): Promise<void> {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(err => {
+  main().catch((err) => {
     log(`Fatal error: ${err}`, 'ERROR');
     process.exit(1);
   });

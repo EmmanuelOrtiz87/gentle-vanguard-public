@@ -487,14 +487,16 @@ from provider.
 
 ## File Reference
 
-| File                                           | Purpose                              | Git Status     |
-| ---------------------------------------------- | ------------------------------------ | -------------- |
-| `scripts/utilities/invoke-cloud-agent.ps1`     | Main connector script                | Committed      |
+| File                                       | Purpose               | Git Status |
+| ------------------------------------------ | --------------------- | ---------- |
+| `scripts/utilities/invoke-cloud-agent.ps1` | Main connector script | Committed  |
+
 <!-- REF-OBSOLETA: scripts/utilities/invoke-cloud-agent.ps1 no tiene equivalente TS (migración PS1→TS) -->
-| `config/cloud-agents.json`                     | Shared template config               | Committed      |
-| `config/cloud-agents.local.example`            | Local config template                | Committed      |
-| `config/cloud-agents.local.json`               | Local provider metadata (no secrets) | **GITIGNORED** |
-| `.runtime/telemetry/cloud-agent-telemetry.csv` | Request audit log                    | **GITIGNORED** |
+
+| `config/cloud-agents.json` | Shared template config | Committed | |
+`config/cloud-agents.local.example` | Local config template | Committed | |
+`config/cloud-agents.local.json` | Local provider metadata (no secrets) | **GITIGNORED** | |
+`.runtime/telemetry/cloud-agent-telemetry.csv` | Request audit log | **GITIGNORED** |
 
 ---
 

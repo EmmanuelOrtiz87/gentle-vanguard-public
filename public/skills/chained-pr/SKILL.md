@@ -14,7 +14,7 @@ metadata:
 
 # Chained PRs (Gentle-Vanguard Adaptation)
 
-## When to Use#
+## When to Use #
 
 Use this skill when:
 
@@ -27,7 +27,7 @@ Use this skill when:
 Do not use this skill for small fixes or single-purpose changes that fit comfortably under the
 review budget.
 
-## Critical Rules (Gentle-Vanguard)#
+## Critical Rules (Gentle-Vanguard) #
 
 | Rule             | Requirement                                                                                                           |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -46,7 +46,7 @@ review budget.
 The goal is not bureaucracy. The goal is preventing reviewer burnout so maintainers can review with
 care instead of skimming. Big PRs create fatigue, hide defects, and slow merge velocity.
 
-## Choosing the Split Strategy (Gentle-Vanguard)#
+## Choosing the Split Strategy (Gentle-Vanguard) #
 
 | Scenario                                | Recommended approach  | Why                                            |
 | --------------------------------------- | --------------------- | ---------------------------------------------- |
@@ -54,8 +54,8 @@ care instead of skimming. Big PRs create fatigue, hide defects, and slow merge v
 | Each slice can land independently       | Stacked PRs to `main` | Reduces long-lived branch drift                |
 | Docs refactor + new skills              | Feature branch chain  | Allows integration before final merge          |
 
-## Chain Boundaries#
+## Chain Boundaries #
 
 ---
 
-> **Referencia detallada**: [ eferences/detail.md](references/detail.md)
+> **Referencia detallada**: [eferences/detail.md](references/detail.md)

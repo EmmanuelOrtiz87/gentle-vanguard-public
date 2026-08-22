@@ -22,8 +22,16 @@
  *   https://nodejs.org/api/single-executable-applications.html
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, statSync, unlinkSync } from 'fs';
-import { resolve, dirname, basename, extname } from 'path';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  statSync,
+  unlinkSync,
+} from 'fs';
+import { resolve, dirname, basename, extname, join } from 'path';
 import { createRequire } from 'module';
 import { runSync, runSyncShell } from './core/run-command.js';
 
@@ -206,20 +214,23 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
         return result;
       }
     } else {
-      // Use pre-built file from dist/
-      const jsPath = resolve(
-        process.cwd(),
-        DIST_DIR,
-        target.entryTs.replace(/\.ts$/, '.js').replace('src/', ''),
-      );
-      if (existsSync(jsPath)) jsFile = jsPath;
-      else {
-        const altPath = resolve(
+      // Use pre-built file from dist/. tsc rootDir is "." so the output
+      // mirrors the repo layout (dist/src/...); also accept the stripped
+      // layout (dist/...) for configs with rootDir "src".
+      const candidates = [
+        resolve(process.cwd(), DIST_DIR, target.entryTs.replace(/\.ts$/, '.js')),
+        resolve(
           process.cwd(),
           DIST_DIR,
-          target.entryTs.replace(/\.ts$/, '.mjs').replace('src/', ''),
-        );
-        if (existsSync(altPath)) jsFile = altPath;
+          target.entryTs.replace(/\.ts$/, '.js').replace('src/', ''),
+        ),
+        resolve(process.cwd(), DIST_DIR, target.entryTs.replace(/\.ts$/, '.mjs')),
+      ];
+      for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+          jsFile = candidate;
+          break;
+        }
       }
       if (!jsFile) {
         result.error = `No pre-built JS found. Run 'pnpm build:mcp' first or omit --skip-build.`;
@@ -292,11 +303,20 @@ function buildSEA(target: SEATarget, nodePath: string, skipBuild: boolean): Buil
     }
 
     // Find postject's cli.js (call via node directly — avoids .cmd argument issues)
+    // Resolution order: local node_modules → npm global prefix (any user/machine) → npx fallback.
     const postjectCandidates = [
       resolve(process.cwd(), 'node_modules', 'postject', 'dist', 'cli.js'),
-      'C:\\Users\\emman\\AppData\\Roaming\\npm\\node_modules\\postject\\dist\\cli.js',
-      'C:\\Users\\emman\\AppData\\Roaming\\npm\\node_modules\\@postject\\cli.js',
     ];
+    try {
+      const globalRoot = runSync('npm', ['root', '-g'], { timeout: 15000 });
+      const globalDir = globalRoot.stdout?.toString().trim();
+      if (globalDir) {
+        postjectCandidates.push(join(globalDir, 'postject', 'dist', 'cli.js'));
+        postjectCandidates.push(join(globalDir, '@postject', 'cli.js'));
+      }
+    } catch {
+      // global root unavailable; local node_modules path still applies
+    }
 
     let postjectArgs: [string, string[]] = ['postject', []];
     for (const cliPath of postjectCandidates) {

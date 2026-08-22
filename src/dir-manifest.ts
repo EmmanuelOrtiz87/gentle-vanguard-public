@@ -17,8 +17,17 @@ import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-interface ManifestFile { path: string; bytes: number }
-interface Manifest { created_at: string; generated_by?: string; total_files?: number; total_bytes?: number; files: ManifestFile[] }
+interface ManifestFile {
+  path: string;
+  bytes: number;
+}
+interface Manifest {
+  created_at: string;
+  generated_by?: string;
+  total_files?: number;
+  total_bytes?: number;
+  files: ManifestFile[];
+}
 
 function parseArgs(): { dir: string; out: string | null; stdout: boolean } {
   const raw = process.argv.slice(2);
@@ -37,8 +46,9 @@ function parseArgs(): { dir: string; out: string | null; stdout: boolean } {
 
 /** Depth-first walk; deterministic order (directories sorted, then files sorted). */
 export function walkFiles(root: string, dir: string = root): string[] {
-  const entries = readdirSync(dir, { withFileTypes: true })
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
   const files: string[] = [];
   for (const entry of entries) {
     const full = join(dir, entry.name);

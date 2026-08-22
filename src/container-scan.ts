@@ -23,13 +23,7 @@
  */
 
 import { spawnSync } from 'child_process';
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  appendFileSync,
-} from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 const ROOT = process.cwd();
@@ -90,7 +84,11 @@ export function compareSeverity(a: Severity, b: Severity): number {
 // Toolchain helpers
 // ---------------------------------------------------------------------------
 
-function runTool(command: string, args: string[], timeoutMs = 120000): { stdout: string; stderr: string; code: number } {
+function runTool(
+  command: string,
+  args: string[],
+  timeoutMs = 120000,
+): { stdout: string; stderr: string; code: number } {
   const res = spawnSync(command, args, {
     encoding: 'utf-8',
     timeout: timeoutMs,
@@ -183,15 +181,17 @@ export function parseGrypeJson(jsonText: string): ScanVulnerability[] {
 export function parseTrivyJson(jsonText: string): ScanVulnerability[] {
   try {
     const data = JSON.parse(jsonText) as {
-      Results?: Array<{ Vulnerabilities?: Array<{
-        VulnerabilityID?: string;
-        Severity?: string;
-        PkgName?: string;
-        InstalledVersion?: string;
-        FixedVersion?: string;
-        Description?: string;
-        PrimaryURL?: string;
-      }> }>;
+      Results?: Array<{
+        Vulnerabilities?: Array<{
+          VulnerabilityID?: string;
+          Severity?: string;
+          PkgName?: string;
+          InstalledVersion?: string;
+          FixedVersion?: string;
+          Description?: string;
+          PrimaryURL?: string;
+        }>;
+      }>;
     };
     const out: ScanVulnerability[] = [];
     for (const r of data.Results ?? []) {
@@ -282,7 +282,17 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
   if (sbomFile && existsSync(sbomFile) && toolAvailable('trivy')) {
     const t = runTool(
       'trivy',
-      ['sbom', sbomFile, '--scanners', 'vuln', '-f', 'json', '--no-progress', '--quiet', '--skip-db-update'],
+      [
+        'sbom',
+        sbomFile,
+        '--scanners',
+        'vuln',
+        '-f',
+        'json',
+        '--no-progress',
+        '--quiet',
+        '--skip-db-update',
+      ],
       180000,
     );
     const vulns = parseTrivyJson(t.stdout);
@@ -335,7 +345,17 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
   if (existsSync(dir) && toolAvailable('trivy')) {
     const t = runTool(
       'trivy',
-      ['fs', '--scanners', 'vuln', '-f', 'json', '--no-progress', '--quiet', '--skip-db-update', dir],
+      [
+        'fs',
+        '--scanners',
+        'vuln',
+        '-f',
+        'json',
+        '--no-progress',
+        '--quiet',
+        '--skip-db-update',
+        dir,
+      ],
       300000,
     );
     const vulns = parseTrivyJson(t.stdout);
@@ -387,7 +407,11 @@ function saveResult(result: ScanResult): void {
   try {
     mkdirSync(SCAN_DIR, { recursive: true });
     const { rawOutput, ...persisted } = result;
-    writeFileSync(LATEST_FILE, JSON.stringify({ ...persisted, rawOutputPreview: rawOutput.slice(0, 500) }, null, 2), 'utf-8');
+    writeFileSync(
+      LATEST_FILE,
+      JSON.stringify({ ...persisted, rawOutputPreview: rawOutput.slice(0, 500) }, null, 2),
+      'utf-8',
+    );
     log(
       `[scan] tool=${result.tool} source=${result.source} vulns=${result.vulnerabilities.length} ` +
         `critical=${result.bySeverity.critical} high=${result.bySeverity.high} exit=${result.exitCode}`,
@@ -417,7 +441,9 @@ export function formatResults(result: ScanResult): string {
       lines.push(`    ${s.padEnd(11)} ${n}`);
     }
   }
-  const sorted = [...result.vulnerabilities].sort((a, b) => compareSeverity(a.severity, b.severity));
+  const sorted = [...result.vulnerabilities].sort((a, b) =>
+    compareSeverity(a.severity, b.severity),
+  );
   if (sorted.length > 0) {
     lines.push('');
     lines.push(`  vulnerabilities (${sorted.length}):`);
@@ -452,13 +478,9 @@ export function printToolchainStatus(): string {
 
 export function parseScanArgs(args: string[] = process.argv.slice(2)): ScanCliArgs {
   const first = args[0] ?? 'scan';
-  const action = (['scan', 'scan-dir', 'status', 'report', 'db-update', 'help'].includes(first) ? first : 'scan') as
-    | 'scan'
-    | 'scan-dir'
-    | 'status'
-    | 'report'
-    | 'db-update'
-    | 'help';
+  const action = (
+    ['scan', 'scan-dir', 'status', 'report', 'db-update', 'help'].includes(first) ? first : 'scan'
+  ) as 'scan' | 'scan-dir' | 'status' | 'report' | 'db-update' | 'help';
   const parsed: ScanCliArgs = {
     action,
     sbom: DEFAULT_SBOM,
@@ -518,7 +540,10 @@ Exit codes: 0 = clean at fail-on level | 1 = vulnerabilities found | 2 = error
 }
 
 function isMain(): boolean {
-  return process.argv[1] !== undefined && resolve(process.argv[1]).toLowerCase().endsWith('container-scan.ts');
+  return (
+    process.argv[1] !== undefined &&
+    resolve(process.argv[1]).toLowerCase().endsWith('container-scan.ts')
+  );
 }
 
 export function runScanCli(): number {

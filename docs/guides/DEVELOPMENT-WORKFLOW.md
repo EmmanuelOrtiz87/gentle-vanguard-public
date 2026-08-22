@@ -51,8 +51,7 @@ feature/* / bugfix/* / chore/*
    bypass actor on `develop` for emergency unblock scenarios.
 2. This does not simulate a second reviewer; it enables administrative bypass when GitHub review
    policy blocks a time-critical merge.
-3. Session autostart enforces this setting automatically through
-   `src/ensure-github-bypass.ts`.
+3. Session autostart enforces this setting automatically through `src/ensure-github-bypass.ts`.
 4. Recommended usage: keep normal PR + checks flow by default; use bypass only when explicitly
    needed to avoid workflow deadlocks.
 

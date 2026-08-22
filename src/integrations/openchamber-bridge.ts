@@ -1,20 +1,20 @@
 #!/usr/bin/env tsx
 /**
  * OpenChamber Integration Bridge
- * 
+ *
  * Puente de integración entre Gentle-Vanguard y OpenChamber.
  * Proporciona una interfaz unificada para que OpenChamber use
  * todas las capacidades del stack sin configuración manual.
- * 
+ *
  * INSTALACIÓN EN OPENCHAMBER:
  *   1. Copiar este archivo al proyecto OpenChamber
  *   2. Importar: import { GentleVanguardBridge } from './openchamber-bridge.js';
  *   3. Inicializar: await GentleVanguardBridge.init();
  *   4. Usar: const response = await GentleVanguardBridge.orchestrate(input, context);
- * 
+ *
  * O usar CLI:
  *   npx tsx openchamber-bridge.ts --install
- * 
+ *
  * @version 1.0.0
  */
 
@@ -56,7 +56,7 @@ let cacheModule: any = null;
 // ─── Initialization ───────────────────────────────────────────────────────────
 async function initBridge(): Promise<boolean> {
   if (isInitialized) return true;
-  
+
   try {
     // Verificar que el stack existe
     if (!existsSync(STACK_ROOT)) {
@@ -64,13 +64,13 @@ async function initBridge(): Promise<boolean> {
       console.error('[OPENCHAMBER-BRIDGE] Set GENTLE_VANGUARD_ROOT env var');
       return false;
     }
-    
+
     // Cargar configuración del stack
     const configPath = join(STACK_ROOT, 'config', 'orchestrator.json');
     if (existsSync(configPath)) {
       stackConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
     }
-    
+
     // Intentar cargar módulos del stack
     try {
       const cachePath = join(STACK_ROOT, 'src', 'core', 'cache-hook-system.ts');
@@ -81,7 +81,7 @@ async function initBridge(): Promise<boolean> {
     } catch (err) {
       console.warn(`[OPENCHAMBER-BRIDGE] Cache module not loaded: ${err}`);
     }
-    
+
     isInitialized = true;
     console.log('[OPENCHAMBER-BRIDGE] Bridge initialized successfully');
     return true;
@@ -95,14 +95,14 @@ async function initBridge(): Promise<boolean> {
 
 /**
  * Orquesta una tarea usando el stack Gentle-Vanguard.
- * 
+ *
  * @param input - Input del usuario
  * @param config - Configuración de orquestación
  * @returns Resultado con metadatos
  */
 export async function orchestrate(
   input: string,
-  config: Partial<OrchestratorConfig> = {}
+  config: Partial<OrchestratorConfig> = {},
 ): Promise<OrchestratorResult> {
   if (!isInitialized) {
     const initialized = await initBridge();
@@ -110,26 +110,26 @@ export async function orchestrate(
       throw new Error('Bridge not initialized');
     }
   }
-  
+
   const fullConfig: OrchestratorConfig = {
     agent: config.agent || 'orchestrator',
     skill: config.skill,
     cacheEnabled: config.cacheEnabled !== false,
     compressionEnabled: config.compressionEnabled !== false,
   };
-  
+
   // Check cache if enabled
   let tokensSaved = 0;
   let fromCache = false;
   let response = '';
-  
+
   if (fullConfig.cacheEnabled && cacheModule?.CacheHookSystem?.check) {
     const cacheResult = cacheModule.CacheHookSystem.check(input, fullConfig.skill);
     if (cacheResult.hit && cacheResult.response) {
       response = cacheResult.response;
       tokensSaved = cacheResult.tokensSaved || 0;
       fromCache = true;
-      
+
       return {
         content: response,
         tokensUsed: Math.floor(response.length / 4),
@@ -140,20 +140,20 @@ export async function orchestrate(
       };
     }
   }
-  
+
   // Si no hay cache, delegar al stack
   // Nota: En implementación real, esto llamaría al orchestrator real
   // Por ahora, simulamos la respuesta
   response = `[DELEGATED TO GENTLE-VANGUARD]\nAgent: ${fullConfig.agent}\nInput: ${input}`;
-  
+
   const tokensUsed = Math.floor(input.length / 4 + response.length / 4);
-  
+
   // Save to cache if enabled
   if (fullConfig.cacheEnabled && cacheModule?.CacheHookSystem?.registerOutput && !fromCache) {
     cacheModule.CacheHookSystem.registerOutput(response, tokensUsed);
     tokensSaved = Math.floor(tokensUsed * 0.3); // Estimated 30% savings
   }
-  
+
   return {
     content: response,
     tokensUsed,
@@ -171,7 +171,7 @@ export async function getStatus(): Promise<StackStatus> {
   if (!isInitialized) {
     await initBridge();
   }
-  
+
   // Verificar componentes clave
   const components: Record<string, boolean> = {
     stackRoot: existsSync(STACK_ROOT),
@@ -181,9 +181,9 @@ export async function getStatus(): Promise<StackStatus> {
     responseCache: existsSync(join(STACK_ROOT, 'src', 'response-cache.ts')),
     nexusDb: existsSync(join(STACK_ROOT, '.runtime', 'gentle-vanguard.db')),
   };
-  
-  const healthy = Object.values(components).every(v => v);
-  
+
+  const healthy = Object.values(components).every((v) => v);
+
   return {
     healthy,
     version: stackConfig?.version || '4.0.0',
@@ -194,20 +194,23 @@ export async function getStatus(): Promise<StackStatus> {
 /**
  * Ejecuta health check del stack.
  */
-export async function healthCheck(): Promise<{ status: 'healthy' | 'degraded' | 'unhealthy'; details: string }> {
+export async function healthCheck(): Promise<{
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  details: string;
+}> {
   const status = await getStatus();
-  
+
   if (status.healthy) {
     return {
       status: 'healthy',
       details: 'All components operational',
     };
   }
-  
+
   const failed = Object.entries(status.components)
     .filter(([, v]) => !v)
     .map(([k]) => k);
-  
+
   return {
     status: failed.length > 3 ? 'unhealthy' : 'degraded',
     details: `Failed components: ${failed.join(', ')}`,
@@ -231,7 +234,7 @@ export async function getCacheStats(): Promise<{
       tokensSaved: 0,
     };
   }
-  
+
   const stats = cacheModule.CacheHookSystem.getStats();
   return {
     enabled: true,
@@ -256,7 +259,7 @@ export default GentleVanguardBridge;
 // ─── CLI ──────────────────────────────────────────────────────────────────────
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--status')) {
     const status = await getStatus();
     console.log('\n╔════════════════════════════════════════╗');
@@ -269,13 +272,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       console.log(`  ${ok ? '✅' : '❌'} ${name}`);
     }
   }
-  
+
   if (args.includes('--health')) {
     const health = await healthCheck();
     console.log(`\nHealth Status: ${health.status.toUpperCase()}`);
     console.log(`Details: ${health.details}`);
   }
-  
+
   if (args.includes('--cache-stats')) {
     const stats = await getCacheStats();
     console.log('\n╔════════════════════════════════════════╗');
@@ -286,14 +289,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`Total Calls:  ${stats.totalCalls}`);
     console.log(`Tokens Saved: ${stats.tokensSaved}`);
   }
-  
+
   if (args.includes('--test')) {
     console.log('\n[TEST] Running integration test...');
     await initBridge();
     const result = await orchestrate('Hello, this is a test');
     console.log('\n[TEST] Result:', JSON.stringify(result, null, 2));
   }
-  
+
   if (args.includes('--help') || args.length === 0) {
     console.log('\nUso: npx tsx openchamber-bridge.ts [OPTION]');
     console.log('');
@@ -305,7 +308,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log('  --help        Mostrar ayuda');
     console.log('');
     console.log('Variables de entorno:');
-    console.log('  GENTLE_VANGUARD_ROOT - Ruta al stack (default: C:\\Workspace_local\\gentle-vanguard)');
+    console.log(
+      '  GENTLE_VANGUARD_ROOT - Ruta al stack (default: C:\\Workspace_local\\gentle-vanguard)',
+    );
     console.log('');
   }
 }

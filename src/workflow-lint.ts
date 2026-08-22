@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
+import { load as loadYaml } from 'js-yaml';
 
 interface WorkflowLintResult {
   file: string;
@@ -77,6 +78,16 @@ function validateWorkflow(filePath: string): WorkflowLintResult {
     if (!rootKeys.has(field)) {
       errors.push(`Missing required field: "${field}"`);
     }
+  }
+
+  // Strict YAML parse — catches constructs GitHub's server-side parser rejects,
+  // e.g. ": " inside plain scalars (unquoted step names like `name: Scan (gate: fail)`),
+  // which regex checks cannot see and which poison every caller workflow.
+  try {
+    loadYaml(content, { json: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message.split('\n')[0] : String(err);
+    errors.push(`Invalid YAML (GitHub would reject this file): ${message}`);
   }
 
   const fileName = filePath.replace(/^.*[/\\]/, '');

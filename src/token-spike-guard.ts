@@ -1,15 +1,15 @@
 #!/usr/bin/env tsx
 /**
  * Token Spike Guard (TSG) - Guardián de Picos de Tokens con Auto-Actions
- * 
+ *
  * Versión: 2.0.0
- * 
+ *
  * Monitorea uso de tokens en tiempo real y toma acciones automáticas:
  * - Alertas progresivas (warning -> soft -> hard -> critical)
  * - Auto-checkpoint en umbrales críticos
  * - Sugerencias de nueva sesión
  * - Kill switch de emergencia
- * 
+ *
  * Usage:
  *   npx tsx src/token-spike-guard.ts --attach    # Adjuntar a sesión actual
  *   npx tsx src/token-spike-guard.ts --monitor   # Monitoreo continuo
@@ -30,42 +30,73 @@ mkdirSync(LOG_DIR, { recursive: true });
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const CONFIG = {
   thresholds: {
-    warning500k:    500000,     // 500K - Informacional
-    warning1M:      1000000,    // 1M - Early warning
-    warning3M:      3000000,    // 3M - Checkpoint sugerido
-    soft4M:         4000000,    // 4M - Soft limit, sugerir nueva sesión
-    hard8M:         8000000,    // 8M - Hard limit, checkpoint automático
-    critical12M:    12000000,   // 12M - Critical, kill switch
-    emergency15M:   15000000,   // 15M - Emergency, force close
+    warning500k: 500000, // 500K - Informacional
+    warning1M: 1000000, // 1M - Early warning
+    warning3M: 3000000, // 3M - Checkpoint sugerido
+    soft4M: 4000000, // 4M - Soft limit, sugerir nueva sesión
+    hard8M: 8000000, // 8M - Hard limit, checkpoint automático
+    critical12M: 12000000, // 12M - Critical, kill switch
+    emergency15M: 15000000, // 15M - Emergency, force close
   },
-  
+
   actions: {
-    warning500k:    { alert: true,  log: true,  notify: false },
-    warning1M:      { alert: true,  log: true,  notify: true,  suggestCheckpoint: true },
-    warning3M:      { alert: true,  log: true,  notify: true,  suggestCheckpoint: true, suggestNewSession: true },
-    soft4M:         { alert: true,  log: true,  notify: true,  createCheckpoint: true },
-    hard8M:         { alert: true,  log: true,  notify: true,  createCheckpoint: true, suggestNewSession: true, warnUser: true },
-    critical12M:    { alert: true,  log: true,  notify: true,  createCheckpoint: true, forceNewSession: false, sendKillSwitch: true },
-    emergency15M:   { alert: true,  log: true,  notify: true,  createCheckpoint: true, forceNewSession: true, emergencyExit: true },
+    warning500k: { alert: true, log: true, notify: false },
+    warning1M: { alert: true, log: true, notify: true, suggestCheckpoint: true },
+    warning3M: {
+      alert: true,
+      log: true,
+      notify: true,
+      suggestCheckpoint: true,
+      suggestNewSession: true,
+    },
+    soft4M: { alert: true, log: true, notify: true, createCheckpoint: true },
+    hard8M: {
+      alert: true,
+      log: true,
+      notify: true,
+      createCheckpoint: true,
+      suggestNewSession: true,
+      warnUser: true,
+    },
+    critical12M: {
+      alert: true,
+      log: true,
+      notify: true,
+      createCheckpoint: true,
+      forceNewSession: false,
+      sendKillSwitch: true,
+    },
+    emergency15M: {
+      alert: true,
+      log: true,
+      notify: true,
+      createCheckpoint: true,
+      forceNewSession: true,
+      emergencyExit: true,
+    },
   },
-  
-  monitorInterval: 10000,  // 10 segundos
-  burnRateWindow: 60,      // 1 minuto para calcular burn rate
-  
+
+  monitorInterval: 10000, // 10 segundos
+  burnRateWindow: 60, // 1 minuto para calcular burn rate
+
   alerting: {
     channels: ['cli', 'dashboard', 'file'],
   },
 };
 
 // ─── Logger ─────────────────────────────────────────────────────────────────────
-function log(level: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL', message: string, meta?: Record<string, unknown>): void {
+function log(
+  level: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
+  message: string,
+  meta?: Record<string, unknown>,
+): void {
   const timestamp = new Date().toISOString();
-  const prefixes = { 'INFO': 'ℹ️ ', 'WARN': '⚠️ ', 'ERROR': '❌', 'CRITICAL': '🆘' };
+  const prefixes = { INFO: 'ℹ️ ', WARN: '⚠️ ', ERROR: '❌', CRITICAL: '🆘' };
   const line = `[${timestamp}] ${prefixes[level]} [${level}] ${message}`;
-  
+
   console.log(line);
   if (meta) console.log('  ', JSON.stringify(meta, null, 2));
-  
+
   appendFileSync(join(LOG_DIR, 'guard.log'), line + '\n', 'utf-8');
 }
 
@@ -87,7 +118,7 @@ function loadState(): GuardState {
       return JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
     }
   } catch {}
-  
+
   return {
     sessionId: process.env.SESSION_ID || 'unknown',
     startTime: Date.now(),
@@ -121,7 +152,7 @@ async function getCurrentTokens(): Promise<TokenMetrics> {
     join(ROOT, '.session', 'session-current.json'),
     join(ROOT, '.session', 'token-usage.json'),
   ];
-  
+
   for (const source of sources) {
     try {
       if (existsSync(source)) {
@@ -138,18 +169,22 @@ async function getCurrentTokens(): Promise<TokenMetrics> {
       }
     } catch {}
   }
-  
+
   // Fallback: intentar desde Nexus
   try {
     const { default: Database } = await import('better-sqlite3');
     const db = new Database(join(ROOT, '.runtime', 'gentle-vanguard.db'), { readonly: true });
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       SELECT SUM(input_tokens) as input, SUM(output_tokens) as output, SUM(reasoning_tokens) as reasoning
       FROM token_transactions
       WHERE date(timestamp) = date('now', 'localtime')
-    `).get() as any;
+    `,
+      )
+      .get() as any;
     db.close();
-    
+
     return {
       input: result?.input || 0,
       output: result?.output || 0,
@@ -165,41 +200,41 @@ async function getCurrentTokens(): Promise<TokenMetrics> {
 function calculateBurnRate(
   current: TokenMetrics,
   previous: TokenMetrics,
-  timeDeltaSeconds: number
+  timeDeltaSeconds: number,
 ): number {
   if (timeDeltaSeconds <= 0) return 0;
-  
+
   const tokenDelta = current.total - previous.total;
   const burnRatePerSecond = tokenDelta / timeDeltaSeconds;
   const burnRatePerMinute = burnRatePerSecond * 60;
-  
+
   return Math.max(0, burnRatePerMinute);
 }
 
 function projectTimeToLimit(
   current: number,
   burnRatePerMinute: number,
-  limit: number
+  limit: number,
 ): number | null {
   if (burnRatePerMinute <= 0) return null;
-  
+
   const tokensRemaining = limit - current;
   const minutesRemaining = tokensRemaining / burnRatePerMinute;
-  
+
   return Math.max(0, minutesRemaining);
 }
 
 // ─── Checkpoint Actions ───────────────────────────────────────────────────────────
 async function createCheckpoint(reason: string): Promise<boolean> {
   log('INFO', `Creating checkpoint: ${reason}`);
-  
+
   try {
     const checkpoint = spawn('npm', ['run', 'checkpoint:create'], {
       cwd: ROOT,
       stdio: 'pipe',
       windowsHide: true,
     });
-    
+
     return new Promise((resolve) => {
       checkpoint.on('close', (code) => {
         if (code === 0) {
@@ -210,7 +245,7 @@ async function createCheckpoint(reason: string): Promise<boolean> {
           resolve(false);
         }
       });
-      
+
       setTimeout(() => {
         checkpoint.kill();
         log('WARN', 'Checkpoint timeout');
@@ -229,14 +264,20 @@ async function sendAlert(
   tokens: TokenMetrics,
   actions: any,
   burnRate: number,
-  projection: number | null
+  projection: number | null,
 ): Promise<void> {
-  const emoji = level.includes('emergency') ? '🆘' : 
-                level.includes('critical') ? '🔴' : 
-                level.includes('hard') ? '🟠' : 
-                level.includes('soft') ? '🟡' : 
-                level.includes('3M') ? '🔵' : 'ℹ️';
-  
+  const emoji = level.includes('emergency')
+    ? '🆘'
+    : level.includes('critical')
+      ? '🔴'
+      : level.includes('hard')
+        ? '🟠'
+        : level.includes('soft')
+          ? '🟡'
+          : level.includes('3M')
+            ? '🔵'
+            : 'ℹ️';
+
   const message = `
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║ ${emoji} TOKEN SPIKE GUARD ALERT: ${level.toUpperCase().padEnd(52)} ║
@@ -249,9 +290,9 @@ async function sendAlert(
 ${actionsToString(actions)}
 ╚══════════════════════════════════════════════════════════════════════════╝
 `;
-  
+
   console.log(message);
-  
+
   // Enviar a cada canal
   for (const channel of CONFIG.alerting.channels) {
     if (channel === 'file') {
@@ -260,14 +301,22 @@ ${actionsToString(actions)}
       // Guardar para dashboard
       const dashboardPath = join(ROOT, '.session', 'alerts', 'token-guard.json');
       mkdirSync(join(ROOT, '.session', 'alerts'), { recursive: true });
-      writeFileSync(dashboardPath, JSON.stringify({
-        level,
-        tokens,
-        actions,
-        burnRate,
-        projection,
-        timestamp: Date.now(),
-      }, null, 2), 'utf-8');
+      writeFileSync(
+        dashboardPath,
+        JSON.stringify(
+          {
+            level,
+            tokens,
+            actions,
+            burnRate,
+            projection,
+            timestamp: Date.now(),
+          },
+          null,
+          2,
+        ),
+        'utf-8',
+      );
     }
   }
 }
@@ -287,40 +336,40 @@ function actionsToString(actions: any): string {
 // ─── Main Guard Logic ─────────────────────────────────────────────────────────────
 async function runGuardLoop(): Promise<void> {
   log('INFO', 'Token Spike Guard v2.0.0 starting...');
-  
+
   const state = loadState();
   let lastMetrics: TokenMetrics | null = null;
   let lastTime = Date.now();
-  
+
   const guardLoop = async () => {
     try {
       const metrics = await getCurrentTokens();
       const now = Date.now();
       const timeDelta = (now - lastTime) / 1000;
-      
+
       // Calcular burn rate
       if (lastMetrics) {
         state.currentBurnRate = calculateBurnRate(metrics, lastMetrics, timeDelta);
       }
-      
+
       // Predecir tiempo al siguiente limite
       const thresholds = Object.entries(CONFIG.thresholds)
         .filter(([_, value]) => value > metrics.total)
         .sort((a, b) => a[1] - b[1]);
-      
+
       if (thresholds.length > 0) {
         const [, nextValue] = thresholds[0];
         state.projectedTimeToLimit = projectTimeToLimit(
           metrics.total,
           state.currentBurnRate,
-          nextValue
+          nextValue,
         );
       }
-      
+
       // Determinar nivel de alerta
       let alertLevel: string | null = null;
       let actions: any = {};
-      
+
       if (metrics.total >= CONFIG.thresholds.emergency15M) {
         alertLevel = 'emergency15M';
         actions = CONFIG.actions.emergency15M;
@@ -343,46 +392,54 @@ async function runGuardLoop(): Promise<void> {
         alertLevel = 'warning500k';
         actions = CONFIG.actions.warning500k;
       }
-      
+
       // Solo alertar si cambió el nivel (evitar spam)
       if (alertLevel && alertLevel !== state.lastAlertLevel) {
-        await sendAlert(alertLevel, metrics, actions, state.currentBurnRate, state.projectedTimeToLimit);
-        
+        await sendAlert(
+          alertLevel,
+          metrics,
+          actions,
+          state.currentBurnRate,
+          state.projectedTimeToLimit,
+        );
+
         // Ejecutar acciones
         if (actions.createCheckpoint) {
           await createCheckpoint(`Token guard: ${alertLevel}`);
           state.checkpoints.push(Date.now());
         }
-        
+
         state.lastAlertLevel = alertLevel;
         state.lastAlertTime = now;
       }
-      
+
       // Log periódico del estado (cada minuto)
       if (now - state.lastAlertTime > 60000) {
-        log('INFO', `Status: ${metrics.total.toLocaleString()} tokens, burn rate: ${state.currentBurnRate.toFixed(0)}/min`);
+        log(
+          'INFO',
+          `Status: ${metrics.total.toLocaleString()} tokens, burn rate: ${state.currentBurnRate.toFixed(0)}/min`,
+        );
       }
-      
+
       saveState(state);
       lastMetrics = metrics;
       lastTime = now;
-      
     } catch (err) {
       log('ERROR', 'Guard loop error', { error: String(err) });
     }
   };
-  
+
   // Ejecutar inmediatamente y luego cada 10s
   await guardLoop();
   setInterval(guardLoop, CONFIG.monitorInterval);
-  
+
   log('INFO', `Guard monitoring every ${CONFIG.monitorInterval / 1000}s. Press Ctrl+C to stop.`);
 }
 
 // ─── CLI ──────────────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--attach')) {
     log('INFO', 'Attaching to current session...');
     await runGuardLoop();
@@ -392,22 +449,29 @@ async function main(): Promise<void> {
   } else if (args.includes('--status')) {
     const state = loadState();
     const metrics = await getCurrentTokens();
-    
+
     console.log('\n╔════════════════════════════════════════════════════════════════╗');
     console.log('║           TOKEN SPIKE GUARD STATUS v2.0.0                       ║');
     console.log('╚════════════════════════════════════════════════════════════════╝');
     console.log(`Session ID:         ${state.sessionId}`);
-    console.log(`Runtime:            ${((Date.now() - state.startTime) / 1000 / 60).toFixed(1)} minutes`);
+    console.log(
+      `Runtime:            ${((Date.now() - state.startTime) / 1000 / 60).toFixed(1)} minutes`,
+    );
     console.log(`Tokens Used:        ${metrics.total.toLocaleString()}`);
     console.log(`Burn Rate:          ${state.currentBurnRate.toFixed(0)} tokens/min`);
     console.log(`Last Alert Level:   ${state.lastAlertLevel || 'None'}`);
     console.log(`Checkpoints:        ${state.checkpoints.length}`);
-    console.log(`Projected Time:     ${state.projectedTimeToLimit !== null ? state.projectedTimeToLimit.toFixed(1) + ' min' : 'N/A'}`);
+    console.log(
+      `Projected Time:     ${state.projectedTimeToLimit !== null ? state.projectedTimeToLimit.toFixed(1) + ' min' : 'N/A'}`,
+    );
     console.log('');
-    
+
     console.log('Thresholds:');
     Object.entries(CONFIG.thresholds).forEach(([key, value]) => {
-      const status = metrics.total >= value ? '✅ REACHED' : `⏳ ${Math.round((1 - metrics.total/value) * 100)}% remaining`;
+      const status =
+        metrics.total >= value
+          ? '✅ REACHED'
+          : `⏳ ${Math.round((1 - metrics.total / value) * 100)}% remaining`;
       console.log(`  ${key.padEnd(15)}: ${(value / 1000000).toFixed(1)}M ${status}`);
     });
     console.log('');
@@ -436,7 +500,7 @@ async function main(): Promise<void> {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(err => {
+  main().catch((err) => {
     log('ERROR', 'Fatal error', { error: String(err) });
     process.exit(1);
   });

@@ -31,9 +31,16 @@ function normalize(file: string): boolean {
     return `<html${/\bdata-bs-theme=/i.test(withClass) ? withClass : `${withClass} data-bs-theme="dark"`}>`;
   });
   html = html.replace(/\s*<meta\s+name=["'](?:theme-color|description)["'][^>]*>/gi, '');
-  html = html.replace(/<head([^>]*)>/i, (_match, attrs: string) => `<head${attrs}>\n    <meta name="theme-color" content="#0b1020" />\n    <meta name="description" content="${title.replace(/"/g, '&quot;')} — Gentle-Vanguard documentation" />`);
+  html = html.replace(
+    /<head([^>]*)>/i,
+    (_match, attrs: string) =>
+      `<head${attrs}>\n    <meta name="theme-color" content="#0b1020" />\n    <meta name="description" content="${title.replace(/"/g, '&quot;')} — Gentle-Vanguard documentation" />`,
+  );
   if (!/<link[^>]+href=["']assets\/css\/gv\.css/i.test(html)) {
-    html = html.replace(/<\/head>/i, `    <link rel="stylesheet" href="${SHARED_CSS}" />\n  </head>`);
+    html = html.replace(
+      /<\/head>/i,
+      `    <link rel="stylesheet" href="${SHARED_CSS}" />\n  </head>`,
+    );
   }
   if (!/<title>/i.test(html)) {
     html = html.replace(/<head[^>]*>/i, (head) => `${head}\n    <title>${title}</title>`);

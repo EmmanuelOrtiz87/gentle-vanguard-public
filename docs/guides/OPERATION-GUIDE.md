@@ -79,6 +79,7 @@ pnpm run session:start
 | **Azure Delegator** | `npx tsx src/azure-delegator.ts`              | Ejecuta skills en Azure Functions |
 | **Hybrid Executor** | `npx tsx src/hybrid-executor.ts`              | Routing entre local/cloud         |
 | **Cloud Metrics**   | `npx tsx src/cloud-metrics-collector.ts show` | Muestra métricas                  |
+
 <!-- REF-OBSOLETA: src/cloud-metrics-collector.ts no existe (ruta migrada o eliminada) -->
 
 ### Testing
