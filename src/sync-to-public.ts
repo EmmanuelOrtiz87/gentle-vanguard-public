@@ -134,6 +134,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     'docs/marketing',
     'docs/supplementary',
     'docs/presentations',
+    'docs/brand',
   ]) {
     const src = path.join(privateRepo, dir);
     if (fs.existsSync(src)) {
