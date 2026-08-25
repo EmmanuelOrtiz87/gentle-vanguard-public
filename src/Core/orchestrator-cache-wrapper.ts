@@ -17,7 +17,7 @@
 
 import { ResponseCache } from '../response-cache.js';
 import { pathToFileURL } from 'url';
-import { compressStructural } from '../structural-compression.js';
+import { compressStructural } from '../compression/structural-compression.js';
 
 // Instancia singleton del cache
 let cacheInstance: ResponseCache | null = null;

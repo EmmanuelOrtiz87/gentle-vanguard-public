@@ -266,6 +266,76 @@ export function trackFeedback(sessionId: string, type: 'thumbs_up' | 'thumbs_dow
 }
 
 /**
+ * Registrar uso de tokens externo (ej. daemon token-ingest) directamente en disco.
+ * A diferencia de getInstance()/addTokenUsage(), no crea singletons ni intervalos:
+ * carga el JSON del session, acumula el delta y reescribe el archivo. Seguro para daemons.
+ */
+export function recordExternalUsage(
+  sessionId: string,
+  inputTokens: number,
+  outputTokens: number,
+  cost = 0,
+  latencyMs = 0,
+): void {
+  try {
+    const dir = path.join(ROOT, '.session', 'live-metrics');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const metricsPath = path.join(dir, `${sessionId}.json`);
+    let m: SessionMetrics;
+    if (fs.existsSync(metricsPath)) {
+      try {
+        m = JSON.parse(fs.readFileSync(metricsPath, 'utf-8')) as SessionMetrics;
+      } catch {
+        m = {
+          sessionId,
+          startTime: new Date().toISOString(),
+          totalTokens: 0,
+          totalCost: 0,
+          turnCount: 0,
+          turns: [],
+          feedbackUp: 0,
+          feedbackDown: 0,
+          avgLatency: 0,
+          lastUpdate: new Date().toISOString(),
+        };
+      }
+    } else {
+      m = {
+        sessionId,
+        startTime: new Date().toISOString(),
+        totalTokens: 0,
+        totalCost: 0,
+        turnCount: 0,
+        turns: [],
+        feedbackUp: 0,
+        feedbackDown: 0,
+        avgLatency: 0,
+        lastUpdate: new Date().toISOString(),
+      };
+    }
+    // Limitar historial de turns para que el archivo no crezca indefinidamente.
+    m.turns.push({
+      timestamp: new Date().toISOString(),
+      inputTokens,
+      outputTokens,
+      latencyMs,
+      toolCalls: 0,
+      cost,
+    });
+    if (m.turns.length > 500) m.turns = m.turns.slice(-500);
+    m.totalTokens += inputTokens + outputTokens;
+    m.totalCost += cost;
+    m.turnCount++;
+    const totalLatency = m.turns.reduce((sum, t) => sum + t.latencyMs, 0);
+    m.avgLatency = totalLatency / m.turns.length;
+    m.lastUpdate = new Date().toISOString();
+    fs.writeFileSync(metricsPath, JSON.stringify(m, null, 2), 'utf-8');
+  } catch (err) {
+    console.error(`[MetricsTracker] recordExternalUsage(${sessionId}): ${err}`);
+  }
+}
+
+/**
  * Obtener métricas agregadas de todas las sesiones activas
  */
 export function getAllLiveMetrics(): {
@@ -325,7 +395,8 @@ export function getAllLiveMetrics(): {
       metrics.length > 0 ? metrics.reduce((sum, m) => sum + m.avgLatency, 0) / metrics.length : 0,
     p50Latency: pct(50),
     p95Latency: pct(95),
-    sloCompliance: sloTotal > 0 ? Math.round(((sloTotal - sloViolations) / sloTotal) * 100) : 100,
+    // No samples means no measured SLO, not 100% compliance.
+    sloCompliance: sloTotal > 0 ? Math.round(((sloTotal - sloViolations) / sloTotal) * 100) : 0,
     sloViolations,
     sloTotal,
     sessions: metrics.map((m) => m.sessionId),

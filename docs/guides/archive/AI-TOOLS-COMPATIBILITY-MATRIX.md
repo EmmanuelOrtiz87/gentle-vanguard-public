@@ -30,7 +30,7 @@ ensure consistent behavior across all integrations.
 
 **Current Implementation**:
 
-- Token budget guard: `src/token-budget-guard.ts`
+- Token budget guard: `src/tokens/token-budget-guard.ts`
 - Context metrics: `scripts/utilities/context-metrics-report.ps1`
 
 <!-- REF-OBSOLETA: scripts/utilities/context-metrics-report.ps1 no tiene equivalente TS (migración PS1→TS) -->
@@ -600,7 +600,7 @@ CONSTRAINTS:
 #### Token Management
 
 ```TypeScript
-# src/token-budget-guard.ts
+# src/tokens/token-budget-guard.ts
 - Enforces token limits
 - Tracks usage
 - Prevents overflow
@@ -740,7 +740,7 @@ CONSTRAINTS:
 
 ## Resources
 
-- Token Budget Guard: `src/token-budget-guard.ts`
+- Token Budget Guard: `src/tokens/token-budget-guard.ts`
 - Response Mode: `scripts/utilities/response-mode.ps1`
 
 <!-- REF-OBSOLETA: scripts/utilities/response-mode.ps1 no tiene equivalente TS (migración PS1→TS) -->

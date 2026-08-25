@@ -28,8 +28,8 @@ function main(): number {
   const repoRoot = join(__dirname, '..', '..');
   const { toolName, toolArgs, inputSummary, outputSummary } = parseArgs();
 
-  // TS migration: token-usage-auto.ps1 → src/token-usage-auto.ts
-  const autoScript = join(repoRoot, 'src', 'token-usage-auto.ts');
+  // TS migration: token-usage-auto.ps1 → src/tokens/token-usage-auto.ts
+  const autoScript = join(repoRoot, 'src', 'tokens', 'token-usage-auto.ts');
 
   if (!existsSync(autoScript)) {
     return 0;

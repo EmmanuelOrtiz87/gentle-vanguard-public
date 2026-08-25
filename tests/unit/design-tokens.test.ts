@@ -23,7 +23,7 @@ import {
   WCAG,
   type ColorScale,
   type DesignTokens,
-} from '../../src/design-tokens.ts';
+} from '../../src/design/design-tokens.ts';
 
 describe('Design Token System', () => {
   describe('color math', () => {
@@ -137,8 +137,11 @@ describe('Design Token System', () => {
       assert.match(css, /--color-primary-500: #00BFFF/);
       assert.match(css, /--text-body-size: 16px/);
       assert.match(css, /--radius-lg: 0.5rem/);
+      assert.match(css, /--space-0-5: 2px/);
+      assert.doesNotMatch(css, /--space-0\.5/);
       const scss = tokensToSCSS(tokens);
       assert.match(scss, /\$color-primary-500: #00BFFF/);
+      assert.match(scss, /\$space-0-5: 2px/);
     });
   });
 });

@@ -18,7 +18,7 @@
  *   });
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -362,8 +362,6 @@ async function executeSubagent(
     const delegatorPath = join(ROOT, 'src', 'agent-delegator.ts');
 
     const args: string[] = [
-      'tsx',
-      delegatorPath,
       '--agent',
       options.subagent_type,
       '--task',
@@ -376,26 +374,26 @@ async function executeSubagent(
       args.push('--context', options.context);
     }
 
-    const child = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', args, {
+    // node --import tsx (hidden, shell-free). Raw spawn('npx.cmd') without a
+    // shell fails with EINVAL on modern Node.
+    const child = runNpxTsx(delegatorPath, args, {
       cwd: ROOT,
       env: {
-        ...process.env,
         AGENT_MODEL: model,
         FORCE_MODEL: model,
         DELEGATION_MODE: 'fallback',
       },
       timeout: 300000, // 5 minutes
-      windowsHide: true,
     });
 
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 

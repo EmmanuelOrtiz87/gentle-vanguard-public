@@ -52,14 +52,14 @@ function check(name: string, fn: () => boolean | Promise<boolean>, timeoutMs = 3
       }
       stop(true);
     }
-  } catch (e: any) {
+  } catch (e) {
     failed++;
-    process.stdout.write(`  ❌ ${name}: ${e.message}\n`);
+    process.stdout.write(`  ❌ ${name}: ${(e as Error).message}\n`);
     stop(false);
   }
 }
 
-function exec(
+function runHidden(
   cmd: string,
   opts?: { cwd?: string; timeout?: number },
 ): { code: number; output: string } {
@@ -85,28 +85,28 @@ async function main() {
 
   // 1. TypeScript typecheck
   printSection('TypeScript Typecheck');
-  const tscResult = exec('npx tsc --noEmit', { timeout: 120000 });
+  const tscResult = runHidden('npx tsc --noEmit', { timeout: 120000 });
   check('tsc --noEmit (0 errors)', () => tscResult.code === 0);
 
   // 2. Config tests
   printSection('Config Tests');
-  const configTestResult = exec('npx tsx --test tests/config/*.test.ts', { timeout: 60000 });
+  const configTestResult = runHidden('npx tsx --test tests/config/*.test.ts', { timeout: 60000 });
   check('config tests pass', () => configTestResult.code === 0);
 
   // 3. Timeout config tests
   printSection('Timeout Config Tests');
-  const tcTestResult = exec('npx tsx --test tests/unit/timeout-config.test.ts', { timeout: 30000 });
+  const tcTestResult = runHidden('npx tsx --test tests/unit/timeout-config.test.ts', { timeout: 30000 });
   check('timeout-config tests pass', () => tcTestResult.code === 0);
 
   // 4. Timeout monitor tests
-  const tmTestResult = exec('npx tsx --test tests/unit/timeout-monitor.test.ts', {
+  const tmTestResult = runHidden('npx tsx --test tests/unit/timeout-monitor.test.ts', {
     timeout: 30000,
   });
   check('timeout-monitor tests pass', () => tmTestResult.code === 0);
 
   // 5. Dashboard build
   printSection('Dashboard Build');
-  const dbResult = exec('npm run build', { cwd: 'apps/web-dashboard', timeout: 120000 });
+  const dbResult = runHidden('npm run build', { cwd: 'apps/web-dashboard', timeout: 120000 });
   check('dashboard build passes', () => dbResult.code === 0);
 
   // 6. Resilience bridge
@@ -119,7 +119,7 @@ async function main() {
       'resilience bridge loads (' + opCount + ' ops, ' + cbCount + ' CBs)',
       () => opCount > 0 && cbCount >= 0,
     );
-  } catch (e: any) {
+  } catch (e) {
     check('resilience bridge loads', () => {
       throw e;
     });
@@ -150,9 +150,12 @@ async function main() {
         'monitoring',
         'circuit_breaker',
       ];
-      return cats.filter((c) => (cfg as any)[c] !== undefined).length >= 12;
+      return (
+        cats.filter((c) => (cfg as unknown as Record<string, unknown>)[c] !== undefined).length >=
+        12
+      );
     });
-  } catch (e: any) {
+  } catch (e) {
     check('timeout config values', () => {
       throw e;
     });
@@ -160,7 +163,7 @@ async function main() {
 
   // 8. Session autostart pipeline (dry-run check)
   printSection('Session Autostart Pipeline');
-  const saResult = exec('npx tsx src/core/session-autostart.ts', { timeout: 180000 });
+  const saResult = runHidden('npx tsx src/core/session-autostart.ts', { timeout: 180000 });
   // The pipeline might exit 1 on some non-critical failures, but should at least start
   const hasRequiredSteps =
     saResult.output.includes('[OK]') || saResult.output.includes('32 enabled');
@@ -179,7 +182,7 @@ async function main() {
 
   // 10. Workflow tests
   printSection('Workflow Tests');
-  const wfResult = exec('npx tsx --test tests/workflows/*.test.ts', { timeout: 60000 });
+  const wfResult = runHidden('npx tsx --test tests/workflows/*.test.ts', { timeout: 60000 });
   check('workflow tests pass', () => wfResult.code === 0);
 
   // ---- Summary ----

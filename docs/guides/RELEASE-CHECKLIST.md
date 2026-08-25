@@ -41,7 +41,7 @@ quality.
   - [ ] No critical TODO/FIXME comments in core scripts
 
 - [ ] **Compatibility**
-  - [ ] Scripts tested on Windows 10/11 + TypeScript 7+
+  - [ ] Scripts tested on Windows 10/11 + la versión de TypeScript del proyecto (confirmación externa pendiente)
   - [ ] Cross-platform paths use forward slashes (or `Join-Path` where needed)
   - [ ] Go versión pinned in `go.mod` matches README prerequisites
   - [ ] Node/Python versións in templates match README
@@ -140,34 +140,34 @@ Run before tagging:
 
 ```TypeScript
 cd .\gentle-vanguard
-git checkout -b release/v1.0.0
+git checkout -b release/vX.Y.Z
 ```
 
 ### Step 2: Update CHANGELOG
 
 Edit `CHANGELOG.md`:
 
-- Change `## [Unreleased]` to `## [1.0.0] - 2026-04-13`
+- Change `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` using the release version
 - Ensure all changes are listed
 - Add link at bottom:
-  `[1.0.0]: https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/tag/v1.0.0`
+  `[X.Y.Z]: https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/tag/vX.Y.Z`
 
 ### Step 3: Commit Release
 
 ```TypeScript
 git add CHANGELOG.md
-git commit -m "chore(release): prepare v1.0.0 - Gentle-Vanguard stable release"
-git push -u origin release/v1.0.0
+git commit -m "chore(release): prepare vX.Y.Z - Gentle-Vanguard release"
+git push -u origin release/vX.Y.Z
 ```
 
 ### Step 4: Create & Merge Release PR
 
 ```TypeScript
-gh pr create --base main --head release/v1.0.0 \
-  --title "chore(release): v1.0.0 - First stable Gentle-Vanguard release" \
-  --body "## Release: v1.0.0
+gh pr create --base main --head release/vX.Y.Z \
+  --title "chore(release): vX.Y.Z - Gentle-Vanguard release" \
+  --body "## Release: vX.Y.Z
 
-First stable release of Gentle-Vanguard.
+Release of Gentle-Vanguard.
 
 ### What's Included
 - AI orchestration framework
@@ -179,8 +179,7 @@ First stable release of Gentle-Vanguard.
 See CHANGELOG.md for full details.
 
 ### Ready for
-- Production use
-- Consumer adoption (Dashboard, etc.)
+- Production use, subject to the external deployment gates
 "
 ```
 
@@ -195,22 +194,22 @@ gh pr merge <number> --squash --delete-branch
 ```TypeScript
 git checkout main
 git pull origin main
-git tag -a v1.0.0 -m "Release v1.0.0: First stable release of Gentle-Vanguard"
-git push origin v1.0.0
+git tag -a vX.Y.Z -m "Release vX.Y.Z: Gentle-Vanguard release"
+git push origin vX.Y.Z
 ```
 
 Verify:
 
 ```TypeScript
-git tag -l v1.0.0 -n5
+git tag -l vX.Y.Z -n5
 ```
 
 ### Step 6: Create GitHub Release
 
 ```TypeScript
-gh release create v1.0.0 --target main \
-  --title "v1.0.0 - Gentle-Vanguard Stable Release" \
-  --notes "First stable release. See CHANGELOG.md for full details."
+gh release create vX.Y.Z --target main \
+  --title "vX.Y.Z - Gentle-Vanguard Release" \
+  --notes "See CHANGELOG.md for full details."
 ```
 
 Or use GitHub UI: https://github.com/EmmanuelOrtiz87/gentle-vanguard/releases/new
@@ -232,24 +231,24 @@ git push origin develop
 
 - [ ] **Announce Release** (pick one or all):
   - [ ] GitHub Discussions: Create announcement post
-  - [ ] README badge updated with versión link
+  - [ ] README badge updated with release version link
   - [ ] Email/Slack notification to team
 
 - [ ] **Update Dependent Projects**
-  - [ ] Dashboard: If using Gentle-Vanguard skills, note that v1.0.0 is available
-  - [ ] Workspace root docs: Link to v1.0.0 release
+  - [ ] Dashboard: If using Gentle-Vanguard skills, note that vX.Y.Z is available
+  - [ ] Workspace root docs: Link to vX.Y.Z release
 
 ### Feedback & Monitoring
 
 - [ ] **Monitor for Issues** (next 24-48 hours):
   - [ ] GitHub Issues: Watch for bug reports
   - [ ] Pre-commit hook: Ensure no new failures from consumers
-  - [ ] Skill usage: Track if new consumers start using v1.0.0
+  - [ ] Skill usage: Track if new consumers start using vX.Y.Z
 
 - [ ] **Next Backlog**
   - [ ] Move resolved items from FF-001..FF-006 to "done" status
   - [ ] Add new items from user feedback
-  - [ ] Pin next release date (target v1.1.0 for when 3+ new features ready)
+  - [ ] Pin the next release date (version/date to be confirmed externally)
 
 ---
 
@@ -258,7 +257,7 @@ git push origin develop
 If a critical bug is found post-release:
 
 ```TypeScript
-# Option 1: Issue a hotfix (v1.0.1)
+# Option 1: Issue a hotfix (version to be confirmed externally)
 git checkout main
 git pull origin main
 # Fix bug
@@ -267,12 +266,12 @@ git checkout -b hotfix/critical-bug
 git push origin hotfix/critical-bug
 # Create PR hotfix/critical-bug  main
 # After merge:
-git tag -a v1.0.1 -m "Hotfix: Critical bug fix"
-git push origin v1.0.1
+git tag -a v<hotfix-version> -m "Hotfix: Critical bug fix"
+git push origin v<hotfix-version>
 
 # Option 2: Yank release (if catastrophic)
-gh release delete v1.0.0
-git push origin :v1.0.0  # Delete tag from remote
+gh release delete v<release-version>
+git push origin :v<release-version>  # Delete tag from remote
 ```
 
 ---

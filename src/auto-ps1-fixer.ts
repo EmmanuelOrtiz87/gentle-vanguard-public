@@ -94,7 +94,7 @@ const PS1_TO_TS_MAP: Record<string, string> = {
   'scripts/utilities/handoff-compress.ps1': 'src/handoff-compress.ts',
 
   'scripts/utilities/optimize-engram-usage.ps1': 'src/optimize-engram-usage.ts',
-  'scripts/utilities/token-metrics-store.ps1': 'src/token-metrics-store.ts',
+  'scripts/utilities/token-metrics-store.ps1': 'src/tokens/token-metrics-store.ts',
 
   // Perfiles adaptativos
   'scripts/utilities/profile/PROFILE-ADAPTIVE/adaptive-opencode-profile.ps1':
@@ -257,7 +257,7 @@ function main(): void {
     'src/setup-complete.ts',
     'src/setup-multi-machine.ts',
     'src/sync-to-public.ts',
-    'src/token-usage-notifier.ts',
+    'src/tokens/token-usage-notifier.ts',
     'src/validate-readme.ts',
   ];
 

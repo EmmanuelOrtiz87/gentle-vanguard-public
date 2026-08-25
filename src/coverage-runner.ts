@@ -18,6 +18,7 @@ import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, rmSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
+import { loadConfigFile } from './core/config-loader.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -86,12 +87,13 @@ function parseArgs(args?: string[]): ParseOptions {
 }
 
 function loadConfig(): CoverageConfig {
-  const cfgPath = resolve(ROOT, 'tests', 'coverage-config.json');
-  if (!existsSync(cfgPath)) {
-    console.warn(`[coverage] config not found at ${cfgPath}, using defaults`);
-    return DEFAULT_CONFIG;
-  }
-  const raw = JSON.parse(readFileSync(cfgPath, 'utf8')) as Partial<CoverageConfig>;
+  const result = loadConfigFile<Partial<CoverageConfig>>('coverage-config', {
+    dir: resolve(ROOT, 'tests'),
+    defaults: DEFAULT_CONFIG,
+    validate: false,
+  });
+  const raw = result.data;
+  if (result.warnings.length > 0) console.warn(result.warnings[0]);
   return {
     ...DEFAULT_CONFIG,
     ...raw,
@@ -236,7 +238,8 @@ function main(): void {
     ...excludeArgs,
     ...checkArgs,
     process.execPath,
-    resolve(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs'),
+    '--import',
+    'tsx',
     '--test',
     ...testFiles,
   ];

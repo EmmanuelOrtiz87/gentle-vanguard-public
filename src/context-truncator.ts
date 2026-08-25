@@ -13,7 +13,7 @@
  *   npx tsx src/context-truncator.ts --info                    # Show current context size
  */
 
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 
@@ -190,10 +190,10 @@ export function truncateHistory(
  */
 function readCurrentSession(): { sessionId: string; messages: Message[] } | null {
   try {
-    const entries = require('fs').readdirSync(STATE_DIR, { withFileTypes: true });
+    const entries = readdirSync(STATE_DIR, { withFileTypes: true });
     const sessions = entries
-      .filter((e: any) => e.isDirectory())
-      .map((e: any) => e.name)
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
       .sort()
       .reverse();
 

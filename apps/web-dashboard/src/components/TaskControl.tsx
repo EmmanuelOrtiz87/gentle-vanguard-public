@@ -1,4 +1,5 @@
 import { Play, Loader2, CheckCircle, XCircle, Clock, Terminal } from 'lucide-react';
+import { useT } from '../hooks/useLocale';
 
 interface AgentTask {
   id: string;
@@ -41,6 +42,7 @@ const statusConfig: Record<string, { icon: typeof Loader2; color: string; bg: st
 };
 
 export default function TaskControl({ tasks, connected, onEmitEvent }: TaskControlProps) {
+  const { tt } = useT();
   const running = tasks.filter((t) => t.status === 'running');
   const recent = tasks.slice(0, 10);
 
@@ -51,7 +53,7 @@ export default function TaskControl({ tasks, connected, onEmitEvent }: TaskContr
           <div className="flex items-center gap-2 mb-2">
             <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              {running.length} active task(s)
+              {tt('ui.tc_active_tasks').replace('{n}', String(running.length))}
             </span>
           </div>
           {running.map((t) => (
@@ -70,8 +72,8 @@ export default function TaskControl({ tasks, connected, onEmitEvent }: TaskContr
       {tasks.length === 0 && (
         <div className="text-center py-8 text-gray-400 dark:text-gray-500">
           <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No tasks yet</p>
-          <p className="text-xs mt-1">Tasks appear when agent activities are dispatched</p>
+          <p className="text-sm">{tt('ui.no_tasks_yet')}</p>
+          <p className="text-xs mt-1">{tt('ui.tasks_appear_when_dispatched')}</p>
         </div>
       )}
 
@@ -101,7 +103,7 @@ export default function TaskControl({ tasks, connected, onEmitEvent }: TaskContr
 
       {connected && onEmitEvent && (
         <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-[10px] text-gray-400 mb-2">Quick actions</p>
+          <p className="text-[10px] text-gray-400 mb-2">{tt('ui.quick_actions')}</p>
           <div className="flex gap-2">
             <button
               onClick={() =>
@@ -113,7 +115,7 @@ export default function TaskControl({ tasks, connected, onEmitEvent }: TaskContr
               }
               className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
-              <Play className="w-3 h-3" /> Dispatch DEV
+              <Play className="w-3 h-3" /> {tt('ui.tc_dispatch').replace('{agent}', 'DEV')}
             </button>
             <button
               onClick={() =>
@@ -125,7 +127,7 @@ export default function TaskControl({ tasks, connected, onEmitEvent }: TaskContr
               }
               className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
-              <Play className="w-3 h-3" /> Dispatch QA
+              <Play className="w-3 h-3" /> {tt('ui.tc_dispatch').replace('{agent}', 'QA')}
             </button>
           </div>
         </div>

@@ -60,6 +60,13 @@ interface CircuitState_v2 {
   lastStateChange: number;
 }
 
+interface ExecuteOptions {
+  signal?: AbortSignal;
+}
+
+const circuitLocks = new Map<string, Promise<void>>();
+const HEALTH_CHECK_TIMEOUT = 2000;
+
 // ─── Configuration ─────────────────────────────────────────────────────────────────
 const DEFAULT_CONFIGS: Record<string, CircuitConfig> = {
   opencode: {
@@ -102,6 +109,14 @@ const DEFAULT_CONFIGS: Record<string, CircuitConfig> = {
     resetTimeout: 60000,
     halfOpenMaxCalls: 3,
   },
+  agent_delegation: {
+    name: 'agent_delegation',
+    failureThreshold: 4,
+    successThreshold: 2,
+    timeout: 120000, // subagent runs are long; generous call timeout
+    resetTimeout: 45000,
+    halfOpenMaxCalls: 2,
+  },
 };
 
 // ─── Logger ───────────────────────────────────────────────────────────────────────
@@ -127,8 +142,18 @@ function saveState(state: Record<string, CircuitState_v2>): void {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
 }
 
+/** Resolve config by exact name, then by prefix ("agent_delegation:BA" → agent_delegation), then generic fallback. */
+function resolveCircuitConfig(name: string): CircuitConfig {
+  const exact = DEFAULT_CONFIGS[name];
+  if (exact) return { ...exact, name };
+  const prefix = name.split(':')[0];
+  const byPrefix = DEFAULT_CONFIGS[prefix];
+  if (byPrefix) return { ...byPrefix, name };
+  return { ...DEFAULT_CONFIGS.external_api, name };
+}
+
 function initializeCircuit(name: string): CircuitState_v2 {
-  const config = DEFAULT_CONFIGS[name] || DEFAULT_CONFIGS.external_api;
+  const config = resolveCircuitConfig(name);
   return {
     name,
     state: 'CLOSED',
@@ -180,6 +205,55 @@ function canExecute(circuit: CircuitState_v2): { allowed: boolean; reason: strin
   }
 }
 
+async function withCircuitLock<T>(name: string, fn: () => T | Promise<T>): Promise<T> {
+  const previous = circuitLocks.get(name) || Promise.resolve();
+  let release!: () => void;
+  const current = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const queued = previous.then(() => current);
+  circuitLocks.set(name, queued);
+
+  await previous;
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (circuitLocks.get(name) === queued) circuitLocks.delete(name);
+  }
+}
+
+function abortError(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  const error = new Error('Operation aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function reserveExecution(name: string): {
+  circuit: CircuitState_v2;
+  state: Record<string, CircuitState_v2>;
+} {
+  const state = loadState();
+  const circuit = state[name] || initializeCircuit(name);
+
+  if (circuit.state === 'OPEN' && circuit.openedAt) {
+    if (Date.now() - circuit.openedAt > circuit.config.resetTimeout) {
+      circuit.state = 'HALF_OPEN';
+      circuit.halfOpenCalls = 0;
+      circuit.lastStateChange = Date.now();
+      log('INFO', `Circuit ${name} transitioned: OPEN -> HALF_OPEN`);
+    }
+  }
+
+  const check = canExecute(circuit);
+  if (!check.allowed) throw new Error(`Circuit ${name} OPEN: ${check.reason}`);
+  if (circuit.state === 'HALF_OPEN') circuit.halfOpenCalls++;
+  state[name] = circuit;
+  saveState(state);
+  return { circuit, state };
+}
+
 function recordSuccess(circuit: CircuitState_v2): CircuitState_v2 {
   const now = Date.now();
   circuit.metrics.totalCalls++;
@@ -192,8 +266,6 @@ function recordSuccess(circuit: CircuitState_v2): CircuitState_v2 {
   const previousState = circuit.state;
 
   if (circuit.state === 'HALF_OPEN') {
-    circuit.halfOpenCalls++;
-
     if (circuit.metrics.consecutiveSuccesses >= circuit.config.successThreshold) {
       circuit.state = 'CLOSED';
       circuit.halfOpenCalls = 0;
@@ -252,50 +324,81 @@ function recordFailure(circuit: CircuitState_v2): CircuitState_v2 {
 // ─── Execute with Circuit Breaker ───────────────────────────────────────────────────
 async function executeWithCircuit<T>(
   name: string,
-  fn: () => Promise<T>,
+  fn: (signal?: AbortSignal) => Promise<T>,
   fallback?: () => T,
+  options: ExecuteOptions = {},
 ): Promise<T> {
-  const state = loadState();
-  let circuit = state[name] || initializeCircuit(name);
-
-  // Check if we should transition from OPEN to HALF_OPEN
-  if (circuit.state === 'OPEN' && circuit.openedAt) {
-    if (Date.now() - circuit.openedAt > circuit.config.resetTimeout) {
-      circuit.state = 'HALF_OPEN';
-      circuit.halfOpenCalls = 0;
-      circuit.lastStateChange = Date.now();
-      log('INFO', `Circuit ${name} transitioned: OPEN -> HALF_OPEN`);
-    }
-  }
-
-  const check = canExecute(circuit);
-
-  if (!check.allowed) {
-    log('WARN', `Circuit ${name} blocked: ${check.reason}`);
+  if (options.signal?.aborted) throw abortError(options.signal);
+  let reservation: { circuit: CircuitState_v2; state: Record<string, CircuitState_v2> };
+  try {
+    reservation = await withCircuitLock(name, () => reserveExecution(name));
+  } catch (err) {
+    log('WARN', `Circuit ${name} blocked`, { error: String(err) });
     if (fallback) {
       log('INFO', `Executing fallback for ${name}`);
       return fallback();
     }
-    throw new Error(`Circuit ${name} OPEN: ${check.reason}`);
+    throw err;
   }
+  let circuit = reservation.circuit;
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(options.signal?.reason);
+  options.signal?.addEventListener('abort', onAbort, { once: true });
+  if (options.signal?.aborted) {
+    controller.abort(options.signal.reason);
+    options.signal.removeEventListener('abort', onAbort);
+    await withCircuitLock(name, () => {
+      const state = loadState();
+      const reserved = state[name] || circuit;
+      if (reserved.state === 'HALF_OPEN' && reserved.halfOpenCalls > 0) reserved.halfOpenCalls--;
+      state[name] = reserved;
+      saveState(state);
+    });
+    throw abortError(options.signal);
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
 
   try {
-    const result = await Promise.race([
-      fn(),
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`${name} timeout`)), circuit.config.timeout),
-      ),
-    ]);
+    const result = await new Promise<T>((resolve, reject) => {
+      const onSignalAbort = () => reject(abortError(controller.signal));
+      controller.signal.addEventListener('abort', onSignalAbort, { once: true });
+      timer = setTimeout(() => {
+        timedOut = true;
+        controller.abort(new Error(`${name} timeout`));
+        reject(new Error(`${name} timeout`));
+      }, circuit.config.timeout);
+      Promise.resolve()
+        .then(() => fn(controller.signal))
+        .then(resolve, reject)
+        .finally(() => controller.signal.removeEventListener('abort', onSignalAbort));
+    });
 
-    circuit = recordSuccess(circuit);
-    state[name] = circuit;
-    saveState(state);
+    await withCircuitLock(name, () => {
+      const state = loadState();
+      circuit = recordSuccess(state[name] || circuit);
+      state[name] = circuit;
+      saveState(state);
+    });
 
     return result;
   } catch (err) {
-    circuit = recordFailure(circuit);
-    state[name] = circuit;
-    saveState(state);
+    if (!timedOut && (options.signal?.aborted || controller.signal.aborted)) {
+      await withCircuitLock(name, () => {
+        const state = loadState();
+        const reserved = state[name] || circuit;
+        if (reserved.state === 'HALF_OPEN' && reserved.halfOpenCalls > 0) reserved.halfOpenCalls--;
+        state[name] = reserved;
+        saveState(state);
+      });
+      throw err;
+    }
+    await withCircuitLock(name, () => {
+      const state = loadState();
+      circuit = recordFailure(state[name] || circuit);
+      state[name] = circuit;
+      saveState(state);
+    });
 
     log('ERROR', `Circuit ${name} recorded failure`, { error: String(err) });
 
@@ -305,6 +408,9 @@ async function executeWithCircuit<T>(
     }
 
     throw err;
+  } finally {
+    if (timer) clearTimeout(timer);
+    options.signal?.removeEventListener('abort', onAbort);
   }
 }
 
@@ -329,13 +435,17 @@ async function checkServiceHealth(name: string): Promise<{ healthy: boolean; lat
         const { createConnection } = await import('net');
         return new Promise((resolve) => {
           const socket = createConnection(8080, 'localhost');
-          socket.on('connect', () => {
-            socket.end();
-            resolve({ healthy: true, latency: Date.now() - start });
-          });
-          socket.on('error', () => {
-            resolve({ healthy: false, latency: Date.now() - start });
-          });
+          const finish = (healthy: boolean): void => {
+            socket.setTimeout(0);
+            socket.removeAllListeners();
+            if (healthy) socket.end();
+            else socket.destroy();
+            resolve({ healthy, latency: Date.now() - start });
+          };
+          socket.once('connect', () => finish(true));
+          socket.once('error', () => finish(false));
+          socket.once('timeout', () => finish(false));
+          socket.setTimeout(HEALTH_CHECK_TIMEOUT);
         });
 
       case 'web_crawler':
@@ -512,5 +622,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { executeWithCircuit };
+export { executeWithCircuit, checkServiceHealth, runHealthChecks };
+export type { ExecuteOptions };
 export type { CircuitState };

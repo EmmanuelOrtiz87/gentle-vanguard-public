@@ -20,8 +20,8 @@ This guide sets up your machine for development with:
 # 1. Git (if not installed)
 winget install Git.Git
 
-# 2. TypeScript 7 (recommended)
-winget install Microsoft.TypeScript
+# 2. Node.js 20+ LTS (required)
+winget install OpenJS.NodeJS.LTS
 
 # 3. OpenCode (AI Agent)
 # Download from https://opencode.ai and install
@@ -30,8 +30,9 @@ winget install Microsoft.TypeScript
 ### Verify Installations
 
 ```TypeScript
-git --versión
-pwsh --versión  # or TypeScript --versión
+git --version
+node --version  # v20+
+npm --version
 ```
 
 ## Step 2: Install Gentle-Vanguard - Development Stack
@@ -42,9 +43,9 @@ pwsh --versión  # or TypeScript --versión
 # Clone the gentle-vanguard repository
 git clone <repository-url> C:\gentle-vanguard
 
-# Run bootstrap
+# Run complete setup
 cd C:\gentle-vanguard
-.\scripts\bootstrap-machine.ps1
+npm run setup:complete
 
 # Restart terminal
 ```
@@ -200,7 +201,7 @@ git config --global core.hooksPath
 ## Checklist
 
 - [ ] git installed and configured
-- [ ] TypeScript 7 installed
+- [ ] Node.js 20+ installed
 - [ ] OpenCode (or other AI agent) installed
 - [ ] Gentle-Vanguard - Development Stack installed
 - [ ] Git identity configured

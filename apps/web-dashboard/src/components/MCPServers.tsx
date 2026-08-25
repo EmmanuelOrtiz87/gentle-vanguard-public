@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { MCPServerInfo, MCPServerStatus } from '../types/mcp';
 import { Cpu, Play, Square, RefreshCw, Plus, X } from 'lucide-react';
+import { useT } from '../hooks/useLocale';
 
 function MCPServersInner() {
+  const { tt } = useT();
   const [servers, setServers] = useState<(MCPServerInfo & MCPServerStatus)[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -79,7 +81,7 @@ function MCPServersInner() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">MCP Servers</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tt('ui.mcp_servers')}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Manage local MCP server connections
           </p>
@@ -103,7 +105,7 @@ function MCPServersInner() {
       {showAdd && (
         <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Register MCP Server</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.register_mcp_server')}</h3>
             <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600">
               <X className="w-4 h-4" />
             </button>
@@ -145,12 +147,12 @@ function MCPServersInner() {
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         {loading && servers.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Loading MCP servers...</div>
+            <div className="p-8 text-center text-gray-500">{tt('ui.loading_mcp_servers')}</div>
         ) : servers.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Cpu className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No MCP servers registered.</p>
-            <p className="text-xs mt-1">Add a server to get started.</p>
+              <p>{tt('ui.no_mcp_servers_registered')}</p>
+              <p className="text-xs mt-1">{tt('ui.add_server_get_started')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">

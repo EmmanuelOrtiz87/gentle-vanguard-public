@@ -21,7 +21,7 @@ import {
   getConfig as getOutputConfig,
   compressOutput,
   CompressionProfile,
-} from './output-compression.js';
+} from './compression/output-compression.js';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 

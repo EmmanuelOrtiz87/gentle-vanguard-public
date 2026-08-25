@@ -1,5 +1,6 @@
 import { GitBranch } from 'lucide-react';
 import type { RoutingRuleRow } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface RoutingRulesPanelProps {
   rules: RoutingRuleRow[];
@@ -7,14 +8,16 @@ interface RoutingRulesPanelProps {
 }
 
 export function RoutingRulesPanel({ rules, total }: RoutingRulesPanelProps) {
+  const { tt } = useT();
+
   if (total === 0) {
     return (
       <div className="card">
         <div className="flex items-center gap-2 mb-3">
           <GitBranch className="w-5 h-5 text-sky-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Routing Rules</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.routing_rules')}</h3>
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">No routing rules configured</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{tt('ui.no_routing_rules_configured')}</p>
       </div>
     );
   }
@@ -26,9 +29,11 @@ export function RoutingRulesPanel({ rules, total }: RoutingRulesPanelProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <GitBranch className="w-5 h-5 text-sky-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Routing Rules</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.routing_rules')}</h3>
         </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">{total} rules</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {total} {tt('ui.rules')}
+        </span>
       </div>
       <div className="space-y-1.5 max-h-[280px] overflow-y-auto">
         {sorted.map((rule) => (
@@ -48,10 +53,10 @@ export function RoutingRulesPanel({ rules, total }: RoutingRulesPanelProps) {
               </div>
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                  Priority: {rule.priority}
+                  {tt('ui.priority')}: {rule.priority}
                 </span>
                 <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                  Hits: {rule.hitCount}
+                  {tt('ui.hits')}: {rule.hitCount}
                 </span>
               </div>
             </div>

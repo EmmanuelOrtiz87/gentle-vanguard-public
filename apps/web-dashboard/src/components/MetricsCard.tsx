@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { LucideIcon, Info } from 'lucide-react';
 import { InfoPopup } from './InfoPopup';
-import { useLocale, t } from '../hooks/useLocale';
+import { useLocale, useT, t } from '../hooks/useLocale';
 
 interface MetricsCardProps {
   title: string;
@@ -31,6 +31,7 @@ export function MetricsCard({
 }: MetricsCardProps) {
   const [showPopup, setShowPopup] = useState(false);
   const { locale } = useLocale();
+  const { tt } = useT();
   const info = infoKey ? t(locale, infoKey) : undefined;
 
   return (
@@ -44,7 +45,7 @@ export function MetricsCard({
                 <button
                   onClick={() => setShowPopup(true)}
                   className="p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0"
-                  title="More info"
+                  title={tt('ui.more_info')}
                 >
                   <Info className="w-3.5 h-3.5" />
                 </button>

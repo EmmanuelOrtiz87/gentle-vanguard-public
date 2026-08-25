@@ -26,6 +26,10 @@ import { pathToFileURL } from 'url';
 import { recommend } from './recommend-agent.js';
 import { delegate, compressDelegationLossless } from './agent-delegator.js';
 import { resolveAgentTier } from './domain-tier.js';
+import {
+  DatabaseManager,
+  DEFAULT_TENANT_ID,
+} from '../apps/web-dashboard/server/database/manager.js';
 
 const ROOT = resolve(process.cwd());
 const HITS_FILE = join(ROOT, '.session', 'routing', 'hits.jsonl');
@@ -34,6 +38,7 @@ interface RouteArgs {
   task: string;
   context?: string;
   topN: number;
+  tenantId: string;
 }
 
 interface RouteResult {
@@ -64,11 +69,16 @@ interface RouteResult {
 }
 
 function parseArgs(argv: string[]): RouteArgs {
-  const args: RouteArgs = { task: '', topN: 3 };
+  const args: RouteArgs = {
+    task: '',
+    topN: 3,
+    tenantId: process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID,
+  };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--task' && argv[i + 1]) args.task = argv[++i];
     else if (argv[i] === '--context' && argv[i + 1]) args.context = argv[++i];
     else if (argv[i] === '--topn' && argv[i + 1]) args.topN = Number(argv[++i]);
+    else if (argv[i] === '--tenant' && argv[i + 1]) args.tenantId = argv[++i];
   }
   return args;
 }
@@ -87,7 +97,7 @@ function persistHit(hit: Record<string, unknown>): void {
 }
 
 async function main(): Promise<void> {
-  const { task, context, topN } = parseArgs(process.argv);
+  const { task, context, topN, tenantId } = parseArgs(process.argv);
 
   if (!task) {
     console.error('Usage: --task "description" [--context "..."] [--topn N]');
@@ -95,7 +105,7 @@ async function main(): Promise<void> {
   }
 
   // 1. Recommend the best agent
-  const rec = recommend(task, '', topN) as {
+  const rec = recommend(task, '', topN, { tenantId }) as {
     domain: string;
     recommended: string;
     confidence: number;
@@ -157,11 +167,35 @@ async function main(): Promise<void> {
     success: result.success,
     duration: result.duration,
   });
+  recordRoutingOutcome(rec.domain, rec.recommended, result.success, tenantId);
 
   console.log(JSON.stringify(routeResult, null, 2));
 
   if (!result.success) {
     process.exitCode = 1;
+  }
+}
+
+interface RoutingOutcomeSink {
+  recordRoutingOutcome(pattern: string, target: string, success: boolean, tenantId: string): void;
+}
+
+function recordRoutingOutcome(
+  pattern: string,
+  target: string,
+  success: boolean,
+  tenantId = DEFAULT_TENANT_ID,
+  sink?: RoutingOutcomeSink,
+): void {
+  try {
+    (sink ?? DatabaseManager.getInstance()).recordRoutingOutcome(
+      pattern,
+      target,
+      success,
+      tenantId,
+    );
+  } catch {
+    // Persistence must not change delegation behavior.
   }
 }
 
@@ -176,5 +210,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   void main();
 }
 
-export { recommend, persistHit, extractArtifactDir };
+export { recommend, persistHit, extractArtifactDir, recordRoutingOutcome };
 export type { RouteResult };

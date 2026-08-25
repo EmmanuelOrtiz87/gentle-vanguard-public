@@ -12,26 +12,30 @@ WORKDIR /app
 COPY . .
 # Install without prepare scripts (lefthook needs git which fails in copy)
 RUN pnpm install --frozen-lockfile --ignore-scripts
+# Run the build scripts blocked by --ignore-scripts (better-sqlite3 prebuilt,
+# esbuild) — honors allowBuilds in pnpm-workspace.yaml
+RUN pnpm rebuild --pending
 # Compile MCP distribution (normally done by postinstall)
 RUN pnpm build:mcp
-# Dashboard install (own workspace + lockfile): provides tsx, ws, react
-RUN cd apps/web-dashboard && pnpm install --frozen-lockfile
 
 FROM node:22-alpine AS runner
-RUN npm install -g pnpm@11.1.1
+RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 # Compiled MCP server + runtime deps from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-# Dashboard (source + deps) for the WebSocket server
-COPY --from=builder /app/apps/web-dashboard ./apps/web-dashboard
+COPY --from=builder --chown=app:app /app/dist ./dist
+COPY --from=builder --chown=app:app /app/node_modules ./node_modules
+COPY --from=builder --chown=app:app /app/package.json ./package.json
+COPY --from=builder --chown=app:app /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+# Dashboard (source + deps) for the WebSocket server — workspace member installed
+# by the root pnpm install in the builder stage
+COPY --from=builder --chown=app:app /app/apps/web-dashboard ./apps/web-dashboard
 # src/core needed for @gentle-vanguard/core resolution via tsconfig paths
-COPY --from=builder /app/src ./src
+COPY --from=builder --chown=app:app /app/src ./src
 # Recreate the @gentle-vanguard/core link (mimics src/bootstrap-symlink.ts)
 RUN mkdir -p apps/web-dashboard/node_modules/@gentle-vanguard \
-    && ln -s /app/src/core apps/web-dashboard/node_modules/@gentle-vanguard/core
+    && ln -s /app/src/core apps/web-dashboard/node_modules/@gentle-vanguard/core \
+    && chown -R app:app /app
+USER app
 EXPOSE 8080 3001 8081 9090
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:8080/api/health || exit 1

@@ -316,12 +316,32 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
   const graphPath = resolve(process.cwd(), '.codegraph', 'graph.json');
   const graphifyPath = resolve(process.cwd(), 'graphify-out', 'graph.json');
 
-  let graphData: any = null;
+  // Minimal shapes of the CodeGraph/Graphify JSON indexes used below
+  interface GraphNode {
+    id?: string;
+    name?: string;
+    label?: string;
+  }
+  interface GraphEdge {
+    source?: string;
+    from?: string;
+    target?: string;
+    to?: string;
+    label?: string;
+    type?: string;
+  }
+  interface GraphData {
+    nodes?: GraphNode[];
+    edges?: GraphEdge[];
+    links?: GraphEdge[];
+  }
+
+  let graphData: GraphData | null = null;
 
   for (const gp of [graphPath, graphifyPath]) {
     if (existsSync(gp)) {
       try {
-        graphData = JSON.parse(readFileSync(gp, 'utf8'));
+        graphData = JSON.parse(readFileSync(gp, 'utf8')) as GraphData;
         break;
       } catch {
         /* try next */
@@ -340,9 +360,9 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
   // Filter by module if specified
   let filteredNodes = nodes;
   if (args.codegraphModule) {
-    filteredNodes = nodes.filter((n: any) => {
+    filteredNodes = nodes.filter((n) => {
       const id = n.id || n.name || '';
-      return id.includes(args.codegraphModule);
+      return id.includes(args.codegraphModule!);
     });
   }
 
@@ -353,7 +373,7 @@ async function generateFromCodegraph(args: RenderArgs): Promise<string | null> {
 
   // Build DOT
   const nodeIds = new Set(
-    filteredNodes.map((n: any) => {
+    filteredNodes.map((n) => {
       const id = (n.id || n.name || 'unknown').replace(/[^a-zA-Z0-9_]/g, '_');
       return id;
     }),

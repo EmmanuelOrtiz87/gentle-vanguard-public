@@ -76,8 +76,9 @@ export function getMetricsData(root: string = ROOT): MetricsData {
   try {
     const mgr = db();
     const row = mgr.getSessionScoring('latest');
-    if (row && (row as any).summary_json) {
-      const parsed = JSON.parse((row as any).summary_json);
+    const scoringRow = row as { summary_json?: string } | undefined;
+    if (row && scoringRow?.summary_json) {
+      const parsed = JSON.parse(scoringRow.summary_json);
       return { ...getDefaultMetrics(), ...parsed, timestamp: new Date().toISOString() };
     }
   } catch {

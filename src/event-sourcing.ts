@@ -24,12 +24,13 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { randomBytes, createHash } from 'crypto';
 import { createRequire } from 'module';
+import type { DatabaseManager } from '../apps/web-dashboard/server/database/manager.js';
 
 const _require = createRequire(import.meta.url);
 
 // Lazy db import for SQLite dual-write
-let _db: any = null;
-function getDb(): any {
+let _db: DatabaseManager | null = null;
+function getDb(): DatabaseManager | null {
   if (!_db) {
     try {
       const mod = _require('../apps/web-dashboard/server/database/manager');

@@ -6,7 +6,7 @@
  * USO: npx tsx src/quick-start.ts [--complete]
  */
 
-import { runSync, runSyncShell, runNpxTsxSync } from './core/run-command.js';
+import { runSync, runNpxTsxSync, runNpxTsx } from './core/run-command.js';
 
 const ROOT = process.cwd();
 
@@ -61,16 +61,13 @@ function startDashboard(): boolean {
   log('Iniciando dashboard...', 'info');
 
   try {
-    // Use execSync con detachment via start /B en Windows
-    const isWin = process.platform === 'win32';
-    const cmd = isWin
-      ? `start /B npx tsx src/dashboard-start.ts --no-browser > .runtime/dashboard.log 2>&1`
-      : `npx tsx src/dashboard-start.ts --no-browser > .runtime/dashboard.log 2>&1 &`;
-
-    runSyncShell(cmd, {
+    // Detached, hidden, shell-free spawn — no `start /B` cmd.exe chain.
+    // Output keeps flowing to .runtime/dashboard.log like the old redirect.
+    runNpxTsx('src/dashboard-start.ts', ['--no-browser'], {
       cwd: ROOT,
-      stdio: 'pipe',
-    });
+      stdio: 'ignore',
+      detached: true,
+    }).unref();
 
     // Esperar a que inicie
     let attempts = 0;

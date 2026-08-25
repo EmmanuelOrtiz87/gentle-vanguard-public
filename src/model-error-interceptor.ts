@@ -132,8 +132,9 @@ export async function interceptTaskError(
  * Wrap task() with fallback logic
  */
 export function wrapTaskWithFallback(originalTask: Function): Function {
-  return async (...args: any[]): Promise<unknown> => {
-    const agentName = args[0]?.subagent_type || args[0]?.agent || 'unknown';
+  return async (...args: unknown[]): Promise<unknown> => {
+    const first = args[0] as { subagent_type?: string; agent?: string } | undefined;
+    const agentName = first?.subagent_type || first?.agent || 'unknown';
     const model = process.env.GENTLE_VANGUARD_ACTIVE_MODEL || 'unknown';
 
     try {

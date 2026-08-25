@@ -127,6 +127,24 @@ describe('Secret Scanner — pattern detection', () => {
     assert.strictEqual(m[0].pattern.name, 'GitLab Personal Access Token');
   });
 
+  it('should NOT flag GitHub Actions SHA pins as Codecov tokens', () => {
+    // codecov-action pinned by full commit SHA = supply-chain hardening, not a secret.
+    const sha = '0fb7174895f61a3b6b78fc075e0cd60383518dac';
+    const pin = `uses: codecov/codecov-action@${sha} # v5`;
+    const m = scanText(pin);
+    assert.strictEqual(
+      m.filter((x) => x.pattern.name === 'Codecov Token').length,
+      0,
+      `SHA pin falsely flagged: ${JSON.stringify(m.map((x) => x.pattern.name))}`,
+    );
+  });
+
+  it('should still detect real Codecov upload tokens near keyword', () => {
+    const token = 'a'.repeat(32);
+    const m = scanText(`codecov upload token: "${token}"`);
+    assert.strictEqual(m.filter((x) => x.pattern.name === 'Codecov Token').length, 1);
+  });
+
   it('should record line numbers and context', () => {
     const m = scanText(
       'line one\nline two\nSECRET = "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"\nline four',

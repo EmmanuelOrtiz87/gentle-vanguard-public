@@ -29,11 +29,12 @@ import {
   type SpawnSyncOptions,
   type ChildProcess,
 } from 'child_process';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { createRequire } from 'module';
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { pathToFileURL } from 'url';
 
-const require = createRequire(import.meta.url);
+const TSX_LOADER = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href;
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -264,44 +265,34 @@ export function runSyncShell(command: string, options: RunOptions = {}): RunSync
 // ─── Windows-specific: npx wrapper ────────────────────────────────────
 
 /**
- * Resolve the tsx CLI entry point (dist/cli.mjs) from the installed package.
- * Running `node <cli>` avoids spawning `.cmd`/`.bat` shims, which fail with
- * EINVAL on Windows when used without a shell (and shell:true triggers the
- * DEP0190 deprecation warning). This keeps execution portable and warning-free.
- */
-function resolveTsxCli(): string {
-  const pkgJson = require.resolve('tsx/package.json');
-  const pkg = JSON.parse(readFileSync(pkgJson, 'utf-8')) as {
-    bin?: string | Record<string, string>;
-  };
-  const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.tsx;
-  if (!bin) throw new Error('Cannot resolve tsx bin entry');
-  return join(dirname(pkgJson), bin);
-}
-
-/**
  * Run a script with tsx (the most common pattern in the stack).
- * Uses `node <tsx-cli>` directly — no shell, no `.cmd` shim, portable across
- * Windows/Unix.
+ *
+ * Uses Node's in-process loader: `node --import tsx <script>`. The script runs
+ * in the spawned node process itself — no shell, no `.cmd` shim, and critically
+ * NO grandchild process. The previous form (delegating to the tsx CLI wrapper)
+ * made it re-spawn the script as a grandchild WITHOUT `windowsHide`, so on
+ * Windows every hidden/detached launcher leaked a visible console window
+ * (flashing one-shots, lingering daemons). With `--import tsx` the child PID is
+ * the real script process and inherits CREATE_NO_WINDOW.
+ *
+ * `tsx` must be resolvable from `options.cwd` (repo root and
+ * apps/web-dashboard both install it locally).
  */
 export function runNpxTsx(
   script: string,
   scriptArgs: string[] = [],
   options: RunOptions = {},
 ): ChildProcess {
-  const tsxCli = resolveTsxCli();
-  return run(process.execPath, [tsxCli, script, ...scriptArgs], options);
+  return run(process.execPath, ['--import', TSX_LOADER, script, ...scriptArgs], options);
 }
 
 /**
- * Run a script with tsx synchronously.
- * Uses `node <tsx-cli>` directly — no shell, no `.cmd` shim.
+ * Run a script with tsx synchronously (same in-process loader form as runNpxTsx).
  */
 export function runNpxTsxSync(
   script: string,
   scriptArgs: string[] = [],
   options: RunOptions = {},
 ): RunSyncResult {
-  const tsxCli = resolveTsxCli();
-  return runSync(process.execPath, [tsxCli, script, ...scriptArgs], options);
+  return runSync(process.execPath, ['--import', TSX_LOADER, script, ...scriptArgs], options);
 }

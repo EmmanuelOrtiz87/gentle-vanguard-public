@@ -77,13 +77,13 @@ async function findFreePort(startPort: number): Promise<number> {
 
 function launchDashboard(port: number): Promise<number> {
   return new Promise((resolve, reject) => {
-    // CMD NATIVO: Usar spawn con cmd.exe para ejecutar el batch
-    // ¡Este es el truco! ejecutar cmd.exe que corra tsx.cmd
-    const child = spawn('cmd.exe', ['/c', 'npx', 'tsx', WS_SCRIPT], {
+    // `node --import tsx` runs the server in the spawned process itself —
+    // no CLI wrapper grandchild, no cmd.exe, invisible on Windows.
+    const child = spawn(process.execPath, ['--import', 'tsx', WS_SCRIPT], {
       cwd: join(ROOT, 'apps', 'web-dashboard'),
       windowsHide: true,
-      detached: false, // NO detached para evitar orphans
-      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true,
+      stdio: 'ignore',
       env: {
         ...process.env,
         WS_PORT: String(port),
@@ -91,31 +91,17 @@ function launchDashboard(port: number): Promise<number> {
       },
     });
 
-    if (child.pid) {
-      writeFileSync(PID_FILE, String(child.pid), 'utf-8');
-      log(`Dashboard launched with PID ${child.pid} on port ${port}`);
-      resolve(child.pid);
-    } else {
+    if (!child.pid) {
       reject(new Error('Failed to get PID'));
+      return;
     }
-
-    // Log stderr para debugging
-    child.stderr?.on('data', (data) => {
-      log(`[STDERR] ${data.toString().trim()}`);
-    });
+    writeFileSync(PID_FILE, String(child.pid), 'utf-8');
+    log(`Dashboard launched with PID ${child.pid} on port ${port}`);
+    child.unref();
+    resolve(child.pid);
 
     child.on('error', (err) => {
       log(`[ERROR] Child process error: ${err.message}`);
-      reject(err);
-    });
-
-    child.on('exit', (code) => {
-      log(`[EXIT] Child process exited with code ${code}`);
-      try {
-        if (existsSync(PID_FILE)) unlinkSync(PID_FILE);
-      } catch {
-        // Ignorar
-      }
     });
   });
 }

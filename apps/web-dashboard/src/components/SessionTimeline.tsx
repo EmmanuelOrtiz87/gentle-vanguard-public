@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useT } from '../hooks/useLocale';
 import {
   Clock,
   ChevronDown,
@@ -63,13 +64,14 @@ const eventLabels: Record<string, string> = {
 };
 
 export default function SessionTimeline({ events }: SessionTimelineProps) {
+  const { tt } = useT();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (events.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400 dark:text-gray-500">
         <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No events yet</p>
+          <p className="text-sm">{tt('ui.no_events_yet')}</p>
         <p className="text-xs mt-1">
           Events appear when agent activities, sessions, or workflows are triggered
         </p>

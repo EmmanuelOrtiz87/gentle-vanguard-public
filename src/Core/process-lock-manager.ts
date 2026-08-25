@@ -27,7 +27,7 @@
  * @version 1.0.0
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 import { execSync } from 'child_process';
@@ -189,7 +189,12 @@ export class ProcessLock {
   private createLock(): boolean {
     try {
       const content = `pid=${process.pid}\ntimestamp=${Date.now()}\nprocess=${process.title}\n`;
-      writeFileSync(this.lockFile, content, 'utf-8');
+      const fd = openSync(this.lockFile, 'wx');
+      try {
+        writeFileSync(fd, content, 'utf-8');
+      } finally {
+        closeSync(fd);
+      }
       this.acquired = true;
 
       // Install one shared shutdown handler instead of three listeners per lock.

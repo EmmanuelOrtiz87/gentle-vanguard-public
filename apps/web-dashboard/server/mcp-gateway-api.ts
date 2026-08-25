@@ -12,13 +12,13 @@ const GATEWAY_SCRIPT = join(ROOT, 'src', 'mcp', 'mcp-gateway.ts');
 const MANAGER_SCRIPT = join(ROOT, 'src', 'mcp', 'mcp-manager.ts');
 const REGISTRY_PATH = join(ROOT, 'config', 'mcp-registry.json');
 
-function tsx(script: string): string {
+function tsx(script: string, args: string[] = []): { stdout: string; status: number | null } {
   try {
     const timeout = getExternalApiTimeouts()?.mcp_request_ms ?? 15000;
-    const result = runNpxTsxSync(script, [], { timeout });
-    return result.status === 0 ? result.stdout : '';
+    const result = runNpxTsxSync(script, args, { timeout });
+    return { stdout: result.status === 0 ? result.stdout : '', status: result.status };
   } catch {
-    return '';
+    return { stdout: '', status: null };
   }
 }
 
@@ -40,7 +40,7 @@ export interface MCPServerEntry {
 
 export function getMCPServersStatus(): MCPServerEntry[] {
   if (existsSync(GATEWAY_SCRIPT)) {
-    const raw = tsx(`${GATEWAY_SCRIPT} --action status --quiet`);
+    const raw = tsx(GATEWAY_SCRIPT, ['--action', 'status', '--quiet']).stdout;
     if (raw) {
       try {
         return JSON.parse(raw.trim())?.servers || [];
@@ -97,7 +97,12 @@ export function mcpServerActionHandler(
     res.end('Manager not found');
     return;
   }
-  tsx(`${MANAGER_SCRIPT} --action ${action} --name ${name} --quiet`);
+  const result = tsx(MANAGER_SCRIPT, ['--action', action, '--name', name, '--quiet']);
+  if (result.status !== 0) {
+    res.writeHead(502, headers);
+    res.end(JSON.stringify({ success: false, name, action, error: 'MCP manager action failed' }));
+    return;
+  }
   res.writeHead(200, headers);
   res.end(JSON.stringify({ success: true, name, action }));
 }
@@ -119,9 +124,16 @@ export function mcpServerRegisterHandler(
         res.end(JSON.stringify({ error: 'name and command required' }));
         return;
       }
-      const args = (payload.args || []).join(' ');
-      const cmd = `${MANAGER_SCRIPT} --action register --name ${payload.name} --command ${payload.command} --args "${args}" --description "${payload.description || ''}" --quiet`;
-      tsx(cmd);
+      const args = Array.isArray(payload.args) ? payload.args.join(',') : '';
+      const result = tsx(MANAGER_SCRIPT, [
+        '--action', 'register', '--name', String(payload.name), '--command', String(payload.command),
+        '--args', args, '--description', String(payload.description || ''), '--quiet',
+      ]);
+      if (result.status !== 0) {
+        res.writeHead(502, headers);
+        res.end(JSON.stringify({ success: false, name: payload.name, error: 'MCP registration failed' }));
+        return;
+      }
       res.writeHead(200, headers);
       res.end(JSON.stringify({ success: true, name: payload.name }));
     } catch {

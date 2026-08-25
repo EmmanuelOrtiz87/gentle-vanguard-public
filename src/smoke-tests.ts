@@ -20,6 +20,7 @@ import { runSync } from './core/run-command.js';
 import { existsSync, writeFileSync, mkdirSync, rmSync, readdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { createRequire } from 'module';
+import * as http from 'http';
 
 const require = createRequire(import.meta.url);
 
@@ -227,11 +228,10 @@ const smokeTests: SmokeTest[] = [
       const startTime = Date.now();
 
       // Check if port 8080 responds
-      const http = require('http');
       let passed = false;
 
       try {
-        const req = http.get('http://localhost:8080/api/health', (res: any) => {
+        const req = http.get('http://localhost:8080/api/health', (res) => {
           passed = res.statusCode === 200;
         });
         req.setTimeout(2000);
@@ -271,10 +271,10 @@ const check = target.includes(\`from '\${x}'\`);
 
       try {
         const { extractRealImports } = require('./ast-import-parser.js');
-        const imports = extractRealImports(testCode, 'test.ts');
+        const imports = extractRealImports(testCode, 'test.ts') as Array<{ path: string }>;
 
-        const hasReal = imports.some((i: any) => i.path === './real-module');
-        const hasFake = imports.some((i: any) => i.path.includes('fake') || i.path.includes('${'));
+        const hasReal = imports.some((i) => i.path === './real-module');
+        const hasFake = imports.some((i) => i.path.includes('fake') || i.path.includes('${'));
 
         const passed = hasReal && !hasFake;
 
@@ -285,10 +285,10 @@ const check = target.includes(\`from '\${x}'\`);
             : `Real: ${hasReal}, Fake detected: ${hasFake}`,
           duration: Date.now() - startTime,
         };
-      } catch (e: any) {
+      } catch (e: unknown) {
         return {
           passed: false,
-          details: `Error: ${e.message}`,
+          details: `Error: ${(e as Error).message}`,
           duration: Date.now() - startTime,
         };
       }
@@ -325,10 +325,10 @@ function runSmokeTests(): SmokeReport {
 
     try {
       result = test.run();
-    } catch (e: any) {
+    } catch (e: unknown) {
       result = {
         passed: false,
-        details: `Exception: ${e.message}`,
+        details: `Exception: ${(e as Error).message}`,
         duration: Date.now() - start,
       };
     }

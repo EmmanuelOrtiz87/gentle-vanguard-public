@@ -793,10 +793,12 @@ export const PATTERNS: SecretPattern[] = [
   },
   {
     name: 'Codecov Token',
-    description: 'Codecov upload token (32 alnum near a codecov keyword).',
+    description: 'Codecov upload token (32 alnum near a codecov keyword). Excludes action SHA pins (@<40-hex>).',
     category: 'cloud',
     risk: 'medium',
-    regex: /(?:codecov)[\s\S]{0,40}["']?([a-z0-9]{32})["']?/i,
+    // Boundary assertions (?<![@\w]) / (?![\w]) prevent matching substrings of
+    // GitHub Actions commit-SHA pins like codecov/codecov-action@<40-hex>.
+    regex: /(?:codecov)[\s\S]{0,40}["']?(?<![@\w])([a-z0-9]{32})(?![\w])["']?/i,
     falsePositives: [],
     captureGroup: 1,
     builtin: false,

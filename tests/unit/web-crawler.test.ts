@@ -17,7 +17,7 @@ import {
   FirecrawlError,
   type SearchResult,
   type ScrapedContent,
-} from '../../src/web-crawler.ts';
+} from '../../src/web/web-crawler.ts';
 
 const ROOT = process.cwd();
 const config = JSON.parse(readFileSync(join(ROOT, 'config', 'web-crawler.json'), 'utf-8'));

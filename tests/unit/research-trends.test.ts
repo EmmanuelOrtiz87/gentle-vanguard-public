@@ -20,7 +20,7 @@ import {
   type Trend,
   type TrendReport,
   type ResearchTrendsConfig,
-} from '../../src/research-trends.ts';
+} from '../../src/research/research-trends.ts';
 
 const now = new Date('2026-08-08T00:00:00Z');
 

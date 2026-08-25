@@ -10,11 +10,12 @@
  *   npx tsx src/agent-delegator.ts --list
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
-import { compressStructural, estimateTokens } from './structural-compression.js';
+import { compressStructural, estimateTokens } from './compression/structural-compression.js';
+import { executeWithCircuit } from './circuit-breaker-v2';
 
 interface AgentConfig {
   name: string;
@@ -423,8 +424,20 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
     const agentScript = join(AGENTS_DIR, `${request.agent}.ts`);
 
     if (existsSync(agentScript)) {
-      // Use native implementation if available
-      return await runNativeAgent(agentScript, request, agentConfig, startTime, effectiveTemp);
+      // Use native implementation if available, guarded by a per-agent circuit
+      // breaker (v2, file-state shared across processes). After repeated
+      // failures the circuit opens and delegations fail fast with the last
+      // error instead of burning the full spawn timeout every time.
+      return await executeWithCircuit(
+        `agent_delegation:${request.agent}`,
+        () => runNativeAgent(agentScript, request, agentConfig, startTime, effectiveTemp),
+        () => ({
+          success: false,
+          error: `circuit open for agent '${request.agent}' — failing fast (retry after cooldown)`,
+          duration: Date.now() - startTime,
+          model: agentConfig.model,
+        }),
+      );
     }
     // Fallback: Generate agent output directly
     return generateAgentResponse(request, agentConfig, startTime);
@@ -434,32 +447,11 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
 }
 
 /**
- * Resolve the correct npx binary for the current platform.
- * Windows ships `npx.cmd`; spawn('npx') fails with ENOENT on win32.
- */
-function resolveNpx(): string {
-  return process.platform === 'win32' ? 'npx.cmd' : 'npx';
-}
-
-/**
- * Escape a single shell argument for the current platform.
- * On Windows (cmd.exe) arguments containing spaces must be double-quoted
- * and inner quotes doubled; on POSIX shells use single-quote wrapping.
- */
-function shellQuote(value: string): string {
-  if (process.platform === 'win32') {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-/**
  * Run native agent TypeScript file.
  *
- * Windows note: Node spawn() cannot exec `.cmd` shims without `shell: true`,
- * and with `shell: true` Node only concatenates args (it does not escape them),
- * which truncates args containing spaces. We therefore build the full command
- * line ourselves with proper quoting and run it via the shell.
+ * Uses runNpxTsx (`node --import tsx`): argv-array spawn, no shell, no `.cmd`
+ * shims — arguments with spaces/quotes are passed verbatim with zero
+ * platform-specific quoting hazards, and the child is hidden on Windows.
  */
 async function runNativeAgent(
   scriptPath: string,
@@ -503,31 +495,19 @@ async function runNativeAgent(
       );
     }
 
-    const parts = [
-      resolveNpx(),
-      'tsx',
-      scriptPath,
+    const args = [
       '--task',
-      shellQuote(taskCompressed.text),
+      taskCompressed.text,
       '--model',
-      shellQuote(model),
+      model,
     ];
 
     if (boundedContext) {
-      parts.push(
-        '--context',
-        shellQuote(contextCompressed ? contextCompressed.text : boundedContext),
-      );
+      args.push('--context', contextCompressed ? contextCompressed.text : boundedContext);
     }
 
-    const command = parts.join(' ');
-
-    const child = spawn(command, {
-      cwd: process.cwd(),
-      shell: true,
-      windowsHide: true,
+    const child = runNpxTsx(scriptPath, args, {
       env: {
-        ...process.env,
         // Propagate model to subprocess
         AGENT_MODEL: model,
         AGENT_TEMPERATURE: String(effectiveTemperature),
@@ -540,11 +520,11 @@ async function runNativeAgent(
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 
@@ -662,16 +642,11 @@ function parseArgs(): AgentTask {
 async function main(): Promise<void> {
   const { task, context, model } = parseArgs();
   
-  console.log(\`[\${agentName}] Processing task: \${task}\`);
-  console.log(\`[\${agentName}] Model: \${model}\`);
-  
-  if (context) {
-    console.log(\`[\${agentName}] Context: \${context}\`);
-  }
-  
-  // TODO: Implement agent logic here
-  
-  console.log(\`[\${agentName}] Task completed successfully\`);
+  console.error(\`[\${agentName}] Native agent template does not implement logic.\`);
+  console.error(\`[\${agentName}] Task was not completed: \${task}\`);
+  if (context) console.error(\`[\${agentName}] Context: \${context}\`);
+  console.error(\`[\${agentName}] Model: \${model}\`);
+  process.exitCode = 1;
 }
 
 main().catch(console.error);

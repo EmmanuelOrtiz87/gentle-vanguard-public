@@ -101,9 +101,9 @@ async function fetchViaJinaReader(url: string): Promise<string> {
 }
 
 // ─── Web Search via stack native web-crawler ────────────────────────────────
-// DELEGA en src/web-crawler.ts (probado, con fallback DDG→Bing RSS)
+// DELEGA en src/web/web-crawler.ts (probado, con fallback DDG→Bing RSS)
 // en lugar de duplicar la lógica de parsing HTML.
-import { createWebCrawler } from '../web-crawler.js';
+import { createWebCrawler } from '../web/web-crawler.js';
 
 async function searchViaNativeCrawler(
   query: string,

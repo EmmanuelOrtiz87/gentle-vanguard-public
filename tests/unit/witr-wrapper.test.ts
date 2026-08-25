@@ -15,7 +15,7 @@ import {
   WITR_BIN_PATH,
   isWitrInstalled,
   ensureWitrInstalled,
-} from '../../src/witr-wrapper.ts';
+} from '../../src/web/witr-wrapper.ts';
 
 describe('witr-wrapper constants', () => {
   it('exposes a semver version', () => {

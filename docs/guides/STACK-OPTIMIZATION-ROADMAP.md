@@ -314,7 +314,7 @@ Describe "Release Workflow E2E" {
 ✅ **Excellent**:
 
 - [SECURITY-HARDENING.md](SECURITY-HARDENING.md) — comprehensive (now including npx hardening)
-- [GETTING-STARTED.md](GETTING-STARTED.md) — clear setup path
+- [Getting Started](../getting-started/README.md) — clear setup path
 - [RELEASE-PROCESS.md](RELEASE-PROCESS.md) — detailed release workflow
 - [FIRST-TIME-SETUP-CHECKLIST.md](FIRST-TIME-SETUP-CHECKLIST.md) — MCP workspace setup (Step 3)
 
@@ -617,7 +617,7 @@ cyclonedx-npm --output-format json --output-file sbom.json
 
 #### 5.3: Container/Artifact Vulnerability Scanning (Native TS)
 
-> ✅ **COMPLETED** (2026-08-17, ADR-0017) — `src/container-scan.ts` envuelve la cadena **Syft
+> ✅ **COMPLETED** (2026-08-17, ADR-0019) — `src/container-scan.ts` envuelve la cadena **Syft
 > (SBOM) + Grype (correlación CVE)** con fallback a **Trivy filesystem**, sin requerir Docker.
 > Comandos: `npm run container:scan` (escanea `sbom.json`), `container:scan-dir` (SBOM de un
 > directorio), `container:status` (toolchain), `container:report` (último resultado). Exit codes: 0
@@ -650,7 +650,7 @@ npm run container:scan -- --fail-on critical --json   # gate estricto, output JS
 | Action                  | Effort       | Impact   | Timeline              |
 | ----------------------- | ------------ | -------- | --------------------- |
 | SBOM generation         | 1h           | HIGH     | ✅ Done               |
-| Container/artifact scan | 2h           | HIGH     | ✅ Done (ADR-0017)    |
+| Container/artifact scan | 2h           | HIGH     | ✅ Done (ADR-0019)    |
 | Annual audit (plan)     | 4h           | HIGH     | ✅ Done (Q3 planning) |
 | Annual audit (execute)  | 80h          | HIGH     | Q4 2026               |
 | **Total**               | **87 hours** | **HIGH** | **Year 2026**         |
@@ -681,7 +681,7 @@ Sprint 1:
   - E2E release workflow tests (3-4h)                        ✅ DONE
   - npm audit pre-push hook (1h)                             ✅ DONE
   - SBOM generation setup (1h)                               ✅ DONE
-  - Container/artifact scanning (2h)                         ✅ DONE (ADR-0017)
+  - Container/artifact scanning (2h)                         ✅ DONE (ADR-0019)
   - ADR-0003 through ADR-0006 + ADR-0012 (4h)                ✅ DONE (16 ADRs)
 
 Total: 11-13 hours
@@ -698,7 +698,7 @@ Status: ✅ COMPLETED
 - Plan annual security audit (4h)                            ✅ DONE (plan Q3, execute Q4)
 - ~~Consider: chaos testing, chaos engineering~~ ✅ `src/chaos-engineering.ts` (native TS, ADR-0016) + **L4 automated en CI/CD** (job `chaos` en `scheduled.yml`, semanal)
 - ~~Consider: supply-chain attestation (SLSA L3)~~ ✅ `src/slsa-signer.ts` (DSSE + Ed25519, ADR-0015)
-- ~~Consider: container image scanning~~ ✅ `src/container-scan.ts` (Syft+Grype, ADR-0017)
+- ~~Consider: container image scanning~~ ✅ `src/container-scan.ts` (Syft+Grype, ADR-0019)
 ```
 
 ---

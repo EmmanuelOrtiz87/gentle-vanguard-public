@@ -21,6 +21,21 @@ interface SecurityPolicy {
   enabled: boolean;
 }
 
+// Result of a single security policy check
+interface SecurityIssue {
+  policy: string;
+  description: string;
+  status: 'pass' | 'fail';
+  message?: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+}
+
+// Aggregated results of all security checks
+interface SecurityCheckResults {
+  compliant: boolean;
+  issues: SecurityIssue[];
+}
+
 // Enhanced dependency security checker
 export class DependencySecurityEnforcer {
   private policies: SecurityPolicy[];
@@ -102,17 +117,8 @@ export class DependencySecurityEnforcer {
    * Run all enabled security policy checks
    * @returns Results of all security checks
    */
-  async runSecurityChecks(): Promise<{
-    compliant: boolean;
-    issues: {
-      policy: string;
-      description: string;
-      status: 'pass' | 'fail';
-      message?: string;
-      severity: 'critical' | 'high' | 'medium' | 'low';
-    }[];
-  }> {
-    const issues: any[] = [];
+  async runSecurityChecks(): Promise<SecurityCheckResults> {
+    const issues: SecurityIssue[] = [];
     let compliant = true;
 
     console.log('Running dependency security policy checks...\n');
@@ -151,16 +157,17 @@ export class DependencySecurityEnforcer {
         }
 
         console.log(`  Result: ${status}\n`);
-      } catch (error: any) {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         compliant = false;
         issues.push({
           policy: policy.name,
           description: policy.description,
           status: 'fail',
-          message: error.message || 'Unknown error occurred',
+          message: message || 'Unknown error occurred',
           severity: policy.severity,
         });
-        console.log(`  Result: fail - ${error.message || 'Unknown error'}\n`);
+        console.log(`  Result: fail - ${message || 'Unknown error'}\n`);
       }
     }
 
@@ -262,8 +269,10 @@ export class DependencySecurityEnforcer {
               const parsed = JSON.parse(output);
               // If json output has entries with 'deprecated' tag
               if (Array.isArray(parsed) && parsed.length > 0) {
-                status = parsed.some((p: any) => p.deprecated) ? 'fail' : 'pass';
-              } else if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                status = parsed.some((p) => (p as { deprecated?: boolean }).deprecated)
+                  ? 'fail'
+                  : 'pass';
+              } else if (typeof parsed === 'object' && parsed !== null && Object.keys(parsed).length > 0) {
                 status = 'pass'; // Has outdated but not necessarily deprecated
               } else {
                 status = 'pass';
@@ -305,7 +314,7 @@ export class DependencySecurityEnforcer {
    * @returns Remediation results
    */
   async applyRemediations(
-    issues: any[],
+    issues: SecurityIssue[],
     options: { apply?: boolean } = {},
   ): Promise<{
     success: boolean;
@@ -377,7 +386,7 @@ export class DependencySecurityEnforcer {
    * @param results Security check results
    * @returns Formatted report
    */
-  generateReport(results: any): string {
+  generateReport(results: SecurityCheckResults): string {
     const report = [];
 
     report.push('Dependency Security Policy Report');
@@ -386,10 +395,10 @@ export class DependencySecurityEnforcer {
     report.push(`Overall Compliance: ${results.compliant ? '✅ PASS' : '❌ FAIL'}\n`);
 
     // Group issues by severity
-    const criticalIssues = results.issues.filter((i: any) => i.severity === 'critical');
-    const highIssues = results.issues.filter((i: any) => i.severity === 'high');
-    const mediumIssues = results.issues.filter((i: any) => i.severity === 'medium');
-    const lowIssues = results.issues.filter((i: any) => i.severity === 'low');
+    const criticalIssues = results.issues.filter((i) => i.severity === 'critical');
+    const highIssues = results.issues.filter((i) => i.severity === 'high');
+    const mediumIssues = results.issues.filter((i) => i.severity === 'medium');
+    const lowIssues = results.issues.filter((i) => i.severity === 'low');
 
     if (criticalIssues.length > 0) {
       report.push('Critical Issues:');
@@ -447,8 +456,8 @@ export class DependencySecurityEnforcer {
     report.push('Summary:');
     report.push('--------');
     report.push(`Total checks: ${results.issues.length}`);
-    report.push(`Passed: ${results.issues.filter((i: any) => i.status === 'pass').length}`);
-    report.push(`Failed: ${results.issues.filter((i: any) => i.status === 'fail').length}`);
+    report.push(`Passed: ${results.issues.filter((i) => i.status === 'pass').length}`);
+    report.push(`Failed: ${results.issues.filter((i) => i.status === 'fail').length}`);
 
     return report.join('\n');
   }

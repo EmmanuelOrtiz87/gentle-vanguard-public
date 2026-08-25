@@ -36,6 +36,8 @@ export function TenantSelector() {
 
   const current = tenants.find((t) => t.id === currentTenantId);
 
+  if (tenants.length <= 1) return null;
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -43,7 +45,7 @@ export function TenantSelector() {
         className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       >
         <span className={`w-1.5 h-1.5 rounded-full ${current ? 'bg-green-500' : 'bg-gray-400'}`} />
-        {current ? current.name : 'All Tenants'}
+        {current ? current.name : 'Deployment tenant'}
         <svg
           className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none"
@@ -59,7 +61,7 @@ export function TenantSelector() {
             onClick={() => handleChange(undefined)}
             className={`w-full text-left px-3 py-2 text-xs font-medium ${!currentTenantId ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
           >
-            All Tenants
+            Deployment tenant
           </button>
           {tenants.map((t) => (
             <button

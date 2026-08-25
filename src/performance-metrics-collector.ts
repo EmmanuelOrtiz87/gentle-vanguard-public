@@ -153,7 +153,7 @@ async function collectThroughputMetrics(): Promise<ThroughputMetrics> {
       WHERE timestamp > datetime('now', '-5 minutes')
     `,
       )
-      .get() as any;
+      .get() as { count?: number | null; tokens?: number | null };
 
     db.close();
 

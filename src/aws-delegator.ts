@@ -19,6 +19,7 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { spawnSync } from 'child_process';
 import * as https from 'https';
+import { executeWithCircuit } from './circuit-breaker-v2';
 
 const ROOT = resolve(process.cwd());
 const LOG_FILE = join(ROOT, '.session', 'aws-delegator.log');
@@ -48,51 +49,6 @@ function newTraceId(): string {
   for (let i = 0; i < 32; i++) id += hex[Math.floor(Math.random() * 16)];
   return id;
 }
-
-export class CircuitBreaker {
-  failureThreshold = 5;
-  successThreshold = 2;
-  timeoutSeconds = 60;
-  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
-  failureCount = 0;
-  successCount = 0;
-  lastFailureTime = new Date(Date.now() - 3600000);
-
-  canExecute(): boolean {
-    if (this.state === 'OPEN') {
-      const elapsed = (Date.now() - this.lastFailureTime.getTime()) / 1000;
-      if (elapsed > this.timeoutSeconds) {
-        this.state = 'HALF_OPEN';
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  recordSuccess(): void {
-    if (this.state === 'HALF_OPEN') {
-      this.successCount++;
-      if (this.successCount >= this.successThreshold) {
-        this.state = 'CLOSED';
-        this.failureCount = 0;
-        this.successCount = 0;
-      }
-    } else {
-      this.failureCount = 0;
-    }
-  }
-
-  recordFailure(): void {
-    this.failureCount++;
-    this.lastFailureTime = new Date();
-    if (this.failureCount >= this.failureThreshold) {
-      this.state = 'OPEN';
-    }
-  }
-}
-
-const circuitBreaker = new CircuitBreaker();
 
 function startTracingSpan(name: string): { traceId: string } | null {
   const tracerPath = join(ROOT, 'src', 'tracing-instrument.ts');
@@ -276,29 +232,28 @@ async function invokeWithRetry<T>(
   maxRetries: number,
   initialDelayMs = 1000,
 ): Promise<T> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    if (!circuitBreaker.canExecute()) {
-      throw new Error('Circuit breaker is OPEN');
-    }
-    try {
-      const result = await fn();
-      circuitBreaker.recordSuccess();
-      return result;
-    } catch (err) {
-      circuitBreaker.recordFailure();
-      if (attempt >= maxRetries) {
-        log(
-          `Failed after ${maxRetries} attempts: ${err instanceof Error ? err.message : String(err)}`,
-          'ERROR',
-        );
-        throw err;
+  // Circuit breaker v2 (shared, file-state): guards the WHOLE retry loop.
+  // Success/failure is recorded on the final outcome — a transient failure
+  // recovered by retry no longer counts as a circuit failure.
+  return executeWithCircuit('aws_lambda', async () => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (attempt >= maxRetries) {
+          log(
+            `Failed after ${maxRetries} attempts: ${err instanceof Error ? err.message : String(err)}`,
+            'ERROR',
+          );
+          throw err;
+        }
+        const delayMs = initialDelayMs * Math.pow(2, attempt - 1);
+        log(`Attempt ${attempt} failed. Retrying in ${delayMs}ms...`, 'WARN');
+        await sleep(delayMs);
       }
-      const delayMs = initialDelayMs * Math.pow(2, attempt - 1);
-      log(`Attempt ${attempt} failed. Retrying in ${delayMs}ms...`, 'WARN');
-      await sleep(delayMs);
     }
-  }
-  throw new Error('Unreachable');
+    throw new Error('Unreachable');
+  });
 }
 
 export function recordCloudMetrics(

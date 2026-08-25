@@ -10,7 +10,7 @@ describe('scripts', () => {
     assert.ok(existsSync(resolve(ROOT, 'src', 'session-start-optimized.ts')));
   });
 
-  it('src/token-budget-guard.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'token-budget-guard.ts')));
+  it('src/tokens/token-budget-guard.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'tokens', 'token-budget-guard.ts')));
   });
 });

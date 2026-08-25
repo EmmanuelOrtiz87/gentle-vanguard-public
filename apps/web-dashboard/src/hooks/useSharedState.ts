@@ -29,6 +29,8 @@ export function useSharedState(url?: string) {
   const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectDelayRef = useRef(1000);
+  const stoppedRef = useRef(false);
   const urlRef = useRef(resolvedUrl);
 
   useEffect(() => {
@@ -36,11 +38,15 @@ export function useSharedState(url?: string) {
   }, [resolvedUrl]);
 
   const connect = useCallback(() => {
+    if (stoppedRef.current) return;
     try {
       const ws = new WebSocket(urlRef.current);
       wsRef.current = ws;
 
-      ws.onopen = () => setConnected(true);
+      ws.onopen = () => {
+        reconnectDelayRef.current = 1000;
+        setConnected(true);
+      };
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
@@ -82,8 +88,12 @@ export function useSharedState(url?: string) {
         }
       };
       ws.onclose = () => {
+        if (wsRef.current !== ws || stoppedRef.current) return;
         setConnected(false);
-        reconnectRef.current = setTimeout(connect, 3000);
+        const delay = reconnectDelayRef.current;
+        const jitter = Math.round(Math.random() * Math.min(1000, delay * 0.25));
+        reconnectDelayRef.current = Math.min(30000, delay * 2);
+        reconnectRef.current = setTimeout(connect, delay + jitter);
       };
       ws.onerror = () => setConnected(false);
     } catch {
@@ -92,8 +102,12 @@ export function useSharedState(url?: string) {
   }, []);
 
   const disconnect = useCallback(() => {
+    stoppedRef.current = true;
     if (reconnectRef.current) clearTimeout(reconnectRef.current);
-    wsRef.current?.close();
+    reconnectRef.current = null;
+    const ws = wsRef.current;
+    wsRef.current = null;
+    ws?.close();
   }, []);
 
   const emitEvent = useCallback((event: string, payload: Record<string, unknown>) => {
@@ -110,6 +124,7 @@ export function useSharedState(url?: string) {
   }, []);
 
   useEffect(() => {
+    stoppedRef.current = false;
     connect();
     return disconnect;
   }, [connect, disconnect]);

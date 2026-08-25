@@ -349,4 +349,4 @@ gentle-vanguard/
 
 ---
 
-**Gentle-Vanguard v3.5.0** — _Local-first, seguro, extensible, zero-drama._
+**Gentle-Vanguard v3.8.2** — _Local-first, seguro, extensible, zero-drama._

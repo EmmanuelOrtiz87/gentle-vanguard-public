@@ -6,7 +6,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { analyzeText, humanizeText, scoreHumanization } from '../../src/humanizer.ts';
+import { analyzeText, humanizeText, scoreHumanization } from '../../src/humanize/humanizer.ts';
 
 const AI_TEXT =
   'In conclusion, it is important to note that the system plays a crucial role in data processing. ' +

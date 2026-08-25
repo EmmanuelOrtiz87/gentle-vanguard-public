@@ -49,7 +49,7 @@ const VALID_PROPS = new Set([
 ]);
 
 // Additional structural validation rules
-function validateAgents(agents: any): string[] {
+function validateAgents(agents: unknown): string[] {
   const errors: string[] = [];
 
   if (!agents || typeof agents !== 'object') {
@@ -203,7 +203,7 @@ function validateStackCritical(config: Record<string, unknown>): string[] {
   return errors;
 }
 
-function validateMCP(mcp: any): string[] {
+function validateMCP(mcp: unknown): string[] {
   const errors: string[] = [];
 
   if (!mcp || typeof mcp !== 'object') {
@@ -237,7 +237,7 @@ function validateMCP(mcp: any): string[] {
   return errors;
 }
 
-function validatePermissions(permissions: any): string[] {
+function validatePermissions(permissions: unknown): string[] {
   const errors: string[] = [];
 
   if (!permissions || typeof permissions !== 'object') {
@@ -319,7 +319,7 @@ function main(): void {
 
   // Validate agents structure if present
   if ('agent' in config) {
-    const agentErrors = validateAgents(config.agent as any);
+    const agentErrors = validateAgents(config.agent);
     errors.push(...agentErrors);
     if (agentErrors.length > 0) {
       console.log('Agent validation errors:');
@@ -331,7 +331,7 @@ function main(): void {
 
   // Validate MCP structure if present
   if ('mcp' in config) {
-    const mcpErrors = validateMCP(config.mcp as any);
+    const mcpErrors = validateMCP(config.mcp);
     errors.push(...mcpErrors);
     if (mcpErrors.length > 0) {
       console.log('MCP validation errors:');
@@ -343,7 +343,7 @@ function main(): void {
 
   // Validate permissions if present
   if ('permission' in config) {
-    const permErrors = validatePermissions(config.permission as any);
+    const permErrors = validatePermissions(config.permission);
     errors.push(...permErrors);
     if (permErrors.length > 0) {
       console.log('Permission validation errors:');

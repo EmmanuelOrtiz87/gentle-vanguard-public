@@ -8,16 +8,30 @@
 
 import { EventEmitter } from 'events';
 
-export class ResultGatekeeper extends EventEmitter {
-  private contracts: Map<string, any> = new Map();
-  private results: any[] = [];
+/** Contract describing how a phase's outputs are validated */
+interface PhaseContract {
+  phase: string;
+  validator?: (outputs: unknown) => boolean;
+}
 
-  public registerContract(contract: any): void {
+/** Record of a successfully validated phase */
+interface PhaseValidationResult {
+  phase: string;
+  inputs: unknown;
+  outputs: unknown;
+  timestamp: number;
+}
+
+export class ResultGatekeeper extends EventEmitter {
+  private contracts: Map<string, PhaseContract> = new Map();
+  private results: PhaseValidationResult[] = [];
+
+  public registerContract(contract: PhaseContract): void {
     this.contracts.set(contract.phase, contract);
     this.emit('contractRegistered', contract);
   }
 
-  public validatePhase(phase: string, inputs: any, outputs: any): boolean {
+  public validatePhase(phase: string, inputs: unknown, outputs: unknown): boolean {
     const contract = this.contracts.get(phase);
     if (!contract) {
       this.emit('validationFailed', { phase, reason: 'No contract' });

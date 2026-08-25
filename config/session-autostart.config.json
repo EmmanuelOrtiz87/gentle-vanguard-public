@@ -11,7 +11,7 @@
         "args": "--apply",
         "required": true,
         "phase": 0,
-        "description": "Enforce free model (opencode/deepseek-v4-flash-free) when credits exhausted"
+        "description": "Enforce free model (opencode/mimo-v2.5-free) when credits exhausted"
       },
       {
         "id": "tool-detection",
@@ -84,7 +84,7 @@
       {
         "id": "token-budget",
         "enabled": true,
-        "script": "src/token-budget-guard.ts",
+        "script": "src/tokens/token-budget-guard.ts",
         "args": "-Task session-start -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
         "required": false,
         "description": "Record session start for token budget tracking"
@@ -191,7 +191,7 @@
       {
         "id": "token-metrics-init",
         "enabled": true,
-        "script": "src/token-metrics-store.ts",
+        "script": "src/tokens/token-metrics-store.ts",
         "args": "--action init",
         "required": false,
         "description": "Initialize token metrics database for historical tracking (TS)"
@@ -251,9 +251,18 @@
         "enabled": true,
         "lazy": true,
         "script": "src/dashboard-ws-autostart.ts",
-        "args": "--quiet",
+        "args": "--quiet --watch",
         "required": false,
-        "description": "Start React WebSocket metrics server with watchdog auto-recovery â€” serves LLM observability dashboard on port 8080/5173 (TS)"
+        "description": "Start WebSocket metrics server ONLY (port 8080) with persistent watchdog auto-recovery (5s health loop, up to 10 restarts). Does NOT serve the Vite UI — see dashboard-ui-start (TS)"
+      },
+      {
+        "id": "dashboard-ui-start",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/dashboard-vite-watchdog.ts",
+        "args": "--watch",
+        "required": false,
+        "description": "Start Vite dev server (dashboard UI on port 5173) with the same auto-recovery watchdog contract as the WS server (5s health loop, 2-failure threshold, up to 10 restarts, budget reset after 5min stable). Idempotent: adopts an already-serving Vite instead of spawning a duplicate"
       },
       {
         "id": "dashboard-operational-metrics",
@@ -336,7 +345,7 @@
       {
         "id": "token-notification-init",
         "enabled": false,
-        "script": "src/token-metrics-store.ts",
+        "script": "src/tokens/token-metrics-store.ts",
         "args": "--action init --quiet",
         "required": false,
         "description": "Inicializa sistema de notificaciones de tokens al inicio de sesion (TS)"
@@ -344,7 +353,7 @@
       {
         "id": "token-session-banner",
         "enabled": true,
-        "script": "src/token-session-banner.ts",
+        "script": "src/tokens/token-session-banner.ts",
         "args": "",
         "required": false,
         "description": "Muestra al inicio de sesion los tokens consumidos por el stack y los restantes de la sesion (input/output/total)"
@@ -400,7 +409,7 @@
         "id": "design-token-pipeline",
         "enabled": true,
         "lazy": true,
-        "script": "src/design-token-pipeline.ts",
+        "script": "src/design/design-token-pipeline.ts",
         "args": "",
         "required": false,
         "description": "Design Token Pipeline â€” generates assets/tokens.css, tokens.json, tokens.scss from config/brand.json."
@@ -436,7 +445,7 @@
         "id": "token-budget-guard-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/token-budget-guard.ts",
+        "script": "src/tokens/token-budget-guard.ts",
         "args": "-Task session-metrics -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
         "required": false,
         "description": "Initialize token budget tracking for session metrics (consolidated from cloud-connectors)"
@@ -507,7 +516,7 @@
         "id": "planning-estimator-verify",
         "enabled": true,
         "lazy": true,
-        "script": "src/planning-estimator.ts",
+        "script": "src/planning/planning-estimator.ts",
         "args": "--action report --task-type feature --complexity 1 --files-changed 1 --lines-changed 10 --quiet",
         "required": false,
         "description": "Verify planning estimator is operational at session start (TS)"
@@ -669,7 +678,7 @@
         "id": "token-monthly-summary",
         "enabled": true,
         "lazy": true,
-        "script": "src/token-monthly-summary.ts",
+        "script": "src/tokens/token-monthly-summary.ts",
         "args": "--quiet",
         "required": false,
         "phase": 99,
@@ -891,7 +900,7 @@
         "id": "prompt-compression-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/prompt-compression.ts",
+        "script": "src/compression/prompt-compression.ts",
         "args": "--stats --quiet",
         "required": false,
         "phase": 99,
@@ -901,7 +910,7 @@
         "id": "output-compression-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/output-compression.ts",
+        "script": "src/compression/output-compression.ts",
         "args": "--stats --quiet",
         "required": false,
         "phase": 99,
@@ -921,7 +930,7 @@
         "id": "token-optimization-orchestrator-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/token-optimization-orchestrator.ts",
+        "script": "src/tokens/token-optimization-orchestrator.ts",
         "args": "--status --quiet",
         "required": false,
         "phase": 99,
@@ -951,7 +960,7 @@
         "id": "token-ingest-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/token-ingest.ts",
+        "script": "src/tokens/token-ingest.ts",
         "args": "--watch 30",
         "required": false,
         "phase": 90,
@@ -961,7 +970,7 @@
         "id": "web-crawler-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/web-crawler-init.ts",
+        "script": "src/web/web-crawler-init.ts",
         "args": "--quiet",
         "required": false,
         "description": "Initialize Firecrawl web crawler â€” validate config + API key, snapshot health to .runtime/web-crawler-health.json (web research)"
@@ -979,7 +988,7 @@
         "id": "web-research-adhoc",
         "enabled": true,
         "lazy": true,
-        "script": "src/web-research-select.ts",
+        "script": "src/web/web-research-select.ts",
         "args": "--query \"AI agent orchestration and LLM observability best practices\" --limit 3 --threshold 0.3",
         "required": false,
         "description": "M5 selective web acquisition: search (Firecrawl→DDG→Bing) → BM25 grade → filter → persist to .session/web-research/"

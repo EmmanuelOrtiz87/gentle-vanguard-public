@@ -54,6 +54,8 @@ function generateSBOM(options: SBOMOptions): boolean {
   const sbomFormat = options.format === 'xml' ? 'spdx' : 'cyclonedx';
   const result = runSync('pnpm', ['sbom', '--sbom-format', sbomFormat], {
     stdio: ['pipe', 'pipe', 'pipe'],
+    // Full dependency SBOMs exceed the 1MB default buffer and kill the spawn mid-stream
+    maxBuffer: 64 * 1024 * 1024,
   });
 
   if (result.status === 0 && result.stdout) {

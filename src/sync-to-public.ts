@@ -277,7 +277,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     'src/core/run-command.ts',
     'src/test-runner-optimized.ts',
     'src/mcp/fetch-server-native.ts',
-    'src/web-crawler.ts',
+    'src/web/web-crawler.ts',
     'src/npm-ci-check.ts',
     'src/validate-tool-configs.ts',
     'src/cross-workspace-validator.ts',

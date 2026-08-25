@@ -20,6 +20,10 @@ import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runNpxTsxSync } from './core/run-command.js';
+import {
+  DatabaseManager,
+  DEFAULT_TENANT_ID,
+} from '../apps/web-dashboard/server/database/manager.js';
 
 const ROOT = resolve(process.cwd());
 const ROUTING_TABLE = join(ROOT, '.session', 'routing', 'routing-table.json');
@@ -57,6 +61,16 @@ interface RoutingTable {
     domainPattern: string;
     targetAgent: string;
     confidence: number;
+  }>;
+}
+
+export interface NexusRoutingSource {
+  getEnabledRoutingRules(tenantId: string): Array<{
+    pattern: string;
+    target: string;
+    priority: number;
+    hitCount: number;
+    successRate: number;
   }>;
 }
 
@@ -229,9 +243,41 @@ function matchDomain(task: string, domainHint: string): string {
   return 'general';
 }
 
-function recommend(task: string, domainHint: string, topN: number): unknown {
+function recommend(
+  task: string,
+  domainHint: string,
+  topN: number,
+  options: { tenantId?: string; nexus?: NexusRoutingSource } = {},
+): unknown {
   const normalizedTask = task.toLowerCase();
   const domain = matchDomain(task, domainHint);
+  const tenantId = options.tenantId ?? process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID;
+  try {
+    const nexus = options.nexus ?? DatabaseManager.getInstance();
+    const rules = nexus
+      .getEnabledRoutingRules(tenantId)
+      .filter(
+        (rule) =>
+          taskHasKeyword(normalizedTask, rule.pattern.toLowerCase()) ||
+          taskHasKeyword(domain.toLowerCase(), rule.pattern.toLowerCase()),
+      )
+      .sort(
+        (a, b) =>
+          b.priority - a.priority || b.successRate - a.successRate || b.hitCount - a.hitCount,
+      );
+    const rule = rules[0];
+    if (rule) {
+      return {
+        domain,
+        recommended: rule.target,
+        confidence: Math.max(0.3, Math.min(1, rule.successRate / 100)),
+        alternatives: rules.slice(1, topN).map((candidate) => candidate.target),
+        source: 'nexus',
+      };
+    }
+  } catch {
+    // Nexus is an optional runtime source; preserve the legacy fallbacks.
+  }
   const table = loadRoutingTable();
 
   // 1. Check overrides (highest priority — learned/high-priority routing).

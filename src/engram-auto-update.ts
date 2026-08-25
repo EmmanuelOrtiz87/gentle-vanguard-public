@@ -87,9 +87,9 @@ async function fetchWithRetry(
 
       clearTimeout(timeout);
       return response;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const isLastAttempt = i === retries - 1;
-      const errorMsg = err?.message || String(err);
+      const errorMsg = (err as Error)?.message || String(err);
 
       // Handle UV_HANDLE_CLOSING and other fetch errors
       if (errorMsg.includes('UV_HANDLE_CLOSING') || errorMsg.includes('fetch failed')) {

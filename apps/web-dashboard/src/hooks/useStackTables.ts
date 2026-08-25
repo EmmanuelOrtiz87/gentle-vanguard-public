@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { StackTablesData } from '../types/dashboard';
 
 const EMPTY: StackTablesData = {
@@ -12,16 +12,20 @@ export function useStackTables() {
   const [data, setData] = useState<StackTablesData>(EMPTY);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestRef = useRef<AbortController | null>(null);
 
   const fetchAll = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setError(null);
     try {
       const [skillRes, tokenRes, contractRes, routingRes] = await Promise.all([
-        fetch('/api/skill-usage?limit=20'),
-        fetch('/api/token-usage'),
-        fetch('/api/contract-results?limit=20'),
-        fetch('/api/routing-rules'),
+        fetch('/api/skill-usage?limit=20', { signal: controller.signal }),
+        fetch('/api/token-usage', { signal: controller.signal }),
+        fetch('/api/contract-results?limit=20', { signal: controller.signal }),
+        fetch('/api/routing-rules', { signal: controller.signal }),
       ]);
 
       if (!skillRes.ok) throw new Error(`Skill usage HTTP ${skillRes.status}`);
@@ -44,16 +48,23 @@ export function useStackTables() {
         routingRules: { rules: routingJson.data?.rules ?? [], total: routingJson.data?.total ?? 0 },
       });
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Failed to fetch stack tables');
     } finally {
-      setLoading(false);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     void fetchAll();
     const interval = setInterval(fetchAll, 15000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      requestRef.current?.abort();
+    };
   }, [fetchAll]);
 
   return { ...data, loading, error, refetch: fetchAll };

@@ -71,7 +71,7 @@ const PS1_TO_TS_MAP: Record<string, string> = {
   'scripts/utilities/pre-compact-hook.ps1': 'src/pre-compact-hook.ts',
   'scripts/utilities/handoff-compress.ps1': 'src/handoff-compress.ts',
   'scripts/utilities/optimize-engram-usage.ps1': 'src/optimize-engram-usage.ts',
-  'scripts/utilities/token-metrics-store.ps1': 'src/token-metrics-store.ts',
+  'scripts/utilities/token-metrics-store.ps1': 'src/tokens/token-metrics-store.ts',
 
   // Profiles
   'scripts/utilities/profile/PROFILE-ADAPTIVE/adaptive-opencode-profile.ps1':

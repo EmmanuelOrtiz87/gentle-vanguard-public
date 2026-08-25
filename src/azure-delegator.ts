@@ -18,6 +18,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { executeWithCircuit } from './circuit-breaker-v2';
 import { spawnSync } from 'child_process';
 import * as https from 'https';
 
@@ -51,51 +52,6 @@ function writeLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' 
     /* ignore */
   }
 }
-
-class CircuitBreaker {
-  failureThreshold = 5;
-  successThreshold = 2;
-  timeoutSeconds = 60;
-  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
-  failureCount = 0;
-  successCount = 0;
-  lastFailureTime = Date.now() - 3600000;
-
-  canExecute(): boolean {
-    if (this.state === 'OPEN') {
-      const elapsed = (Date.now() - this.lastFailureTime) / 1000;
-      if (elapsed > this.timeoutSeconds) {
-        this.state = 'HALF_OPEN';
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  recordSuccess(): void {
-    if (this.state === 'HALF_OPEN') {
-      this.successCount++;
-      if (this.successCount >= this.successThreshold) {
-        this.state = 'CLOSED';
-        this.failureCount = 0;
-        this.successCount = 0;
-      }
-    } else {
-      this.failureCount = 0;
-    }
-  }
-
-  recordFailure(): void {
-    this.failureCount++;
-    this.lastFailureTime = Date.now();
-    if (this.failureCount >= this.failureThreshold) {
-      this.state = 'OPEN';
-    }
-  }
-}
-
-const circuitBreaker = new CircuitBreaker();
 
 export function startTracingSpan(name: string): void {
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
@@ -270,28 +226,27 @@ async function invokeSkillOnAzureFunction(
 }
 
 async function invokeWithRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+  // Circuit breaker v2 (shared, file-state): guards the WHOLE retry loop.
+  // Success/failure is recorded on the final outcome — a transient failure
+  // recovered by retry no longer counts as a circuit failure.
   const initialDelay = 1000;
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      if (!circuitBreaker.canExecute()) {
-        throw new Error('Circuit breaker is OPEN');
+  return executeWithCircuit('azure_function', async () => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (attempt === retries) {
+          const msg = err instanceof Error ? err.message : String(err);
+          writeLog(`Failed after ${retries} attempts: ${msg}`, 'ERROR');
+          throw err;
+        }
+        const delay = initialDelay * Math.pow(2, attempt - 1);
+        writeLog(`Attempt ${attempt} failed. Retrying in ${delay}ms...`, 'WARN');
+        await new Promise((r) => setTimeout(r, delay));
       }
-      const result = await fn();
-      circuitBreaker.recordSuccess();
-      return result;
-    } catch (err) {
-      circuitBreaker.recordFailure();
-      if (attempt === retries) {
-        const msg = err instanceof Error ? err.message : String(err);
-        writeLog(`Failed after ${retries} attempts: ${msg}`, 'ERROR');
-        throw err;
-      }
-      const delay = initialDelay * Math.pow(2, attempt - 1);
-      writeLog(`Attempt ${attempt} failed. Retrying in ${delay}ms...`, 'WARN');
-      await new Promise((r) => setTimeout(r, delay));
     }
-  }
-  throw new Error('Unreachable');
+    throw new Error('Unreachable');
+  });
 }
 
 function recordCloudMetrics(

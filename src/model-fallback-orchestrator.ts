@@ -17,7 +17,7 @@
  *   });
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -382,8 +382,6 @@ async function executeWithModel(
 
     // Build command with model override
     const args = [
-      'tsx',
-      delegatorPath,
       '--agent',
       request.agent,
       '--task',
@@ -400,26 +398,26 @@ async function executeWithModel(
       args.push('--temperature', String(request.temperature));
     }
 
-    const child = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', args, {
+    // node --import tsx (hidden, shell-free). Raw spawn('npx.cmd') without a
+    // shell fails with EINVAL on modern Node.
+    const child = runNpxTsx(delegatorPath, args, {
       cwd: ROOT,
       env: {
-        ...process.env,
         AGENT_MODEL: model,
         DELEGATION_ATTEMPT: '1',
         FORCE_MODEL: model,
       },
       timeout: 300000, // 5 minute timeout
-      windowsHide: true,
     });
 
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 

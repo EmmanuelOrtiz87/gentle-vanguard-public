@@ -42,9 +42,12 @@ interface CostTrackingData {
 }
 
 interface TokenUsageData {
-  totalTokens: number;
-  totalCost: number;
-  sessions: string[];
+  totalTokens?: number;
+  totalInputTokens?: number;
+  totalOutputTokens?: number;
+  totalCost?: number;
+  cost_usd?: number;
+  sessions?: string[];
 }
 
 // ─── Funciones de lectura ──────────────────────────────────────────────────
@@ -120,12 +123,15 @@ export function getAggregatedDashboardMetrics(): AggregatedMetrics {
 
   // 4. Leer token usage
   const tokenData = readJson<TokenUsageData>(TOKEN_USAGE_PATH);
+  const tokenFileTotal = tokenData
+    ? tokenData.totalTokens ?? (tokenData.totalInputTokens || 0) + (tokenData.totalOutputTokens || 0)
+    : 0;
 
   // Calcular tokens totales (priorizar datos más recientes)
   const totalTokens = Math.max(
     liveMetrics.totalTokens,
     costData?.totalTokens || 0,
-    tokenData?.totalTokens || 0,
+    tokenFileTotal,
     sessions.reduce((sum, s) => sum + (s.totalTokens || 0), 0),
   );
 
@@ -133,7 +139,7 @@ export function getAggregatedDashboardMetrics(): AggregatedMetrics {
   const totalCost = Math.max(
     liveMetrics.totalCost,
     costData?.totalCostUsd || 0,
-    tokenData?.totalCost || 0,
+    tokenData?.totalCost ?? tokenData?.cost_usd ?? 0,
   );
 
   // Calcular input/output tokens desde entries de cost tracking (fuente canónica);
@@ -154,7 +160,7 @@ export function getAggregatedDashboardMetrics(): AggregatedMetrics {
   const avgLatency = liveMetrics.avgLatency;
 
   // SLO compliance real: violaciones de latencia (>5s) desde los turnos del tracker
-  const sloCompliance = liveMetrics.sloCompliance ?? 100;
+  const sloCompliance = liveMetrics.sloTotal > 0 ? liveMetrics.sloCompliance : 0;
   const sloViolations = liveMetrics.sloViolations ?? 0;
   const sloTotal = liveMetrics.sloTotal ?? 0;
 

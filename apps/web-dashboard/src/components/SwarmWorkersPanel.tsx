@@ -11,6 +11,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { SwarmWorkerEntry, SwarmWorkerData } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface SwarmWorkersPanelProps {
   data?: SwarmWorkerData;
@@ -85,7 +86,9 @@ function getStatusBadgeColor(status: SwarmWorkerEntry['status']): string {
 
 function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
   const [expanded, setExpanded] = useState(false);
+  const { tt } = useT();
   const duration = formatDuration(worker.started, worker.finished);
+  const statusLabel = tt(`ui.${worker.status}`);
 
   return (
     <div className={`rounded-lg border p-3 transition-all ${getStatusColor(worker.status)}`}>
@@ -100,12 +103,12 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadgeColor(worker.status)}`}
           >
-            {worker.status}
+            {statusLabel.startsWith('ui.') ? worker.status : statusLabel}
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
             className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            title={expanded ? 'Collapse' : 'Expand'}
+            title={expanded ? tt('ui.collapse') : tt('ui.expand')}
           >
             {expanded ? (
               <ChevronUp className="w-4 h-4 text-gray-500" />
@@ -140,7 +143,7 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
             <div>
               <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
                 <FileText className="w-3 h-3" />
-                <span>Output</span>
+                <span>{tt('ui.output')}</span>
               </div>
               <pre className="text-xs bg-gray-900 text-gray-100 p-2 rounded max-h-32 overflow-auto font-mono">
                 {worker.output}
@@ -151,7 +154,7 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
             <div>
               <div className="flex items-center gap-1 text-xs text-red-500 mb-1">
                 <AlertTriangle className="w-3 h-3" />
-                <span>Error</span>
+                <span>{tt('ui.error_word')}</span>
               </div>
               <pre className="text-xs bg-red-900/20 text-red-100 p-2 rounded max-h-32 overflow-auto font-mono border border-red-800">
                 {worker.error}
@@ -159,7 +162,7 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
             </div>
           )}
           <div className="text-xs text-gray-400">
-            Worker dir: <code className="text-gray-500">{worker.workerDir}</code>
+            {tt('ui.worker_dir')} <code className="text-gray-500">{worker.workerDir}</code>
           </div>
         </div>
       )}
@@ -168,17 +171,19 @@ function WorkerCard({ worker }: { worker: SwarmWorkerEntry }) {
 }
 
 export function SwarmWorkersPanel({ data }: SwarmWorkersPanelProps) {
+  const { tt } = useT();
+
   if (!data || data.workers.length === 0) {
     return (
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Cpu className="w-5 h-5 text-purple-500" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Swarm Workers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{tt('ui.swarm_workers')}</h2>
         </div>
         <div className="text-center py-8 text-gray-400 dark:text-gray-500">
           <Cpu className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No active workers</p>
-          <p className="text-xs mt-1">Workers will appear here when tasks are dispatched</p>
+          <p className="text-sm">{tt('ui.no_active_workers')}</p>
+          <p className="text-xs mt-1">{tt('ui.workers_hint')}</p>
         </div>
       </div>
     );
@@ -191,18 +196,18 @@ export function SwarmWorkersPanel({ data }: SwarmWorkersPanelProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Cpu className="w-5 h-5 text-purple-500" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Swarm Workers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{tt('ui.swarm_workers')}</h2>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-            {activeCount} active
+            {activeCount} {tt('ui.active_plural')}
           </span>
           <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-            {completedCount} done
+            {completedCount} {tt('ui.done_badge')}
           </span>
           {failedCount > 0 && (
             <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
-              {failedCount} failed
+              {failedCount} {tt('ui.failed_plural')}
             </span>
           )}
         </div>
@@ -210,19 +215,19 @@ export function SwarmWorkersPanel({ data }: SwarmWorkersPanelProps) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Total Workers</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{tt('ui.total_workers')}</p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">{workers.length}</p>
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center">
-          <p className="text-xs text-blue-600 dark:text-blue-400">Active</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400">{tt('ui.active')}</p>
           <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{activeCount}</p>
         </div>
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
-          <p className="text-xs text-green-600 dark:text-green-400">Completed</p>
+          <p className="text-xs text-green-600 dark:text-green-400">{tt('ui.completed')}</p>
           <p className="text-lg font-bold text-green-700 dark:text-green-300">{completedCount}</p>
         </div>
         <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center">
-          <p className="text-xs text-purple-600 dark:text-purple-400">Reports</p>
+          <p className="text-xs text-purple-600 dark:text-purple-400">{tt('ui.reports')}</p>
           <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{reports}</p>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Clock, Activity, Zap } from 'lucide-react';
 import type { Session } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface SessionActivityHeatmapProps {
   sessions: Session[];
@@ -39,6 +40,7 @@ function toHourLabel(h: number): string {
 }
 
 export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps) {
+  const { tt } = useT();
   const hourlyData = useMemo(() => {
     const buckets = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
@@ -85,11 +87,11 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-purple-500" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Session Activity</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.session_activity')}</h3>
         </div>
         <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-sm">
           <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p>No session data yet</p>
+          <p>{tt('ui.no_data')}</p>
         </div>
       </div>
     );
@@ -100,13 +102,17 @@ export function SessionActivityHeatmap({ sessions }: SessionActivityHeatmapProps
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-purple-500" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Session Activity</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.session_activity')}</h3>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>{sessions.length} sessions</span>
+          <span>
+            {sessions.length} {tt('ui.sessions_word')}
+          </span>
           <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
           <Zap className="w-3 h-3 text-green-500" />
-          <span>{sessions.filter((s) => s.status === 'active').length} active</span>
+          <span>
+            {sessions.filter((s) => s.status === 'active').length} {tt('ui.active_plural')}
+          </span>
         </div>
       </div>
 

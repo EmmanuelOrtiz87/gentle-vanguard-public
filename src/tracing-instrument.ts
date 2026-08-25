@@ -83,10 +83,43 @@ interface OtlpSpan {
   name: string;
   kind: number;
   startTimeUnixNano: string;
-  endTimeUnixNano: string;
+  endTimeUnixNano?: string;
   status: { code: string; message?: string };
   attributes: { key: string; value: { stringValue: string } }[];
   events: SpanEvent[];
+}
+
+/**
+ * Recover the true start time of a span by reading back its 'start' record
+ * from today's span files. Callers often forget to pass startTimeUnixNano
+ * as an attribute on 'end' — relying on that produced multi-billion ns
+ * durations (clock-skew poison). Self-healing: read what we wrote.
+ */
+function recoverStartNs(traceId: string, spanId: string, endNs: bigint): bigint | null {
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const candidates = [join(SPAN_DIR, `spans-${today}.jsonl`), join(TRACES_DIR, `traces-${today}.jsonl`)];
+  for (const file of candidates) {
+    try {
+      if (!existsSync(file)) continue;
+      const lines = readFileSync(file, 'utf-8').split('\n');
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].trim();
+        if (!line || !line.includes(spanId)) continue;
+        try {
+          const rec = JSON.parse(line) as { spanId?: string; startTimeUnixNano?: string };
+          if (rec.spanId !== spanId || !rec.startTimeUnixNano) continue;
+          const ns = BigInt(rec.startTimeUnixNano);
+          // Valid only if it precedes the end and is within a sane window (24h).
+          if (ns > 0n && ns <= endNs && endNs - ns <= BigInt(24 * 3600 * 1_000_000_000)) return ns;
+        } catch {
+          /* skip malformed line */
+        }
+      }
+    } catch {
+      /* try next candidate */
+    }
+  }
+  return null;
 }
 
 function newOtlpSpan(params: {
@@ -95,7 +128,7 @@ function newOtlpSpan(params: {
   parentSpanId?: string;
   name: string;
   startTimeUnixNano: bigint;
-  endTimeUnixNano: bigint;
+  endTimeUnixNano?: bigint;
   statusCode?: string;
   errorMessage?: string;
   attributes: SpanAttributes;
@@ -117,7 +150,9 @@ function newOtlpSpan(params: {
     name: params.name,
     kind: 2,
     startTimeUnixNano: params.startTimeUnixNano.toString(),
-    endTimeUnixNano: params.endTimeUnixNano.toString(),
+    ...(params.endTimeUnixNano !== undefined
+      ? { endTimeUnixNano: params.endTimeUnixNano.toString() }
+      : {}),
     status,
     attributes: attrs,
     events: params.events ?? [],
@@ -271,13 +306,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   switch (action) {
     case 'start': {
       const startNs = getTimestampNs();
+      // No endTime: this is a running marker. Setting endTime = startTime
+      // produced fake 0ms durations that dragged every average to zero.
       const span = newOtlpSpan({
         traceId,
         spanId,
         parentSpanId,
         name: spanName,
         startTimeUnixNano: startNs,
-        endTimeUnixNano: startNs,
         attributes,
       });
       exportSpanToFile(span);
@@ -291,23 +327,37 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         process.exit(1);
       }
       const endNs = getTimestampNs();
-      const startNs = BigInt(attributes['startTimeUnixNano'] ?? '0');
-      const durationNs = endNs - startNs;
-      const durationMs = Math.round((Number(durationNs) / 1e6) * 100) / 100;
+      // Recover the true start: span file first (self-healing), caller
+      // attribute as fallback. Invalid (0 / future / >24h) → running span.
+      const recovered = recoverStartNs(traceId, spanId, endNs);
+      const attrStart = BigInt(attributes['startTimeUnixNano'] ?? '0');
+      const startNs =
+        recovered ??
+        (attrStart > 0n && attrStart <= endNs && endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
+          ? attrStart
+          : null);
+      const durationNs = startNs === null ? null : endNs - startNs;
+      const durationMs =
+        durationNs === null ? 0 : Math.round((Number(durationNs) / 1e6) * 100) / 100;
       const span = newOtlpSpan({
         traceId,
         spanId,
         parentSpanId,
         name: spanName,
-        startTimeUnixNano: startNs,
-        endTimeUnixNano: endNs,
+        startTimeUnixNano: startNs ?? endNs,
+        ...(startNs !== null ? { endTimeUnixNano: endNs } : {}),
         attributes,
       });
       exportSpanToFile(span);
       sendOtlpSpan(span, serviceName);
-      recordSpanMetrics(spanName, durationNs, false);
+      if (durationNs !== null) recordSpanMetrics(spanName, durationNs, false);
       getPrometheusMetrics(spanName, durationMs, false, serviceName);
-      log(`Span completed: ${spanName} (${durationMs}ms)`, 'SUCCESS');
+      log(
+        startNs === null
+          ? `Span ended (start unknown — kept running): ${spanName}`
+          : `Span completed: ${spanName} (${durationMs}ms)`,
+        'SUCCESS',
+      );
       console.log(JSON.stringify({ traceId, spanId, durationMs }));
       break;
     }
@@ -317,23 +367,31 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         process.exit(1);
       }
       const endNs = getTimestampNs();
-      const startNs = BigInt(attributes['startTimeUnixNano'] ?? '0');
-      const durationNs = endNs - startNs;
-      const durationMs = Math.round((Number(durationNs) / 1e6) * 100) / 100;
+      // Same self-healing start recovery as the 'end' action.
+      const recovered = recoverStartNs(traceId, spanId, endNs);
+      const attrStart = BigInt(attributes['startTimeUnixNano'] ?? '0');
+      const startNs =
+        recovered ??
+        (attrStart > 0n && attrStart <= endNs && endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
+          ? attrStart
+          : null);
+      const durationNs = startNs === null ? null : endNs - startNs;
+      const durationMs =
+        durationNs === null ? 0 : Math.round((Number(durationNs) / 1e6) * 100) / 100;
       const span = newOtlpSpan({
         traceId,
         spanId,
         parentSpanId,
         name: spanName,
-        startTimeUnixNano: startNs,
-        endTimeUnixNano: endNs,
+        startTimeUnixNano: startNs ?? endNs,
+        ...(startNs !== null ? { endTimeUnixNano: endNs } : {}),
         statusCode: 'STATUS_CODE_ERROR',
         errorMessage,
         attributes,
       });
       exportSpanToFile(span);
       sendOtlpSpan(span, serviceName);
-      recordSpanMetrics(spanName, durationNs, true);
+      if (durationNs !== null) recordSpanMetrics(spanName, durationNs, true);
       getPrometheusMetrics(spanName, durationMs, true, serviceName);
       log(`Span errored: ${spanName} — ${errorMessage}`, 'ERROR');
       console.log(JSON.stringify({ traceId, spanId, durationMs, error: errorMessage }));

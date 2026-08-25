@@ -92,9 +92,9 @@ flowchart TB
 | Resource                                              | Description                    |
 | ----------------------------------------------------- | ------------------------------ |
 | [Getting Started](docs/getting-started/README.md)     | First-time setup, step by step |
-| [Architecture](docs/technical/STACK-DOCUMENTATION.md) | Full technical reference       |
+| [Architecture](docs/architecture/README.md)            | Full technical reference       |
 | [Installation](docs/getting-started/installation.md)  | All installation options       |
-| [Examples](docs/EXAMPLES.md)                          | Usage examples                 |
+| [Examples](docs/use-cases/EXAMPLES.md)                | Usage examples                 |
 | [Changelog](CHANGELOG.md)                             | Version history                |
 
 ## License

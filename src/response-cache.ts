@@ -29,6 +29,7 @@ import {
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { db as getDbSingleton } from './database/db';
+import { resolveDeploymentTenantContext } from './deployment-tenant-context';
 
 // ─── Semantic Search Helpers (reused from skill-router) ──────────────────────
 
@@ -300,8 +301,19 @@ const DEFAULT_CONFIG: CacheConfig = {
 
 // ─── DB helper ────────────────────────────────────────────────────────────────
 
-let _dbCached: any = null;
-function getDb(): any {
+/** Minimal DatabaseManager surface used by this module. */
+interface DbManagerLike {
+  getDb(): {
+    prepare(sql: string): {
+      get(...params: unknown[]): unknown;
+      all(...params: unknown[]): unknown;
+      run(...params: unknown[]): { changes: number };
+    };
+  };
+}
+
+let _dbCached: DbManagerLike | null = null;
+function getDb(): DbManagerLike | null {
   if (!_dbCached) {
     try {
       _dbCached = getDbSingleton();
@@ -331,6 +343,26 @@ function ensureTokensColumn(): void {
     } catch (e2) {
       console.warn('[response-cache] Could not add tokens_saved column:', (e2 as Error).message);
     }
+  }
+}
+
+function resolveCacheTenantId(): string {
+  try {
+    return resolveDeploymentTenantContext().tenantId ?? 'gentle-vanguard';
+  } catch {
+    return 'gentle-vanguard';
+  }
+}
+
+function hasTenantColumn(db: DbManagerLike): boolean {
+  try {
+    const columns = db
+      .getDb()
+      .prepare("PRAGMA table_info('response_cache')")
+      .all() as Array<{ name?: string }>;
+    return columns.some((column) => column.name === 'tenant_id');
+  } catch {
+    return false;
   }
 }
 
@@ -364,7 +396,16 @@ function sqliteGet(key: string, input?: string): CacheEntry | null {
          FROM response_cache WHERE key = ?
          AND (expires_at IS NULL OR expires_at > datetime('now'))`,
       )
-      .get(key) as any;
+      .get(key) as
+    | {
+        key: string;
+        response: string;
+        created_at: string;
+        hit_count: number;
+        expires_at: string | null;
+        tokens_saved: number | null;
+      }
+    | undefined;
 
     if (row) {
       // Exact hit — increment hit count
@@ -438,13 +479,34 @@ function sqliteSet(
       }
     }
 
-    db.getDb()
-      .prepare(
-        `INSERT OR REPLACE INTO response_cache (key, response, model, input_text, input_embedding, created_at, expires_at, hit_count, tokens_saved)
-         VALUES (?, ?, NULL, ?, ?, datetime('now'), ?,
-           COALESCE((SELECT hit_count FROM response_cache WHERE key = ?), 0), ?)`,
-      )
-      .run(key, response, inputText, inputEmbedding, expiresAt, key, tokensSaved);
+    if (hasTenantColumn(db)) {
+      const tenantId = resolveCacheTenantId();
+      db.getDb()
+        .prepare(
+          `INSERT OR REPLACE INTO response_cache (key, response, model, input_text, input_embedding, created_at, expires_at, hit_count, tokens_saved, tenant_id)
+           VALUES (?, ?, NULL, ?, ?, datetime('now'), ?,
+             COALESCE((SELECT hit_count FROM response_cache WHERE key = ? AND tenant_id = ?), 0), ?, ?)`,
+        )
+        .run(
+          key,
+          response,
+          inputText,
+          inputEmbedding,
+          expiresAt,
+          key,
+          tenantId,
+          tokensSaved,
+          tenantId,
+        );
+    } else {
+      db.getDb()
+        .prepare(
+          `INSERT OR REPLACE INTO response_cache (key, response, model, input_text, input_embedding, created_at, expires_at, hit_count, tokens_saved)
+           VALUES (?, ?, NULL, ?, ?, datetime('now'), ?,
+             COALESCE((SELECT hit_count FROM response_cache WHERE key = ?), 0), ?)`,
+        )
+        .run(key, response, inputText, inputEmbedding, expiresAt, key, tokensSaved);
+    }
   } catch (e) {
     console.warn('[response-cache] SQLite write failed:', (e as Error).message);
   }
@@ -478,7 +540,10 @@ function sqliteCount(): number {
   const db = getDb();
   if (!db) return 0;
   try {
-    const row = db.getDb().prepare('SELECT COUNT(*) as c FROM response_cache').get() as any;
+    const row = db
+      .getDb()
+      .prepare('SELECT COUNT(*) as c FROM response_cache')
+      .get() as { c: number } | undefined;
     return row?.c ?? 0;
   } catch {
     return 0;

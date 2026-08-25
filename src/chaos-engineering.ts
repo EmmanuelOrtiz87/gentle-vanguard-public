@@ -20,7 +20,8 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'fs';
 import { resolve, join } from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
+import { runSync } from './core/run-command';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -72,16 +73,18 @@ function backupFile(filePath: string): (() => void) | null {
 }
 
 function findPidByPort(port: number): number | null {
-  try {
-    const out = execSync(
-      `powershell -NoProfile -Command "(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1).OwningProcess"`,
-      { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
-    ).trim();
-    const pid = parseInt(out, 10);
-    return Number.isFinite(pid) && pid > 0 ? pid : null;
-  } catch {
-    return null;
-  }
+  // runSync enforces windowsHide — a raw execSync string would flash a console.
+  const r = runSync(
+    'powershell',
+    [
+      '-NoProfile',
+      '-Command',
+      `(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1).OwningProcess`,
+    ],
+    { stdio: ['ignore', 'pipe', 'ignore'] },
+  );
+  const pid = parseInt((r.stdout ?? '').trim(), 10);
+  return Number.isFinite(pid) && pid > 0 ? pid : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,17 +189,20 @@ export const EXPERIMENTS: ChaosExperiment[] = [
       // Give the watchdog up to ~15s to restart the WS server
       let restarted = false;
       for (let i = 0; i < 15; i++) {
-        try {
-          const out = execSync(
-            `powershell -NoProfile -Command "(Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue).TcpTestSucceeded"`,
-            { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
-          ).trim();
-          if (out === 'True') {
-            restarted = true;
-            break;
-          }
-        } catch {
-          /* not yet */
+        // Hidden port probe (runSync enforces windowsHide; raw execSync would
+        // flash a console up to 15 times in this loop).
+        const r = runSync(
+          'powershell',
+          [
+            '-NoProfile',
+            '-Command',
+            '(Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue).TcpTestSucceeded',
+          ],
+          { stdio: ['ignore', 'pipe', 'ignore'] },
+        );
+        if ((r.stdout ?? '').trim() === 'True') {
+          restarted = true;
+          break;
         }
         // Wait 1s between checks
         spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Milliseconds 1000'], {

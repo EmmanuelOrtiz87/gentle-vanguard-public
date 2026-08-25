@@ -27,12 +27,24 @@ import { join, resolve } from 'path';
 import { runSync } from './core/run-command.js';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
+import { loadConfigFile } from './core/config-loader.js';
 
 const _require = createRequire(import.meta.url);
 
 // Lazy db import for SQLite dual-write
-let _db: any = null;
-function getDb(): any {
+
+/** Minimal DatabaseManager surface used for contract-result dual-write. */
+interface DbManagerLike {
+  insertContractResult(
+    phase: string,
+    status: string,
+    sessionId: string | undefined,
+    detailsJson: string,
+  ): unknown;
+}
+
+let _db: DbManagerLike | null = null;
+function getDb(): DbManagerLike | null {
   if (!_db) {
     try {
       const mod = _require('../apps/web-dashboard/server/database/manager');
@@ -91,7 +103,6 @@ interface GatekeeperConfig {
 // ─── Constants ─────────────────────────────────────────────────────────
 
 const ROOT = resolve(process.cwd());
-const CONFIG_PATH = join(ROOT, 'config', 'result-gatekeeper.json');
 const DEFAULT_CONFIG: GatekeeperConfig = {
   version: '1.0.0',
   outputDir: '.session/contract-results',
@@ -238,12 +249,7 @@ function ensureDir(dir: string) {
 }
 
 function loadConfig(): GatekeeperConfig {
-  if (!existsSync(CONFIG_PATH)) return DEFAULT_CONFIG;
-  try {
-    return { ...DEFAULT_CONFIG, ...JSON.parse(readFileSync(CONFIG_PATH, 'utf-8')) };
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+  return loadConfigFile<GatekeeperConfig>('result-gatekeeper', { defaults: DEFAULT_CONFIG }).data;
 }
 
 function checkValidation(validation: Validation): { status: ContractStatus; detail: string } {

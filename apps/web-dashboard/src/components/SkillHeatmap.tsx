@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Cpu } from 'lucide-react';
+import { useT } from '../hooks/useLocale';
 
 interface SkillHeatmapProps {
   bySkill: Record<string, number>;
@@ -41,6 +42,7 @@ function getFontSize(calls: number, maxCalls: number): string {
 }
 
 export function SkillHeatmap({ bySkill, totalSkills, totalCalls }: SkillHeatmapProps) {
+  const { tt } = useT();
   const entries = useMemo(() => {
     return Object.entries(bySkill).sort(([, a], [, b]) => b - a);
   }, [bySkill]);
@@ -55,12 +57,12 @@ export function SkillHeatmap({ bySkill, totalSkills, totalCalls }: SkillHeatmapP
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Cpu className="w-5 h-5 text-purple-500" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Skill Activity</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.skill_activity')}</h3>
         </div>
         <div className="text-center py-6 text-gray-400 dark:text-gray-500">
           <Cpu className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No MCP skill activity recorded yet</p>
-          <p className="text-xs mt-1">Skills appear here as they are used</p>
+          <p className="text-sm">{tt('ui.no_skill_usage_yet')}</p>
+          <p className="text-xs mt-1">{tt('ui.no_activity_yet')}</p>
         </div>
       </div>
     );
@@ -71,12 +73,16 @@ export function SkillHeatmap({ bySkill, totalSkills, totalCalls }: SkillHeatmapP
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Cpu className="w-5 h-5 text-purple-500" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Skill Activity</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.skill_activity')}</h3>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span>{totalSkills} skills</span>
+          <span>
+            {totalSkills} {tt('ui.skills')}
+          </span>
           <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
-          <span>{totalCalls.toLocaleString()} calls</span>
+          <span>
+            {totalCalls.toLocaleString()} {tt('ui.calls')}
+          </span>
         </div>
       </div>
 

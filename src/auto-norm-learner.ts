@@ -116,7 +116,11 @@ function loadRecentSessions(days = 7): SessionData[] {
 /**
  * Load current metrics
  */
-function loadMetrics(): any {
+interface SessionMetrics {
+  qualityScore?: number;
+}
+
+function loadMetrics(): SessionMetrics | null {
   try {
     if (existsSync(METRICS_PATH)) {
       const data = readFileSync(METRICS_PATH, 'utf-8');

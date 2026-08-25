@@ -1,27 +1,27 @@
 {
   "version": "2.2.1",
   "enabled": true,
-  "description": "Model Router: per-agent model/temperature binding aligned to the native available model opencode/deepseek-v4-flash-free with local provider fallback",
+  "description": "Model Router: per-agent model/temperature binding inheriting the orchestrator session model (opencode/big-pickle) with free-tier and local provider fallback",
   "lastModified": "2026-07-31T04:45:00.0000000-03:00",
   "modifiedBy": "orchestrator",
   "defaults": {
-    "model": "opencode/deepseek-v4-flash-free",
+    "model": "opencode/big-pickle",
     "provider": "opencode",
     "temperature": 0.3,
     "hallucinationGuard": "medium",
-    "notes": "Base model for agents without specific override. All agents use the native available model opencode/deepseek-v4-flash-free (free tier). Fallback to local providers (ollama/lm-studio2) if the native model is unavailable."
+    "notes": "Base model for agents without specific override. All agents inherit the orchestrator session model dynamically (agent frontmatter no longer pins a model). Fallback to local providers (ollama/lm-studio2) if the native model is unavailable."
   },
   "fallback": {
-    "model": "opencode/deepseek-v4-flash-free",
+    "model": "opencode/mimo-v2.5-free",
     "description": "Free-tier opencode model, the only model guaranteed available in this environment; fallback chain to local providers",
     "quotaExhaustedBehavior": "auto-switch",
     "notifyOnSwitch": true,
-    "notificationMessage": "[FALLBACK] Native model unavailable. Switched to opencode/deepseek-v4-flash-free (free tier).",
+    "notificationMessage": "[FALLBACK] Native model unavailable. Switched to opencode/mimo-v2.5-free (free tier).",
     "resetOnRenewal": true
   },
   "agentBindings": {
     "BA": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.7,
       "hallucinationGuard": "low",
@@ -29,7 +29,7 @@
       "rationale": "BA explora/analiza — modelo nativo disponible"
     },
     "SAD": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -37,7 +37,7 @@
       "rationale": "SAD diseña arquitectura — modelo nativo disponible"
     },
     "DEV": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -45,7 +45,7 @@
       "rationale": "DEV implementa código — modelo nativo disponible"
     },
     "QA": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -53,7 +53,7 @@
       "rationale": "QA valida — modelo nativo disponible"
     },
     "OPS": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -61,7 +61,7 @@
       "rationale": "OPS despliega — modelo nativo disponible"
     },
     "GOV": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -69,7 +69,7 @@
       "rationale": "GOV audita — modelo nativo disponible"
     },
     "DOC": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
@@ -77,7 +77,7 @@
       "rationale": "DOC documenta — modelo nativo disponible"
     },
     "SESSION": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -85,7 +85,7 @@
       "rationale": "SESSION trackea estado — modelo nativo disponible"
     },
     "MKT": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "low",
@@ -93,7 +93,7 @@
       "rationale": "MKT crea contenido — modelo nativo disponible"
     },
     "SALES": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -101,7 +101,7 @@
       "rationale": "SALES sigue metodología — modelo nativo disponible"
     },
     "FINANCE": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -109,7 +109,7 @@
       "rationale": "FINANCE calcula — modelo nativo disponible"
     },
     "HR": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "medium",
@@ -117,7 +117,7 @@
       "rationale": "HR procesa — modelo nativo disponible"
     },
     "LEGAL": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -125,7 +125,7 @@
       "rationale": "LEGAL cumple normativa — modelo nativo disponible"
     },
     "BUS-TELE": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.2,
       "hallucinationGuard": "high",
@@ -133,7 +133,7 @@
       "rationale": "Telemetría — agente específico bus-tele-agent (modelo nativo disponible)"
     },
     "PREMORTEM": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "medium",
@@ -141,7 +141,7 @@
       "rationale": "PREMORTEM analiza riesgos — modelo nativo disponible"
     },
     "SELF-DIAG": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -149,7 +149,7 @@
       "rationale": "SELF-DIAG diagnóstico — agente específico self-diag-agent (modelo nativo disponible)"
     },
     "SCRIPT-GOV": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -157,7 +157,7 @@
       "rationale": "Script governance — hereda modelo de sdd-verify"
     },
     "GITFLOW-BRANCH": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -165,49 +165,49 @@
       "rationale": "GitFlow — agente específico gitflow-agent (modelo nativo disponible)"
     },
     "GITFLOW-PR": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-HOOKS": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-MERGE": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-WORKFLOW": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-COMMIT": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-CONFLICT": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "REPORT": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
@@ -215,7 +215,7 @@
       "rationale": "Reportes — hereda modelo de doc-agent"
     },
     "PR-REVIEW": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -223,7 +223,7 @@
       "rationale": "Code review — hereda modelo de sdd-verify"
     },
     "RELEASE": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -231,7 +231,7 @@
       "rationale": "Release — modelo nativo disponible"
     },
     "SESSION-CLOSE": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -239,7 +239,7 @@
       "rationale": "Session close — modelo nativo disponible"
     },
     "DAILY": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -247,7 +247,7 @@
       "rationale": "Daily — modelo nativo disponible"
     },
     "ORCHESTRATOR": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "high",
@@ -290,12 +290,12 @@
     "chain": ["opencode", "ollama", "lm-studio2"],
     "autoCheck": "on-route",
     "cacheMinutes": 5,
-    "fallbackModel": "opencode/deepseek-v4-flash-free",
+    "fallbackModel": "opencode/mimo-v2.5-free",
     "fallbackConfigRef": "config/model-fallback.json",
     "stateFile": ".runtime/model-fallback-state.json",
     "agentFallbackEnabled": true,
     "notifyOnFallback": true,
-    "description": "FAILOVER ACTIVO — cuando un modelo no está disponible, provider-failover.ts consulta model-fallback.json para cadenas de fallback por agente. El modelo nativo opencode/deepseek-v4-flash-free es el primario; fallback a proveedores locales (ollama/lm-studio2)."
+    "description": "FAILOVER ACTIVO — cuando un modelo no está disponible, provider-failover.ts consulta model-fallback.json para cadenas de fallback por agente. El modelo nativo opencode/mimo-v2.5-free es el primario; fallback a proveedores locales (ollama/lm-studio2)."
   },
   "providerPriority": {
     "description": "Ordered list for model selection UI (first = default)",
@@ -342,25 +342,25 @@
     "description": "Abstract model capability levels used by routing policy — all mapped to the single native available model in this environment",
     "fastCheap": {
       "description": "Fast, low-cost model for deterministic/structured tasks",
-      "examples": ["opencode/deepseek-v4-flash-free"],
+      "examples": ["opencode/mimo-v2.5-free"],
       "thinking": "off",
       "rationale": "Speed over reasoning — structured data, git ops, session tracking"
     },
     "strongCoding": {
       "description": "Strong coding model for implementation tasks",
-      "examples": ["opencode/deepseek-v4-flash-free"],
+      "examples": ["opencode/mimo-v2.5-free"],
       "thinking": "medium",
       "rationale": "Code generation needs robust tool-use model"
     },
     "strongReasoning": {
       "description": "Strong reasoning model for architectural decisions",
-      "examples": ["opencode/deepseek-v4-flash-free"],
+      "examples": ["opencode/mimo-v2.5-free"],
       "thinking": "high",
       "rationale": "Deep reasoning for architecture, design, risk analysis"
     },
     "strongReview": {
       "description": "Strong review model for audits and validation",
-      "examples": ["opencode/deepseek-v4-flash-free"],
+      "examples": ["opencode/mimo-v2.5-free"],
       "thinking": "high",
       "rationale": "Fresh-context model for thorough review and compliance"
     }

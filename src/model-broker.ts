@@ -49,7 +49,23 @@ interface ModelRegistry {
 interface AgentConfig {
   model: string;
   provider?: string;
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+interface OpenCodeAgentEntry {
+  model?: string;
+  provider?: string;
+}
+
+interface OpenCodeConfig {
+  agent?: Record<string, OpenCodeAgentEntry>;
+}
+
+interface AgentStatus {
+  model: string;
+  available: boolean;
+  health: string;
+  fallbackChain: string[];
 }
 
 interface BrokerResult {
@@ -72,7 +88,7 @@ interface DelegationOptions {
 
 class ModelBroker {
   private registry!: ModelRegistry;
-  private opencodeConfig!: Record<string, any>;
+  private opencodeConfig!: OpenCodeConfig;
   private healthCheckCache: Map<string, { timestamp: number; status: string }> = new Map();
   private readonly HEALTH_CACHE_TTL = 60000; // 60 segundos
 
@@ -159,7 +175,7 @@ class ModelBroker {
     return null;
   }
 
-  private logEvent(agent: string, model: string, event: string, data?: any): void {
+  private logEvent(agent: string, model: string, event: string, data?: Record<string, unknown>): void {
     const timestamp = new Date().toISOString();
     const logEntry =
       JSON.stringify({
@@ -273,12 +289,12 @@ class ModelBroker {
   /**
    * Get status of all agents and their models
    */
-  async getStatus(): Promise<Record<string, any>> {
+  async getStatus(): Promise<Record<string, AgentStatus>> {
     const agents = this.opencodeConfig.agent || {};
-    const status: Record<string, any> = {};
+    const status: Record<string, AgentStatus> = {};
 
     for (const [agentName, agentConfig] of Object.entries(agents)) {
-      const model = (agentConfig as any).model || 'unknown';
+      const model = agentConfig.model || 'unknown';
       const isAvailable = await this.checkModelHealth(model);
 
       status[agentName] = {
@@ -330,7 +346,7 @@ async function main(): Promise<void> {
     case 'health': {
       const status = await broker.getStatus();
       const totalAgents = Object.keys(status).length;
-      const availableAgents = Object.values(status).filter((s: any) => s.available).length;
+      const availableAgents = Object.values(status).filter((s) => s.available).length;
 
       console.log('📊 Model Broker Health Report');
       console.log(`Total agents: ${totalAgents}`);
@@ -340,8 +356,8 @@ async function main(): Promise<void> {
 
       // Show problematic agents
       const problematic = Object.entries(status)
-        .filter(([_, s]: [string, any]) => !s.available)
-        .map(([agent, s]: [string, any]) => `${agent}: ${s.model} (${s.health})`);
+        .filter(([_, s]) => !s.available)
+        .map(([agent, s]) => `${agent}: ${s.model} (${s.health})`);
 
       if (problematic.length > 0) {
         console.log('\n⚠️  Agents with model issues:');

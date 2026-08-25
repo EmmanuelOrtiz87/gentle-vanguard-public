@@ -53,7 +53,7 @@ gv dashboard
 ### Step 2 — Stack Health (30 seconds)
 
 ```powershell
-gv verify
+gv check
 # Expected: 14/14 PASS
 ```
 

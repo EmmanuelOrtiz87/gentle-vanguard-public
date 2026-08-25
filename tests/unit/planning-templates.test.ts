@@ -18,7 +18,7 @@ import {
   renderPlanMarkdown,
   planStats,
   getPlanRoot,
-} from '../../src/planning-templates.ts';
+} from '../../src/planning/planning-templates.ts';
 
 function makeTempRoot(): string {
   const dir = mkdtempSync(join(tmpdir(), 'planning-templates-'));

@@ -53,7 +53,7 @@ const REPLACEMENTS: Replacement[] = [
   },
   {
     from: /scripts\/utilities\/semantic-search\.ps1/g,
-    to: 'src/semantic-search.ts',
+    to: 'src/retrieval/semantic-search.ts',
     description: 'Semantic search',
   },
   {
@@ -78,12 +78,12 @@ const REPLACEMENTS: Replacement[] = [
   },
   {
     from: /scripts\/utilities\/token-usage-auto\.ps1/g,
-    to: 'src/token-usage-auto.ts',
+    to: 'src/tokens/token-usage-auto.ts',
     description: 'Token usage tracking',
   },
   {
     from: /scripts\/utilities\/token-budget-guard\.ps1/g,
-    to: 'src/token-budget-guard.ts',
+    to: 'src/tokens/token-budget-guard.ts',
     description: 'Token budget guard',
   },
   {

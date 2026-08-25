@@ -26,8 +26,8 @@ interface MCPMetrics {
     lastCall: string | null;
   };
   performance: {
-    avgResponseTime: number;
-    errorRate: number;
+    avgResponseTime: number | null;
+    errorRate: number | null;
   };
 }
 
@@ -95,8 +95,10 @@ export function getMCPMetrics(): MCPMetrics {
       lastCall: stats.lastCall,
     },
     performance: {
-      avgResponseTime: 150 + Math.random() * 50, // Mock: 150-200ms
-      errorRate: Math.random() * 0.02, // Mock: 0-2%
+      // Do not manufacture operational metrics. These values are populated
+      // only when the tracker has real samples; null means unavailable.
+      avgResponseTime: typeof stats.avgResponseTime === 'number' ? stats.avgResponseTime : null,
+      errorRate: typeof stats.errorRate === 'number' ? stats.errorRate : null,
     },
   };
 }

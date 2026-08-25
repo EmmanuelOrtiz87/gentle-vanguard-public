@@ -175,7 +175,7 @@ function getRecentMetrics(): { avgLatency: number | null } {
             const dm = DatabaseManager.getInstance();
             const db = dm.getDb();
             const rows = db.prepare('SELECT value FROM metric_snapshots WHERE name = ? ORDER BY timestamp DESC LIMIT 10').all('latency_p95');
-            const vals = rows.map((r: any) => r.value).filter(Boolean);
+            const vals = rows.map((r) => r.value).filter(Boolean);
             console.log(JSON.stringify(vals.length > 0 ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : null));
           " 2>nul || echo null`,
           { maxBuffer: 1024 * 1024, timeout: 10000 },

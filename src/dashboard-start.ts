@@ -13,7 +13,6 @@ import * as http from 'http';
 import { spawn } from 'child_process';
 import { pathToFileURL } from 'url';
 import { getFreePort, saveDashboardPorts } from './dashboard-common';
-import { startWsServer } from './dashboard-ws-autostart';
 
 const ROOT = path.resolve(process.cwd());
 const WEB_APP_DIR = path.join(ROOT, 'apps', 'web-dashboard');
@@ -48,6 +47,7 @@ function parseArgs(): CliOptions {
 }
 
 import { getEffectiveProcessTimeout } from './core/timeout-config';
+import { run } from './core/run-command';
 
 /** HTTP GET check until a server responds or timeout */
 async function waitForServer(url: string, maxAttempts = 20, delayMs = 1000): Promise<boolean> {
@@ -76,14 +76,32 @@ async function waitForServer(url: string, maxAttempts = 20, delayMs = 1000): Pro
   return false;
 }
 
-/** Start the WS server watchdog */
+/** Start the WS server watchdog (detached, persistent --watch mode) */
 async function startWsWatchdog(port: number): Promise<void> {
-  if (!opts.quiet) console.log(`[DASHBOARD] Starting WS server on port ${port}...`);
+  if (!opts.quiet) console.log(`[DASHBOARD] Starting WS watchdog on port ${port}...`);
 
-  // Call the module version of dashboard-ws-autostart
-  const exitCode = await startWsServer(port);
-  if (exitCode !== 0 && !opts.quiet) {
-    console.warn(`[DASHBOARD] WS server exited with code ${exitCode}`);
+  // Spawn dashboard-ws-autostart.ts DETACHED in --watch mode so the
+  // auto-recovery watchdog survives after this launcher exits. Calling
+  // startWsServer() in-process would either block forever (--watch) or
+  // leave no recovery loop (one-shot). `--import tsx` runs the script in the
+  // spawned node process itself — hidden, no CLI-wrapper grandchild.
+  const autostartScript = path.join(ROOT, 'src', 'dashboard-ws-autostart.ts');
+  const child = spawn(
+    process.execPath,
+    ['--import', 'tsx', autostartScript, '--watch', '--port', String(port)],
+    {
+      cwd: ROOT,
+      stdio: 'ignore',
+      detached: true,
+      windowsHide: true,
+    },
+  );
+  child.unref();
+
+  // Wait until the WS server answers (the detached watchdog owns startup)
+  const ready = await waitForServer(`http://localhost:${port}/api/health`, 20, 1000);
+  if (!ready && !opts.quiet) {
+    console.warn(`[DASHBOARD] WS server not healthy yet on port ${port} (watchdog will retry)`);
   }
 }
 
@@ -98,9 +116,10 @@ async function startViteDev(wsPort: number, vitePort: number): Promise<void> {
     );
   }
 
-  // Use .cmd on Windows (vite without .cmd is a Unix shell script, not executable by node.exe)
-  const viteBin = path.join(WEB_APP_DIR, 'node_modules', '.bin', 'vite.cmd');
-  const child = spawn('cmd.exe', ['/c', viteBin, '--host', '--port', String(vitePort)], {
+  // Invoke Vite's JS entry directly. This avoids a persistent cmd.exe wrapper
+  // and keeps the launcher invisible on Windows.
+  const viteCli = path.join(WEB_APP_DIR, 'node_modules', 'vite', 'bin', 'vite.js');
+  const child = spawn(process.execPath, [viteCli, '--host', '--port', String(vitePort)], {
     cwd: WEB_APP_DIR,
     stdio: 'ignore',
     detached: true,
@@ -131,7 +150,7 @@ function openBrowser(vitePort: number): void {
 
   try {
     if (process.platform === 'win32') {
-      spawn('cmd.exe', ['/c', 'start', 'chrome.exe', '--new-window', url], {
+      spawn('cmd.exe', ['/d', '/c', 'start', '""', 'chrome.exe', '--new-window', url], {
         windowsHide: true,
         detached: true,
         stdio: 'ignore',
@@ -146,6 +165,38 @@ function openBrowser(vitePort: number): void {
   }
 }
 
+/** Detect an already-running WS server on the standard candidate ports */
+async function detectRunningWs(): Promise<number | null> {
+  for (const p of [8080, 8082, 8083]) {
+    const ok = await new Promise<boolean>((resolve) => {
+      const req = http.get(`http://127.0.0.1:${p}/api/health`, { timeout: 2000 }, (res) => {
+        resolve(res.statusCode === 200);
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+    });
+    if (ok) return p;
+  }
+  return null;
+}
+
+/** Probe whether an HTTP server is already serving at the given URL */
+async function isHttpOk(url: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const req = http.get(url, { timeout: 2000 }, (res) => {
+      resolve((res.statusCode ?? 500) < 500);
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
 const opts = parseArgs();
 
 /** Main entry */
@@ -158,11 +209,21 @@ async function main(): Promise<void> {
     console.log('');
   }
 
-  // Resolve ports
-  const selectedWs = await getFreePort(opts.wsPort > 0 ? opts.wsPort : 8080);
-  const selectedVite = await getFreePort(opts.viteDevPort > 0 ? opts.viteDevPort : 5173);
+  // Resolve ports — adopt an already-running WS server so Vite proxies to the
+  // right backend (getFreePort alone would skip to 8081 and break the wiring).
+  const detectedWs = opts.wsPort > 0 ? null : await detectRunningWs();
+  const selectedWs = detectedWs ?? (await getFreePort(opts.wsPort > 0 ? opts.wsPort : 8080));
+  const desiredVite = opts.viteDevPort > 0 ? opts.viteDevPort : 5173;
+  // Idempotency: adopt an already-serving Vite instead of spawning a duplicate
+  // on a shifted port (getFreePort would jump to 5174 and orphan the known URL).
+  const viteAlreadyUp = await isHttpOk(`http://localhost:${desiredVite}/`);
+  const selectedVite = viteAlreadyUp ? desiredVite : await getFreePort(desiredVite);
 
   saveDashboardPorts(selectedWs, selectedVite);
+
+  if (detectedWs !== null && !opts.quiet) {
+    console.log(`[DASHBOARD] WS server already running on port ${selectedWs} — adopting it`);
+  }
 
   if (selectedWs !== (opts.wsPort || 8080) && !opts.quiet) {
     console.log(`[DASHBOARD] WS port ${opts.wsPort || 8080} busy → using ${selectedWs}`);
@@ -173,27 +234,36 @@ async function main(): Promise<void> {
 
   // Launch Vite
   if (!opts.wsOnly) {
-    // Ensure node_modules exist
-    const nodeModulesPath = path.join(WEB_APP_DIR, 'node_modules');
-    if (!fs.existsSync(nodeModulesPath)) {
-      console.log('[DASHBOARD] Installing dependencies...');
-      const install = spawn('npm', ['install', '--silent'], {
-        cwd: WEB_APP_DIR,
-        stdio: 'inherit',
-        windowsHide: true,
-      });
-      await new Promise<void>((resolve, reject) => {
-        install.on('close', (code) =>
-          code === 0 ? resolve() : reject(new Error('npm install failed')),
+    if (viteAlreadyUp) {
+      if (!opts.quiet) {
+        console.log(
+          `[DASHBOARD] Vite already running on port ${selectedVite} — adopting it (no new process)`,
         );
-        install.on('error', reject);
-      });
-    }
+      }
+    } else {
+      // Ensure node_modules exist
+      const nodeModulesPath = path.join(WEB_APP_DIR, 'node_modules');
+      if (!fs.existsSync(nodeModulesPath)) {
+        console.log('[DASHBOARD] Installing dependencies...');
+        // run() routes `npm` through its .cmd shim safely on Windows (raw
+        // spawn('npm') fails with EINVAL without a shell).
+        const install = run('npm', ['install', '--silent'], {
+          cwd: WEB_APP_DIR,
+          stdio: 'inherit',
+        });
+        await new Promise<void>((resolve, reject) => {
+          install.on('close', (code) =>
+            code === 0 ? resolve() : reject(new Error('npm install failed')),
+          );
+          install.on('error', reject);
+        });
+      }
 
-    await startViteDev(selectedWs, selectedVite);
+      await startViteDev(selectedWs, selectedVite);
 
-    if (!opts.noBrowser) {
-      openBrowser(selectedVite);
+      if (!opts.noBrowser) {
+        openBrowser(selectedVite);
+      }
     }
   }
 
