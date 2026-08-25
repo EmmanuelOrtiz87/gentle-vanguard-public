@@ -57,7 +57,12 @@ async function main(): Promise<number> {
   const { tool, skill, dryRun } = parseArgs(process.argv.slice(2));
   const adapters = await loadAdapters();
 
-  const available: { name: string; adapter: any }[] = [];
+  // Minimal adapter contract: converts a SKILL.md into the target tool format
+  interface FormatAdapter {
+    convert: (skillPath: string, outputPath: string) => void;
+  }
+
+  const available: { name: string; adapter: FormatAdapter }[] = [];
   if (adapters.antigravityAdapter)
     available.push({ name: 'antigravity', adapter: adapters.antigravityAdapter });
   if (adapters.codexAdapter) available.push({ name: 'codex', adapter: adapters.codexAdapter });

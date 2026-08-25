@@ -128,9 +128,9 @@ git push origin feat/your-feature-name
 | Requirement                          | Version | Status                               |
 | ------------------------------------ | ------- | ------------------------------------ |
 | **🪟 Windows 10/11 / Linux / macOS** | Any     | ✅ Required                          |
-| **⚡ TypeScript 7+**                 | 7.0+    | ✅ Required                          |
+| **🟢 Node.js**                       | 20+     | ✅ Required                          |
+| **📦 pnpm**                          | 11+     | ✅ Required                          |
 | **🌿 Git**                           | 2.30+   | ✅ Required                          |
-| **🟢 Node.js**                       | 18+     | ⚠️ Optional (for lefthook, prettier) |
 | **🐹 Go**                            | 1.19+   | ⚠️ Optional (for Engram)             |
 
 ### Quick Start

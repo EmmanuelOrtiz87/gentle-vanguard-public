@@ -18,25 +18,17 @@
  *   npx tsx src/cli/backlog.ts delete <id>
  */
 
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import Database from 'better-sqlite3';
+import {
+  DatabaseManager,
+  DEFAULT_TENANT_ID,
+} from '../../apps/web-dashboard/server/database/manager';
+import type { BacklogItem } from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
 
 // ─── Resolve ───────────────────────────────────────────────────────
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DB_PATH = join(ROOT, '.runtime', 'gentle-vanguard.db');
-
-let _db: Database.Database | null = null;
-function db(): Database.Database {
-  if (!_db) {
-    _db = new Database(DB_PATH);
-    _db.pragma('journal_mode = WAL');
-    _db.pragma('foreign_keys = ON');
-  }
-  return _db;
-}
-
-// (types are inferred from SQLite rows)
+const TENANT_ID = process.env.GENTLE_TENANT_ID ?? DEFAULT_TENANT_ID;
+const database = DatabaseManager.getInstance();
+database.runMigrations();
+const backlog = database.backlog;
 
 // ─── Colors ────────────────────────────────────────────────────────
 const C = {
@@ -89,108 +81,51 @@ function cmdAdd(args: Record<string, string>): void {
     process.exit(1);
   }
 
-  const id = `BL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const d = db();
-  const assignee = args.assignee ?? 'any';
-  const env = args.env ?? 'all';
-  const impact = args.impact ?? 'minor';
-  const priority = parseInt(args.priority ?? '3');
-
-  d.prepare(
-    `INSERT INTO backlog_items (id,type,title,description,severity,status,source,session_id,
-      assignee_role,estimated_hours,priority,target_release,environment,reported_by,impact,created_at,updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-  ).run(
-    id,
-    type,
-    title,
-    args.description ?? '',
-    severity,
-    status,
-    args.source ?? '',
-    args.session ?? null,
-    assignee,
-    args.estimate ? parseFloat(args.estimate) : null,
-    priority,
-    args.release ?? null,
-    env,
-    args.reporter ?? null,
-    impact,
-    now,
-    now,
+  const id = backlog.addItem(
+    {
+      type: type as BacklogItem['type'],
+      title,
+      description: args.description ?? '',
+      severity: severity as BacklogItem['severity'],
+      status: status as BacklogItem['status'],
+      source: args.source ?? '',
+      session_id: args.session ?? undefined,
+      assignee_role: args.assignee ?? 'any',
+      estimated_hours: args.estimate ? parseFloat(args.estimate) : undefined,
+      priority: parseInt(args.priority ?? '3'),
+      target_release: args.release ?? undefined,
+      environment: args.env ?? 'all',
+      reported_by: args.reporter ?? undefined,
+      impact: args.impact ?? 'minor',
+    },
+    TENANT_ID,
   );
-  d.prepare(
-    'INSERT INTO backlog_status_history (item_id,from_status,to_status,reason) VALUES (?,NULL,?,?)',
-  ).run(id, status, 'Item created');
 
   if (args.tags)
     args.tags.split(',').forEach((t: string) => {
       const tag = t.trim();
-      d.prepare('INSERT OR IGNORE INTO backlog_tags (name) VALUES (?)').run(tag);
-      const tid = (
-        d.prepare('SELECT id FROM backlog_tags WHERE name = ?').get(tag) as { id: number }
-      ).id;
-      d.prepare('INSERT OR IGNORE INTO backlog_item_tags (item_id,tag_id) VALUES (?,?)').run(
-        id,
-        tid,
-      );
+      backlog.addTagToItem(id, tag, undefined, TENANT_ID);
     });
-  if (args.comment)
-    d.prepare('INSERT INTO backlog_comments (item_id,content,author) VALUES (?,?,?)').run(
-      id,
-      args.comment,
-      'system',
-    );
+  if (args.comment) backlog.addComment(id, args.comment, 'system', TENANT_ID);
 
   console.log(`  ${C.green}✅ Created: ${id}${C.reset}`);
   console.log(`  ${title}  [${type}/${severity}]`);
 }
 
 function cmdList(args: Record<string, string>): void {
-  const conds: string[] = [];
-  const params: unknown[] = [];
   const limit = parseInt(args.limit ?? '50');
   const offset = parseInt(args.offset ?? '0');
-
-  if (args.status) {
-    conds.push('bi.status = ?');
-    params.push(args.status);
-  }
-  if (args.severity) {
-    conds.push('bi.severity = ?');
-    params.push(args.severity);
-  }
-  if (args.type) {
-    conds.push('bi.type = ?');
-    params.push(args.type);
-  }
-  if (args.tag) {
-    conds.push(
-      'bi.id IN (SELECT bit.item_id FROM backlog_item_tags bit JOIN backlog_tags bt ON bit.tag_id=bt.id WHERE bt.name=?)',
-    );
-    params.push(args.tag);
-  }
-  if (args.search) {
-    conds.push('(bi.title LIKE ? OR bi.description LIKE ?)');
-    params.push(`%${args.search}%`, `%${args.search}%`);
-  }
-
-  const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
-  const d = db();
-  const rows = d
-    .prepare(
-      `SELECT bi.*,GROUP_CONCAT(DISTINCT bt.name) as tags
-    FROM backlog_items bi LEFT JOIN backlog_item_tags bit ON bi.id=bit.item_id LEFT JOIN backlog_tags bt ON bit.tag_id=bt.id
-    ${where} GROUP BY bi.id
-    ORDER BY CASE bi.severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 END, bi.created_at DESC
-    LIMIT ? OFFSET ?`,
-    )
-    .all(...params, limit, offset) as any[];
-
-  const count = (
-    d.prepare(`SELECT COUNT(*) as c FROM backlog_items bi ${where}`).get(...params) as { c: number }
-  ).c;
+  const filter = {
+    status: args.status,
+    severity: args.severity,
+    type: args.type,
+    tag: args.tag,
+    search: args.search,
+    limit,
+    offset,
+  };
+  const rows = backlog.listItems(filter, TENANT_ID);
+  const count = backlog.countItems(filter, TENANT_ID);
 
   if (!rows.length) {
     console.log('No items match.');
@@ -198,37 +133,24 @@ function cmdList(args: Record<string, string>): void {
   }
   console.log(`Found ${count} item(s):\n`);
   for (const r of rows) {
-    const t = r.tags ? ` [${r.tags}]` : '';
+    const t = r.tags?.length ? ` [${r.tags.join(',')}]` : '';
     console.log(
-      `  ${sevColor(r.severity)}${r.severity.padEnd(8)}${C.reset} ${staColor(r.status)}${r.status.padEnd(12)}${C.reset} ${(r.id as string).padEnd(20)} ${(r.title as string).substring(0, 70)}${t}`,
+      `  ${sevColor(r.severity)}${r.severity.padEnd(8)}${C.reset} ${staColor(r.status)}${r.status.padEnd(12)}${C.reset} ${r.id.padEnd(20)} ${r.title.substring(0, 70)}${t}`,
     );
   }
   console.log(`\nTotal: ${count}`);
 }
 
 function cmdGet(id: string): void {
-  const d = db();
-  const r = d
-    .prepare(
-      `SELECT bi.*,GROUP_CONCAT(DISTINCT bt.name) as tags
-    FROM backlog_items bi LEFT JOIN backlog_item_tags bit ON bi.id=bit.item_id LEFT JOIN backlog_tags bt ON bit.tag_id=bt.id
-    WHERE bi.id=? GROUP BY bi.id`,
-    )
-    .get(id) as any;
+  const r = backlog.getItem(id, TENANT_ID);
   if (!r) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
 
-  const comments = d
-    .prepare('SELECT * FROM backlog_comments WHERE item_id=? ORDER BY created_at')
-    .all(id) as any[];
-  const history = d
-    .prepare('SELECT * FROM backlog_status_history WHERE item_id=? ORDER BY created_at')
-    .all(id) as any[];
-  const related = d
-    .prepare('SELECT related_item_id,relation_type FROM backlog_related_items WHERE item_id=?')
-    .all(id) as any[];
+  const comments = backlog.getComments(id, TENANT_ID);
+  const history = backlog.getStatusHistory(id, TENANT_ID);
+  const related = backlog.getRelatedItems(id, TENANT_ID);
 
   console.log(`\n  ID:       ${r.id}`);
   console.log(`  Type:     ${r.type}`);
@@ -237,26 +159,24 @@ function cmdGet(id: string): void {
   console.log(`  Status:   ${staColor(r.status)}${r.status}${C.reset}`);
   if (r.description) console.log(`  Desc:     ${r.description}`);
   if (r.source) console.log(`  Source:   ${r.source}`);
-  if (r.tags) console.log(`  Tags:     ${r.tags}`);
+  if (r.tags?.length) console.log(`  Tags:     ${r.tags.join(',')}`);
   console.log(`  Created:  ${r.created_at}`);
   if (r.resolved_at) console.log(`  Resolved: ${r.resolved_at}`);
   if (r.resolution_notes) console.log(`  Notes:    ${r.resolution_notes}`);
 
   if (comments.length) {
     console.log(`\n  Comments:`);
-    comments.forEach((c: any) => console.log(`    [${c.author}] ${c.content}`));
+    comments.forEach((c) => console.log(`    [${c.author}] ${c.content}`));
   }
   if (history.length > 1) {
     console.log(`\n  History:`);
-    history.forEach((h: any) =>
-      console.log(
-        `    ${(h.created_at as string).substring(0, 16)}  ${h.from_status ?? '-'} → ${h.to_status}`,
-      ),
+    history.forEach((h) =>
+      console.log(`    ${h.created_at.substring(0, 16)}  ${h.from_status ?? '-'} → ${h.to_status}`),
     );
   }
   if (related.length) {
     console.log(`\n  Related:`);
-    related.forEach((r: any) => console.log(`    ${r.related_item_id}  [${r.relation_type}]`));
+    related.forEach((r) => console.log(`    ${r.related_item_id}  [${r.relation_type}]`));
   }
   console.log('');
 }
@@ -267,95 +187,36 @@ function cmdUpdate(args: Record<string, string>): void {
     console.error('<id> required');
     process.exit(1);
   }
-  const d = db();
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const fields: string[] = ['updated_at=?'];
-  const params: unknown[] = [now];
+  if (!backlog.getItem(id, TENANT_ID)) {
+    console.error(`Not found: ${id}`);
+    process.exit(1);
+  }
+  const updates: Partial<BacklogItem> = {};
+  if (args.status) updates.status = args.status as BacklogItem['status'];
+  if (args.severity) updates.severity = args.severity as BacklogItem['severity'];
+  if (args.title) updates.title = args.title;
+  if (args.description) updates.description = args.description;
+  if (args.notes) updates.resolution_notes = args.notes;
+  if (args.assignee) updates.assignee_role = args.assignee;
+  if (args.estimate) updates.estimated_hours = parseFloat(args.estimate);
+  if (args.actual) updates.actual_hours = parseFloat(args.actual);
+  if (args.priority) updates.priority = parseInt(args.priority);
+  if (args.release) updates.target_release = args.release;
+  if (args.env) updates.environment = args.env;
+  if (args.reporter) updates.reported_by = args.reporter;
+  if (args.impact) updates.impact = args.impact;
 
-  if (args.status) {
-    const cur = d.prepare('SELECT status FROM backlog_items WHERE id=?').get(id) as any;
-    fields.push('status=?');
-    params.push(args.status);
-    if (args.status === 'resolved') {
-      fields.push('resolved_at=?');
-      params.push(now);
-    }
-    d.prepare(
-      'INSERT INTO backlog_status_history (item_id,from_status,to_status,reason) VALUES (?,?,?,?)',
-    ).run(id, cur?.status ?? null, args.status, args.notes ?? '');
-  }
-  if (args.severity) {
-    fields.push('severity=?');
-    params.push(args.severity);
-  }
-  if (args.title) {
-    fields.push('title=?');
-    params.push(args.title);
-  }
-  if (args.description) {
-    fields.push('description=?');
-    params.push(args.description);
-  }
-  if (args.notes) {
-    fields.push('resolution_notes=?');
-    params.push(args.notes);
-  }
-  if (args.assignee) {
-    fields.push('assignee_role=?');
-    params.push(args.assignee);
-  }
-  if (args.estimate) {
-    fields.push('estimated_hours=?');
-    params.push(parseFloat(args.estimate));
-  }
-  if (args.actual) {
-    fields.push('actual_hours=?');
-    params.push(parseFloat(args.actual));
-  }
-  if (args.priority) {
-    fields.push('priority=?');
-    params.push(parseInt(args.priority));
-  }
-  if (args.release) {
-    fields.push('target_release=?');
-    params.push(args.release);
-  }
-  if (args.env) {
-    fields.push('environment=?');
-    params.push(args.env);
-  }
-  if (args.reporter) {
-    fields.push('reported_by=?');
-    params.push(args.reporter);
-  }
-  if (args.impact) {
-    fields.push('impact=?');
-    params.push(args.impact);
-  }
-
-  if (fields.length === 1) {
+  if (!Object.keys(updates).length) {
     console.error('Nothing to update');
     process.exit(1);
   }
-  params.push(id);
-  d.prepare(`UPDATE backlog_items SET ${fields.join(',')} WHERE id=?`).run(...params);
+  backlog.updateItem(id, updates, TENANT_ID);
 
-  if (args.comment)
-    d.prepare('INSERT INTO backlog_comments (item_id,content,author) VALUES (?,?,?)').run(
-      id,
-      args.comment,
-      'system',
-    );
+  if (args.comment) backlog.addComment(id, args.comment, 'system', TENANT_ID);
   if (args.tags)
     args.tags.split(',').forEach((t: string) => {
       const tag = t.trim();
-      d.prepare('INSERT OR IGNORE INTO backlog_tags (name) VALUES (?)').run(tag);
-      const tid = (d.prepare('SELECT id FROM backlog_tags WHERE name=?').get(tag) as { id: number })
-        .id;
-      d.prepare('INSERT OR IGNORE INTO backlog_item_tags (item_id,tag_id) VALUES (?,?)').run(
-        id,
-        tid,
-      );
+      backlog.addTagToItem(id, tag, undefined, TENANT_ID);
     });
 
   console.log(`  ${C.green}✅ Updated: ${id}${C.reset}`);
@@ -367,9 +228,11 @@ function cmdComment(args: Record<string, string>): void {
     console.error('<id> and --text required');
     process.exit(1);
   }
-  db()
-    .prepare('INSERT INTO backlog_comments (item_id,content,author) VALUES (?,?,?)')
-    .run(id, args.text, args.author ?? 'system');
+  if (!backlog.getItem(id, TENANT_ID)) {
+    console.error(`Not found: ${id}`);
+    process.exit(1);
+  }
+  backlog.addComment(id, args.text, args.author ?? 'system', TENANT_ID);
   console.log(`  ${C.green}✅ Comment added to ${id}${C.reset}`);
 }
 
@@ -384,11 +247,11 @@ function cmdRelate(args: Record<string, string>): void {
     console.error(`--type must be: ${types.join(', ')}`);
     process.exit(1);
   }
-  db()
-    .prepare(
-      'INSERT OR IGNORE INTO backlog_related_items (item_id,related_item_id,relation_type) VALUES (?,?,?)',
-    )
-    .run(args._id, args._related, rel);
+  if (!backlog.getItem(args._id, TENANT_ID) || !backlog.getItem(args._related, TENANT_ID)) {
+    console.error('Both items must belong to the selected tenant');
+    process.exit(1);
+  }
+  backlog.relateItems(args._id, args._related, rel, TENANT_ID);
   console.log(`  ${C.green}✅ ${args._id} → ${rel} → ${args._related}${C.reset}`);
 }
 
@@ -397,77 +260,52 @@ function cmdSearch(query: string): void {
     console.error('query required');
     process.exit(1);
   }
-  const rows = db()
-    .prepare(
-      `SELECT bi.*,GROUP_CONCAT(DISTINCT bt.name) as tags
-    FROM backlog_items bi LEFT JOIN backlog_item_tags bit ON bi.id=bit.item_id LEFT JOIN backlog_tags bt ON bit.tag_id=bt.id
-    WHERE bi.title LIKE ? OR bi.description LIKE ? GROUP BY bi.id ORDER BY bi.created_at DESC LIMIT 10`,
-    )
-    .all(`%${query}%`, `%${query}%`) as any[];
+  const rows = backlog.searchSimilar(query, 10, TENANT_ID);
   if (!rows.length) {
     console.log(`No similar items for "${query}"`);
     return;
   }
   console.log(`Similar items for "${query}":\n`);
-  rows.forEach((r: any) =>
-    console.log(`  ${r.id} [${r.type}/${r.severity}/${r.status}]  ${r.title}`),
-  );
+  rows.forEach((r) => console.log(`  ${r.id} [${r.type}/${r.severity}/${r.status}]  ${r.title}`));
 }
 
 function cmdStats(): void {
-  const d = db();
-  const total = (d.prepare('SELECT COUNT(*) as c FROM backlog_items').get() as { c: number }).c;
-  const open = (
-    d
-      .prepare(
-        "SELECT COUNT(*) as c FROM backlog_items WHERE status NOT IN ('resolved','wont_fix','duplicate')",
-      )
-      .get() as { c: number }
-  ).c;
-  const byStatus = d
-    .prepare('SELECT status,COUNT(*) as count FROM backlog_items GROUP BY status')
-    .all() as any[];
-  const bySeverity = d
-    .prepare('SELECT severity,COUNT(*) as count FROM backlog_items GROUP BY severity')
-    .all() as any[];
-  const byType = d
-    .prepare('SELECT type,COUNT(*) as count FROM backlog_items GROUP BY type')
-    .all() as any[];
+  const stats = backlog.getStats(TENANT_ID) as {
+    total: number;
+    open: number;
+    byStatus: Array<{ status: string; count: number }>;
+    bySeverity: Array<{ severity: string; count: number }>;
+    byType: Array<{ type: string; count: number }>;
+  };
+  const { total, open, byStatus, bySeverity, byType } = stats;
 
   console.log(`\n  Backlog Stats:`);
   console.log(`  ${C.cyan}Total: ${total}  |  Open: ${open}${C.reset}\n`);
   console.log('  By Status:');
-  byStatus.forEach((s: any) =>
+  byStatus.forEach((s) =>
     console.log(`    ${staColor(s.status)}${s.status.padEnd(12)}${C.reset} ${s.count}`),
   );
   console.log('\n  By Severity:');
-  bySeverity.forEach((s: any) =>
+  bySeverity.forEach((s) =>
     console.log(`    ${sevColor(s.severity)}${s.severity.padEnd(10)}${C.reset} ${s.count}`),
   );
   console.log('\n  By Type:');
-  byType.forEach((s: any) => console.log(`    ${s.type.padEnd(14)} ${s.count}`));
+  byType.forEach((s) => console.log(`    ${s.type.padEnd(14)} ${s.count}`));
   console.log('');
 }
 
 function cmdReport(args: Record<string, string>): void {
   const fmt = args.format ?? 'table';
-  const d = db();
-  const rows = d
-    .prepare(
-      `SELECT bi.*,GROUP_CONCAT(DISTINCT bt.name) as tags
-    FROM backlog_items bi LEFT JOIN backlog_item_tags bit ON bi.id=bit.item_id LEFT JOIN backlog_tags bt ON bit.tag_id=bt.id
-    GROUP BY bi.id ORDER BY CASE bi.severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 END, bi.created_at DESC`,
-    )
-    .all() as any[];
+  const rows = backlog.listItems({}, TENANT_ID);
 
   if (fmt === 'markdown') {
     console.log('# Backlog Report\n');
     console.log(`Generated: ${new Date().toISOString().substring(0, 10)}\n`);
     console.log('| ID | Type | Severity | Status | Title | Tags |');
     console.log('|---|---|---|---|---|---|');
-    rows.forEach((r: any) =>
+    rows.forEach((r) =>
       console.log(
-        `| ${r.id} | ${r.type} | ${r.severity} | ${r.status} | ${(r.title as string).replace(/\|/g, '/')} | ${r.tags ?? ''} |`,
+        `| ${r.id} | ${r.type} | ${r.severity} | ${r.status} | ${r.title.replace(/\|/g, '/')} | ${r.tags?.join(',') ?? ''} |`,
       ),
     );
     console.log(`\n*Total: ${rows.length} items*`);
@@ -481,13 +319,13 @@ function cmdDelete(id: string): void {
     console.error('<id> required');
     process.exit(1);
   }
-  const r = db().prepare('SELECT title FROM backlog_items WHERE id=?').get(id) as any;
+  const r = backlog.getItem(id, TENANT_ID);
   if (!r) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
   console.log(`Deleting: ${id} — ${r.title}`);
-  db().prepare('DELETE FROM backlog_items WHERE id=?').run(id);
+  backlog.deleteItem(id, TENANT_ID);
   console.log(`  ${C.green}✅ Deleted: ${id}${C.reset}`);
 }
 

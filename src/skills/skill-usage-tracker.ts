@@ -12,8 +12,17 @@ import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
 
 // Lazy db import for SQLite dual-write
-let _db: any = null;
-function getDb(): any {
+// Minimal shape of the DatabaseManager used here (full manager lives in apps/web-dashboard)
+interface SkillUsageDbManager {
+  recordSkillUsage: (
+    skillName: string,
+    sessionId: string | undefined,
+    tokenCount: number,
+  ) => unknown;
+}
+
+let _db: SkillUsageDbManager | null = null;
+function getDb(): SkillUsageDbManager | null {
   if (!_db) {
     try {
       const mod = _require('../../apps/web-dashboard/server/database/manager');

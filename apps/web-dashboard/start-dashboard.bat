@@ -1,36 +1,29 @@
 @echo off
-REM start-dashboard.bat — Script simple para iniciar el dashboard Gentle-Vanguard
+REM start-dashboard.bat — Inicia el dashboard Gentle-Vanguard (modo oculto)
+REM Delega en el launcher TS (src/dashboard-start.ts): el watchdog WS y Vite
+REM corren como procesos ocultos, sin ventanas cmd /k persistentes.
 
 echo ==========================================
 echo  DASHBOARD GENTLE-VANGUARD - STARTER
 echo ==========================================
 echo.
 
-REM Verificar que estamos en el directorio correcto
+REM Volver a la raiz del repo (apps/web-dashboard -> raiz)
+cd /d "%~dp0..\.."
+
 if not exist "package.json" (
-  echo ERROR: Ejecutar desde C:\Workspace_local\gentle-vanguard\apps\web-dashboard
+  echo ERROR: No se encontro la raiz del repo.
+  pause
   exit /b 1
 )
 
-REM Configurar puerto WebSocket
-set WS_PORT=8080
-
-echo [1/2] Iniciando WebSocket Server en puerto %WS_PORT%...
-echo.
-start "WebSocket Server" cmd /k "cd /d %CD% && npx tsx server/websocket-server.ts"
-
-echo [2/2] Iniciando Vite Frontend...
-echo.
-timeout /t 3 /nobreak >nul
-start "Vite Frontend" cmd /k "cd /d %CD% && npx vite"
+echo Iniciando dashboard oculto (WS watchdog + Vite)...
+node --import tsx src\dashboard-start.ts
 
 echo.
 echo ==========================================
-echo  DASHBOARD INICIADO
+echo  DASHBOARD INICIADO (procesos ocultos)
 echo ==========================================
 echo.
-echo WebSocket:  http://localhost:%WS_PORT%
-echo Dashboard:  http://localhost:5173
-echo.
-echo Presiona cualquier tecla para cerrar esta ventana...
-pause >nul
+echo Cierra esta ventana; el dashboard sigue corriendo.
+echo Para detenerlo: npx tsx src/dashboard-stop.ts

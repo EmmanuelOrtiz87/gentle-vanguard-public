@@ -160,14 +160,14 @@ async function getDBMetrics(): Promise<DBMetrics> {
     // Tables
     const tableResult = db
       .prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'")
-      .get() as any;
+      .get() as { count?: number | null };
     metrics.tableCount = tableResult?.count || 0;
 
     // Row count (aproximado)
     try {
       const rows = db
         .prepare("SELECT SUM((SELECT COUNT(*) FROM sqlite_master WHERE type='table')) as count")
-        .get() as any;
+        .get() as { count?: number | null };
       metrics.rowCount = rows?.count || 0;
     } catch {
       metrics.rowCount = 0;
@@ -175,7 +175,9 @@ async function getDBMetrics(): Promise<DBMetrics> {
 
     // Integrity check
     try {
-      const integrity = db.prepare('PRAGMA integrity_check').get() as any;
+      const integrity = db.prepare('PRAGMA integrity_check').get() as {
+        integrity_check?: string | null;
+      };
       metrics.integrity = integrity?.integrity_check === 'ok' ? 'ok' : 'unknown';
     } catch {
       metrics.integrity = 'unknown';
@@ -183,7 +185,7 @@ async function getDBMetrics(): Promise<DBMetrics> {
 
     // Cache stats
     try {
-      const cacheInfo = db.prepare('PRAGMA cache_size').get() as any;
+      const cacheInfo = db.prepare('PRAGMA cache_size').get() as { cache_size?: number | null };
       metrics.cacheHitRate = cacheInfo ? 0.95 : 0; // Placeholder
     } catch {
       metrics.cacheHitRate = 0;

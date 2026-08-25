@@ -23,7 +23,7 @@ gate, to Judgment Day adversarial review — all automated and integrated into t
 | 4   | Full QA gate                       | `gv judgment-day`                       |
 | 5   | Code review                        | `gv review`                             |
 | 6   | Audit report                       | `gv audit`                              |
-| 7   | Agent-verify (14 checks)           | `gv verify`                             |
+| 7   | Agent-verify (14 checks)           | `gv check`                             |
 
 ---
 
@@ -32,7 +32,7 @@ gate, to Judgment Day adversarial review — all automated and integrated into t
 ### Step 1 — Check quality gate status
 
 ```powershell
-gv verify
+gv check
 # Expected: 14/14 PASS
 # Look for: quality-gate-workflows, workflow-hardening, tests-passing
 ```

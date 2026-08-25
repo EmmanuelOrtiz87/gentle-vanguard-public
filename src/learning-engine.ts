@@ -35,6 +35,18 @@ interface ErrorPattern {
   lesson?: string;
 }
 
+type Severity = ErrorPattern['severity'];
+
+const SEVERITY_LEVELS: Record<Severity, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
+function isSeverity(value: string | undefined): value is Severity {
+  return value !== undefined && value in SEVERITY_LEVELS;
+}
+
+function normalizeSeverity(value: string | undefined): Severity {
+  return isSeverity(value) ? value : 'medium';
+}
+
 interface KnowledgeEntry {
   id: string;
   source: string;
@@ -128,7 +140,7 @@ export function learnFromError(
     pattern.frequency++;
     pattern.lastSeen = now;
     if (context.severity && !pattern.resolved) {
-      pattern.severity = mergeSeverity(pattern.severity, context.severity as any);
+      pattern.severity = mergeSeverity(pattern.severity, normalizeSeverity(context.severity));
     }
     saveLearningData(data);
     updateEngram(pattern, 'updated');
@@ -142,7 +154,7 @@ export function learnFromError(
     code: context.code,
     file: context.file,
     domain: context.domain || 'general',
-    severity: (context.severity as any) || 'medium',
+    severity: normalizeSeverity(context.severity),
     frequency: 1,
     firstSeen: now,
     lastSeen: now,
@@ -168,11 +180,8 @@ export function learnFromError(
   return pattern;
 }
 
-function mergeSeverity(current: string, incoming: string): any {
-  const levels = { low: 1, medium: 2, high: 3, critical: 4 };
-  return levels[incoming as keyof typeof levels] > levels[current as keyof typeof levels]
-    ? incoming
-    : current;
+function mergeSeverity(current: Severity, incoming: Severity): Severity {
+  return SEVERITY_LEVELS[incoming] > SEVERITY_LEVELS[current] ? incoming : current;
 }
 
 function extractLesson(message: string, domain?: string): string | undefined {
@@ -232,7 +241,7 @@ function generateSuggestion(pattern: ErrorPattern): void {
   }
 }
 
-function getPriorityFromFrequency(freq: number): any {
+function getPriorityFromFrequency(freq: number): Suggestion['priority'] {
   if (freq > 10) return 'critical';
   if (freq > 5) return 'high';
   if (freq > 2) return 'medium';
@@ -428,8 +437,8 @@ function handleLearn(errorFile?: string): void {
     console.log(`   Domain: ${pattern.domain}`);
     console.log(`   Severity: ${pattern.severity}`);
     console.log(`   Lesson: ${pattern.lesson || 'N/A'}`);
-  } catch (err: any) {
-    console.error(`Failed to learn from error: ${err.message}`);
+  } catch (err: unknown) {
+    console.error(`Failed to learn from error: ${(err as Error).message}`);
     process.exit(1);
   }
 }

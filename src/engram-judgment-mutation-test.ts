@@ -12,7 +12,7 @@
  *   npx tsx src/engram-judgment-mutation-test.ts --validate-all
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 
 const MUTATIONS = [
   {
@@ -180,25 +180,23 @@ async function getJudgmentData(judgmentId: string): Promise<{
 } | null> {
   // Usar mem_get_observation para obtener datos
   return new Promise((resolve) => {
-    const child = spawn(
-      'npx',
-      ['tsx', 'src/engram-tools-wrapper.ts', 'get-observation', '--id', judgmentId],
+    const child = runNpxTsx(
+      'src/engram-tools-wrapper.ts',
+      ['get-observation', '--id', judgmentId],
       {
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe'],
-        shell: true,
-        windowsHide: true,
       },
     );
 
     let output = '';
     let error = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       output += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       error += data.toString();
     });
 

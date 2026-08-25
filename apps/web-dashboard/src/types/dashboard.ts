@@ -60,11 +60,24 @@ export interface CostInsight {
 }
 
 export interface DashboardData {
+  timestamp?: string;
+  source?: 'aggregated' | 'sqlite' | 'json';
+  sourceClassification?: {
+    scope: 'deployment-tenant' | 'system-wide';
+    source: 'database' | 'filesystem' | 'mixed';
+    provenance: 'explicit' | 'unprovenanced';
+    tenantId?: string;
+  };
   tokens: { used: number; limit: number; cost: number; byModel: ModelCost[] };
   sessions: { total: number; active: number; today: number; avgDuration: number };
   git: { commits: number; prsMerged: number; contributors: number };
   health: { status: string; routing: number };
   globalHealth?: GlobalHealth;
+  tenantScope?: {
+    type: 'deployment-tenant' | 'system-wide';
+    tenantId?: string;
+    warning?: string;
+  };
   latency?: LatencyMetrics;
   feedback?: FeedbackMetric;
   costInsights?: CostInsight[];
@@ -173,8 +186,9 @@ export interface SwarmWorkerData {
 export interface Session {
   id: string;
   agent: string;
-  status: 'active' | 'idle' | 'completed';
+  status: 'active' | 'idle' | 'stale' | 'completed';
   startTime: string;
+  lastActivity?: string;
   tokensUsed: number;
   model?: string;
   cost?: number;
@@ -189,6 +203,12 @@ export interface CloudConnectorExecution {
 }
 
 export interface CloudMetrics {
+  sourceClassification?: {
+    scope: 'deployment-tenant' | 'system-wide';
+    source: 'database' | 'filesystem' | 'mixed';
+    provenance: 'explicit' | 'unprovenanced';
+    tenantId?: string;
+  };
   executions: CloudConnectorExecution[];
   stats: {
     totalExecutions: number;
@@ -286,6 +306,8 @@ export interface MetricHistory {
   mcpSkills?: number;
   commits?: number;
 }
+
+export type HistoryRange = '5m' | '1h' | '24h' | '7d' | '30d';
 
 // ─── Stack Tables (Wave 37: SQLite-backed panels) ─────────────────────
 

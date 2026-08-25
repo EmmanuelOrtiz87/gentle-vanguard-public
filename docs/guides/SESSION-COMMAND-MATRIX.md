@@ -168,7 +168,7 @@ git status  # No debe dar error
 
 ## 📚 Referencias
 
-- **Documentación Canónica**: `docs/AGENTS.md`
+- **Documentación Canónica**: `AGENTS.md`
 - **Análisis de Problemas**: `docs/SESSION-STARTUP-ISSUES-AND-FIXES.md`
 - **Guía Rápida**: `docs/SESSION-STARTUP-QUICK-GUIDE.md`
 - **Skill de Sesión**: `skills/session-workflow-skill/SKILL.md`

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { runSyncShell } from './core/run-command.js';
+import { loadConfigFile } from './core/config-loader.js';
 
 interface CircuitState {
   state: string;
@@ -106,15 +107,12 @@ const CONFIG_PATH = path.join(REPO_ROOT, 'config', 'resilience-config.json');
 const CIRCUIT_DIR = path.join(REPO_ROOT, '.session', 'circuit-breakers');
 
 function loadConfig(): ResilienceConfig {
-  try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
-      return JSON.parse(raw) as ResilienceConfig;
-    }
-  } catch {
-    console.log('[RESILIENCE] No config loaded, using defaults');
-  }
-  return {};
+  const result = loadConfigFile<ResilienceConfig>('resilience-config', {
+    dir: path.dirname(CONFIG_PATH),
+    validate: false,
+  });
+  if (result.warnings.length > 0) console.log('[RESILIENCE] No config loaded, using defaults');
+  return result.data;
 }
 
 function getOperationConfig(name: string, config: ResilienceConfig): OperationConfig | null {

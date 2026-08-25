@@ -6,6 +6,7 @@
 
 import { ModelBroker } from './model-broker.js';
 import { pathToFileURL } from 'url';
+import { runNpxTsxSync } from './core/run-command';
 
 class OrchestratorWithModelBroker {
   private broker: ModelBroker;
@@ -139,9 +140,8 @@ async function main() {
 
     case 'switch-all-native': {
       console.log('Running switch to native models...');
-      // Run the switch-to-native script
-      const { execSync } = require('child_process');
-      execSync('npx tsx src/opencode-switch-to-native.ts', { stdio: 'inherit' });
+      // Hidden, shell-free spawn (raw execSync would flash a cmd.exe console).
+      runNpxTsxSync('src/opencode-switch-to-native.ts', [], { stdio: 'inherit' });
       break;
     }
 

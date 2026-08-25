@@ -38,8 +38,8 @@ export interface DashboardHealthResult {
   vitePort: number;
   message: string;
   details?: {
-    httpHealthResponse?: { statusCode: number; body?: any };
-    httpMetricsResponse?: { statusCode: number; body?: any };
+    httpHealthResponse?: { statusCode: number; body?: unknown };
+    httpMetricsResponse?: { statusCode: number; body?: unknown };
     tcpError?: string;
   };
 }
@@ -51,7 +51,7 @@ async function httpGetJson(
   port: number,
   path: string,
   timeout = 3000,
-): Promise<{ ok: boolean; statusCode: number; body: any; error?: string }> {
+): Promise<{ ok: boolean; statusCode: number; body: unknown; error?: string }> {
   return new Promise((resolve) => {
     const options = {
       hostname: '127.0.0.1',

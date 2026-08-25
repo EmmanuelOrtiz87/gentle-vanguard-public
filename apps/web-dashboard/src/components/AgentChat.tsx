@@ -15,6 +15,7 @@ import {
   Square,
 } from 'lucide-react';
 import { useAgentStream } from '../hooks/useAgentStream';
+import { useT } from '../hooks/useLocale';
 import { AgentMessage } from './AgentMessage';
 import HitlModal from './HitlModal';
 import type { AgentSession } from '../types/agent';
@@ -30,25 +31,25 @@ const AGENTS = [
 
 const SUGGESTED_ACTIONS = [
   {
-    label: 'Run tests',
+    labelKey: 'ui.run_tests_action',
     icon: TestTube,
     query: 'Execute the test suite and report results',
     agent: 'QA',
   },
   {
-    label: 'Check skills',
+    labelKey: 'ui.check_skills_action',
     icon: Terminal,
     query: 'List all available skills and their status',
     agent: 'DEV',
   },
   {
-    label: 'Review logs',
+    labelKey: 'ui.review_logs_action',
     icon: Bug,
     query: 'Review recent agent logs for errors or warnings',
     agent: 'OPS',
   },
   {
-    label: 'Analyze',
+    labelKey: 'ui.analyze_action',
     icon: Sparkles,
     query: 'Analyze the current project state and suggest improvements',
     agent: 'BA',
@@ -56,6 +57,7 @@ const SUGGESTED_ACTIONS = [
 ];
 
 export default function AgentChat() {
+  const { tt } = useT();
   const {
     session,
     connected,
@@ -200,8 +202,8 @@ export default function AgentChat() {
   );
 
   const sessionTitle = session
-    ? `${session.agent} — ${session.messages.length} messages`
-    : 'No active session';
+    ? `${session.agent} — ${session.messages.length} ${tt('ui.messages_suffix')}`
+    : tt('ui.no_active_session');
 
   const lastMessage = session?.messages[session.messages.length - 1];
   const isStreaming = lastMessage?.streaming === true;
@@ -212,10 +214,15 @@ export default function AgentChat() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center gap-3">
             <Bot className="w-5 h-5 text-purple-500" />
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Agent Chat</h2>
-              <p className="text-xs text-gray-500">{sessionTitle}</p>
-            </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {tt('ui.agent_chat')}
+                </h2>
+                <p className="text-xs text-gray-500">{sessionTitle}</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 max-w-md">
+                  {tt('ui.agent_page_subtitle')}
+                </p>
+              </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 text-xs">
@@ -224,7 +231,7 @@ export default function AgentChat() {
               ) : (
                 <WifiOff className="w-3.5 h-3.5 text-red-500" />
               )}
-              {connected ? 'Connected' : 'Disconnected'}
+              {connected ? tt('ui.connected') : tt('ui.disconnected')}
             </span>
             {bridgeConnected && (
               <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
@@ -234,7 +241,7 @@ export default function AgentChat() {
             <button
               onClick={handleNewSession}
               className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title="New session"
+              title={tt('ui.new_session_title')}
             >
               <Plus className="w-4 h-4 text-gray-500" />
             </button>
@@ -246,10 +253,10 @@ export default function AgentChat() {
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Bot className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
               <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
-                No active session
+                {tt('ui.no_active_session')}
               </h3>
               <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
-                Select an agent and start a conversation
+                {tt('ui.select_agent_and_start')}
               </p>
               <div className="flex gap-2 flex-wrap justify-center mb-6">
                 {AGENTS.map((a) => (
@@ -270,12 +277,12 @@ export default function AgentChat() {
               <div className="flex flex-wrap gap-2 justify-center mb-6 max-w-md">
                 {SUGGESTED_ACTIONS.map((action) => (
                   <button
-                    key={action.label}
+                    key={action.labelKey}
                     onClick={() => handleSuggestedAction(action.query, action.agent)}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 hover:ring-1 hover:ring-purple-300 transition-all"
                   >
                     <action.icon className="w-3.5 h-3.5" />
-                    {action.label}
+                    {tt(action.labelKey)}
                   </button>
                 ))}
               </div>
@@ -284,7 +291,7 @@ export default function AgentChat() {
                 onClick={handleNewSession}
                 className="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors"
               >
-                Start Session
+                {tt('ui.start_session_action')}
               </button>
             </div>
           )}
@@ -295,14 +302,17 @@ export default function AgentChat() {
 
           {session && session.messages.length === 0 && (
             <div className="flex flex-wrap gap-2 justify-center py-8">
+              <p className="w-full text-center text-xs text-gray-400 dark:text-gray-500">
+                {tt('ui.no_messages')}
+              </p>
               {SUGGESTED_ACTIONS.map((action) => (
                 <button
-                  key={action.label}
+                  key={action.labelKey}
                   onClick={() => handleSuggestedAction(action.query, selectedAgent)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 hover:ring-1 hover:ring-purple-300 transition-all"
                 >
                   <action.icon className="w-3.5 h-3.5" />
-                  {action.label}
+                  {tt(action.labelKey)}
                 </button>
               ))}
             </div>
@@ -311,13 +321,13 @@ export default function AgentChat() {
           {session?.status === 'active' && (
             <div className="flex items-center gap-2 text-sm text-gray-500 px-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Agent processing...
+              {tt('ui.agent_processing')}
             </div>
           )}
           {session?.status === 'awaiting_input' && (
             <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400 px-2">
               <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-              Awaiting your input...
+              {tt('ui.awaiting_input')}
             </div>
           )}
 
@@ -332,7 +342,8 @@ export default function AgentChat() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder={`Message @${selectedAgent}... (type @ to mention)`}
+              placeholder={tt('ui.chat_placeholder').replace('{agent}', selectedAgent)}
+              aria-label={tt('ui.type_message')}
               className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               disabled={!connected}
             />
@@ -340,25 +351,27 @@ export default function AgentChat() {
               onClick={() => session && listSkills(session.id)}
               disabled={!connected || !session}
               className="flex items-center gap-1 px-2 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              title="List available skills"
+              title={tt('ui.list_skills_title')}
             >
               <Terminal className="w-4 h-4" />
-              <span className="text-xs font-medium hidden sm:inline">Skills</span>
+              <span className="text-xs font-medium hidden sm:inline">{tt('ui.skills_label')}</span>
             </button>
             {isStreaming && (
               <button
                 onClick={() => session && cancelExecution(session.id)}
                 disabled={!connected}
                 className="flex items-center gap-1 px-2 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                title="Cancel current execution"
+                title={tt('ui.cancel_execution_title')}
               >
                 <Square className="w-4 h-4" />
-                <span className="text-xs font-medium hidden sm:inline">Cancel</span>
+                <span className="text-xs font-medium hidden sm:inline">{tt('ui.cancel')}</span>
               </button>
             )}
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || !connected}
+              aria-label={tt('ui.send')}
+              title={tt('ui.send')}
               className="p-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Send className="w-4 h-4" />
@@ -394,11 +407,13 @@ export default function AgentChat() {
             className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             <MessageSquare className="w-4 h-4" />
-            Sessions
+            {tt('ui.sessions_panel')}
           </button>
           {showSessions && (
             <div className="space-y-1 max-h-48 overflow-y-auto">
-              {agentSessions.length === 0 && <p className="text-xs text-gray-400">No sessions</p>}
+              {agentSessions.length === 0 && (
+                <p className="text-xs text-gray-400">{tt('ui.no_sessions_short')}</p>
+              )}
               {agentSessions.map((s) => (
                 <button
                   key={s.id}
@@ -407,7 +422,9 @@ export default function AgentChat() {
                 >
                   <span className="font-medium">{s.agent}</span>
                   <span className="text-gray-400 ml-1">({s.status})</span>
-                  <span className="text-gray-400 block text-[10px]">{s.messageCount} messages</span>
+                  <span className="text-gray-400 block text-[10px]">
+                    {s.messageCount} {tt('ui.messages_suffix')}
+                  </span>
                 </button>
               ))}
             </div>
@@ -423,13 +440,15 @@ export default function AgentChat() {
             className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             <Terminal className="w-4 h-4" />
-            MCP Tools
+            {tt('ui.mcp_tools')}
           </button>
           {showTools && (
             <div className="space-y-1 max-h-48 overflow-y-auto">
-              {!bridgeConnected && <p className="text-xs text-yellow-600">Bridge offline</p>}
+              {!bridgeConnected && (
+                <p className="text-xs text-yellow-600">{tt('ui.bridge_offline')}</p>
+              )}
               {bridgeConnected && tools.length === 0 && (
-                <p className="text-xs text-gray-400">No tools</p>
+                <p className="text-xs text-gray-400">{tt('ui.no_tools')}</p>
               )}
               {tools.map((t) => (
                 <button
@@ -454,11 +473,13 @@ export default function AgentChat() {
             className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             <History className="w-4 h-4" />
-            History
+            {tt('ui.history_panel')}
           </button>
           {showHistory && (
             <div className="space-y-1 max-h-48 overflow-y-auto">
-              {historySessions.length === 0 && <p className="text-xs text-gray-400">No history</p>}
+              {historySessions.length === 0 && (
+                <p className="text-xs text-gray-400">{tt('ui.no_history')}</p>
+              )}
               {historySessions.map((s: AgentSession) => (
                 <button
                   key={s.id}
@@ -467,7 +488,9 @@ export default function AgentChat() {
                 >
                   <span className="font-medium">{s.agent}</span>
                   <span className="text-gray-400 ml-1">({s.status})</span>
-                  <span className="text-gray-400 block text-[10px]">{s.messages.length} msgs</span>
+                  <span className="text-gray-400 block text-[10px]">
+                    {s.messages.length} {tt('ui.msgs_suffix')}
+                  </span>
                   <span className="text-gray-400 block text-[10px]">
                     {new Date(s.updatedAt).toLocaleString()}
                   </span>

@@ -27,10 +27,10 @@ const COLORS: Record<LogLevel, string> = {
 const RESET = '\x1b[0m';
 
 export interface Logger {
-  info: (msg: string, data?: any) => void;
-  warn: (msg: string, data?: any) => void;
-  error: (msg: string, data?: any) => void;
-  debug: (msg: string, data?: any) => void;
+  info: (msg: string, data?: unknown) => void;
+  warn: (msg: string, data?: unknown) => void;
+  error: (msg: string, data?: unknown) => void;
+  debug: (msg: string, data?: unknown) => void;
 }
 
 function formatTimestamp(): string {
@@ -38,7 +38,7 @@ function formatTimestamp(): string {
 }
 
 function createLogger(prefix: string): Logger {
-  const logLine = (level: LogLevel, msg: string, data?: any) => {
+  const logLine = (level: LogLevel, msg: string, data?: unknown) => {
     const ts = formatTimestamp();
     const color = COLORS[level];
     const label = `[${prefix}]`.padEnd(18);
@@ -56,10 +56,10 @@ function createLogger(prefix: string): Logger {
   };
 
   return {
-    info: (msg: string, data?: any) => logLine('INFO', msg, data),
-    warn: (msg: string, data?: any) => logLine('WARN', msg, data),
-    error: (msg: string, data?: any) => logLine('ERROR', msg, data),
-    debug: (msg: string, data?: any) => logLine('DEBUG', msg, data),
+    info: (msg: string, data?: unknown) => logLine('INFO', msg, data),
+    warn: (msg: string, data?: unknown) => logLine('WARN', msg, data),
+    error: (msg: string, data?: unknown) => logLine('ERROR', msg, data),
+    debug: (msg: string, data?: unknown) => logLine('DEBUG', msg, data),
   };
 }
 

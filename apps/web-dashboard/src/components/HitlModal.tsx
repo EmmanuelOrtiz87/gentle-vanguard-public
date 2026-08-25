@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, HelpCircle, Clock } from 'lucide-react';
 import type { HitlRequest, HitlResponse, UIFormField } from '../types/agent';
+import { useT } from '../hooks/useLocale';
 
 interface HitlModalProps {
   request: HitlRequest | null;
@@ -97,6 +98,7 @@ function FormView({
   request: HitlRequest;
   onResolve: (values: Record<string, unknown>) => void;
 }) {
+  const { tt } = useT();
   const [values, setValues] = useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {};
     for (const f of request.fields || []) {
@@ -141,7 +143,7 @@ function FormView({
                 onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
                 className={inputClass(field)}
               >
-                <option value="">Select...</option>
+                <option value="">{tt('ui.select_placeholder')}</option>
                 {(field.options || []).map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}

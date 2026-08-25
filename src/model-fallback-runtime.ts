@@ -14,6 +14,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 const ROOT = process.cwd();
 const HEALTH_REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
@@ -217,13 +218,18 @@ function watchAgentErrors(agentName: string): void {
       const data = JSON.parse(currentState);
 
       // Verificar errores recientes en la sesión
-      const errors = data.recentErrors || [];
+      interface SessionError {
+        timestamp?: string;
+        message?: string;
+        text?: string;
+      }
+      const errors: SessionError[] = data.recentErrors || [];
       const recentErrors = errors.filter(
-        (error: any) => error.timestamp && Date.now() - new Date(error.timestamp).getTime() < 30000, // Últimos 30 segundos
+        (error) => error.timestamp && Date.now() - new Date(error.timestamp).getTime() < 30000, // Últimos 30 segundos
       );
 
       if (recentErrors.length > 0) {
-        recentErrors.forEach((error: any) => {
+        recentErrors.forEach((error) => {
           const errorMessage = error.message || error.text || '';
           console.log(`[AGENT-ERROR] ${agentName}: ${errorMessage.substring(0, 100)}...`);
 
@@ -363,8 +369,8 @@ function testErrorHandling(): void {
   }
 }
 
-// Ejecutar
-if (require.main === module) {
+// Ejecutar (ESM main-module check — require.main is unavailable in ESM)
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }
 

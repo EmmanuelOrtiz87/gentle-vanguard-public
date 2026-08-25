@@ -17,17 +17,17 @@ interface MCPRequest {
   jsonrpc: string;
   id: number | string;
   method: string;
-  params?: any;
+  params?: { name?: string };
 }
 
 interface MCPResponse {
   jsonrpc: string;
   id: number | string | null;
-  result?: any;
+  result?: unknown;
   error?: {
     code: number;
     message: string;
-    data?: any;
+    data?: unknown;
   };
 }
 

@@ -66,9 +66,10 @@ function runScan(type: string): ScanResult {
         break;
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     result.passed = false;
-    result.issues.push(err.stderr?.toString() || err.message || 'Unknown error');
+    const execErr = err as { stderr?: { toString(): string }; message?: string };
+    result.issues.push(execErr.stderr?.toString() || execErr.message || 'Unknown error');
   }
 
   return result;

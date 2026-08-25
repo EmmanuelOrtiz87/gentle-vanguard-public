@@ -12,7 +12,7 @@
  * Writes a metric_snapshot row to SQLite on each cycle.
  * Also updates consolidated.json for backward compatibility.
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
@@ -33,7 +33,6 @@ const ROOT = join(__dirname, '..', '..', '..', '..');
 const CONSOLIDATED_PATH = join(ROOT, '.runtime', 'metrics', 'consolidated.json');
 const STATS_PATH = join(ROOT, '.atl', 'skill-stats.json');
 const REGISTRY_PATH = join(ROOT, '.atl', 'skill-registry.md');
-const CONTEXT_LOG_DIR = join(ROOT, '.session', 'context-log');
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
@@ -149,7 +148,7 @@ export class MetricsWriter {
       console.error('[MW] Error reading from SessionContextLog:', err);
     }
 
-    // 3. Tokens (REAL — from unified SessionContextLog)
+    // 3. Tokens (REAL — SessionContextLog first, Nexus token_usage fallback)
     let tokensUsed = 0;
     let tokenCost = 0;
     try {
@@ -158,6 +157,19 @@ export class MetricsWriter {
       tokenCost = ctxMetrics.totalCost;
     } catch (err) {
       console.error('[MW] Error reading tokens from SessionContextLog:', err);
+    }
+    if (!tokensUsed) {
+      try {
+        const row = this.db
+          .getDb()
+          .prepare(
+            'SELECT COALESCE(SUM(prompt_tokens + completion_tokens), 0) AS total FROM token_usage WHERE timestamp >= ?',
+          )
+          .get(new Date(Date.now() - 24 * 3600_000).toISOString()) as { total: number };
+        tokensUsed = row.total;
+      } catch {
+        // keep 0 — no token sources available
+      }
     }
 
     // 4. MCP stats (REAL — from .atl/skill-stats.json)
@@ -181,39 +193,12 @@ export class MetricsWriter {
       // best-effort
     }
 
-    // 5. Latency (REAL — from trace durations in DB or context-log)
+    // 5. Latency (REAL — from trace durations in DB, sane-window filtered
+    // inside TraceRepo.getLatencyStats; clock-skewed spans excluded there)
     const latencyStats = this.db.getLatencyStats();
-    // If DB has no traces yet, try to compute from context-log
-    let avgLatency = latencyStats.avg;
-    let p50 = latencyStats.p50;
-    let p95 = latencyStats.p95;
-    if (avgLatency === 0) {
-      try {
-        const allDurations: number[] = [];
-        if (existsSync(CONTEXT_LOG_DIR)) {
-          const dirs = readdirSync(CONTEXT_LOG_DIR, { withFileTypes: true });
-          for (const d of dirs) {
-            if (!d.isDirectory()) continue;
-            const stateFile = join(CONTEXT_LOG_DIR, d.name, '.state.json');
-            if (!existsSync(stateFile)) continue;
-            const state = readJson<{ turns?: Array<{ totalTokens?: number }> }>(stateFile);
-            if (state?.turns) {
-              for (const turn of state.turns) {
-                if (turn.totalTokens) allDurations.push(turn.totalTokens);
-              }
-            }
-          }
-        }
-        if (allDurations.length > 0) {
-          allDurations.sort((a, b) => a - b);
-          avgLatency = Math.round(allDurations.reduce((a, b) => a + b, 0) / allDurations.length);
-          p50 = allDurations[Math.floor(allDurations.length * 0.5)] || 0;
-          p95 = allDurations[Math.floor(allDurations.length * 0.95)] || 0;
-        }
-      } catch {
-        // best-effort
-      }
-    }
+    const avgLatency = latencyStats.avg;
+    const p50 = latencyStats.p50;
+    const p95 = latencyStats.p95;
 
     // 6. Health status (from activity indicators)
     const healthStatus = mcpCalls > 0 || sessionsActive > 0 ? 'healthy' : 'unknown';

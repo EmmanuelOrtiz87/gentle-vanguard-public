@@ -78,11 +78,11 @@ When removing or changing a feature:
 **Scenario 1: CLI Command Removed**
 
 ```
-v1.0.0: gv verify                          (stable)
-v1.1.0: Deprecate gv verify in favor of gv validate
-        gv verify still works with warning
-v1.2.0: gv verify still works with warning (support continues)
-v2.0.0: gv verify removed completely       (breaking change in MAJOR)
+v1.0.0: gv check                          (stable)
+v1.1.0: Deprecate gv check in favor of gv validate
+        gv check still works with warning
+v1.2.0: gv check still works with warning (support continues)
+v2.0.0: gv check removed completely       (breaking change in MAJOR)
 ```
 
 **Scenario 2: Governance Model Changes**

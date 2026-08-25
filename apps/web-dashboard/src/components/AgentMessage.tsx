@@ -14,6 +14,7 @@ import {
   FormInput,
 } from 'lucide-react';
 import type { AgentMessage as AgentMessageType, AgentToolCall, UIHint } from '../types/agent';
+import { useT } from '../hooks/useLocale';
 
 function ToolCallBadge({ status }: { status: AgentToolCall['status'] }) {
   switch (status) {
@@ -147,6 +148,7 @@ function ChartHint({ hint }: { hint: UIHint }) {
 }
 
 function DiffHint({ hint }: { hint: UIHint }) {
+  const { tt } = useT();
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       {hint.label && (
@@ -157,13 +159,13 @@ function DiffHint({ hint }: { hint: UIHint }) {
       )}
       <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700">
         <div className="p-3">
-          <p className="text-[10px] font-medium text-gray-500 mb-1">Before</p>
+          <p className="text-[10px] font-medium text-gray-500 mb-1">{tt('ui.before')}</p>
           <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap font-mono bg-red-50 dark:bg-red-900/20 p-2 rounded">
             {hint.oldValue}
           </pre>
         </div>
         <div className="p-3">
-          <p className="text-[10px] font-medium text-gray-500 mb-1">After</p>
+          <p className="text-[10px] font-medium text-gray-500 mb-1">{tt('ui.after')}</p>
           <pre className="text-xs text-green-600 dark:text-green-400 whitespace-pre-wrap font-mono bg-green-50 dark:bg-green-900/20 p-2 rounded">
             {hint.newValue}
           </pre>
@@ -180,6 +182,7 @@ function FormHint({
   hint: UIHint;
   onAction?: (action: string, values: Record<string, unknown>) => void;
 }) {
+  const { tt } = useT();
   const [values, setValues] = useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {};
     for (const f of hint.fields || []) {
@@ -211,7 +214,7 @@ function FormHint({
                 onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
                 className="w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                <option value="">Select...</option>
+                <option value="">{tt('ui.select_placeholder')}</option>
                 {(field.options || []).map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}

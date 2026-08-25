@@ -59,7 +59,7 @@ if (existsSync(outputConfigPath)) {
 // 3. Verificar uso de tokens actual
 console.log('\n📊 Verificando uso actual de tokens...');
 try {
-  const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
+  const result = runSyncShell('npx tsx src/tokens/token-budget-guard.ts -Mode status -Quiet', {
     cwd: ROOT,
   });
 

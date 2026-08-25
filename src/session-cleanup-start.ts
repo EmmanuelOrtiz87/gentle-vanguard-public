@@ -53,6 +53,10 @@ function removeStaleSessions(sessionDir: string): void {
   const cutoff = Date.now() - 8 * 3600000;
   const today = new Date().toISOString().slice(0, 10);
   for (const f of readdirSync(sessionDir).filter((f) => f.endsWith('.json'))) {
+    // The live session state file must never be swept, even if its mtime
+    // looks old (clock skew / suspended pipelines). It is recreated by
+    // autostart and updated by the opencode plugin on every turn.
+    if (f === 'session-current.json') continue;
     const fp = join(sessionDir, f);
     if (statSync(fp).mtimeMs < cutoff && !f.includes(today)) {
       rmSync(fp, { force: true });

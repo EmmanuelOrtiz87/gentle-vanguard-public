@@ -13,31 +13,35 @@ import {
   Shield,
 } from 'lucide-react';
 import type { GlobalHealth as GlobalHealthType } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface GlobalHealthProps {
   data: GlobalHealthType;
 }
 
-const statusBannerConfig = {
-  healthy: {
-    icon: Shield,
-    color:
-      'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300',
-    label: 'All Systems Healthy',
-  },
-  degraded: {
-    icon: AlertTriangle,
-    color:
-      'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-300',
-    label: 'Systems Degraded',
-  },
-  critical: {
-    icon: XCircle,
-    color:
-      'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300',
-    label: 'Critical Issues Detected',
-  },
-};
+function useBannerConfig() {
+  const { tt } = useT();
+  return {
+    healthy: {
+      icon: Shield,
+      color:
+        'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300',
+      label: tt('ui.all_systems_healthy'),
+    },
+    degraded: {
+      icon: AlertTriangle,
+      color:
+        'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-300',
+      label: tt('ui.systems_degraded'),
+    },
+    critical: {
+      icon: XCircle,
+      color:
+        'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300',
+      label: tt('ui.critical_issues'),
+    },
+  };
+}
 
 const statusBadgeColors: Record<string, string> = {
   healthy: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
@@ -62,6 +66,8 @@ function timeAgo(dateStr: string): string {
 
 export function GlobalHealth({ data }: GlobalHealthProps) {
   const [expanded, setExpanded] = useState(false);
+  const { tt } = useT();
+  const statusBannerConfig = useBannerConfig();
   const banner = statusBannerConfig[data.overallStatus];
   const BannerIcon = banner.icon;
 
@@ -70,12 +76,12 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Global Health</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{tt('ui.global_health')}</h3>
         </div>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1 text-xs text-gray-500">
             <RefreshCw className="w-3 h-3" />
-            Updated {timeAgo(data.lastUpdated)}
+            {tt('ui.updated')} {timeAgo(data.lastUpdated)}
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
@@ -96,7 +102,7 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
           <div>
             <p className="font-semibold">{banner.label}</p>
             <p className="text-sm opacity-80">
-              {data.healthyRepos}/{data.totalRepos} repositories healthy
+              {data.healthyRepos}/{data.totalRepos} {tt('ui.repositories_healthy')}
             </p>
           </div>
         </div>
@@ -105,27 +111,27 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
         <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{data.totalRepos}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Total Repos</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{tt('ui.total_repos')}</p>
         </div>
         <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             {data.healthyRepos}
           </p>
-          <p className="text-xs text-green-600 dark:text-green-400">Healthy</p>
+          <p className="text-xs text-green-600 dark:text-green-400">{tt('ui.healthy')}</p>
         </div>
         <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {data.degradedRepos}
           </p>
-          <p className="text-xs text-yellow-600 dark:text-yellow-400">Degraded</p>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400">{tt('ui.degraded_plural')}</p>
         </div>
         <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">{data.criticalRepos}</p>
-          <p className="text-xs text-red-600 dark:text-red-400">Critical</p>
+          <p className="text-xs text-red-600 dark:text-red-400">{tt('ui.critical_plural')}</p>
         </div>
         <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.avgCoverage}%</p>
-          <p className="text-xs text-blue-600 dark:text-blue-400">Avg Coverage</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400">{tt('ui.avg_coverage')}</p>
         </div>
       </div>
 
@@ -135,13 +141,13 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Repository
+                  {tt('ui.repository')}
                 </th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Status
+                  {tt('ui.status')}
                 </th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Last Commit
+                  {tt('ui.last_commit')}
                 </th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <span className="flex items-center gap-1">
@@ -153,10 +159,10 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                   CI
                 </th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Coverage
+                  {tt('ui.coverage')}
                 </th>
                 <th className="text-left py-3 px-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Contributors
+                  {tt('ui.contributors')}
                 </th>
               </tr>
             </thead>
@@ -196,7 +202,7 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeColors[repo.status]}`}
                       >
                         <StatusIcon className="w-3 h-3" />
-                        {repo.status.charAt(0).toUpperCase() + repo.status.slice(1)}
+                        {tt(`ui.${repo.status}`)}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-sm text-gray-600 dark:text-gray-400">
@@ -210,7 +216,7 @@ export function GlobalHealth({ data }: GlobalHealthProps) {
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${ciBadgeColors[repo.ciStatus]}`}
                       >
                         <CiIcon className="w-3 h-3" />
-                        {repo.ciStatus.charAt(0).toUpperCase() + repo.ciStatus.slice(1)}
+                        {tt(`ui.${repo.ciStatus}`)}
                       </span>
                     </td>
                     <td className="py-3 px-3">

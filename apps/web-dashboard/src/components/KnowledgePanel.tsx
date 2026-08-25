@@ -10,6 +10,7 @@ import {
   ChevronUp,
   RefreshCw,
 } from 'lucide-react';
+import { useT } from '../hooks/useLocale';
 
 interface KnowledgeResult {
   source: string;
@@ -48,7 +49,16 @@ const SOURCE_CONFIG: Record<string, { icon: typeof BookOpen; label: string; colo
   },
 };
 
+const SOURCE_LABEL_KEYS: Record<string, string> = {
+  events: 'ui.kp_source_events',
+  traces: 'ui.kp_source_traces',
+  feedback: 'ui.kp_source_feedback',
+  checkpoints: 'ui.kp_source_checkpoints',
+  engram: 'ui.kp_source_engram',
+};
+
 function KnowledgePanelInner() {
+  const { tt } = useT();
   const [query, setQuery] = useState('');
   const [sources, setSources] = useState(['events', 'traces', 'feedback', 'checkpoints', 'engram']);
   const [results, setResults] = useState<KnowledgeResult[]>([]);
@@ -112,9 +122,11 @@ function KnowledgePanelInner() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Knowledge Base</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {tt('ui.knowledge_base')}
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Unified search across events, traces, feedback, checkpoints, and engram
+            {tt('ui.kp_unified_search')}
           </p>
         </div>
         {searched && (
@@ -122,7 +134,7 @@ function KnowledgePanelInner() {
             onClick={() => void search()}
             className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> {tt('ui.refresh')}
           </button>
         )}
       </div>
@@ -135,7 +147,7 @@ function KnowledgePanelInner() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search knowledge base... (Ctrl+Enter for new search)"
+            placeholder={tt('ui.kp_search_placeholder')}
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
@@ -143,7 +155,7 @@ function KnowledgePanelInner() {
             disabled={loading || !query.trim()}
             className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? tt('ui.kp_searching') : tt('ui.kp_search')}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -161,7 +173,7 @@ function KnowledgePanelInner() {
                 }`}
               >
                 <Icon className="w-3 h-3" />
-                {cfg.label}
+                {tt(SOURCE_LABEL_KEYS[key] ?? cfg.label)}
               </button>
             );
           })}
@@ -172,26 +184,26 @@ function KnowledgePanelInner() {
         {loading ? (
           <div className="p-8 text-center text-gray-500">
             <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin" />
-            Searching...
+            {tt('ui.kp_searching')}
           </div>
         ) : pollError ? (
           <div className="p-8 text-center">
-            <div className="text-red-500 mb-2">Failed to reach knowledge API</div>
+            <div className="text-red-500 mb-2">{tt('ui.failed_reach_knowledge_api')}</div>
             <button onClick={() => void search()} className="text-sm text-blue-600 hover:underline">
-              Retry
+              {tt('ui.kp_retry')}
             </button>
           </div>
         ) : !searched ? (
           <div className="p-8 text-center text-gray-500">
             <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Enter a query to search the knowledge base.</p>
-            <p className="text-xs mt-1">Toggle sources above to filter by data type.</p>
+            <p>{tt('ui.enter_query_knowledge')}</p>
+            <p className="text-xs mt-1">{tt('ui.toggle_sources_filter')}</p>
           </div>
         ) : results.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>No results found for "{query}".</p>
-            <p className="text-xs mt-1">Try different sources or a broader query.</p>
+            <p>{tt('ui.kp_no_results_for').replace('{query}', query)}</p>
+            <p className="text-xs mt-1">{tt('ui.try_different_sources')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">

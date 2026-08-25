@@ -8,7 +8,7 @@
  * Usage: npx tsx src/start-monitor-daemon.ts
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command.js';
 import { resolve } from 'path';
 import * as fs from 'fs';
 
@@ -33,13 +33,13 @@ if (fs.existsSync(PID_FILE)) {
   }
 }
 
-// On Windows: npx.cmd needs shell:true + full command string (no args array => no deprecation warning)
-const child = spawn('npx tsx src/core/timeout-monitor.ts --daemon --interval 60000', [], {
+// Run the monitor through Node + tsx directly. This avoids the cmd.exe ->
+// npx.cmd wrapper that caused visible startup flashes and orphan consoles.
+const child = runNpxTsx('src/core/timeout-monitor.ts', ['--daemon', '--interval', '60000'], {
   cwd: ROOT,
   detached: true,
   stdio: ['ignore', 'pipe', 'pipe'],
   windowsHide: true,
-  shell: true,
 });
 
 // Error handler

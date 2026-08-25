@@ -125,12 +125,12 @@ New to Gentle-Vanguard? Start here:
 | SECURITY-AUTH-SECRETS.md                  | Security auth secrets              |
 | SECURITY-HARDENING.md                     | Security hardening                 |
 | CLEANUP-GUIDE.md                          | Cleanup guide                      |
-| GETTING-STARTED.md                        | Getting started                    |
+| ../getting-started/README.md              | Getting started                    |
 | INTEGRATION-EXISTING-PROJECTS.md          | Integration with existing projects |
 | PRETOOL-FORMAT-HOOK.md                    | Pre-tool format hook               |
 | QUICK-FIX-GUIDE.md                        | Quick fix guide                    |
 | RELEASE-CHECKLIST.md                      | Release checklist                  |
-| RUNTIME-STATE.md                          | Runtime state                      |
+| runtime-state.md                          | Runtime state                      |
 | STACK-ON-DEMAND.md                        | Stack on-demand                    |
 | TECHNOLOGY-SUPPORT-MATRIX.md              | Technology support matrix          |
 | TELEMETRY.md                              | Telemetry                          |

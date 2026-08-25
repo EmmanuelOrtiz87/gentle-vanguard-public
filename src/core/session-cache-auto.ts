@@ -23,6 +23,20 @@
 import { ResponseCache } from '../response-cache.js';
 import { pathToFileURL } from 'url';
 
+// ─── Global registration shape ────────────────────────────────────────────────
+// Global markers set by this module for cross-module cache discovery
+interface GlobalWithSessionCache {
+  __sessionCache?: {
+    cache: ResponseCache | null;
+    stats: typeof stats;
+    get: typeof tryGetCache;
+    set: typeof saveToCache;
+    getStats: () => typeof stats;
+  };
+  __gentleVanguardCacheAutoInit?: boolean;
+  __gentleVanguardCacheReady?: number;
+}
+
 // ─── Configuration ────────────────────────────────────────────────────────────
 const CACHE_CONFIG = {
   enabled: true,
@@ -116,7 +130,7 @@ function startAutoCleanup(): void {
 
 function registerGlobalAccess(): void {
   if (typeof global !== 'undefined') {
-    (global as any).__sessionCache = {
+    (global as typeof globalThis & GlobalWithSessionCache).__sessionCache = {
       cache: cacheInstance,
       stats,
       get: tryGetCache,
@@ -255,8 +269,9 @@ if (typeof process !== 'undefined') {
 
   // Registrarse en global
   if (typeof global !== 'undefined') {
-    (global as any).__gentleVanguardCacheAutoInit = true;
-    (global as any).__gentleVanguardCacheReady = Date.now();
+    const g = global as typeof globalThis & GlobalWithSessionCache;
+    g.__gentleVanguardCacheAutoInit = true;
+    g.__gentleVanguardCacheReady = Date.now();
   }
 
   log('Auto-initialized');
@@ -274,7 +289,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`Active: ${SessionCache.isActive()}`);
     console.log(`Cache instance: ${cacheInstance ? 'YES' : 'NO'}`);
     console.log(
-      `Global: ${typeof global !== 'undefined' && (global as any).__gentleVanguardCacheAutoInit ? 'REGISTERED' : 'NOT FOUND'}`,
+      `Global: ${
+        typeof global !== 'undefined' &&
+        (global as typeof globalThis & GlobalWithSessionCache).__gentleVanguardCacheAutoInit
+          ? 'REGISTERED'
+          : 'NOT FOUND'
+      }`,
     );
     console.log('');
   }

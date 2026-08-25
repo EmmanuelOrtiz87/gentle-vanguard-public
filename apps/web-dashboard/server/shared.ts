@@ -6,6 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export const ROOT = resolve(__dirname, '../../..');
 
+const rootPackage = readJson<{ version?: string }>(resolve(ROOT, 'package.json'));
+const dashboardPackage = readJson<{ version?: string }>(resolve(ROOT, 'apps/web-dashboard/package.json'));
+export const STACK_VERSION = dashboardPackage?.version || rootPackage?.version || 'unknown';
+
 export function readJson<T>(path: string): T | null {
   try {
     if (!existsSync(path)) return null;

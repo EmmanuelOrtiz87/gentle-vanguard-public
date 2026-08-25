@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EventEmitter } from 'events';
-import { DatabaseManager } from './database/manager.ts';
+import { DatabaseManager, DEFAULT_TENANT_ID } from './database/manager.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -234,8 +234,8 @@ export class SharedStateBridge extends EventEmitter {
     try {
       const db = DatabaseManager.getInstance();
       db.getDb()
-        .prepare('INSERT INTO events (type, payload, created_at) VALUES (?, ?, ?)')
-        .run(evt.event, JSON.stringify(evt), evt.timestamp);
+        .prepare('INSERT INTO events (tenant_id, type, payload, created_at) VALUES (?, ?, ?, ?)')
+        .run(DEFAULT_TENANT_ID, evt.event, JSON.stringify(evt), evt.timestamp);
     } catch {
       // Nexus unavailable — the event-bus file remains the primary source
     }
@@ -247,9 +247,9 @@ export class SharedStateBridge extends EventEmitter {
       const rows = db
         .getDb()
         .prepare(
-          'SELECT payload FROM events WHERE payload IS NOT NULL ORDER BY created_at DESC LIMIT ?',
+          'SELECT payload FROM events WHERE tenant_id = ? AND payload IS NOT NULL ORDER BY created_at DESC LIMIT ?',
         )
-        .all(500) as Array<{ payload: string }>;
+        .all(DEFAULT_TENANT_ID, 500) as Array<{ payload: string }>;
       const events: BusEvent[] = [];
       for (const row of rows) {
         try {

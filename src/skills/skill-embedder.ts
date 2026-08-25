@@ -450,9 +450,37 @@ function saveEmbeddings(
   };
 
   writeFileSync(outputPath, JSON.stringify(embeddings, null, 2), 'utf8');
+
+  // Per-skill embedding cache in .atl/ml-embeddings/ — one file per skill so
+  // lookups can load a single vector without parsing the full index. The
+  // watchtower ml-embeddings component checks this directory is present.
+  const perSkillDir = join(dirname(outputPath), 'ml-embeddings');
+  mkdirSync(perSkillDir, { recursive: true });
+  for (const skill of skillsOut) {
+    const slug = skill.name.replace(/[^a-zA-Z0-9_-]+/g, '_');
+    writeFileSync(
+      join(perSkillDir, `${slug}.json`),
+      JSON.stringify(
+        {
+          version: '1.0',
+          generated: embeddings.generated,
+          name: skill.name,
+          agent: skill.agent,
+          triggers: skill.triggers,
+          vector: skill.vector,
+          charNgrams: skill.charNgrams,
+        },
+        null,
+        2,
+      ),
+      'utf8',
+    );
+  }
+
   console.log(
     `Embeddings saved to ${outputPath} (${skillsOut.length} skills, ${vocabList.length} vocabulary terms)`,
   );
+  console.log(`Per-skill cache written to ${perSkillDir} (${skillsOut.length} files)`);
 }
 
 function main(): void {

@@ -1,5 +1,67 @@
 # Changelog — Gentle-Vanguard
 
+## [Unreleased]
+
+### Added
+
+- **src/ por dominios (F2.2) — 8 dominios**: `src/tokens/` (13), `src/retrieval/` (3),
+  `src/compression/` (3), `src/web/` (6), `src/research/` (2), `src/design/` (3), `src/humanize/`
+  (2), `src/planning/` (3) — ~120 referencias actualizadas (scripts npm, configs de pipeline, hooks,
+  docs, tests), grafo regenerado tras cada move.
+- **Sprint A comercial 100%** y **Sprint B drafts** (pricing model con benchmarks, 3 borradores
+  legales, landing) en GENTLE_VANGUARD_MASTER/11-SPRINT-B-SELL-ENABLE/.
+- **Skills sin duplicación (F4.3)**: 60 duplicadas resueltas (43+7 merges, 60 stubs DEPRECATED, cero
+  borrados; 31 descripciones recuperadas del bug de YAML multilinea del migrador); `skills/INDEX.md`
+  (263 filas) generado por `npm run skills:index`.
+- **Tipado**: 165 `any` eliminados en 45 módulos (218→35, **-84%**). Fix ESM preexistente en
+  `model-fallback-runtime.ts` (crasheaba al ejecutarse directo).
+
+- **Graphify nativo**: `src/cli/graphify-build.ts` construye el knowledge graph desde cero (AST
+  TypeScript, dos pasadas, resolución de imports, comunidades por label propagation) —
+  `npm run graphify -- build|update .`. Grafo actual: 4.435 nodos / 8.500 edges. El workflow
+  graphify vuelve a estar ACTIVO (antes dependía de un snapshot externo inexistente).
+- **Cache de embeddings por skill**: `skill-embedder.ts` ahora escribe `.atl/ml-embeddings/` (419
+  archivos) — el directorio que la watchtower vigilaba sin que nadie lo generara.
+- **Umbral de cobertura 30→40%** (lines/functions/statements; branches 30) — baseline real medido:
+  62% agregado de src/.
+
+### Fixed (Fase 0/1 — plan de evolución `docs/plans/STACK-EVOLUTION-PLAN-2026.md`)
+
+- **Auto-update integrity**: `releases/latest-version.json` apuntaba a v3.5.0 (URL 404, `sha256`
+  vacío). Regenerado contra el release real v3.8.2 con hash verificado del binario publicado.
+- **Workspace pnpm**: `pnpm-workspace.yaml` ahora declara `packages:` (apps/_, packages/_); el
+  dashboard deja de resolver dependencias por ascenso de directorios (`better-sqlite3` movido a
+  `dependencies`).
+- **Docker**: imagen runner ya no corre como root (usuario `app` dedicado) y el stage runner no
+  instala pnpm innecesario.
+- **Repositorio**: purgados artefactos trackeados por error (`.pnpm-store/`, `.local/`, log de
+  tests, fixtures de debug en raíz, SBOM commiteado).
+- **CI**: gates de seguridad que nunca fallaban eliminadas o activadas de verdad (audit, Trivy,
+  pseudo-SAST); workflows duplicados consolidados; matriz Node 22/24.
+- **Docs**: cifras caducadas corregidas (Nexus 23 tablas/7 migraciones, watchtower 95 checks/21
+  componentes); onboarding reparado (`gv check`, setup TS).
+- **Watchtower 95/95**: componente security valida `renovate.json` (política single-bot); daemons
+  revivibles; ml-embeddings generado de raíz.
+- **Tipado**: singletons DB (`error-memory`, `token-tracker`, `event-sourcing`, `adaptive-router`)
+  tipados con `DatabaseManager`; rows de Nexus tipadas en `compare-tokens-sessions`; 16 `any`
+  eliminados (quedan 193, erradicación incremental F2.4).
+
+## [3.8.2] — 2026-08-22
+
+### Fixed
+
+- CI: la suite de integración corre con `tsx --test` y globs explícitos de archivos de test.
+- CI: el servidor WS del dashboard arranca en el contenedor de integración; tests de API se saltan
+  limpiamente si es inalcanzable.
+- Deps: eliminado el bloque legacy `resolutions` que rompía el `--frozen-lockfile`.
+
+### Style
+
+- Formateo prettier repo-wide y limpieza de markdownlint.
+
+> Nota: las versiones 3.6.x/3.7.0 no registraron entrada en este CHANGELOG. v3.7.0 fue publicada con
+> binario (ver releases del repo público).
+
 ## [3.8.1] — 2026-08-20
 
 ### Changed

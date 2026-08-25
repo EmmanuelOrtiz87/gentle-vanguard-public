@@ -14,6 +14,7 @@
 
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import type { DatabaseManager } from '../apps/web-dashboard/server/database/manager.js';
 
 // ---- Types ----
 
@@ -38,21 +39,21 @@ interface ErrorMatch {
 
 // ---- DB Helper (lazy singleton) ----
 
-let _db: any = null;
+let _db: DatabaseManager | null = null;
 
-function getDb(): any {
+function getDb(): DatabaseManager | null {
   if (!_db) {
     try {
       const { DatabaseManager } = require(
         join(resolve(process.cwd()), 'apps/web-dashboard/server/database/manager.ts'),
-      ) as any;
+      ) as { DatabaseManager: { getInstance(): DatabaseManager } };
       _db = DatabaseManager.getInstance();
     } catch {
       // Fallback: try the compiled version
       try {
         const { DatabaseManager } = require(
           join(resolve(process.cwd()), 'dist/apps/web-dashboard/server/database/manager.js'),
-        ) as any;
+        ) as { DatabaseManager: { getInstance(): DatabaseManager } };
         _db = DatabaseManager.getInstance();
       } catch {
         return null;
@@ -237,7 +238,7 @@ function findRelevantErrors(context: {
   try {
     // 1. File match (highest priority)
     if (context.file) {
-      const byFile = db.findErrorsByFile(context.file) as ErrorEntry[];
+      const byFile = db.findErrorsByFile(context.file) as unknown as ErrorEntry[];
       for (const e of byFile) {
         if (!seen.has(e.id!)) {
           seen.add(e.id!);
@@ -248,7 +249,7 @@ function findRelevantErrors(context: {
 
     // 2. Pattern match
     if (context.pattern) {
-      const byPattern = db.findErrorsByPattern(context.pattern) as ErrorEntry[];
+      const byPattern = db.findErrorsByPattern(context.pattern) as unknown as ErrorEntry[];
       for (const e of byPattern) {
         if (!seen.has(e.id!)) {
           seen.add(e.id!);
@@ -262,7 +263,7 @@ function findRelevantErrors(context: {
       const keywords = tokenize(context.query);
       for (const kw of keywords) {
         if (kw.length < 3) continue;
-        const byKeyword = db.searchErrors(kw, limit) as ErrorEntry[];
+        const byKeyword = db.searchErrors(kw, limit) as unknown as ErrorEntry[];
         for (const e of byKeyword) {
           if (!seen.has(e.id!)) {
             seen.add(e.id!);
@@ -280,7 +281,7 @@ function findRelevantErrors(context: {
 
     // 4. If still no matches and we have a query, show recent errors as fallback
     if (matches.length === 0 && context.query) {
-      const recent = db.getRecentErrors(limit) as ErrorEntry[];
+      const recent = db.getRecentErrors(limit) as unknown as ErrorEntry[];
       // Use classic for loop to avoid floating promise false positive
       for (let i = 0; i < recent.length; i++) {
         const e = recent[i];
@@ -306,7 +307,7 @@ function getRecentErrors(limit: number = 10): ErrorEntry[] {
   const db = getDb();
   if (!db) return [];
   try {
-    return db.getRecentErrors(limit) as ErrorEntry[];
+    return db.getRecentErrors(limit) as unknown as ErrorEntry[];
   } catch {
     return [];
   }
@@ -397,7 +398,8 @@ function main(): void {
       const id = saveError(bug, cause, fix, {
         file: getVal('--file'),
         pattern: getVal('--pattern'),
-        severity: (getVal('--severity') as any) ?? 'medium',
+        severity:
+          (getVal('--severity') as 'low' | 'medium' | 'high' | 'critical' | undefined) ?? 'medium',
         sessionId: getVal('--session'),
       });
       if (id) {

@@ -391,7 +391,7 @@ $response_style = 'exhaustive'
 ### Token Management
 
 ```TypeScript
-# src/token-budget-guard.ts
+# src/tokens/token-budget-guard.ts
 - Enforces token limits
 - Tracks usage
 - Prevents overflow
@@ -543,7 +543,7 @@ function Check-ToolCompatibility {
 
 ## Resources
 
-- Token Budget Guard: `src/token-budget-guard.ts`
+- Token Budget Guard: `src/tokens/token-budget-guard.ts`
 - Context Pack: `scripts/utilities/context-pack.ps1`
 
 <!-- REF-OBSOLETA: scripts/utilities/context-pack.ps1 no tiene equivalente TS (migración PS1→TS) -->

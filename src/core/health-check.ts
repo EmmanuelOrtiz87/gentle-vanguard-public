@@ -32,7 +32,11 @@ function bin(name: string): string {
 }
 
 function spawnPortable(command: string, args: string[], timeout: number, maxBuffer?: number) {
-  const opts: any = { cwd: ROOT, timeout, maxBuffer: maxBuffer || 1024 * 1024 };
+  const opts: { cwd: string; timeout: number; maxBuffer: number } = {
+    cwd: ROOT,
+    timeout,
+    maxBuffer: maxBuffer || 1024 * 1024,
+  };
   if (process.platform === 'win32' && command.endsWith('.cmd')) {
     return runSync(process.env.ComSpec || 'cmd.exe', ['/c', command, ...args], opts);
   }
@@ -43,18 +47,17 @@ function readJson(...parts: string[]) {
   return JSON.parse(fs.readFileSync(path.resolve(ROOT, ...parts), 'utf-8'));
 }
 
-/** Try to run a TS script via npx tsx if it exists. */
+/** Try to run a TS script via the in-process tsx loader if it exists. */
 function tryRunTs(tsPath: string, args: string[] = []): { status: number; stdout: string } {
   const fullPath = path.resolve(ROOT, tsPath);
   if (!fs.existsSync(fullPath)) {
     return { status: -1, stdout: '' };
   }
   try {
-    const r = spawnPortable(
-      bin('npx'),
-      ['tsx', tsPath, ...args],
-      getEffectiveProcessTimeout('health_check'),
-    );
+    const r = runNpxTsxSync(tsPath, args, {
+      cwd: ROOT,
+      timeout: getEffectiveProcessTimeout('health_check'),
+    });
     return { status: r.status ?? -1, stdout: (r.stdout ?? '').toString() };
   } catch {
     return { status: -1, stdout: '' };

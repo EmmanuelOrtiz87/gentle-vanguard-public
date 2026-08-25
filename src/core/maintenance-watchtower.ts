@@ -2,15 +2,15 @@
 
 import { readFileSync, existsSync, readdirSync, writeFileSync, statSync } from 'fs';
 import { join, resolve, basename, relative } from 'path';
-import { spawn, execFileSync } from 'child_process';
-import { runSync } from './run-command';
+import { execFileSync } from 'child_process';
+import { runSync, runNpxTsx } from './run-command';
 import { createConnection } from 'net';
 import {
   getEffectiveProcessTimeout,
   getHttpServerTimeouts,
   getExternalApiTimeouts,
 } from './timeout-config';
-import { witr, ensureWitrInstalled } from '../witr-wrapper';
+import { witr, ensureWitrInstalled } from '../web/witr-wrapper';
 
 const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');
@@ -221,7 +221,7 @@ async function checkDashboardWs() {
   let httpOk = false;
   let respondingPort = wsPort;
   for (const port of portsToTry) {
-    httpOk = await testHttp(`http://127.0.0.1:${port}/api/metrics`);
+    httpOk = await testHttp(`http://127.0.0.1:${port}/api/health`);
     if (httpOk) {
       respondingPort = port;
       break;
@@ -768,6 +768,49 @@ async function checkConfigs() {
   for (const cfg of configs) {
     payloadFileOk('configs', cfg, join(ROOT, cfg), 'fix', true);
   }
+
+  // Schema validation via the unified config-loader (validates every
+  // config/*.json that has a sibling .schema.json — currently 8 configs).
+  try {
+    const { loadConfigFile } = await import('./config-loader');
+    const schemaDir = join(ROOT, 'config');
+    const schemas = existsSync(schemaDir)
+      ? readdirSync(schemaDir).filter((f) => f.endsWith('.schema.json'))
+      : [];
+    let violations = 0;
+    for (const schemaFile of schemas) {
+      const name = schemaFile.replace(/\.schema\.json$/, '');
+      const res = loadConfigFile(name, { noCache: true });
+      const errs = res.warnings.filter((w) => w.startsWith('schema violations'));
+      if (errs.length > 0) {
+        violations++;
+        addResult(
+          'configs',
+          `${name}.json (schema)`,
+          'FAIL',
+          errs[0].slice(0, 160),
+          'manual',
+        );
+      }
+    }
+    if (violations === 0) {
+      addResult(
+        'configs',
+        `schema validation (${schemas.length} schemas)`,
+        schemas.length > 0 ? 'PASS' : 'WARN',
+        schemas.length === 0 ? 'no *.schema.json found in config/' : '',
+        'manual',
+      );
+    }
+  } catch (e: unknown) {
+    addResult(
+      'configs',
+      'schema validation',
+      'WARN',
+      `config-loader unavailable: ${e instanceof Error ? e.message : String(e)}`,
+      'manual',
+    );
+  }
 }
 
 // ─── Component: Tool Configs ────────────────────────────────────────────────
@@ -808,7 +851,9 @@ async function checkSecurity() {
     'src/security/security-orchestrator.ts',
     'SECURITY.md',
     '.github/CODEOWNERS',
-    '.github/dependabot.yml',
+    // Dependency bots: Renovate is the single bot (ADR: dependabot removed
+    // 2026-08-22 to stop duplicated dependency PRs)
+    'renovate.json',
   ];
   for (const f of secFiles) {
     addResult('security', f, fileExists(join(ROOT, f)) ? 'PASS' : 'WARN', '', 'manual');
@@ -910,6 +955,91 @@ async function checkCliGuard() {
       'pathToFileURL guard',
       'FAIL',
       `${brokenCount} file(s) with broken guard: ${brokenFiles.join(', ')}`,
+      'manual',
+    );
+  }
+}
+
+// ─── Component: Hidden Spawns (invisible execution guard) ────────────────────
+
+async function checkHiddenSpawns() {
+  if (!quiet) console.log('  [Hidden Spawns] Checking invisible-execution invariants...');
+
+  // Guardarrailes anti-regresión de la ejecución invisible (AGENTS.md
+  // "procesos-ocultos"). Detección best-effort por patrones:
+  // 1. Referencias al CLI de tsx (cli.mjs) → proceso nieto con consola visible.
+  // 2. spawn directo de 'npx.cmd'/'npm' sin shell → EINVAL en Node moderno.
+  // 3. Launchers 'cmd /k' → ventanas persistentes.
+  // 4. exec/execSync con comando string (cmd.exe visible) sin windowsHide cercano.
+  const issues: string[] = [];
+  const scanDirs = [
+    join(ROOT, 'src'),
+    join(ROOT, 'apps', 'web-dashboard', 'server'),
+    join(ROOT, 'build'),
+  ];
+
+  const walk = (dir: string): string[] => {
+    const out: string[] = [];
+    let entries: import('fs').Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return out;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(full));
+      else if (entry.name.endsWith('.ts')) out.push(full);
+    }
+    return out;
+  };
+
+  for (const dir of scanDirs) {
+    for (const file of walk(dir)) {
+      // Skip self: this check's own detection patterns (literal command
+      // strings) would always flag the watchtower source itself.
+      if (file.endsWith(join('core', 'maintenance-watchtower.ts'))) continue;
+      let content: string;
+      try {
+        content = readFileSync(file, 'utf8');
+      } catch {
+        continue;
+      }
+      const rel = relative(ROOT, file);
+
+      if (/(tsx[\\/-][\w.-]*cli\.mjs|['"]cli\.mjs['"])/.test(content)) {
+        issues.push(`${rel}: referencia al CLI de tsx (cli.mjs) — usar runNpxTsx / node --import tsx`);
+      }
+
+      const npxCmdSpawn = /spawn\(\s*['"`](npx\.cmd|npm)['"`]\s*,/.exec(content);
+      if (npxCmdSpawn) {
+        issues.push(`${rel}: spawn directo de '${npxCmdSpawn[1]}' (EINVAL) — enrutar por run()/runNpxTsx`);
+      }
+
+      if (/cmd\s+\/k/.test(content)) {
+        issues.push(`${rel}: launcher 'cmd /k' (ventana persistente)`);
+      }
+
+      const execRe = /(^|[^\w.])(execSync|exec)\(/g;
+      let m: RegExpExecArray | null;
+      while ((m = execRe.exec(content)) !== null) {
+        const after = content.slice(execRe.lastIndex, execRe.lastIndex + 300);
+        if (/^\s*['"`](powershell|pwsh|npx |cmd )/.test(after) && !after.includes('windowsHide')) {
+          const line = content.slice(0, m.index).split('\n').length;
+          issues.push(`${rel}:${line} ${m[2]}() con comando shell sin windowsHide`);
+        }
+      }
+    }
+  }
+
+  if (issues.length === 0) {
+    addResult('hidden-spawns', 'invisible execution', 'PASS', 'No visible-spawn patterns found', 'ok');
+  } else {
+    addResult(
+      'hidden-spawns',
+      'invisible execution',
+      'FAIL',
+      `${issues.length} issue(s): ${issues.slice(0, 5).join(' | ')}${issues.length > 5 ? ' …' : ''}`,
       'manual',
     );
   }
@@ -1497,17 +1627,12 @@ async function autoHeal() {
       if (!quiet) console.log('  [Heal] Restarting Dashboard WS server via wrapper...');
       try {
         // Launch via TS wrapper - creates truly detached process
-        const child = spawn(
-          process.platform === 'win32' ? 'npx.cmd' : 'npx',
-          ['tsx', wrapperTs, '--quiet'],
-          {
-            cwd: ROOT,
-            stdio: 'ignore',
-            windowsHide: true,
-            detached: true,
-            shell: true,
-          },
-        );
+        const child = runNpxTsx(wrapperTs, ['--quiet'], {
+          cwd: ROOT,
+          stdio: 'ignore',
+          windowsHide: true,
+          detached: true,
+        });
         child.unref();
 
         // Wait for process to start and check if port is up
@@ -1527,12 +1652,11 @@ async function autoHeal() {
         } else {
           // Try fallback to direct tsx launch
           if (!quiet) console.log('  [Heal] Wrapper launch incomplete, trying direct spawn...');
-          const fallback = spawn('npx', ['tsx', wsAutostart, '--quiet'], {
+          const fallback = runNpxTsx(wsAutostart, ['--quiet'], {
             cwd: ROOT,
             stdio: 'ignore',
             detached: true,
             windowsHide: true,
-            shell: true,
           });
           fallback.unref();
           await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -1590,12 +1714,11 @@ async function autoHeal() {
       // would close stdin -> the server exits instantly, and a second instance
       // competing for the codegraph index lock can kill an already-running
       // daemon. Delegating to the daemon script avoids both failure modes.
-      const child = spawn('npx.cmd', ['tsx', join(ROOT, 'src', 'codegraph-mcp-server-start.ts')], {
+      const child = runNpxTsx(join(ROOT, 'src', 'codegraph-mcp-server-start.ts'), [], {
         cwd: ROOT,
         stdio: 'ignore',
         detached: true,
         windowsHide: true,
-        shell: true,
       });
       child.unref();
       // Give the daemon time to boot (npx+tsx resolution + server start).
@@ -1748,6 +1871,7 @@ async function runAllChecks() {
     checkSecurity,
     checkSecretScanner,
     checkCliGuard,
+    checkHiddenSpawns,
     checkCloudConnectors,
     checkTracing,
     checkStatePersistence,

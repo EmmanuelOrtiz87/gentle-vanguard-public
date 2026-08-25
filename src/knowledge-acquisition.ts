@@ -26,6 +26,28 @@ interface ParsedContent {
   extractedAt: string;
 }
 
+/** Knowledge entry persisted to the cache and forwarded to the learning engine */
+interface KnowledgeEntry {
+  id: string;
+  source: string;
+  title: string;
+  url: string;
+  content: string;
+  sha256: string;
+  extractedAt: string;
+  contentType: string;
+  tags: string[];
+}
+
+/** Entry shape consumed by the Engram integration */
+interface EngramEntry {
+  title: string;
+  content: string;
+  url: string;
+  source: string;
+  tags: string[];
+}
+
 // ─── Fetching ──────────────────────────────────────────────────────────────────────
 
 async function fetchUrl(
@@ -54,11 +76,12 @@ async function fetchUrl(
     const content = await response.text();
 
     return { success: true, content, contentType };
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    if (error.name === 'AbortError') {
       return { success: false, error: 'Request timeout' };
     }
-    return { success: false, error: err.message };
+    return { success: false, error: error.message };
   }
 }
 
@@ -94,8 +117,8 @@ function fetchUrlSync(
     }
 
     return { success: true, content: result.stdout, contentType: 'text/html' };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
   }
 }
 
@@ -174,7 +197,7 @@ function integrateIntoStack(parsed: ParsedContent, source: string): void {
     return;
   }
 
-  const knowledgeEntry = {
+  const knowledgeEntry: KnowledgeEntry = {
     id: `know_${Date.now().toString(36)}`,
     source,
     title: parsed.title,
@@ -220,7 +243,7 @@ function extractTags(title: string, content: string): string[] {
   return tags.slice(0, 5); // Max 5 tags
 }
 
-function integrateIntoLearningEngine(entry: any): void {
+function integrateIntoLearningEngine(entry: KnowledgeEntry): void {
   // Call learning engine to integrate
   try {
     runNpxTsxSync(
@@ -241,7 +264,7 @@ function integrateIntoLearningEngine(entry: any): void {
   }
 }
 
-function integrateWithEngram(entry: any): void {
+function integrateWithEngram(entry: EngramEntry): void {
   const isWindows = process.platform === 'win32';
   const cmd = isWindows ? 'engram.cmd' : 'engram';
 

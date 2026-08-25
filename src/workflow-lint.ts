@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { load as loadYaml } from 'js-yaml';
 
@@ -127,7 +127,13 @@ function main(): number {
     return 1;
   }
 
-  const results = paths.map(validateWorkflow);
+  const files = paths.flatMap((path) => {
+    if (!existsSync(path) || !statSync(path).isDirectory()) return [path];
+    return readdirSync(path)
+      .filter((name) => name.endsWith('.yml') || name.endsWith('.yaml'))
+      .map((name) => `${path}/${name}`);
+  });
+  const results = files.map(validateWorkflow);
   const failures = results.filter((r) => !r.valid);
 
   for (const result of results) {

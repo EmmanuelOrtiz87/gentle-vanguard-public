@@ -301,7 +301,7 @@ npm test 2>&1 | Tee-Object test-output.txt
 
 ## Next Steps After Setup
 
-1. **Read** [GETTING-STARTED.md](GETTING-STARTED.md) — Daily workflow
+1. **Read** [Getting Started](../getting-started/README.md) — Daily workflow
 2. **Review** [GITFLOW-QUICK-REFERENCE.md](GITFLOW-QUICK-REFERENCE.md) — Branch strategy
 3. **Check** [SECURITY-HARDENING.md](SECURITY-HARDENING.md) — Security policies
 4. **Review** [Step 3](#step-3-create-mcp-workspace-5-min) above — MCP workspace setup details

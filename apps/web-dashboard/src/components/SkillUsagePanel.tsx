@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Cpu, TrendingUp } from 'lucide-react';
 import type { SkillUsageRow } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface SkillUsagePanelProps {
   skills: SkillUsageRow[];
@@ -8,6 +9,7 @@ interface SkillUsagePanelProps {
 }
 
 export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
+  const { tt } = useT();
   const sorted = useMemo(() => [...skills].sort((a, b) => b.count - a.count), [skills]);
 
   if (total === 0) {
@@ -15,9 +17,9 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
       <div className="card">
         <div className="flex items-center gap-2 mb-3">
           <Cpu className="w-5 h-5 text-indigo-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Skill Usage</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.skill_usage')}</h3>
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">No skill usage data yet</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{tt('ui.no_skill_usage_yet')}</p>
       </div>
     );
   }
@@ -29,9 +31,11 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Cpu className="w-5 h-5 text-indigo-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Skill Usage</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.skill_usage')}</h3>
         </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">{total} skills</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {total} {tt('ui.skills')}
+        </span>
       </div>
       <div className="space-y-1.5 max-h-[280px] overflow-y-auto">
         {sorted.map((skill) => {
@@ -46,7 +50,7 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
                   {skill.skillId}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">
-                  {skill.count} calls
+                  {skill.count} {tt('ui.calls')}
                 </span>
               </div>
               <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -56,7 +60,9 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
                 />
               </div>
               <div className="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                <span>{skill.tokensUsed.toLocaleString()} tokens</span>
+                <span>
+                  {skill.tokensUsed.toLocaleString()} {tt('ui.tokens_word')}
+                </span>
                 <span>${skill.cost.toFixed(4)}</span>
               </div>
             </div>
@@ -67,7 +73,9 @@ export function SkillUsagePanel({ skills, total }: SkillUsagePanelProps) {
         <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
             <TrendingUp className="w-3 h-3" />
-            <span>Most used: {sorted[0]?.skillId ?? 'N/A'}</span>
+            <span>
+              {tt('ui.most_used')} {sorted[0]?.skillId ?? 'N/A'}
+            </span>
           </div>
         </div>
       )}

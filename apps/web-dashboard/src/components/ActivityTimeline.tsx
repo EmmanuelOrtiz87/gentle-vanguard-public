@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Clock } from 'lucide-react';
 import type { MetricHistory } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface ActivityTimelineProps {
   history: MetricHistory[];
@@ -23,6 +24,7 @@ function toHourLabel(h: number): string {
 }
 
 export function ActivityTimeline({ history }: ActivityTimelineProps) {
+  const { tt } = useT();
   const hourlyData = useMemo(() => {
     if (history.length === 0) return [];
 
@@ -79,10 +81,10 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-amber-500" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">24h Activity Timeline</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.activity_timeline')}</h3>
         </div>
         <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-sm">
-          No temporal data yet — activity will appear here as metrics accumulate
+          {tt('ui.no_temporal_data')}
         </div>
       </div>
     );
@@ -92,7 +94,7 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
     <div className="card">
       <div className="flex items-center gap-2 mb-4">
         <Clock className="w-5 h-5 text-amber-500" />
-        <h3 className="font-semibold text-gray-900 dark:text-white">24h Activity Timeline</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white">{tt('ui.activity_timeline')}</h3>
       </div>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
@@ -109,8 +111,8 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
               }}
               formatter={(value: number, name: string) => {
                 const labels: Record<string, string> = {
-                  tokens: 'Avg Tokens',
-                  sessions: 'Avg Sessions',
+                  tokens: tt('ui.avg_tokens'),
+                  sessions: tt('ui.avg_sessions'),
                 };
                 return [value.toLocaleString(), labels[name] || name];
               }}
@@ -119,8 +121,8 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
               wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }}
               formatter={(value: string) => {
                 const labels: Record<string, string> = {
-                  tokens: 'Avg Tokens',
-                  sessions: 'Avg Sessions',
+                  tokens: tt('ui.avg_tokens'),
+                  sessions: tt('ui.avg_sessions'),
                 };
                 return labels[value] || value;
               }}
@@ -131,7 +133,9 @@ export function ActivityTimeline({ history }: ActivityTimelineProps) {
         </ResponsiveContainer>
       </div>
       <p className="text-xs text-gray-400 mt-2 text-center">
-        Average token usage and session activity by hour (last {history.length} data points)
+        {tt('ui.timeline_footer_prefix')}
+        {history.length}
+        {tt('ui.data_points_suffix')}
       </p>
     </div>
   );

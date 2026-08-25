@@ -546,7 +546,7 @@ async function phasePersist(reason: string): Promise<PhaseResult[]> {
     '--session-id',
     String(sessionData.sessionId || sessionData.id || 'unknown'),
   ];
-  const tm = runScript('src/token-metrics-store.ts', closeTokenArgs, 15000);
+  const tm = runScript('src/tokens/token-metrics-store.ts', closeTokenArgs, 15000);
   const closeSummaryFile = join(SESSION_DIR, 'token-close-summary.json');
   if (existsSync(closeSummaryFile)) {
     try {

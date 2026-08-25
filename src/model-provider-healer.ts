@@ -38,6 +38,7 @@ import {
 import { join, dirname, resolve } from 'path';
 import { homedir } from 'os';
 import { runNpxTsxSync } from './core/run-command.js';
+import { loadConfigFile } from './core/config-loader.js';
 import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
@@ -99,7 +100,7 @@ function loadJsonSafe<T>(path: string, fallback: T | null = null): T | null {
 }
 
 function loadConfig(): HealthConfig {
-  return loadJsonSafe<HealthConfig>(CONFIG_PATH, null) ?? ({} as HealthConfig);
+  return loadConfigFile<HealthConfig>('model-health').data;
 }
 
 function loadState(): HealthState {

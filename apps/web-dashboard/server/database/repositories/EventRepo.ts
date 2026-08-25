@@ -4,23 +4,25 @@ import type { EventRecord, AlertRecord } from '../manager';
 export class EventRepo {
   constructor(private db: Database.Database) {}
 
-  insertEvent(type: string, payload?: unknown): void {
-    this.db
-      .prepare("INSERT INTO events (type, payload, created_at) VALUES (?, ?, datetime('now'))")
-      .run(type, payload ? JSON.stringify(payload) : null);
-  }
-
-  getRecentEvents(limit = 50): EventRecord[] {
-    return this.db
-      .prepare('SELECT * FROM events ORDER BY created_at DESC LIMIT ?')
-      .all(limit) as EventRecord[];
-  }
-
-  insertAlert(alert: Omit<AlertRecord, 'id' | 'created_at'>): void {
+  insertEvent(tenantId: string, type: string, payload?: unknown): void {
     this.db
       .prepare(
-        `INSERT INTO alerts (name, rule, severity, triggered, actual, threshold, transition, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        "INSERT INTO events (tenant_id, type, payload, created_at) VALUES (?, ?, ?, datetime('now'))",
+      )
+      .run(tenantId, type, payload ? JSON.stringify(payload) : null);
+  }
+
+  getRecentEvents(tenantId: string, limit = 50): EventRecord[] {
+    return this.db
+      .prepare('SELECT * FROM events WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?')
+      .all(tenantId, limit) as EventRecord[];
+  }
+
+  insertAlert(tenantId: string, alert: Omit<AlertRecord, 'id' | 'created_at' | 'tenant_id'>): void {
+    this.db
+      .prepare(
+        `INSERT INTO alerts (name, rule, severity, triggered, actual, threshold, transition, tenant_id, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
       )
       .run(
         alert.name,
@@ -30,26 +32,27 @@ export class EventRepo {
         alert.actual,
         alert.threshold,
         alert.transition ?? null,
+        tenantId,
       );
   }
 
-  getRecentAlerts(limit = 20): AlertRecord[] {
+  getRecentAlerts(tenantId: string, limit = 20): AlertRecord[] {
     return this.db
-      .prepare('SELECT * FROM alerts ORDER BY created_at DESC LIMIT ?')
-      .all(limit) as AlertRecord[];
+      .prepare('SELECT * FROM alerts WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?')
+      .all(tenantId, limit) as AlertRecord[];
   }
 
-  getTriggeredAlerts(): AlertRecord[] {
+  getTriggeredAlerts(tenantId: string): AlertRecord[] {
     return this.db
       .prepare(
         `SELECT * FROM alerts
          WHERE id IN (
-           SELECT MAX(id) FROM alerts GROUP BY rule
-         )
-         AND triggered = 1
+            SELECT MAX(id) FROM alerts WHERE tenant_id = ? GROUP BY rule
+          )
+          AND tenant_id = ? AND triggered = 1
          ORDER BY created_at DESC
          LIMIT 10`,
       )
-      .all() as AlertRecord[];
+      .all(tenantId, tenantId) as AlertRecord[];
   }
 }

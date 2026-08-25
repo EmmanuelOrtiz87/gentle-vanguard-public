@@ -12,7 +12,7 @@ import {
   compressStructural,
   detectKind,
   estimateTokens,
-} from '../../src/structural-compression.ts';
+} from '../../src/compression/structural-compression.ts';
 
 describe('Structural Compression Engine', () => {
   it('should detect tabular JSON arrays', () => {

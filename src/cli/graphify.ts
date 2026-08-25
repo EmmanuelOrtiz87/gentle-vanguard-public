@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, statSync } from 'fs';
 import { resolve } from 'path';
+import { runBuild } from './graphify-build.js';
 
 interface GraphNode {
   id: string;
@@ -33,11 +34,12 @@ const GRAPH_PATH = resolve(ROOT, 'graphify-out', 'graph.json');
 
 function usage(): never {
   console.log(`Usage:
+  graphify build [--roots a,b] [--max-file-kb N]   # native AST rebuild of graph.json
   graphify query "<text>" [--max N] [--json]
   graphify explain "<node_id>" [--json]
   graphify affected "<node_id-or-file>" [--max N] [--json]
   graphify path "<from_node>" "<to_node>" [--json]
-  graphify update .
+  graphify update .                                 # rebuild (same as build)
   graphify status [--json]`);
   process.exit(1);
 }
@@ -218,11 +220,10 @@ function pathBetween(from: string, to: string, json: boolean): void {
 
 function update(target: string, json: boolean): void {
   if (target !== '.' && target !== ROOT) usage();
+  // Native rebuild — the graph snapshot is no longer external state
+  runBuild({ quiet: json });
   status(json);
   if (!json) {
-    console.log(
-      'Graphify update uses the existing graphify-out/graph.json snapshot in this environment.',
-    );
     console.log('CodeGraph freshness is handled separately by src/codegraph-sync-autostart.ts.');
   }
 }
@@ -232,6 +233,10 @@ function main(): void {
   try {
     switch (command) {
       case 'status':
+        status(json);
+        break;
+      case 'build':
+        runBuild({ quiet: json });
         status(json);
         break;
       case 'query':

@@ -13,7 +13,7 @@
  *   npx tsx src/test-runner-optimized.ts [--all] [--quick] [--verbose] [--parallel 4]
  */
 
-import { spawn } from 'child_process';
+import { run } from './core/run-command';
 import { existsSync } from 'fs';
 import * as os from 'os';
 
@@ -103,6 +103,13 @@ interface RunOptions {
   parallel: number;
 }
 
+interface SuiteResult {
+  name: string;
+  passed: boolean;
+  output: string;
+  duration: number;
+}
+
 function parseArgs(): RunOptions {
   const args = process.argv.slice(2);
   const parallelArg = args.find((_, i) => args[i - 1] === '--parallel');
@@ -122,10 +129,8 @@ function runSuite(
     const startTime = Date.now();
     const label = `[${suite.name}]`;
 
-    const child = spawn(suite.cmd, suite.args, {
-      shell: true,
+    const child = run(suite.cmd, suite.args, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      windowsHide: true,
     });
 
     let output = '';
@@ -164,8 +169,8 @@ async function runParallel(
   suites: Suite[],
   options: RunOptions,
   progressPrefix: string,
-): Promise<{ passed: number; failed: number; results: any[] }> {
-  const results: any[] = [];
+): Promise<{ passed: number; failed: number; results: SuiteResult[] }> {
+  const results: SuiteResult[] = [];
   let passed = 0;
   let failed = 0;
   let completed = 0;
@@ -280,19 +285,19 @@ async function main(): Promise<void> {
 
   // Show slow tests
   const slowThreshold = 30_000; // 30 seconds
-  const slowTests = results.filter((r: any) => r.duration > slowThreshold);
+  const slowTests = results.filter((r) => r.duration > slowThreshold);
   if (slowTests.length > 0) {
     process.stdout.write(`\n⚠ Slow tests (>30s):\n`);
-    slowTests.forEach((r: any) => {
+    slowTests.forEach((r) => {
       process.stdout.write(`  - ${r.name}: ${(r.duration / 1000).toFixed(1)}s\n`);
     });
   }
 
   // Show failed suite output (observability: CI must reveal WHICH test failed)
-  const failedResults = results.filter((r: any) => !r.passed);
+  const failedResults = results.filter((r) => !r.passed);
   if (failedResults.length > 0) {
     process.stdout.write(`\n🔴 FAILED SUITES — full output:\n`);
-    failedResults.forEach((r: any) => {
+    failedResults.forEach((r) => {
       process.stdout.write(
         `\n========== ${r.name} (${(r.duration / 1000).toFixed(1)}s) ==========\n`,
       );

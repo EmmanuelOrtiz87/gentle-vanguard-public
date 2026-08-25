@@ -16,6 +16,41 @@ if (!existsSync(dbPath)) {
 
 const d = new Database(dbPath, { readonly: true });
 
+/** Row shape of the session_scoring history query */
+interface SessionScoringRow {
+  created_at?: string | null;
+  session_id?: string | null;
+  total_delegations?: number | null;
+  success_rate?: number | null;
+  total_corrections?: number | null;
+  total_proactive?: number | null;
+  quality_score?: number | null;
+}
+
+/** Row shape of the per-session token usage aggregation */
+interface TokenUsageRow {
+  session_id?: string | null;
+  total_in?: number | null;
+  total_out?: number | null;
+  total_tok?: number | null;
+}
+
+/** Row shape of the daily metric snapshot averages */
+interface SnapshotRow {
+  day?: string | null;
+  avg_tokens?: number | null;
+  avg_sessions?: number | null;
+}
+
+/** Row shape of the global session_scoring stats query */
+interface GlobalStatsRow {
+  total_rows?: number | null;
+  avg_success_rate?: number | null;
+  total_delegations?: number | null;
+  total_corrections?: number | null;
+  total_proactive?: number | null;
+}
+
 console.log('\n═══════════════════════════════════════════');
 console.log('   NEXUS DB — Métricas Históricas');
 console.log('═══════════════════════════════════════════\n');
@@ -37,7 +72,7 @@ try {
     ORDER BY created_at DESC LIMIT 15
   `,
     )
-    .all() as any[];
+    .all() as SessionScoringRow[];
 
   console.log('┌──────────────────────────────────────────────────────────────────────────┐');
   console.log('│ SESSION SCORING — Historial (col: created_at, quality_score, total_proactive) │');
@@ -45,7 +80,7 @@ try {
   if (rows.length === 0) {
     console.log('│ (sin datos — tabla vacía)                                               │');
   } else {
-    rows.forEach((r: any) => {
+    rows.forEach((r) => {
       const ts = (r.created_at || '').toString().slice(0, 19);
       const sid = (r.session_id || '').toString().slice(0, 22).padEnd(22);
       console.log(
@@ -54,8 +89,8 @@ try {
     });
   }
   console.log('└──────────────────────────────────────────────────────────────────────────┘\n');
-} catch (e: any) {
-  console.log('session_scoring table error:', e.message, '\n');
+} catch (e) {
+  console.log('session_scoring table error:', (e as Error).message, '\n');
 }
 
 // 2. Token Usage (per session)
@@ -70,7 +105,7 @@ try {
     ORDER BY total_tok DESC LIMIT 10
   `,
     )
-    .all() as any[];
+    .all() as TokenUsageRow[];
 
   console.log('┌───────────────────────────────────────────────────────────┐');
   console.log('│ TOKEN USAGE — Top 10 sesiones (prompt_tokens, completion_tokens) │');
@@ -78,7 +113,7 @@ try {
   if (tok.length === 0) {
     console.log('│ (sin datos — tabla vacía)                                │');
   } else {
-    tok.forEach((r: any) => {
+    tok.forEach((r) => {
       const sid = (r.session_id || '').toString().slice(0, 24).padEnd(24);
       console.log(
         `│ ${sid} │ in:${String(r.total_in ?? 0).padStart(8)} out:${String(r.total_out ?? 0).padStart(8)} tot:${String(r.total_tok ?? 0).padStart(10)} │`,
@@ -86,8 +121,8 @@ try {
     });
   }
   console.log('└───────────────────────────────────────────────────────────┘\n');
-} catch (e: any) {
-  console.log('token_usage table error:', e.message, '\n');
+} catch (e) {
+  console.log('token_usage table error:', (e as Error).message, '\n');
 }
 
 // 3. Metric Snapshots (daily averages)
@@ -103,7 +138,7 @@ try {
     ORDER BY day DESC LIMIT 10
   `,
     )
-    .all() as any[];
+    .all() as SnapshotRow[];
 
   console.log('┌──────────────────────────────────────────────┐');
   console.log('│ METRIC SNAPSHOTS — Promedios diarios          │');
@@ -111,15 +146,15 @@ try {
   if (snap.length === 0) {
     console.log('│ (sin datos — tabla vacía)                     │');
   } else {
-    snap.forEach((r: any) => {
+    snap.forEach((r) => {
       console.log(
         `│ ${r.day} │ tokens: ${String(r.avg_tokens ?? 0).padStart(10)} │ sessions: ${String(r.avg_sessions ?? 0).padStart(5)} │`,
       );
     });
   }
   console.log('└──────────────────────────────────────────────┘\n');
-} catch (e: any) {
-  console.log('metric_snapshots table error:', e.message, '\n');
+} catch (e) {
+  console.log('metric_snapshots table error:', (e as Error).message, '\n');
 }
 
 // 4. Overall stats
@@ -136,7 +171,7 @@ try {
     FROM session_scoring
   `,
     )
-    .get() as any;
+    .get() as GlobalStatsRow;
 
   console.log('┌──────────────────────────────────────────────┐');
   console.log('│ ESTADÍSTICAS GLOBALES                         │');
@@ -157,8 +192,8 @@ try {
     `│ Total Proactive: ${String(stats.total_proactive ?? 0).padStart(9)}               │`,
   );
   console.log('└──────────────────────────────────────────────┘\n');
-} catch (e: any) {
-  console.log('global stats error:', e.message, '\n');
+} catch (e) {
+  console.log('global stats error:', (e as Error).message, '\n');
 }
 
 d.close();

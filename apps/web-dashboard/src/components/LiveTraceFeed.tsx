@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Activity, Search, ArrowDown } from 'lucide-react';
 import { useLiveTraces } from '../hooks/useLiveTraces';
+import { useT } from '../hooks/useLocale';
 
 type FilterType = 'all' | 'active' | 'completed';
 const STATUS_COLORS: Record<string, string> = {
@@ -25,6 +26,7 @@ function getStatus(trace: { model?: string; turnCount?: number }): string {
 }
 
 export function LiveTraceFeed() {
+  const { tt } = useT();
   const traces = useLiveTraces();
   const [filter, setFilter] = useState<FilterType>('all');
   const [search, setSearch] = useState('');
@@ -68,9 +70,11 @@ export function LiveTraceFeed() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <Activity className="w-4 h-4 text-blue-500" />
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Live Traces</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{tt('ui.live_traces')}</h3>
         {traces.length > 0 && (
-          <span className="ml-auto text-xs text-gray-400">{traces.length} active</span>
+          <span className="ml-auto text-xs text-gray-400">
+            {traces.length} {tt('ui.active_plural')}
+          </span>
         )}
       </div>
 
@@ -79,7 +83,7 @@ export function LiveTraceFeed() {
         <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
         <input
           type="text"
-          placeholder="Search by ID or model..."
+          placeholder={tt('ui.search_placeholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -98,14 +102,14 @@ export function LiveTraceFeed() {
                 : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === 'all' ? tt('ui.all') : f === 'active' ? tt('ui.active_plural') : tt('ui.done_badge')}
             <span className="ml-1 opacity-60">({filterCounts[f]})</span>
           </button>
         ))}
         <button
           onClick={() => setAutoScroll(!autoScroll)}
           className={`ml-auto p-1 rounded ${autoScroll ? 'text-blue-500' : 'text-gray-400'}`}
-          title={autoScroll ? 'Auto-scroll on' : 'Auto-scroll off'}
+          title={autoScroll ? tt('ui.auto_scroll_on') : tt('ui.auto_scroll_off')}
         >
           <ArrowDown className="w-3.5 h-3.5" />
         </button>
@@ -114,7 +118,7 @@ export function LiveTraceFeed() {
       {/* Trace list */}
       {filtered.length === 0 ? (
         <p className="text-xs text-gray-400 py-4 text-center">
-          {search ? 'No traces match your search' : 'No activity yet'}
+          {search ? tt('ui.no_traces_match') : tt('ui.no_activity_yet')}
         </p>
       ) : (
         <div ref={listRef} className="space-y-1.5 max-h-64 overflow-y-auto">
@@ -134,7 +138,9 @@ export function LiveTraceFeed() {
                 >
                   {t.id.length > 20 ? `${t.id.slice(0, 20)}...` : t.id}
                 </span>
-                <span className="text-gray-500 whitespace-nowrap">{t.turnCount} turns</span>
+                <span className="text-gray-500 whitespace-nowrap">
+                  {t.turnCount} {tt('ui.turns')}
+                </span>
                 <span className="text-gray-400 ml-auto hidden sm:inline">{t.model}</span>
                 <span
                   className="text-gray-400 whitespace-nowrap"

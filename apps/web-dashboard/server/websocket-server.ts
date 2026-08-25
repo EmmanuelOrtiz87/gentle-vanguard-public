@@ -12,12 +12,25 @@ import {
   createListing,
   addReview,
   incrementDownloads,
+  installListing,
+  uninstallListing,
+  getListingVersions,
+  createListingVersion,
+  rollbackListing,
+  getCatalogValidationReport,
+  updateListingReviewStatus,
+  createMigrationDraft,
+  createAllMigrationDrafts,
+  applyMigration,
+  applyAllMigrations,
   validateSkillStructure,
   getSkillContent,
 } from './marketplace-api.ts';
-import { MetricsWriter } from './database/metrics-writer.ts';
+import { DatabaseManager, DEFAULT_TENANT_ID } from './database/manager.ts';
+import { getOtelPipeline } from './otel-pipeline.ts';
 import {
   getRealMetrics,
+  getMetricHistory,
   getTraces,
   getCloudMetrics,
   getTenantScopedMetrics,
@@ -33,10 +46,29 @@ import {
 } from './mcp-gateway-api.ts';
 import { meshHandler, meshDiscoverHandler, meshSyncHandler } from './mesh-api.ts';
 import { runValidations } from './validations.ts';
-import { ROOT, readJson, countSkills } from './shared.ts';
+import { ROOT, readJson, countSkills, STACK_VERSION } from './shared.ts';
+import { knowledgeHandler } from './knowledge-api.ts';
 import { OperationalMetricsTracker } from '@gentle-vanguard/core/operational-metrics-tracker';
+import { createDashboardAuth } from './auth.ts';
+import { createHash, randomBytes } from 'node:crypto';
+import { can, resolveRoutePermission } from './rbac.ts';
+import { createLoginRateLimiter } from './login-rate-limiter.ts';
+import { isDashboardRole, type DashboardRole } from './database/repositories/PrincipalRepo';
+import {
+  resolveDeploymentTenantContext,
+  validateTenantSelector,
+  type DeploymentTenantContext,
+} from '../../../src/deployment-tenant-context.ts';
+import {
+  loadManifest,
+  loadPlatformRegistry,
+  packageJob,
+  saveManifest,
+  transition,
+  validate as validateContentJob,
+  type Status,
+} from '../../../src/content-operations/engine.ts';
 
-const FEEDBACK_PATH = join(ROOT, '.runtime', 'metrics', 'feedback.json');
 const ALERTS_CONFIG_PATH = join(ROOT, 'config', 'dashboard-alerts.json');
 import type {
   AgentSession,
@@ -53,9 +85,90 @@ const REGISTRY_PATH = join(ROOT, '.atl', 'skill-registry.md');
 const SESSIONS_HISTORY_PATH = join(ROOT, '.event-bus', 'sessions-history.json');
 
 const PORT = parseInt(process.env.WS_PORT || '8080', 10);
+const dashboardDatabase = DatabaseManager.getInstance();
+const dashboardAuth = createDashboardAuth(process.env, dashboardDatabase.authSessions);
+const loginRateLimiter = createLoginRateLimiter(process.env);
+const CSRF_COOKIE = 'gv_dashboard_csrf';
+
+function sha256Hex(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+interface SessionAccess {
+  principalId: string;
+  role: DashboardRole;
+}
+
+/** Resolve the authenticated session to its bound principal + tenant role. */
+function resolveSessionAccess(req: IncomingMessage): SessionAccess | undefined {
+  if (dashboardAuth.devMode && dashboardAuth.isLocalhost(req)) return undefined;
+  const sessionId = dashboardAuth.cookie(req);
+  if (!sessionId) return undefined;
+  const principalId = dashboardDatabase.authSessions.getPrincipalId(sessionId);
+  if (!principalId) return undefined;
+  const role = dashboardDatabase.principals.getRole(DEFAULT_TENANT_ID, principalId);
+  if (!role) return undefined;
+  return { principalId, role };
+}
+
+function devBypassActive(req: IncomingMessage): boolean {
+  return dashboardAuth.devMode && dashboardAuth.isLocalhost(req);
+}
+
+/**
+ * Double-submit CSRF verification for cookie-authenticated mutations:
+ * the X-GV-CSRF header must match the CSRF cookie, and both must hash to
+ * the value stored server-side with the session.
+ */
+function verifyCsrf(req: IncomingMessage): boolean {
+  const sessionId = dashboardAuth.cookie(req);
+  if (!sessionId) return false;
+  const header = req.headers['x-gv-csrf'];
+  const headerToken = Array.isArray(header) ? header[0] : header;
+  if (!headerToken) return false;
+  let cookieToken: string | undefined;
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const [name, ...value] = part.trim().split('=');
+    if (name === CSRF_COOKIE) cookieToken = value.join('=') || undefined;
+  }
+  if (!cookieToken || cookieToken !== headerToken) return false;
+  try {
+    return dashboardDatabase.authSessions.getCsrfHash(sessionId) === sha256Hex(headerToken);
+  } catch {
+    return false;
+  }
+}
+
+if (dashboardAuth.warning) console.warn(`[AUTH-WARNING] ${dashboardAuth.warning}`);
+const deploymentTenant = resolveDeploymentTenantContext(
+  process.env,
+  join(ROOT, 'config', 'tenant-registry.json'),
+);
 const server = createServer(handleRequest);
+const MAX_JSON_BODY_BYTES = 1_048_576;
+const MAX_WS_MESSAGE_BYTES = 256 * 1024;
+const MAX_WS_BUFFERED_BYTES = 1_048_576;
+server.requestTimeout = 30_000;
+server.headersTimeout = 10_000;
+server.timeout = 30_000;
+server.keepAliveTimeout = 5_000;
 server.on('error', (err: Error) => console.error('[WS-ERROR] HTTP server:', err.message));
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_WS_MESSAGE_BYTES });
+const wsTenants = new WeakMap<WebSocket, DeploymentTenantContext>();
+server.on('upgrade', (req, socket, head) => {
+  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  if (!validateTenantSelector(deploymentTenant, url.searchParams.get('tenantId'))) {
+    socket.write('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+  if (url.searchParams.has('token') || !dashboardAuth.authenticate(req)) {
+    socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
+});
 wss.on('error', (err: Error) => console.error('[WS-ERROR] WS server:', err.message));
 
 const clients = new Set<WebSocket>();
@@ -63,8 +176,67 @@ const agentSubscriptions = new Map<string, Set<WebSocket>>();
 const sessions = new Map<string, AgentSession>();
 const connPerIp = new Map<string, number>();
 const MAX_CONN_PER_IP = 5;
+const dashboardTelemetry = {
+  httpRequests: 0,
+  httpErrors: 0,
+  httpLatencyTotalMs: 0,
+  httpLatencyMaxMs: 0,
+  httpStatusCounts: new Map<number, number>(),
+  wsConnectionsTotal: 0,
+  wsConnectionsPeak: 0,
+};
 let bridgeReady = false;
 let bridgeToolCount = 0;
+
+class RequestBodyTooLargeError extends Error {}
+
+async function readJsonBody<T>(req: IncomingMessage, maxBytes = MAX_JSON_BODY_BYTES): Promise<T> {
+  const declaredLength = Number(req.headers['content-length'] || 0);
+  if (declaredLength > maxBytes) throw new RequestBodyTooLargeError('Request body too large');
+  const chunks: Buffer[] = [];
+  let bytes = 0;
+  return new Promise<T>((resolve, reject) => {
+    const fail = (error: Error): void => {
+      req.removeAllListeners('data');
+      req.removeAllListeners('end');
+      req.removeAllListeners('error');
+      req.resume();
+      reject(error);
+    };
+    req.on('data', (chunk: Buffer | string) => {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      bytes += buffer.length;
+      if (bytes > maxBytes) {
+        fail(new RequestBodyTooLargeError('Request body too large'));
+        return;
+      }
+      chunks.push(buffer);
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')) as T);
+      } catch {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', (error) => reject(error));
+    req.on('aborted', () => reject(new Error('Request aborted')));
+  });
+}
+
+function safeSend(ws: WebSocket, message: string): boolean {
+  if (ws.readyState !== WebSocket.OPEN || ws.bufferedAmount > MAX_WS_BUFFERED_BYTES) return false;
+  try {
+    ws.send(message);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sendJson(ws: WebSocket, payload: unknown): boolean {
+  return safeSend(ws, JSON.stringify(payload));
+}
 
 interface ActiveSkillExecution {
   active: boolean;
@@ -76,7 +248,9 @@ interface ActiveSkillExecution {
 const activeSkillExecutions = new Map<string, ActiveSkillExecution>();
 
 // ─── Database Persistence Layer ───────────────────────────────────────
-const metricsWriter = new MetricsWriter();
+// Unified OTel pipeline: owns both the spans ingest cycle and the
+// MetricsWriter snapshot cycle (see server/otel-pipeline.ts).
+const otelPipeline = getOtelPipeline();
 let metricsWriterStarted = false;
 
 function loadStats() {
@@ -124,18 +298,165 @@ function loadSessions(): void {
 }
 
 function generateMetrics(tenantId?: string) {
-  const real = tenantId ? getTenantScopedMetrics(tenantId) : getRealMetrics();
-  return { ...real, globalHealth: getGlobalHealth() };
+  const effectiveTenantId = tenantId ?? deploymentTenant.tenantId;
+  const real = effectiveTenantId ? getTenantScopedMetrics(effectiveTenantId) : getRealMetrics();
+  return {
+    ...real,
+    globalHealth: getGlobalHealth(),
+    tenantScope: deploymentTenant.configured
+      ? { type: deploymentTenant.scopeLabel, tenantId: deploymentTenant.tenantId }
+      : {
+          type: deploymentTenant.scopeLabel,
+          warning: 'Metrics are system-wide; no tenant boundary is configured.',
+        },
+  };
 }
 
-function readTenantRegistry() {
-  const registryPath = join(ROOT, 'config', 'tenant-registry.json');
-  try {
-    if (!existsSync(registryPath)) return { tenants: [] };
-    return JSON.parse(readFileSync(registryPath, 'utf-8'));
-  } catch {
-    return { tenants: [] };
+function readAuditEntries(limit = 100, query = ''): Array<Record<string, unknown>> {
+  const auditDir = join(ROOT, '.session', 'audit', 'logs');
+  if (!existsSync(auditDir)) return [];
+  const needle = query.trim().toLowerCase();
+  const entries: Array<Record<string, unknown>> = [];
+  const files = readdirSync(auditDir)
+    .filter((file) => file.endsWith('.jsonl'))
+    .sort()
+    .reverse();
+  for (const file of files) {
+    try {
+      const lines = readFileSync(join(auditDir, file), 'utf-8')
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .reverse();
+      for (const line of lines) {
+        try {
+          const entry = JSON.parse(line) as Record<string, unknown>;
+          if (!needle || JSON.stringify(entry).toLowerCase().includes(needle)) entries.push(entry);
+          if (entries.length >= limit) return entries;
+        } catch {
+          // Ignore incomplete JSONL lines while a writer is appending.
+        }
+      }
+    } catch {
+      // Audit viewer is best-effort and must not affect the metrics API.
+    }
   }
+  return entries;
+}
+
+function prometheusMetrics(): string {
+  const metrics = generateMetrics() as Record<string, any>;
+  const health = getGlobalHealth() as Record<string, any>;
+  const otel = otelPipeline.getStats();
+  const number = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const lines = [
+    '# HELP gentle_vanguard_dashboard_up Dashboard process health.',
+    '# TYPE gentle_vanguard_dashboard_up gauge',
+    'gentle_vanguard_dashboard_up 1',
+    '# HELP gentle_vanguard_dashboard_uptime_seconds Dashboard process uptime.',
+    '# TYPE gentle_vanguard_dashboard_uptime_seconds gauge',
+    `gentle_vanguard_dashboard_uptime_seconds ${process.uptime()}`,
+    '# HELP gentle_vanguard_dashboard_ws_connections Current WebSocket clients.',
+    '# TYPE gentle_vanguard_dashboard_ws_connections gauge',
+    `gentle_vanguard_dashboard_ws_connections ${clients.size}`,
+    '# HELP gentle_vanguard_tokens_used Current real token consumption.',
+    '# TYPE gentle_vanguard_tokens_used gauge',
+    `gentle_vanguard_tokens_used ${number(metrics.tokens?.used)}`,
+    '# HELP gentle_vanguard_active_sessions Current active sessions.',
+    '# TYPE gentle_vanguard_active_sessions gauge',
+    `gentle_vanguard_active_sessions ${number(metrics.sessions?.active)}`,
+    '# HELP gentle_vanguard_health_status Health status encoded as 1 healthy, 0 otherwise.',
+    '# TYPE gentle_vanguard_health_status gauge',
+    `gentle_vanguard_health_status ${health.status === 'healthy' || health.status === 'ok' ? 1 : 0}`,
+    // ── OTel pipeline self-observability ──
+    '# HELP gentle_vanguard_otel_pipeline_running Whether the unified OTel pipeline is running.',
+    '# TYPE gentle_vanguard_otel_pipeline_running gauge',
+    `gentle_vanguard_otel_pipeline_running ${otel.running ? 1 : 0}`,
+    '# HELP gentle_vanguard_otel_spans_ingested_total Total spans ingested into Nexus since process start.',
+    '# TYPE gentle_vanguard_otel_spans_ingested_total counter',
+    `gentle_vanguard_otel_spans_ingested_total ${number(otel.spansIngestedTotal)}`,
+    '# HELP gentle_vanguard_otel_ingest_errors Total ingest cycle errors since process start.',
+    '# TYPE gentle_vanguard_otel_ingest_errors counter',
+    `gentle_vanguard_otel_ingest_errors ${number(otel.ingestErrors)}`,
+    '# HELP gentle_vanguard_otel_last_ingest_age_seconds Seconds since the last successful ingest cycle.',
+    '# TYPE gentle_vanguard_otel_last_ingest_age_seconds gauge',
+    `gentle_vanguard_otel_last_ingest_age_seconds ${
+      otel.lastIngestAt ? Math.max(0, (Date.now() - Date.parse(otel.lastIngestAt)) / 1000) : -1
+    }`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+interface TenantSloObjectives {
+  availabilityTargetPct: number;
+  latencyTargetMs: number;
+  errorBudgetPct: number;
+}
+
+/** SLO defaults; overridable per tenant via config/tenant-registry.json. */
+const SLO_DEFAULTS: TenantSloObjectives = {
+  availabilityTargetPct: 99.9,
+  latencyTargetMs: 2000,
+  errorBudgetPct: 0.1,
+};
+
+function getTenantSloObjectives(tenantId?: string): TenantSloObjectives {
+  const effective = tenantId || deploymentTenant.tenantId;
+  try {
+    const registryPath = join(ROOT, 'config', 'tenant-registry.json');
+    if (existsSync(registryPath)) {
+      const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+      // Registry-level defaults first…
+      const base: TenantSloObjectives = {
+        ...SLO_DEFAULTS,
+        ...(registry.sloDefaults ?? {}),
+      };
+      // …then tenant-specific overrides.
+      const tenant = (registry.tenants ?? []).find((t: any) => t.id === effective);
+      if (tenant?.slo) return { ...base, ...tenant.slo };
+      return base;
+    }
+  } catch {
+    /* fall through to defaults */
+  }
+  return { ...SLO_DEFAULTS };
+}
+
+function calculateBurnRate(tenantId?: string) {
+  const objectives = getTenantSloObjectives(tenantId);
+  const errorBudget = objectives.errorBudgetPct / 100;
+  const windows = [
+    { label: '1h', range: '1h' as const },
+    { label: '6h', range: '7d' as const, hours: 6 },
+    { label: '24h', range: '24h' as const },
+    { label: '72h', range: '7d' as const, hours: 72 },
+  ];
+  return windows.map(({ label, range, hours }) => {
+    const history = getMetricHistory(2000, range).filter((row: any) => {
+      if (!hours) return true;
+      const timestamp = Date.parse(String(row.timestamp || ''));
+      return Number.isFinite(timestamp) && Date.now() - timestamp <= hours * 60 * 60 * 1000;
+    });
+    const total = history.length;
+    const errors = history.filter(
+      (row: any) =>
+        !['healthy', 'ok', 'pass'].includes(String(row.health_status || '').toLowerCase()),
+    ).length;
+    const errorRate = total > 0 ? errors / total : null;
+    return {
+      window: label,
+      samples: total,
+      errors,
+      errorRate,
+      burnRate: errorRate === null ? null : errorBudget > 0 ? errorRate / errorBudget : null,
+      status:
+        total === 0
+          ? 'NO_DATA'
+          : errorRate !== null && errorRate > errorBudget
+            ? 'BREACH'
+            : 'WITHIN_BUDGET',
+    };
+  });
 }
 
 // --- Agent Session Management ---
@@ -167,7 +488,7 @@ function broadcastToSession(sessionId: string, payload: Record<string, unknown>)
   if (!subs) return;
   const msg = JSON.stringify(payload);
   for (const ws of subs) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    safeSend(ws, msg);
   }
 }
 
@@ -264,24 +585,24 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
   if (action === 'create_session') {
     const session = createSession(agent || 'DEV');
     subscribeToAgentSession(ws, session.id);
-    ws.send(JSON.stringify({ type: 'agent_session_created', session }));
+    sendJson(ws, { type: 'agent_session_created', session });
     return;
   }
 
   if (!sessionId) {
-    ws.send(JSON.stringify({ type: 'error', error: 'sessionId required' }));
+    sendJson(ws, { type: 'error', error: 'sessionId required' });
     return;
   }
 
   const session = sessions.get(sessionId as string);
   if (!session) {
-    ws.send(JSON.stringify({ type: 'error', error: 'Session not found' }));
+    sendJson(ws, { type: 'error', error: 'Session not found' });
     return;
   }
 
   if (action === 'subscribe') {
     subscribeToAgentSession(ws, sessionId as string);
-    ws.send(JSON.stringify({ type: 'subscribed', sessionId }));
+    sendJson(ws, { type: 'subscribed', sessionId });
     return;
   }
 
@@ -293,25 +614,23 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
       messageCount: s.messages.length,
       updatedAt: s.updatedAt,
     }));
-    ws.send(JSON.stringify({ type: 'agent_sessions', sessions: list }));
+    sendJson(ws, { type: 'agent_sessions', sessions: list });
     return;
   }
 
   if (action === 'list_history') {
-    ws.send(JSON.stringify({ type: 'agent_history', sessions: Array.from(sessions.values()) }));
+    sendJson(ws, { type: 'agent_history', sessions: Array.from(sessions.values()) });
     return;
   }
 
   if (action === 'get_session') {
-    ws.send(JSON.stringify({ type: 'agent_session', session }));
+    sendJson(ws, { type: 'agent_session', session });
     return;
   }
 
   if (action === 'list_tools') {
     const bridge = getBridge();
-    ws.send(
-      JSON.stringify({ type: 'agent_tools', tools: bridge.tools, connected: bridge.connected }),
-    );
+    sendJson(ws, { type: 'agent_tools', tools: bridge.tools, connected: bridge.connected });
     return;
   }
 
@@ -409,7 +728,7 @@ async function handleAgentCommand(ws: WebSocket, msg: Record<string, unknown>): 
 function cancelSkillExecution(sessionId: string, ws: WebSocket): void {
   const exec = activeSkillExecutions.get(sessionId);
   if (!exec || !exec.active) {
-    ws.send(JSON.stringify({ type: 'error', error: 'No active skill execution to cancel' }));
+    sendJson(ws, { type: 'error', error: 'No active skill execution to cancel' });
     return;
   }
   exec.cancelled = true;
@@ -436,7 +755,7 @@ async function handleSkillListing(
 ): Promise<void> {
   const bridge = getBridge();
   if (!bridge.connected) {
-    ws.send(JSON.stringify({ type: 'error', error: 'MCP bridge not connected' }));
+    sendJson(ws, { type: 'error', error: 'MCP bridge not connected' });
     return;
   }
   try {
@@ -458,12 +777,10 @@ async function handleSkillListing(
     addMessage(session.id, listMsg);
     broadcastToSession(session.id, { type: 'agent_message', message: listMsg });
   } catch (err) {
-    ws.send(
-      JSON.stringify({
-        type: 'error',
-        error: `Failed to ${action}: ${err instanceof Error ? err.message : String(err)}`,
-      }),
-    );
+    sendJson(ws, {
+      type: 'error',
+      error: `Failed to ${action}: ${err instanceof Error ? err.message : String(err)}`,
+    });
   }
 }
 
@@ -626,14 +943,331 @@ process.on('unhandledRejection', (err: unknown) => {
 });
 
 async function handleRequest(req: IncomingMessage, res: ServerResponse) {
-  const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+  const configuredOrigins = (
+    process.env.GV_DASHBOARD_CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173'
+  )
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const requestOrigin = req.headers.origin;
+  const allowedOrigin =
+    requestOrigin && configuredOrigins.includes(requestOrigin)
+      ? requestOrigin
+      : configuredOrigins[0];
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-GV-Dashboard-Token',
+    'Access-Control-Allow-Credentials': 'true',
+    Vary: 'Origin',
+  };
+  const requestStartedAt = Date.now();
+  dashboardTelemetry.httpRequests++;
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
 
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, { ...headers, 'Access-Control-Allow-Methods': 'GET, OPTIONS' });
+      res.writeHead(204, { ...headers, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
       res.end();
       return;
+    }
+
+    const publicHealth = url.pathname === '/api/health' && req.method === 'GET';
+    const publicAuth =
+      url.pathname === '/api/auth/status' ||
+      url.pathname === '/api/auth/login' ||
+      url.pathname === '/api/auth/logout';
+    if (!publicHealth && !publicAuth && !dashboardAuth.authenticate(req)) {
+      res.writeHead(401, { ...headers, 'WWW-Authenticate': 'Bearer' });
+      res.end(JSON.stringify({ success: false, error: 'Dashboard authentication required' }));
+      return;
+    }
+
+    if (url.pathname === '/api/auth/login' && req.method === 'POST') {
+      const clientKey = req.socket.remoteAddress || 'unknown';
+      const limit = loginRateLimiter.check(clientKey);
+      if (!limit.allowed) {
+        res.writeHead(429, {
+          ...headers,
+          'Retry-After': String(limit.retryAfterSeconds),
+        });
+        res.end(JSON.stringify({ success: false, error: 'Too many login attempts' }));
+        return;
+      }
+      const body = await readJsonBody<{ token?: string }>(req);
+      const sessionId = dashboardAuth.login(body.token || '');
+      if (!sessionId) {
+        loginRateLimiter.recordFailure(clientKey);
+        res.writeHead(401, headers);
+        res.end(JSON.stringify({ success: false, error: 'Invalid dashboard token' }));
+        return;
+      }
+      loginRateLimiter.reset(clientKey);
+
+      // Bind session → principal with bootstrap semantics:
+      // the first principal becomes admin; later logins keep their existing
+      // tenant role or default to viewer (fail-closed).
+      const subject =
+        process.env.GV_DASHBOARD_PRINCIPAL_SUBJECT?.trim() || 'dashboard-operator';
+      const principal = dashboardDatabase.principals.findOrCreateBySubject(
+        subject,
+        'Dashboard Operator',
+      );
+      let role = dashboardDatabase.principals.getRole(DEFAULT_TENANT_ID, principal.id);
+      if (!role && dashboardDatabase.principals.countAdmins() === 0) role = 'admin';
+      if (!role) role = 'viewer';
+      dashboardDatabase.principals.upsertMembership(DEFAULT_TENANT_ID, principal.id, role);
+
+      const csrfToken = randomBytes(32).toString('hex');
+      try {
+        dashboardDatabase.authSessions.bindSession(sessionId, principal.id, sha256Hex(csrfToken));
+      } catch {
+        dashboardAuth.logout(req);
+        res.writeHead(500, headers);
+        res.end(JSON.stringify({ success: false, error: 'Session binding failed' }));
+        return;
+      }
+      dashboardDatabase.insertEvent('dashboard.auth.login', {
+        principalId: principal.id,
+        subject,
+        role,
+      });
+
+      const ttlSeconds = Math.floor(
+        (Number(process.env.GV_DASHBOARD_SESSION_TTL_MS) || 8 * 60 * 60 * 1000) / 1000,
+      );
+      const csrfCookie = `${CSRF_COOKIE}=${csrfToken}; Path=/; SameSite=Strict${dashboardAuth.productionMode ? '; Secure' : ''}; Max-Age=${ttlSeconds}`;
+      res.writeHead(200, {
+        ...headers,
+        'Set-Cookie': [dashboardAuth.cookieHeader(sessionId), csrfCookie],
+      });
+      res.end(
+        JSON.stringify({
+          success: true,
+          principal: { id: principal.id, subject: principal.subject, role },
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === '/api/auth/logout' && req.method === 'POST') {
+      dashboardAuth.logout(req);
+      const clearCsrf = `${CSRF_COOKIE}=; Path=/; SameSite=Strict${dashboardAuth.productionMode ? '; Secure' : ''}; Max-Age=0`;
+      res.writeHead(200, {
+        ...headers,
+        'Set-Cookie': [dashboardAuth.clearCookieHeader(), clearCsrf],
+      });
+      res.end(JSON.stringify({ success: true }));
+      return;
+    }
+
+    if (url.pathname === '/api/auth/status') {
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({
+          enabled: dashboardAuth.enabled,
+          mode: dashboardAuth.devMode
+            ? 'dev-localhost'
+            : dashboardAuth.enabled
+              ? 'session'
+              : 'disabled',
+          authenticated: dashboardAuth.authenticate(req),
+          warning: dashboardAuth.warning,
+        }),
+      );
+      return;
+    }
+
+    // ─── Admin API (RBAC v1) ────────────────────────────────────────────
+    const adminMatch = url.pathname.match(/^\/api\/admin\/principals(?:\/([^/]+)(?:\/(role|revoke-sessions))?)?$/);
+    if (adminMatch) {
+      const bypass = devBypassActive(req);
+      const access = resolveSessionAccess(req);
+      if (!bypass && (!access || access.role !== 'admin')) {
+        res.writeHead(403, headers);
+        res.end(JSON.stringify({ success: false, error: 'Admin role required' }));
+        return;
+      }
+      const actorId = access?.principalId ?? 'dev-bypass';
+      const mutating = req.method !== 'GET' && req.method !== 'HEAD';
+      if (mutating && !bypass && !verifyCsrf(req)) {
+        res.writeHead(403, headers);
+        res.end(JSON.stringify({ success: false, error: 'CSRF token missing or invalid' }));
+        return;
+      }
+
+      const [, principalId, adminAction] = adminMatch;
+
+      if (!principalId && req.method === 'GET') {
+        const principals = dashboardDatabase.principals.list().map((p) => ({
+          ...p,
+          memberships: dashboardDatabase.principals.listMemberships(p.id),
+        }));
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, principals }));
+        return;
+      }
+
+      if (!principalId && req.method === 'POST') {
+        const body = await readJsonBody<{
+          subject?: string;
+          displayName?: string;
+          role?: string;
+        }>(req);
+        const subject = body.subject?.trim();
+        if (!subject) {
+          res.writeHead(400, headers);
+          res.end(JSON.stringify({ success: false, error: 'subject is required' }));
+          return;
+        }
+        const role = body.role ?? 'viewer';
+        if (!isDashboardRole(role)) {
+          res.writeHead(400, headers);
+          res.end(
+            JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }),
+          );
+          return;
+        }
+        const created = dashboardDatabase.principals.findOrCreateBySubject(subject, body.displayName);
+        dashboardDatabase.principals.upsertMembership(DEFAULT_TENANT_ID, created.id, role);
+        dashboardDatabase.insertEvent('dashboard.admin.principal.create', {
+          actorId,
+          principalId: created.id,
+          subject,
+          role,
+        });
+        res.writeHead(201, headers);
+        res.end(
+          JSON.stringify({ success: true, principal: { ...created, role } }),
+        );
+        return;
+      }
+
+      if (principalId && adminAction === 'role' && req.method === 'PATCH') {
+        if (principalId === actorId) {
+          res.writeHead(409, headers);
+          res.end(JSON.stringify({ success: false, error: 'Cannot change own role' }));
+          return;
+        }
+        const body = await readJsonBody<{ role?: string; tenantId?: string }>(req);
+        const role = body.role;
+        const tenantId = body.tenantId?.trim() || DEFAULT_TENANT_ID;
+        if (!isDashboardRole(role)) {
+          res.writeHead(400, headers);
+          res.end(
+            JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }),
+          );
+          return;
+        }
+        const target = dashboardDatabase.principals.getById(principalId);
+        if (!target) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Principal not found' }));
+          return;
+        }
+        const previousRole = dashboardDatabase.principals.getRole(tenantId, principalId);
+        if (
+          previousRole === 'admin' &&
+          role !== 'admin' &&
+          dashboardDatabase.principals.countAdmins() <= 1
+        ) {
+          res.writeHead(409, headers);
+          res.end(JSON.stringify({ success: false, error: 'Cannot demote the last admin' }));
+          return;
+        }
+        dashboardDatabase.principals.upsertMembership(tenantId, principalId, role);
+        dashboardDatabase.insertEvent('dashboard.admin.principal.role_change', {
+          actorId,
+          principalId,
+          tenantId,
+          from: previousRole ?? null,
+          to: role,
+        });
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, principalId, tenantId, role }));
+        return;
+      }
+
+      if (principalId && adminAction === 'revoke-sessions' && req.method === 'POST') {
+        const revoked = dashboardDatabase.authSessions.revokeAllForPrincipal(principalId);
+        dashboardDatabase.insertEvent('dashboard.admin.sessions.revoke', {
+          actorId,
+          principalId,
+          revoked,
+        });
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, revoked }));
+        return;
+      }
+
+      if (principalId && !adminAction && req.method === 'DELETE') {
+        if (principalId === actorId) {
+          res.writeHead(409, headers);
+          res.end(JSON.stringify({ success: false, error: 'Cannot delete own principal' }));
+          return;
+        }
+        const target = dashboardDatabase.principals.getById(principalId);
+        if (!target) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Principal not found' }));
+          return;
+        }
+        if (
+          dashboardDatabase.principals.getRole(DEFAULT_TENANT_ID, principalId) === 'admin' &&
+          dashboardDatabase.principals.countAdmins() <= 1
+        ) {
+          res.writeHead(409, headers);
+          res.end(JSON.stringify({ success: false, error: 'Cannot delete the last admin' }));
+          return;
+        }
+        dashboardDatabase.authSessions.revokeAllForPrincipal(principalId);
+        dashboardDatabase.principals.delete(principalId);
+        dashboardDatabase.insertEvent('dashboard.admin.principal.delete', {
+          actorId,
+          principalId,
+          subject: target.subject,
+        });
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true }));
+        return;
+      }
+
+      res.writeHead(405, { ...headers, Allow: 'GET, POST, PATCH, DELETE, POST' });
+      res.end(JSON.stringify({ success: false, error: 'Method not allowed' }));
+      return;
+    }
+
+    if (!validateTenantSelector(deploymentTenant, url.searchParams.get('tenantId'))) {
+      res.writeHead(400, headers);
+      res.end(
+        JSON.stringify({
+          success: false,
+          error: 'Tenant selector does not match this deployment',
+        }),
+      );
+      return;
+    }
+
+    // ─── Coarse RBAC guard (policy v1) ─────────────────────────────────
+    // Reads require viewer; mutations require operator (admin endpoints are
+    // handled above with their own admin gate + CSRF). Dev-localhost bypass
+    // keeps full access; production sessions without a bound principal must
+    // re-login to acquire one.
+    const routePermission = resolveRoutePermission(url.pathname, req.method ?? 'GET');
+    if (routePermission && !devBypassActive(req)) {
+      const access = resolveSessionAccess(req);
+      if (!access || !can(access.role, routePermission)) {
+        res.writeHead(403, headers);
+        res.end(
+          JSON.stringify({
+            success: false,
+            error: 'Insufficient dashboard role',
+            required: routePermission,
+            policyVersion: 1,
+          }),
+        );
+        return;
+      }
     }
 
     if (url.pathname === '/api/metrics') {
@@ -644,40 +1278,204 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       return;
     }
 
+    if (url.pathname === '/api/sse/metrics') {
+      res.writeHead(200, {
+        ...headers,
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      });
+      const send = () => {
+        res.write(
+          `event: metrics\ndata: ${JSON.stringify({ type: 'metrics', data: generateMetrics() })}\n\n`,
+        );
+      };
+      send();
+      const interval = setInterval(send, 5000);
+      req.on('close', () => clearInterval(interval));
+      return;
+    }
+
+    if (url.pathname === '/api/metrics/history') {
+      const requested = Number(url.searchParams.get('limit') || 120);
+      const requestedRange = url.searchParams.get('range');
+      const ranges = new Set(['5m', '1h', '24h', '7d', '30d']);
+      const range =
+        requestedRange && ranges.has(requestedRange)
+          ? (requestedRange as '5m' | '1h' | '24h' | '7d' | '30d')
+          : undefined;
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({
+          type: 'metrics_history',
+          range: range || 'all',
+          data: getMetricHistory(requested, range),
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === '/metrics' || url.pathname === '/api/metrics/prometheus') {
+      res.writeHead(200, {
+        ...headers,
+        'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+      });
+      res.end(prometheusMetrics());
+      return;
+    }
+
+    if (url.pathname === '/api/audit') {
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 100), 1), 500);
+      const query = url.searchParams.get('q') || '';
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: { entries: readAuditEntries(limit, query), query, limit },
+        }),
+      );
+      return;
+    }
+
     // SLO metrics endpoint — GET returns latest, POST stores from perf:slo
     const SLO_PATH = join(ROOT, '.runtime', 'metrics', 'slo-latest.json');
     if (url.pathname === '/api/slo' && req.method === 'POST') {
-      let body = '';
-      req.on('data', (chunk: Buffer) => {
-        body += chunk.toString();
-      });
-      req.on('end', () => {
-        try {
-          const data = JSON.parse(body);
-          mkdirSync(dirname(SLO_PATH), { recursive: true });
-          writeFileSync(
-            SLO_PATH,
-            JSON.stringify({ ...data, ingested: new Date().toISOString() }, null, 2),
-          );
-          res.writeHead(200, headers);
-          res.end(JSON.stringify({ success: true }));
-        } catch (e) {
-          res.writeHead(400, headers);
-          res.end(JSON.stringify({ error: 'Invalid JSON' }));
-        }
-      });
+      try {
+        const data = await readJsonBody<Record<string, unknown>>(req);
+        mkdirSync(dirname(SLO_PATH), { recursive: true });
+        writeFileSync(
+          SLO_PATH,
+          JSON.stringify({ ...data, ingested: new Date().toISOString() }, null, 2),
+        );
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true }));
+      } catch (e) {
+        res.writeHead(e instanceof RequestBodyTooLargeError ? 413 : 400, headers);
+        res.end(
+          JSON.stringify({
+            error:
+              e instanceof RequestBodyTooLargeError ? 'Request body too large' : 'Invalid JSON',
+          }),
+        );
+      }
       return;
     }
+    if (url.pathname === '/api/validations') {
+      // HTTP fallback so Validaciones en vivo has data on first paint
+      // (WS broadcast remains the live source afterwards).
+      res.writeHead(200, headers);
+      try {
+        const validations = runValidations(bridgeReady, bridgeToolCount, clients.size);
+        res.end(JSON.stringify({ type: 'validations', data: validations }));
+      } catch (err) {
+        res.end(JSON.stringify({ type: 'validations', data: [] }));
+      }
+      return;
+    }
+
     if (url.pathname === '/api/slo') {
-      const sloData = existsSync(SLO_PATH) ? JSON.parse(readFileSync(SLO_PATH, 'utf8')) : null;
+      let sloData = existsSync(SLO_PATH) ? JSON.parse(readFileSync(SLO_PATH, 'utf8')) : null;
+      // No SLO file → compute live SLOs from real Nexus data so the panel
+      // always reflects actual stack health instead of "waiting".
+      if (!sloData) {
+        try {
+          const db = DatabaseManager.getInstance();
+          const sql = db.getDb();
+          const traceStats = sql
+            .prepare(
+              "SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) AS errors FROM traces WHERE tenant_id = ?",
+            )
+            .get(deploymentTenant.tenantId) as { total: number; errors: number | null };
+          const lat = db.traces.getLatencyStats(deploymentTenant.tenantId ?? 'gentle-vanguard');
+          const lastSpan = sql
+            .prepare('SELECT MAX(start_time) AS last FROM traces WHERE tenant_id = ?')
+            .get(deploymentTenant.tenantId) as {
+            last: number | null;
+          };
+          const alertRows = sql
+            .prepare(
+              'SELECT COUNT(DISTINCT name) AS total, SUM(CASE WHEN triggered = 1 THEN 1 ELSE 0 END) AS fired FROM alerts WHERE tenant_id = ? AND id IN (SELECT MAX(id) FROM alerts WHERE tenant_id = ? GROUP BY name)',
+            )
+            .get(deploymentTenant.tenantId, deploymentTenant.tenantId) as {
+            total: number;
+            fired: number | null;
+          };
+
+          const mk = (name: string, current: number, threshold: number, unit: string): any => ({
+            name,
+            current,
+            threshold,
+            unit,
+            status: current <= threshold ? 'PASS' : current <= threshold * 2 ? 'WARN' : 'FAIL',
+          });
+          const errorRatePct =
+            traceStats.total > 0 ? ((traceStats.errors ?? 0) / traceStats.total) * 100 : 0;
+          const freshnessMin = lastSpan.last
+            ? Math.round((Date.now() - lastSpan.last) / 60000)
+            : 9999;
+          const alertFiredPct =
+            alertRows.total > 0 ? ((alertRows.fired ?? 0) / alertRows.total) * 100 : 0;
+
+          const checks = [
+            mk('trace_error_rate_pct', Number(errorRatePct.toFixed(2)), 5, '%'),
+            mk('latency_p95_ms', lat.p95, 60000, 'ms'),
+            mk('telemetry_freshness_min', freshnessMin, 60, 'min'),
+            mk('alerts_firing_pct', Number(alertFiredPct.toFixed(2)), 30, '%'),
+          ];
+          sloData = {
+            timestamp: new Date().toISOString(),
+            passed: checks.every((c) => c.status === 'PASS'),
+            overall: {
+              total: checks.length,
+              passed: checks.filter((c) => c.status === 'PASS').length,
+              warned: checks.filter((c) => c.status === 'WARN').length,
+              failed: checks.filter((c) => c.status === 'FAIL').length,
+            },
+            checks,
+          };
+        } catch {
+          sloData = null;
+        }
+      }
       res.writeHead(200, headers);
       res.end(JSON.stringify({ type: 'slo', data: sloData }));
       return;
     }
 
+    if (url.pathname === '/api/slo/burn-rate') {
+      const tenantParam = url.searchParams.get('tenant') || undefined;
+      const objectives = getTenantSloObjectives(tenantParam);
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: {
+            tenant: tenantParam ?? deploymentTenant.tenantId,
+            target: objectives.availabilityTargetPct,
+            errorBudget: objectives.errorBudgetPct,
+            latencyTargetMs: objectives.latencyTargetMs,
+            windows: calculateBurnRate(tenantParam),
+          },
+        }),
+      );
+      return;
+    }
+
     if (url.pathname === '/api/tenants') {
       res.writeHead(200, headers);
-      res.end(JSON.stringify(readTenantRegistry()));
+      res.end(
+        JSON.stringify({
+          tenants: deploymentTenant.configured
+            ? [
+                {
+                  id: deploymentTenant.tenantId,
+                  name: deploymentTenant.tenantName,
+                  isDefault: true,
+                },
+              ]
+            : [],
+        }),
+      );
       return;
     }
 
@@ -741,11 +1539,26 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       res.end(
         JSON.stringify({
           status: 'ok',
-          version: '3.3.1',
+          version: STACK_VERSION,
           uptime: process.uptime(),
           connections: clients.size,
           components: {
             websocket: { status: 'ok', clients: clients.size },
+            dashboard: (() => {
+              const requests = dashboardTelemetry.httpRequests;
+              return {
+                status: dashboardTelemetry.httpErrors === 0 ? 'ok' : 'degraded',
+                httpRequests: requests,
+                httpErrors: dashboardTelemetry.httpErrors,
+                httpErrorRate: requests > 0 ? dashboardTelemetry.httpErrors / requests : 0,
+                httpLatencyAvgMs:
+                  requests > 0 ? dashboardTelemetry.httpLatencyTotalMs / requests : 0,
+                httpLatencyMaxMs: dashboardTelemetry.httpLatencyMaxMs,
+                httpStatusCounts: Object.fromEntries(dashboardTelemetry.httpStatusCounts),
+                wsConnectionsTotal: dashboardTelemetry.wsConnectionsTotal,
+                wsConnectionsPeak: dashboardTelemetry.wsConnectionsPeak,
+              };
+            })(),
             mcp: { status: bridgeReady ? 'ok' : 'degraded', tools: bridgeToolCount },
             adaptive: {
               status: adaptiveNorms ? 'ok' : 'unknown',
@@ -831,6 +1644,14 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
                 return { status: 'unknown', dailyLimit: 0, usedToday: 0 };
               }
             })(),
+            auth: {
+              enabled: dashboardAuth.enabled,
+              mode: dashboardAuth.devMode
+                ? 'dev-localhost'
+                : dashboardAuth.enabled
+                  ? 'session'
+                  : 'disabled',
+            },
           },
           timestamp: new Date().toISOString(),
         }),
@@ -839,47 +1660,60 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     }
 
     if (url.pathname === '/api/traces') {
+      const rangeParam = url.searchParams.get('range') || '';
+      const rangeMs =
+        rangeParam === '1h'
+          ? 3_600_000
+          : rangeParam === '24h'
+            ? 86_400_000
+            : rangeParam === '7d'
+              ? 604_800_000
+              : 0;
       res.writeHead(200, headers);
-      res.end(JSON.stringify(getTraces()));
+      res.end(JSON.stringify(getTraces(rangeMs, deploymentTenant.tenantId)));
+      return;
+    }
+
+    if (url.pathname === '/api/knowledge') {
+      knowledgeHandler(req, res, headers);
       return;
     }
 
     if (url.pathname === '/api/feedback' && req.method === 'POST') {
-      let body = '';
-      req.on('data', (chunk) => {
-        body += chunk;
-      });
-      req.on('end', () => {
-        try {
-          const { traceId, spanId, type } = JSON.parse(body);
-          if (!traceId || !spanId || !type) {
-            res.writeHead(400, headers);
-            res.end(JSON.stringify({ error: 'traceId, spanId, type required' }));
-            return;
-          }
-          const dir = dirname(FEEDBACK_PATH);
-          if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-          const existing = readJson<{
-            thumbsUp: number;
-            thumbsDown: number;
-            entries: Record<string, string>;
-          }>(FEEDBACK_PATH) || { thumbsUp: 0, thumbsDown: 0, entries: {} };
-          existing.entries[spanId] = type;
-          if (type === 'up') existing.thumbsUp++;
-          else existing.thumbsDown++;
-          writeFileSync(FEEDBACK_PATH, JSON.stringify(existing, null, 2));
-          res.writeHead(200, headers);
-          res.end(
-            JSON.stringify({
-              ok: true,
-              score: (existing.thumbsUp / (existing.thumbsUp + existing.thumbsDown)) * 100,
-            }),
-          );
-        } catch {
+      try {
+        const { traceId, spanId, type } = await readJsonBody<{
+          traceId?: string;
+          spanId?: string;
+          type?: string;
+        }>(req);
+        if (!traceId || !spanId || !type) {
           res.writeHead(400, headers);
-          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          res.end(JSON.stringify({ error: 'traceId, spanId, type required' }));
+          return;
         }
-      });
+        if (type !== 'up' && type !== 'down') {
+          res.writeHead(400, headers);
+          res.end(JSON.stringify({ error: 'type must be up or down' }));
+          return;
+        }
+        const db = DatabaseManager.getInstance();
+        db.traces.insertFeedback(deploymentTenant.tenantId ?? 'gentle-vanguard', {
+          trace_id: traceId,
+          span_id: spanId,
+          type,
+        });
+        const stats = db.traces.getFeedbackStats(deploymentTenant.tenantId ?? 'gentle-vanguard');
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ ok: true, score: stats.score }));
+      } catch (e) {
+        res.writeHead(e instanceof RequestBodyTooLargeError ? 413 : 400, headers);
+        res.end(
+          JSON.stringify({
+            error:
+              e instanceof RequestBodyTooLargeError ? 'Request body too large' : 'Invalid JSON',
+          }),
+        );
+      }
       return;
     }
 
@@ -889,25 +1723,27 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
         if (existsSync(ALERTS_CONFIG_PATH)) {
           const config = JSON.parse(readFileSync(ALERTS_CONFIG_PATH, 'utf-8'));
           const metrics = generateMetrics();
-          alerts = Object.entries(config.rules || {}).map(([name, rule]: [string, any]) => {
-            const actual = rule.metric
-              .split('.')
-              .reduce((obj: any, key: string) => obj?.[key], metrics as any);
-            const below = rule.direction === 'below';
-            const triggered =
-              typeof actual === 'number' &&
-              typeof rule.threshold === 'number' &&
-              (below ? actual <= rule.threshold : actual >= rule.threshold);
-            return {
-              name,
-              rule: rule.label || name,
-              actual: actual ?? 0,
-              threshold: rule.threshold,
-              severity: rule.severity || 'info',
-              triggered,
-              unit: rule.unit || '',
-            };
-          });
+          alerts = Object.entries(config.rules || {})
+            .filter(([, rule]: [string, any]) => rule.enabled !== false)
+            .map(([name, rule]: [string, any]) => {
+              const actual = rule.metric
+                .split('.')
+                .reduce((obj: any, key: string) => obj?.[key], metrics as any);
+              const below = rule.direction === 'below';
+              const triggered =
+                typeof actual === 'number' &&
+                typeof rule.threshold === 'number' &&
+                (below ? actual <= rule.threshold : actual >= rule.threshold);
+              return {
+                name,
+                rule: rule.label || name,
+                actual: actual ?? 0,
+                threshold: rule.threshold,
+                severity: rule.severity || 'info',
+                triggered,
+                unit: rule.unit || '',
+              };
+            });
         }
       } catch {
         /* best-effort */
@@ -1051,14 +1887,24 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     if (url.pathname === '/api/skill-usage') {
       const limit = parseInt(url.searchParams.get('limit') || '20', 10);
       res.writeHead(200, headers);
-      res.end(JSON.stringify({ type: 'skill-usage', data: getSkillUsageFromDb(limit) }));
+      res.end(
+        JSON.stringify({
+          type: 'skill-usage',
+          data: getSkillUsageFromDb(limit, deploymentTenant.tenantId),
+        }),
+      );
       return;
     }
 
     if (url.pathname === '/api/token-usage') {
       const sessionId = url.searchParams.get('sessionId') || undefined;
       res.writeHead(200, headers);
-      res.end(JSON.stringify({ type: 'token-usage', data: getTokenUsageFromDb(sessionId) }));
+      res.end(
+        JSON.stringify({
+          type: 'token-usage',
+          data: getTokenUsageFromDb(sessionId, deploymentTenant.tenantId),
+        }),
+      );
       return;
     }
 
@@ -1071,7 +1917,12 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
     if (url.pathname === '/api/routing-rules') {
       res.writeHead(200, headers);
-      res.end(JSON.stringify({ type: 'routing-rules', data: getRoutingRulesFromDb() }));
+      res.end(
+        JSON.stringify({
+          type: 'routing-rules',
+          data: getRoutingRulesFromDb(deploymentTenant.tenantId),
+        }),
+      );
       return;
     }
 
@@ -1083,13 +1934,58 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     }
 
     if (url.pathname === '/api/agent/sessions') {
-      const list = Array.from(sessions.values()).map((s) => ({
+      // Live in-memory agent sessions first…
+      const list: Array<{
+        id: string;
+        agent: string;
+        status: string;
+        messageCount: number;
+        updatedAt: string;
+        startedAt?: string;
+        totalTokens?: number;
+        cost?: number;
+      }> = Array.from(sessions.values()).map((s) => ({
         id: s.id,
         agent: s.agent,
         status: s.status,
         messageCount: s.messages?.length ?? 0,
         updatedAt: s.updatedAt,
       }));
+      // …then real historical sessions from Nexus (source of truth).
+      try {
+        const db = DatabaseManager.getInstance();
+        const rows = db
+          .getDb()
+          .prepare(
+            'SELECT id, tenant_id, agent, status, created_at, updated_at, tokens_used, cost, message_count FROM sessions WHERE tenant_id = ? ORDER BY updated_at DESC LIMIT 50',
+          )
+          .all(DEFAULT_TENANT_ID) as Array<{
+          id: string;
+          agent: string | null;
+          status: string | null;
+          created_at: string;
+          updated_at: string;
+          tokens_used: number;
+          cost: number;
+          message_count: number;
+        }>;
+        const known = new Set(list.map((s) => s.id));
+        for (const r of rows) {
+          if (known.has(r.id)) continue;
+          list.push({
+            id: r.id,
+            agent: r.agent || 'orchestrator',
+            status: r.status === 'active' ? 'active' : 'idle',
+            messageCount: r.message_count ?? 0,
+            updatedAt: r.updated_at || r.created_at,
+            startedAt: r.created_at,
+            totalTokens: r.tokens_used ?? 0,
+            cost: r.cost ?? 0,
+          });
+        }
+      } catch {
+        /* Nexus unavailable — live sessions only */
+      }
       res.writeHead(200, headers);
       res.end(JSON.stringify({ sessions: list }));
       return;
@@ -1131,26 +2027,28 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     }
 
     if (url.pathname === '/api/state/emit' && req.method === 'POST') {
-      let body = '';
-      req.on('data', (chunk) => {
-        body += chunk;
-      });
-      req.on('end', () => {
-        try {
-          const { event, payload } = JSON.parse(body);
-          if (event) {
-            getStateBridge().emitEvent(event, payload || {});
-            res.writeHead(200, headers);
-            res.end(JSON.stringify({ ok: true }));
-          } else {
-            res.writeHead(400, headers);
-            res.end(JSON.stringify({ error: 'event field required' }));
-          }
-        } catch {
+      try {
+        const { event, payload } = await readJsonBody<{
+          event?: string;
+          payload?: Record<string, unknown>;
+        }>(req);
+        if (event) {
+          getStateBridge().emitEvent(event, payload || {});
+          res.writeHead(200, headers);
+          res.end(JSON.stringify({ ok: true }));
+        } else {
           res.writeHead(400, headers);
-          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          res.end(JSON.stringify({ error: 'event field required' }));
         }
-      });
+      } catch (e) {
+        res.writeHead(e instanceof RequestBodyTooLargeError ? 413 : 400, headers);
+        res.end(
+          JSON.stringify({
+            error:
+              e instanceof RequestBodyTooLargeError ? 'Request body too large' : 'Invalid JSON',
+          }),
+        );
+      }
       return;
     }
 
@@ -1173,6 +2071,186 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       const listings = getListings();
       res.writeHead(200, headers);
       res.end(JSON.stringify({ success: true, data: listings, total: listings.length }));
+      return;
+    }
+
+    if (url.pathname === '/api/marketplace/validation' && req.method === 'GET') {
+      res.writeHead(200, headers);
+      res.end(JSON.stringify({ success: true, data: getCatalogValidationReport() }));
+      return;
+    }
+
+    if (url.pathname === '/api/marketplace/migrations' && req.method === 'POST') {
+      try {
+        const payload = await readJsonBody<{ limit?: number }>(req);
+        const result = createAllMigrationDrafts(Number(payload.limit || 250));
+        res.writeHead(201, headers);
+        res.end(JSON.stringify({ success: true, data: result }));
+      } catch (err) {
+        res.writeHead(err instanceof RequestBodyTooLargeError ? 413 : 400, headers);
+        res.end(
+          JSON.stringify({
+            success: false,
+            error:
+              err instanceof RequestBodyTooLargeError
+                ? 'Request body too large'
+                : err instanceof Error
+                  ? err.message
+                  : 'Migration failed',
+          }),
+        );
+      }
+      return;
+    }
+
+    // Native migration engine: apply (not just draft) canonical structure to
+    // every invalid catalog entry — bulk variant.
+    if (url.pathname === '/api/marketplace/migrations/apply' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        try {
+          const payload = body ? JSON.parse(body) : {};
+          void applyAllMigrations(Number(payload.limit || 250))
+            .then((result) => {
+              res.writeHead(200, headers);
+              res.end(JSON.stringify({ success: true, data: result }));
+            })
+            .catch((err: unknown) => {
+              res.writeHead(400, headers);
+              res.end(
+                JSON.stringify({
+                  success: false,
+                  error: err instanceof Error ? err.message : 'Apply migrations failed',
+                }),
+              );
+            });
+        } catch (err) {
+          res.writeHead(400, headers);
+          res.end(
+            JSON.stringify({
+              success: false,
+              error: err instanceof Error ? err.message : 'Apply migrations failed',
+            }),
+          );
+        }
+      });
+      return;
+    }
+
+    if (url.pathname === '/api/content-operations' && req.method === 'GET') {
+      const jobs = loadManifest(ROOT);
+      const registry = loadPlatformRegistry(ROOT);
+      const validation = jobs.map((job) => ({
+        id: job.id,
+        errors: validateContentJob(job, registry),
+      }));
+      const byStatus = jobs.reduce<Record<string, number>>((counts, job) => {
+        counts[job.status] = (counts[job.status] || 0) + 1;
+        return counts;
+      }, {});
+      const byPlatform = jobs.reduce<Record<string, number>>((counts, job) => {
+        counts[job.platform] = (counts[job.platform] || 0) + 1;
+        return counts;
+      }, {});
+      const byDate = jobs.reduce<Record<string, number>>((counts, job) => {
+        counts[job.date] = (counts[job.date] || 0) + 1;
+        return counts;
+      }, {});
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({ success: true, data: { jobs, byStatus, byPlatform, byDate, validation } }),
+      );
+      return;
+    }
+
+    if (url.pathname === '/api/content-operations' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body) as {
+            id?: string;
+            action?: 'transition' | 'package';
+            to?: Status;
+          };
+          const jobs = loadManifest(ROOT);
+          const index = jobs.findIndex((job) => job.id === payload.id);
+          if (index < 0) throw new Error('Content job not found');
+          const job = jobs[index];
+          const registry = loadPlatformRegistry(ROOT);
+          const errors = validateContentJob(job, registry);
+          if (payload.action === 'transition') {
+            if (!payload.to) throw new Error('Target status is required');
+            const updated = transition(job, payload.to);
+            jobs[index] = updated;
+            saveManifest(ROOT, jobs);
+            res.writeHead(200, headers);
+            res.end(JSON.stringify({ success: true, data: updated }));
+            return;
+          }
+          if (payload.action === 'package') {
+            if (errors.length) throw new Error(`Validation failed: ${errors.join('; ')}`);
+            const output = packageJob(ROOT, job);
+            res.writeHead(200, headers);
+            res.end(
+              JSON.stringify({ success: true, data: { id: job.id, output, status: 'REVIEW' } }),
+            );
+            return;
+          }
+          throw new Error('Unsupported content operation');
+        } catch (err) {
+          res.writeHead(400, headers);
+          res.end(
+            JSON.stringify({
+              success: false,
+              error: err instanceof Error ? err.message : 'Invalid content operation',
+            }),
+          );
+        }
+      });
+      return;
+    }
+
+    const contentJobMatch = url.pathname.match(/^\/api\/content-operations\/([A-Za-z0-9._-]+)$/);
+    if (contentJobMatch && req.method === 'GET') {
+      const jobId = contentJobMatch[1];
+      const job = loadManifest(ROOT).find((item) => item.id === jobId);
+      if (!job) {
+        res.writeHead(404, headers);
+        res.end(JSON.stringify({ success: false, error: 'Content job not found' }));
+        return;
+      }
+      const packagePath = join(
+        ROOT,
+        '.runtime',
+        'content-operations',
+        job.date,
+        job.platform,
+        job.id,
+      );
+      const captionPath = join(packagePath, 'caption.txt');
+      const publicationPath = join(packagePath, 'publication.json');
+      res.writeHead(200, headers);
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: {
+            job,
+            validation: validateContentJob(job, loadPlatformRegistry(ROOT)),
+            packaged: existsSync(publicationPath),
+            output: existsSync(publicationPath) ? packagePath : null,
+            caption: existsSync(captionPath) ? readFileSync(captionPath, 'utf8') : null,
+            publication: existsSync(publicationPath)
+              ? JSON.parse(readFileSync(publicationPath, 'utf8'))
+              : null,
+          },
+        }),
+      );
       return;
     }
 
@@ -1268,13 +2346,124 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       return;
     }
 
-    // Match /api/marketplace/:id/review and /api/marketplace/:id/download
+    // Match /api/marketplace/:id/review, /download, /install, /uninstall, /versions and /rollback
     const marketplaceMatch = url.pathname.match(
-      /^\/api\/marketplace\/([^/]+)(?:\/(review|download))?$/,
+      /^\/api\/marketplace\/([^/]+)(?:\/(review|download|install|uninstall|versions|rollback|moderate|migrate|apply-migration))?$/,
     );
     if (marketplaceMatch) {
       const listingId = marketplaceMatch[1];
       const action = marketplaceMatch[2];
+
+      if (action === 'versions' && req.method === 'GET') {
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, data: getListingVersions(listingId) }));
+        return;
+      }
+
+      if (action === 'versions' && req.method === 'POST') {
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(body);
+            const version = createListingVersion(listingId, payload.version, payload.content);
+            res.writeHead(201, headers);
+            res.end(JSON.stringify({ success: true, data: version }));
+          } catch (err) {
+            res.writeHead(400, headers);
+            res.end(
+              JSON.stringify({
+                success: false,
+                error: err instanceof Error ? err.message : 'Invalid version',
+              }),
+            );
+          }
+        });
+        return;
+      }
+
+      if (action === 'rollback' && req.method === 'POST') {
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(body);
+            const version = rollbackListing(listingId, payload.version);
+            if (!version) {
+              res.writeHead(404, headers);
+              res.end(JSON.stringify({ success: false, error: 'Version not found' }));
+              return;
+            }
+            res.writeHead(200, headers);
+            res.end(JSON.stringify({ success: true, data: version }));
+          } catch (err) {
+            res.writeHead(400, headers);
+            res.end(
+              JSON.stringify({
+                success: false,
+                error: err instanceof Error ? err.message : 'Invalid rollback',
+              }),
+            );
+          }
+        });
+        return;
+      }
+
+      if (action === 'moderate' && req.method === 'POST') {
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(body);
+            if (payload.status !== 'approved' && payload.status !== 'rejected')
+              throw new Error('status must be approved or rejected');
+            const listing = updateListingReviewStatus(listingId, payload.status);
+            if (!listing) throw new Error('Listing not found or validation failed');
+            res.writeHead(200, headers);
+            res.end(JSON.stringify({ success: true, data: listing }));
+          } catch (err) {
+            res.writeHead(400, headers);
+            res.end(
+              JSON.stringify({
+                success: false,
+                error: err instanceof Error ? err.message : 'Invalid moderation',
+              }),
+            );
+          }
+        });
+        return;
+      }
+
+      if (action === 'migrate' && req.method === 'POST') {
+        const draft = createMigrationDraft(listingId);
+        if (!draft) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Listing content not found' }));
+          return;
+        }
+        res.writeHead(201, headers);
+        res.end(JSON.stringify({ success: true, data: draft }));
+        return;
+      }
+
+      // Native migration: apply canonical structure directly to SKILL.md.
+      if (action === 'apply-migration' && req.method === 'POST') {
+        const result = applyMigration(listingId);
+        if (!result) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Listing content not found' }));
+          return;
+        }
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, data: result }));
+        return;
+      }
 
       if (!action && req.method === 'GET') {
         const listing = getListing(listingId);
@@ -1335,6 +2524,30 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
         return;
       }
 
+      if (action === 'install' && req.method === 'POST') {
+        const installation = installListing(listingId);
+        if (!installation) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Listing is not installable' }));
+          return;
+        }
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, data: installation }));
+        return;
+      }
+
+      if (action === 'uninstall' && req.method === 'POST') {
+        const removed = uninstallListing(listingId);
+        if (!removed) {
+          res.writeHead(404, headers);
+          res.end(JSON.stringify({ success: false, error: 'Listing is not installed' }));
+          return;
+        }
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ success: true, data: { id: listingId, installed: false } }));
+        return;
+      }
+
       res.writeHead(404, headers);
       res.end(JSON.stringify({ success: false, error: 'Route not found' }));
       return;
@@ -1351,12 +2564,26 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     } catch {
       /* ignore write errors after crash */
     }
+  } finally {
+    const elapsedMs = Date.now() - requestStartedAt;
+    dashboardTelemetry.httpLatencyTotalMs += elapsedMs;
+    dashboardTelemetry.httpLatencyMaxMs = Math.max(dashboardTelemetry.httpLatencyMaxMs, elapsedMs);
+    dashboardTelemetry.httpStatusCounts.set(
+      res.statusCode,
+      (dashboardTelemetry.httpStatusCounts.get(res.statusCode) || 0) + 1,
+    );
+    if (res.statusCode >= 500) dashboardTelemetry.httpErrors++;
   }
 }
 
 // --- WebSocket ---
 
 wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+  if (!dashboardAuth.authenticate(req)) {
+    ws.close(1008, 'Unauthorized');
+    return;
+  }
+  wsTenants.set(ws, deploymentTenant);
   const ip =
     (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
     req.socket.remoteAddress ||
@@ -1368,32 +2595,39 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     return;
   }
   connPerIp.set(ip, current + 1);
+  dashboardTelemetry.wsConnectionsTotal++;
+  dashboardTelemetry.wsConnectionsPeak = Math.max(
+    dashboardTelemetry.wsConnectionsPeak,
+    clients.size + 1,
+  );
   console.log(`[WS] Client connected (${ip}, conns: ${current + 1})`);
   clients.add(ws);
-  ws.send(JSON.stringify({ type: 'metrics', data: generateMetrics() }));
-  ws.send(JSON.stringify({ type: 'bridge_status', connected: bridgeReady }));
+  sendJson(ws, { type: 'metrics', data: generateMetrics(wsTenants.get(ws)?.tenantId) });
+  sendJson(ws, { type: 'bridge_status', connected: bridgeReady });
 
   // Send current state to newly connected client
   const stateBridge = getStateBridge();
-  ws.send(JSON.stringify({ type: 'state_tasks', tasks: stateBridge.tasks }));
+  sendJson(ws, { type: 'state_tasks', tasks: stateBridge.tasks });
   try {
     const historyPath = join(ROOT, '.event-bus', 'history.json');
     if (existsSync(historyPath)) {
       const history = JSON.parse(readFileSync(historyPath, 'utf-8'));
-      ws.send(
-        JSON.stringify({ type: 'state_history', events: (history.events || []).slice(0, 20) }),
-      );
+      sendJson(ws, { type: 'state_history', events: (history.events || []).slice(0, 20) });
     }
   } catch (e) {
     console.warn('[WS] Failed to send state history to new client:', (e as Error).message);
   }
 
   ws.on('message', (raw: Buffer | string) => {
+    if (Buffer.byteLength(raw.toString(), 'utf8') > MAX_WS_MESSAGE_BYTES) {
+      ws.close(1009, 'Message too large');
+      return;
+    }
     try {
       const parsed = JSON.parse(raw.toString());
 
       if (parsed.type === 'ping') {
-        ws.send(JSON.stringify({ type: 'pong' }));
+        sendJson(ws, { type: 'pong' });
         return;
       }
 
@@ -1426,7 +2660,7 @@ function broadcastValidations(): void {
     const msg = JSON.stringify({ type: 'validations', data: validations });
     clients.forEach((c) => {
       try {
-        if (c.readyState === WebSocket.OPEN) c.send(msg);
+        safeSend(c, msg);
       } catch {
         /* ignore send errors */
       }
@@ -1447,6 +2681,7 @@ function evaluateAlerts(metrics: any): Array<{
   severity: string;
   triggered: boolean;
   unit: string;
+  direction: 'above' | 'below';
   transition?: string;
 }> {
   try {
@@ -1475,6 +2710,7 @@ function evaluateAlerts(metrics: any): Array<{
           severity: rule.severity || 'info',
           triggered,
           unit: rule.unit || '',
+          direction: below ? 'below' : 'above',
           transition,
         };
       })
@@ -1483,6 +2719,9 @@ function evaluateAlerts(metrics: any): Array<{
     return [];
   }
 }
+
+// Telemetry → Nexus bridge now owned by the unified OTel pipeline
+// (otelPipeline.start() below in start(): initial ingest + 60s cycle).
 
 setInterval(() => {
   const metrics = generateMetrics();
@@ -1498,7 +2737,7 @@ setInterval(() => {
   }
 
   const msg = JSON.stringify({ type: 'metrics', data: metrics });
-  clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+  clients.forEach((c) => safeSend(c, msg));
   broadcastValidations();
 
   // Broadcast alert state with transitions
@@ -1506,7 +2745,27 @@ setInterval(() => {
   const transitions = alerts.filter((a) => a.transition);
   alerts.forEach((a) => prevAlertState.set(a.name, a.triggered));
   const alertMsg = JSON.stringify({ type: 'alerts', data: alerts });
-  clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(alertMsg));
+  clients.forEach((c) => safeSend(c, alertMsg));
+
+  // Persist alert transitions to Nexus (audit trail for the Alerts panel).
+  if (transitions.length > 0) {
+    try {
+      const db = DatabaseManager.getInstance();
+      for (const a of transitions) {
+        db.events.insertAlert(deploymentTenant.tenantId ?? 'gentle-vanguard', {
+          name: a.name,
+          rule: a.rule,
+          severity: a.severity,
+          triggered: a.triggered ? 1 : 0,
+          actual: a.actual,
+          threshold: a.threshold,
+          transition: a.transition ?? undefined,
+        });
+      }
+    } catch {
+      /* DB unavailable — broadcast already sent */
+    }
+  }
 
   // Broadcast alert transitions as notifications
   if (transitions.length > 0) {
@@ -1514,13 +2773,13 @@ setInterval(() => {
       type: a.transition === 'fired' ? 'alert_fired' : 'alert_resolved',
       message:
         a.transition === 'fired'
-          ? `Alert: ${a.rule} triggered (${a.actual}${a.unit} > ${a.threshold}${a.unit})`
+          ? `Alert: ${a.rule} triggered (${a.actual}${a.unit} ${a.direction === 'below' ? '<=' : '>='} ${a.threshold}${a.unit})`
           : `Resolved: ${a.rule} (${a.actual}${a.unit})`,
       severity: a.transition === 'fired' ? a.severity : 'info',
       timestamp: new Date().toISOString(),
     }));
     const note = JSON.stringify({ type: 'notification', notifications: transitionNotifications });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(note));
+    clients.forEach((c) => safeSend(c, note));
   }
 
   if (prevMetrics) {
@@ -1579,7 +2838,7 @@ setInterval(() => {
 
     if (notifications.length > 0) {
       const note = JSON.stringify({ type: 'notification', notifications });
-      clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(note));
+      clients.forEach((c) => safeSend(c, note));
     }
   }
 
@@ -1608,7 +2867,7 @@ if (existsSync(METRICS_WATCH_DIR)) {
       watchTimer = setTimeout(() => {
         const metrics = generateMetrics();
         const msg = JSON.stringify({ type: 'metrics', data: metrics });
-        clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+        clients.forEach((c) => safeSend(c, msg));
         console.log(`[WATCH] metrics file changed: ${filename} → broadcast`);
       }, DEBOUNCE_MS);
     });
@@ -1622,8 +2881,8 @@ if (existsSync(METRICS_WATCH_DIR)) {
 
 async function start() {
   loadSessions();
-  // Start the database-backed metrics writer (snapshots + consolidated.json)
-  metricsWriter.start(30000);
+  // Start the unified OTel pipeline (spans ingest + metrics writer snapshots)
+  otelPipeline.start();
   metricsWriterStarted = true;
   try {
     const mcpBridge = getBridge();
@@ -1642,23 +2901,23 @@ function initSharedState(): void {
   const stateBridge = getStateBridge();
   stateBridge.on('history_update', (events: unknown) => {
     const msg = JSON.stringify({ type: 'state_history', events });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+    clients.forEach((c) => safeSend(c, msg));
   });
   stateBridge.on('task_update', (tasks: unknown) => {
     const msg = JSON.stringify({ type: 'state_tasks', tasks });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+    clients.forEach((c) => safeSend(c, msg));
   });
   stateBridge.on('event', (evt: unknown) => {
     const msg = JSON.stringify({ type: 'state_event', event: evt });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+    clients.forEach((c) => safeSend(c, msg));
   });
   stateBridge.on('state_delta', (delta: unknown) => {
     const msg = JSON.stringify({ type: 'state_delta', ...(delta as object) });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+    clients.forEach((c) => safeSend(c, msg));
   });
   stateBridge.on('task_delta', (delta: unknown) => {
     const msg = JSON.stringify({ type: 'task_delta', ...(delta as object) });
-    clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+    clients.forEach((c) => safeSend(c, msg));
   });
   stateBridge.start();
   console.log('[STATE] Shared State Bridge started');
@@ -1679,7 +2938,7 @@ function startTraceWatcher(): void {
           type: 'trace_update',
           session: { id: state.sessionId || filename.split(/[\\/]/)[0], state },
         });
-        clients.forEach((c) => c.readyState === WebSocket.OPEN && c.send(msg));
+        clients.forEach((c) => safeSend(c, msg));
       } catch (e) {
         console.warn('[TRACE] Error parsing state file:', filename, (e as Error).message);
       }
@@ -1701,7 +2960,7 @@ server.listen(PORT, () => {
 
 function shutdown(signal: string) {
   console.log(`[SHUTDOWN] Received ${signal}, closing gracefully...`);
-  if (metricsWriterStarted) metricsWriter.stop();
+  if (metricsWriterStarted) otelPipeline.stop();
   const bridge = getBridge();
   bridge.stop().catch(() => {});
   getStateBridge().stop();

@@ -13,7 +13,7 @@
  *   - Generate performance report with recommendations
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -50,11 +50,9 @@ function ensureDir(): void {
 function measureStartupTime(filePath: string): Promise<number> {
   return new Promise((resolve) => {
     const start = Date.now();
-    const child = spawn('npx', ['tsx', filePath, '--help'], {
+    const child = runNpxTsx(filePath, ['--help'], {
       cwd: ROOT,
       stdio: 'ignore',
-      shell: true,
-      windowsHide: true,
     });
 
     child.on('close', () => {

@@ -8,11 +8,18 @@
 
 import { EventEmitter } from 'events';
 
-export class CompactState extends EventEmitter {
-  private state: any = { version: 0, data: {}, timestamp: Date.now() };
-  private history: any[] = [];
+/** Snapshot of the compact state machine (CAS-versioned) */
+interface CompactStateSnapshot {
+  version: number;
+  data: unknown;
+  timestamp: number;
+}
 
-  public compareAndSwap(expectedVersion: number, newData: any): boolean {
+export class CompactState extends EventEmitter {
+  private state: CompactStateSnapshot = { version: 0, data: {}, timestamp: Date.now() };
+  private history: CompactStateSnapshot[] = [];
+
+  public compareAndSwap(expectedVersion: number, newData: unknown): boolean {
     if (this.state.version !== expectedVersion) {
       this.emit('casFailed', { expected: expectedVersion, actual: this.state.version });
       return false;
@@ -23,11 +30,11 @@ export class CompactState extends EventEmitter {
     return true;
   }
 
-  public getState(): any {
+  public getState(): CompactStateSnapshot {
     return { ...this.state };
   }
 
-  public getHistory(): any[] {
+  public getHistory(): CompactStateSnapshot[] {
     return [...this.history];
   }
 }

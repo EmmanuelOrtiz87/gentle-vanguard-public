@@ -4,22 +4,24 @@ import type { SessionRecord } from '../manager';
 export class SessionRepo {
   constructor(private db: Database.Database) {}
 
-  upsertSession(session: Partial<SessionRecord>): void {
+  upsertSession(tenantId: string, session: Partial<SessionRecord>): void {
     if (!session.id) throw new Error('Session ID is required');
     this.db
       .prepare(
-        `INSERT INTO sessions (id, agent, status, created_at, updated_at, tokens_used, cost, message_count, metadata)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO sessions (id, tenant_id, agent, status, created_at, updated_at, tokens_used, cost, message_count, metadata)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            status = excluded.status,
            updated_at = excluded.updated_at,
            tokens_used = excluded.tokens_used,
            cost = excluded.cost,
            message_count = excluded.message_count,
-           metadata = excluded.metadata`,
+            metadata = excluded.metadata
+         WHERE sessions.tenant_id = excluded.tenant_id`,
       )
       .run(
         session.id,
+        tenantId,
         session.agent ?? 'unknown',
         session.status ?? 'idle',
         session.created_at ?? new Date().toISOString(),
@@ -31,26 +33,26 @@ export class SessionRepo {
       );
   }
 
-  getActiveSessions(): SessionRecord[] {
+  getActiveSessions(tenantId: string): SessionRecord[] {
     return this.db
       .prepare(
-        "SELECT * FROM sessions WHERE status IN ('active', 'awaiting_input') ORDER BY updated_at DESC",
+        "SELECT * FROM sessions WHERE tenant_id = ? AND status IN ('active', 'awaiting_input') ORDER BY updated_at DESC",
       )
-      .all() as SessionRecord[];
+      .all(tenantId) as SessionRecord[];
   }
 
-  getAllSessions(): SessionRecord[] {
+  getAllSessions(tenantId: string): SessionRecord[] {
     return this.db
-      .prepare('SELECT * FROM sessions ORDER BY updated_at DESC')
-      .all() as SessionRecord[];
+      .prepare('SELECT * FROM sessions WHERE tenant_id = ? ORDER BY updated_at DESC')
+      .all(tenantId) as SessionRecord[];
   }
 
-  getSessionsToday(): SessionRecord[] {
+  getSessionsToday(tenantId: string): SessionRecord[] {
     return this.db
       .prepare(
-        "SELECT * FROM sessions WHERE date(created_at) = date('now') ORDER BY updated_at DESC",
+        "SELECT * FROM sessions WHERE tenant_id = ? AND date(created_at) = date('now') ORDER BY updated_at DESC",
       )
-      .all() as SessionRecord[];
+      .all(tenantId) as SessionRecord[];
   }
 
   saveSessionScoring(data: {

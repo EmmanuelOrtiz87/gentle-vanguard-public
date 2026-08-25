@@ -1,11 +1,13 @@
 import { AlertTriangle, Bell } from 'lucide-react';
 import type { Alert } from '../hooks/useAlerts';
+import { useT } from '../hooks/useLocale';
 
 interface AlertPanelProps {
   alerts: Alert[];
 }
 
 export function AlertPanel({ alerts }: AlertPanelProps) {
+  const { tt } = useT();
   const triggeredAlerts = alerts.filter((a) => a.triggered);
   if (triggeredAlerts.length === 0) return null;
 
@@ -13,7 +15,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <Bell className="w-5 h-5 text-red-500" />
-        Active Alerts ({triggeredAlerts.length})
+        {tt('ui.active_alerts')} ({triggeredAlerts.length})
       </h2>
       <div className="space-y-2">
         {triggeredAlerts.map((alert) => (
@@ -40,7 +42,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
               <p className="text-sm font-medium text-gray-900 dark:text-white">{alert.rule}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {alert.actual}
-                {alert.unit} exceeds threshold of {alert.threshold}
+                {alert.unit} {tt('ui.exceeds_threshold')} {alert.threshold}
                 {alert.unit}
               </p>
             </div>

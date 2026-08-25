@@ -110,9 +110,9 @@ async function checkDeps(results: CheckResult[]): Promise<void> {
     const lastResult = results[results.length - 1];
     lastResult.message = `${passed} PASS / ${warned} WARN / ${failed} FAIL`;
     lastResult.status = failed > 0 ? 'FAIL' : warned > 0 ? 'WARN' : 'PASS';
-  } catch (err: any) {
+  } catch (err) {
     const lastResult = results[results.length - 1];
-    lastResult.message = `Failed to run validator: ${err.message}`;
+    lastResult.message = `Failed to run validator: ${(err as Error).message}`;
     lastResult.status = 'WARN';
   }
 }
@@ -287,9 +287,9 @@ async function checkIntegrity(results: CheckResult[]): Promise<void> {
   try {
     const r = run('engram', ['doctor', '--json']);
     if (r.stdout) {
-      let data: any;
+      let data: { errors?: unknown[] } | null;
       try {
-        data = JSON.parse(r.stdout);
+        data = JSON.parse(r.stdout) as { errors?: unknown[] };
       } catch {
         data = null;
       }
@@ -299,7 +299,7 @@ async function checkIntegrity(results: CheckResult[]): Promise<void> {
           name: 'Engram Memory',
           layer: 'integrity',
           status: hasErrors ? 'WARN' : 'PASS',
-          message: hasErrors ? `${data.errors.length} issues found` : 'Healthy',
+          message: hasErrors ? `${data.errors?.length} issues found` : 'Healthy',
           fixCmd: hasErrors ? 'engram doctor --fix' : undefined,
         });
       } else {
@@ -507,8 +507,8 @@ async function autoFix(results: CheckResult[]): Promise<number> {
           `    ${C.red('✘')} Failed: ${(r.stderr || r.stdout || 'unknown error').slice(0, 200)}`,
         );
       }
-    } catch (err: any) {
-      console.log(`    ${C.red('✘')} Error: ${err.message}`);
+    } catch (err) {
+      console.log(`    ${C.red('✘')} Error: ${(err as Error).message}`);
     }
   }
 

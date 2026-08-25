@@ -77,7 +77,7 @@ try {
 // 4. Verificar ejecución del token guard
 console.log('\n4. Verificando ejecución del sistema de tokens:');
 try {
-  const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
+  const result = runSyncShell('npx tsx src/tokens/token-budget-guard.ts -Mode status -Quiet', {
     cwd: ROOT,
   });
 
@@ -116,7 +116,7 @@ console.log('\n6. Verificando capacidad de ejecución de tareas:');
 try {
   // Intentar ejecutar una prueba simple
   const testResult = runSyncShell(
-    'npx tsx src/token-budget-guard.ts -Mode check -Task validation -Risk low -Quiet',
+    'npx tsx src/tokens/token-budget-guard.ts -Mode check -Task validation -Risk low -Quiet',
     {
       cwd: ROOT,
     },

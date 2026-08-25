@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useT } from '../hooks/useLocale';
 import {
   ChevronRight,
   ChevronDown,
@@ -351,6 +352,7 @@ const tutorials: Tutorial[] = [
 ];
 
 export function InteractiveDocs() {
+  const { tt } = useT();
   const [activeStep, setActiveStep] = useState<{ tutorialId: string; stepId: string } | null>(null);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [expandedTutorials, setExpandedTutorials] = useState<Set<string>>(new Set());
@@ -661,7 +663,7 @@ export function InteractiveDocs() {
                 <div className="bg-gray-900 dark:bg-gray-950 rounded-xl overflow-hidden mb-6">
                   <div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border-b border-gray-700/50">
                     <Terminal className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-400 font-medium">Terminal</span>
+                    <span className="text-xs text-gray-400 font-medium">{tt('ui.terminal')}</span>
                   </div>
                   <pre className="p-4 text-sm text-green-400 font-mono leading-relaxed overflow-x-auto">
                     {activeStepData.code}

@@ -43,7 +43,9 @@ function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; bod
 
   const yaml = match[1];
   const body = match[2];
-  const frontmatter: SkillFrontmatter = {};
+
+  // Parsed fields accumulator — keys are dynamic YAML keys, values are scalars or arrays
+  const fields: Record<string, string | string[]> = {};
 
   // Simple YAML parser for basic types
   const lines = yaml.split('\n');
@@ -55,7 +57,7 @@ function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; bod
     if (keyMatch) {
       // Save previous array if exists
       if (currentKey && currentArray.length > 0) {
-        frontmatter[currentKey as keyof SkillFrontmatter] = currentArray as any;
+        fields[currentKey] = currentArray;
         currentArray = [];
       }
 
@@ -64,36 +66,39 @@ function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; bod
 
       if (value.startsWith('[') && value.endsWith(']')) {
         // Array inline: [item1, item2]
-        frontmatter[currentKey as keyof SkillFrontmatter] = value
+        fields[currentKey] = value
           .slice(1, -1)
           .split(',')
-          .map((s) => s.trim()) as any;
+          .map((s) => s.trim());
       } else if (value.startsWith('>')) {
         // Multi-line string indicator
-        frontmatter[currentKey as keyof SkillFrontmatter] = '' as any;
+        fields[currentKey] = '';
       } else if (value) {
-        frontmatter[currentKey as keyof SkillFrontmatter] = value as any;
+        fields[currentKey] = value;
       }
     } else if (line.trim().startsWith('- ')) {
       // Array item
       currentArray.push(line.trim().slice(2));
-    } else if (
-      currentKey &&
-      line.trim() &&
-      !(frontmatter[currentKey as keyof SkillFrontmatter] as any)?.length
-    ) {
+    } else if (currentKey && line.trim() && !fields[currentKey]?.length) {
       // Continue multi-line value
-      const current = frontmatter[currentKey as keyof SkillFrontmatter];
+      const current = fields[currentKey];
       if (typeof current === 'string') {
-        frontmatter[currentKey as keyof SkillFrontmatter] = (current + ' ' + line.trim()) as any;
+        fields[currentKey] = current + ' ' + line.trim();
       }
     }
   }
 
   // Save final array
   if (currentKey && currentArray.length > 0) {
-    frontmatter[currentKey as keyof SkillFrontmatter] = currentArray as any;
+    fields[currentKey] = currentArray;
   }
+
+  // Project known keys into the typed frontmatter shape
+  const frontmatter: SkillFrontmatter = {};
+  if (typeof fields.name === 'string') frontmatter.name = fields.name;
+  if (typeof fields.description === 'string') frontmatter.description = fields.description;
+  if (Array.isArray(fields.triggers)) frontmatter.triggers = fields.triggers;
+  if (Array.isArray(fields.aliases)) frontmatter.aliases = fields.aliases;
 
   return { frontmatter, body };
 }

@@ -29,7 +29,7 @@ interface ConnectorResult {
   timestamp: string;
 }
 
-function fetchFromConfluence(pageId: string, baseUrl: string, token: string): any {
+function fetchFromConfluence(pageId: string, baseUrl: string, token: string): unknown {
   // Attempt REST API call; fall back to curl
   try {
     const url = `${baseUrl}/rest/api/content/${pageId}?expand=body.storage,version`;

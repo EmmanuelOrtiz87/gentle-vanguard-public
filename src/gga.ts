@@ -24,7 +24,7 @@
  *   });
  */
 
-import { spawn } from 'child_process';
+import { runNpxTsx } from './core/run-command';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -300,9 +300,11 @@ async function executeWithProvider(
   return new Promise((resolve) => {
     const delegatorPath = join(ROOT, 'src', 'agent-delegator.ts');
 
+    log('info', `[Attempt ${attempt}] Executing with provider: ${provider}`);
+
+    // argv-array spawn via `node --import tsx`: no shell string, no quoting
+    // hazards, hidden on Windows.
     const args = [
-      'tsx',
-      delegatorPath,
       '--agent',
       options.agent,
       '--task',
@@ -310,29 +312,13 @@ async function executeWithProvider(
       '--model',
       provider,
     ];
-
     if (options.context) {
       args.push('--context', options.context);
     }
 
-    log('info', `[Attempt ${attempt}] Executing with provider: ${provider}`);
-
-    // Build command with proper escaping for Windows vs Unix
-    const isWindows = process.platform === 'win32';
-    const npxCmd = isWindows ? 'npx.cmd' : 'npx';
-
-    // On Windows, we need to use shell mode for proper flag handling
-    // Build the full command string for shell execution
-    const command = isWindows
-      ? `"${npxCmd}" tsx "${delegatorPath}" --agent "${options.agent}" --task "${options.task.replace(/"/g, '\"')}" --model "${provider}"${options.context ? ` --context "${options.context.replace(/"/g, '\"')}"` : ''}`
-      : `${npxCmd} tsx "${delegatorPath}" --agent "${options.agent}" --task "${options.task.replace(/"/g, '\"')}" --model "${provider}"${options.context ? ` --context "${options.context.replace(/"/g, '\"')}"` : ''}`;
-
-    const child = spawn(command, {
+    const child = runNpxTsx(delegatorPath, args, {
       cwd: ROOT,
-      shell: true,
-      windowsHide: true,
       env: {
-        ...process.env,
         GGA_ACTIVE_PROVIDER: provider,
         GGA_ATTEMPT: String(attempt),
         FORCE_MODEL: provider,
@@ -344,11 +330,11 @@ async function executeWithProvider(
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 

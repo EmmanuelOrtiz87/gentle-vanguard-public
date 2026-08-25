@@ -29,7 +29,7 @@ interface ConnectorResult {
   timestamp: string;
 }
 
-function fetchFromJira(issueKey: string, baseUrl: string, token: string): any {
+function fetchFromJira(issueKey: string, baseUrl: string, token: string): unknown {
   try {
     const url = `${baseUrl}/rest/api/3/issue/${issueKey}`;
     const curlCmd = `curl -s -H "Authorization: Basic ${Buffer.from(`:${token}`).toString('base64')}" -H "Accept: application/json" "${url}"`;

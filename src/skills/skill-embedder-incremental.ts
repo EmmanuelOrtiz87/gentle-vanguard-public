@@ -29,9 +29,42 @@ const delegationConfigPath = join(projectRoot, 'config', 'auto-delegation.json')
 const outputPath = join(projectRoot, '.atl', 'skill-embeddings.json');
 const metaPath = join(projectRoot, '.atl', 'skill-meta.json');
 const logFile = join(projectRoot, '.session', 'skill-embeddings-log.jsonl');
+export const FULL_REBUILD_SCRIPT = 'src/skills/skill-embedder.ts';
 
 function sha16(s: string): string {
   return createHash('sha256').update(Buffer.from(s, 'utf-8')).digest('hex').slice(0, 16);
+}
+
+export function buildContentHashes(skills: Record<string, string>): Record<string, string> {
+  const hashes: Record<string, string> = {};
+  for (const [skill, agent] of Object.entries(skills)) hashes[skill] = sha16(`${skill}|${agent}`);
+  return hashes;
+}
+
+function writeMetadata(
+  currentSkills: Record<string, string>,
+  prevMeta: Record<string, unknown> | null,
+  prevEmbeddings: Record<string, unknown> | null,
+  changes: { added: string[]; removed: string[]; modified: string[] },
+  fullRebuild: boolean,
+): void {
+  const now = new Date().toISOString();
+  const previousFullRebuild = (prevMeta as Record<string, string> | null)?.lastFullRebuild;
+  const meta: Record<string, unknown> = {
+    version: '1.0',
+    lastBuilt: now,
+    lastFullRebuild: fullRebuild ? now : previousFullRebuild || now,
+    totalSkills: Object.keys(currentSkills).length,
+    vocabularySize: prevEmbeddings
+      ? ((prevEmbeddings.metadata as Record<string, number> | undefined)?.vocabularySize || 0)
+      : 0,
+    contentHashes: buildContentHashes(currentSkills),
+    incrementalUpdates: [
+      ...((prevMeta?.incrementalUpdates as Array<unknown> | undefined) || []),
+      { timestamp: now, added: changes.added, removed: changes.removed, modified: changes.modified },
+    ],
+  };
+  writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf-8');
 }
 
 function main(): void {
@@ -80,11 +113,18 @@ function main(): void {
   const registryContent = readFileSync(registryPath, 'utf-8');
   const currentSkills: Record<string, string> = {};
   for (const line of registryContent.split(/\r?\n/)) {
-    const m = line.match(/^\|\s*(\S+)\s*\|\s*(\w+)\s*\|/);
+    const m = line.match(/^\|\s*(\S+)\s*\|\s*(\S+)\s*\|/);
     if (m) {
-      const n = m[1];
-      const a = m[2];
-      if (n !== '---' && n !== 'Skill') currentSkills[n] = a;
+      const agent = m[1].split(/[\s-]/)[0];
+      const skill = m[2];
+      if (
+        !/^[-]+$/.test(agent) &&
+        agent !== 'Agent' &&
+        !/^[-]+$/.test(skill) &&
+        skill !== 'Skill'
+      ) {
+        currentSkills[skill] = agent;
+      }
     }
   }
 
@@ -92,16 +132,9 @@ function main(): void {
   if (existsSync(delegationConfigPath)) {
     try {
       const config = JSON.parse(readFileSync(delegationConfigPath, 'utf-8'));
-      if (config.agents) {
-        for (const [agentName, agentData] of Object.entries(config.agents) as [
-          string,
-          { skills?: Record<string, unknown> },
-        ][]) {
-          if (agentData.skills) {
-            for (const skillName of Object.keys(agentData.skills)) {
-              if (!currentSkills[skillName]) currentSkills[skillName] = agentName;
-            }
-          }
+      if (config.skillToAgentProfile) {
+        for (const [skillName, agentName] of Object.entries(config.skillToAgentProfile)) {
+          if (!currentSkills[skillName]) currentSkills[skillName] = String(agentName);
         }
       }
     } catch {
@@ -162,7 +195,19 @@ function main(): void {
       `${force ? 'Force flag set' : `${Math.round(changePercent)}% skills changed (>50%)`}, doing full rebuild`,
     );
     try {
-      runNpxTsxSync('src/skill-embedder.ts', [], { cwd: projectRoot, timeout: 60000 });
+      const result = runNpxTsxSync(FULL_REBUILD_SCRIPT, [], { cwd: projectRoot, timeout: 60000 });
+      if (result.status !== 0) {
+        log(`Full rebuild exited with status ${result.status}`, 'ERROR');
+        return;
+      }
+      const rebuiltEmbeddings = existsSync(outputPath)
+        ? (JSON.parse(readFileSync(outputPath, 'utf-8')) as Record<string, unknown>)
+        : null;
+      if (!rebuiltEmbeddings) {
+        log('Full rebuild completed without writing the embeddings index', 'ERROR');
+        return;
+      }
+      writeMetadata(currentSkills, prevMeta, rebuiltEmbeddings, { added, removed, modified }, true);
     } catch (e: unknown) {
       log(`Full rebuild failed: ${e instanceof Error ? e.message : String(e)}`, 'ERROR');
     }
@@ -180,7 +225,8 @@ function main(): void {
 
   if (modified.length > 0 || added.length > 0) {
     try {
-      runNpxTsxSync('src/skill-embedder.ts', [], { cwd: projectRoot, timeout: 60000 });
+      const result = runNpxTsxSync(FULL_REBUILD_SCRIPT, [], { cwd: projectRoot, timeout: 60000 });
+      if (result.status !== 0) log(`Rebuild exited with status ${result.status}`, 'ERROR');
     } catch (e: unknown) {
       log(`Rebuild failed: ${e instanceof Error ? e.message : String(e)}`, 'ERROR');
     }
@@ -230,27 +276,7 @@ function main(): void {
   }
 
   // Update metadata
-  const hashes: Record<string, string> = {};
-  for (const [skill, agent] of Object.entries(currentSkills))
-    hashes[skill] = sha16(`${skill}|${agent}`);
-
-  const meta: Record<string, unknown> = {
-    version: '1.0',
-    lastBuilt: new Date().toISOString(),
-    lastFullRebuild:
-      (prevMeta as Record<string, string>)?.lastFullBuild || new Date().toISOString(),
-    totalSkills: Object.keys(currentSkills).length,
-    vocabularySize: prevEmbeddings
-      ? ((prevEmbeddings as Record<string, unknown>).metadata as Record<string, number>)
-          ?.vocabularySize || 0
-      : 0,
-    contentHashes: hashes,
-    incrementalUpdates: [
-      ...(((prevMeta as Record<string, unknown>)?.incrementalUpdates as Array<unknown>) || []),
-      { timestamp: new Date().toISOString(), added, removed, modified },
-    ],
-  };
-  writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf-8');
+  writeMetadata(currentSkills, prevMeta, prevEmbeddings, { added, removed, modified }, false);
 
   log(
     `Incremental update complete. Skills: ${Object.keys(currentSkills).length} | Added: ${added.length} | Removed: ${removed.length} | Modified: ${modified.length}`,

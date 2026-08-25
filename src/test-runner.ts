@@ -202,8 +202,8 @@ function runSuite(suite: Suite, verbose: boolean): { passed: boolean; output: st
     }
 
     return { passed, output };
-  } catch (err: any) {
-    const msg = err?.message || String(err);
+  } catch (err) {
+    const msg = (err as Error)?.message || String(err);
     if (verbose) {
       process.stdout.write(`${label} ERROR: ${msg}\n`);
     }

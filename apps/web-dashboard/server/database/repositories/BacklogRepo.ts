@@ -8,6 +8,7 @@ import Database from 'better-sqlite3';
 
 export interface BacklogItem {
   id: string;
+  tenant_id: string;
   type: 'incident' | 'bug' | 'warning' | 'error' | 'requirement' | 'task' | 'gap';
   title: string;
   description?: string;
@@ -71,18 +72,22 @@ export class BacklogRepo {
   // ─── Items ─────────────────────────────────────────────────────────
 
   /** Add a new backlog item. Returns the item ID. */
-  addItem(item: Omit<BacklogItem, 'created_at' | 'updated_at' | 'id'> & { id?: string }): string {
+  addItem(
+    item: Omit<BacklogItem, 'created_at' | 'updated_at' | 'id' | 'tenant_id'> & { id?: string },
+    tenantId = 'gentle-vanguard',
+  ): string {
     const id =
       item.id ??
       `BL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
     const stmt = this.db.prepare(`
-      INSERT INTO backlog_items (id, type, title, description, severity, status, source, resolution_notes,
+      INSERT INTO backlog_items (tenant_id, id, type, title, description, severity, status, source, resolution_notes,
         session_id, trace_id, assignee_role, estimated_hours, actual_hours, priority, target_release,
         environment, reported_by, impact, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     stmt.run(
+      tenantId,
       id,
       item.type,
       item.title,
@@ -106,13 +111,13 @@ export class BacklogRepo {
     );
 
     // Record initial status history
-    this.recordStatusChange(id, null, item.status ?? 'open', 'Item created');
+    this.recordStatusChange(id, null, item.status ?? 'open', 'Item created', tenantId);
 
     return id;
   }
 
   /** Update an existing backlog item. */
-  updateItem(id: string, updates: Partial<BacklogItem>): void {
+  updateItem(id: string, updates: Partial<BacklogItem>, tenantId = 'gentle-vanguard'): void {
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
     const fields: string[] = ['updated_at = ?'];
     const params: unknown[] = [now];
@@ -142,7 +147,7 @@ export class BacklogRepo {
     }
 
     if (updates.status !== undefined) {
-      const current = this.getItem(id);
+      const current = this.getItem(id, tenantId);
       const fromStatus = current?.status ?? null;
       fields.push('status = ?');
       params.push(updates.status);
@@ -150,15 +155,23 @@ export class BacklogRepo {
         fields.push('resolved_at = ?');
         params.push(now);
       }
-      this.recordStatusChange(id, fromStatus, updates.status, updates.resolution_notes ?? '');
+      this.recordStatusChange(
+        id,
+        fromStatus,
+        updates.status,
+        updates.resolution_notes ?? '',
+        tenantId,
+      );
     }
 
-    params.push(id);
-    this.db.prepare(`UPDATE backlog_items SET ${fields.join(', ')} WHERE id = ?`).run(...params);
+    params.push(id, tenantId);
+    this.db
+      .prepare(`UPDATE backlog_items SET ${fields.join(', ')} WHERE id = ? AND tenant_id = ?`)
+      .run(...params);
   }
 
   /** Get a single item by ID. */
-  getItem(id: string): BacklogItem | null {
+  getItem(id: string, tenantId = 'gentle-vanguard'): BacklogItem | null {
     const row = this.db
       .prepare(
         `
@@ -166,20 +179,20 @@ export class BacklogRepo {
       FROM backlog_items bi
       LEFT JOIN backlog_item_tags bit ON bi.id = bit.item_id
       LEFT JOIN backlog_tags bt ON bit.tag_id = bt.id
-      WHERE bi.id = ?
+       WHERE bi.id = ? AND bi.tenant_id = ?
       GROUP BY bi.id
     `,
       )
-      .get(id) as Record<string, unknown> | undefined;
+      .get(id, tenantId) as Record<string, unknown> | undefined;
 
     if (!row) return null;
     return this.rowToItem(row);
   }
 
   /** List items with optional filters. */
-  listItems(filter: BacklogFilter = {}): BacklogItem[] {
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+  listItems(filter: BacklogFilter = {}, tenantId = 'gentle-vanguard'): BacklogItem[] {
+    const conditions: string[] = ['bi.tenant_id = ?'];
+    const params: unknown[] = [tenantId];
     const limit = filter.limit ?? 50;
     const offset = filter.offset ?? 0;
 
@@ -235,9 +248,12 @@ export class BacklogRepo {
   }
 
   /** Count items matching filter. */
-  countItems(filter: Omit<BacklogFilter, 'limit' | 'offset'> = {}): number {
-    const conditions: string[] = [];
-    const params: unknown[] = [];
+  countItems(
+    filter: Omit<BacklogFilter, 'limit' | 'offset'> = {},
+    tenantId = 'gentle-vanguard',
+  ): number {
+    const conditions: string[] = ['bi.tenant_id = ?'];
+    const params: unknown[] = [tenantId];
 
     if (filter.type) {
       conditions.push('type = ?');
@@ -250,6 +266,10 @@ export class BacklogRepo {
     if (filter.status) {
       conditions.push('status = ?');
       params.push(filter.status);
+    }
+    if (filter.search) {
+      conditions.push('(title LIKE ? OR description LIKE ?)');
+      params.push(`%${filter.search}%`, `%${filter.search}%`);
     }
     if (filter.tag) {
       conditions.push(
@@ -266,12 +286,12 @@ export class BacklogRepo {
   }
 
   /** Delete an item and all related data (cascading). */
-  deleteItem(id: string): void {
-    this.db.prepare('DELETE FROM backlog_items WHERE id = ?').run(id);
+  deleteItem(id: string, tenantId = 'gentle-vanguard'): void {
+    this.db.prepare('DELETE FROM backlog_items WHERE id = ? AND tenant_id = ?').run(id, tenantId);
   }
 
   /** Search for similar items by title/description (dedup prevention). */
-  searchSimilar(query: string, limit = 5): BacklogItem[] {
+  searchSimilar(query: string, limit = 5, tenantId = 'gentle-vanguard'): BacklogItem[] {
     const rows = this.db
       .prepare(
         `
@@ -279,7 +299,7 @@ export class BacklogRepo {
       FROM backlog_items bi
       LEFT JOIN backlog_item_tags bit ON bi.id = bit.item_id
       LEFT JOIN backlog_tags bt ON bit.tag_id = bt.id
-      WHERE bi.title LIKE ? OR bi.description LIKE ?
+       WHERE bi.tenant_id = ? AND (bi.title LIKE ? OR bi.description LIKE ?)
       GROUP BY bi.id
       ORDER BY
         CASE
@@ -291,7 +311,7 @@ export class BacklogRepo {
       LIMIT ?
     `,
       )
-      .all(`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, limit) as Record<
+      .all(tenantId, `%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, limit) as Record<
       string,
       unknown
     >[];
@@ -300,37 +320,39 @@ export class BacklogRepo {
   }
 
   /** Get summary stats for dashboard/reporting. */
-  getStats(): Record<string, unknown> {
+  getStats(tenantId = 'gentle-vanguard'): Record<string, unknown> {
     const total = (
-      this.db.prepare('SELECT COUNT(*) as c FROM backlog_items').get() as { c: number }
+      this.db
+        .prepare('SELECT COUNT(*) as c FROM backlog_items WHERE tenant_id = ?')
+        .get(tenantId) as { c: number }
     ).c;
     const byStatus = this.db
       .prepare(
         `
-      SELECT status, COUNT(*) as count FROM backlog_items GROUP BY status
+      SELECT status, COUNT(*) as count FROM backlog_items WHERE tenant_id = ? GROUP BY status
     `,
       )
-      .all() as Array<{ status: string; count: number }>;
+      .all(tenantId) as Array<{ status: string; count: number }>;
     const bySeverity = this.db
       .prepare(
         `
-      SELECT severity, COUNT(*) as count FROM backlog_items GROUP BY severity
+      SELECT severity, COUNT(*) as count FROM backlog_items WHERE tenant_id = ? GROUP BY severity
     `,
       )
-      .all() as Array<{ severity: string; count: number }>;
+      .all(tenantId) as Array<{ severity: string; count: number }>;
     const byType = this.db
       .prepare(
         `
-      SELECT type, COUNT(*) as count FROM backlog_items GROUP BY type
+      SELECT type, COUNT(*) as count FROM backlog_items WHERE tenant_id = ? GROUP BY type
     `,
       )
-      .all() as Array<{ type: string; count: number }>;
+      .all(tenantId) as Array<{ type: string; count: number }>;
     const openCount = (
       this.db
         .prepare(
-          "SELECT COUNT(*) as c FROM backlog_items WHERE status NOT IN ('resolved','wont_fix','duplicate')",
+          "SELECT COUNT(*) as c FROM backlog_items WHERE tenant_id = ? AND status NOT IN ('resolved','wont_fix','duplicate')",
         )
-        .get() as { c: number }
+        .get(tenantId) as { c: number }
     ).c;
 
     return { total, open: openCount, byStatus, bySeverity, byType };
@@ -350,7 +372,13 @@ export class BacklogRepo {
   }
 
   /** Add a tag to an item. */
-  addTagToItem(itemId: string, tagName: string, tagColor = '#00bfff'): void {
+  addTagToItem(
+    itemId: string,
+    tagName: string,
+    tagColor = '#00bfff',
+    tenantId = 'gentle-vanguard',
+  ): void {
+    if (!this.itemBelongsToTenant(itemId, tenantId)) return;
     const tagId = this.ensureTag(tagName, tagColor);
     this.db
       .prepare('INSERT OR IGNORE INTO backlog_item_tags (item_id, tag_id) VALUES (?, ?)')
@@ -358,7 +386,8 @@ export class BacklogRepo {
   }
 
   /** Remove a tag from an item. */
-  removeTagFromItem(itemId: string, tagName: string): void {
+  removeTagFromItem(itemId: string, tagName: string, tenantId = 'gentle-vanguard'): void {
+    if (!this.itemBelongsToTenant(itemId, tenantId)) return;
     this.db
       .prepare(
         `
@@ -376,7 +405,13 @@ export class BacklogRepo {
   // ─── Comments ──────────────────────────────────────────────────────
 
   /** Add a comment to an item. */
-  addComment(itemId: string, content: string, author = 'system'): number {
+  addComment(
+    itemId: string,
+    content: string,
+    author = 'system',
+    tenantId = 'gentle-vanguard',
+  ): number {
+    if (!this.itemBelongsToTenant(itemId, tenantId)) return 0;
     const result = this.db
       .prepare('INSERT INTO backlog_comments (item_id, content, author) VALUES (?, ?, ?)')
       .run(itemId, content, author);
@@ -384,10 +419,12 @@ export class BacklogRepo {
   }
 
   /** Get comments for an item. */
-  getComments(itemId: string): BacklogComment[] {
+  getComments(itemId: string, tenantId = 'gentle-vanguard'): BacklogComment[] {
     return this.db
-      .prepare('SELECT * FROM backlog_comments WHERE item_id = ? ORDER BY created_at ASC')
-      .all(itemId) as BacklogComment[];
+      .prepare(
+        'SELECT bc.* FROM backlog_comments bc JOIN backlog_items bi ON bi.id = bc.item_id WHERE bc.item_id = ? AND bi.tenant_id = ? ORDER BY bc.created_at ASC',
+      )
+      .all(itemId, tenantId) as BacklogComment[];
   }
 
   // ─── Status History ────────────────────────────────────────────────
@@ -397,7 +434,9 @@ export class BacklogRepo {
     from: string | null,
     to: string,
     reason: string,
+    tenantId = 'gentle-vanguard',
   ): void {
+    if (!this.itemBelongsToTenant(itemId, tenantId)) return;
     this.db
       .prepare(
         'INSERT INTO backlog_status_history (item_id, from_status, to_status, reason) VALUES (?, ?, ?, ?)',
@@ -406,16 +445,28 @@ export class BacklogRepo {
   }
 
   /** Get status history for an item. */
-  getStatusHistory(itemId: string): BacklogStatusChange[] {
+  getStatusHistory(itemId: string, tenantId = 'gentle-vanguard'): BacklogStatusChange[] {
     return this.db
-      .prepare('SELECT * FROM backlog_status_history WHERE item_id = ? ORDER BY created_at ASC')
-      .all(itemId) as BacklogStatusChange[];
+      .prepare(
+        'SELECT h.* FROM backlog_status_history h JOIN backlog_items bi ON bi.id = h.item_id WHERE h.item_id = ? AND bi.tenant_id = ? ORDER BY h.created_at ASC',
+      )
+      .all(itemId, tenantId) as BacklogStatusChange[];
   }
 
   // ─── Related Items ─────────────────────────────────────────────────
 
   /** Link two items. */
-  relateItems(itemId: string, relatedItemId: string, relationType: string): void {
+  relateItems(
+    itemId: string,
+    relatedItemId: string,
+    relationType: string,
+    tenantId = 'gentle-vanguard',
+  ): void {
+    if (
+      !this.itemBelongsToTenant(itemId, tenantId) ||
+      !this.itemBelongsToTenant(relatedItemId, tenantId)
+    )
+      return;
     this.db
       .prepare(
         'INSERT OR IGNORE INTO backlog_related_items (item_id, related_item_id, relation_type) VALUES (?, ?, ?)',
@@ -424,33 +475,47 @@ export class BacklogRepo {
   }
 
   /** Get related items. */
-  getRelatedItems(itemId: string): Array<{ related_item_id: string; relation_type: string }> {
+  getRelatedItems(
+    itemId: string,
+    tenantId = 'gentle-vanguard',
+  ): Array<{ related_item_id: string; relation_type: string }> {
     return this.db
-      .prepare('SELECT related_item_id, relation_type FROM backlog_related_items WHERE item_id = ?')
-      .all(itemId) as Array<{ related_item_id: string; relation_type: string }>;
+      .prepare(
+        'SELECT r.related_item_id, r.relation_type FROM backlog_related_items r JOIN backlog_items bi ON bi.id = r.item_id WHERE r.item_id = ? AND bi.tenant_id = ?',
+      )
+      .all(itemId, tenantId) as Array<{ related_item_id: string; relation_type: string }>;
   }
 
   // ─── Pruning ───────────────────────────────────────────────────────
 
   /** Prune old resolved items (older than N days). Default: 365 days */
-  pruneResolved(days = 365): number {
+  pruneResolved(days = 365, tenantId = 'gentle-vanguard'): number {
     const cutoff = new Date(Date.now() - days * 86400000)
       .toISOString()
       .replace('T', ' ')
       .substring(0, 19);
     const result = this.db
       .prepare(
-        "DELETE FROM backlog_items WHERE status IN ('resolved','wont_fix','duplicate') AND updated_at < ?",
+        "DELETE FROM backlog_items WHERE tenant_id = ? AND status IN ('resolved','wont_fix','duplicate') AND updated_at < ?",
       )
-      .run(cutoff);
+      .run(tenantId, cutoff);
     return result.changes;
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────
 
+  private itemBelongsToTenant(itemId: string, tenantId: string): boolean {
+    return Boolean(
+      this.db
+        .prepare('SELECT 1 FROM backlog_items WHERE id = ? AND tenant_id = ?')
+        .get(itemId, tenantId),
+    );
+  }
+
   private rowToItem(row: Record<string, unknown>): BacklogItem {
     return {
       id: row.id as string,
+      tenant_id: row.tenant_id as string,
       type: row.type as BacklogItem['type'],
       title: row.title as string,
       description: row.description as string,

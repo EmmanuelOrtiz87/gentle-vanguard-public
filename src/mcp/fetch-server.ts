@@ -248,7 +248,7 @@ async function sendToDiscord(alert: AlertPayload, config: AlertConfig): Promise<
     description: alert.message,
     color: parseInt(color.replace('#', ''), 16),
     timestamp: alert.timestamp,
-    fields: [] as any[],
+    fields: [] as { name: string; value: string; inline: boolean }[],
     footer: {
       text: 'Gentle-Vanguard Alert System',
     },
@@ -317,7 +317,7 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
     title: `${emoji} ${alert.severity.toUpperCase()}: ${alert.category}`,
     text: alert.message,
     ts: Math.floor(new Date(alert.timestamp).getTime() / 1000),
-    fields: [] as any[],
+    fields: [] as { title: string; value: string; short: boolean }[],
   };
 
   if (alert.details) {
@@ -522,7 +522,7 @@ async function main(): Promise<void> {
     const message = args[messageIndex] || 'Test alert';
 
     const severityIndex = args.indexOf('--severity') + 1;
-    const severity = (args[severityIndex] as any) || 'info';
+    const severity = (args[severityIndex] as AlertPayload['severity']) || 'info';
 
     const categoryIndex = args.indexOf('--category') + 1;
     const category = args[categoryIndex] || 'cli';

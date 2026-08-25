@@ -19,7 +19,7 @@
 
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { compressPrompt } from './prompt-compression.js';
+import { compressPrompt } from './compression/prompt-compression.js';
 import { runNpxTsxSync } from './core/run-command.js';
 // getOutputConfig imported for future use in budget-aware optimization
 import { enforceChatLevel, ChatLevel } from './chat-level-enforcer.js';

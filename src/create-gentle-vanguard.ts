@@ -198,7 +198,7 @@ export function buildBasePackageJson(projectName: string): Record<string, unknow
       'watchtower:health': 'npx tsx src/core/maintenance-watchtower.ts --action health',
       'session:autostart:detached': 'npx tsx src/session-autostart-detached.ts',
       graphify: 'npx tsx src/cli/graphify.ts',
-      'token:status': 'npx tsx src/token-status.ts',
+      'token:status': 'npx tsx src/tokens/token-status.ts',
       test: 'npx tsx src/test-runner-optimized.ts',
       'test:quick': 'npx tsx src/test-runner-optimized.ts --quick',
       typecheck: 'tsc --noEmit',

@@ -46,14 +46,23 @@ import { SkillHeatmap } from './SkillHeatmap';
 import { SessionActivityHeatmap } from './SessionActivityHeatmap';
 import { ActivityTimeline } from './ActivityTimeline';
 import { SloPanel } from './SloPanel';
+import { DashboardRuntimeHealth } from './DashboardRuntimeHealth';
 import { InfoPopup } from './InfoPopup';
-import { LocaleContext, useLocale, LOCALE_NAMES, LOCALE_FLAGS, t } from '../hooks/useLocale';
+import {
+  LocaleContext,
+  useLocale,
+  useT,
+  LOCALE_NAMES,
+  LOCALE_FLAGS,
+  t,
+} from '../hooks/useLocale';
 import { useStackTables } from '../hooks/useStackTables';
 import type { Locale } from '../hooks/useLocale';
 import type { ModelCost, CostInsight } from '../types/dashboard';
 
 function SectionHeader({ title, infoKey }: { title: string; infoKey?: string }) {
   const { locale } = useLocale();
+  const { tt } = useT();
   const [showPopup, setShowPopup] = useState(false);
   const info = infoKey ? t(locale, infoKey) : undefined;
 
@@ -64,7 +73,7 @@ function SectionHeader({ title, infoKey }: { title: string; infoKey?: string }) 
           <button
             onClick={() => setShowPopup(true)}
             className="p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            title="More info"
+            title={tt('ui.more_info')}
           >
             <Info className="w-4 h-4" />
           </button>
@@ -77,20 +86,57 @@ function SectionHeader({ title, infoKey }: { title: string; infoKey?: string }) 
 }
 
 function OfflineBanner({ isOffline, lastUpdated }: { isOffline: boolean; lastUpdated: number }) {
+  const { tt } = useT();
   if (!isOffline) return null;
 
   const secondsAgo =
     lastUpdated > 0 ? Math.max(0, Math.round((Date.now() - lastUpdated) / 1000)) : null;
-  const ageLabel = secondsAgo !== null ? `${secondsAgo}s` : 'unknown';
+  const ageLabel = secondsAgo !== null ? `${secondsAgo}s` : tt('ui.unknown');
 
   return (
     <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2">
         <Cloud className="w-4 h-4 text-amber-600 dark:text-amber-400" />
         <p className="text-sm text-amber-700 dark:text-amber-300">
-          Offline mode — showing cached data from {ageLabel} ago
+          {tt('ui.offline_prefix')}
+          {ageLabel}
+          {tt('ui.offline_suffix')}
         </p>
       </div>
+    </div>
+  );
+}
+
+function LiveDataStatus({
+  connected,
+  lastUpdated,
+  source,
+}: {
+  connected: boolean;
+  lastUpdated: number;
+  source?: string;
+}) {
+  const { tt } = useT();
+  const sourceLabel =
+    source === 'sqlite'
+      ? 'SQLite'
+      : source === 'json'
+        ? 'JSON fallback'
+        : 'native aggregator';
+  const timeLabel =
+    lastUpdated > 0 ? new Date(lastUpdated).toLocaleTimeString() : tt('ui.waiting_data');
+  return (
+    <div className="gv-live-status" role="status" aria-live="polite">
+      <span className={`gv-live-status-dot ${connected ? 'is-connected' : 'is-reconnecting'}`} />
+      <span>{connected ? tt('ui.live_stream') : tt('ui.recovery_polling')}</span>
+      <span className="gv-live-status-divider" aria-hidden="true" />
+      <span>
+        {tt('ui.source')}: {sourceLabel}
+      </span>
+      <span className="gv-live-status-divider" aria-hidden="true" />
+      <span>
+        {tt('ui.updated')} {timeLabel}
+      </span>
     </div>
   );
 }
@@ -103,6 +149,8 @@ function DashboardInner() {
   const {
     data,
     history,
+    historyRange,
+    setHistoryRange,
     loading,
     wsConnected,
     refetch,
@@ -115,6 +163,8 @@ function DashboardInner() {
   const { triggeredAlerts } = useAlerts();
   const sessions = useSessions();
   const { locale, setLocale } = useLocale();
+  const { tt } = useT();
+  const metricLabel = (key: string, fallback: string) => t(locale, key)?.label ?? fallback;
   const {
     skillUsage,
     tokenUsage,
@@ -148,8 +198,8 @@ function DashboardInner() {
   const locales: Locale[] = ['en', 'es', 'pt-BR'];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div className="gv-dashboard-page min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="gv-dashboard-header bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -157,14 +207,14 @@ function DashboardInner() {
                 Gentle Vanguard Dashboard
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Real-time metrics and monitoring
-                {wsConnected && <span className="ml-2 text-green-500">● WS Connected</span>}
+                {tt('ui.app_subtitle')}
+                {wsConnected && <span className="ml-2 text-green-500">● {tt('ui.ws_connected')}</span>}
                 {!wsConnected && useWebSocket && (
-                  <span className="ml-2 text-yellow-500">● WS Reconnecting...</span>
+                  <span className="ml-2 text-yellow-500">● {tt('ui.ws_reconnecting')}</span>
                 )}
                 {triggeredAlerts.length > 0 && (
                   <span className="ml-2 text-red-500 font-semibold">
-                    ● {triggeredAlerts.length} alert(s)
+                    ● {triggeredAlerts.length} {tt('ui.alerts_suffix')}
                   </span>
                 )}
               </p>
@@ -214,7 +264,7 @@ function DashboardInner() {
                     ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 }`}
-                title={useWebSocket ? 'WebSocket Mode' : 'HTTP Polling Mode'}
+                title={useWebSocket ? tt('ui.websocket_mode') : tt('ui.http_polling_mode')}
               >
                 {useWebSocket ? <Zap className="w-5 h-5" /> : <Server className="w-5 h-5" />}
               </button>
@@ -237,11 +287,13 @@ function DashboardInner() {
       </header>
 
       <OfflineBanner isOffline={isOffline} lastUpdated={lastUpdated} />
+      <LiveDataStatus connected={wsConnected} lastUpdated={lastUpdated} source={data.source} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="gv-dashboard-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DashboardRuntimeHealth />
         {/* Row 1: Core KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {loading ? (
+          {loading && lastUpdated === 0 ? (
             <>
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="card animate-pulse">
@@ -254,7 +306,7 @@ function DashboardInner() {
           ) : (
             <>
               <MetricsCard
-                title="Tokens Used"
+                title={metricLabel('tokens_used', 'Tokens Used')}
                 value={data.tokens.used.toLocaleString()}
                 subtitle={`of ${data.tokens.limit.toLocaleString()} (${((data.tokens.used / data.tokens.limit) * 100).toFixed(1)}%)`}
                 icon={Coins}
@@ -262,19 +314,19 @@ function DashboardInner() {
                 infoKey="tokens_used"
               />
               <MetricsCard
-                title="Active Sessions"
+                title={metricLabel('active_sessions', 'Active Sessions')}
                 value={data.sessions.active}
-                subtitle={`${data.sessions.today} today, ${data.sessions.total} total · ${data.sessions.avgDuration.toFixed(0)}s avg`}
+                subtitle={`${data.sessions.today} ${tt('ui.today')}, ${data.sessions.total} ${tt('ui.total_word')} · ${data.sessions.avgDuration.toFixed(0)}s ${tt('ui.avg_short')}`}
                 icon={Users}
                 color="green"
                 infoKey="active_sessions"
               />
               <MetricsCard
-                title="Latency (avg)"
+                title={metricLabel('latency', 'Latency (avg)')}
                 value={data.latency ? `${data.latency.avg.toLocaleString()}ms` : 'N/A'}
                 subtitle={
                   data.latency
-                    ? `p95: ${data.latency.p95.toLocaleString()}ms · ${data.latency.samples} samples`
+                    ? `p95: ${data.latency.p95.toLocaleString()}ms · ${data.latency.samples} ${tt('ui.samples')}`
                     : ''
                 }
                 icon={Clock}
@@ -282,9 +334,9 @@ function DashboardInner() {
                 infoKey="latency"
               />
               <MetricsCard
-                title="Health Status"
+                title={metricLabel('health', 'Health Status')}
                 value={data.health.status}
-                subtitle={`Routing: ${(data.health.routing * 100).toFixed(0)}%`}
+                subtitle={`${tt('ui.routing')}: ${data.health.routing.toFixed(0)}%`}
                 icon={Activity}
                 color={data.health.status === 'healthy' ? 'green' : 'red'}
                 infoKey="health"
@@ -299,15 +351,15 @@ function DashboardInner() {
         {/* Row 2: Cost, Feedback, SLA, System */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricsCard
-            title="Total Cost"
+            title={metricLabel('total_cost', 'Total Cost')}
             value={`$${data.tokens.cost.toFixed(4)}`}
-            subtitle={`Top model: ${topModel ? topModel.model : 'N/A'}`}
+            subtitle={`${tt('ui.model_attribution')}: ${topModel ? topModel.model : tt('ui.unavailable')}`}
             icon={DollarSign}
             color="purple"
             infoKey="total_cost"
           />
           <MetricsCard
-            title="Feedback Score"
+            title={metricLabel('feedback', 'Feedback Score')}
             value={data.feedback ? `${data.feedback.score}%` : 'N/A'}
             subtitle={
               data.feedback ? `${data.feedback.thumbsUp}↑ ${data.feedback.thumbsDown}↓` : ''
@@ -317,16 +369,16 @@ function DashboardInner() {
             infoKey="feedback"
           />
           <MetricsCard
-            title="SLA Compliance"
+            title={metricLabel('sla', 'SLA Compliance')}
             value={data.sla ? `${data.sla.sloCompliance}%` : 'N/A'}
-            subtitle={`Uptime: ${data.sla ? data.sla.uptime.toFixed(1) : 'N/A'}%`}
+            subtitle={`${tt('ui.uptime')}: ${data.sla ? data.sla.uptime.toFixed(1) : 'N/A'}%`}
             icon={Shield}
             color={data.sla && data.sla.sloCompliance >= 99 ? 'green' : 'red'}
             infoKey="sla"
           />
           {data.system && (
             <MetricsCard
-              title="System"
+              title={metricLabel('system', 'System')}
               value={`${data.system.uptime}s`}
               subtitle={`CPU ${data.system.cpu.user}ms · ${data.system.memory.rss}MB RSS`}
               icon={Cpu}
@@ -344,7 +396,7 @@ function DashboardInner() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-5 h-5 text-gray-500" />
-              <SectionHeader title="Cost by Model" infoKey="cost_by_model" />
+              <SectionHeader title={tt('ui.cost_by_model')} infoKey="cost_by_model" />
             </div>
             <div className="card">
               <div className="overflow-x-auto">
@@ -352,19 +404,19 @@ function DashboardInner() {
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Model
+                        {tt('ui.model')}
                       </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Input Tokens
+                        {tt('ui.input_tokens')}
                       </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Output Tokens
+                        {tt('ui.output_tokens')}
                       </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Total Tokens
+                        {tt('ui.total_tokens')}
                       </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Cost
+                        {tt('ui.cost')}
                       </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                         %
@@ -406,13 +458,18 @@ function DashboardInner() {
             </div>
           </div>
         )}
+        {(!data.tokens.byModel || data.tokens.byModel.length === 0) && (
+          <div className="card mb-8 text-sm text-gray-600 dark:text-gray-400">
+            {tt('ui.model_attribution_unavailable')}
+          </div>
+        )}
 
         {/* Row 5: Cost Insights */}
         {data.costInsights && data.costInsights.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-gray-500" />
-              <SectionHeader title="Cost Optimization Insights" infoKey="cost_insights" />
+              <SectionHeader title={tt('ui.cost_insights')} infoKey="cost_insights" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {data.costInsights
@@ -449,7 +506,7 @@ function DashboardInner() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Gauge className="w-5 h-5 text-gray-500" />
-              <SectionHeader title="Latency Percentiles" infoKey="latency_percentiles" />
+              <SectionHeader title={tt('ui.latency_percentiles')} infoKey="latency_percentiles" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {['avg', 'p50', 'p95', 'p99', 'max'].map((p) => {
@@ -482,11 +539,11 @@ function DashboardInner() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="w-5 h-5 text-gray-500" />
-              <SectionHeader title="SLA & Reliability" infoKey="sla_reliability" />
+              <SectionHeader title={tt('ui.sla_reliability')} infoKey="sla_reliability" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="card">
-                <p className="metric-label">Uptime</p>
+                <p className="metric-label">{tt('ui.uptime')}</p>
                 <p className="metric-value">{data.sla.uptime.toFixed(2)}%</p>
                 <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
@@ -496,17 +553,17 @@ function DashboardInner() {
                 </div>
               </div>
               <div className="card">
-                <p className="metric-label">SLO Compliance</p>
+                <p className="metric-label">{tt('ui.slo_compliance')}</p>
                 <p className="metric-value">{data.sla.sloCompliance}%</p>
-                <p className="text-xs text-gray-500 mt-1">Target: 99.9%</p>
+                <p className="text-xs text-gray-500 mt-1">{tt('ui.target_999')}</p>
               </div>
               <div className="card">
-                <p className="metric-label">Incidents</p>
+                <p className="metric-label">{tt('ui.incidents')}</p>
                 <p className="metric-value">{data.sla.incidents}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {data.sla.lastIncident
-                    ? `Last: ${new Date(data.sla.lastIncident).toLocaleDateString()}`
-                    : 'No recent incidents'}
+                    ? `${tt('ui.last')} ${new Date(data.sla.lastIncident).toLocaleDateString()}`
+                    : tt('ui.no_recent_incidents')}
                 </p>
               </div>
             </div>
@@ -516,19 +573,19 @@ function DashboardInner() {
         {mcpData && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <SectionHeader title="MCP Server Metrics" infoKey="mcp" />
+              <SectionHeader title={tt('ui.mcp_servers')} infoKey="mcp" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="card">
-                <p className="metric-label">Total Skills</p>
+                <p className="metric-label">{tt('ui.total_skills')}</p>
                 <p className="metric-value">{totalSkills.toLocaleString()}</p>
               </div>
               <div className="card">
-                <p className="metric-label">Total Calls</p>
+                <p className="metric-label">{tt('ui.total_calls')}</p>
                 <p className="metric-value">{totalCalls.toLocaleString()}</p>
               </div>
               <div className="card">
-                <p className="metric-label">Avg Response</p>
+                <p className="metric-label">{tt('ui.avg_response')}</p>
                 <p className="metric-value">{avgResponseTime.toFixed(0)}ms</p>
               </div>
             </div>
@@ -548,23 +605,23 @@ function DashboardInner() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Cloud className="w-5 h-5 text-blue-500" />
-            <SectionHeader title="Cloud Connectors" infoKey="mcp" />
+            <SectionHeader title={tt('ui.cloud_connectors')} infoKey="mcp" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="card">
-              <p className="metric-label">Cloud Executions</p>
+              <p className="metric-label">{tt('ui.cloud_executions')}</p>
               <p className="metric-value">{(data as any).cloud?.executions ?? 0}</p>
             </div>
             <div className="card">
-              <p className="metric-label">Total Cost</p>
+              <p className="metric-label">{tt('ui.cost')}</p>
               <p className="metric-value">${((data as any).cloud?.totalCost ?? 0).toFixed(4)}</p>
             </div>
             <div className="card">
-              <p className="metric-label">Checkpoints</p>
+              <p className="metric-label">{tt('ui.checkpoints')}</p>
               <p className="metric-value">{(data as any).checkpoints ?? 0}</p>
             </div>
             <div className="card">
-              <p className="metric-label">Audit Logs</p>
+              <p className="metric-label">{tt('ui.audit_logs')}</p>
               <p className="metric-value">{(data as any).auditLogs ?? 0}</p>
             </div>
           </div>
@@ -584,7 +641,7 @@ function DashboardInner() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Server className="w-5 h-5 text-teal-500" />
-            <SectionHeader title="SQLite Stack Tables" infoKey="mcp" />
+            <SectionHeader title={tt('ui.sqlite_stack_tables')} infoKey="mcp" />
             {stackLoading && <RefreshCw className="w-3.5 h-3.5 text-gray-400 animate-spin" />}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -599,41 +656,43 @@ function DashboardInner() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-purple-500" />
-            <SectionHeader title="Session & Repository Activity" infoKey="active_sessions" />
+            <SectionHeader title={tt('ui.session_repository_activity')} infoKey="active_sessions" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="card">
-              <p className="metric-label">Total Sessions</p>
+              <p className="metric-label">{tt('ui.total_sessions')}</p>
               <p className="metric-value text-purple-600 dark:text-purple-400">
                 {data.sessions.total}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{data.sessions.active} active now</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {data.sessions.active} {tt('ui.active_now')}
+              </p>
             </div>
             <div className="card">
-              <p className="metric-label">Git Commits</p>
+              <p className="metric-label">{tt('ui.git_commits')}</p>
               <p className="metric-value text-blue-600 dark:text-blue-400">
                 {(data as any).git?.commits ?? 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {(data as any).git?.contributors ?? 0} contributors
+                {(data as any).git?.contributors ?? 0} {tt('ui.contributors').toLowerCase()}
               </p>
             </div>
             <div className="card">
-              <p className="metric-label">Trace Files</p>
+              <p className="metric-label">{tt('ui.trace_files')}</p>
               <p className="metric-value text-amber-600 dark:text-amber-400">
                 {(data as any).traceFiles ?? 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {(data as any).checkpoints ?? 0} checkpoints
+                {(data as any).checkpoints ?? 0} {tt('ui.checkpoints').toLowerCase()}
               </p>
             </div>
             <div className="card">
-              <p className="metric-label">Audit Logs</p>
+              <p className="metric-label">{tt('ui.audit_logs')}</p>
               <p className="metric-value text-emerald-600 dark:text-emerald-400">
                 {(data as any).auditLogs ?? 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {(data as any).mcp?.skills?.total ?? 0} MCP skills
+                {(data as any).mcp?.skills?.total ?? 0} {tt('ui.mcp_skills')}
               </p>
             </div>
           </div>
@@ -653,7 +712,7 @@ function DashboardInner() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <SectionHeader title="Agent Activity" infoKey="agent_activity" />
+              <SectionHeader title={tt('ui.agent_activity')} infoKey="agent_activity" />
             </div>
             <span className="flex items-center gap-1 text-xs text-gray-500">
               {bridgeConnected ? (
@@ -661,19 +720,19 @@ function DashboardInner() {
               ) : (
                 <Bot className="w-3.5 h-3.5 text-gray-400" />
               )}
-              {bridgeConnected ? 'Bridge Online' : 'Bridge Offline'}
+              {bridgeConnected ? tt('ui.bridge_online') : tt('ui.bridge_offline')}
             </span>
           </div>
           <div className="card">
             {recentMessages.length === 0 && (
               <div className="text-center py-6 text-gray-400 dark:text-gray-500">
                 <Bot className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No agent activity yet</p>
+                <p className="text-sm">{tt('ui.no_agent_activity')}</p>
                 <button
                   onClick={() => createSession('DEV')}
                   className="mt-2 text-xs text-purple-500 hover:text-purple-600 underline"
                 >
-                  Start a session
+                  {tt('ui.start_session')}
                 </button>
               </div>
             )}
@@ -688,7 +747,7 @@ function DashboardInner() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <LiveChart data={history} />
+          <LiveChart data={history} range={historyRange} onRangeChange={setHistoryRange} />
           <ActivityTimeline history={history} />
         </div>
 

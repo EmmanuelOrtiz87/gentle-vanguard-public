@@ -1,18 +1,21 @@
 {
   "name": "@gentle-vanguard/web-dashboard",
-  "version": "3.3.3",
+  "version": "3.8.2",
   "type": "module",
   "scripts": {
     "dev": "concurrently -n client,server -c cyan,yellow \"vite\" \"tsx server/websocket-server.ts\"",
     "dev:server": "tsx server/websocket-server.ts",
     "dev:client": "vite",
+    "prebuild": "pnpm --dir ../.. design:tokens -- --format css --output apps/web-dashboard/src/styles/generated-tokens.css",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "i18n:check": "node scripts/i18n-check.mjs",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "lucide-react": "^0.294.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -41,7 +44,7 @@
     "tailwindcss": "^3.4.19",
     "tsx": "^4.23.1",
     "typescript": "^6.0.3",
-    "vite": "^5.4.21",
+    "vite": "^6.4.3",
     "vitest": "^3.2.7"
   },
   "pnpm": {

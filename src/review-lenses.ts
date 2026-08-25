@@ -23,6 +23,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative, resolve, extname } from 'path';
 import { pathToFileURL } from 'url';
+import { loadConfigFile } from './core/config-loader.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -65,8 +66,6 @@ interface RiskProfile {
 // ─── Constants ─────────────────────────────────────────────────────────
 
 const ROOT = resolve(process.cwd());
-const CONFIG_PATH = join(ROOT, 'config', 'review-lenses.json');
-
 const DEFAULT_CONFIG: LensesConfig = {
   version: '1.0.0',
   outputDir: '.session/reviews',
@@ -126,12 +125,7 @@ const RISK_PROFILES: Record<RiskLevel, RiskProfile> = {
 // ─── Helpers ───────────────────────────────────────────────────────────
 
 function loadConfig(): LensesConfig {
-  if (!existsSync(CONFIG_PATH)) return DEFAULT_CONFIG;
-  try {
-    return { ...DEFAULT_CONFIG, ...JSON.parse(readFileSync(CONFIG_PATH, 'utf-8')) };
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+  return loadConfigFile<LensesConfig>('review-lenses', { defaults: DEFAULT_CONFIG }).data;
 }
 
 function isReviewable(filePath: string, config: LensesConfig): boolean {

@@ -120,7 +120,7 @@ console.log(`   Estado: ${mockResult.status}`);
 // 4. Estado actual del sistema de tokens
 console.log('\n📈 Estado actual del sistema:');
 try {
-  const result = runSyncShell('npx tsx src/token-budget-guard.ts -Mode status -Quiet', {
+  const result = runSyncShell('npx tsx src/tokens/token-budget-guard.ts -Mode status -Quiet', {
     cwd: ROOT,
   });
 

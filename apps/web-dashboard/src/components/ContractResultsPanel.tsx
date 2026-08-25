@@ -1,5 +1,6 @@
 import { FileCheck } from 'lucide-react';
 import type { ContractResultRow } from '../types/dashboard';
+import { useT } from '../hooks/useLocale';
 
 interface ContractResultsPanelProps {
   results: ContractResultRow[];
@@ -7,14 +8,16 @@ interface ContractResultsPanelProps {
 }
 
 export function ContractResultsPanel({ results, total }: ContractResultsPanelProps) {
+  const { tt } = useT();
+
   if (total === 0) {
     return (
       <div className="card">
         <div className="flex items-center gap-2 mb-3">
           <FileCheck className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Contract Results</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.contract_results')}</h3>
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">No contract results yet</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{tt('ui.no_contract_results_yet')}</p>
       </div>
     );
   }
@@ -24,9 +27,11 @@ export function ContractResultsPanel({ results, total }: ContractResultsPanelPro
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <FileCheck className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Contract Results</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tt('ui.contract_results')}</h3>
         </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">{total} results</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {total} {tt('ui.results')}
+        </span>
       </div>
       <div className="space-y-2 max-h-[280px] overflow-y-auto">
         {results.map((row, idx) => {

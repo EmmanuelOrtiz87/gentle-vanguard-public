@@ -8,13 +8,26 @@
 
 import { EventEmitter } from 'events';
 
+/** A finding as submitted by callers (arbitrary extra fields allowed) */
+type FindingInput = Record<string, unknown>;
+
+/** A finding as stored in the ledger, with hash-chain fields */
+interface FindingRecord {
+  id: string;
+  title?: string;
+  timestamp: number;
+  hash: string;
+  previousHash: string;
+  [key: string]: unknown;
+}
+
 export class FindingsLedger extends EventEmitter {
-  private findings: any[] = [];
+  private findings: FindingRecord[] = [];
   private lastHash: string = '';
 
-  public addFinding(finding: any): string {
+  public addFinding(finding: FindingInput): string {
     const id = `finding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const fullFinding = {
+    const fullFinding: FindingRecord = {
       ...finding,
       id,
       timestamp: Date.now(),
@@ -28,7 +41,7 @@ export class FindingsLedger extends EventEmitter {
     return id;
   }
 
-  private calculateHash(finding: any): string {
+  private calculateHash(finding: FindingRecord): string {
     return require('crypto')
       .createHash('sha256')
       .update(JSON.stringify({ title: finding.title, timestamp: finding.timestamp }))

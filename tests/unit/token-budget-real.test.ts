@@ -6,11 +6,11 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('token-budget-real', () => {
-  it('src/token-usage-notifier.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'token-usage-notifier.ts')));
+  it('src/tokens/token-usage-notifier.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'tokens', 'token-usage-notifier.ts')));
   });
 
-  it('src/token-metrics-store.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'token-metrics-store.ts')));
+  it('src/tokens/token-metrics-store.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'tokens', 'token-metrics-store.ts')));
   });
 });

@@ -4,16 +4,17 @@ import type { MetricSnapshot } from '../manager';
 export class MetricsRepo {
   constructor(private db: Database.Database) {}
 
-  insertMetricSnapshot(data: Partial<MetricSnapshot>): void {
+  insertMetricSnapshot(tenantId: string, data: Partial<MetricSnapshot>): void {
     this.db
       .prepare(
         `INSERT INTO metric_snapshots 
-         (timestamp, tokens_used, tokens_limit, cost, sessions_total, 
-          sessions_active, sessions_today, latency_avg, latency_p50, latency_p95,
-          commits, mcp_calls, mcp_skills, health_status)
-         VALUES (datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (tenant_id, timestamp, tokens_used, tokens_limit, cost, sessions_total,
+           sessions_active, sessions_today, latency_avg, latency_p50, latency_p95,
+           commits, mcp_calls, mcp_skills, health_status)
+         VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
+        tenantId,
         data.tokens_used ?? 0,
         data.tokens_limit ?? 120000,
         data.cost ?? 0,
@@ -30,26 +31,33 @@ export class MetricsRepo {
       );
   }
 
-  getLatestMetricSnapshot(): MetricSnapshot | null {
+  getLatestMetricSnapshot(tenantId: string): MetricSnapshot | null {
     const row = this.db
-      .prepare('SELECT * FROM metric_snapshots ORDER BY timestamp DESC LIMIT 1')
-      .get() as MetricSnapshot | undefined;
+      .prepare('SELECT * FROM metric_snapshots WHERE tenant_id = ? ORDER BY timestamp DESC LIMIT 1')
+      .get(tenantId) as MetricSnapshot | undefined;
     return row ?? null;
   }
 
-  getMetricHistory(limit = 20): MetricSnapshot[] {
+  getMetricHistory(tenantId: string, limit = 20, since?: string): MetricSnapshot[] {
+    if (since) {
+      return this.db
+        .prepare(
+          "SELECT * FROM metric_snapshots WHERE tenant_id = ? AND timestamp >= datetime('now', ?) ORDER BY timestamp DESC LIMIT ?",
+        )
+        .all(tenantId, since, limit) as MetricSnapshot[];
+    }
     return this.db
-      .prepare('SELECT * FROM metric_snapshots ORDER BY timestamp DESC LIMIT ?')
-      .all(limit) as MetricSnapshot[];
+      .prepare('SELECT * FROM metric_snapshots WHERE tenant_id = ? ORDER BY timestamp DESC LIMIT ?')
+      .all(tenantId, limit) as MetricSnapshot[];
   }
 
-  pruneMetricSnapshots(keep = 1440): void {
+  pruneMetricSnapshots(tenantId: string, keep = 1440): void {
     this.db
       .prepare(
-        `DELETE FROM metric_snapshots WHERE id NOT IN (
-          SELECT id FROM metric_snapshots ORDER BY timestamp DESC LIMIT ?
-        )`,
+        `DELETE FROM metric_snapshots WHERE tenant_id = ? AND id NOT IN (
+           SELECT id FROM metric_snapshots WHERE tenant_id = ? ORDER BY timestamp DESC LIMIT ?
+         )`,
       )
-      .run(keep);
+      .run(tenantId, tenantId, keep);
   }
 }

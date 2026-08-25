@@ -6,7 +6,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { gradeRetrieval } from '../../src/retrieval-grader.ts';
+import { gradeRetrieval } from '../../src/retrieval/retrieval-grader.ts';
 
 describe('Retrieval Grader (CRAG)', () => {
   it('should mark relevant chunks as relevant', () => {

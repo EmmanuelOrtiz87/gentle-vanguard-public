@@ -22,6 +22,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { loadConfigFile } from './core/config-loader.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -77,7 +78,6 @@ interface GcResult {
 // ─── Constants ─────────────────────────────────────────────────────────
 
 const ROOT = resolve(process.cwd());
-const CONFIG_PATH = join(ROOT, 'config', 'compact-state.json');
 const DEFAULT_CONFIG: StateMachineConfig = {
   version: '1.0.0',
   outputDir: '.session/state-machine',
@@ -104,12 +104,7 @@ function ensureDir(dir: string) {
 }
 
 function loadConfig(): StateMachineConfig {
-  if (!existsSync(CONFIG_PATH)) return DEFAULT_CONFIG;
-  try {
-    return { ...DEFAULT_CONFIG, ...JSON.parse(readFileSync(CONFIG_PATH, 'utf-8')) };
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+  return loadConfigFile<StateMachineConfig>('compact-state', { defaults: DEFAULT_CONFIG }).data;
 }
 
 function generateId(): string {
