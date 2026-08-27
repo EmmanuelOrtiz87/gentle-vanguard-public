@@ -109,7 +109,7 @@ window.__GV_CONTENT.en = {
   c_autonomy_14:
     'Experiments are evaluated with statistical rigor. Negative results trigger automatic\n              rollback to the control variant.',
   c_autonomy_15:
-    '95 health checks across 21 components with 6 operational modes. Scored 95/95 — all\n              systems operational.',
+    '96 health checks across 22 components with 6 operational modes. Scored 96/96 — all\n              systems operational.',
   c_autonomy_16:
     'Detection → Evaluation → Decision → Execution → Verification → Learning — el ciclo\n          continuo del Executive Layer. Pasa el cursor sobre los nodos para explorar cada etapa.',
   c_dashboard_2:
@@ -132,9 +132,9 @@ window.__GV_CONTENT.en = {
   c_dashboard_18:
     'Arquitectura del dashboard de observabilidad — WS + REST, 7 secciones, i18n, alertas',
   c_health_2:
-    'Monitoreo continuo, 95 health checks, 109 tests automatizados, y trazabilidad total del\n          stack Gentle-Vanguard',
+    'Monitoreo continuo, 96 health checks, 109 tests automatizados, y trazabilidad total del\n          stack Gentle-Vanguard',
   c_health_3: 'Estado actual del stack en tiempo real',
-  c_health_4: '21 componentes monitoreados en cada ciclo de health check',
+  c_health_4: '22 componentes monitoreados en cada ciclo de health check',
   c_health_5: 'Dashboard WS server, API 200, watchdog PID',
   c_health_6: 'Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB',
   c_health_7: 'Timeout daemon, watchdog PIDs, restart loop protection',
@@ -192,7 +192,7 @@ window.__GV_CONTENT.en = {
   c_health_59: 'Métricas de rendimiento del stack',
   c_health_60: 'All scripts must complete in &lt;2s for interactive use',
   c_health_61: 'Pipeline must initialize within 30 seconds',
-  c_health_62: 'Watchtower expects 95/95 PASS every cycle',
+  c_health_62: 'Watchtower expects 96/96 PASS every cycle',
   c_health_63: 'Arquitectura y observabilidad del stack en un vistazo',
   c_health_64: 'Gentle-Vanguard — Autonomous AI Development Stack',
   c_index_2: '6-layer architecture — every layer purpose-built for autonomous operation',
@@ -208,7 +208,7 @@ window.__GV_CONTENT.en = {
   c_index_11: '3-tier escalation (3→5→10 failures) with audit trail and findings ledger',
   c_index_12: 'createExperiment, assignVariant, evaluateExperiment, auto-rollback on degradation',
   c_index_13: 'Auto-compare scores, detect regression >15%, anomaly detection',
-  c_index_14: '95 Checks across 21 components. Promise.allSettled parallel exec. Auto-heal modes',
+  c_index_14: '95 Checks across 22 components. Promise.allSettled parallel exec. Auto-heal modes',
   c_index_15:
     'SQLite WAL mode, 7 migrations, 21 tables, 11 repos. Cache LRU, WAL auto-checkpoint &gt;1MB',
   c_index_16: 'Self-learning, self-healing, self-evolving — 100% autonomous operation',
@@ -242,7 +242,7 @@ window.__GV_CONTENT.en = {
   c_index_42: 'Norms Learner',
   c_index_43: 'Auto-discovers patterns. Writes LEARNED-NORMS.md. Adaptive evolution',
   c_index_44: 'Watchtower',
-  c_index_45: '95 checks × 21 components. Promise.allSettled. Auto-heal modes',
+  c_index_45: '96 checks × 22 components. Promise.allSettled. Auto-heal modes',
   c_index_46: 'Security Orchestrator',
   c_index_47: 'Pre-input scanning, audit pipeline, policy enforcement, guardrails',
   c_index_48: 'State Persistence',
@@ -286,12 +286,12 @@ window.__GV_CONTENT.en = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: '109 Test Files (10 suites)',
-  c_index_89: '95 health checks (21 components)',
+  c_index_89: '96 health checks (22 components)',
   c_index_90: 'Code Review Standards (multi-axis)',
   c_index_91: 'Karpathy Guidelines (coding standards)',
   c_index_92: 'SDD (Spec-Driven Development) workflow',
   c_index_93: '118 skills · 52 normatives — organized intelligence across 9 categories',
-  c_index_94: 'Real-time health and performance data — 95/95 PASS across 21 components',
+  c_index_94: 'Real-time health and performance data — 96/96 PASS across 22 components',
   c_index_95: '10 chapters covering the complete Gentle-Vanguard stack',
   c_index_96: '🏗️ Architecture',
   c_index_97: 'Deep architecture, 6 layers, 11 Repos, pipeline topology, system design decisions',
@@ -313,10 +313,13 @@ window.__GV_CONTENT.en = {
   c_index_113: 'Karpathy guidelines, design patterns, SDD contracts, coding conventions',
   c_index_114: '📈 Stack Health & Metrics',
   c_index_115:
-    '95 health checks, watchtower, performance KPIs, system observability, backlog tracking',
+    '96 health checks, watchtower, performance KPIs, system observability, backlog tracking',
   c_index_116:
     'Arquitectura, estructura y funcionalidad — de lo simple a lo complejo. Pasa el cursor\n          sobre los nodos para explorar cada capa.',
   c_index_117: '10 supported tools — one unified autonomous stack',
+  c_index_124: 'Process Hygiene — native orphan/duplicate reaper',
+  c_index_125: 'SDD Research Lane — versioned external evidence',
+  c_index_126: 'RDD (Receipt-Driven) review — 4R lenses + delivery gates',
   c_memoryknowledge_2:
     '4 interconnected knowledge systems powering persistent memory, symbol intelligence, and\n        operational data',
   c_memoryknowledge_3: 'Four interconnected knowledge systems serving distinct purposes',
@@ -485,7 +488,7 @@ window.__GV_CONTENT.en = {
   c_securitygovernance_41: 'Disaster recovery, backup strategies, RPO/RTO definitions',
   c_securitygovernance_42:
     'Every rule file is monitored, version-controlled, and enforced through the pipeline.\r\n              Automated checks verify policy compliance at session start and during operations.',
-  c_securitygovernance_43: '95 health checks across 21 components — 100% PASS',
+  c_securitygovernance_43: '96 health checks across 22 components — 100% PASS',
   c_securitygovernance_44: 'Multi-layer defense-in-depth for production readiness',
   c_securitygovernance_45: 'Dependency Lock',
   c_securitygovernance_46: 'Lockfile verification ensures reproducible, tamper-proof builds',
@@ -654,7 +657,7 @@ window.__GV_CONTENT.es = {
   c_autonomy_14:
     'Los experimentos se evalúan con rigor estadístico. Los resultados negativos\n              activan un rollback automático a la variante de control.',
   c_autonomy_15:
-    '95 health checks en 21 componentes con 6 modos operativos. Puntuación\n              95/95 — todos los sistemas operativos.',
+    '96 health checks en 22 componentes con 6 modos operativos. Puntuación\n              96/96 — todos los sistemas operativos.',
   c_autonomy_16:
     'Detección → Evaluación → Decisión → Ejecución → Verificación → Aprendizaje — el\n          ciclo continuo del Executive Layer. Pasa el cursor sobre los nodos para explorar cada\n          etapa.',
   c_dashboard_2:
@@ -680,9 +683,9 @@ window.__GV_CONTENT.es = {
   c_dashboard_18:
     'Arquitectura del dashboard de observabilidad — WS + REST, 7 secciones, i18n, alertas',
   c_health_2:
-    'Monitoreo continuo, 95 health checks, 109 tests automatizados y trazabilidad total del\n          stack Gentle-Vanguard',
+    'Monitoreo continuo, 96 health checks, 109 tests automatizados y trazabilidad total del\n          stack Gentle-Vanguard',
   c_health_3: 'Estado actual del stack en tiempo real',
-  c_health_4: '21 componentes monitoreados en cada ciclo de health check',
+  c_health_4: '22 componentes monitoreados en cada ciclo de health check',
   c_health_5: 'Servidor WS del Dashboard, API 200, PID del watchdog',
   c_health_6: 'Índice existente, 677 archivos, 10,663 nodos, 21,746 aristas, 28MB',
   c_health_7: 'Daemon de timeout, PIDs del watchdog, protección contra bucles de reinicio',
@@ -740,7 +743,7 @@ window.__GV_CONTENT.es = {
   c_health_59: 'Métricas de rendimiento del stack',
   c_health_60: 'Todos los scripts deben completarse en &lt;2s para uso interactivo',
   c_health_61: 'El pipeline debe inicializarse en 30 segundos',
-  c_health_62: 'Watchtower espera 95/95 PASS en cada ciclo',
+  c_health_62: 'Watchtower espera 96/96 PASS en cada ciclo',
   c_health_63: 'Arquitectura y observabilidad del stack en un vistazo',
   c_health_64: 'Gentle-Vanguard — Stack Autónomo de Desarrollo de IA',
   c_index_2:
@@ -764,7 +767,7 @@ window.__GV_CONTENT.es = {
   c_index_13:
     'Comparación automática de puntuaciones, detección de regresión >15%, detección de anomalías',
   c_index_14:
-    '95 Checks en 21 componentes. Ejecución paralela con Promise.allSettled. Modos de auto-reparación',
+    '95 Checks en 22 componentes. Ejecución paralela con Promise.allSettled. Modos de auto-reparación',
   c_index_15:
     'SQLite en modo WAL, 7 migraciones, 21 tablas, 11 repos. Caché LRU, auto-checkpoint de WAL &gt;1MB',
   c_index_16: 'Autoaprendizaje, autocuración y autoevolución — operación 100% autónoma',
@@ -801,7 +804,7 @@ window.__GV_CONTENT.es = {
   c_index_42: 'Norms Learner',
   c_index_43: 'Descubre patrones automáticamente. Escribe LEARNED-NORMS.md. Evolución adaptativa',
   c_index_44: 'Watchtower',
-  c_index_45: '95 checks × 21 componentes. Promise.allSettled. Modos de auto-reparación',
+  c_index_45: '96 checks × 22 componentes. Promise.allSettled. Modos de auto-reparación',
   c_index_46: 'Security Orchestrator',
   c_index_47:
     'Escaneo previo a la entrada, pipeline de auditoría, aplicación de políticas, guardrails',
@@ -847,12 +850,12 @@ window.__GV_CONTENT.es = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: '97 Archivos de Prueba (12 suites)',
-  c_index_89: '95 health checks (21 componentes)',
+  c_index_89: '96 health checks (22 componentes)',
   c_index_90: 'Estándares de Revisión de Código (multieje)',
   c_index_91: 'Pautas de Karpathy (estándares de codificación)',
   c_index_92: 'Flujo de trabajo SDD (Spec-Driven Development)',
   c_index_93: '118 skills · 52 normativas — inteligencia organizada en 9 categorías',
-  c_index_94: 'Datos de salud y rendimiento en tiempo real — 95/95 PASS en 21 componentes',
+  c_index_94: 'Datos de salud y rendimiento en tiempo real — 96/96 PASS en 22 componentes',
   c_index_95: '10 capítulos que cubren el stack completo de Gentle-Vanguard',
   c_index_96: '🏗️ Arquitectura',
   c_index_97:
@@ -880,10 +883,13 @@ window.__GV_CONTENT.es = {
     'Pautas de Karpathy, patrones de diseño, contratos SDD, convenciones de codificación',
   c_index_114: '📈 Salud y Métricas del Stack',
   c_index_115:
-    '95 health checks, watchtower, KPIs de rendimiento, observabilidad del sistema, seguimiento del backlog',
+    '96 health checks, watchtower, KPIs de rendimiento, observabilidad del sistema, seguimiento del backlog',
   c_index_116:
     'Arquitectura, estructura y funcionalidad — de lo simple a lo complejo. Pasa el cursor\n          sobre los nodos para explorar cada capa.',
   c_index_117: '10 herramientas compatibles — un stack autónomo unificado',
+  c_index_124: 'Higiene de procesos — reaper nativo de huérfanos/duplicados',
+  c_index_125: 'SDD Research Lane — evidencia externa versionada',
+  c_index_126: 'Revisión RDD (Receipt-Driven) — lentes 4R + gates de entrega',
   c_memoryknowledge_2:
     '4 sistemas de conocimiento interconectados que impulsan la memoria persistente, la inteligencia simbólica y los\n        datos operacionales',
   c_memoryknowledge_3: 'Cuatro sistemas de conocimiento interconectados con propósitos distintos',
@@ -1070,7 +1076,7 @@ window.__GV_CONTENT.es = {
     'Recuperación ante desastres, estrategias de respaldo, definiciones de RPO/RTO',
   c_securitygovernance_42:
     'Cada archivo de reglas se monitoriza, versiona y aplica a través del pipeline.\r\n              Los controles automatizados verifican el cumplimiento de políticas al inicio de sesión y durante las operaciones.',
-  c_securitygovernance_43: '95 health checks en 21 componentes — 100% PASS',
+  c_securitygovernance_43: '96 health checks en 22 componentes — 100% PASS',
   c_securitygovernance_44: 'Defensa en profundidad multicapa para la preparación de producción',
   c_securitygovernance_45: 'Bloqueo de Dependencias',
   c_securitygovernance_46:
@@ -1241,7 +1247,7 @@ window.__GV_CONTENT['pt-BR'] = {
   c_autonomy_14:
     'Os experimentos são avaliados com rigor estatístico. Resultados negativos acionam\n              rollback automático para a variante de controle.',
   c_autonomy_15:
-    '95 health checks em 21 componentes com 6 modos operacionais. Pontuação\n              95/95 — todos os sistemas operacionais.',
+    '96 health checks em 22 componentes com 6 modos operacionais. Pontuação\n              96/96 — todos os sistemas operacionais.',
   c_autonomy_16:
     'Detecção → Avaliação → Decisão → Execução → Verificação → Aprendizado — o\n          ciclo contínuo do Executive Layer. Passe o cursor sobre os nós para explorar cada\n          etapa.',
   c_dashboard_2:
@@ -1267,9 +1273,9 @@ window.__GV_CONTENT['pt-BR'] = {
   c_dashboard_18:
     'Arquitetura do dashboard de observabilidade — WS + REST, 7 seções, i18n, alertas',
   c_health_2:
-    'Monitoramento contínuo, 95 health checks, 109 testes automatizados e rastreabilidade total do\n          stack Gentle-Vanguard',
+    'Monitoramento contínuo, 96 health checks, 109 testes automatizados e rastreabilidade total do\n          stack Gentle-Vanguard',
   c_health_3: 'Estado atual do stack em tempo real',
-  c_health_4: '21 componentes monitorados em cada ciclo de health check',
+  c_health_4: '22 componentes monitorados em cada ciclo de health check',
   c_health_5: 'Servidor WS do Dashboard, API 200, PID do watchdog',
   c_health_6: 'Índice existente, 677 arquivos, 10,663 nós, 21,746 arestas, 28MB',
   c_health_7: 'Daemon de timeout, PIDs do watchdog, proteção contra loops de reinício',
@@ -1327,7 +1333,7 @@ window.__GV_CONTENT['pt-BR'] = {
   c_health_59: 'Métricas de desempenho do stack',
   c_health_60: 'Todos os scripts devem concluir em &lt;2s para uso interativo',
   c_health_61: 'O pipeline deve inicializar em 30 segundos',
-  c_health_62: 'Watchtower espera 95/95 PASS em cada ciclo',
+  c_health_62: 'Watchtower espera 96/96 PASS em cada ciclo',
   c_health_63: 'Arquitetura e observabilidade do stack num relance',
   c_health_64: 'Gentle-Vanguard — Stack Autônomo de Desenvolvimento de IA',
   c_index_2:
@@ -1352,7 +1358,7 @@ window.__GV_CONTENT['pt-BR'] = {
   c_index_13:
     'Comparação automática de pontuações, detecção de regressão >15%, detecção de anomalias',
   c_index_14:
-    '95 Checks em 21 componentes. Execução paralela com Promise.allSettled. Modos de auto-reparo',
+    '95 Checks em 22 componentes. Execução paralela com Promise.allSettled. Modos de auto-reparo',
   c_index_15:
     'SQLite em modo WAL, 7 migrações, 21 tabelas, 11 repos. Cache LRU, auto-checkpoint de WAL &gt;1MB',
   c_index_16: 'Autoaprendizagem, autocura e autoevolução — operação 100% autônoma',
@@ -1389,7 +1395,7 @@ window.__GV_CONTENT['pt-BR'] = {
   c_index_42: 'Norms Learner',
   c_index_43: 'Descobre padrões automaticamente. Escreve LEARNED-NORMS.md. Evolução adaptativa',
   c_index_44: 'Watchtower',
-  c_index_45: '95 checks × 21 componentes. Promise.allSettled. Modos de auto-reparo',
+  c_index_45: '96 checks × 22 componentes. Promise.allSettled. Modos de auto-reparo',
   c_index_46: 'Security Orchestrator',
   c_index_47: 'Verificação pré-entrada, pipeline de auditoria, aplicação de políticas, guardrails',
   c_index_48: 'State Persistence',
@@ -1435,12 +1441,12 @@ window.__GV_CONTENT['pt-BR'] = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: '97 Arquivos de Teste (12 suites)',
-  c_index_89: '95 health checks (21 componentes)',
+  c_index_89: '96 health checks (22 componentes)',
   c_index_90: 'Padrões de Revisão de Código (multieixo)',
   c_index_91: 'Diretrizes de Karpathy (padrões de codificação)',
   c_index_92: 'Fluxo de trabalho SDD (Spec-Driven Development)',
   c_index_93: '118 skills · 52 normativas — inteligência organizada em 9 categorias',
-  c_index_94: 'Dados de saúde e desempenho em tempo real — 95/95 PASS em 21 componentes',
+  c_index_94: 'Dados de saúde e desempenho em tempo real — 96/96 PASS em 22 componentes',
   c_index_95: '10 capítulos cobrindo o stack completo do Gentle-Vanguard',
   c_index_96: '🏗️ Arquitetura',
   c_index_97:
@@ -1468,10 +1474,13 @@ window.__GV_CONTENT['pt-BR'] = {
     'Diretrizes de Karpathy, padrões de design, contratos SDD, convenções de codificação',
   c_index_114: '📈 Saúde e Métricas do Stack',
   c_index_115:
-    '95 health checks, watchtower, KPIs de desempenho, observabilidade do sistema, rastreamento do backlog',
+    '96 health checks, watchtower, KPIs de desempenho, observabilidade do sistema, rastreamento do backlog',
   c_index_116:
     'Arquitetura, estrutura e funcionalidade — do simples ao complexo. Passe o cursor\n          sobre os nós para explorar cada camada.',
   c_index_117: '10 ferramentas compatíveis — um stack autônomo unificado',
+  c_index_124: 'Higiene de processos — reaper nativo de órfãos/duplicados',
+  c_index_125: 'SDD Research Lane — evidência externa versionada',
+  c_index_126: 'Revisão RDD (Receipt-Driven) — lentes 4R + gates de entrega',
   c_memoryknowledge_2:
     '4 sistemas de conhecimento interconectados que impulsionam memória persistente, inteligência simbólica e\n        dados operacionais',
   c_memoryknowledge_3: 'Quatro sistemas de conhecimento interconectados com propósitos distintos',
@@ -1655,7 +1664,7 @@ window.__GV_CONTENT['pt-BR'] = {
   c_securitygovernance_41: 'Recuperação de desastres, estratégias de backup, definições de RPO/RTO',
   c_securitygovernance_42:
     'Cada arquivo de regras é monitorado, versionado e aplicado através do pipeline.\r\n              As verificações automatizadas validam a conformidade das políticas no início da sessão e durante as operações.',
-  c_securitygovernance_43: '95 health checks em 21 componentes — 100% PASS',
+  c_securitygovernance_43: '96 health checks em 22 componentes — 100% PASS',
   c_securitygovernance_44: 'Defesa em profundidade multicamadas para prontidão de produção',
   c_securitygovernance_45: 'Bloqueio de Dependências',
   c_securitygovernance_46:

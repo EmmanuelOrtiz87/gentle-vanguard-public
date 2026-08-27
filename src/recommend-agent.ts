@@ -40,6 +40,7 @@ const STATIC_MAP: Record<string, string[]> = {
   session: ['session-agent', 'maintenance-agent', 'sdd-verify'],
   // Business domains (native agents — cold-start map)
   marketing: ['mkt-agent', 'sales-agent', 'bus-tele-agent'],
+  design: ['mkt-agent', 'doc-agent', 'sdd-design'], // visual/decks/brand → deliverable producers
   sales: ['sales-agent', 'mkt-agent', 'finance-agent'],
   finance: ['finance-agent', 'bus-tele-agent', 'sales-agent'],
   legal: ['legal-agent', 'gov-agent', 'doc-agent'],

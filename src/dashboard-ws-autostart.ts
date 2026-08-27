@@ -36,18 +36,25 @@ const WS_SCRIPT = path.join(WS_SERVER_DIR, 'server', 'websocket-server.ts');
 const PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws.pid');
 const WATCHDOG_PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
 
-/** HTTP health check against localhost:port/api/health */
+/** HTTP health check against localhost:port/api/health — with 1 soft retry.
+ *  A single 3s timeout flake was enough to trip the 2-failure restart budget
+ *  (confirmed in dashboard-ws.log 2026-08-27); retrying once absorbs transient
+ *  latency spikes without masking a real outage (2 consecutive hard fails
+ *  still trigger the restart path). */
 function healthCheck(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const req = http.get(`http://127.0.0.1:${port}/api/health`, { timeout: 3000 }, (res) => {
-      resolve(res.statusCode === 200);
+  const once = (): Promise<boolean> =>
+    new Promise((resolve) => {
+      const req = http.get(`http://127.0.0.1:${port}/api/health`, { timeout: 3000 }, (res) => {
+        resolve(res.statusCode === 200);
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
     });
-    req.on('error', () => resolve(false));
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(false);
-    });
-  });
+  // soft retry: a flake must fail TWICE in the same check to count as failure
+  return once().then((ok) => (ok ? ok : once()));
 }
 
 /** Clean stale PID/port files */
@@ -232,6 +239,34 @@ async function watchLoop(initialPort: number): Promise<void> {
 
     restarts++;
     logToFile(`[WATCH] Restarting WS server (attempt ${restarts}/${WATCH_MAX_RESTARTS})`);
+    // Kill the unhealthy previous server BEFORE spawning a replacement.
+    // Without this, every restart leaks one more websocket-server process
+    // (duplicate source confirmed 2026-08-27: 4 leaked servers under one
+    // watchdog; process-hygiene reaped them but the source must not leak).
+    try {
+      const prevRaw = fs.readFileSync(PID_FILE, 'utf-8').trim();
+      const prev = parseInt(prevRaw, 10);
+      if (Number.isFinite(prev) && prev > 0 && prev !== process.pid && isProcessAlive(prev)) {
+        // Tree kill: the server spawns skill-server children that must die
+        // with it (taskkill /T on Windows, SIGKILL elsewhere).
+        if (process.platform === 'win32') {
+          spawn('taskkill', ['/T', '/F', '/PID', String(prev)], {
+            stdio: 'ignore',
+            windowsHide: true,
+          });
+        } else {
+          try {
+            process.kill(prev, 'SIGKILL');
+          } catch {
+            /* already gone */
+          }
+        }
+        logToFile(`[WATCH] Killed unhealthy previous server PID=${prev} before relaunch`);
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    } catch {
+      /* no readable pidfile → nothing to kill */
+    }
     port = await launchServer(port);
     failures = 0;
   }

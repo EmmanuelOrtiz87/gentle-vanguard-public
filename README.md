@@ -77,6 +77,10 @@ everything.
 - **📊 Local dashboard** — real-time metrics, tracing waterfall, alerts and feedback. No mock data.
 - **🛡️ Security built-in** — secret scanning, SBOM, provenance and quality gates in the delivery
   pipeline.
+- **♻️ Self-healing processes** — a native process reaper recycles stale daemons, kills duplicates
+  and hung tasks at every session start, close and health check.
+- **🎓 Built-in Academy** — 9 tracks / 85 lessons in Spanish (tri-lingual UI) covering the stack,
+  agents, workflows, prompt engineering and methodology (SDD · TDD · BDD · RDD).
 
 ```mermaid
 flowchart TB

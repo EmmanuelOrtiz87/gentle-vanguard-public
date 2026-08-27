@@ -232,7 +232,25 @@ function main(): void {
           }
 
           case 'PROPOSE': {
-            const propose = `## Proposal (PROPOSE)\n**Feature**: ${opts.feature}\n**Approach**: TBD\n**Risks**: TBD\n`;
+            // Research lane evidence note (src/sdd/sdd-research.ts): if the
+            // optional RESEARCH artifact exists, surface it in the proposal so
+            // scope decisions can cite it — and make its absence visible when
+            // questions were left unanswered (fail-visible, not fail-closed:
+            // research is optional by design).
+            let researchNote = '**Research evidence**: none declared (optional lane — run `npm run sdd:research -- run -f <feature> -q "..."` after EXPLORE)';
+            try {
+              const rj = join(sddDir, 'RESEARCH', 'research.json');
+              if (existsSync(rj)) {
+                const r = JSON.parse(readFileSync(rj, 'utf-8')) as {
+                  questions?: unknown[];
+                  stats?: { sources?: number; relevantSources?: number; lowConfidence?: number };
+                };
+                researchNote = `**Research evidence**: ${r.questions?.length ?? 0} pregunta(s), ${r.stats?.sources ?? 0} fuente(s) (${r.stats?.relevantSources ?? 0} relevantes), ${r.stats?.lowConfidence ?? 0} de baja confianza — ver RESEARCH/artifact.md`;
+              }
+            } catch {
+              /* research note is best-effort — never blocks PROPOSE */
+            }
+            const propose = `## Proposal (PROPOSE)\n**Feature**: ${opts.feature}\n${researchNote}\n**Approach**: TBD\n**Risks**: TBD\n`;
             writeFileSync(join(sddDir, 'PROPOSE/artifact.md'), propose, 'utf-8');
             console.log('  \x1b[37m[PROPOSE] Proposal drafted\x1b[0m');
             return { approach: 'TBD' };

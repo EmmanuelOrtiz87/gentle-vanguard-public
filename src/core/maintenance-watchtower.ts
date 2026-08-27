@@ -4,6 +4,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync, statSync } from '
 import { join, resolve, basename, relative } from 'path';
 import { execFileSync } from 'child_process';
 import { runSync, runNpxTsx } from './run-command';
+import { buildSnapshot, analyzeProcesses, DEFAULT_OPTIONS, runHygiene } from './process-hygiene';
 import { createConnection } from 'net';
 import {
   getEffectiveProcessTimeout,
@@ -494,6 +495,41 @@ async function checkTimeoutDaemon() {
       'restart',
     );
   }
+}
+
+// ─── Component: Process Hygiene ───────────────────────────────────────────────
+
+/**
+ * Orphan/zombie process sweep (src/core/process-hygiene.ts). Detects duplicate
+ * daemons, hung one-shots, stale PID files and leftover headless chrome.
+ * Runs in dry-run here — autoHeal() applies the reap when findings exist.
+ */
+async function checkProcessHygiene() {
+  if (!quiet) console.log('  [Process Hygiene] Scanning for orphans/duplicates...');
+
+  const opts = { ...DEFAULT_OPTIONS, apply: false };
+  const snap = await buildSnapshot();
+  const { findings } = analyzeProcesses(snap, opts);
+  const actionable = findings.filter((f) => f.action !== 'report');
+  const reportsOnly = findings.filter((f) => f.action === 'report');
+
+  if (actionable.length === 0 && reportsOnly.length === 0) {
+    addResult('process-hygiene', 'orphan/duplicate sweep', 'PASS', 'no orphans, duplicates or stale PID files', 'ok');
+    return;
+  }
+
+  const summary =
+    actionable.length > 0
+      ? actionable.map((f) => `${f.kind} PID ${f.pid} (${f.ageHours.toFixed(1)}h)`).join('; ')
+      : reportsOnly.map((f) => `${f.kind} PID ${f.pid} (report-only)`).join('; ');
+
+  addResult(
+    'process-hygiene',
+    'orphan/duplicate sweep',
+    actionable.length > 0 ? 'FAIL' : 'WARN',
+    `${actionable.length} actionable, ${reportsOnly.length} report-only — ${summary}`,
+    'cleanup',
+  );
 }
 
 // ─── Component: ML Embeddings ────────────────────────────────────────────────
@@ -1594,9 +1630,38 @@ async function autoHeal() {
 
   const needsRestart = results.filter((r) => r.action === 'restart' && r.status !== 'PASS');
   const needsStart = results.filter((r) => r.action === 'start' && r.status !== 'PASS');
+  const needsCleanup = results.filter((r) => r.action === 'cleanup' && r.status !== 'PASS');
 
   let healed = 0;
   let failed = 0;
+
+  // Process hygiene reap — duplicates, hung one-shots, stale PID files and
+  // leftover headless chrome are all fixed by the same action: reaping.
+  if (needsCleanup.length > 0) {
+    if (!quiet) console.log('  [Heal] Reaping orphan/duplicate processes...');
+    try {
+      const res = await runHygiene({ apply: true, recycleAged: false });
+      const remaining = res.findings.filter(
+        (f) => f.action !== 'report' && !(res.killed.includes(f.pid) || res.cleanedFiles.includes(f.cmdline)),
+      );
+      if (remaining.length === 0) {
+        addResult(
+          'process-hygiene',
+          'autoheal',
+          'PASS',
+          `reaped ${res.killed.length} process(es), cleaned ${res.cleanedFiles.length} pid file(s)`,
+          'ok',
+        );
+        healed++;
+      } else {
+        addResult('process-hygiene', 'autoheal', 'FAIL', `${remaining.length} finding(s) survived the reap`, 'manual');
+        failed++;
+      }
+    } catch (e: unknown) {
+      addResult('process-hygiene', 'autoheal', 'FAIL', `reap failed: ${e instanceof Error ? e.message : String(e)}`, 'manual');
+      failed++;
+    }
+  }
 
   if (needsRestart.length === 0 && needsStart.length === 0) {
     if (!quiet) console.log('  No components need healing');
@@ -1865,6 +1930,7 @@ async function runAllChecks() {
     checkDashboardWs,
     checkCodeGraph,
     checkTimeoutDaemon,
+    checkProcessHygiene,
     checkMlEmbeddings,
     checkEngram,
     checkMcp,

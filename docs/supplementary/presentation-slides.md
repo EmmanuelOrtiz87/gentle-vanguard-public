@@ -1,4 +1,4 @@
-# Presentation Script: Gentle-Vanguard v2.18.0
+# Presentation Script: Gentle-Vanguard v3.8.2
 
 This document contains detailed content for the 21 slides covering all aspects of the stack.
 
@@ -6,7 +6,7 @@ This document contains detailed content for the 21 slides covering all aspects o
 
 ### Slide 1: Title
 
-**Title:** Gentle-Vanguard v2.18.0 — The Future of Engineering Efficiency **Subtitle:**
+**Title:** Gentle-Vanguard v3.8.2 — The Future of Engineering Efficiency **Subtitle:**
 Standardization, AI, and Quality as pillars of growth **Notes:** Present the overall vision for
 modernizing the development area.
 
@@ -86,17 +86,17 @@ each release.
   Antigravity, Claude Generic
 - Each tool has its own adaptive profile that auto-optimizes
 - Skill and memory emulation for tools without native support (Cline, Cursor, Copilot, etc.)
-- `detect-tool.ps1` auto-detects which tool is running and loads the right config
+- `src/core/detect-tool.ts` auto-detects which tool is running and loads the right config
 - No vendor lock-in: switch tools without losing context or skills
 
 ### Slide 13: Adaptive Profiles (Hidden Layer #2)
 
 **Title:** Self-Optimizing Configuration **Key Points:**
 
-- 6 adaptive profiles: opencode, claude-cline, cursor, codex-windsurf, continue-copilot, antigravity
-- Auto-detect peak hours (9-15h Argentina) and token pressure
+- Adaptive profiles for opencode, claude-cline, cursor, codex-windsurf, continue-copilot, antigravity
+- Auto-detect peak hours and token pressure
 - Automatically switches to optimized config during peak, restores when normalized
-- Shared DRY module (`adaptive-common.ps1`) — 606 lines of duplication eliminated
+- Shared DRY module eliminates duplication
 - Backup/restore mechanism ensures no config is lost
 
 ### Slide 14: SDD Lifecycle (Hidden Layer #3)
@@ -104,10 +104,10 @@ each release.
 **Title:** Spec-Driven Development — Not Just Code **Key Points:**
 
 - 4 phases: BA Explore -> SAD Design -> DEV Implement -> QA Verify
-- Each phase has its own specialized agent
-- `pre-process-input.ps1` analyzes every message and routes to the right phase
+- Each phase has its own specialized agent (`sdd-explore`, `sdd-design`, `sdd-apply`, `sdd-verify`)
+- `src/pre-process-input.ts` analyzes every message and routes to the right phase
 - `PLAN_MODE_REQUIRED` flag prevents jumping to implementation without exploration
-- SDD config in `openspec/config.yaml` enforces strict TDD per phase
+- SDD config enforces strict TDD per phase
 
 ### Slide 15: Judgment Day (Hidden Layer #4)
 
@@ -116,14 +116,14 @@ each release.
 - 7 dimensions: Security, Performance, Readability, Maintainability, Testability, Documentation,
   Architecture
 - Pre-commit hooks enforce quality gates before any commit
-- `agent-verify.ps1` runs 16 checks: JSON lint, skill structure, workflow validation, security
-- 393 unit tests across 40 files
-- TruffleHog scanning prevents secret leaks
+- Watchtower runs 96 checks across 22 components
+- 140+ test files across 5 suites
+- Secret scanning (80 patterns) prevents secret leaks
 - Result: ALL CHECKS PASS or the commit is rejected
 
 ### Slide 16: Auto-Delegation (Hidden Layer #5)
 
-**Title:** 131 Skills, 15 Agents, Zero Manual Routing **Key Points:**
+**Title:** 263 Skills, 21 Agents, Zero Manual Routing **Key Points:**
 
 - `config/auto-delegation.json` maps keywords to skills and agents
 - Every user message is pre-processed and routed automatically
@@ -135,36 +135,34 @@ each release.
 
 **Title:** Full Session Tracking — Never Lose Context **Key Points:**
 
-- 10-phase autostart: health check, tool detection, orphan cleanup, session init, notifications,
-  engram policy, optimization, skill registry, plugins, adaptive profiles
+- 53-step autostart pipeline: health check, tool detection, orphan cleanup, session init,
+  notifications, engram policy, optimization, skill registry, plugins, adaptive profiles
 - `startup-summary.json` captures: peak hours, platform, session ID, workspace state
-- Orphan detection and cleanup prevents stale sessions
-- Token budget tracking with `session-metrics-tracker.ps1`
+- Native process reaper (`src/core/process-hygiene.ts`) prevents stale sessions
+- Token budget tracking with `src/tokens/token-ingest.ts`
 - Watchtower quick health check at session end
 
 ### Slide 18: Security & Governance (Hidden Layer #7)
 
-**Title:** AES-256 Encrypted — Zero Plain-Text Scripts in Public **Key Points:**
+**Title:** Local-First, Secure, Zero Plain-Text Secrets **Key Points:**
 
-- 298 scripts encrypted with AES-256 in `build/protected/`
-- Master key required to decrypt and run
-- NSIS installer packages everything into single `Gentle-Vanguard.exe`
-- Public repo (`gentle-vanguard-public`) contains only: bootstrap scripts, docs, encrypted
-  artifacts, skill stubs
+- Local-first operating model (ADR-0017) — no cloud dependency for core operation
+- Secret scanner with 80 patterns + entropy detection
+- Hash-chained audit trail (`src/event-sourcing.ts`) detects manipulation
+- Public repo (`gentle-vanguard-public`) contains only safe, public content
 - TruffleHog pre-commit hook scans for secrets
-- `sync-to-public.ps1` strips all plain-text scripts before syncing
+- `sync-to-public` strips sensitive content before syncing
 
-### Slide 19: v2.18.0 — Cross-Tool Nivelación
+### Slide 19: v3.8.2 — Latest Release Highlights
 
 **Title:** Latest Release Highlights **Key Points:**
 
-- Skill emulation for all 10 tools (Cline, Cursor, Copilot, Windsurf, Codex, Antigravity now have
-  skill loading + memory)
-- Antigravity dedicated adaptive profile (no longer borrowing Cursor's)
-- NSIS detection fix (searches Bin/ subdir + fallback)
-- DRY refactor: 6 adaptive profiles share `adaptive-common.ps1` (-606 lines)
-- 133 skills validated, 393 tests passing, 16/16 verification gates
-- Tool detection now covers `.antigravity/` directory
+- 21 agents (Orchestrator + 20 sub-agents) all on native model
+- 263 skills including adopted design/docs/marketing skills (Fases 1-3)
+- Native process reaper for orphan/duplicate cleanup
+- Academy web (SPA local-first, 9 tracks, 65+ lessons, glosario 115 términos)
+- SDD research lane with BM25 retrieval grading
+- 96/96 watchtower checks passing, 27 DB tables, 15 migrations
 
 ### Slide 20: Roadmap and Future
 
@@ -180,9 +178,9 @@ each release.
 ### Slide 21: Conclusion
 
 **Closing:** "Gentle-Vanguard is the gentle-vanguard of our technological agility." **Call to
-action:** Standard implementation for all new developments. **Stats:** 15 agents · 133 skills · 10
-tools · 393 tests · 16/16 gates · v2.18.0
+action:** Standard implementation for all new developments. **Stats:** 21 agents · 263 skills · 10
+tools · 96 checks · 5 test suites · v3.8.2
 
 ---
 
-_Document generated for executive presentation support. Updated for v2.18.0._
+_Document generated for executive presentation support. Updated for v3.8.2._

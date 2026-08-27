@@ -27,6 +27,7 @@ import {
 } from 'fs';
 import { join, resolve, relative } from 'path';
 import { runSync, runNpxTsxSync } from './core/run-command.js';
+import { runHygiene } from './core/process-hygiene.js';
 import { pathToFileURL } from 'url';
 import { sessionEnd } from './engram-session-bridge.js';
 
@@ -790,7 +791,7 @@ function killProcessByCommandLine(matcher: string): boolean {
   }
 }
 
-function phaseCleanup(skipDaemonKill = false): PhaseResult[] {
+async function phaseCleanup(skipDaemonKill = false): Promise<PhaseResult[]> {
   const results: PhaseResult[] = [];
   log('=== FASE 5: CLEANUP ===');
 
@@ -892,6 +893,28 @@ function phaseCleanup(skipDaemonKill = false): PhaseResult[] {
     }
   } catch {
     /* skip silently */
+  }
+
+  // 5.3b Native process-hygiene sweep — catches what the fixed matchers above
+  // don't know: duplicate websocket-server/vite instances, hung one-shots
+  // (e.g. ci-rollback-engine --action status), stale PID files and leftover
+  // headless chrome. No aged-daemon recycling at close (next session start
+  // does that); pure garbage collection only. Best-effort.
+  if (!skipDaemonKill) {
+    try {
+      const hygiene = await runHygiene({ apply: true, recycleAged: false });
+      if (hygiene.killed.length > 0 || hygiene.cleanedFiles.length > 0) {
+        results.push({
+          phase: 'process-hygiene',
+          status: 'PASS',
+          detail: `reaped ${hygiene.killed.length} process(es) [${hygiene.killed.join(', ')}], cleaned ${hygiene.cleanedFiles.length} stale pid file(s)`,
+        });
+        ok(`Process hygiene: ${hygiene.killed.length} reaped, ${hygiene.cleanedFiles.length} pid file(s) cleaned`);
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      warn(`Process hygiene sweep failed (non-blocking): ${msg}`);
+    }
   }
 
   // 5.4 Clean temp files (unregistered + stale registry entries)
@@ -1058,7 +1081,7 @@ export async function runCloseOrchestrator(reason = 'session-end'): Promise<Clos
     persist: await phasePersist(reason),
     backup: phaseBackup(),
     audit: phaseAudit(),
-    cleanup: phaseCleanup(isStartup),
+    cleanup: await phaseCleanup(isStartup),
     verify: phaseVerify(),
   };
 
@@ -1143,7 +1166,7 @@ async function main() {
     // Run only the essential startup-cleanup phases
     phasePreClose(reason);
     await phasePersist(reason);
-    const cleanupResults = phaseCleanup(isStartupClose(reason));
+    const cleanupResults = await phaseCleanup(isStartupClose(reason));
     const passed = cleanupResults.filter((r) => r.status === 'PASS').length;
     const failed = cleanupResults.filter((r) => r.status === 'FAIL').length;
     ok(`Lightweight cleanup: ${passed} pass, ${failed} fail`);

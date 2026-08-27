@@ -5,6 +5,29 @@
   "pipeline": {
     "steps": [
       {
+        "id": "legacy-registration-cleanup",
+        "enabled": true,
+        "script": "src/core/legacy-registration-cleanup.ts",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 20000,
+        "description": "Limpieza de registros OS huerfanos (PS1->TS migration): Run keys y scheduled tasks apuntando a scripts borrados causaban ventanas cmd/pwsh fantasma visibles. Best-effort: tareas elevadas se reintentan cada sesion."
+      },
+      {
+        "id": "process-hygiene",
+        "enabled": true,
+        "script": "src/core/process-hygiene.ts",
+        "args": "--apply --quiet",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 30000,
+        "retries": 1,
+        "retryDelay": 1000,
+        "description": "Higiene nativa de procesos (fase 1, ANTES de los lazy daemons): recicla daemons envejecidos (>24h adoptados de sesiones previas), mata duplicados (websocket-server/vite extra), one-shots colgados (padre muerto >15min) y limpia pidfiles stale. Clave: corre antes de los lazy steps, asi token-ingest y vite-watchdog reciclados se re-spawnean frescos."
+      },
+      {
         "id": "model-enforcer",
         "enabled": true,
         "script": "src/model-enforcer.ts",
@@ -955,6 +978,16 @@
         "required": false,
         "phase": 90,
         "description": "Model provider health â€” detecta errores de proveedor LLM (UnsupportedParamsError/Bedrock/Model not found) en opencode.log y auto-switch al modelo nativo"
+      },
+      {
+        "id": "rdd-retention",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/rdd/rdd-core.ts",
+        "args": "prune --retention-days=30",
+        "required": false,
+        "phase": 90,
+        "description": "Retencion de artefactos RDD: elimina workflows completados >30 dias (.session/rdd/*.json). Nunca toca disable-log.jsonl ni el flag DISABLED. Leccion de gentle-ai #1656: lineages sin politica de retencion se acumulan indefinidamente."
       },
       {
         "id": "token-ingest-init",
