@@ -15,6 +15,14 @@ interface AuditResult {
   metadata: {
     vulnerabilities: VulnCounts;
   };
+  advisories?: Record<
+    string,
+    {
+      module_name: string;
+      severity: string;
+      github_advisory_id: string;
+    }
+  >;
 }
 
 const VALID_LEVELS = ['critical', 'high', 'moderate', 'low'] as const;
@@ -26,6 +34,21 @@ const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
   moderate: ['critical', 'high', 'moderate'],
   low: ['critical', 'high', 'moderate', 'low'],
 };
+
+/**
+ * Allowlist of advisories with NO available fix (patched version does not exist
+ * in the npm registry). These are documented exceptions: the hook will NOT block
+ * when the ONLY blocking advisories are in this list.
+ *
+ * image-size (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq):
+ *   - Affects image-size@<=2.0.2 (transitive via pptxgenjs, devDependency only)
+ *   - Patched version is >=2.0.3, but that version is NOT published on npm
+ *     (latest is 2.0.2). Overrides are therefore impossible.
+ *   - DoS (CWE-835) in ICNS/JXL/HEIF parsers; only used at build time for
+ *     presentation generation, not in production runtime.
+ *   - REVISIT when image-size@>=2.0.3 is published, then remove from this list.
+ */
+const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-w3rx-r6r6-pgpr', 'GHSA-5p2g-fcmc-qvqq']);
 
 function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   const args = process.argv.slice(2);
@@ -100,6 +123,25 @@ function main(): number {
   const hasBlockingVuln = BLOCK_LEVELS[auditLevel].some((level) => vulnerabilities[level] > 0);
 
   if (hasBlockingVuln) {
+    // Collect the advisory IDs that are at/above the blocking level.
+    const blockingAdvisories = Object.entries(audit.advisories ?? {})
+      .filter(([, adv]) => BLOCK_LEVELS[auditLevel].includes(adv.severity as AuditLevel))
+      .map(([, adv]) => adv.github_advisory_id);
+
+    // If EVERY blocking advisory is allowlisted (no fix available), do not block.
+    if (
+      blockingAdvisories.length > 0 &&
+      blockingAdvisories.every((id) => ALLOWLISTED_ADVISORIES.has(id))
+    ) {
+      console.log(
+        `[OK] npm audit passed (audit-level: ${auditLevel}) — ${blockingAdvisories.length} allowlisted advisory(ies) with no available fix:`,
+      );
+      for (const id of blockingAdvisories) {
+        console.log(`  - ${id}`);
+      }
+      return 0;
+    }
+
     console.log(`\n[BLOCKED] npm audit found vulnerabilities at ${auditLevel} level or above`);
     console.log(`\nTo fix:`);
     console.log(`  1. Run: npm audit fix`);
