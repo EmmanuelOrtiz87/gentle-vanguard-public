@@ -153,7 +153,19 @@ each release.
 - TruffleHog pre-commit hook scans for secrets
 - `sync-to-public` strips sensitive content before syncing
 
-### Slide 19: v3.8.2 — Latest Release Highlights
+### Slide 19: Autonomous Resilience (Hidden Layer #8)
+
+**Title:** Self-Healing Stack — Failures Resolve Themselves **Key Points:**
+
+- Unified Guardrail Orchestrator: one entry point asks "what should I do about this failure?"
+- Classifies failures into 10 categories (config, network, model, db, git, security, resource,
+  reasoning, quality, unknown)
+- Decides the corrective action: retry, correct, escalate, isolate, continue, or block
+- Learns from every incident (`.session/guardrails/incidents.jsonl`) — faster resolution over time
+- Anti-loop guard detects reasoning loops and forces strategy change or escalation
+- Result: the stack knows what to do and how to continue — minimal human intervention
+
+### Slide 20: v3.8.2 — Latest Release Highlights
 
 **Title:** Latest Release Highlights **Key Points:**
 
@@ -164,7 +176,7 @@ each release.
 - SDD research lane with BM25 retrieval grading
 - 96/96 watchtower checks passing, 27 DB tables, 15 migrations
 
-### Slide 20: Roadmap and Future
+### Slide 21: Roadmap and Future
 
 **Vision:**
 
@@ -175,7 +187,7 @@ each release.
 - Docker validation: Integration tests in containerized environments
 - S3 distribution for global availability
 
-### Slide 21: Conclusion
+### Slide 22: Conclusion
 
 **Closing:** "Gentle-Vanguard is the gentle-vanguard of our technological agility." **Call to
 action:** Standard implementation for all new developments. **Stats:** 21 agents · 263 skills · 10
