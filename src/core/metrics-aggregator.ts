@@ -124,7 +124,8 @@ export function getAggregatedDashboardMetrics(): AggregatedMetrics {
   // 4. Leer token usage
   const tokenData = readJson<TokenUsageData>(TOKEN_USAGE_PATH);
   const tokenFileTotal = tokenData
-    ? tokenData.totalTokens ?? (tokenData.totalInputTokens || 0) + (tokenData.totalOutputTokens || 0)
+    ? (tokenData.totalTokens ??
+      (tokenData.totalInputTokens || 0) + (tokenData.totalOutputTokens || 0))
     : 0;
 
   // Calcular tokens totales (priorizar datos más recientes)

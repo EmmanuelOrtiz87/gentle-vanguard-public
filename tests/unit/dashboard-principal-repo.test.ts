@@ -22,13 +22,17 @@ test('migration 014 adds principal binding columns to auth sessions', () => {
   const db = createDatabase();
   for (const column of ['principal_id', 'csrf_hash']) {
     assert.ok(
-      db.prepare(`SELECT 1 FROM pragma_table_info('dashboard_auth_sessions') WHERE name = ?`).get(column),
+      db
+        .prepare(`SELECT 1 FROM pragma_table_info('dashboard_auth_sessions') WHERE name = ?`)
+        .get(column),
       `expected column ${column}`,
     );
   }
   assert.ok(
     db
-      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'idx_dashboard_auth_sessions_principal'")
+      .prepare(
+        "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'idx_dashboard_auth_sessions_principal'",
+      )
       .get(),
   );
 });

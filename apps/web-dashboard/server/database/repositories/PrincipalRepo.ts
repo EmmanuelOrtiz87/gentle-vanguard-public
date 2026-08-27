@@ -59,26 +59,31 @@ export class PrincipalRepo {
   findOrCreateBySubject(subject: string, displayName?: string): PrincipalRecord {
     const trimmed = subject.trim();
     if (!trimmed) throw new Error('Principal subject is required');
-    const existing = this.db
-      .prepare('SELECT * FROM principals WHERE subject = ?')
-      .get(trimmed) as PrincipalRow | undefined;
+    const existing = this.db.prepare('SELECT * FROM principals WHERE subject = ?').get(trimmed) as
+      PrincipalRow | undefined;
     if (existing) return toPrincipal(existing);
     const id = randomBytes(16).toString('hex');
     this.db
       .prepare('INSERT INTO principals (id, subject, display_name) VALUES (?, ?, ?)')
       .run(id, trimmed, displayName?.trim() || null);
-    return { id, subject: trimmed, displayName: displayName?.trim() || undefined, createdAt: new Date().toISOString() };
+    return {
+      id,
+      subject: trimmed,
+      displayName: displayName?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
   }
 
   getById(id: string): PrincipalRecord | undefined {
     const row = this.db.prepare('SELECT * FROM principals WHERE id = ?').get(id) as
-      | PrincipalRow
-      | undefined;
+      PrincipalRow | undefined;
     return row ? toPrincipal(row) : undefined;
   }
 
   list(): PrincipalRecord[] {
-    const rows = this.db.prepare('SELECT * FROM principals ORDER BY created_at, subject').all() as PrincipalRow[];
+    const rows = this.db
+      .prepare('SELECT * FROM principals ORDER BY created_at, subject')
+      .all() as PrincipalRow[];
     return rows.map(toPrincipal);
   }
 
@@ -120,13 +125,12 @@ export class PrincipalRepo {
             .all(principalId)
         : this.db.prepare('SELECT * FROM memberships ORDER BY tenant_id, principal_id').all()
     ) as MembershipRow[];
-    return rows
-      .map((row) => ({
-        tenantId: row.tenant_id,
-        principalId: row.principal_id,
-        role: isDashboardRole(row.role) ? row.role : 'viewer',
-        createdAt: row.created_at,
-      }));
+    return rows.map((row) => ({
+      tenantId: row.tenant_id,
+      principalId: row.principal_id,
+      role: isDashboardRole(row.role) ? row.role : 'viewer',
+      createdAt: row.created_at,
+    }));
   }
 
   /** Number of principals holding the admin role in any tenant. */

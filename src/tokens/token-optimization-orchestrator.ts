@@ -515,13 +515,10 @@ export async function runPipeline(
 
   // Stage 5: Cache Store
   const totalSavings = stages.reduce((sum, s) => sum + s.savings, 0);
-  const cacheStore = await runCacheStoreStage(
-    originalPrompt,
-    response,
-    totalSavings,
-    context,
-    { ...input, context: originalContext },
-  );
+  const cacheStore = await runCacheStoreStage(originalPrompt, response, totalSavings, context, {
+    ...input,
+    context: originalContext,
+  });
   stages.push(cacheStore);
 
   const totalTokensIn = stages.reduce((sum, s) => sum + s.tokensIn, 0);

@@ -24,11 +24,11 @@
 
 ## 🚀 Quick Start
 
-| Step   | Action                                          | Command                                           |
-| ------ | ----------------------------------------------- | ------------------------------------------------- |
-| **1️⃣** | Check [PREREQUISITES.md](PREREQUISITES.md)      | Review system requirements                        |
-| **2️⃣** | Follow [DEVELOPER-SETUP.md](DEVELOPER-SETUP.md) | Complete setup steps                              |
-| **3️⃣** | Run complete setup                              | `npm run setup:complete`                           |
+| Step   | Action                                          | Command                    |
+| ------ | ----------------------------------------------- | -------------------------- |
+| **1️⃣** | Check [PREREQUISITES.md](PREREQUISITES.md)      | Review system requirements |
+| **2️⃣** | Follow [DEVELOPER-SETUP.md](DEVELOPER-SETUP.md) | Complete setup steps       |
+| **3️⃣** | Run complete setup                              | `npm run setup:complete`   |
 
 > 💡 **TIP:** Start here for a smooth onboarding experience.
 
@@ -36,13 +36,13 @@
 
 ## 📋 Prerequisites
 
-| Requirement                          | Version | Status      | Notes                                 |
-| ------------------------------------ | ------- | ----------- | ------------------------------------- |
-| **🪟 Windows 10/11 / Linux / macOS** | Any     | ✅ Required | Cross-platform support                |
-| **🟢 Node.js**                       | 20+     | ✅ Required | Runtime for all TS scripts            |
-| **📦 pnpm**                          | 11+     | ✅ Required | Package manager                       |
-| **🌿 Git**                           | 2.30+   | ✅ Required | Version control system                |
-| **🐹 Go**                            | 1.19+   | ⚠️ Optional | For compiled components               |
+| Requirement                          | Version | Status      | Notes                      |
+| ------------------------------------ | ------- | ----------- | -------------------------- |
+| **🪟 Windows 10/11 / Linux / macOS** | Any     | ✅ Required | Cross-platform support     |
+| **🟢 Node.js**                       | 20+     | ✅ Required | Runtime for all TS scripts |
+| **📦 pnpm**                          | 11+     | ✅ Required | Package manager            |
+| **🌿 Git**                           | 2.30+   | ✅ Required | Version control system     |
+| **🐹 Go**                            | 1.19+   | ⚠️ Optional | For compiled components    |
 
 ---
 
@@ -94,9 +94,9 @@ npm run dashboard:stop              # Stop dashboard
 
 ### Dashboard authentication (local-first)
 
-The dashboard API is fail-closed: every endpoint except `GET /api/health` and
-`/api/auth/*` requires a session, and login is only possible when a shared token
-is configured. Two supported local profiles:
+The dashboard API is fail-closed: every endpoint except `GET /api/health` and `/api/auth/*` requires
+a session, and login is only possible when a shared token is configured. Two supported local
+profiles:
 
 ```bash
 # Option A — token login (recommended): set once in your User env, then log in
@@ -107,10 +107,9 @@ setx GV_DASHBOARD_TOKEN "choose-a-long-random-secret"
 setx GV_DASHBOARD_DEV_AUTH 1
 ```
 
-Without either variable the dashboard server starts but the API returns `401`
-for everything except the public health probe. See
-[Dashboard Admin Status](../security/DASHBOARD-ADMIN-STATUS.md) for sessions,
-RBAC roles, and the `/admin` panel.
+Without either variable the dashboard server starts but the API returns `401` for everything except
+the public health probe. See [Dashboard Admin Status](../security/DASHBOARD-ADMIN-STATUS.md) for
+sessions, RBAC roles, and the `/admin` panel.
 
 ```TypeScript
 # Knowledge Base

@@ -125,13 +125,13 @@ git push origin feat/your-feature-name
 
 ### Prerequisites
 
-| Requirement                          | Version | Status                               |
-| ------------------------------------ | ------- | ------------------------------------ |
-| **🪟 Windows 10/11 / Linux / macOS** | Any     | ✅ Required                          |
-| **🟢 Node.js**                       | 20+     | ✅ Required                          |
-| **📦 pnpm**                          | 11+     | ✅ Required                          |
-| **🌿 Git**                           | 2.30+   | ✅ Required                          |
-| **🐹 Go**                            | 1.19+   | ⚠️ Optional (for Engram)             |
+| Requirement                          | Version | Status                   |
+| ------------------------------------ | ------- | ------------------------ |
+| **🪟 Windows 10/11 / Linux / macOS** | Any     | ✅ Required              |
+| **🟢 Node.js**                       | 20+     | ✅ Required              |
+| **📦 pnpm**                          | 11+     | ✅ Required              |
+| **🌿 Git**                           | 2.30+   | ✅ Required              |
+| **🐹 Go**                            | 1.19+   | ⚠️ Optional (for Engram) |
 
 ### Quick Start
 

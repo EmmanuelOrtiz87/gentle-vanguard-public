@@ -89,13 +89,13 @@ flowchart TB
 
 ## Explore Further
 
-| Resource                                              | Description                    |
-| ----------------------------------------------------- | ------------------------------ |
-| [Getting Started](docs/getting-started/README.md)     | First-time setup, step by step |
-| [Architecture](docs/architecture/README.md)            | Full technical reference       |
-| [Installation](docs/getting-started/installation.md)  | All installation options       |
-| [Examples](docs/use-cases/EXAMPLES.md)                | Usage examples                 |
-| [Changelog](CHANGELOG.md)                             | Version history                |
+| Resource                                             | Description                    |
+| ---------------------------------------------------- | ------------------------------ |
+| [Getting Started](docs/getting-started/README.md)    | First-time setup, step by step |
+| [Architecture](docs/architecture/README.md)          | Full technical reference       |
+| [Installation](docs/getting-started/installation.md) | All installation options       |
+| [Examples](docs/use-cases/EXAMPLES.md)               | Usage examples                 |
+| [Changelog](CHANGELOG.md)                            | Version history                |
 
 ## License
 

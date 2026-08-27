@@ -126,12 +126,23 @@ export function mcpServerRegisterHandler(
       }
       const args = Array.isArray(payload.args) ? payload.args.join(',') : '';
       const result = tsx(MANAGER_SCRIPT, [
-        '--action', 'register', '--name', String(payload.name), '--command', String(payload.command),
-        '--args', args, '--description', String(payload.description || ''), '--quiet',
+        '--action',
+        'register',
+        '--name',
+        String(payload.name),
+        '--command',
+        String(payload.command),
+        '--args',
+        args,
+        '--description',
+        String(payload.description || ''),
+        '--quiet',
       ]);
       if (result.status !== 0) {
         res.writeHead(502, headers);
-        res.end(JSON.stringify({ success: false, name: payload.name, error: 'MCP registration failed' }));
+        res.end(
+          JSON.stringify({ success: false, name: payload.name, error: 'MCP registration failed' }),
+        );
         return;
       }
       res.writeHead(200, headers);

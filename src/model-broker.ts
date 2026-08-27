@@ -175,7 +175,12 @@ class ModelBroker {
     return null;
   }
 
-  private logEvent(agent: string, model: string, event: string, data?: Record<string, unknown>): void {
+  private logEvent(
+    agent: string,
+    model: string,
+    event: string,
+    data?: Record<string, unknown>,
+  ): void {
     const timestamp = new Date().toISOString();
     const logEntry =
       JSON.stringify({

@@ -45,29 +45,32 @@ const PageLoader = () => (
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/tracing', icon: Activity, label: 'Tracing' },
-    { to: '/marketplace', icon: Store, label: 'Marketplace' },
-    { to: '/content-operations', icon: Workflow, label: 'Content Ops' },
-    { to: '/audit', icon: ShieldCheck, label: 'Audit' },
-    { to: '/admin', icon: UserCog, label: 'Admin' },
-    { to: '/agents', icon: Bot, label: 'Agents' },
-    { to: '/tasks', icon: ListTodo, label: 'Tasks' },
-    { to: '/timeline', icon: History, label: 'Timeline' },
-    { to: '/docs', icon: BookOpen, label: 'Docs' },
-    { to: '/mcp', icon: Cpu, label: 'MCP' },
-    { to: '/knowledge', icon: Library, label: 'Knowledge' },
-    { to: '/multi-repo', icon: Globe, label: 'Multi-repo' },
+  // Grouped navigation rows: operations first, then build & govern.
+  const navRows = [
+    { group: 'Operate', links: [
+        { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/tracing', icon: Activity, label: 'Tracing' },
+        { to: '/timeline', icon: History, label: 'Timeline' },
+        { to: '/tasks', icon: ListTodo, label: 'Tasks' },
+        { to: '/agents', icon: Bot, label: 'Agents' },
+    ]},
+    { group: 'Build & govern', links: [
+        { to: '/marketplace', icon: Store, label: 'Marketplace' },
+        { to: '/content-operations', icon: Workflow, label: 'Content Ops' },
+        { to: '/audit', icon: ShieldCheck, label: 'Audit' },
+        { to: '/admin', icon: UserCog, label: 'Admin' },
+        { to: '/docs', icon: BookOpen, label: 'Docs' },
+        { to: '/mcp', icon: Cpu, label: 'MCP' },
+        { to: '/knowledge', icon: Library, label: 'Knowledge' },
+        { to: '/multi-repo', icon: Globe, label: 'Multi-repo' },
+    ]},
   ];
 
   return (
     <nav className="gv-topbar">
       <div className="gv-topbar-inner">
         <div className="gv-brand-row">
-          <div className="gv-brand-mark" aria-hidden="true">
-            GV
-          </div>
+          <img src="/logo-gv.svg" alt="Gentle-Vanguard" className="gv-brand-logo" aria-hidden="true" />
           <div className="gv-brand-copy">
             <span className="gv-brand-name">Gentle Vanguard</span>
             <span className="gv-brand-product">Stack operations</span>
@@ -83,23 +86,27 @@ function Navigation() {
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-          <div className="gv-nav-links hidden lg:flex">
-            {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.to === '/'}
-                className={({ isActive }) => `gv-nav-link ${isActive ? 'is-active' : ''}`}
-              >
-                <l.icon className="w-4 h-4" />
-                {l.label}
-              </NavLink>
+          <div className="gv-nav-links gv-nav-rows hidden lg:flex">
+            {navRows.map((row) => (
+              <div className="gv-nav-row" key={row.group}>
+                <span className="gv-nav-group-label">{row.group}</span>
+                {row.links.map((l) => (
+                  <NavLink
+                    key={l.to}
+                    to={l.to}
+                    end={l.to === '/'}
+                    className={({ isActive }) => `gv-nav-link ${isActive ? 'is-active' : ''}`}
+                  >
+                    <l.icon className="w-4 h-4" />
+                    {l.label}
+                  </NavLink>
+                ))}
+              </div>
             ))}
           </div>
-        </div>
         {menuOpen && (
           <div className="gv-mobile-nav lg:hidden">
-            {links.map((l) => (
+            {navRows.flatMap((row) => row.links).map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
@@ -113,6 +120,7 @@ function Navigation() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </nav>
   );

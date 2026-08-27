@@ -33,13 +33,7 @@ import { runNpxTsx, runNpxTsxSync } from './run-command';
 const ROOT = resolve(process.cwd());
 const STATE_PATH = join(ROOT, '.runtime', 'session-orchestrator-state.json');
 
-export type SessionPhase =
-  | 'idle'
-  | 'bootstrapping'
-  | 'active'
-  | 'cleaning'
-  | 'closing'
-  | 'closed';
+export type SessionPhase = 'idle' | 'bootstrapping' | 'active' | 'cleaning' | 'closing' | 'closed';
 
 interface Transition {
   from: SessionPhase;
@@ -91,9 +85,7 @@ export function transition(to: SessionPhase, trigger = 'manual'): OrchestratorSt
   const state = loadState();
   const allowed = TRANSITIONS[state.phase];
   if (!allowed.includes(to)) {
-    throw new Error(
-      `Invalid transition ${state.phase} → ${to} (allowed: ${allowed.join(', ')})`,
-    );
+    throw new Error(`Invalid transition ${state.phase} → ${to} (allowed: ${allowed.join(', ')})`);
   }
   state.history.push({ from: state.phase, to, at: new Date().toISOString(), trigger });
   state.phase = to;

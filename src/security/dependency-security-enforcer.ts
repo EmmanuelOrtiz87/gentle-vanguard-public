@@ -272,7 +272,11 @@ export class DependencySecurityEnforcer {
                 status = parsed.some((p) => (p as { deprecated?: boolean }).deprecated)
                   ? 'fail'
                   : 'pass';
-              } else if (typeof parsed === 'object' && parsed !== null && Object.keys(parsed).length > 0) {
+              } else if (
+                typeof parsed === 'object' &&
+                parsed !== null &&
+                Object.keys(parsed).length > 0
+              ) {
                 status = 'pass'; // Has outdated but not necessarily deprecated
               } else {
                 status = 'pass';

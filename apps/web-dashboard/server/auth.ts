@@ -72,6 +72,10 @@ export class DashboardAuth {
 
   isProtectedRequest(req: IncomingMessage): boolean {
     if (this.devMode && this.isLocalhost(req)) return false;
+    // Local-default profile (ADR-0017): with no token configured the deployment
+    // has no credential to check against, so loopback requests are trusted and
+    // remote requests stay fail-closed. Production must always be fail-closed.
+    if (!this.token && !this.production && this.isLocalhost(req)) return false;
     return true;
   }
 
@@ -108,6 +112,10 @@ export class DashboardAuth {
 
   authenticate(req: IncomingMessage): boolean {
     if (this.devMode && this.isLocalhost(req)) return true;
+    // Local-default profile (ADR-0017): no configured token + loopback request
+    // = trusted owner access on the loopback-only listener. Remote and
+    // production stay closed.
+    if (!this.token && !this.production && this.isLocalhost(req)) return true;
     if (!this.token) return false;
     try {
       this.cleanup();

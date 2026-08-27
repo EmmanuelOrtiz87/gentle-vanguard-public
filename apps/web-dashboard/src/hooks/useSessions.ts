@@ -20,14 +20,22 @@ export function useSessions() {
         const startTime = s.startedAt || s.createdAt || s.startTime || new Date().toISOString();
         const lastActivity = s.lastActivityAt || s.lastEventAt || s.updatedAt || startTime;
         const reportedStatus = s.status;
-        const isFinished = reportedStatus === 'completed' || reportedStatus === 'closed' || Boolean(s.endedAt);
-        const isStale = reportedStatus === 'active' || reportedStatus === 'awaiting_input'
-          ? now - new Date(lastActivity).getTime() > SESSION_STALE_MS
-          : false;
+        const isFinished =
+          reportedStatus === 'completed' || reportedStatus === 'closed' || Boolean(s.endedAt);
+        const isStale =
+          reportedStatus === 'active' || reportedStatus === 'awaiting_input'
+            ? now - new Date(lastActivity).getTime() > SESSION_STALE_MS
+            : false;
         return {
           id: s.id || s.sessionId || 'unknown',
           agent: s.agent || 'DEV',
-          status: isFinished ? 'completed' : isStale ? 'stale' : reportedStatus === 'active' || reportedStatus === 'awaiting_input' ? 'active' : 'idle',
+          status: isFinished
+            ? 'completed'
+            : isStale
+              ? 'stale'
+              : reportedStatus === 'active' || reportedStatus === 'awaiting_input'
+                ? 'active'
+                : 'idle',
           startTime,
           lastActivity,
           tokensUsed: s.totalTokens || s.tokensUsed || 0,

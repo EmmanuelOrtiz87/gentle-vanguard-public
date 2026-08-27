@@ -495,12 +495,7 @@ async function runNativeAgent(
       );
     }
 
-    const args = [
-      '--task',
-      taskCompressed.text,
-      '--model',
-      model,
-    ];
+    const args = ['--task', taskCompressed.text, '--model', model];
 
     if (boundedContext) {
       args.push('--context', contextCompressed ? contextCompressed.text : boundedContext);

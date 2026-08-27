@@ -84,7 +84,8 @@ function getMeshWorkspaces(): MeshWorkspace[] {
         servers = (reg.servers || []).map((s: any) => {
           // Registry names historically use `engram-mcp`, while host configs
           // use `engram`; normalize aliases before reporting lifecycle state.
-          const policy = lifecyclePolicy[s.name] || lifecyclePolicy[s.name.replace(/-mcp$/, '')] || {};
+          const policy =
+            lifecyclePolicy[s.name] || lifecyclePolicy[s.name.replace(/-mcp$/, '')] || {};
           const lockPath = join(ws.path, '.runtime', 'mcp', `${s.name}.pid`);
           let pid: number | null = null;
           let status = 'stopped';

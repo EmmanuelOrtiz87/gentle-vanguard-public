@@ -147,7 +147,11 @@ function loadState(): { predictions: Prediction[]; lastAlert: number; alertCount
   return { predictions: [], lastAlert: 0, alertCount: 0 };
 }
 
-function saveState(state: { predictions: Prediction[]; lastAlert: number; alertCount: number }): void {
+function saveState(state: {
+  predictions: Prediction[];
+  lastAlert: number;
+  alertCount: number;
+}): void {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
 }
 

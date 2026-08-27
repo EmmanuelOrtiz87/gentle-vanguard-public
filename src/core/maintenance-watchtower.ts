@@ -784,13 +784,7 @@ async function checkConfigs() {
       const errs = res.warnings.filter((w) => w.startsWith('schema violations'));
       if (errs.length > 0) {
         violations++;
-        addResult(
-          'configs',
-          `${name}.json (schema)`,
-          'FAIL',
-          errs[0].slice(0, 160),
-          'manual',
-        );
+        addResult('configs', `${name}.json (schema)`, 'FAIL', errs[0].slice(0, 160), 'manual');
       }
     }
     if (violations === 0) {
@@ -1008,12 +1002,16 @@ async function checkHiddenSpawns() {
       const rel = relative(ROOT, file);
 
       if (/(tsx[\\/-][\w.-]*cli\.mjs|['"]cli\.mjs['"])/.test(content)) {
-        issues.push(`${rel}: referencia al CLI de tsx (cli.mjs) — usar runNpxTsx / node --import tsx`);
+        issues.push(
+          `${rel}: referencia al CLI de tsx (cli.mjs) — usar runNpxTsx / node --import tsx`,
+        );
       }
 
       const npxCmdSpawn = /spawn\(\s*['"`](npx\.cmd|npm)['"`]\s*,/.exec(content);
       if (npxCmdSpawn) {
-        issues.push(`${rel}: spawn directo de '${npxCmdSpawn[1]}' (EINVAL) — enrutar por run()/runNpxTsx`);
+        issues.push(
+          `${rel}: spawn directo de '${npxCmdSpawn[1]}' (EINVAL) — enrutar por run()/runNpxTsx`,
+        );
       }
 
       if (/cmd\s+\/k/.test(content)) {
@@ -1033,7 +1031,13 @@ async function checkHiddenSpawns() {
   }
 
   if (issues.length === 0) {
-    addResult('hidden-spawns', 'invisible execution', 'PASS', 'No visible-spawn patterns found', 'ok');
+    addResult(
+      'hidden-spawns',
+      'invisible execution',
+      'PASS',
+      'No visible-spawn patterns found',
+      'ok',
+    );
   } else {
     addResult(
       'hidden-spawns',

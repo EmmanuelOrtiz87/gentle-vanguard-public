@@ -260,9 +260,7 @@ async function main(overridePort?: number): Promise<number> {
       existingPid !== process.pid &&
       isProcessAlive(existingPid)
     ) {
-      logToFile(
-        `[SKIP] Watchdog already running (PID ${existingPid}) — not starting a duplicate`,
-      );
+      logToFile(`[SKIP] Watchdog already running (PID ${existingPid}) — not starting a duplicate`);
       return 0;
     }
   } catch {

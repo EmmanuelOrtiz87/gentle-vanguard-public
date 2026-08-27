@@ -40,7 +40,7 @@ function main(): void {
   const result = spawnSync(
     process.platform === 'win32' ? 'npm.cmd' : 'npm',
     ['run', 'graphify', '--', 'update', '.'],
-    { cwd: REPO_ROOT, encoding: 'utf8', timeout: 120000 }
+    { cwd: REPO_ROOT, encoding: 'utf8', timeout: 120000 },
   );
   // Output no-JSON es solo diagnóstico para el log; nunca bloquear.
   if (result.status !== 0) {

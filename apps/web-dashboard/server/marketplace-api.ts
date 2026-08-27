@@ -6,7 +6,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = join(__filename, '..');
 const SKILLS_DIR = join(__dirname, '..', '..', '..', 'skills');
 const DATA_PATH = join(__dirname, '..', 'data', 'marketplace.json');
-const INSTALLED_PATH = join(__dirname, '..', '..', '..', '.runtime', 'marketplace', 'installed.json');
+const INSTALLED_PATH = join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '.runtime',
+  'marketplace',
+  'installed.json',
+);
 const VERSIONS_DIR = join(__dirname, '..', '..', '..', '.runtime', 'marketplace', 'versions');
 const MIGRATIONS_DIR = join(__dirname, '..', '..', '..', '.runtime', 'marketplace', 'migrations');
 
@@ -327,11 +335,22 @@ export function incrementDownloads(listingId: string): number {
   return listing.downloads;
 }
 
-export function installListing(listingId: string): { id: string; name: string; installedAt: string; path: string } | null {
+export function installListing(
+  listingId: string,
+): { id: string; name: string; installedAt: string; path: string } | null {
   const listing = getListing(listingId);
-  if (!listing || listing.reviewStatus === 'rejected' || !listing.skillPath || !existsSync(listing.skillPath)) return null;
+  if (
+    !listing ||
+    listing.reviewStatus === 'rejected' ||
+    !listing.skillPath ||
+    !existsSync(listing.skillPath)
+  )
+    return null;
   const installed = existsSync(INSTALLED_PATH)
-    ? JSON.parse(readFileSync(INSTALLED_PATH, 'utf-8')) as Record<string, { name: string; installedAt: string; path: string }>
+    ? (JSON.parse(readFileSync(INSTALLED_PATH, 'utf-8')) as Record<
+        string,
+        { name: string; installedAt: string; path: string }
+      >)
     : {};
   const record = {
     name: listing.name,
@@ -379,7 +398,9 @@ export function updateListingReviewStatus(
   return { ...listing, reviewStatus: status, updatedAt: stored.updatedAt };
 }
 
-export function createMigrationDraft(listingId: string): { id: string; path: string; errors: string[] } | null {
+export function createMigrationDraft(
+  listingId: string,
+): { id: string; path: string; errors: string[] } | null {
   const listing = getListing(listingId);
   if (!listing?.skillPath) return null;
   const content = getSkillContent(listing.skillPath);
@@ -390,19 +411,29 @@ export function createMigrationDraft(listingId: string): { id: string; path: str
   writeFileSync(join(path, 'ORIGINAL-SKILL.md'), content, 'utf8');
   const { content: draft } = migrateSkillContent(content);
   writeFileSync(join(path, 'DRAFT-SKILL.md'), draft, 'utf8');
-  writeFileSync(join(path, 'MIGRATION.json'), JSON.stringify({
-    id: listingId,
-    name: listing.name,
-    generatedAt: new Date().toISOString(),
-    source: listing.skillPath,
-    errors: validation.errors,
-    status: 'DRAFT',
-  }, null, 2), 'utf8');
+  writeFileSync(
+    join(path, 'MIGRATION.json'),
+    JSON.stringify(
+      {
+        id: listingId,
+        name: listing.name,
+        generatedAt: new Date().toISOString(),
+        source: listing.skillPath,
+        errors: validation.errors,
+        status: 'DRAFT',
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
   return { id: listingId, path, errors: validation.errors };
 }
 
 export function createAllMigrationDrafts(limit = 250) {
-  const invalid = getCatalogValidationReport().entries.filter((entry) => !entry.validation?.valid).slice(0, Math.max(1, Math.min(250, limit)));
+  const invalid = getCatalogValidationReport()
+    .entries.filter((entry) => !entry.validation?.valid)
+    .slice(0, Math.max(1, Math.min(250, limit)));
   const drafts = invalid.map((entry) => createMigrationDraft(entry.id)).filter(Boolean);
   return { total: invalid.length, created: drafts.length, drafts };
 }
@@ -417,7 +448,8 @@ export function createAllMigrationDrafts(limit = 250) {
 function deriveDescriptionFromBody(body: string): string {
   for (const line of body.split('\n')) {
     const t = line.trim();
-    if (!t || t.startsWith('#') || t.startsWith('```') || t.startsWith('|') || t === '---') continue;
+    if (!t || t.startsWith('#') || t.startsWith('```') || t.startsWith('|') || t === '---')
+      continue;
     const clean = sanitizeDerived(t);
     if (clean.length >= 12) return clean.length > 220 ? `${clean.slice(0, 217)}...` : clean;
   }
@@ -477,7 +509,10 @@ export function migrateSkillContent(content: string): { content: string; changes
       const emptyDescRe = /^([ \t]*)description:[ \t]*$/m;
       let newFm: string;
       if (emptyDescRe.test(fmBody)) {
-        newFm = fmBody.replace(emptyDescRe, (_m, indent: string) => `${indent}description: ${derived}`);
+        newFm = fmBody.replace(
+          emptyDescRe,
+          (_m, indent: string) => `${indent}description: ${derived}`,
+        );
       } else if (!/^[ \t]*description:/m.test(fmBody)) {
         newFm = `${fmBody}\ndescription: ${derived}`;
       } else {
@@ -509,7 +544,8 @@ export function migrateSkillContent(content: string): { content: string; changes
       next = `${next.trimEnd()}\n\n## Examples\n\nConcrete usage drawn from this skill's own documentation:\n\n${code}\n`;
       changes.push('added ## Examples from existing code block');
     } else {
-      const purpose = firstSentence(String(fm.description || '')) || deriveDescriptionFromBody(body);
+      const purpose =
+        firstSentence(String(fm.description || '')) || deriveDescriptionFromBody(body);
       const resultLine = purpose || 'the outcome this skill documents.';
       next = `${next.trimEnd()}\n\n## Examples\n\n**Input:** a task matching \`${name}\` triggers.\n**Action:** apply the workflow described above.\n**Expected result:** ${resultLine}\n`;
       changes.push('added ## Examples template (no code block found in source)');
@@ -523,7 +559,9 @@ export function migrateSkillContent(content: string): { content: string; changes
  * Apply the native migration to a single listing: backs up the original,
  * rewrites SKILL.md and records an APPLIED MIGRATION.json for rollback.
  */
-export function applyMigration(listingId: string): { id: string; applied: boolean; changes: string[] } | null {
+export function applyMigration(
+  listingId: string,
+): { id: string; applied: boolean; changes: string[] } | null {
   const listing = getListing(listingId);
   if (!listing?.skillPath) return null;
   const content = getSkillContent(listing.skillPath);
@@ -586,8 +624,8 @@ async function withRetry<T>(fn: () => T, attempts = 5): Promise<T> {
 
 /** Bulk-apply native migrations to every invalid catalog entry (up to limit). */
 export async function applyAllMigrations(limit = 250) {
-  const invalid = getCatalogValidationReport().entries
-    .filter((entry) => !entry.validation?.valid)
+  const invalid = getCatalogValidationReport()
+    .entries.filter((entry) => !entry.validation?.valid)
     .slice(0, Math.max(1, Math.min(250, limit)));
   const results: NonNullable<ReturnType<typeof applyMigration>>[] = [];
   for (const entry of invalid) {
@@ -638,10 +676,15 @@ export function getListingVersions(listingId: string): MarketplaceVersion[] {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-export function createListingVersion(listingId: string, version: string, content: string): MarketplaceVersion {
+export function createListingVersion(
+  listingId: string,
+  version: string,
+  content: string,
+): MarketplaceVersion {
   const listing = getListing(listingId);
   if (!listing || !listing.skillPath) throw new Error('Listing not found');
-  if (!validateSkillStructure(content).valid) throw new Error('Version content failed skill validation');
+  if (!validateSkillStructure(content).valid)
+    throw new Error('Version content failed skill validation');
   const path = versionPath(listingId, version);
   if (existsSync(path)) throw new Error(`Version ${version} already exists`);
   const record = { version, createdAt: new Date().toISOString(), content };

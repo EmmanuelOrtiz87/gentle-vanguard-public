@@ -304,14 +304,7 @@ async function executeWithProvider(
 
     // argv-array spawn via `node --import tsx`: no shell string, no quoting
     // hazards, hidden on Windows.
-    const args = [
-      '--agent',
-      options.agent,
-      '--task',
-      options.task,
-      '--model',
-      provider,
-    ];
+    const args = ['--agent', options.agent, '--task', options.task, '--model', provider];
     if (options.context) {
       args.push('--context', options.context);
     }

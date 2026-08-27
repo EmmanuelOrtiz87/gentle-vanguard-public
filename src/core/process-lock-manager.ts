@@ -27,7 +27,15 @@
  * @version 1.0.0
  */
 
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
 import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 import { execSync } from 'child_process';

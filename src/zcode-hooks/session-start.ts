@@ -44,7 +44,7 @@ async function main(): Promise<void> {
   const child = spawn(
     process.execPath,
     ['--import', 'tsx', resolve(REPO_ROOT, 'src', 'session-autostart-detached.ts')],
-    { cwd: REPO_ROOT, detached: true, stdio: 'ignore' }
+    { cwd: REPO_ROOT, detached: true, stdio: 'ignore' },
   );
   child.on('error', () => {
     /* nunca bloquear la sesión por un fallo del hook */

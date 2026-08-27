@@ -41,7 +41,8 @@ quality.
   - [ ] No critical TODO/FIXME comments in core scripts
 
 - [ ] **Compatibility**
-  - [ ] Scripts tested on Windows 10/11 + la versión de TypeScript del proyecto (confirmación externa pendiente)
+  - [ ] Scripts tested on Windows 10/11 + la versión de TypeScript del proyecto (confirmación
+        externa pendiente)
   - [ ] Cross-platform paths use forward slashes (or `Join-Path` where needed)
   - [ ] Go versión pinned in `go.mod` matches README prerequisites
   - [ ] Node/Python versións in templates match README
