@@ -16,6 +16,7 @@ import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { compressStructural, estimateTokens } from './compression/structural-compression.js';
 import { executeWithCircuit } from './circuit-breaker-v2';
+import { registerAttempt, detectLoop } from './anti-loop-guard.js';
 
 interface AgentConfig {
   name: string;
@@ -444,6 +445,50 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
   } finally {
     releaseDelegationSlot();
   }
+}
+
+/**
+ * Delegate with Anti-Loop Guard.
+ *
+ * Wraps `delegate()` to detect repeated failed attempts at the SAME task with
+ * the SAME strategy, preventing infinite loops. Before delegating, it checks
+ * whether the task is already in a loop; if so, it returns a verdict that forces
+ * a strategy change or escalates to the user instead of blindly retrying.
+ *
+ * The "strategy" is derived from the agent + a stable hash of the task, so that
+ * retrying the same task on the same agent counts as the same strategy.
+ *
+ * @returns A DelegationResult, or a synthetic result describing the loop verdict
+ *          when the guard blocks the delegation.
+ */
+export async function delegateWithAntiLoop(
+  request: DelegationRequest,
+): Promise<DelegationResult> {
+  const strategy = `${request.agent}::${request.task}`;
+
+  // Check for an existing loop BEFORE delegating.
+  const pre = detectLoop(request.task);
+  if (pre.inLoop && pre.action === 'escalate') {
+    return {
+      success: false,
+      error: `[ANTI-LOOP] Escalating: task "${request.task}" failed ${pre.attempts} times with the same strategy. STOP retrying — surface options to the user.`,
+      duration: 0,
+      model: 'unknown',
+    };
+  }
+  if (pre.inLoop && pre.action === 'change_strategy') {
+    return {
+      success: false,
+      error: `[ANTI-LOOP] Change strategy: task "${request.task}" failed ${pre.attempts} times with the same strategy. Do NOT retry the same approach — try a different one.`,
+      duration: 0,
+      model: 'unknown',
+    };
+  }
+
+  // Not in a loop — delegate and record the outcome.
+  const result = await delegate(request);
+  registerAttempt(request.task, strategy, result.success ? 'success' : 'failed');
+  return result;
 }
 
 /**
