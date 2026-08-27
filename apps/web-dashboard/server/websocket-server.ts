@@ -112,7 +112,14 @@ function resolveSessionAccess(req: IncomingMessage): SessionAccess | undefined {
 }
 
 function devBypassActive(req: IncomingMessage): boolean {
-  return dashboardAuth.devMode && dashboardAuth.isLocalhost(req);
+  // devMode bypass (GV_DASHBOARD_DEV_AUTH=1) or the local-default profile:
+  // no configured token + loopback request = trusted owner access (ADR-0017).
+  // Production always resolves sessions through RBAC instead.
+  return (
+    !dashboardAuth.productionMode &&
+    (dashboardAuth.devMode || !dashboardAuth.enabled) &&
+    dashboardAuth.isLocalhost(req)
+  );
 }
 
 /**
@@ -1007,8 +1014,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       // Bind session → principal with bootstrap semantics:
       // the first principal becomes admin; later logins keep their existing
       // tenant role or default to viewer (fail-closed).
-      const subject =
-        process.env.GV_DASHBOARD_PRINCIPAL_SUBJECT?.trim() || 'dashboard-operator';
+      const subject = process.env.GV_DASHBOARD_PRINCIPAL_SUBJECT?.trim() || 'dashboard-operator';
       const principal = dashboardDatabase.principals.findOrCreateBySubject(
         subject,
         'Dashboard Operator',
@@ -1079,7 +1085,9 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     }
 
     // ─── Admin API (RBAC v1) ────────────────────────────────────────────
-    const adminMatch = url.pathname.match(/^\/api\/admin\/principals(?:\/([^/]+)(?:\/(role|revoke-sessions))?)?$/);
+    const adminMatch = url.pathname.match(
+      /^\/api\/admin\/principals(?:\/([^/]+)(?:\/(role|revoke-sessions))?)?$/,
+    );
     if (adminMatch) {
       const bypass = devBypassActive(req);
       const access = resolveSessionAccess(req);
@@ -1123,12 +1131,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
         const role = body.role ?? 'viewer';
         if (!isDashboardRole(role)) {
           res.writeHead(400, headers);
-          res.end(
-            JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }),
-          );
+          res.end(JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }));
           return;
         }
-        const created = dashboardDatabase.principals.findOrCreateBySubject(subject, body.displayName);
+        const created = dashboardDatabase.principals.findOrCreateBySubject(
+          subject,
+          body.displayName,
+        );
         dashboardDatabase.principals.upsertMembership(DEFAULT_TENANT_ID, created.id, role);
         dashboardDatabase.insertEvent('dashboard.admin.principal.create', {
           actorId,
@@ -1137,9 +1146,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
           role,
         });
         res.writeHead(201, headers);
-        res.end(
-          JSON.stringify({ success: true, principal: { ...created, role } }),
-        );
+        res.end(JSON.stringify({ success: true, principal: { ...created, role } }));
         return;
       }
 
@@ -1154,9 +1161,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
         const tenantId = body.tenantId?.trim() || DEFAULT_TENANT_ID;
         if (!isDashboardRole(role)) {
           res.writeHead(400, headers);
-          res.end(
-            JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }),
-          );
+          res.end(JSON.stringify({ success: false, error: 'role must be viewer|operator|admin' }));
           return;
         }
         const target = dashboardDatabase.principals.getById(principalId);
@@ -1250,9 +1255,9 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
     // ─── Coarse RBAC guard (policy v1) ─────────────────────────────────
     // Reads require viewer; mutations require operator (admin endpoints are
-    // handled above with their own admin gate + CSRF). Dev-localhost bypass
-    // keeps full access; production sessions without a bound principal must
-    // re-login to acquire one.
+    // handled above with their own admin gate + CSRF). Local-default/dev
+    // loopback bypass keeps full access; production sessions without a bound
+    // principal must re-login to acquire one.
     const routePermission = resolveRoutePermission(url.pathname, req.method ?? 'GET');
     if (routePermission && !devBypassActive(req)) {
       const access = resolveSessionAccess(req);

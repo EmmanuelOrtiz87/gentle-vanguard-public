@@ -381,14 +381,7 @@ async function executeWithModel(
     const delegatorPath = join(ROOT, 'src', 'agent-delegator.ts');
 
     // Build command with model override
-    const args = [
-      '--agent',
-      request.agent,
-      '--task',
-      request.task,
-      '--model',
-      model,
-    ];
+    const args = ['--agent', request.agent, '--task', request.task, '--model', model];
 
     if (request.context) {
       args.push('--context', request.context);

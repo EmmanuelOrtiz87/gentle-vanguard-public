@@ -35,9 +35,7 @@ export class AuthSessionRepo {
   }
 
   removeExpired(now: number): void {
-    this.db
-      .prepare('DELETE FROM dashboard_auth_sessions WHERE expires_at <= ?')
-      .run(now);
+    this.db.prepare('DELETE FROM dashboard_auth_sessions WHERE expires_at <= ?').run(now);
   }
 
   /** Bind a session to a principal and store the hashed CSRF token (migration 014). */

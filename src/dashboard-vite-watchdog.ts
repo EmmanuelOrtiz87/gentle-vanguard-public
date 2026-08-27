@@ -159,7 +159,8 @@ async function watchLoop(initialPort: number): Promise<void> {
     log(`[WATCH] Health check FAILED (${failures}/${WATCH_FAILURE_THRESHOLD}) on port ${port}`);
 
     // Adopt a Vite that came up on another candidate port meanwhile.
-    const alt = preferredPort() !== port && (await healthCheck(preferredPort())) ? preferredPort() : null;
+    const alt =
+      preferredPort() !== port && (await healthCheck(preferredPort())) ? preferredPort() : null;
     if (alt) {
       log(`[WATCH] Vite found on alternative port ${alt} — adopting`);
       port = alt;

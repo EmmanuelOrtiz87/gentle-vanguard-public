@@ -97,7 +97,10 @@ interface OtlpSpan {
  */
 function recoverStartNs(traceId: string, spanId: string, endNs: bigint): bigint | null {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const candidates = [join(SPAN_DIR, `spans-${today}.jsonl`), join(TRACES_DIR, `traces-${today}.jsonl`)];
+  const candidates = [
+    join(SPAN_DIR, `spans-${today}.jsonl`),
+    join(TRACES_DIR, `traces-${today}.jsonl`),
+  ];
   for (const file of candidates) {
     try {
       if (!existsSync(file)) continue;
@@ -333,7 +336,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const attrStart = BigInt(attributes['startTimeUnixNano'] ?? '0');
       const startNs =
         recovered ??
-        (attrStart > 0n && attrStart <= endNs && endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
+        (attrStart > 0n &&
+        attrStart <= endNs &&
+        endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
           ? attrStart
           : null);
       const durationNs = startNs === null ? null : endNs - startNs;
@@ -372,7 +377,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const attrStart = BigInt(attributes['startTimeUnixNano'] ?? '0');
       const startNs =
         recovered ??
-        (attrStart > 0n && attrStart <= endNs && endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
+        (attrStart > 0n &&
+        attrStart <= endNs &&
+        endNs - attrStart <= BigInt(24 * 3600 * 1_000_000_000)
           ? attrStart
           : null);
       const durationNs = startNs === null ? null : endNs - startNs;

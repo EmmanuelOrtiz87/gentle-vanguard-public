@@ -31,13 +31,21 @@ export function knowledgeHandler(
   if (terms.length > 0) {
     for (const root of [join(ROOT, 'docs'), join(ROOT, 'knowledge-base'), join(ROOT, 'reports')]) {
       if (!existsSync(root)) continue;
-      for (const file of walkFiles(root).filter((path) => /\.(md|txt|json)$/i.test(path)).slice(0, 250)) {
+      for (const file of walkFiles(root)
+        .filter((path) => /\.(md|txt|json)$/i.test(path))
+        .slice(0, 250)) {
         try {
           const content = readFileSync(file, 'utf8');
           if (!terms.every((term) => content.toLowerCase().includes(term))) continue;
-          results.push({ source: file.slice(ROOT.length + 1), content: content.slice(0, 1200), timestamp: new Date().toISOString() });
+          results.push({
+            source: file.slice(ROOT.length + 1),
+            content: content.slice(0, 1200),
+            timestamp: new Date().toISOString(),
+          });
           if (results.length >= limit) break;
-        } catch { /* best effort */ }
+        } catch {
+          /* best effort */
+        }
       }
       if (results.length >= limit) break;
     }
@@ -62,6 +70,8 @@ function walkFiles(root: string): string[] {
       if (entry.isDirectory()) files.push(...walkFiles(path));
       else files.push(path);
     }
-  } catch { /* best effort */ }
+  } catch {
+    /* best effort */
+  }
   return files;
 }

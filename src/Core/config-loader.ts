@@ -51,11 +51,7 @@ function matchesType(value: unknown, expected: string): boolean {
 }
 
 /** Validate `value` against schema; returns list of human-readable errors. */
-export function validateAgainstSchema(
-  value: unknown,
-  schema: Schema,
-  path = '$',
-): string[] {
+export function validateAgainstSchema(value: unknown, schema: Schema, path = '$'): string[] {
   const errors: string[] = [];
 
   if (schema.type) {
@@ -143,7 +139,7 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 
 export function deepMerge<T extends object>(base: T, override: unknown): T {
   if (!isPlainObject(override) || !isPlainObject(base)) {
-    return (override === undefined ? base : (override as T));
+    return override === undefined ? base : (override as T);
   }
   const out: Record<string, unknown> = { ...base };
   for (const [k, v] of Object.entries(override)) {
@@ -305,9 +301,13 @@ function cliValidateAll(asJson: boolean): number {
     console.log(JSON.stringify({ total: results.length, failed: failed.length, results }, null, 2));
   } else {
     for (const r of results) {
-      console.log(`${r.ok ? '✅' : '❌'} ${r.name}${r.errors.length ? ` — ${r.errors.join('; ')}` : ''}`);
+      console.log(
+        `${r.ok ? '✅' : '❌'} ${r.name}${r.errors.length ? ` — ${r.errors.join('; ')}` : ''}`,
+      );
     }
-    console.log(`\n[CONFIG-LOADER] ${results.length - failed.length}/${results.length} configs valid`);
+    console.log(
+      `\n[CONFIG-LOADER] ${results.length - failed.length}/${results.length} configs valid`,
+    );
   }
   return failed.length === 0 ? 0 : 1;
 }

@@ -95,7 +95,9 @@ async function main() {
 
   // 3. Timeout config tests
   printSection('Timeout Config Tests');
-  const tcTestResult = runHidden('npx tsx --test tests/unit/timeout-config.test.ts', { timeout: 30000 });
+  const tcTestResult = runHidden('npx tsx --test tests/unit/timeout-config.test.ts', {
+    timeout: 30000,
+  });
   check('timeout-config tests pass', () => tcTestResult.code === 0);
 
   // 4. Timeout monitor tests

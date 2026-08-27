@@ -25,9 +25,16 @@ describe('DashboardAuth', () => {
     assert.equal(auth.authenticate(request(`${SESSION_COOKIE}=${session}`)), false);
   });
 
-  it('fails closed without a token', () => {
+  it('trusts loopback and fails closed for remote when no token is configured (local-default)', () => {
     const auth = new DashboardAuth();
-    assert.equal(auth.authenticate(request()), false);
+    assert.equal(auth.enabled, false);
+    // Local-default profile: loopback listener without credentials trusts the owner.
+    assert.equal(auth.authenticate(request()), true);
+    assert.equal(auth.isProtectedRequest(request()), false);
+    // Remote requests stay fail-closed without a token.
+    assert.equal(auth.authenticate(request(undefined, 'dashboard.example')), false);
+    assert.equal(auth.isProtectedRequest(request(undefined, 'dashboard.example')), true);
+    // Login is never possible without a configured token.
     assert.equal(auth.login('anything'), undefined);
   });
 

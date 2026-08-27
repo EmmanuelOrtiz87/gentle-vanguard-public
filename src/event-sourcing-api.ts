@@ -24,14 +24,7 @@ export async function appendEvent(options: AppendEventOptions): Promise<void> {
   const { aggregateId, eventType, eventData, quiet = false } = options;
 
   return new Promise((resolve, reject) => {
-    const args = [
-      '-Action',
-      'append',
-      '-AggregateId',
-      aggregateId,
-      '-EventType',
-      eventType,
-    ];
+    const args = ['-Action', 'append', '-AggregateId', aggregateId, '-EventType', eventType];
 
     if (eventData && Object.keys(eventData).length > 0) {
       args.push('-EventData', JSON.stringify(eventData));
@@ -146,12 +139,7 @@ export async function getEvents(aggregateId: string): Promise<unknown[]> {
  */
 export async function getProjection(aggregateId: string): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
-    const args = [
-      '-Action',
-      'project',
-      '-AggregateId',
-      aggregateId,
-    ];
+    const args = ['-Action', 'project', '-AggregateId', aggregateId];
 
     const child = runNpxTsx('src/event-sourcing.ts', args, {
       stdio: ['ignore', 'pipe', 'pipe'],

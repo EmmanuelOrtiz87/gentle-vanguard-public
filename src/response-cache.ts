@@ -356,10 +356,9 @@ function resolveCacheTenantId(): string {
 
 function hasTenantColumn(db: DbManagerLike): boolean {
   try {
-    const columns = db
-      .getDb()
-      .prepare("PRAGMA table_info('response_cache')")
-      .all() as Array<{ name?: string }>;
+    const columns = db.getDb().prepare("PRAGMA table_info('response_cache')").all() as Array<{
+      name?: string;
+    }>;
     return columns.some((column) => column.name === 'tenant_id');
   } catch {
     return false;
@@ -397,15 +396,15 @@ function sqliteGet(key: string, input?: string): CacheEntry | null {
          AND (expires_at IS NULL OR expires_at > datetime('now'))`,
       )
       .get(key) as
-    | {
-        key: string;
-        response: string;
-        created_at: string;
-        hit_count: number;
-        expires_at: string | null;
-        tokens_saved: number | null;
-      }
-    | undefined;
+      | {
+          key: string;
+          response: string;
+          created_at: string;
+          hit_count: number;
+          expires_at: string | null;
+          tokens_saved: number | null;
+        }
+      | undefined;
 
     if (row) {
       // Exact hit — increment hit count
@@ -540,10 +539,8 @@ function sqliteCount(): number {
   const db = getDb();
   if (!db) return 0;
   try {
-    const row = db
-      .getDb()
-      .prepare('SELECT COUNT(*) as c FROM response_cache')
-      .get() as { c: number } | undefined;
+    const row = db.getDb().prepare('SELECT COUNT(*) as c FROM response_cache').get() as
+      { c: number } | undefined;
     return row?.c ?? 0;
   } catch {
     return 0;

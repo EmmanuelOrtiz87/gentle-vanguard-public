@@ -793,7 +793,8 @@ export const PATTERNS: SecretPattern[] = [
   },
   {
     name: 'Codecov Token',
-    description: 'Codecov upload token (32 alnum near a codecov keyword). Excludes action SHA pins (@<40-hex>).',
+    description:
+      'Codecov upload token (32 alnum near a codecov keyword). Excludes action SHA pins (@<40-hex>).',
     category: 'cloud',
     risk: 'medium',
     // Boundary assertions (?<![@\w]) / (?![\w]) prevent matching substrings of

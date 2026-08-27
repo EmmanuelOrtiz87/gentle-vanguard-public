@@ -18,7 +18,14 @@
  *
  * Nota ZCode: los cambios de agentes requieren una nueva sesión (no hot-reload).
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, copyFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  existsSync,
+  copyFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -228,11 +235,16 @@ function main(): void {
         : Object.keys(SKILL_TARGETS);
     console.log(`Sincronizando skills críticas a: ${tools.join(', ')}`);
     syncSkills(dry, tools);
-    console.log('Nota: abre una nueva sesión en cada herramienta para que carguen (no hot-reload).');
+    console.log(
+      'Nota: abre una nueva sesión en cada herramienta para que carguen (no hot-reload).',
+    );
   }
 }
 
 // CLI Guard pattern (normalizado para rutas Windows — ver src/auto-url-fix.ts)
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1].replace(/\\/g, '/')}`).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === new URL(`file://${process.argv[1].replace(/\\/g, '/')}`).href
+) {
   main();
 }
