@@ -35,6 +35,7 @@ import {
   appendFileSync,
   statSync,
   readdirSync,
+  unlinkSync,
 } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -954,7 +955,23 @@ export function ingestOnce(): {
 }
 
 export async function watch(intervalSec = 30): Promise<void> {
-  log(`Token Ingest daemon corriendo cada ${intervalSec}s (tool-agnostic)`);
+  // Register the daemon PID so process-hygiene can dedupe/recycle it across
+  // sessions (previously this daemon was untracked and accumulated for days).
+  const pidFile = join(RUNTIME_DIR, 'token-ingest.pid');
+  const removePidFile = (): void => {
+    try {
+      if (existsSync(pidFile)) unlinkSync(pidFile);
+    } catch {
+      /* best-effort */
+    }
+  };
+  try {
+    mkdirSync(RUNTIME_DIR, { recursive: true });
+    writeFileSync(pidFile, String(process.pid), 'utf-8');
+  } catch {
+    /* best-effort — dedupe still works via process-table scan */
+  }
+  log(`Token Ingest daemon corriendo cada ${intervalSec}s (tool-agnostic, PID ${process.pid})`);
   const loop = async (): Promise<void> => {
     try {
       ingestOnce();
@@ -964,8 +981,14 @@ export async function watch(intervalSec = 30): Promise<void> {
   };
   await loop();
   setInterval(loop, intervalSec * 1000);
-  process.on('SIGTERM', () => process.exit(0));
-  process.on('SIGINT', () => process.exit(0));
+  process.on('SIGTERM', () => {
+    removePidFile();
+    process.exit(0);
+  });
+  process.on('SIGINT', () => {
+    removePidFile();
+    process.exit(0);
+  });
 }
 
 // ─── CLI ───────────────────────────────────────────────────────────────────────

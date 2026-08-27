@@ -37,10 +37,14 @@ function main(): void {
   if (!normalized.startsWith(REPO_ROOT.toLowerCase())) process.exit(0);
   if (!existsSync(resolve(REPO_ROOT, 'graphify-out', 'graph.json'))) process.exit(0);
 
+  // GOLDEN RULE (procesos-ocultos): never spawn npm.cmd/npx.cmd shims —
+  // EINVAL on Node >=20.12 without shell, VISIBLE cmd.exe flash on older
+  // Node. Direct node --import tsx on the graphify CLI is hidden and the
+  // spawned PID IS the script process (no grandchild).
   const result = spawnSync(
-    process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    ['run', 'graphify', '--', 'update', '.'],
-    { cwd: REPO_ROOT, encoding: 'utf8', timeout: 120000 },
+    process.execPath,
+    ['--import', 'tsx', resolve(REPO_ROOT, 'src/cli/graphify.ts'), 'update', '.'],
+    { cwd: REPO_ROOT, encoding: 'utf8', timeout: 120000, windowsHide: true },
   );
   // Output no-JSON es solo diagnóstico para el log; nunca bloquear.
   if (result.status !== 0) {

@@ -4,6 +4,34 @@
 
 ### Added
 
+- **Process Hygiene (reaper nativo)**: `src/core/process-hygiene.ts` — detección y limpieza de
+  basura de procesos por clase (duplicados con keeper pidfile/port, one-shots colgados >15min,
+  daemons envejecidos >24h reciclados solo si autostart los re-spawnea, pidfiles stale, chrome
+  headless residual). Integrado: paso fase-1 del session-autostart (antes de los lazy daemons),
+  check + autoheal del watchtower (96 checks / 22 componentes) y sweep en session-close (5.3b).
+  Comandos: `npm run process:hygiene` (dry-run) / `process:reap`. Reporte en
+  `.runtime/process-hygiene-report.json`. 10 tests unitarios sobre la capa pura.
+- **SDD Research Lane**: `src/sdd/sdd-research.ts` — artefacto versionado
+  `gentle-vanguard.sdd-research/v1` ligado al caso SDD (`.sdd/<feature>/RESEARCH/`): búsqueda +
+  grading CRAG/BM25 determinista, veredicto y confianza por pregunta, scaffolds de mapeo
+  claim→fuente y contradicciones para la capa agente, fail-closed sin caso existente, observación
+  engram best-effort. PROPOSE (sdd-pipeline) cita la evidencia automáticamente. Comando ZCode
+  `/sdd-research` + skill sdd-lifecycle Phase 2.5 (sync a zcode/codex/minimax). 7 tests unitarios.
+- **RDD retention**: acción `prune` en `src/rdd/rdd-core.ts` (lazy step del autostart) — elimina
+  workflows terminales >30d y CIERRA en evento terminal las reviews estancadas >30d (lecciones de
+  gentle-ai #1656 y v2.5.0-rc.1). Nunca toca disable-log.jsonl ni el flag DISABLED. 5 tests decoy.
+- **Academy**: track `automatizaciones` registrado (8 lecciones recuperadas — el contenido y el
+  i18n existían pero no estaba cableado), +2 lecciones en workflows (RDD y la revisión 4R; SDD con
+  TDD, BDD y RDD), +5 términos de glosario (4R, BDD, Code review, RDD, TDD). Ahora 9 tracks /
+  85 lecciones / 120 términos.
+
+### Fixed
+
+- **process-lock-manager.isProcessAlive**: tasklist devuelve exit 0 aunque el PID no exista —
+  ahora parsea el CSV (los locks stale nunca se detectaban).
+- **token-ingest daemon**: ahora registra `.runtime/token-ingest.pid` y lo limpia en
+  SIGTERM/SIGINT (antes era el único daemon sin tracking, acumulándose por días).
+
 - **src/ por dominios (F2.2) — 8 dominios**: `src/tokens/` (13), `src/retrieval/` (3),
   `src/compression/` (3), `src/web/` (6), `src/research/` (2), `src/design/` (3), `src/humanize/`
   (2), `src/planning/` (3) — ~120 referencias actualizadas (scripts npm, configs de pipeline, hooks,

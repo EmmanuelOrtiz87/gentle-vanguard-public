@@ -229,10 +229,15 @@ export class ProcessLock {
 
   private isProcessAlive(pid: number): boolean {
     try {
-      // Windows: usa tasklist
       if (process.platform === 'win32') {
-        execSync(`tasklist /FI "PID eq ${pid}" /FO CSV`, { windowsHide: true });
-        return true;
+        // BUG FIX: tasklist /FI returns exit code 0 even when the PID does NOT
+        // exist ("INFO: No tasks..."), so the old execSync-and-assume-alive
+        // version considered every stale lock holder alive forever. Parse the
+        // CSV output instead (same approach as dashboard-common.isProcessAlive).
+        const out = execSync(`tasklist /FI "PID eq ${pid}" /NH /FO CSV`, {
+          windowsHide: true,
+        }).toString();
+        return out.includes(`"${pid}"`);
       } else {
         // Unix: kill -0 verifica si el proceso existe
         process.kill(pid, 0);

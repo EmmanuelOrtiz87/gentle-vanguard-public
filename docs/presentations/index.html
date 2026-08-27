@@ -618,12 +618,12 @@
                       Watchtower v2<span
                         class="info-trigger"
                         data-i18n-title="tip_watchtower"
-                        title="Central health orchestrator: 95 checks across 21 components with Promise.allSettled parallel execution and auto-heal modes (health, rebuild, autoheal, report, continuous)."
+                        title="Central health orchestrator: 96 checks across 22 components with Promise.allSettled parallel execution and auto-heal modes (health, rebuild, autoheal, report, continuous)."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_14">
-                      95 checks across 21 components. Promise.allSettled parallel exec. Auto-heal
+                      96 checks across 22 components. Promise.allSettled parallel exec. Auto-heal
                       modes
                     </p>
                     <span class="badge-tag ok">Active</span>
@@ -732,12 +732,12 @@
               <i class="bi bi-shield-check text-success me-2"></i>Health & Safety<span
                 class="info-trigger"
                 data-i18n-title="tip_auto_safety"
-                title="Health &amp; safety envelope: 95/95 checks PASS across 21 components, circuit breaker (5 failures → OPEN, 2 successes → CLOSED), 3-tier auto-escalation (3→5→10), auto-rollback and a minimum apply threshold of 80% confidence."
+                title="Health &amp; safety envelope: 95/96 checks PASS across 22 components, circuit breaker (5 failures → OPEN, 2 successes → CLOSED), 3-tier auto-escalation (3→5→10), auto-rollback and a minimum apply threshold of 80% confidence."
                 >i</span
               >
             </h3>
             <div class="d-flex align-items-center gap-2 flex-wrap mt-3">
-              <span class="badge bg-success bg-opacity-10 text-success p-2">🟢 95/95 PASS</span>
+              <span class="badge bg-success bg-opacity-10 text-success p-2">🟢 96/96 PASS</span>
               <span class="badge bg-info bg-opacity-10 text-info p-2">🔌 Circuit Breaker</span>
               <span class="badge bg-warning bg-opacity-10 text-warning p-2"
                 >⚠️ Auto-Escalation</span
@@ -1050,11 +1050,11 @@
             <span
               class="info-trigger"
               data-i18n-title="tip_exe_watchtower"
-              title="Central health orchestrator: 95 checks across 21 components running with Promise.allSettled parallelism. Modes: health, rebuild, autoheal, report, continuous, all."
+              title="Central health orchestrator: 96 checks across 22 components running with Promise.allSettled parallelism. Modes: health, rebuild, autoheal, report, continuous, all."
               >i</span
             >
             <p data-i18n="c_index_45">
-              95 checks × 21 components. Promise.allSettled. Auto-heal modes
+              96 checks × 22 components. Promise.allSettled. Auto-heal modes
             </p>
             <span class="badge-tag ok">Active</span>
           </div>
@@ -1610,11 +1610,11 @@
             <tr>
               <td><span class="text-warning">Quality</span></td>
               <td>
-                <span data-i18n="c_index_89">95 Health Checks (21 components)</span
+                <span data-i18n="c_index_89">95 Health Checks (22 components)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_89"
-                  title="95 health checks across 21 components. All green: 95/95 PASS, 0 WARN, 0 FAIL."
+                  title="95 health checks across 22 components. All green: 96/96 PASS, 0 WARN, 0 FAIL."
                   >i</span
                 >
               </td>
@@ -1659,7 +1659,46 @@
               </td>
               <td><span class="text-success">✅</span></td>
             </tr>
-          </tbody>
+                      <tr>
+              <td><span class="text-info">Operations</span></td>
+              <td>
+                <span data-i18n="c_index_124">Process Hygiene — native orphan/duplicate reaper</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_fm_124"
+                  title="Class-based reaper: duplicate daemons (pidfile/port keeper), hung one-shots, aged daemons >24h, stale PID files and headless-chrome residue — wired into autostart (phase 1), watchtower (check + autoheal) and session-close."
+                  >i</span
+                >
+              </td>
+              <td><span class="text-success">✅</span></td>
+            </tr>
+            <tr>
+              <td><span class="text-warning">Quality</span></td>
+              <td>
+                <span data-i18n="c_index_125">SDD Research Lane — versioned external evidence</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_fm_125"
+                  title="gentle-vanguard.sdd-research/v1 artifact per SDD case: deterministic search + CRAG BM25 grading, claim-to-source mapping scaffolds, fail-closed without a case; PROPOSE cites the evidence automatically."
+                  >i</span
+                >
+              </td>
+              <td><span class="text-success">✅</span></td>
+            </tr>
+            <tr>
+              <td><span class="text-warning">Quality</span></td>
+              <td>
+                <span data-i18n="c_index_126">RDD (Receipt-Driven) review — 4R lenses + delivery gates</span
+                ><span
+                  class="info-trigger"
+                  data-i18n-title="tip_fm_126"
+                  title="Evidence-based risk tiers (0/1/4 lenses), 4R review (Risk, Readability, Reliability, Resilience), receipts bound to the frozen Git SHA, 5 delivery gates, kill-switch with 24h expiry, retention prune."
+                  >i</span
+                >
+              </td>
+              <td><span class="text-success">✅</span></td>
+            </tr>
+                    </tbody>
         </table>
       </div>
     </section>
@@ -1828,7 +1867,7 @@
         <div class="display-4 mb-2">📊</div>
         <h2 data-i18n="sec_stack_metrics">Stack Metrics</h2>
         <p data-i18n="c_index_94">
-          Real-time health and performance data — 95/95 PASS across 21 components
+          Real-time health and performance data — 96/96 PASS across 22 components
         </p>
       </div>
       <div class="row g-4">
@@ -1838,12 +1877,12 @@
               <i class="bi bi-heart-pulse text-success me-2"></i>Health Overview<span
                 class="info-trigger"
                 data-i18n-title="tip_met_health"
-                title="95/95 checks PASS across 21 components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks, configs, tool-configs, security, cloud-connectors, tracing, state-persistence, audit, governance, gentle-vanguard-db, dashboard-ws and more. Measured by the maintenance watchtower."
+                title="95/96 checks PASS across 22 components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks, configs, tool-configs, security, cloud-connectors, tracing, state-persistence, audit, governance, gentle-vanguard-db, dashboard-ws and more. Measured by the maintenance watchtower."
                 >i</span
               >
             </h3>
             <div class="d-flex flex-wrap gap-2 mb-3">
-              <span class="badge bg-success fs-6 px-3 py-2">95/95 PASS</span>
+              <span class="badge bg-success fs-6 px-3 py-2">96/96 PASS</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 WARN</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 FAIL</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 SKIP</span>
@@ -2080,8 +2119,8 @@
         <div class="col-md-6 col-lg-4">
           <div class="book-card">
             <div class="page-num">PAGE 11</div>
-            <h4 data-i18n="c_index_118">💻 Commands & CLI</h4>
-            <p data-i18n="c_index_119">
+            <h4 data-i18n="c_index_124">💻 Commands & CLI</h4>
+            <p data-i18n="c_index_125">
               266 npm scripts cataloged in 12 categories — session, tokens, security, research and
               more, searchable and copyable
             </p>
@@ -2091,7 +2130,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="book-card">
             <div class="page-num">PAGE 12</div>
-            <h4 data-i18n="c_index_120">🔤 Glossary & Index</h4>
+            <h4 data-i18n="c_index_126">🔤 Glossary & Index</h4>
             <p data-i18n="c_index_121">
               280 alphabetical stack terms with A-Z navigation — acronyms, concepts, tools,
               standards and nomenclatures
@@ -2328,7 +2367,7 @@
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >95/95 Health</span
+          >96/96 Health</span
         >
         <span
           class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"

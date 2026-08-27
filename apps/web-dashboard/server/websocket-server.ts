@@ -1764,6 +1764,24 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       return;
     }
 
+    // Process-hygiene reaper report (file-backed, same pattern as /api/slo).
+    // Producer: src/core/process-hygiene.ts (runs at session start/close and
+    // via watchtower autoheal). GET needs no RBAC/CSRF work.
+    if (url.pathname === '/api/process-hygiene') {
+      const reportFile = join(ROOT, '.runtime', 'process-hygiene-report.json');
+      let report: unknown = null;
+      try {
+        if (existsSync(reportFile)) {
+          report = JSON.parse(readFileSync(reportFile, 'utf-8'));
+        }
+      } catch {
+        report = null; // corrupt/unreadable report degrades to "no data"
+      }
+      res.writeHead(200, headers);
+      res.end(JSON.stringify({ success: report !== null, data: report }));
+      return;
+    }
+
     if (url.pathname === '/api/safety') {
       const safetyAuditDir = join(ROOT, '.session', 'safety', 'audit');
       const guardrailLogs = existsSync(safetyAuditDir)
