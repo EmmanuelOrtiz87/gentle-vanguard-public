@@ -17,6 +17,7 @@ import { writeFileSync } from 'fs';
 import { compressStructural, estimateTokens } from './compression/structural-compression.js';
 import { executeWithCircuit } from './circuit-breaker-v2';
 import { registerAttempt, detectLoop } from './anti-loop-guard.js';
+import { evaluateFailure } from './guardrail-orchestrator.js';
 
 interface AgentConfig {
   name: string;
@@ -489,6 +490,52 @@ export async function delegateWithAntiLoop(
   const result = await delegate(request);
   registerAttempt(request.task, strategy, result.success ? 'success' : 'failed');
   return result;
+}
+
+/**
+ * Delegate with Guardrail Orchestrator.
+ *
+ * Wraps `delegateWithAntiLoop()` with the unified guardrail orchestrator. When
+ * a delegation fails, it classifies the failure, records an incident for
+ * learning, and returns a synthetic result with the corrective guidance so the
+ * caller knows what to do next — instead of blindly retrying.
+ *
+ * This is the single entry point the orchestrator should use for delegation:
+ * it combines the anti-loop guard (reasoning loops) with the guardrail
+ * orchestrator (any failure type -> decision + learning).
+ *
+ * @returns A DelegationResult, or a synthetic result describing the guardrail
+ *          decision when the failure should not be blindly retried.
+ */
+export async function delegateWithGuardrail(
+  request: DelegationRequest,
+): Promise<DelegationResult> {
+  const result = await delegateWithAntiLoop(request);
+
+  // Success — nothing to guard.
+  if (result.success) return result;
+
+  // Failure — classify, decide, record incident, and return guidance.
+  const error = result.error ?? 'unknown delegation failure';
+  const guard = evaluateFailure({ error, source: `delegate:${request.agent}` });
+
+  // If the guard says we should NOT proceed (block/isolate/escalate), return a
+  // synthetic result with the guidance instead of letting the caller retry.
+  if (!guard.proceed) {
+    return {
+      success: false,
+      error: `[GUARDRAIL:${guard.category}] ${guard.decision.reason} Guidance: ${guard.decision.guidance}`,
+      duration: result.duration,
+      model: result.model,
+    };
+  }
+
+  // Proceedable failure (retry/correct/continue) — return the original result
+  // but attach the incident id so the caller can resolve it after recovery.
+  return {
+    ...result,
+    error: `${result.error} [GUARDRAIL:${guard.category}] incident=${guard.incident.id}`,
+  };
 }
 
 /**

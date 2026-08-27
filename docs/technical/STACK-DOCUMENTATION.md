@@ -124,7 +124,31 @@ de producción.
 Para cambios de seguridad, consultar `docs/security/`, `rules/` y las skills de seguridad antes de
 implementar.
 
-## 7. Configuración de modelos
+## 7. Resiliencia autónoma
+
+El stack es **autónomo y resiliente**: detecta fallos, toma acciones correctivas y continúa sin
+intervención humana, aprendiendo de cada incidente. Tres piezas se complementan:
+
+- **Guardrail Orchestrator** (`src/guardrail-orchestrator.ts`): punto central donde el orquestador
+  consulta "¿qué hacer ante este fallo?". Clasifica fallos en 10 categorías (config, network, model,
+  db, git, security, resource, reasoning, quality, unknown), decide la acción (retry, correct,
+  escalate, isolate, continue, block), ejecuta delegando a los guardrails especializados y aprende
+  del resultado (`.session/guardrails/incidents.jsonl`).
+- **Anti-loop guard** (`src/anti-loop-guard.ts`): detecta bucles de razonamiento (misma estrategia
+  fallando repetidamente) y fuerza cambio de estrategia (3 fallos) o escalación (5+).
+- **Watchtower** (`src/core/maintenance-watchtower.ts`): salud y auto-healing de 96 checks / 22
+  componentes.
+
+Integración: `src/agent-delegator.ts` expone `delegateWithGuardrail()` que envuelve
+`delegateWithAntiLoop()` — si la delegación falla, clasifica el fallo, registra un incidente y
+devuelve la guía correctiva en vez de reintentar a ciegas.
+
+```bash
+npx tsx src/guardrail-orchestrator.ts decide "<error>"   # decisión ante un fallo
+npx tsx src/guardrail-orchestrator.ts stats              # aprendizaje por categoría
+```
+
+## 8. Configuración de modelos
 
 `opencode.json` selecciona los modelos de agentes mediante identificadores que el runtime de
 OpenCode conozca. Los proveedores locales opcionales se documentan en `config/cloud-agents.json` y
@@ -134,7 +158,7 @@ Actualmente no existe un proveedor Dify nativo configurado. Dify no se muestra e
 agregar una entrada JSON: requiere un adaptador/proveedor compatible con la API y con tool calling.
 Las antiguas configuraciones Cline/Dify fueron retiradas para no presentarlas como capacidad activa.
 
-## 8. Operación diaria
+## 9. Operación diaria
 
 ```bash
 npm run typecheck
@@ -149,13 +173,13 @@ npm run graphify -- update .
 Si el grafo está desactualizado, actualizarlo después de cambios de código. Los archivos generados
 por el autostart pueden aparecer modificados: revisar el diff y no revertirlos ciegamente.
 
-## 9. Publicación
+## 10. Publicación
 
 La estrategia de repositorios está en [`docs/REPOSITORY-PUBLICATION.md`](../REPOSITORY-PUBLICATION.md).
 La publicación usa `src/sync-to-public.ts` y una allowlist. El repositorio público debe contener
 instaladores, ejemplos y documentación, no el estado operativo de una máquina.
 
-## 10. Diagnóstico rápido
+## 11. Diagnóstico rápido
 
 | Síntoma | Comprobación |
 | --- | --- |
