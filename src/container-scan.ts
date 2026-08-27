@@ -234,6 +234,46 @@ function countBySeverity(vulns: ScanVulnerability[]): Record<string, number> {
   return by;
 }
 
+/**
+ * Allowlist of advisory IDs with NO available fix (patched version does not
+ * exist in the registry). When EVERY blocking vulnerability is allowlisted, the
+ * scan does not block. Mirrors the allowlist in npm-audit-pre-push.ts.
+ *
+ * image-size (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq):
+ *   - Affects image-size@<=2.0.2 (transitive via pptxgenjs, devDependency only)
+ *   - Patched version is >=2.0.3, but that version is NOT published on npm
+ *     (latest is 2.0.2). Overrides are therefore impossible.
+ *   - DoS (CWE-835) in ICNS/JXL/HEIF parsers; only used at build time for
+ *     presentation generation, not in production runtime.
+ *   - REVISIT when image-size@>=2.0.3 is published, then remove from this list.
+ */
+export const ALLOWLISTED_ADVISORIES = new Set<string>([
+  'GHSA-w3rx-r6r6-pgpr',
+  'GHSA-5p2g-fcmc-qvqq',
+]);
+
+/**
+ * Derive the semantic exit code from the parsed vulnerabilities, independent of
+ * the scanner's raw exit code. Grype's exit code for "vulnerabilities found at
+ * the fail-on level" changed across versions (1 in older, 2 in v0.117+), so we
+ * must not trust it. 0 = clean at failOn level | 1 = vulns found | 2 = error.
+ *
+ * If `allowlist` is provided and EVERY blocking vulnerability is allowlisted
+ * (no available fix), returns 0 (does not block).
+ */
+export function deriveExitCode(
+  vulns: ScanVulnerability[],
+  failOn: Severity,
+  allowlist: ReadonlySet<string> = new Set(),
+): number {
+  const threshold = severityRank(failOn);
+  const blocking = vulns.filter((v) => severityRank(v.severity) <= threshold);
+  if (blocking.length === 0) return 0;
+  // If every blocking vuln is allowlisted (no fix available), do not block.
+  if (blocking.length > 0 && blocking.every((v) => allowlist.has(v.id))) return 0;
+  return 1;
+}
+
 export interface ScanOptions {
   sbomFile?: string;
   dir?: string;
@@ -269,7 +309,7 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
       vulnerabilities: vulns,
       bySeverity: countBySeverity(vulns),
       durationSeconds: Math.round(duration * 10) / 10,
-      exitCode: g.code,
+      exitCode: deriveExitCode(vulns, failOn, ALLOWLISTED_ADVISORIES),
       rawOutput: g.stdout + g.stderr,
     };
     saveResult(result);
@@ -306,7 +346,7 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
       vulnerabilities: vulns,
       bySeverity: countBySeverity(vulns),
       durationSeconds: Math.round(duration * 10) / 10,
-      exitCode: t.code,
+      exitCode: deriveExitCode(vulns, failOn, ALLOWLISTED_ADVISORIES),
       rawOutput: t.stdout + t.stderr,
     };
     saveResult(result);
@@ -333,7 +373,7 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
         vulnerabilities: vulns,
         bySeverity: countBySeverity(vulns),
         durationSeconds: Math.round(duration * 10) / 10,
-        exitCode: g.code,
+        exitCode: deriveExitCode(vulns, failOn, ALLOWLISTED_ADVISORIES),
         rawOutput: g.stdout + g.stderr + sbomGen.stderr,
       };
       saveResult(result);
@@ -369,7 +409,7 @@ export function scanArtifacts(options: ScanOptions = {}): ScanResult {
       vulnerabilities: vulns,
       bySeverity: countBySeverity(vulns),
       durationSeconds: Math.round(duration * 10) / 10,
-      exitCode: t.code,
+      exitCode: deriveExitCode(vulns, failOn, ALLOWLISTED_ADVISORIES),
       rawOutput: t.stdout + t.stderr,
     };
     saveResult(result);
