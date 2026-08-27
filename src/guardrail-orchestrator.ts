@@ -27,6 +27,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
+import { pathToFileURL } from 'url';
 
 // Derive the state dir dynamically from process.cwd() so the orchestrator is
 // testable via chdir to temp dirs (same pattern as anti-loop-guard).
@@ -501,6 +502,6 @@ Usage:
   }
 }
 
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli();
 }
