@@ -17,10 +17,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
     <style>
       /* --- Estilos específicos de architecture.html (complementan el design system) --- */
@@ -231,6 +227,15 @@
           </div>
         </div>
         <div class="arch-layer">
+          <div class="layer-name">Canonical stack surfaces</div>
+          <p>
+            Domain modularity is native to the current architecture, not a separate version, phase,
+            product, or topic. Academy: <code>apps/academy-web</code>; formal documentation:
+            <code>docs/presentations</code>; Analytics: <code>apps/gv-analytics</code>; CMS:
+            <code>apps/content-cms</code>; Dashboard: <code>apps/web-dashboard</code>.
+          </p>
+        </div>
+        <div class="arch-layer">
           <div class="layer-name">
             <i class="bi bi-robot me-1"></i> Layer 2 — Agents (21 Specialized)
           </div>
@@ -282,7 +287,7 @@
           <div class="items">
             <span>Auto-Apply Safe</span><span>Circuit Breaker</span><span>Auto-Escalation</span
             ><span>Dependency Graph</span><span>AB Testing</span><span>Session Scoring</span
-            ><span>Norms Learner</span><span>Watchtower 95/95</span>
+            ><span>Norms Learner</span><span>Watchtower 113/113</span>
           </div>
         </div>
       </section>
@@ -476,13 +481,13 @@
             <div class="card-dao">
               <h6 class="text-success"><i class="bi bi-lightning me-1"></i>Parallel Watchtower</h6>
               <div class="d-flex justify-content-between small mb-1">
-                <span>95 Checks</span><span class="text-info">Promise.allSettled</span>
+                <span>113 Checks</span><span class="text-info">Promise.allSettled</span>
               </div>
               <div class="progress-bar-custom">
                 <div class="progress-bar-fill bg-success" style="width: 100%"></div>
               </div>
               <small class="text-secondary mt-2 d-block"
-                >All 95 health checks run concurrently</small
+                >All 113 health checks run concurrently</small
               >
             </div>
           </div>

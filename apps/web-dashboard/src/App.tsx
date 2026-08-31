@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Activity,
   Store,
-  BookOpen,
   Bot,
   ListTodo,
   History,
@@ -13,9 +12,9 @@ import {
   Cpu,
   Library,
   Globe,
-  Workflow,
   ShieldCheck,
   UserCog,
+  CircleDollarSign,
 } from 'lucide-react';
 import { useSharedState } from './hooks/useSharedState';
 import { TenantSelector } from './components/TenantSelector';
@@ -25,102 +24,106 @@ import { useT } from './hooks/useLocale';
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const TracingDashboard = lazy(() => import('./components/TracingDashboard'));
 const Marketplace = lazy(() => import('./components/Marketplace'));
-const InteractiveDocs = lazy(() => import('./components/InteractiveDocs'));
 const AgentChat = lazy(() => import('./components/AgentChat'));
 const TaskControl = lazy(() => import('./components/TaskControl'));
 const SessionTimeline = lazy(() => import('./components/SessionTimeline'));
 const MCPServers = lazy(() => import('./components/MCPServers'));
 const KnowledgePanel = lazy(() => import('./components/KnowledgePanel'));
 const MultiRepoView = lazy(() => import('./components/MultiRepoView'));
-const ContentOpsPanel = lazy(() => import('./components/ContentOpsPanel'));
 const AuditPanel = lazy(() => import('./components/AuditPanel'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const CostPanel = lazy(() => import('./components/CostPanel'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
   </div>
 );
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { tt } = useT();
 
   // Grouped navigation rows: operations first, then build & govern.
   const navRows = [
-    { group: 'Operate', links: [
+    {
+      group: 'Operate',
+      links: [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/tracing', icon: Activity, label: 'Tracing' },
         { to: '/timeline', icon: History, label: 'Timeline' },
         { to: '/tasks', icon: ListTodo, label: 'Tasks' },
         { to: '/agents', icon: Bot, label: 'Agents' },
-    ]},
-    { group: 'Build & govern', links: [
+        { to: '/costs', icon: CircleDollarSign, label: 'Costs' },
+      ],
+    },
+    {
+      group: 'Build & govern',
+      links: [
         { to: '/marketplace', icon: Store, label: 'Marketplace' },
-        { to: '/content-operations', icon: Workflow, label: 'Content Ops' },
         { to: '/audit', icon: ShieldCheck, label: 'Audit' },
         { to: '/admin', icon: UserCog, label: 'Admin' },
-        { to: '/docs', icon: BookOpen, label: 'Docs' },
         { to: '/mcp', icon: Cpu, label: 'MCP' },
         { to: '/knowledge', icon: Library, label: 'Knowledge' },
         { to: '/multi-repo', icon: Globe, label: 'Multi-repo' },
-    ]},
+      ],
+    },
   ];
 
   return (
     <nav className="gv-topbar">
       <div className="gv-topbar-inner">
         <div className="gv-brand-row">
-          <img src="/logo-gv.svg" alt="Gentle-Vanguard" className="gv-brand-logo" aria-hidden="true" />
+          <img src="/logo.svg" alt="Gentle-Vanguard" className="gv-brand-logo" />
           <div className="gv-brand-copy">
-            <span className="gv-brand-name">Gentle Vanguard</span>
-            <span className="gv-brand-product">Stack operations</span>
+            <span className="gv-brand-name">
+              Gentle<span>Vanguard</span>
+            </span>
+            <span className="gv-brand-product">Dashboard</span>
           </div>
-          <div className="gv-live-state">
-            <span className="gv-live-dot" /> Local stack
-          </div>
-          <TenantSelector />
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="gv-menu-button lg:hidden"
-            aria-label="Open navigation"
-          >
-            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-          <div className="gv-nav-links gv-nav-rows hidden lg:flex">
-            {navRows.map((row) => (
-              <div className="gv-nav-row" key={row.group}>
-                <span className="gv-nav-group-label">{row.group}</span>
-                {row.links.map((l) => (
-                  <NavLink
-                    key={l.to}
-                    to={l.to}
-                    end={l.to === '/'}
-                    className={({ isActive }) => `gv-nav-link ${isActive ? 'is-active' : ''}`}
-                  >
-                    <l.icon className="w-4 h-4" />
-                    {l.label}
-                  </NavLink>
-                ))}
-              </div>
-            ))}
-          </div>
-        {menuOpen && (
-          <div className="gv-mobile-nav lg:hidden">
-            {navRows.flatMap((row) => row.links).map((l) => (
+        </div>
+        <nav className="gv-nav-links hidden lg:flex" aria-label="Dashboard sections">
+          {navRows
+            .flatMap((row) => row.links)
+            .map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
-                onClick={() => setMenuOpen(false)}
                 end={l.to === '/'}
                 className={({ isActive }) => `gv-nav-link ${isActive ? 'is-active' : ''}`}
               >
-                <l.icon className="w-4 h-4" />
+                <l.icon className="w-4 h-4" aria-hidden="true" />
                 {l.label}
               </NavLink>
             ))}
+        </nav>
+        <div className="gv-system-state">{tt('ui.local_stack')}</div>
+        <TenantSelector />
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="gv-menu-button lg:hidden"
+          aria-label="Open navigation"
+        >
+          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+        {menuOpen && (
+          <div className="gv-mobile-nav lg:hidden">
+            {navRows
+              .flatMap((row) => row.links)
+              .map((l) => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  onClick={() => setMenuOpen(false)}
+                  end={l.to === '/'}
+                  className={({ isActive }) => `gv-nav-link ${isActive ? 'is-active' : ''}`}
+                >
+                  <l.icon className="w-4 h-4" />
+                  {l.label}
+                </NavLink>
+              ))}
           </div>
         )}
-        </div>
       </div>
     </nav>
   );
@@ -221,7 +224,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
           autoComplete="current-password"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button className="w-full rounded bg-blue-600 p-2 text-white" type="submit">
+        <button className="w-full rounded bg-primary p-2 text-white" type="submit">
           Sign in
         </button>
       </form>
@@ -235,28 +238,33 @@ function App() {
       <ErrorBoundary>
         <AuthGate>
           <div className="gv-app-shell">
+            <div className="gv-grid-bg" aria-hidden="true" />
+            <div className="gv-glow-a" aria-hidden="true" />
+            <div className="gv-glow-b" aria-hidden="true" />
             <Navigation />
             <main className="gv-main">
-              <div className="gv-route-frame">
+              <div className="gv-route-frame gv-view-fade">
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/tracing" element={<TracingDashboard />} />
                     <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/content-operations" element={<ContentOpsPanel />} />
                     <Route path="/audit" element={<AuditPanel />} />
                     <Route path="/admin" element={<AdminPanel />} />
-                    <Route path="/docs" element={<InteractiveDocs />} />
                     <Route path="/agents" element={<AgentChat />} />
                     <Route path="/tasks" element={<TasksPage />} />
                     <Route path="/timeline" element={<TimelinePage />} />
                     <Route path="/mcp" element={<MCPServers />} />
                     <Route path="/knowledge" element={<KnowledgePanel />} />
                     <Route path="/multi-repo" element={<MultiRepoView />} />
+                    <Route path="/costs" element={<CostPanel />} />
                   </Routes>
                 </Suspense>
               </div>
             </main>
+            <footer className="gv-footer">
+              <strong>GentleVanguard</strong> · Stack Operations — v3.8.2 · 2026
+            </footer>
           </div>
         </AuthGate>
       </ErrorBoundary>

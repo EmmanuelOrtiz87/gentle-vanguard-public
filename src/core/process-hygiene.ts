@@ -30,10 +30,10 @@
  */
 
 import { fileURLToPath, pathToFileURL } from 'url';
-import { resolve, join } from 'path';
+import { basename, resolve, join } from 'path';
 import { existsSync, readFileSync, writeFileSync, appendFileSync, unlinkSync, mkdirSync } from 'fs';
 import { runSync } from './run-command.js';
-import { getProcessIdByPort } from '../dashboard-common.js';
+import { getProcessIdByPort } from '../ops/dashboard-common.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,7 +62,13 @@ export type FindingAction = 'kill' | 'clean-pidfile' | 'recycle' | 'report';
 export interface HygieneFinding {
   pid: number;
   name: string;
-  kind: 'duplicate-daemon' | 'hung-oneshot' | 'aged-daemon' | 'stale-pidfile' | 'headless-chrome' | 'unknown-repo-process';
+  kind:
+    | 'duplicate-daemon'
+    | 'hung-oneshot'
+    | 'aged-daemon'
+    | 'stale-pidfile'
+    | 'headless-chrome'
+    | 'unknown-repo-process';
   action: FindingAction;
   reason: string;
   ageHours: number;
@@ -135,6 +141,15 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: true,
   },
   {
+    id: 'command-center',
+    label: 'Command Center daemon',
+    match: /command-center[\\/]server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'command-center.pid'),
+    keep: 'pidfile',
+    respawn: 'autostart',
+    recycleAged: true,
+  },
+  {
     id: 'ws-watchdog',
     label: 'Dashboard WS watchdog',
     match: /dashboard-ws-autostart\.ts/,
@@ -161,15 +176,6 @@ const DAEMON_CLASSES: DaemonClass[] = [
     keep: 'port',
     respawn: 'watchdog',
     recycleAged: false,
-  },
-  {
-    id: 'vite-server',
-    label: 'Dashboard Vite dev server',
-    match: /vite[\\/]bin[\\/]vite/,
-    pidFile: join(RUNTIME_DIR, 'dashboard-vite.pid'),
-    keep: 'pidfile',
-    respawn: 'watchdog',
-    recycleAged: true,
   },
   {
     id: 'timeout-monitor-daemon',
@@ -204,6 +210,82 @@ const DAEMON_CLASSES: DaemonClass[] = [
     keep: 'newest',
     respawn: 'watchdog',
     recycleAged: false,
+  },
+  {
+    id: 'gv-analytics-api',
+    label: 'Gentle-Vanguard Analytics API',
+    match: /apps[\\/]gv-analytics[\\/]server[\\/]index\.ts/,
+    pidFile: join(RUNTIME_DIR, 'gv-analytics-api.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: true,
+  },
+  {
+    id: 'gv-analytics-vite',
+    label: 'Gentle-Vanguard Analytics Vite dev server',
+    match: /apps[\\/]gv-analytics[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'gv-analytics-vite.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: true,
+  },
+  {
+    id: 'gv-analytics-mcp',
+    label: 'Gentle-Vanguard Analytics Atlassian MCP',
+    match: /apps[\\/]gv-analytics[\\/]server[\\/]mcp\.ts/,
+    keep: 'newest',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'cms-api',
+    label: 'Content CMS API server',
+    match: /apps[\\/]content-cms[\\/]server[\\/]server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'app-cms-api.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'cms-vite',
+    label: 'Content CMS Vite dev server',
+    // Tolerates the npm bin shim path (`node_modules\.bin\..\vite\bin\vite.js`)
+    // used when the dev server is started via npm script instead of the CC.
+    match: /apps[\\/]content-cms[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'app-cms-vite.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'prompts-api',
+    label: 'Prompt Studio API server',
+    match: /apps[\\/]prompt-studio[\\/]server[\\/]server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'app-prompts-api.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'prompts-vite',
+    label: 'Prompt Studio Vite dev server',
+    match: /apps[\\/]prompt-studio[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'app-prompts-vite.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'vite-server',
+    label: 'Dashboard Vite dev server',
+    // Dashboard-only: with one vite per app (analytics/cms/prompts have their
+    // own classes above), a generic /vite[\/]bin[\/]vite/ match flagged the
+    // other apps' vites as "duplicates" of the dashboard's.
+    match: /web-dashboard[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'dashboard-vite.pid'),
+    keep: 'pidfile',
+    respawn: 'watchdog',
+    recycleAged: true,
   },
 ];
 
@@ -363,13 +445,19 @@ function classifyDaemon(cmdline: string): DaemonClass | null {
   return null;
 }
 
-function pickKeeper(cls: DaemonClass, instances: ProcessInfo[], snap: ProcessSnapshot): ProcessInfo | null {
+function pickKeeper(
+  cls: DaemonClass,
+  instances: ProcessInfo[],
+  snap: ProcessSnapshot,
+): ProcessInfo | null {
   if (instances.length === 0) return null;
   const portsFile = join(RUNTIME_DIR, 'dashboard-ports.json');
   let keeperByPort: ProcessInfo | undefined;
   if (cls.port) {
     try {
-      const ports: { wsPort?: number; vitePort?: number } = JSON.parse(readFileSync(portsFile, 'utf-8'));
+      const ports: { wsPort?: number; vitePort?: number } = JSON.parse(
+        readFileSync(portsFile, 'utf-8'),
+      );
       const port = ports[cls.port];
       if (typeof port === 'number' && port > 0) {
         const owner = snap.portOwners.get(port);
@@ -381,8 +469,9 @@ function pickKeeper(cls: DaemonClass, instances: ProcessInfo[], snap: ProcessSna
   }
   if (keeperByPort) return keeperByPort;
 
-  if (cls.keep === 'pidfile' && cls.pidFile) {
-    const raw = snap.pidFiles.get(cls.pidFile);
+  if (cls.pidFile) {
+    const raw =
+      snap.pidFiles.get(cls.pidFile) ?? snap.pidFiles.get(join('.runtime', basename(cls.pidFile)));
     if (raw && /^\d+$/.test(raw)) {
       const byPid = instances.find((i) => i.pid === parseInt(raw, 10));
       if (byPid) return byPid;
@@ -401,7 +490,10 @@ export function analyzeProcesses(
   snap: ProcessSnapshot,
   opts: HygieneOptions = DEFAULT_OPTIONS,
   now = Date.now(),
-): { findings: HygieneFinding[]; keptHealthy: { classId: string; pid: number; ageHours: number }[] } {
+): {
+  findings: HygieneFinding[];
+  keptHealthy: { classId: string; pid: number; ageHours: number }[];
+} {
   const findings: HygieneFinding[] = [];
   const keptHealthy: { classId: string; pid: number; ageHours: number }[] = [];
   const selfPid = process.pid;
@@ -472,7 +564,9 @@ export function analyzeProcesses(
   }
 
   // 2. Hung one-shots: repo scripts with no daemon class, dead parent, stale
-  const daemonPids = new Set(snap.repoProcesses.filter((i) => classifyDaemon(i.cmdline)).map((i) => i.pid));
+  const daemonPids = new Set(
+    snap.repoProcesses.filter((i) => classifyDaemon(i.cmdline)).map((i) => i.pid),
+  );
   for (const info of unclassified) {
     const age = ageHours(info, now);
     const parentAlive = snap.livePids.has(info.ppid);
@@ -635,8 +729,16 @@ function printHuman(result: HygieneResult): void {
   }
   for (const f of result.findings) {
     const icon =
-      f.action === 'report' ? 'ℹ' : f.action === 'clean-pidfile' ? '🧹' : result.mode === 'apply' ? '☠' : '!';
-    console.log(`  ${icon} [${f.kind}] PID ${f.pid || '-'} (${f.ageHours.toFixed(1)}h) — ${f.reason}`);
+      f.action === 'report'
+        ? 'ℹ'
+        : f.action === 'clean-pidfile'
+          ? '🧹'
+          : result.mode === 'apply'
+            ? '☠'
+            : '!';
+    console.log(
+      `  ${icon} [${f.kind}] PID ${f.pid || '-'} (${f.ageHours.toFixed(1)}h) — ${f.reason}`,
+    );
     if (f.cmdline && f.kind !== 'stale-pidfile') console.log(`      ${f.cmdline}`);
   }
   for (const k of result.keptHealthy) {
@@ -663,13 +765,16 @@ async function main(): Promise<number> {
     apply,
     recycleAged: !noRecycle,
     minAgeMin: minAgeIdx >= 0 ? parseInt(args[minAgeIdx + 1], 10) || 15 : DEFAULT_OPTIONS.minAgeMin,
-    maxAgeHours: maxAgeIdx >= 0 ? parseFloat(args[maxAgeIdx + 1]) || 24 : DEFAULT_OPTIONS.maxAgeHours,
+    maxAgeHours:
+      maxAgeIdx >= 0 ? parseFloat(args[maxAgeIdx + 1]) || 24 : DEFAULT_OPTIONS.maxAgeHours,
   });
 
   if (json) console.log(JSON.stringify(result, null, 2));
   else if (!quiet) printHuman(result);
   else if (result.findings.length > 0) {
-    console.log(`[process-hygiene] ${result.findings.length} finding(s), killed=${result.killed.length}`);
+    console.log(
+      `[process-hygiene] ${result.findings.length} finding(s), killed=${result.killed.length}`,
+    );
   }
 
   // dry-run with actionable findings → non-zero so callers can detect dirt

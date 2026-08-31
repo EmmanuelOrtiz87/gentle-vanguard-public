@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   resolveDeploymentTenantContext,
   validateTenantSelector,
-} from '../../src/deployment-tenant-context.ts';
+} from '../../src/integrations/deployment-tenant-context.ts';
 
 const registryPath = fileURLToPath(new URL('../../config/tenant-registry.json', import.meta.url));
 

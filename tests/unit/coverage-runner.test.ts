@@ -15,7 +15,7 @@ import {
   loadConfig,
   parseArgs,
   DEFAULT_CONFIG,
-} from '../../src/coverage-runner.ts';
+} from '../../src/review/coverage-runner.ts';
 
 function sampleCoverageFile(): string {
   const dir = mkdtempSync(join(tmpdir(), 'gv-cov-test-'));
@@ -106,7 +106,7 @@ describe('Coverage Runner', () => {
 
   it('parseArgs exposes argv via process.argv fallback', () => {
     const saved = process.argv;
-    process.argv = ['node', 'src/coverage-runner.ts', '--quick', '--json'];
+    process.argv = ['node', 'src/review/coverage-runner.ts', '--quick', '--json'];
     try {
       assert.deepStrictEqual(parseArgs(), {
         quick: true,

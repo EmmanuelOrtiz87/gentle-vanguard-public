@@ -16,11 +16,15 @@ const AGGREGATE = `test-chain-${Date.now()}`;
 const STORE_FILE = join(ROOT, '.session', 'event-store', `${AGGREGATE}.jsonl`);
 
 function run(args: string[]): string {
-  return execFileSync(process.execPath, ['--import', 'tsx', 'src/event-sourcing.ts', ...args], {
-    cwd: ROOT,
-    encoding: 'utf-8',
-    env: { ...process.env, SESSION_ID: 'test-session' },
-  });
+  return execFileSync(
+    process.execPath,
+    ['--import', 'tsx', 'src/tools/event-sourcing.ts', ...args],
+    {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      env: { ...process.env, SESSION_ID: 'test-session' },
+    },
+  );
 }
 
 describe('Event Sourcing — Hash-Chained Audit', () => {

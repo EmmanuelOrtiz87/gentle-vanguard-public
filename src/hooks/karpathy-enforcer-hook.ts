@@ -13,7 +13,7 @@ function resolveRepoRoot(): string {
 
 function main(): number {
   const repoRoot = resolveRepoRoot();
-  const result = runNpxTsxSync('src/auto-norm-enforcer.ts', ['--check'], {
+  const result = runNpxTsxSync('src/tools/auto-norm-enforcer.ts', ['--check'], {
     cwd: repoRoot,
     timeout: 30_000,
     stdio: 'inherit',

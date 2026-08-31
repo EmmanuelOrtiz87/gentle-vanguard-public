@@ -112,7 +112,20 @@ cd apps/web-dashboard && npm run build
 El dashboard debe mostrar datos reales. Las pruebas no deben introducir mocks que parezcan métricas
 de producción.
 
-## 6. Seguridad
+## 6. Superficies actuales
+
+La modularidad por dominios forma parte de la arquitectura nativa actual. No representa una versión,
+fase, producto ni tópico separado. El mapa canónico es:
+
+| Superficie | Ubicación | Función |
+| --- | --- | --- |
+| Academy | `apps/academy-web` | Documentación educativa |
+| Documentación formal | `docs/presentations` | Presentaciones y material formal |
+| Analytics | `apps/gv-analytics` | Analítica nativa |
+| CMS futuro | `apps/content-cms` | Gestión de contenido prevista |
+| Dashboard | `apps/web-dashboard` | Operación y observabilidad |
+
+## 7. Seguridad
 
 - Secret scanner nativo y hooks de pre-commit.
 - Secretlint, Gitleaks y Trivy en CI.
@@ -124,7 +137,7 @@ de producción.
 Para cambios de seguridad, consultar `docs/security/`, `rules/` y las skills de seguridad antes de
 implementar.
 
-## 7. Resiliencia autónoma
+## 8. Resiliencia autónoma
 
 El stack es **autónomo y resiliente**: detecta fallos, toma acciones correctivas y continúa sin
 intervención humana, aprendiendo de cada incidente. Tres piezas se complementan:
@@ -148,7 +161,7 @@ npx tsx src/guardrail-orchestrator.ts decide "<error>"   # decisión ante un fal
 npx tsx src/guardrail-orchestrator.ts stats              # aprendizaje por categoría
 ```
 
-## 8. Configuración de modelos
+## 9. Configuración de modelos
 
 `opencode.json` selecciona los modelos de agentes mediante identificadores que el runtime de
 OpenCode conozca. Los proveedores locales opcionales se documentan en `config/cloud-agents.json` y
@@ -158,7 +171,7 @@ Actualmente no existe un proveedor Dify nativo configurado. Dify no se muestra e
 agregar una entrada JSON: requiere un adaptador/proveedor compatible con la API y con tool calling.
 Las antiguas configuraciones Cline/Dify fueron retiradas para no presentarlas como capacidad activa.
 
-## 9. Operación diaria
+## 10. Operación diaria
 
 ```bash
 npm run typecheck
@@ -173,13 +186,13 @@ npm run graphify -- update .
 Si el grafo está desactualizado, actualizarlo después de cambios de código. Los archivos generados
 por el autostart pueden aparecer modificados: revisar el diff y no revertirlos ciegamente.
 
-## 10. Publicación
+## 11. Publicación
 
 La estrategia de repositorios está en [`docs/REPOSITORY-PUBLICATION.md`](../REPOSITORY-PUBLICATION.md).
 La publicación usa `src/sync-to-public.ts` y una allowlist. El repositorio público debe contener
 instaladores, ejemplos y documentación, no el estado operativo de una máquina.
 
-## 11. Diagnóstico rápido
+## 12. Diagnóstico rápido
 
 | Síntoma | Comprobación |
 | --- | --- |

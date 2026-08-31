@@ -17,10 +17,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
     <style>
       .feature-card {
@@ -331,6 +327,50 @@
         <p>Native TypeScript implementations that replace external dependencies</p>
       </div>
 
+      <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card new-feature">
+            <div class="icon-wrapper">🎛️</div>
+            <h4>Command Center</h4>
+            <p>
+              Panel standalone para operar dashboard, analytics, Content Studio, Academy y Prompt
+              Studio con start/stop idempotente.
+            </p>
+            <span class="tag">8090</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card new-feature">
+            <div class="icon-wrapper">🎨</div>
+            <h4>Design System GV</h4>
+            <p>
+              Las apps comparten tokens y componentes desde
+              <code>assets/gv-design-system.css</code>.
+            </p>
+            <span class="tag">Unificado</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card new-feature">
+            <div class="icon-wrapper">🌐</div>
+            <h4>i18n y temas</h4>
+            <p>Español por defecto, selector es/en y tema claro/oscuro en todas las apps.</p>
+            <span class="tag">Local-first</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card new-feature">
+            <div class="icon-wrapper">⚙️</div>
+            <h4>Apps on-demand</h4>
+            <p>
+              Las apps sanas persisten entre sesiones; <code>DAEMON_CLASSES</code> las protege del
+              reaper.
+            </p>
+            <span class="tag">Lifecycle</span>
+          </div>
+        </div>
+      </div>
+
       <div class="row g-4">
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
@@ -553,7 +593,9 @@
               </div>
               <div class="timeline-item completed">
                 <h6 class="fw-bold">Session Autostart TS</h6>
-                <p class="text-secondary small mb-2">src/session-autostart.ts (168 lines)</p>
+                <p class="text-secondary small mb-2">
+                  src/session/session-autostart.ts (168 lines)
+                </p>
                 <span class="migration-badge">Completed</span>
               </div>
               <div class="timeline-item completed">
@@ -575,7 +617,8 @@
             <div class="code-preview mb-3">
               <div><span class="comment"># Session autostart</span></div>
               <div>
-                <span class="cmd">npx tsx</span> <span class="arg">src/session-autostart.ts</span>
+                <span class="cmd">npx tsx</span>
+                <span class="arg">src/session/session-autostart.ts</span>
               </div>
             </div>
             <div class="code-preview mb-3">

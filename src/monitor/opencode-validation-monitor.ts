@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 import { db } from '../database/db.js';
 import { pathToFileURL } from 'url';
+import type { AlertRecord } from '../../apps/web-dashboard/server/database/manager.js';
 
-function formatAlert(alert: any): string {
+function formatAlert(alert: AlertRecord): string {
   return `[${alert.severity.toUpperCase()}] ${alert.name} (${alert.rule}) — actual=${alert.actual} threshold=${alert.threshold} created_at=${alert.created_at}`;
 }
 
 function main(): number {
   try {
     const dbm = db();
-    const alerts = dbm.getTriggeredAlerts() as Array<Record<string, unknown>>;
+    const alerts = dbm.getTriggeredAlerts() as AlertRecord[];
     const validationAlerts = alerts.filter((a) => a.rule === 'opencode.validation');
 
     if (validationAlerts.length === 0) {

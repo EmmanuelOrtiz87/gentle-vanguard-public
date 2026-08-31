@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { join } from 'path';
-import { validateOpencodeJsonSteps, validateAgentMdSteps } from '../opencode-guards.js';
+import { validateOpencodeJsonSteps, validateAgentMdSteps } from '../security/opencode-guards.js';
 import { db } from '../database/db.js';
 
 function loadJson(p: string) {

@@ -45,7 +45,10 @@ function usage(): never {
 }
 
 function parseArgs() {
-  const args = process.argv.slice(2);
+  // Some shells/pnpm pass a literal '--' separator (e.g. `pnpm graphify -- build`
+  // under bash in CI). Strip a leading '--' so the command is parsed consistently.
+  let args = process.argv.slice(2);
+  if (args[0] === '--') args = args.slice(1);
   const command = args[0] ?? 'status';
   let max = 20;
   let json = false;
@@ -224,7 +227,9 @@ function update(target: string, json: boolean): void {
   runBuild({ quiet: json });
   status(json);
   if (!json) {
-    console.log('CodeGraph freshness is handled separately by src/codegraph-sync-autostart.ts.');
+    console.log(
+      'CodeGraph freshness is handled separately by src/integrations/codegraph-sync-autostart.ts.',
+    );
   }
 }
 

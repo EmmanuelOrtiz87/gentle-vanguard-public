@@ -16,6 +16,17 @@ import { pathToFileURL } from 'url';
 import { runSync, runSyncShell, runNpxTsxSync } from '../core/run-command.js';
 import { join, resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, unlinkSync } from 'fs';
+import { createHash } from 'crypto';
+import {
+  recordContinuation,
+  nextTransition,
+  stageAck,
+  getPendingAck,
+  acknowledge,
+  pruneContinuations,
+  type AckResult,
+} from '../core/continuation.js';
+import { refusal, describe as describeRefusal, type TypedRefusal } from '../core/typed-refusal.js';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -41,10 +52,12 @@ export interface RDDWorkflow {
   };
   startedAt: string;
   completedAt: string | null;
+  /** Set when the receipt's pending acknowledgement was burned (ack-before-burn). */
+  acknowledgedAt: string | null;
 }
 
 export type WorkflowAction =
-  'start' | 'classify' | 'review' | 'receipt' | 'gate' | 'status' | 'abort' | 'prune';
+  'start' | 'classify' | 'review' | 'receipt' | 'gate' | 'ack' | 'status' | 'abort' | 'prune';
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 
@@ -67,8 +80,41 @@ function log(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'IN
 // ─── Workflow Management ──────────────────────────────────────────────────────
 
 function generateWorkflowId(): string {
-  const sha = runSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT }).stdout.trim();
-  return `rdd-${sha}-${Date.now()}`;
+  // Honest outside git (absorbed from gentle-ai #3899/#3885): a workspace with
+  // no repository still gets a truthful, stable workflow id instead of an
+  // empty-sha id or a crash. Both failure shapes count: git missing (throw)
+  // and git present-but-not-a-repo (non-zero exit → empty stdout).
+  try {
+    const sha = runSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT }).stdout.trim();
+    if (sha) return `rdd-${sha}-${Date.now()}`;
+  } catch {
+    /* git unavailable → fallback below */
+  }
+  const cwdHash = createHash('sha256').update(ROOT).digest('hex').slice(0, 7);
+  return `rdd-nogit-${cwdHash}-${Date.now()}`;
+}
+
+/**
+ * Publish the machine-executable re-entry for the workflow's next step
+ * (absorbed from gentle-ai v2.5.0-rc.3: "re-entry ships with the freeze").
+ * The command is returned verbatim — no prose reconstruction by the operator.
+ */
+function publishNextTransition(
+  workflow: RDDWorkflow,
+  nextAction: WorkflowAction,
+  gate?: string,
+): void {
+  const args = gate
+    ? ` --workflow=${workflow.workflowId} --gate=${gate}`
+    : ` --workflow=${workflow.workflowId}`;
+  recordContinuation({
+    workflowId: workflow.workflowId,
+    operation: `rdd.${nextAction}`,
+    args: gate ? { workflow: workflow.workflowId, gate } : { workflow: workflow.workflowId },
+    command: `npx tsx src/rdd/rdd-core.ts ${nextAction}${args}`,
+    revision: workflow.receipt?.candidateSha ?? undefined,
+    root: ROOT,
+  });
 }
 
 export function startWorkflow(): RDDWorkflow {
@@ -86,10 +132,14 @@ export function startWorkflow(): RDDWorkflow {
     },
     startedAt: new Date().toISOString(),
     completedAt: null,
+    acknowledgedAt: null,
   };
 
   saveWorkflow(workflow);
+  publishNextTransition(workflow, 'classify');
   log(`Started workflow ${workflow.workflowId}`, 'SUCCESS');
+  log('Next transition (run verbatim):', 'INFO');
+  log(`  npx tsx src/rdd/rdd-core.ts classify --workflow=${workflow.workflowId}`, 'INFO');
 
   return workflow;
 }
@@ -262,26 +312,38 @@ async function stepReceipt(workflow: RDDWorkflow): Promise<RDDWorkflow> {
       cwd: ROOT,
     });
 
-    // Find the created receipt
-    const receiptsDir = join(ROOT, '.session', 'receipts');
-    const files = runSyncShell('ls -t *.json 2>/dev/null || echo ""', {
-      cwd: receiptsDir,
-    })
-      .stdout.trim()
-      .split('\n')
-      .filter((f) => f);
-
-    if (files.length > 0) {
-      const receiptData = JSON.parse(readFileSync(join(receiptsDir, files[0]), 'utf-8'));
-      workflow.receipt = {
-        id: receiptData.id,
-        candidateSha: receiptData.candidateHash,
-        approved: receiptData.approved,
+    // The receipt manager persists receipts inside .session/receipts/index.json
+    // (append-only receipts[] array) — read the index and take the newest entry
+    // instead of scanning for per-receipt files that were never written.
+    const receiptsIndex = join(ROOT, '.session', 'receipts', 'index.json');
+    if (existsSync(receiptsIndex)) {
+      const idx = JSON.parse(readFileSync(receiptsIndex, 'utf-8')) as {
+        receipts?: Array<{ id: string; candidateHash: string; approved: boolean }>;
       };
+      const newest = idx.receipts?.[idx.receipts.length - 1];
+      if (newest) {
+        workflow.receipt = {
+          id: newest.id,
+          candidateSha: newest.candidateHash,
+          approved: newest.approved,
+        };
+      }
     }
 
     workflow.status = 'receipt-issued';
     log('Receipt issued', 'SUCCESS');
+
+    // Ack-before-burn (absorbed from gentle-ai v2.5.0-rc.2): the receipt is
+    // staged, NOT delivered. Only the exact acknowledgement token burns its
+    // authority; a restarted status replays the same token and revision.
+    const revision = workflow.receipt?.candidateSha ?? workflow.startedAt;
+    const pending = stageAck(`rdd.${workflow.workflowId}`, revision);
+    log('Receipt staged — acknowledge to burn its authority:', 'INFO');
+    log(
+      `  npx tsx src/rdd/rdd-core.ts ack --workflow=${workflow.workflowId} --token=${pending.token}`,
+      'INFO',
+    );
+
     saveWorkflow(workflow);
   } catch (err) {
     log(`Receipt issuance failed: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
@@ -293,6 +355,26 @@ async function stepReceipt(workflow: RDDWorkflow): Promise<RDDWorkflow> {
 async function stepGate(workflow: RDDWorkflow, gate: string): Promise<RDDWorkflow> {
   if (!workflow.receipt) {
     log('Must issue receipt first', 'ERROR');
+    return workflow;
+  }
+
+  // The receipt's authority burns only on acknowledgement; a delivery gate
+  // consumes it, so an unacknowledged receipt refuses here — typed, naming its
+  // way forward, creating nothing (gentle-vanguard.ack/v1).
+  if (!workflow.acknowledgedAt && getPendingAck(`rdd.${workflow.workflowId}`)) {
+    const r: TypedRefusal = refusal(
+      'authority',
+      'rdd.receipt-not-acknowledged',
+      'receipt is staged but not acknowledged — its authority is not burned yet',
+      {
+        nothingStarted: true,
+        remediation: {
+          command: `npx tsx src/rdd/rdd-core.ts status --workflow=${workflow.workflowId}`,
+          description: 'status replays the same acknowledgement token and command',
+        },
+      },
+    );
+    log(describeRefusal(r), 'WARN');
     return workflow;
   }
 
@@ -353,7 +435,7 @@ export function generateReleaseProvenance(workflow: RDDWorkflow): void {
     }
 
     runNpxTsxSync(
-      'src/slsa-provenance.ts',
+      'src/security/slsa-provenance.ts',
       ['generate', '-a', ...artifacts, '--invocation-id', `rdd-${workflow.workflowId}`],
       { cwd: ROOT },
     );
@@ -363,7 +445,7 @@ export function generateReleaseProvenance(workflow: RDDWorkflow): void {
     const privateKey = join(ROOT, '.runtime', 'provenance', 'private-key.pem');
     if (existsSync(privateKey)) {
       runNpxTsxSync(
-        'src/slsa-signer.ts',
+        'src/security/slsa-signer.ts',
         [
           'sign',
           '-f',
@@ -409,6 +491,16 @@ export async function runWorkflow(
       `Prune: ${res.pruned.length} eliminado(s), ${res.kept.length} retenido(s) (>${days}d)${res.pruned.length > 0 ? ` — ${res.pruned.join(', ')}` : ''}`,
       'SUCCESS',
     );
+    // Continuations and staged acks share the retention window: resolved
+    // records are deleted, stale actives are closed honestly, undelivered
+    // acks burn (a token nobody delivered in N days never arrives).
+    const cont = pruneContinuations(days);
+    if (cont.prunedResolved + cont.closedStaleActive + cont.burnedStaleAcks > 0) {
+      log(
+        `Continuations: ${cont.prunedResolved} pruned, ${cont.closedStaleActive} closed-stale, ${cont.burnedStaleAcks} acks burned (>${days}d)`,
+        'SUCCESS',
+      );
+    }
     return null;
   }
 
@@ -425,18 +517,37 @@ export async function runWorkflow(
       break;
     case 'classify':
       workflow = await stepClassify(workflow);
+      if (workflow.status === 'risk-classified') publishNextTransition(workflow, 'review');
       break;
     case 'review':
       workflow = await stepReview(workflow);
+      if (workflow.status === 'reviewing') publishNextTransition(workflow, 'receipt');
       break;
     case 'receipt':
       workflow = await stepReceipt(workflow);
+      if (workflow.status === 'receipt-issued')
+        publishNextTransition(workflow, 'gate', 'post-apply');
       break;
     case 'gate':
       if (options.gate) {
         workflow = await stepGate(workflow, options.gate);
+        if (!workflow) break;
+        const currentWorkflow = workflow;
+        // A passed gate advances workflow.gates even when status text is
+        // unchanged — publish the continuation on the gate map, not the status.
+        const gatePassed =
+          currentWorkflow.gates[options.gate as keyof typeof currentWorkflow.gates] === true;
+        if (gatePassed && currentWorkflow.status !== 'completed') {
+          const order = ['post-apply', 'pre-commit', 'pre-push', 'pre-pr', 'release'] as const;
+          const nextGate = order.find((g) => !currentWorkflow.gates[g]);
+          if (nextGate) publishNextTransition(currentWorkflow, 'gate', nextGate);
+        }
       }
       break;
+    case 'ack': {
+      // handled by acknowledgeWorkflow (needs a typed-refusal exit path)
+      break;
+    }
     case 'abort':
       workflow.status = 'failed';
       workflow.completedAt = new Date().toISOString();
@@ -449,6 +560,23 @@ export async function runWorkflow(
 }
 
 // ─── Status Display ────────────────────────────────────────────────────────────
+
+/**
+ * Acknowledge a staged receipt (ack-before-burn). Only the exact token burns
+ * the authority; wrong, stale or replayed acks refuse and create nothing.
+ * Exported for unit testing and the CLI exit path.
+ */
+export function acknowledgeWorkflow(workflow: RDDWorkflow, token: string): AckResult {
+  const result = acknowledge(`rdd.${workflow.workflowId}`, token);
+  if (result.ok) {
+    workflow.acknowledgedAt = new Date().toISOString();
+    saveWorkflow(workflow);
+    log('Acknowledgement burned — receipt authority consumed', 'SUCCESS');
+  } else {
+    log(describeRefusal(result.refusal), 'WARN');
+  }
+  return result;
+}
 
 export function formatStatus(workflow: RDDWorkflow): string {
   const lines: string[] = [];
@@ -480,6 +608,29 @@ export function formatStatus(workflow: RDDWorkflow): string {
     lines.push(`  ID: ${workflow.receipt.id}`);
     lines.push(`  SHA: ${workflow.receipt.candidateSha.slice(0, 7)}`);
     lines.push(`  Approved: ${workflow.receipt.approved ? 'YES' : 'NO'}`);
+    lines.push(
+      `  Acknowledged: ${workflow.acknowledgedAt ? new Date(workflow.acknowledgedAt).toLocaleString() : 'PENDING'}`,
+    );
+    lines.push('');
+  }
+
+  // Replay surface (gentle-vanguard.ack/v1): a restarted status returns the
+  // SAME pending token and command until the exact acknowledgement burns it.
+  const pending = getPendingAck(`rdd.${workflow.workflowId}`);
+  if (pending) {
+    lines.push('PENDING ACKNOWLEDGEMENT (run verbatim to burn the receipt authority):');
+    lines.push(
+      `  npx tsx src/rdd/rdd-core.ts ack --workflow=${workflow.workflowId} --token=${pending.token}`,
+    );
+    lines.push('');
+  }
+
+  // Machine-executable re-entry (gentle-vanguard.continuation/v1): the next
+  // command is published by the transaction, never reconstructed from prose.
+  const next = nextTransition(workflow.workflowId);
+  if (next) {
+    lines.push('NEXT TRANSITION (run verbatim):');
+    lines.push(`  ${next.command}`);
     lines.push('');
   }
 
@@ -505,10 +656,25 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     try {
       const workflowId = args.find((a) => a.startsWith('--workflow='))?.split('=')[1];
       const gate = args.find((a) => a.startsWith('--gate='))?.split('=')[1];
+      const token = args.find((a) => a.startsWith('--token='))?.split('=')[1];
       const retentionDays = parseInt(
         args.find((a) => a.startsWith('--retention-days='))?.split('=')[1] ?? '30',
         10,
       );
+
+      if (action === 'ack') {
+        if (!token) {
+          log('ack requires --token= (status replays the pending token)', 'ERROR');
+          process.exit(1);
+        }
+        const wf = workflowId ? loadWorkflow(workflowId) : loadLatestWorkflow();
+        if (!wf) {
+          log('No workflow found for acknowledgement', 'ERROR');
+          process.exit(1);
+        }
+        const result = acknowledgeWorkflow(wf, token);
+        process.exit(result.ok ? 0 : 1);
+      }
 
       const workflow = await runWorkflow(action, { workflowId, gate, retentionDays });
 

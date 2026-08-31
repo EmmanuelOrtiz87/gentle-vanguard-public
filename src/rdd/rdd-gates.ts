@@ -130,11 +130,16 @@ function getTreeSha(sha?: string): string {
 
 // ─── Receipt Operations ────────────────────────────────────────────────────────
 
+interface ReceiptFinding {
+  severity: 'critical' | 'high' | 'medium' | 'low';
+}
+
 interface ReceiptData {
   id: string;
   candidateHash: string;
   contentHash: string;
   approved: boolean;
+  findings?: ReceiptFinding[];
 }
 
 function loadReceipt(receiptId: string): ReceiptData | null {
@@ -282,8 +287,7 @@ export function validateGate(gate: DeliveryGate, receiptId?: string): GateValida
       }
 
       // Verify no critical findings
-      const criticalCount =
-        (receipt as any).findings?.filter((f: any) => f.severity === 'critical').length || 0;
+      const criticalCount = receipt.findings?.filter((f) => f.severity === 'critical').length || 0;
 
       if (criticalCount > 0) {
         errors.push(`${criticalCount} critical findings must be resolved before release`);

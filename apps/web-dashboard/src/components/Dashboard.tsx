@@ -48,15 +48,12 @@ import { ActivityTimeline } from './ActivityTimeline';
 import { SloPanel } from './SloPanel';
 import { DashboardRuntimeHealth } from './DashboardRuntimeHealth';
 import { ProcessHygienePanel } from './ProcessHygienePanel';
+import { ContinuationsPanel } from './ContinuationsPanel';
+import { LoopGuardPanel } from './LoopGuardPanel';
+import { GuardrailsPanel } from './GuardrailsPanel';
+import { AnalyticsWidget } from './AnalyticsWidget';
 import { InfoPopup } from './InfoPopup';
-import {
-  LocaleContext,
-  useLocale,
-  useT,
-  LOCALE_NAMES,
-  LOCALE_FLAGS,
-  t,
-} from '../hooks/useLocale';
+import { LocaleContext, useLocale, useT, LOCALE_NAMES, LOCALE_FLAGS, t } from '../hooks/useLocale';
 import { useStackTables } from '../hooks/useStackTables';
 import type { Locale } from '../hooks/useLocale';
 import type { ModelCost, CostInsight } from '../types/dashboard';
@@ -112,24 +109,35 @@ function LiveDataStatus({
   connected,
   lastUpdated,
   source,
+  dataState,
 }: {
   connected: boolean;
   lastUpdated: number;
   source?: string;
+  dataState?: 'live' | 'stale' | 'error' | 'loading';
 }) {
   const { tt } = useT();
   const sourceLabel =
-    source === 'sqlite'
-      ? 'SQLite'
-      : source === 'json'
-        ? 'JSON fallback'
-        : 'native aggregator';
+    source === 'sqlite' ? 'SQLite' : source === 'json' ? 'JSON fallback' : 'native aggregator';
   const timeLabel =
     lastUpdated > 0 ? new Date(lastUpdated).toLocaleTimeString() : tt('ui.waiting_data');
+
+  // Dot color and label driven by explicit dataState when available.
+  const stateConfig: Record<string, { dotClass: string; label: string }> = {
+    live: { dotClass: 'is-connected', label: tt('ui.live_stream') },
+    stale: { dotClass: 'is-stale', label: tt('ui.data_stale') },
+    error: { dotClass: 'is-reconnecting', label: tt('ui.recovery_polling') },
+    loading: { dotClass: 'is-reconnecting', label: tt('ui.waiting_data') },
+  };
+  const resolved = dataState ? stateConfig[dataState] : undefined;
+  const dotClass = resolved?.dotClass ?? (connected ? 'is-connected' : 'is-reconnecting');
+  const stateLabel =
+    resolved?.label ?? (connected ? tt('ui.live_stream') : tt('ui.recovery_polling'));
+
   return (
     <div className="gv-live-status" role="status" aria-live="polite">
-      <span className={`gv-live-status-dot ${connected ? 'is-connected' : 'is-reconnecting'}`} />
-      <span>{connected ? tt('ui.live_stream') : tt('ui.recovery_polling')}</span>
+      <span className={`gv-live-status-dot ${dotClass}`} />
+      <span>{stateLabel}</span>
       <span className="gv-live-status-divider" aria-hidden="true" />
       <span>
         {tt('ui.source')}: {sourceLabel}
@@ -143,7 +151,7 @@ function LiveDataStatus({
 }
 
 function DashboardInner() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gv-cc-theme') !== 'light');
   const [useWebSocket, setUseWebSocket] = useState(true);
   const [searchParams] = useSearchParams();
   const urlTenantId = searchParams.get('tenantId') || undefined;
@@ -159,6 +167,7 @@ function DashboardInner() {
     dismissNotification,
     isOffline,
     lastUpdated,
+    dataState,
   } = useMetrics(useWebSocket, urlTenantId);
   const { session: agentSession, bridgeConnected, createSession } = useAgentStream();
   const { triggeredAlerts } = useAlerts();
@@ -181,9 +190,13 @@ function DashboardInner() {
     }
   }, [bridgeConnected]);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('gv-cc-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
+    setDarkMode((current) => !current);
   };
 
   const globalHealthData = data.globalHealth;
@@ -209,7 +222,9 @@ function DashboardInner() {
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {tt('ui.app_subtitle')}
-                {wsConnected && <span className="ml-2 text-green-500">● {tt('ui.ws_connected')}</span>}
+                {wsConnected && (
+                  <span className="ml-2 text-green-500">● {tt('ui.ws_connected')}</span>
+                )}
                 {!wsConnected && useWebSocket && (
                   <span className="ml-2 text-yellow-500">● {tt('ui.ws_reconnecting')}</span>
                 )}
@@ -221,10 +236,10 @@ function DashboardInner() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <div className="relative gv-lang-dropdown">
                 <button
                   onClick={() => setShowLangSelector(!showLangSelector)}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="gv-icon-btn p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   title="Language / Idioma / Idioma"
                 >
                   <Languages className="w-5 h-5" />
@@ -235,7 +250,7 @@ function DashboardInner() {
                       className="fixed inset-0 z-10"
                       onClick={() => setShowLangSelector(false)}
                     />
-                    <div className="absolute right-0 mt-2 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px]">
+                    <div className="gv-lang-dropdown-menu absolute right-0 mt-2 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px]">
                       {locales.map((l) => (
                         <button
                           key={l}
@@ -260,7 +275,7 @@ function DashboardInner() {
               </div>
               <button
                 onClick={() => setUseWebSocket(!useWebSocket)}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`gv-icon-btn p-2 rounded-lg transition-colors ${
                   useWebSocket
                     ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
@@ -272,13 +287,13 @@ function DashboardInner() {
               <button
                 onClick={refetch}
                 disabled={loading}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                className="gv-icon-btn p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               </button>
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="gv-icon-btn gv-theme-toggle p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
@@ -288,11 +303,20 @@ function DashboardInner() {
       </header>
 
       <OfflineBanner isOffline={isOffline} lastUpdated={lastUpdated} />
-      <LiveDataStatus connected={wsConnected} lastUpdated={lastUpdated} source={data.source} />
+      <LiveDataStatus
+        connected={wsConnected}
+        lastUpdated={lastUpdated}
+        source={data.source}
+        dataState={dataState}
+      />
 
       <main className="gv-dashboard-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DashboardRuntimeHealth />
         <ProcessHygienePanel />
+        <ContinuationsPanel />
+        <LoopGuardPanel />
+        <GuardrailsPanel />
+        <AnalyticsWidget />
         {/* Row 1: Core KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {loading && lastUpdated === 0 ? (

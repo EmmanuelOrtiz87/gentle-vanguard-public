@@ -23,7 +23,7 @@ import {
   type LoadTestReport,
   type OpResult,
   type RepoResult,
-} from '../../src/load-test-multi-repo.ts';
+} from '../../src/tools/load-test-multi-repo.ts';
 
 const TEST_TMP = join(tmpdir(), `gv-loadtest-test-${process.pid}`);
 

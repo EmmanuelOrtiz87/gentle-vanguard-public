@@ -17,10 +17,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
     <style>
       :root {
         --bg0: #0a0e1a;
@@ -597,6 +593,11 @@
     <script src="assets/js/i18n.js?v=2.1"></script>
   </head>
   <body>
+    <div class="alert alert-warning rounded-0 mb-0 text-center" role="status">
+      <strong>Retirado:</strong> esta página describe el antiguo generador de publicaciones
+      sociales. Consulta <a href="../adr/ADR-0021-content-os.md" class="alert-link">ADR-0021</a> y
+      Content Studio.
+    </div>
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
         <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
@@ -1983,5 +1984,6 @@ Usa "Generar sugerencias IA" para automatizar hashtags basados en el contenido.
 100% OFFLINE - Sin APIs externas`);
       }
     </script>
+    <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

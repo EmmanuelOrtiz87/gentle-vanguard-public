@@ -37,6 +37,8 @@ import * as fs from 'fs';
 import { pathToFileURL } from 'url';
 import * as path from 'path';
 import { ROOT } from './repo-root';
+const logger = log('CORE-SESSION-CONTEXT-LOG');
+import { log } from '../utils/logger.js';
 
 // ─── Paths ───────────────────────────────────────────────────────────────
 
@@ -103,7 +105,7 @@ export function saveSessionState(state: SessionState): void {
   // Guardar estado
   fs.writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf-8');
 
-  console.log(`[SessionContextLog] Saved: ${state.sessionId}`);
+  logger.info(`[SessionContextLog] Saved: ${state.sessionId}`);
 }
 
 /**
@@ -120,7 +122,7 @@ export function readSessionState(sessionId: string): SessionState | null {
     const content = fs.readFileSync(statePath, 'utf-8');
     return JSON.parse(content) as SessionState;
   } catch (err) {
-    console.error(`[SessionContextLog] Error reading ${sessionId}:`, err);
+    logger.error(`[SessionContextLog] Error reading ${sessionId}: ${String(err)}`);
     return null;
   }
 }
@@ -144,7 +146,7 @@ export function listSessions(): string[] {
         return fs.existsSync(statePath);
       });
   } catch (err) {
-    console.error('[SessionContextLog] Error listing sessions:', err);
+    logger.error(`[SessionContextLog] Error listing sessions: ${String(err)}`);
     return [];
   }
 }

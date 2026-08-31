@@ -15,15 +15,26 @@
 
 import { existsSync, statSync } from 'fs';
 import { join, resolve } from 'path';
+import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
 const DB_PATH = join(ROOT, '.runtime', 'gentle-vanguard.db');
 
-const args = process.argv.slice(2);
-const quiet = args.includes('--quiet');
-const checkOnly = args.includes('--check');
+export interface DbInitOptions {
+  quiet?: boolean;
+  checkOnly?: boolean;
+}
 
-function log(msg: string): void {
+export interface DbInitResult {
+  status: 'ok' | 'missing';
+  path: string;
+  sizeBytes: number;
+  tables?: number;
+  rows?: number;
+  migrations?: number;
+}
+
+function log(quiet: boolean, msg: string): void {
   if (!quiet) console.log(`[db-init] ${msg}`);
 }
 
@@ -31,16 +42,19 @@ function log(msg: string): void {
 // The dashboard's DatabaseManager resolves root relative to its own path.
 // When imported from here, it correctly finds ../../../../ = repo root.
 
-async function main(): Promise<number> {
+/** Library entry: init (or check) the DB without process-level side effects. */
+export async function initDb(options: DbInitOptions = {}): Promise<DbInitResult> {
+  const quiet = options.quiet ?? false;
+  const checkOnly = options.checkOnly ?? false;
+
   if (checkOnly) {
     if (!existsSync(DB_PATH)) {
-      log('DB not found at ' + DB_PATH);
-      return 1;
+      log(quiet, 'DB not found at ' + DB_PATH);
+      return { status: 'missing', path: DB_PATH, sizeBytes: 0 };
     }
     const size = statSync(DB_PATH).size;
-    const sizeMB = (size / 1024 / 1024).toFixed(2);
-    log(`DB exists: ${DB_PATH} (${sizeMB} MB)`);
-    return 0;
+    log(quiet, `DB exists: ${DB_PATH} (${(size / 1024 / 1024).toFixed(2)} MB)`);
+    return { status: 'ok', path: DB_PATH, sizeBytes: size };
   }
 
   // Dynamic import to avoid better-sqlite3 loading if just checking
@@ -67,10 +81,10 @@ async function main(): Promise<number> {
     .prepare('SELECT id, applied_at FROM _migrations ORDER BY applied_at')
     .all() as { id: string; applied_at: string }[];
 
-  log(`${tables.length} tables, ${totalRows} rows, ${sizeMB} MB`);
-  log(`${migrations.length} migrations applied:`);
+  log(quiet, `${tables.length} tables, ${totalRows} rows, ${sizeMB} MB`);
+  log(quiet, `${migrations.length} migrations applied:`);
   for (const m of migrations) {
-    log(`  ${m.id} @ ${m.applied_at}`);
+    log(quiet, `  ${m.id} @ ${m.applied_at}`);
   }
 
   // Auto WAL checkpoint if WAL file exceeds 1MB
@@ -79,7 +93,7 @@ async function main(): Promise<number> {
     const walSize = statSync(WAL_PATH).size;
     if (walSize > 1_000_000) {
       raw.prepare('PRAGMA wal_checkpoint(TRUNCATE)').run();
-      log(`WAL checkpoint triggered: ${(walSize / 1024 / 1024).toFixed(1)}MB`);
+      log(quiet, `WAL checkpoint triggered: ${(walSize / 1024 / 1024).toFixed(1)}MB`);
     }
   }
 
@@ -101,12 +115,25 @@ async function main(): Promise<number> {
     );
   }
 
-  return 0;
+  return {
+    status: 'ok',
+    path: DB_PATH,
+    sizeBytes: size,
+    tables: tables.length,
+    rows: totalRows,
+    migrations: migrations.length,
+  };
 }
 
-main()
-  .then((code) => process.exit(code))
-  .catch((err) => {
-    console.error('[db-init] FATAL:', err.message);
-    process.exit(1);
-  });
+// CLI entry — guard keeps imports side-effect free when loaded as a library.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const args = process.argv.slice(2);
+  const quiet = args.includes('--quiet');
+  const checkOnly = args.includes('--check');
+  initDb({ quiet, checkOnly })
+    .then((result) => process.exit(result.status === 'ok' ? 0 : 1))
+    .catch((err) => {
+      console.error('[db-init] FATAL:', err.message);
+      process.exit(1);
+    });
+}

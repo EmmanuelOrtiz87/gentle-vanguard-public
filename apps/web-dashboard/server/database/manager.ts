@@ -28,6 +28,7 @@ import { BacklogRepo } from './repositories/BacklogRepo';
 import { AuthSessionRepo } from './repositories/AuthSessionRepo';
 import { TokenRepo } from './repositories/TokenRepo';
 import { PrincipalRepo } from './repositories/PrincipalRepo';
+import { SqliteContentOSRepo } from './repositories/ContentOSRepo';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -55,6 +56,9 @@ export interface MetricSnapshot {
   mcp_calls: number;
   mcp_skills: number;
   health_status: string;
+  cache_hits?: number;
+  cache_misses?: number;
+  cache_hit_rate?: number;
 }
 
 export interface SessionRecord {
@@ -150,6 +154,7 @@ export class DatabaseManager {
   readonly authSessions: AuthSessionRepo;
   readonly tokens: TokenRepo;
   readonly principals: PrincipalRepo;
+  readonly contentOS: SqliteContentOSRepo;
 
   private constructor() {
     if (!existsSync(DB_DIR)) {
@@ -176,6 +181,7 @@ export class DatabaseManager {
     this.authSessions = new AuthSessionRepo(this.db);
     this.tokens = new TokenRepo(this.db);
     this.principals = new PrincipalRepo(this.db);
+    this.contentOS = new SqliteContentOSRepo(this.db);
 
     this.migrations.runMigrations();
     this.checkpointWal();

@@ -1,0 +1,10 @@
+{
+  "name": "@gentle-vanguard/core",
+  "version": "3.8.2",
+  "private": true,
+  "type": "module",
+  "description": "Core runtime primitives for the Gentle-Vanguard stack — run-command, timeout-config, metrics-aggregator, session-context-log, resilience-bridge, operational-metrics-tracker. Replaces the runtime symlink hack (bootstrap-symlink.ts) with a real workspace package.",
+  "exports": {
+    "./*": "./*.ts"
+  }
+}

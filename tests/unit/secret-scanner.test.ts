@@ -22,7 +22,7 @@ import {
   scanText,
   scanUrl,
   shannonEntropy,
-} from '../../src/secret-scanner.ts';
+} from '../../src/security/secret-scanner.ts';
 
 const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
 
@@ -44,7 +44,7 @@ const FAKE = {
 function runCli(...args: string[]): { status: number | null; stdout: string; stderr: string } {
   const res = spawnSync(
     process.execPath,
-    ['--import', 'tsx', 'src/secret-scanner-cli.ts', ...args],
+    ['--import', 'tsx', 'src/security/secret-scanner-cli.ts', ...args],
     {
       cwd: ROOT,
       encoding: 'utf-8',
@@ -286,7 +286,9 @@ describe('Secret Scanner — URL scanning', () => {
       assert.strictEqual(matches.length, 1);
       assert.strictEqual(matches[0].source, url);
     } finally {
-      server.close();
+      await new Promise<void>((resolveClose) => {
+        server.close(() => resolveClose());
+      });
     }
   });
 });

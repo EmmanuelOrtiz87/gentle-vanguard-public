@@ -3,8 +3,8 @@ import Database from 'better-sqlite3';
 import { describe, it } from 'node:test';
 import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
 import { SkillRepo } from '../../apps/web-dashboard/server/database/repositories/SkillRepo';
-import { recommend } from '../../src/recommend-agent';
-import { recordRoutingOutcome } from '../../src/route-and-delegate';
+import { recommend } from '../../src/orchestration/recommend-agent';
+import { recordRoutingOutcome } from '../../src/orchestration/route-and-delegate';
 
 function createRoutingRepo(): { db: Database.Database; repo: SkillRepo } {
   const db = new Database(':memory:');

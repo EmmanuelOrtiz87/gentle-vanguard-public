@@ -9,10 +9,10 @@ import {
   evaluate,
   loadBaseline,
   parseDurations,
-} from '../../src/perf-baseline-check.ts';
+} from '../../src/monitor/perf-baseline-check.ts';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
-const PERF_SCRIPT = join(ROOT, 'src', 'perf-baseline-check.ts');
+const PERF_SCRIPT = join(ROOT, 'src', 'monitor', 'perf-baseline-check.ts');
 
 const ENTRY = { baseline_seconds: 1, warn_seconds: 2, max_seconds: 3 };
 

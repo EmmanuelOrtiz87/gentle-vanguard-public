@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('monitoring-scripts', () => {
-  it('src/metrics-collector.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'metrics-collector.ts')));
+  it('src/monitor/metrics-collector.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'monitor', 'metrics-collector.ts')));
   });
 
   it('src/periodic-checkpoint.ts exists', () => {

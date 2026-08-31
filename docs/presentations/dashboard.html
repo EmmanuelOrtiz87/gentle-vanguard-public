@@ -17,11 +17,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Clases específicas de dashboard.html (no presentes en gv.css) --- */
@@ -239,7 +234,19 @@
         >
       </div>
     </header>
-    $1
+    <section class="fade-in" id="command-center">
+      <div class="section-card">
+        <h2><i class="bi bi-grid-3x3-gap me-2"></i>Command Center: control de apps</h2>
+        <p class="mb-2">
+          El dashboard se centra en observabilidad. El ciclo de vida de las apps se administra desde
+          el Command Center standalone en <code>http://127.0.0.1:8090</code>.
+        </p>
+        <p class="mb-0 text-muted">
+          El antiguo panel de apps embebido y la pantalla <code>/docs</code> ya no forman parte del
+          dashboard; la documentación vive en Academy.
+        </p>
+      </div>
+    </section>
     <div class="container-fluid px-4 pb-5" style="max-width: 1400px">
       <!-- Row 1: Overview Stats -->
       <div class="row g-4 mb-5 fade-in">

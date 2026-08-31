@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ResponseCache } from '../../src/response-cache';
+import { ResponseCache } from '../../src/resilience/response-cache';
 import { runPipeline } from '../../src/tokens/token-optimization-orchestrator';
 
 test('ResponseCache completes a miss, store, hit cycle with the same key', () => {

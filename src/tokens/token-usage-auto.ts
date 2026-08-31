@@ -5,20 +5,21 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runNpxTsxSync } from '../core/run-command.js';
 import { createRequire } from 'module';
-import { recordMessage } from '../message-token-logger.js';
+import { recordMessage } from '../tools/message-token-logger.js';
 import { readSessionState, saveSessionState } from '../core/session-context-log.js';
+import type Database from 'better-sqlite3';
 
 const _require = createRequire(import.meta.url);
 
 // Lazy SQLite connection for Nexus DB dual-write
-let _nexusDb: any = null;
-function getNexusDb(): any {
+let _nexusDb: Database.Database | null = null;
+function getNexusDb(): Database.Database | null {
   if (_nexusDb) return _nexusDb;
   try {
-    const Database = _require('better-sqlite3');
+    const DatabaseCtor = _require('better-sqlite3') as typeof Database;
     const dbPath = join(resolve(process.cwd()), '.runtime', 'gentle-vanguard.db');
     if (existsSync(dbPath)) {
-      _nexusDb = new Database(dbPath);
+      _nexusDb = new DatabaseCtor(dbPath);
       return _nexusDb;
     }
   } catch {

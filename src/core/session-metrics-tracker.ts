@@ -15,6 +15,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ROOT } from './repo-root';
 import { SessionContextLog } from './session-context-log';
+const logger = log('CORE-SESSION-METRICS-TRACKER');
+import { log } from '../utils/logger.js';
 
 interface TurnData {
   timestamp: string;
@@ -137,7 +139,7 @@ export class SessionMetricsTracker {
     this.metrics.lastUpdate = new Date().toISOString();
 
     // Log puntual
-    console.log(
+    logger.info(
       `[MetricsTracker] ${this.sessionId}: +${inputTokens + outputTokens} tokens, cost $${cost.toFixed(4)}`,
     );
   }
@@ -152,7 +154,7 @@ export class SessionMetricsTracker {
       this.metrics.feedbackDown++;
     }
     this.metrics.lastUpdate = new Date().toISOString();
-    console.log(`[MetricsTracker] ${this.sessionId}: ${type} received`);
+    logger.info(`[MetricsTracker] ${this.sessionId}: ${type} received`);
   }
 
   /**
@@ -213,7 +215,7 @@ export class SessionMetricsTracker {
     }
 
     ctxLog.save();
-    console.log(`[MetricsTracker] ${this.sessionId}: Synced to ContextLog`);
+    logger.info(`[MetricsTracker] ${this.sessionId}: Synced to ContextLog`);
   }
 
   /**
@@ -224,7 +226,7 @@ export class SessionMetricsTracker {
       this.ensureMetricsDir();
       fs.writeFileSync(this.getMetricsPath(), JSON.stringify(this.metrics, null, 2), 'utf-8');
     } catch (err) {
-      console.error(`[MetricsTracker] Error flushing: ${err}`);
+      logger.error(`[MetricsTracker] Error flushing: ${err}`);
     }
   }
 
@@ -331,7 +333,7 @@ export function recordExternalUsage(
     m.lastUpdate = new Date().toISOString();
     fs.writeFileSync(metricsPath, JSON.stringify(m, null, 2), 'utf-8');
   } catch (err) {
-    console.error(`[MetricsTracker] recordExternalUsage(${sessionId}): ${err}`);
+    logger.error(`[MetricsTracker] recordExternalUsage(${sessionId}): ${err}`);
   }
 }
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-label="Gentle Vanguard GV monogram">
+  <defs>
+    <linearGradient id="gvGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <path d="M128 50A62 62 0 1 0 150 116H112" fill="none" stroke="url(#gvGrad)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M170 54l38 132 38-132M186 126h44" fill="none" stroke="url(#gvGrad)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -7,10 +7,10 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('session-workflow', () => {
   it('src/session-scoring.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'session-scoring.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'session', 'session-scoring.ts')));
   });
 
   it('src/session-reference-system.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'session-reference-system.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'session', 'session-reference-system.ts')));
   });
 });

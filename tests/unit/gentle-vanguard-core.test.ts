@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('gentle-vanguard-core', () => {
-  it('src/session-autostart.ts exists', () => {
+  it('src/core/session-autostart.ts exists', () => {
     assert.ok(existsSync(resolve(ROOT, 'src', 'core', 'session-autostart.ts')));
   });
 

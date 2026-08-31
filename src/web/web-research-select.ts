@@ -31,6 +31,7 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { createWebCrawler } from './web-crawler.js';
 import { gradeRetrieval } from '../retrieval/retrieval-grader.js';
+import { cached } from '../resilience/response-cache/cached.js';
 
 const ROOT = resolve(process.cwd());
 const OUTPUT_DIR = join(ROOT, '.session', 'web-research');
@@ -97,63 +98,75 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // 1. Search (Firecrawl → DDG HTML → Bing RSS fallback, zero-config)
-  const crawler = createWebCrawler();
-  const results = await crawler.search(query, limit);
-  const texts = results.map((r) => `${r.title}\n${r.description}`);
+  // 0-5. Response cache: identical (query, limit, threshold, deep, deepLimit)
+  // combos re-run across sessions; the search+grade pipeline is deterministic
+  // and network-bound, so a 24h exact-key cache skips both fetches and grading.
+  const cacheInput = JSON.stringify({ query, limit, threshold, deep, deepLimit });
+  const { value: output, cache: cacheState } = await cached<SelectOutput>(
+    { context: 'web-research-select', input: cacheInput },
+    async (): Promise<SelectOutput> => {
+      // 1. Search (Firecrawl → DDG HTML → Bing RSS fallback, zero-config)
+      const crawler = createWebCrawler();
+      const results = await crawler.search(query, limit);
+      const texts = results.map((r) => `${r.title}\n${r.description}`);
 
-  // 2. Grade relevance on snippets (fast pass)
-  const graded = gradeRetrieval(query, texts, { threshold });
+      // 2. Grade relevance on snippets (fast pass)
+      const graded = gradeRetrieval(query, texts, { threshold });
 
-  // 3. Build scored list
-  const scored: SelectedResult[] = results.map((r, i) => ({
-    url: r.url,
-    title: r.title,
-    description: r.description ?? '',
-    score: graded.chunks[i]?.score ?? 0,
-    relevant: graded.chunks[i]?.relevant ?? false,
-  }));
+      // 3. Build scored list
+      const scored: SelectedResult[] = results.map((r, i) => ({
+        url: r.url,
+        title: r.title,
+        description: r.description ?? '',
+        score: graded.chunks[i]?.score ?? 0,
+        relevant: graded.chunks[i]?.relevant ?? false,
+      }));
 
-  // 4. Deep pass: scrape top candidates, grade on FULL markdown content.
-  //    Deep score REPLACES the snippet score for scraped pages — content-based
-  //    BM25 is far more reliable than title+snippet for real intent.
-  if (deep) {
-    const candidates = [...scored].sort((a, b) => b.score - a.score).slice(0, deepLimit);
-    for (const cand of candidates) {
-      try {
-        const scraped = await crawler.scrape(cand.url);
-        const md = (scraped.markdown ?? '').slice(0, 20000); // cap token cost
-        if (md.trim().length > 100) {
-          const deepGraded = gradeRetrieval(query, [md], { threshold });
-          cand.deepScore = deepGraded.chunks[0]?.score ?? 0;
-          cand.score = cand.deepScore; // deep wins over snippet
-          cand.relevant = cand.score >= threshold;
-        } else {
-          cand.scrapeError = 'empty markdown';
+      // 4. Deep pass: scrape top candidates, grade on FULL markdown content.
+      //    Deep score REPLACES the snippet score for scraped pages — content-based
+      //    BM25 is far more reliable than title+snippet for real intent.
+      if (deep) {
+        const candidates = [...scored].sort((a, b) => b.score - a.score).slice(0, deepLimit);
+        for (const cand of candidates) {
+          try {
+            const scraped = await crawler.scrape(cand.url);
+            const md = (scraped.markdown ?? '').slice(0, 20000); // cap token cost
+            if (md.trim().length > 100) {
+              const deepGraded = gradeRetrieval(query, [md], { threshold });
+              cand.deepScore = deepGraded.chunks[0]?.score ?? 0;
+              cand.score = cand.deepScore; // deep wins over snippet
+              cand.relevant = cand.score >= threshold;
+            } else {
+              cand.scrapeError = 'empty markdown';
+            }
+          } catch (e) {
+            cand.scrapeError = e instanceof Error ? e.message.slice(0, 120) : 'scrape failed';
+          }
         }
-      } catch (e) {
-        cand.scrapeError = e instanceof Error ? e.message.slice(0, 120) : 'scrape failed';
+        // Re-sort after deep grading
+        scored.sort((a, b) => Number(b.relevant) - Number(a.relevant) || b.score - a.score);
+      } else {
+        // Sort by score desc, relevant first (snippet mode)
+        scored.sort((a, b) => Number(b.relevant) - Number(a.relevant) || b.score - a.score);
       }
-    }
-    // Re-sort after deep grading
-    scored.sort((a, b) => Number(b.relevant) - Number(a.relevant) || b.score - a.score);
-  } else {
-    // Sort by score desc, relevant first (snippet mode)
-    scored.sort((a, b) => Number(b.relevant) - Number(a.relevant) || b.score - a.score);
+
+      const selected = scored.filter((r) => r.relevant);
+
+      return {
+        query,
+        mode: deep ? 'deep' : 'snippet',
+        searchCount: results.length,
+        gradedCount: graded.totalCount,
+        relevantCount: selected.length,
+        verdict: graded.verdict,
+        results: scored,
+        averageScore: graded.averageScore,
+      };
+    },
+  );
+  if (cacheState === 'hit') {
+    console.error(`[web-research] cache HIT (query served from response_cache)`);
   }
-
-  const selected = scored.filter((r) => r.relevant);
-
-  const output: SelectOutput = {
-    query,
-    mode: deep ? 'deep' : 'snippet',
-    searchCount: results.length,
-    gradedCount: graded.totalCount,
-    relevantCount: selected.length,
-    verdict: graded.verdict,
-    results: scored,
-    averageScore: graded.averageScore,
-  };
 
   // 5. Persist for the knowledge base / future sessions
   try {

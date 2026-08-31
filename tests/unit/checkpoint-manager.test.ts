@@ -13,7 +13,7 @@ import { tmpdir } from 'os';
 import { pathToFileURL } from 'url';
 
 const ROOT = join(import.meta.dirname, '..', '..');
-const SRC = pathToFileURL(join(ROOT, 'src', 'checkpoint-manager.ts')).href;
+const SRC = pathToFileURL(join(ROOT, 'src', 'ops', 'checkpoint-manager.ts')).href;
 
 function makeTempRoot(): string {
   const dir = join(tmpdir(), `ckpt-test-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`);

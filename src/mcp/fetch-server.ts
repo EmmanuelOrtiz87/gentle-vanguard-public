@@ -6,9 +6,9 @@
  * Soporta: CLI, Dashboard, File, Webhook, Discord, Slack.
  *
  * Usage:
- *   npx tsx src/multi-channel-alert.ts --send "Test message" --severity warning
- *   npx tsx src/multi-channel-alert.ts --monitor    # Modo monitor
- *   npx tsx src/multi-channel-alert.ts --test         # Test all channels
+ *   npx tsx src/monitor/multi-channel-alert.ts --send "Test message" --severity warning
+ *   npx tsx src/monitor/multi-channel-alert.ts --monitor    # Modo monitor
+ *   npx tsx src/monitor/multi-channel-alert.ts --test         # Test all channels
  *
  * @version 1.0.0
  */
@@ -604,9 +604,11 @@ async function main(): Promise<void> {
     console.log('  SLACK_WEBHOOK_URL     Slack webhook URL');
     console.log('');
     console.log('Examples:');
-    console.log('  npx tsx src/multi-channel-alert.ts --send "Server down" --severity critical');
-    console.log('  npx tsx src/multi-channel-alert.ts --test');
-    console.log('  npx tsx src/multi-channel-alert.ts --demo');
+    console.log(
+      '  npx tsx src/monitor/multi-channel-alert.ts --send "Server down" --severity critical',
+    );
+    console.log('  npx tsx src/monitor/multi-channel-alert.ts --test');
+    console.log('  npx tsx src/monitor/multi-channel-alert.ts --demo');
   }
 }
 

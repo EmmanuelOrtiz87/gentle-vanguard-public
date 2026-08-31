@@ -50,7 +50,7 @@ function exists(...parts: string[]): boolean {
   return getCached(key, () => fs.existsSync(path.resolve(ROOT, ...parts)));
 }
 
-function readJsonCached(...parts: string[]): any {
+function readJsonCached(...parts: string[]): unknown {
   const key = `json:${parts.join('/')}`;
   return getCached(key, () => {
     try {
@@ -106,7 +106,7 @@ async function checkDashboard(): Promise<void> {
 async function checkCore(): Promise<void> {
   header('Core');
   const checks = [
-    { name: 'Team Orchestrator (TS)', path: ['src', 'team-orchestrator.ts'] },
+    { name: 'Team Orchestrator (TS)', path: ['src', 'orchestration', 'team-orchestrator.ts'] },
     { name: 'Session Ref (TS)', path: ['src', 'session-reference-system.ts'] },
     { name: 'Skill Factory (TS)', path: ['src', 'skills', 'skill-factory.ts'] },
     { name: 'Skill registry exists', path: ['.atl', 'skill-registry.md'] },
@@ -119,7 +119,7 @@ async function checkSecurity(): Promise<void> {
   header('Security');
   const checks = [
     { name: 'GateGuard (TS)', path: ['src', 'trust-layer', 'result-gatekeeper.ts'] },
-    { name: 'Cost Tracking', path: ['src', 'cost-tracker.ts'] },
+    { name: 'Cost Tracking', path: ['src', 'monitor', 'cost-tracker.ts'] },
     { name: 'pnpm security normativa', path: ['rules', 'SECURITY.md'] },
   ];
   await checkFileBatch(checks);
@@ -145,13 +145,18 @@ async function checkMlEmbeddings(): Promise<void> {
 
 async function checkEngramRag(): Promise<void> {
   header('Engram RAG');
-  const checks = [{ name: 'engram-rag-reindex.ts exists', path: ['src', 'engram-rag-reindex.ts'] }];
+  const checks = [
+    { name: 'engram-rag-reindex.ts exists', path: ['src', 'knowledge', 'engram-rag-reindex.ts'] },
+  ];
   await checkFileBatch(checks);
 }
 
 async function checkConfig(): Promise<void> {
   header('Config');
-  const modelRouter = readJsonCached('config', 'model-router.json');
+  const modelRouter = readJsonCached('config', 'model-router.json') as Record<
+    string,
+    unknown
+  > | null;
   writeCheck('model-router.json exists', modelRouter !== null);
   writeCheck('costTracking section present', modelRouter?.costTracking !== undefined);
   writeCheck('routingPolicy section present', modelRouter?.routingPolicy !== undefined);
@@ -173,7 +178,10 @@ async function checkLefthook(): Promise<void> {
 
 async function checkCrossWorkspace(): Promise<void> {
   header('Cross-Workspace');
-  writeCheck('Cross-workspace validator (TS)', exists('src', 'cross-workspace-validator.ts'));
+  writeCheck(
+    'Cross-workspace validator (TS)',
+    exists('src', 'integrations', 'cross-workspace-validator.ts'),
+  );
 }
 
 // Main execution with parallel categories

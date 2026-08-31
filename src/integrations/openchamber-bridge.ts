@@ -48,10 +48,36 @@ interface StackStatus {
   components: Record<string, boolean>;
 }
 
+interface StackConfig {
+  version?: string;
+}
+
+interface CacheCheckResult {
+  hit: boolean;
+  response?: string;
+  tokensSaved?: number;
+}
+
+interface CacheStats {
+  hitRate?: number;
+  totalCalls?: number;
+  tokensSaved?: number;
+}
+
+interface CacheHookSystem {
+  check: (input: string, skill?: string) => CacheCheckResult;
+  registerOutput: (output: string, tokensUsed?: number) => void;
+  getStats: () => CacheStats;
+}
+
+interface CacheModule {
+  CacheHookSystem?: CacheHookSystem;
+}
+
 // ─── State ────────────────────────────────────────────────────────────────────
 let isInitialized = false;
-let stackConfig: any = null;
-let cacheModule: any = null;
+let stackConfig: StackConfig | null = null;
+let cacheModule: CacheModule | null = null;
 
 // ─── Initialization ───────────────────────────────────────────────────────────
 async function initBridge(): Promise<boolean> {
@@ -178,7 +204,7 @@ export async function getStatus(): Promise<StackStatus> {
     config: existsSync(join(STACK_ROOT, 'config', 'orchestrator.json')),
     healthCheck: existsSync(join(STACK_ROOT, 'src', 'health-check.ts')),
     cacheHook: existsSync(join(STACK_ROOT, 'src', 'core', 'cache-hook-system.ts')),
-    responseCache: existsSync(join(STACK_ROOT, 'src', 'response-cache.ts')),
+    responseCache: existsSync(join(STACK_ROOT, 'src', 'resilience', 'response-cache.ts')),
     nexusDb: existsSync(join(STACK_ROOT, '.runtime', 'gentle-vanguard.db')),
   };
 

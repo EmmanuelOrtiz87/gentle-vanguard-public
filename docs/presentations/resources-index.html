@@ -4,21 +4,17 @@
     <meta name="theme-color" content="#0b1020" />
     <meta
       name="description"
-      content="Gentle-Vanguard CMS — Panel de Control de Marketing — Gentle-Vanguard documentation"
+      content="Gentle-Vanguard Content Studio (CMS) y Prompt Studio — Gentle-Vanguard documentation"
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gentle-Vanguard CMS — Panel de Control de Marketing</title>
+    <title>Gentle-Vanguard Content Studio (CMS) y Prompt Studio</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
@@ -569,7 +565,7 @@
           <div class="icon">⚡</div>
           <div>
             <h1>Gentle-Vanguard</h1>
-            <span>CMS de Marketing</span>
+            <span>Content Studio (CMS)</span>
           </div>
         </div>
 
@@ -639,7 +635,10 @@
         <!-- Dashboard Section -->
         <section class="content-section active" id="dashboard">
           <h2><i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i>Dashboard</h2>
-          <p class="text-secondary mb-4">Panel de control del sistema de marketing nativo.</p>
+          <p class="text-secondary mb-4">
+            Content Studio (CMS) para crear y gestionar contenido. Prompt Studio es una app
+            independiente para prompts.
+          </p>
 
           <div class="stats-grid">
             <div class="stat-card">
@@ -767,11 +766,7 @@
             </div>
 
             <div class="chat-input">
-              <input
-                type="text"
-                id="chat-input"
-                placeholder="Escribe tu consulta... (ej: 'Crear un post sobre Doc-Gentle')"
-              />
+              <input type="text" id="chat-input" placeholder="Escribe tu consulta..." />
               <button class="btn-gv" onclick="sendMessage()">
                 <i class="bi bi-send"></i>
               </button>
@@ -1511,60 +1506,6 @@
 
           <div class="row g-4">
             <div class="col-md-6">
-              <div class="resource-card" style="border: 2px solid var(--p); position: relative">
-                <div
-                  style="
-                    position: absolute;
-                    top: -10px;
-                    right: 10px;
-                    background: linear-gradient(135deg, var(--p), var(--s));
-                    color: var(--bg0);
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 20px;
-                    font-size: 0.625rem;
-                    font-weight: 700;
-                  "
-                >
-                  NUEVO
-                </div>
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <h4><i class="bi bi-file-earmark-text me-2"></i>Doc-Gentle</h4>
-                  <span
-                    style="
-                      background: rgba(34, 211, 238, 0.2);
-                      color: var(--p);
-                      padding: 0.2rem 0.6rem;
-                      border-radius: 4px;
-                      font-size: 0.75rem;
-                      font-weight: 600;
-                    "
-                    >LANDING LIVE</span
-                  >
-                </div>
-                <p class="text-secondary small mb-3">
-                  Plataforma de inteligencia documental con pricing, ROI calculator y comparativa.
-                </p>
-                <div class="d-flex gap-2">
-                  <button
-                    class="btn-gv"
-                    onclick="window.open('product-doc-gentle.html', '_blank')"
-                    style="font-size: 0.8rem"
-                  >
-                    <i class="bi bi-rocket me-1"></i>Ver Landing
-                  </button>
-                  <a
-                    href="../../apps/doc-gentle/README.md"
-                    target="_blank"
-                    class="btn-gv-alt"
-                    style="font-size: 0.8rem"
-                  >
-                    <i class="bi bi-book me-1"></i>Read Spec
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-6">
               <div class="resource-card" style="border: 1px solid var(--bg2)">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                   <h4><i class="bi bi-cpu me-2"></i>Gentle-AI Core</h4>
@@ -1796,7 +1737,6 @@
           dashboard: 'npm run dashboard:dev',
         },
         products: {
-          'doc-gentle': { status: 'spec', price: '$15/mes', url: 'apps/doc-gentle/' },
           'gentle-music': { status: 'planned', price: '$4.99/mes' },
           'stock-vanguard': { status: 'planned', price: '$29/mes', region: 'AR' },
         },
@@ -1839,7 +1779,6 @@ Puedo ayudarte con:
 - "Crear video demo de [feature]"
 
 **Información:**
-- "Precios de Doc-Gentle"
 - "Contratos disponibles"
 - "Estado del stack"
 
@@ -1911,7 +1850,7 @@ ${Object.entries(agentContext.products)
 Tengo opcoiones para ayudarte:
 
 1. **Generar contenido** - Posts, imágenes, videos
-2. **Información de productos** - Doc-Gentle, servicios
+2. **Información de productos** - Servicios
 3. **Ver contratos** - Descargar documentación legal
 4. **Obtener ayuda** - Lista de comandos disponibles
 
@@ -1948,7 +1887,6 @@ What do you need today? I can execute actions directly from here.`,
 - "Create demo video of [feature]"
 
 **Information:**
-- "Doc-Gentle prices"
 - "Available contracts"
 - "Stack status"
 
@@ -2020,7 +1958,7 @@ ${Object.entries(agentContext.products)
 I have options to help:
 
 1. **Generate content** - Posts, images, videos
-2. **Product information** - Doc-Gentle, services
+2. **Product information** - Services
 3. **View contracts** - Download legal documentation
 4. **Get help** - List of available commands
 

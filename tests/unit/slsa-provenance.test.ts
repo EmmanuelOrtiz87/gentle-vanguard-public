@@ -23,7 +23,7 @@ import {
   DEFAULT_BUILD_TYPE,
   DEFAULT_BUILDER_ID,
   type InTotoStatement,
-} from '../../src/slsa-provenance.ts';
+} from '../../src/security/slsa-provenance.ts';
 
 function makeTempFile(content: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'gv-slsa-test-'));

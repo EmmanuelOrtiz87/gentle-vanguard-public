@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark" class="gv-document-page">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Arquitectura y uso de Obsidian, Engram, Nexus, CodeGraph y Graphify."
+    />
+    <title>Knowledge systems | Gentle-Vanguard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <style>
+      .system {
+        background: var(--card);
+        border: 1px solid var(--br);
+        border-radius: 14px;
+        padding: 1.2rem;
+        height: 100%;
+      }
+      .system h2 {
+        font-size: 1.2rem;
+        color: var(--p);
+      }
+      .flow {
+        font-family: monospace;
+        color: #cbd5e1;
+        background: #111827;
+        border: 1px solid var(--br);
+        border-radius: 12px;
+        padding: 1rem;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body class="grain">
+    <nav class="navbar navbar-expand-lg nav-blur fixed-top">
+      <div class="container-fluid px-3">
+        <a class="navbar-brand text-light fw-bold mono" href="index.html">GV</a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <a class="nav-link" href="case-study-before-after.html">Caso</a
+          ><a class="nav-link" href="architecture.html">Arquitectura</a
+          ><a class="nav-link" href="index.html">Índice</a>
+          <div class="lang-seg" role="group" aria-label="Language">
+            <button type="button" data-lang="es" aria-pressed="true">ES</button
+            ><button type="button" data-lang="en" aria-pressed="false">EN</button
+            ><button type="button" data-lang="pt-BR" aria-pressed="false">PT</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <header class="hero">
+      <span class="hero-badge mb-3">✦ Arquitectura local-first</span>
+      <h1 class="display-3 fw-bold"><span class="glow">Knowledge systems</span></h1>
+      <p class="lead text-secondary" style="max-width: 760px; margin: auto">
+        Obsidian/Knowledge Base, Engram, Nexus, CodeGraph y Graphify trabajan juntos, pero cada uno
+        tiene un rol y una autoridad distinta.
+      </p>
+    </header>
+    <main class="container py-5">
+      <section class="row g-3 mb-5">
+        <div class="col-md-6">
+          <div class="system">
+            <h2>Obsidian / vault</h2>
+            <p>Conocimiento curado y portable en Markdown.</p>
+            <code>knowledge-base/</code>
+            <p class="small text-secondary mt-2">
+              No es un servicio multiusuario ni un almacén de secretos.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="system">
+            <h2>Engram</h2>
+            <p>Memoria persistente de sesiones, decisiones y aprendizajes.</p>
+            <code>.engram-data/ + MCP</code>
+            <p class="small text-secondary mt-2">
+              Observations, provenance, summaries y veredictos explícitos.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="system">
+            <h2>Nexus</h2>
+            <p>SQLite WAL para métricas, tokens y estado operacional.</p>
+            <code>.runtime/gentle-vanguard.db</code>
+            <p class="small text-secondary mt-2">
+              Autoridad de agregados, no de decisiones semánticas.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="system">
+            <h2>CodeGraph / Graphify</h2>
+            <p>Índice de tooling incremental y grafo AST determinista para análisis.</p>
+            <code>.codegraph/ · graphify-out/</code>
+            <p class="small text-secondary mt-2">Complementarios, no fusionados.</p>
+          </div>
+        </div>
+      </section>
+      <section class="mb-5">
+        <h2>Flujo y sincronización</h2>
+        <div class="flow">
+          Sesión → Engram ── export ──→ knowledge-base/00-inbox/ ├──────────────→ Nexus (operación)
+          ├──────────────→ CodeGraph (.codegraph/) └──────────────→ Graphify (graphify-out/) Notas
+          seleccionadas ── import ──→ Engram
+        </div>
+        <p class="mt-3">La sync es aditiva y deduplica por hash. Previsualizá antes de escribir:</p>
+        <pre><code>npm run kb:sync -- --mode full --dry-run
+npm run kb:sync -- --mode full
+npm run kb:sync -- --mode session-summary</code></pre>
+      </section>
+      <section class="mb-5">
+        <h2>Comandos de operación</h2>
+        <div class="table-responsive">
+          <table class="table table-dark table-bordered">
+            <thead>
+              <tr>
+                <th>Necesidad</th>
+                <th>Comando</th>
+                <th>Límite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Estado de Nexus</td>
+                <td><code>npm run db:health</code></td>
+                <td>estado local actual</td>
+              </tr>
+              <tr>
+                <td>Buscar código</td>
+                <td><code>npm run graphify -- query "..."</code></td>
+                <td>AST, no semántica total</td>
+              </tr>
+              <tr>
+                <td>Explicar nodo</td>
+                <td><code>npm run graphify -- explain &lt;node_id&gt;</code></td>
+                <td>requiere ID exacto</td>
+              </tr>
+              <tr>
+                <td>Actualizar grafo</td>
+                <td><code>npm run graphify -- update .</code></td>
+                <td>ejecutar tras editar</td>
+              </tr>
+              <tr>
+                <td>Health del stack</td>
+                <td><code>npm run watchtower:health</code></td>
+                <td>no reemplaza revisión humana</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="row g-3">
+        <div class="col-md-6">
+          <div class="system">
+            <h2>Límites honestos</h2>
+            <ul>
+              <li>
+                CodeGraph se mantiene por sync incremental; Graphify usa <code>contains</code>/<code
+                  >calls</code
+                >
+                y tiene alcance limitado.
+              </li>
+              <li>Labeling opcional consume cuota Gemini de 20 requests/día.</li>
+              <li>Visualizaciones grandes requieren límite de nodos.</li>
+              <li>La ausencia de una fuente o de un backup no se rellena automáticamente.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="system">
+            <h2>Fuentes canónicas</h2>
+            <ul>
+              <li>
+                <code>config/knowledge-base-config.json</code>, configuración de vault y sync.
+              </li>
+              <li>
+                <code>src/knowledge/knowledge-base-sync.ts</code>, implementación de import/export.
+              </li>
+              <li><code>docs/knowledge-base/ARCHITECTURE.md</code>, arquitectura formal.</li>
+              <li><code>apps/academy-web</code>, contenido educativo publicado.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="text-center py-4">
+      <a href="case-study-before-after.html">Caso comparativo</a> ·
+      <a href="memory-knowledge.html">Memory (legacy view)</a> · <a href="index.html">Inicio</a>
+    </footer>
+    <script src="assets/js/i18n-content.js?v=2.1"></script>
+    <script src="assets/js/i18n-extra.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/gv.js?v=2.1"></script>
+  </body>
+</html>

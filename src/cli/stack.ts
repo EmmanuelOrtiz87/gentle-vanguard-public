@@ -125,11 +125,11 @@ const COMMANDS: Command[] = [
       switch (action) {
         case 'start':
           printInfo('Starting dashboard...');
-          runNpxTsx('src/dashboard-start.ts');
+          runNpxTsx('src/ops/dashboard-start.ts');
           break;
         case 'stop':
           printInfo('Stopping dashboard...');
-          runNpxTsx('src/dashboard-stop.ts');
+          runNpxTsx('src/ops/dashboard-stop.ts');
           break;
         case 'status':
           printInfo('Checking dashboard status...');
@@ -157,7 +157,7 @@ const COMMANDS: Command[] = [
           break;
         case 'close':
           printInfo('Closing session...');
-          runNpxTsx('src/session-close-orchestrator.ts');
+          runNpxTsx('src/session/session-close-orchestrator.ts');
           break;
         case 'status':
           printInfo('Checking session status...');
@@ -181,7 +181,7 @@ const COMMANDS: Command[] = [
       switch (action) {
         case 'sync':
           printInfo('Syncing codegraph...');
-          runNpxTsx('src/codegraph-sync-autostart.ts');
+          runNpxTsx('src/integrations/codegraph-sync-autostart.ts');
           break;
         case 'update':
           printInfo('Updating codegraph with current changes...');
@@ -212,15 +212,15 @@ const COMMANDS: Command[] = [
       switch (action) {
         case 'sync':
           printInfo('Syncing Engram...');
-          runNpxTsx('src/engram-auto-sync.ts');
+          runNpxTsx('src/knowledge/engram-auto-sync.ts');
           break;
         case 'compact':
           printInfo('Compacting Engram...');
-          runNpxTsx('src/engram-auto-compact.ts');
+          runNpxTsx('src/knowledge/engram-auto-compact.ts');
           break;
         case 'integrity':
           printInfo('Checking Engram integrity...');
-          runNpxTsx('src/engram-integrity-check.ts');
+          runNpxTsx('src/knowledge/engram-integrity-check.ts');
           break;
         case 'status':
           checkEngramStatus();
@@ -239,7 +239,7 @@ const COMMANDS: Command[] = [
     handler: (args) => {
       const full = args.includes('--full') || args.includes('-f');
       printInfo(`Running stack validation${full ? ' (full mode)' : ''}...`);
-      runNpxTsx('src/stack-verify.ts', full ? ['--full'] : []);
+      runNpxTsx('src/ops/stack-verify.ts', full ? ['--full'] : []);
     },
   },
   {
@@ -268,18 +268,18 @@ const COMMANDS: Command[] = [
       switch (action) {
         case 'status':
           printInfo('Checking learning engine status...');
-          runNpxTsx('src/learning-engine.ts', ['--status']);
+          runNpxTsx('src/ml/learning-engine.ts', ['--status']);
           break;
         case 'suggest':
           const domain = args[1];
           printInfo(
             domain ? `Getting suggestions for: ${domain}...` : 'Getting improvement suggestions...',
           );
-          runNpxTsx('src/learning-engine.ts', domain ? ['--suggest', domain] : ['--suggest']);
+          runNpxTsx('src/ml/learning-engine.ts', domain ? ['--suggest', domain] : ['--suggest']);
           break;
         case 'patterns':
           printInfo('Viewing learned patterns...');
-          runNpxTsx('src/learning-engine.ts', ['--patterns']);
+          runNpxTsx('src/ml/learning-engine.ts', ['--patterns']);
           break;
         default:
           printError(`Unknown action: ${action}`);
@@ -299,7 +299,7 @@ const COMMANDS: Command[] = [
         const source = sourceIndex > -1 ? args[sourceIndex + 1] : 'web';
 
         printInfo(`Acquiring knowledge from: ${url}...`);
-        runNpxTsx('src/knowledge-acquisition.ts', ['--fetch', url, '--source', source]);
+        runNpxTsx('src/ml/knowledge-acquisition.ts', ['--fetch', url, '--source', source]);
       } else {
         printError('Usage: stack knowledge acquire <url> [--source <name>]');
         process.exit(1);
@@ -420,15 +420,15 @@ function executeTool(toolName: string, args: string[]): void {
   const toolMap: Record<string, string> = {
     'health-check': 'src/core/health-check.ts',
     'maintenance-watchtower': 'src/core/maintenance-watchtower.ts',
-    dashboard: 'src/dashboard-start.ts',
-    'codegraph-sync': 'src/codegraph-sync-autostart.ts',
-    'engram-sync': 'src/engram-auto-sync.ts',
+    dashboard: 'src/ops/dashboard-start.ts',
+    'codegraph-sync': 'src/integrations/codegraph-sync-autostart.ts',
+    'engram-sync': 'src/knowledge/engram-auto-sync.ts',
     'session-autostart': 'src/core/session-autostart.ts',
-    'error-memory': 'src/error-memory.ts',
-    'learning-engine': 'src/learning-engine.ts',
-    'knowledge-acquisition': 'src/knowledge-acquisition.ts',
-    'stack-verify': 'src/stack-verify.ts',
-    'security-scan': 'src/security-scan.ts',
+    'error-memory': 'src/resilience/error-memory.ts',
+    'learning-engine': 'src/ml/learning-engine.ts',
+    'knowledge-acquisition': 'src/ml/knowledge-acquisition.ts',
+    'stack-verify': 'src/ops/stack-verify.ts',
+    'security-scan': 'src/security/security-scan.ts',
   };
 
   const script = toolMap[toolName];

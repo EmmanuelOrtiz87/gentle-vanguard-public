@@ -24,10 +24,16 @@
  *   cache       Cache management (stub — use Nexus DB instead)
  *   session     Manage session lifecycle (start|stop|status)
  *   dashboard   Control dashboard (start|stop|restart|status)
+ *   cc          Command Center: app lifecycle (start|stop|status)
  *   cleanup     Kill zombie processes
  *   status      Show complete stack status
  *   fix         Fix PS1 references (--configs, --dry-run)
  *   release     Run release gates with per-gate profiling (--skip-tests, --json)
+ *   loop-guard  Check orchestrator loop-guard health (anti-loop)
+ *   metrics     Show live stack metrics (F4.1, from config/stack-metrics.json)
+ *   web         Web research (search|scrape|crawl) via native crawler
+ *   eval        Continuous evaluation over real Nexus traces (F3.1; --gate)
+ *   skill       Skill plugins: list|install|enable|disable|deprecate|remove|verify
  *   help        Show this help
  */
 
@@ -56,6 +62,14 @@ function footer(): void {
   console.log('');
 }
 
+function getLiveMetrics(): Record<string, unknown> {
+  try {
+    const p = join(ROOT, 'config', 'stack-metrics.json');
+    if (existsSync(p)) return JSON.parse(readFileSync(p, 'utf-8'));
+  } catch {}
+  return {};
+}
+
 function showHelp(): void {
   header();
   console.log(`
@@ -80,10 +94,17 @@ COMMANDS:
   cache       Cache management (Nexus DB)
   session     Manage session lifecycle (start|stop|status)
   dashboard   Control dashboard (start|stop|restart|status)
+  cc          Command Center: app lifecycle (start|stop|status)
   cleanup     Kill zombie processes
   status      Show complete stack status
   fix         Fix PS1 references (--configs, --dry-run)
   release     Run release gates with per-gate profiling (--skip-tests, --json)
+  loop-guard  Check orchestrator loop-guard health
+  metrics     Show live stack metrics (config/stack-metrics.json)
+  web         Web research (search|scrape|crawl) via native crawler
+  eval        Continuous evaluation over real Nexus traces (--gate to fail on regression)
+  skill       Skill plugins (list|install|enable|disable|deprecate|remove|verify)
+  telemetry   Unified correlation timeline session/trace/tokens (--session <id>)
   help        Show this help
 
 EXAMPLES:
@@ -184,13 +205,16 @@ function getSessionState(): {
     }
     const state = JSON.parse(readFileSync(SESSION_FILE, 'utf-8'));
     const lastActivity = new Date(state.lastActivity).getTime();
+    if (isNaN(lastActivity)) {
+      return { active: false, reason: 'Invalid lastActivity timestamp' };
+    }
+    // Session is valid while lastActivity is within the 30-minute window.
+    // We intentionally do NOT check a stored PID: createSession() records the
+    // PID of the short-lived CLI process (gv.ts itself), which dies seconds
+    // after writing the file. A process.kill(pid, 0) probe on that PID would
+    // always fail and mark the session inactive even when it is healthy.
     if (Date.now() - lastActivity > 30 * 60 * 1000) {
       return { active: false, reason: 'Session expired (>30min)' };
-    }
-    try {
-      process.kill(state.pid, 0);
-    } catch {
-      return { active: false, reason: 'Process not running' };
     }
     return { active: true, id: state.id, lastActivity: state.lastActivity };
   } catch {
@@ -201,9 +225,12 @@ function getSessionState(): {
 function createSession(id: string): void {
   const sessionDir = dirname(SESSION_FILE);
   if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true });
+  // Note: we omit the `pid` field intentionally. The session lifecycle is
+  // tracked by lastActivity timestamp alone (see getSessionState). Storing
+  // the CLI process PID was misleading because that process exits immediately
+  // after writing this file, making the alive-check always fail.
   const state = {
     id,
-    pid: process.pid,
     startedAt: new Date().toISOString(),
     lastActivity: new Date().toISOString(),
   };
@@ -329,7 +356,7 @@ function cmdDashboard(args: string[]): CommandResult {
       cmdCleanup([]);
       try {
         console.log('[GV] Starting dashboard...');
-        const child = run('npx', ['tsx', 'src/dashboard-start.ts'], {
+        const child = run('npx', ['tsx', 'src/ops/dashboard-start.ts'], {
           detached: true,
           stdio: 'ignore',
           windowsHide: true,
@@ -351,7 +378,7 @@ function cmdDashboard(args: string[]): CommandResult {
     }
     case 'stop': {
       try {
-        runNpxTsxSync('src/dashboard-stop.ts', [], { cwd: ROOT, stdio: 'pipe' });
+        runNpxTsxSync('src/ops/dashboard-stop.ts', [], { cwd: ROOT, stdio: 'pipe' });
         return { success: true, message: 'Dashboard stopped' };
       } catch (e) {
         return { success: false, message: `Failed: ${e}` };
@@ -370,6 +397,103 @@ function cmdDashboard(args: string[]): CommandResult {
         message: running
           ? 'Dashboard running: http://localhost:5173 (WS: 8080)'
           : 'Dashboard not running',
+      };
+    }
+  }
+}
+
+function ccPort(): number {
+  try {
+    const ports = JSON.parse(
+      readFileSync(join(RUNTIME_DIR, 'command-center-ports.json'), 'utf-8'),
+    ) as { ccPort?: number };
+    if (ports.ccPort) return ports.ccPort;
+  } catch {}
+  return Number(process.env.CC_PORT ?? 8090);
+}
+
+function isCcRunning(): boolean {
+  const r = runSync('curl', ['-s', `http://127.0.0.1:${ccPort()}/api/health`], {
+    timeout: 2000,
+    stdio: 'pipe',
+  });
+  return r.status === 0;
+}
+
+function pidFileExistsAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function cmdCc(args: string[]): CommandResult {
+  const subcmd = args[0] || 'status';
+  switch (subcmd) {
+    case 'start': {
+      if (isCcRunning()) {
+        return {
+          success: true,
+          message: `Command Center already running on http://127.0.0.1:${ccPort()}/`,
+        };
+      }
+      try {
+        const child = run(process.execPath, ['--import', 'tsx', 'apps/command-center/start.ts'], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true,
+          cwd: ROOT,
+        });
+        child.unref();
+        return { success: true, message: `Command Center starting on http://127.0.0.1:${ccPort()}/` };
+      } catch (e) {
+        return { success: false, message: `Failed: ${e}` };
+      }
+    }
+    case 'stop': {
+      try {
+        const pidFile = join(RUNTIME_DIR, 'command-center.pid');
+        let pid = 0;
+        if (existsSync(pidFile)) {
+          pid = Number(readFileSync(pidFile, 'utf-8').trim());
+          if (!pid || Number.isNaN(pid)) pid = 0;
+        }
+        if (!pid && isCcRunning()) {
+          // Pidfile lost (e.g. kill/start race) — find the listener on the CC port.
+          const r = runSync(
+            'powershell',
+            [
+              '-NoProfile',
+              '-Command',
+              `@(Get-NetTCPConnection -LocalPort ${ccPort()} -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1).OwningProcess`,
+            ],
+            { timeout: 5000, stdio: 'pipe' },
+          );
+          pid = Number((r.stdout ?? '').trim());
+        }
+        if (!pid || !pidFileExistsAlive(pid)) {
+          if (existsSync(pidFile)) unlinkSync(pidFile);
+          return { success: false, message: 'Command Center not running' };
+        }
+        if (process.platform === 'win32')
+          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], { timeout: 8000, stdio: 'ignore' });
+        else process.kill(pid, 'SIGTERM');
+        if (existsSync(pidFile)) unlinkSync(pidFile);
+        return { success: true, message: `Command Center stopped (PID ${pid})` };
+      } catch (e) {
+        return { success: false, message: `Failed: ${e}` };
+      }
+    }
+    case 'status':
+    default: {
+      const running = isCcRunning();
+      return {
+        success: running,
+        message: running
+          ? `Command Center running: http://127.0.0.1:${ccPort()}/`
+          : 'Command Center not running',
       };
     }
   }
@@ -407,8 +531,8 @@ function cmdFix(args: string[]): CommandResult {
   console.log(`[GV] Fixing PS1 references${dryRun ? ' (dry-run)' : ''}...`);
   try {
     const mode = args.includes('--configs')
-      ? 'src/auto-ps1-fixer-configs.ts'
-      : 'src/auto-ps1-fixer.ts';
+      ? 'src/tools/auto-ps1-fixer-configs.ts'
+      : 'src/tools/auto-ps1-fixer.ts';
     const cmd = dryRun ? `npx tsx ${mode} --dry-run` : `npx tsx ${mode}`;
     runSyncShell(cmd, { cwd: ROOT, stdio: 'inherit' });
     return { success: true, message: 'Fix completed' };
@@ -464,6 +588,12 @@ export const COMMANDS = [
   'status',
   'fix',
   'release',
+  'loop-guard',
+  'metrics',
+  'web',
+  'eval',
+  'skill',
+  'telemetry',
   'help',
 ] as const;
 
@@ -527,7 +657,7 @@ export function buildReleaseReport(gates: GateProfile[]): ReleaseReport {
 
 export function selectReleaseGates(skipTests: boolean): GateSpec[] {
   const specs: GateSpec[] = [
-    { name: 'Homologation Gate', cmd: 'npx', args: ['tsx', 'src/check-sdd-gate.ts'] },
+    { name: 'Homologation Gate', cmd: 'npx', args: ['tsx', 'src/sdd/check-sdd-gate.ts'] },
     {
       name: 'RDD Release Gate',
       cmd: 'npx',
@@ -700,7 +830,7 @@ async function main(): Promise<void> {
       header();
       console.log('Project scaffolding:\n');
       console.log('  Use the SDD workflow:');
-      console.log('    1. npx tsx src/session-autostart.ts');
+      console.log('    1. npx tsx src/session/session-autostart.ts');
       console.log('    2. Load skill: spec-driven-development, planning-and-task-breakdown');
       console.log('    3. Ask the orchestrator to create a new project\n');
       footer();
@@ -785,6 +915,13 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'cc': {
+      const r = cmdCc(args.slice(1));
+      if (r.message) console.log(r.message);
+      process.exit(r.success ? 0 : 1);
+      break;
+    }
+
     case 'cleanup': {
       const r = cmdCleanup(args.slice(1));
       console.log(r.message);
@@ -813,6 +950,127 @@ async function main(): Promise<void> {
         printReleaseReport(report);
       }
       process.exit(report.exitCode);
+      break;
+    }
+
+    case 'loop-guard': {
+      header();
+      const r = runSync('npx', ['tsx', 'src/core/orchestrator-loop-guard.ts'], {
+        timeout: 5000,
+        cwd: ROOT,
+      });
+      console.log((r.stdout ?? '').toString());
+      if (r.status !== 0) console.log('Loop-guard: no loop detected (self-test passed)');
+      else console.log('Loop-guard self-test indicates break condition (review output)');
+      footer();
+      process.exit(r.status === 0 ? 0 : 1);
+      break;
+    }
+
+    case 'metrics': {
+      header();
+      const m = getLiveMetrics() as Record<string, unknown>;
+      if (Object.keys(m).length === 0) {
+        console.log('No metrics file found at config/stack-metrics.json');
+      } else {
+        console.log(JSON.stringify(m, null, 2));
+      }
+      footer();
+      break;
+    }
+
+    case 'web': {
+      const webArgs = args.slice(1);
+      if (webArgs.length === 0) {
+        console.log(
+          'Usage: gv web search --query "..." | gv web scrape --url <url> | gv web health',
+        );
+        process.exit(1);
+      }
+      try {
+        const r = runSync('npx', ['tsx', 'src/web/web-crawler-cli.ts', ...webArgs], {
+          timeout: 30000,
+          cwd: ROOT,
+        });
+        const out = (r.stdout ?? '').toString().trim();
+        if (out) console.log(out);
+        if (r.stderr) console.error((r.stderr ?? '').toString().trim());
+        process.exit(r.status ?? 0);
+      } catch (e) {
+        console.error(`[WEB] FAILED: ${e instanceof Error ? e.message : String(e)}`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'eval': {
+      const evalArgs = args.slice(1);
+      if (evalArgs.length === 0 || evalArgs.includes('--help')) {
+        console.log(
+          'Usage: gv eval [--gate] [--threshold N] [--limit N] [--json] [--db PATH]',
+        );
+        console.log('  Runs continuous evaluation over real Nexus traces (F3.1).');
+        console.log('  --gate exits 1 if the aggregate score regresses beyond --threshold % (default 5).');
+        process.exit(0);
+      }
+      try {
+        const r = runSync('npx', ['tsx', 'src/eval/continuous-eval-cli.ts', ...evalArgs], {
+          timeout: 120000,
+          cwd: ROOT,
+        });
+        const out = (r.stdout ?? '').toString().trim();
+        if (out) console.log(out);
+        if (r.stderr) console.error((r.stderr ?? '').toString().trim());
+        process.exit(r.status ?? 0);
+      } catch (e) {
+        console.error(`[EVAL] FAILED: ${e instanceof Error ? e.message : String(e)}`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'telemetry': {
+      const tArgs = args.slice(1);
+      if (tArgs.length === 0 || tArgs.includes('--help')) {
+        console.log('Usage: gv telemetry --session <id> | --trace <id> [--from --to --no-tokens --json]');
+        console.log('  Unified correlation timeline: session_id ↔ trace_id ↔ token usage (F3.6).');
+        process.exit(0);
+      }
+      try {
+        const r = runSync('npx', ['tsx', 'src/telemetry/correlation-cli.ts', ...tArgs], {
+          timeout: 60000,
+          cwd: ROOT,
+        });
+        const out = (r.stdout ?? '').toString().trim();
+        if (out) console.log(out);
+        if (r.stderr) console.error((r.stderr ?? '').toString().trim());
+        process.exit(r.status ?? 0);
+      } catch (e) {
+        console.error(`[TELEMETRY] FAILED: ${e instanceof Error ? e.message : String(e)}`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'skill': {
+      // Skill plugin lifecycle (F3.4) — delegates to src/plugins/skill-cli.ts
+      // via runNpxTsxSync (in-process tsx loader: no shell, no .cmd shim,
+      // windowsHide enforced per AGENTS.md procesos-ocultos).
+      const skillArgs = args.slice(1);
+      if (skillArgs.length === 0) {
+        console.log(
+          'Usage: gv skill <list|install|enable|disable|deprecate|remove|verify|get> [args] [--json]',
+        );
+        process.exit(1);
+      }
+      const r = runNpxTsxSync('src/plugins/skill-cli.ts', skillArgs, {
+        cwd: ROOT,
+        timeout: 180000,
+      });
+      const out = (r.stdout ?? '').toString().trim();
+      if (out) console.log(out);
+      if (r.stderr) console.error((r.stderr ?? '').toString().trim());
+      process.exit(r.status ?? 0);
       break;
     }
 

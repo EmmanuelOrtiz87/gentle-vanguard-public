@@ -10,6 +10,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { isWithinRoot } from '../core/path-identity.js';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 
@@ -33,9 +34,8 @@ async function main(): Promise<void> {
   } catch {
     cwd = process.cwd();
   }
-  const normalized = resolve(cwd).toLowerCase();
-  const root = REPO_ROOT.toLowerCase();
-  if (!normalized.startsWith(root) || !existsSync(resolve(REPO_ROOT, 'package.json'))) {
+  const normalized = resolve(cwd);
+  if (!isWithinRoot(normalized, REPO_ROOT) || !existsSync(resolve(REPO_ROOT, 'package.json'))) {
     process.exit(0);
   }
 

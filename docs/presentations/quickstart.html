@@ -17,10 +17,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
     <style>
       /* --- Estilos específicos de quickstart.html (complementan el design system) --- */
@@ -210,12 +206,28 @@
             <div class="stat-l">Lazy Steps</div>
           </div>
           <div class="text-center">
-            <div class="stat-n">95/95</div>
+            <div class="stat-n">113/113</div>
             <div class="stat-l">Health PASS</div>
           </div>
         </div>
       </div>
     </header>
+
+    <section id="stack-apps" class="fade-in">
+      <div class="section-title">
+        <h2>🧩 Apps del stack</h2>
+        <p>Arráncalas on-demand desde Command Center; no se inicia todo automáticamente.</p>
+      </div>
+      <div class="section-card">
+        <p class="mb-2">
+          <strong>Command Center</strong> · <code>8090</code> · <code>npm run cc:start</code>
+        </p>
+        <p class="mb-0">
+          Dashboard <code>5173</code> · Analytics <code>5174</code> · Content Studio (CMS)
+          <code>5175</code> · Academy <code>4173</code> · Prompt Studio <code>5176</code>.
+        </p>
+      </div>
+    </section>
 
     <section id="prerequisites" class="fade-in">
       <div class="section-title">
@@ -290,7 +302,7 @@
         <div>
           <span class="comment"># Run the autostart pipeline (MANDATORY first command)</span>
         </div>
-        <div><span class="prompt">$</span> npx tsx src/session-autostart.ts</div>
+        <div><span class="prompt">$</span> npx tsx src/session/session-autostart.ts</div>
       </div>
       <div class="d-flex justify-content-center mt-3">
         <span
@@ -316,7 +328,7 @@
           </thead>
           <tbody>
             <tr>
-              <td><code>npx tsx src/session-autostart.ts</code></td>
+              <td><code>npx tsx src/session/session-autostart.ts</code></td>
               <td>
                 Start session
                 <span
@@ -353,7 +365,7 @@
                   >i</span
                 >
               </td>
-              <td><span class="badge bg-success bg-opacity-10 text-success">95/95 PASS</span></td>
+              <td><span class="badge bg-success bg-opacity-10 text-success">113/113 PASS</span></td>
             </tr>
             <tr>
               <td><code>npx tsx src/auto-apply-safe.ts --check</code></td>
@@ -560,7 +572,7 @@
                   <code
                     class="text-info"
                     style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem"
-                    >npx tsx src/session-autostart.ts</code
+                    >npx tsx src/session/session-autostart.ts</code
                   ><br /><small class="text-secondary"
                     >This is the <strong class="text-warning">mandatory first command</strong> every
                     session</small
@@ -592,7 +604,7 @@
                 <div>
                   <strong>All health checks</strong> verify system readiness<br /><small
                     class="text-secondary"
-                    >95 Checks across 21 components — all must PASS</small
+                    >113 Checks across 22 components — all must PASS</small
                   >
                 </div>
               </div>
@@ -698,7 +710,7 @@
         <div class="items">
           <span>Auto-Apply Safe</span><span>Circuit Breaker</span><span>Auto-Escalation</span
           ><span>Dependency Graph</span><span>AB Testing</span><span>Session Scoring</span
-          ><span>Norms Learner</span><span>Watchtower 95/95</span>
+          ><span>Norms Learner</span><span>Watchtower 113/113</span>
         </div>
       </div>
     </section>

@@ -1,0 +1,750 @@
+import type { SecretCategory, RiskLevel, PatternMode } from './scanner.js';
+
+export interface SecretPattern {
+  /** Stable, human-readable identifier. */
+  name: string;
+  description: string;
+  category: SecretCategory;
+  /** Default risk for this pattern (overridable per-category via config). */
+  risk: RiskLevel;
+  /** The detection regex. Literal regex facts for public token formats. */
+  regex: RegExp;
+  /** Known false-positive substrings (case-insensitive containment check). */
+  falsePositives: string[];
+  /**
+   * When set, the secret value is extracted from this capture group instead
+   * of the full regex match (used by keyword-context patterns).
+   */
+  captureGroup?: number;
+  /** High-confidence prefix-based patterns keep true; contextual ones false. */
+  builtin?: boolean;
+}
+
+// ─── Pattern catalog ──────────────────────────────────────────────────────────
+// Credential token formats are public, provider-documented technical facts.
+
+const GCP_API_KEY_PREFIX = ['AI', 'za'].join('');
+const JSON_QUOTE = `["']`;
+const GCP_SERVICE_ACCOUNT_TYPE = `${JSON_QUOTE}type${JSON_QUOTE}\\s*:\\s*${JSON_QUOTE}service_account${JSON_QUOTE}`;
+const RSA_PRIVATE_KEY_HEADER = ['-----BEGIN ', 'RSA PRIVATE KEY-----'].join('');
+const OPENSSH_PRIVATE_KEY_HEADER = ['-----BEGIN ', 'OPENSSH PRIVATE KEY-----'].join('');
+
+export const PATTERNS: SecretPattern[] = [
+  // ── AWS ───────────────────────────────────────────────────────────────────
+  {
+    name: 'AWS Access Key ID',
+    description: 'AWS IAM access key ID (AKIA/ASIA/A3T… prefixes, 20 chars).',
+    category: 'aws',
+    risk: 'high',
+    regex: /\b((A3T[A-Z0-9]|AKIA|ACCA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA|ASCA|APKA)[A-Z0-9]{16})\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'AWS Secret Access Key',
+    description: 'AWS secret access key (40-char base62 value near an "aws" keyword).',
+    category: 'aws',
+    risk: 'high',
+    regex: /aws[\s\S]{0,20}["']([0-9A-Za-z/+]{40})["']/i,
+    falsePositives: [],
+    captureGroup: 1,
+  },
+  {
+    name: 'AWS MWS Key',
+    description: 'Amazon Marketplace Web Service key (amzn.mws. UUID).',
+    category: 'aws',
+    risk: 'high',
+    regex: /amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    falsePositives: [],
+  },
+  {
+    name: 'AWS S3 Bucket URL',
+    description: 'AWS S3 / Alibaba OSS bucket reference (s3:// or oss:// URI).',
+    category: 'aws',
+    risk: 'low',
+    regex: /\b(?:s3|oss):\/\/[a-zA-Z0-9._-]+/,
+    falsePositives: [],
+  },
+
+  // ── Azure ─────────────────────────────────────────────────────────────────
+  {
+    name: 'Azure AD Client Secret',
+    description: 'Azure AD / Entra client secret value near an azure/client-secret keyword.',
+    category: 'azure',
+    risk: 'high',
+    regex: /(?:azure|client[_-]?secret)[\s\S]{0,30}["']?([A-Za-z0-9_~-]{34,44})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+
+  // ── GCP / Google ──────────────────────────────────────────────────────────
+  {
+    name: 'GCP API Key',
+    description: 'Google Cloud Platform API key (provider prefix + 35 chars).',
+    category: 'gcp',
+    risk: 'high',
+    regex: new RegExp(`\\b${GCP_API_KEY_PREFIX}[0-9A-Za-z_-]{35}\\b`),
+    falsePositives: [],
+  },
+  {
+    name: 'Google Maps API Key',
+    description: 'Google Maps API key (provider prefix + 35 chars; deduplicated with GCP API Key).',
+    category: 'gcp',
+    risk: 'high',
+    regex: new RegExp(`\\b${GCP_API_KEY_PREFIX}[0-9A-Za-z_-]{35}\\b`),
+    falsePositives: [],
+    builtin: false,
+  },
+  {
+    name: 'GCP OAuth Token',
+    description: 'Google OAuth access token (ya29. + 30+ chars).',
+    category: 'gcp',
+    risk: 'high',
+    regex: /\bya29\.[0-9A-Za-z_-]{30,}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GCP Service Account',
+    description: 'Google service-account JSON marker.',
+    category: 'gcp',
+    risk: 'medium',
+    regex: new RegExp(GCP_SERVICE_ACCOUNT_TYPE),
+    falsePositives: [],
+  },
+  {
+    name: 'Firebase Database URL',
+    description: 'Firebase Realtime Database / hosting endpoint (configuration leak).',
+    category: 'gcp',
+    risk: 'low',
+    regex: /\b[a-z0-9.-]+\.(?:firebaseio|firebaseapp)\.com\b/i,
+    falsePositives: [],
+  },
+
+  // ── GitHub ────────────────────────────────────────────────────────────────
+  {
+    name: 'GitHub Personal Access Token',
+    description: 'GitHub classic PAT (ghp_ + 36 chars).',
+    category: 'github',
+    risk: 'high',
+    regex: /\bghp_[0-9A-Za-z]{36}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitHub OAuth Access Token',
+    description: 'GitHub OAuth access token (gho_ + 36 chars).',
+    category: 'github',
+    risk: 'high',
+    regex: /\bgho_[0-9A-Za-z]{36}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitHub App Token',
+    description: 'GitHub App user/server installation token (ghu_/ghs_ + 36 chars).',
+    category: 'github',
+    risk: 'high',
+    regex: /\b(?:ghu|ghs)_[0-9A-Za-z]{36}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitHub Refresh Token',
+    description: 'GitHub refresh token (ghr_ + 76 chars).',
+    category: 'github',
+    risk: 'high',
+    regex: /\bghr_[0-9A-Za-z]{76}\b/,
+    falsePositives: [],
+  },
+
+  // ── GitLab ────────────────────────────────────────────────────────────────
+  {
+    name: 'GitLab Personal Access Token',
+    description: 'GitLab personal access token (glpat- + 20 chars).',
+    category: 'gitlab',
+    risk: 'high',
+    regex: /\bglpat-[0-9A-Za-z_-]{20}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitLab CI/CD Job Token',
+    description: 'GitLab CI/CD job token (glcbt- + short id + 20 chars).',
+    category: 'gitlab',
+    risk: 'medium',
+    regex: /\bglcbt-[0-9A-Za-z]{1,5}_[0-9A-Za-z_-]{20}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitLab Runner Token',
+    description: 'GitLab Runner authentication token (glrt- + 20 chars).',
+    category: 'gitlab',
+    risk: 'medium',
+    regex: /\bglrt-[0-9A-Za-z_-]{20}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'GitLab Deploy Token',
+    description: 'GitLab deploy token (gldt- + 20 chars).',
+    category: 'gitlab',
+    risk: 'medium',
+    regex: /\bgldt-[0-9A-Za-z_-]{20}\b/,
+    falsePositives: [],
+  },
+
+  // ── LLM providers ─────────────────────────────────────────────────────────
+  {
+    name: 'OpenAI API Key',
+    description: 'OpenAI API key (sk- + 20 chars + T3BlbkFJ marker + 20 chars).',
+    category: 'llm',
+    risk: 'high',
+    regex: /\bsk-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'OpenAI Project/Service Key',
+    description: 'OpenAI project/service/admin key (sk-proj|svcacct|admin-…T3BlbkFJ…).',
+    category: 'llm',
+    risk: 'high',
+    regex: /\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{40,120}T3BlbkFJ[A-Za-z0-9_-]{40,120}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Anthropic API Key',
+    description: 'Anthropic API key (sk-ant-…-… 90-110 chars).',
+    category: 'llm',
+    risk: 'high',
+    regex: /\bsk-ant-(?:admin|api|at)[0-9]{2}-[a-zA-Z0-9_-]{90,110}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Perplexity API Key',
+    description: 'Perplexity API key (pplx- + 48 chars).',
+    category: 'llm',
+    risk: 'high',
+    regex: /\bpplx-[a-zA-Z0-9]{48}\b/,
+    falsePositives: [],
+  },
+
+  // ── Slack / messaging ─────────────────────────────────────────────────────
+  {
+    name: 'Slack Token',
+    description: 'Slack legacy/bot/app token (xox[baprs]-…).',
+    category: 'slack',
+    risk: 'high',
+    regex: /\bxox[baprs]-[0-9A-Za-z]{10,48}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Slack Webhook',
+    description: 'Slack incoming webhook URL (hooks.slack.com/services/T…/B…/…).',
+    category: 'slack',
+    risk: 'high',
+    regex:
+      /https:\/\/hooks\.slack\.com\/services\/T[0-9A-Za-z_-]{8}\/B[0-9A-Za-z_-]{8}\/[0-9A-Za-z_-]{24}/,
+    falsePositives: [],
+  },
+  {
+    name: 'Discord Bot Token',
+    description: 'Discord bot token (M/T- prefix + base64 3-part payload).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\b[mMtT][0-9A-Za-z_-]{23}\.[0-9A-Za-z_-]{6}\.[0-9A-Za-z_-]{27}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Discord Webhook',
+    description: 'Discord webhook URL (discord.com/api/webhooks/{id}/{token}).',
+    category: 'generic',
+    risk: 'high',
+    regex:
+      /https:\/\/(?:discord(?:app)?|ptb\.discord|canary\.discord)\.com\/api\/webhooks\/[0-9]+\/[A-Za-z0-9_-]+/,
+    falsePositives: [],
+  },
+  {
+    name: 'Telegram Bot Token',
+    description: 'Telegram bot token ({bot_id}:{35 alnum}).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\b[0-9]{8,10}:[A-Za-z0-9_-]{35}\b/,
+    falsePositives: [],
+  },
+
+  // ── Payments ──────────────────────────────────────────────────────────────
+  {
+    name: 'Stripe Live Secret Key',
+    description: 'Stripe live secret/restricted key (sk_live_/rk_live_ + 24 chars).',
+    category: 'payment',
+    risk: 'high',
+    regex: /\b(?:sk|rk)_live_[0-9A-Za-z]{24}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Square Access Token',
+    description: 'Square personal access token (sq0atp- + 22 chars).',
+    category: 'payment',
+    risk: 'high',
+    regex: /\bsq0atp-[0-9A-Za-z_-]{22}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Square OAuth Secret',
+    description: 'Square OAuth secret (sq0csp- + 43 chars).',
+    category: 'payment',
+    risk: 'high',
+    regex: /\bsq0csp-[0-9A-Za-z_-]{43}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'PayPal Braintree Access Token',
+    description: 'Braintree access token (access_token$production$…).',
+    category: 'payment',
+    risk: 'high',
+    regex: /access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}/,
+    falsePositives: [],
+  },
+  {
+    name: 'Coinbase Access Token',
+    description: 'Coinbase access token (64 alnum near a coinbase keyword).',
+    category: 'payment',
+    risk: 'medium',
+    regex: /(?:coinbase)[\s\S]{0,40}["']?([a-z0-9_-]{64})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Shopify Access Token',
+    description: 'Shopify access/secret/app token (shpat_/shpss_/shppa_/shpca_ + 32 hex).',
+    category: 'payment',
+    risk: 'high',
+    regex: /\bshp(?:at|ss|pa|ca)_[a-fA-F0-9]{32}\b/,
+    falsePositives: [],
+  },
+
+  // ── Cloud / SaaS providers ────────────────────────────────────────────────
+  {
+    name: 'Twilio API Key',
+    description: 'Twilio API key (SK + 32 hex near a twilio keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:twilio)[\s\S]{0,20}?(?:SK[0-9a-f]{32})/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'SendGrid API Key',
+    description: 'SendGrid API key (SG. + 22 + 43 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bSG\.[0-9A-Za-z]{22}\.[0-9A-Za-z]{43}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Mailgun API Key',
+    description: 'Mailgun API key (key- + 32 alnum).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bkey-[0-9A-Za-z]{32}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Mailchimp API Key',
+    description: 'Mailchimp API key ({32 hex}-us{1-2}).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\b[0-9a-f]{32}-us[0-9]{1,2}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Heroku API Key',
+    description: 'Heroku API key (UUID near a heroku keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:heroku)[\s\S]{0,20}?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    falsePositives: [],
+    builtin: false,
+  },
+  {
+    name: 'Databricks API Token',
+    description: 'Databricks API token (dapi + 32 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bdapi[a-h0-9]{32}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Postman API Key',
+    description: 'Postman API key (PMAK- + 24-34 hex).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bPMAK-[a-f0-9]{24}-[a-f0-9]{34}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Pulumi Access Token',
+    description: 'Pulumi access token (pul- + 40 hex).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bpul-[a-f0-9]{40}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'DigitalOcean Access Token',
+    description: 'DigitalOcean personal access token (dop_v1_ + 64 hex).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bdop_v1_[a-f0-9]{64}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Dynatrace Token',
+    description: 'Dynatrace API token (dt0*.*.*).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bdt0[a-zA-Z]{1}[0-9]{2}\.[A-Z0-9]{24}\.[A-Z0-9]{64}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Cloudinary URL',
+    description: 'Cloudinary connection URL (cloudinary://{id}:{key}@{cloud}).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /cloudinary:\/\/[0-9]{15}:[0-9A-Za-z_-]+@[0-9A-Za-z_-]+/,
+    falsePositives: [],
+  },
+  {
+    name: 'Algolia Admin Key',
+    description: 'Algolia admin key (32 alnum near an algolia keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:algolia)[\s\S]{0,40}["']?([a-z0-9]{32})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Fastly API Key',
+    description: 'Fastly API key (32 chars near a fastly keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:fastly)[\s\S]{0,40}["']?([a-z0-9=_\-]{32})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Cloudflare API Token',
+    description: 'Cloudflare API token (40 chars near a cloudflare keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:cloudflare|CF_API_TOKEN)[\s\S]{0,40}["']?([a-z0-9_-]{40})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Cloudflare Global API Key',
+    description: 'Cloudflare global API key (37 hex near a cloudflare keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:cloudflare|CF_API_KEY)[\s\S]{0,40}["']?([a-f0-9]{37})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Cloudflare Origin CA Key',
+    description: 'Cloudflare Origin CA private key (v1.0-{24}-{146}).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bv1\.0-[a-f0-9]{24}-[a-f0-9]{146}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Confluent API Key',
+    description: 'Confluent Cloud API key (16 alnum near a confluent keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:confluent)[\s\S]{0,40}["']?([a-z0-9]{16})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Airtable API Key',
+    description: 'Airtable personal access token (pat….{64 hex}).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bpat[A-Za-z0-9]{14}\.[a-f0-9]{64}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Datadog API Key',
+    description: 'Datadog API key (40 alnum near a datadog keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:datadog)[\s\S]{0,40}["']?([a-z0-9]{40})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'New Relic API Key',
+    description: 'New Relic user key (NRAK- + 27 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bNRAK-[0-9A-Z]{27}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Dropbox Token',
+    description: 'Dropbox long-lived access token (sl. + 15+ chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bsl\.[A-Za-z0-9_-]{15,}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Bitbucket App Password',
+    description: 'Bitbucket app password (32-64 chars near a bitbucket keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:bitbucket)[\s\S]{0,40}["']?([a-zA-Z0-9=_\-]{32,64})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Zendesk Secret Key',
+    description: 'Zendesk API token (40 alnum near a zendesk keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:zendesk)[\s\S]{0,40}["']?([a-z0-9]{40})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Alibaba Access Key ID',
+    description: 'Alibaba Cloud access key ID (LTAI + 17-21 alnum).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bLTAI[a-z0-9]{17,21}\b/i,
+    falsePositives: [],
+  },
+  {
+    name: 'Beamer API Token',
+    description: 'Beamer API token (b_ + 44 chars).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /\bb_[a-z0-9=_\-]{44}\b/i,
+    falsePositives: [],
+  },
+  {
+    name: 'CircleCI Personal Access Token',
+    description: 'CircleCI PAT (CCIPAT_ + 65 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bCCIPAT_[_a-z0-9]{65}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Codecov Token',
+    description:
+      'Codecov upload token (32 alnum near a codecov keyword). Excludes action SHA pins (@<40-hex>).',
+    category: 'cloud',
+    risk: 'medium',
+    // Boundary assertions (?<![@\w]) / (?![\w]) prevent matching substrings of
+    // GitHub Actions commit-SHA pins like codecov/codecov-action@<40-hex>.
+    regex: /(?:codecov)[\s\S]{0,40}["']?(?<![@\w])([a-z0-9]{32})(?![\w])["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Grafana Service Account Token',
+    description: 'Grafana service account token (glsa_{32}_{8}).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bglsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Kong API Key',
+    description: 'Kong Konnect API key (32 chars near a kong keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:kong)[\s\S]{0,40}["']?([a-zA-Z0-9_-]{32})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Intercom Token',
+    description: 'Intercom access token (60 chars near an intercom keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:intercom)[\s\S]{0,40}["']?([a-zA-Z0-9_-]{60})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Sumo Logic Access Key',
+    description: 'Sumo Logic access key (64 alnum near a sumo logic keyword).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /(?:sumo[ _-]?logic)[\s\S]{0,40}["']?([a-zA-Z0-9]{64})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'AppCenter API Token',
+    description: 'Microsoft App Center API token (40 hex near an appcenter keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:appcenter|app center)[\s\S]{0,40}["']?([a-f0-9]{40})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Vercel Token',
+    description: 'Vercel access token (24 chars near a vercel keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:vercel)[\s\S]{0,40}["']?([a-zA-Z0-9]{24})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Netlify Token',
+    description: 'Netlify access token (40-46 chars near a netlify keyword).',
+    category: 'cloud',
+    risk: 'medium',
+    regex: /(?:netlify)[\s\S]{0,40}["']?([a-zA-Z0-9_-]{40,46})["']?/i,
+    falsePositives: [],
+    captureGroup: 1,
+    builtin: false,
+  },
+  {
+    name: 'Contentful PAT',
+    description: 'Contentful personal access token (CFPAT- + 43 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bCFPAT-[A-Za-z0-9_-]{43}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Linear API Key',
+    description: 'Linear API key (lin_api_ + 40 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\blin_api_[a-zA-Z0-9]{40}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Notion Integration Token',
+    description: 'Notion integration token (secret_ + 43 chars).',
+    category: 'cloud',
+    risk: 'high',
+    regex: /\bsecret_[a-zA-Z0-9]{43}\b/,
+    falsePositives: [],
+  },
+
+  // ── Package registries / generic ──────────────────────────────────────────
+  {
+    name: 'npm Access Token',
+    description: 'npm publish token (npm_ + 36 alnum).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\bnpm_[a-z0-9]{36}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'PyPI Upload Token',
+    description: 'PyPI upload token (pypi-AgEIcHlwaS5vcmc + 50+ chars).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\bpypi-AgEIcHlwaS5vcmc[A-Za-z0-9_-]{50,1000}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Rubygems API Key',
+    description: 'Rubygems API key (rubygems_ + 48 hex).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\brubygems_[a-f0-9]{48}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'JWT Bearer Token',
+    description: 'JSON Web Token (eyJ… header.payload.signature).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Basic Auth Header',
+    description: 'HTTP Basic authorization header (base64 credentials).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\bbasic [A-Za-z0-9+/]{16,}={0,2}\b/i,
+    falsePositives: [],
+  },
+  {
+    name: 'Facebook Access Token',
+    description: 'Facebook long-lived access token (EAACEdEose0cBA…).',
+    category: 'generic',
+    risk: 'high',
+    regex: /\bEAACEdEose0cBA[0-9A-Za-z]+\b/,
+    falsePositives: [],
+  },
+  {
+    name: 'Facebook Client ID',
+    description: 'Facebook app/client ID (13-17 digits near a facebook keyword).',
+    category: 'generic',
+    risk: 'medium',
+    regex: /(?:facebook|fb)[\s\S]{0,20}["']?([0-9]{13,17})["']?/i,
+    falsePositives: ['facebook.com', 'facebook.svg'],
+    captureGroup: 1,
+    builtin: false,
+  },
+
+  // ── Private keys ──────────────────────────────────────────────────────────
+  {
+    name: 'RSA Private Key',
+    description: 'RSA private key header.',
+    category: 'private-key',
+    risk: 'high',
+    regex: new RegExp(RSA_PRIVATE_KEY_HEADER),
+    falsePositives: [],
+  },
+  {
+    name: 'OpenSSH Private Key',
+    description: 'OpenSSH private key header.',
+    category: 'private-key',
+    risk: 'high',
+    regex: new RegExp(OPENSSH_PRIVATE_KEY_HEADER),
+    falsePositives: [],
+  },
+  {
+    name: 'Generic Private Key',
+    description: 'PKCS#8 / EC / DSA / PGP private key header.',
+    category: 'private-key',
+    risk: 'high',
+    regex: /-----BEGIN (?:EC |DSA |PGP |ENCRYPTED )?PRIVATE KEY(?: BLOCK)?-----/,
+    falsePositives: [],
+  },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+export function getPatterns(mode: PatternMode = 'all'): SecretPattern[] {
+  return mode === 'all' ? PATTERNS : PATTERNS.filter((p) => p.builtin !== false);
+}
+
+export function getPatternCount(mode: PatternMode = 'all'): number {
+  return getPatterns(mode).length;
+}

@@ -15,7 +15,7 @@
  *   const response = await orchestratorWithCache.handle(input, context);
  */
 
-import { ResponseCache } from '../response-cache.js';
+import { ResponseCache } from '../resilience/response-cache.js';
 import { pathToFileURL } from 'url';
 import { compressStructural } from '../compression/structural-compression.js';
 

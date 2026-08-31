@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = resolve(__filename, '..');
-const ROOT = resolve(__dirname, '..');
+const ROOT = resolve(__dirname, '..', '..');
 const BRIDGE_VERSION = '1.0.0';
 
 /* ── Interfaces ── */

@@ -21,7 +21,7 @@ import {
   hashKey,
   DEFAULT_MAX_ATTEMPTS,
   ESCALATE_AFTER,
-} from '../../src/anti-loop-guard.ts';
+} from '../../src/resilience/anti-loop-guard.ts';
 
 // Isolate state per test by pointing the guard at a temp dir via cwd.
 // The guard uses process.cwd() for its state dir, so we run each test in a
@@ -147,7 +147,7 @@ test('delegateWithAntiLoop: blocks delegation when task is in a change_strategy 
       registerAttempt(goal, strategy, 'failed');
     }
     // Now delegateWithAntiLoop should block BEFORE calling delegate().
-    const { delegateWithAntiLoop } = await import('../../src/agent-delegator.ts');
+    const { delegateWithAntiLoop } = await import('../../src/orchestration/agent-delegator.ts');
     const result = await delegateWithAntiLoop({ agent: 'sdd-apply', task: goal });
     assert.strictEqual(result.success, false);
     assert.match(result.error || '', /ANTI-LOOP.*Change strategy/i);
@@ -161,7 +161,7 @@ test('delegateWithAntiLoop: escalates when task is in an escalate loop', async (
     for (let i = 0; i < ESCALATE_AFTER; i++) {
       registerAttempt(goal, strategy, 'failed');
     }
-    const { delegateWithAntiLoop } = await import('../../src/agent-delegator.ts');
+    const { delegateWithAntiLoop } = await import('../../src/orchestration/agent-delegator.ts');
     const result = await delegateWithAntiLoop({ agent: 'sdd-apply', task: goal });
     assert.strictEqual(result.success, false);
     assert.match(result.error || '', /ANTI-LOOP.*Escalating/i);

@@ -9,11 +9,11 @@ const SRC = (name: string) => pathToFileURL(resolve(ROOT, 'src', name)).href;
 
 describe('session-scoring-autocompare', () => {
   it('source file exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/session-scoring-autocompare.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/session/session-scoring-autocompare.ts')));
   });
 
   it('imports without error', async () => {
-    const mod = await import(SRC('session-scoring-autocompare.ts'));
+    const mod = await import(SRC('session/session-scoring-autocompare.ts'));
     assert.ok(mod);
   });
 

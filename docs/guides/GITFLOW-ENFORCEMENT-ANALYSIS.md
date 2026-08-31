@@ -23,7 +23,7 @@
 
 - Valida cdigo y polticas de revisión
 
-#### 3. **Validacin GitFlow** (`src/validate-gitflow.ts`)
+#### 3. **Validacin GitFlow** (`src/review/validate-gitflow.ts`)
 
 - Detecta rama actual
 - Clasifica rama por tipo (feature, bugfix, chore, hotfix, release)
@@ -108,7 +108,7 @@ Use feature/bugfix/chore/hotfix/release branches and PR workflow.
 
 #### 1.1 Enriquecer Mensajes de Error
 
-**Archivo**: `src/validate-gitflow.ts`
+**Archivo**: `src/review/validate-gitflow.ts`
 
 ```TypeScript
 # Agregar funcin de ayuda contextual

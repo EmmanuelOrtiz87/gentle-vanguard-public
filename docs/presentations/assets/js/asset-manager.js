@@ -145,6 +145,25 @@ class AssetManager {
   }
 
   /**
+   * Obtiene todos los assets guardados.
+   */
+  async getAllAssets() {
+    return new Promise((resolve, reject) => {
+      if (!this.store) {
+        reject(new Error('Asset Manager no inicializado'));
+        return;
+      }
+
+      const transaction = this.store.transaction(['assets'], 'readonly');
+      const store = transaction.objectStore('assets');
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
    * Obtiene assets por tool de origen
    */
   async getAssetsByTool(tool, limit = 50) {
@@ -385,7 +404,7 @@ class AssetManager {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - olderThanDays);
 
-    const assets = await this.getAssetsByType('all');
+    const assets = await this.getAllAssets();
     const toDelete = assets.filter((a) => new Date(a.createdAt) < cutoff);
 
     for (const asset of toDelete) {

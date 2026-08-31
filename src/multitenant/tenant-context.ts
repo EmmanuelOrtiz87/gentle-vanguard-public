@@ -530,8 +530,8 @@ if (require.main === module) {
     // Release contexts
     manager.releaseContext(ctx1.session.id);
     manager.releaseContext(ctx2.session.id);
-  } catch (error: any) {
-    console.error('Error:', error?.message || error);
+  } catch (error: unknown) {
+    console.error('Error:', error instanceof Error ? error.message : String(error));
   }
 
   console.log('\n\n--- Tenant Statistics ---');

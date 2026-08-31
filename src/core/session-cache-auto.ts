@@ -20,7 +20,7 @@
  * @version 3.0.0
  */
 
-import { ResponseCache } from '../response-cache.js';
+import { ResponseCache } from '../resilience/response-cache.js';
 import { pathToFileURL } from 'url';
 
 // ─── Global registration shape ────────────────────────────────────────────────

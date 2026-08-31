@@ -1,9 +1,10 @@
 packages:
-  # Active workspace members only. apps/discord-bot and apps/doc-gentle are
-  # deprecated:true placeholders excluded from the workspace (they resolve
-  # @gentle-vanguard/core via the legacy bootstrap symlink).
+  # Active workspace members only.
+  - 'apps/gv-analytics'
   - 'apps/web-dashboard'
+  - 'apps/content-cms'
   - 'packages/*'
+  - 'src/core'
 
 allowBuilds:
   better-sqlite3: true
@@ -21,6 +22,6 @@ overrides:
   nanoid: '>=3.3.18'
   hono: '>=4.12.34'
   postcss: '>=8.5.23'
-  vite: '6.4.3'
+  vite: '8.2.2'
   esbuild: '0.25.12'
   '@typescript-eslint/typescript-estree>minimatch': '9.0.7'

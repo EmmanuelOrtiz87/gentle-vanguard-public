@@ -14,7 +14,7 @@ import {
   isIgnored,
   sanitizeProjectName,
   walkProject,
-} from '../../src/create-gentle-vanguard.ts';
+} from '../../src/ops/create-gentle-vanguard.ts';
 
 describe('create-gentle-vanguard', () => {
   describe('isIgnored', () => {
@@ -43,7 +43,7 @@ describe('create-gentle-vanguard', () => {
     });
 
     it('keeps source files that must be scaffolded', () => {
-      assert.ok(!isIgnored('src/create-gentle-vanguard.ts'));
+      assert.ok(!isIgnored('src/ops/create-gentle-vanguard.ts'));
       assert.ok(!isIgnored('src/core/run-command.ts'));
       assert.ok(!isIgnored('config/orchestrator.json'));
       assert.ok(!isIgnored('package.json'));
@@ -63,7 +63,7 @@ describe('create-gentle-vanguard', () => {
     it('filters out ignored paths and keeps the rest', () => {
       const input = [
         'package.json',
-        'src/quick-start.ts',
+        'src/ops/quick-start.ts',
         'node_modules/react/index.js',
         '.git/config',
         'config/orchestrator.json',
@@ -71,7 +71,7 @@ describe('create-gentle-vanguard', () => {
       ];
       assert.deepStrictEqual(filterCopyable(input), [
         'package.json',
-        'src/quick-start.ts',
+        'src/ops/quick-start.ts',
         'config/orchestrator.json',
       ]);
     });

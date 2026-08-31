@@ -13,6 +13,9 @@ import * as fs from 'fs';
 import { pathToFileURL } from 'url';
 import { resolve } from 'path';
 import * as path from 'path';
+import { log } from '../utils/logger.js';
+
+const logger = log('REPO-ROOT');
 
 /**
  * Busca la raíz del repositorio subiendo directorios hasta encontrar
@@ -33,7 +36,7 @@ function findRepoRoot(): string {
   }
 
   // Fallback: usa cwd si no encontramos el repo (debería no pasar en producción)
-  console.warn(
+  logger.warn(
     '[REPO-ROOT] No se encontró marcador de raíz (config/timeout-config.json), usando cwd como fallback',
   );
   return resolve(process.cwd());

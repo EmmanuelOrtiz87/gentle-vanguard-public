@@ -58,7 +58,7 @@ cd gentle-vanguard
 ### Step 2: Start Session
 
 ```TypeScript
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 ```
 
 This will:
@@ -84,7 +84,7 @@ npm run dashboard:start
 
 ```TypeScript
 # Session management
-npx tsx src/session-autostart.ts    # Start session
+npx tsx src/session/session-autostart.ts    # Start session
 npm run watchtower:health           # Health check (95 checks)
 
 # Dashboard
@@ -113,8 +113,9 @@ sessions, RBAC roles, and the `/admin` panel.
 
 ```TypeScript
 # Knowledge Base
-npx tsx src/knowledge-base-sync.ts --stats      # Show stats
-npx tsx src/knowledge-base-sync.ts --mode full # Full sync
+pnpm kb:sync -- --stats      # Show stats
+pnpm kb:sync -- --mode full # Full sync
+pnpm kb:sync:dry             # Safe preview
 
 # Graphify (code navigation)
 npm run graphify -- query "search term"

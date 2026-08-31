@@ -421,7 +421,9 @@ function handleSignatureHelp(filePath: string, line: number, col: number) {
   const resolved = resolveFilePath(filePath);
   const offset = getOffset(cache.service, resolved, line, col);
 
-  const sigs = cache.service.getSignatureHelpItems(resolved, offset, { triggerReason: 0 as any });
+  const sigs = cache.service.getSignatureHelpItems(resolved, offset, {
+    triggerReason: { kind: 'invoked' },
+  });
 
   if (!sigs) {
     return { found: false, message: 'No signature help at position' };
@@ -494,7 +496,7 @@ function handleSymbolSearch(query: string, maxResults: number) {
         col,
         containerName: item.containerName ?? undefined,
         containerKind: item.containerKind ?? undefined,
-        matchKind: (item as any).matchKind,
+        matchKind: item.matchKind,
       };
     }),
   };

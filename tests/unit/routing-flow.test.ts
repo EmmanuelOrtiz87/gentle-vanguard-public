@@ -6,11 +6,11 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('routing-flow', () => {
-  it('src/ml-router.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'ml-router.ts')));
+  it('src/ml/ml-router.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'ml', 'ml-router.ts')));
   });
 
   it('src/adaptive-router.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'adaptive-router.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'orchestration', 'adaptive-router.ts')));
   });
 });

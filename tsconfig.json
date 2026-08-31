@@ -26,6 +26,7 @@
   "include": [
     "adapters/**/*.ts",
     "packages/shared/src/**/*.ts",
+    "scripts/*.ts",
     "scripts/mcp/**/*.ts",
     "scripts/debug/**/*.ts",
     "scripts/recovery/**/*.ts",
