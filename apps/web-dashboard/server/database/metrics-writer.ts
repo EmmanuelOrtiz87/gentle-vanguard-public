@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import { runSync } from '@gentle-vanguard/core/run-command';
 import { DatabaseManager, type MetricSnapshot } from './manager.ts';
+import type Database from 'better-sqlite3';
 import {
   getAggregatedMetrics,
   listSessions,
@@ -52,6 +53,23 @@ function execGit(args: string[]): string {
   } catch {
     return '';
   }
+}
+
+/** Read the recent Nexus token ledger using SQLite's datetime representation. */
+export function getRecentTokenTotals(
+  db: Database.Database,
+  tenantId = 'gentle-vanguard',
+  now = new Date(),
+): { tokens: number; cost: number } {
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(prompt_tokens + completion_tokens), 0) AS tokens,
+              COALESCE(SUM(cost), 0) AS cost
+       FROM token_usage
+       WHERE tenant_id = ? AND timestamp >= datetime(?, '-24 hours')`,
+    )
+    .get(tenantId, now.toISOString()) as { tokens: number; cost: number };
+  return { tokens: row.tokens ?? 0, cost: row.cost ?? 0 };
 }
 
 // ─── Metrics Collector ────────────────────────────────────────────────
@@ -158,15 +176,11 @@ export class MetricsWriter {
     } catch (err) {
       console.error('[MW] Error reading tokens from SessionContextLog:', err);
     }
-    if (!tokensUsed) {
+    if (!tokensUsed || !tokenCost) {
       try {
-        const row = this.db
-          .getDb()
-          .prepare(
-            'SELECT COALESCE(SUM(prompt_tokens + completion_tokens), 0) AS total FROM token_usage WHERE timestamp >= ?',
-          )
-          .get(new Date(Date.now() - 24 * 3600_000).toISOString()) as { total: number };
-        tokensUsed = row.total;
+        const ledger = getRecentTokenTotals(this.db.getDb());
+        if (!tokensUsed) tokensUsed = ledger.tokens;
+        if (!tokenCost) tokenCost = ledger.cost;
       } catch {
         // keep 0 — no token sources available
       }

@@ -27,8 +27,7 @@ import {
   type Job,
   type Status,
 } from './engine.js';
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { exportKit } from './export-kit.js';
 
 const root = process.cwd();
 const args = process.argv.slice(2);
@@ -173,23 +172,12 @@ switch (command) {
     break;
   }
   case 'export': {
-    const { spawnSync } = await import('node:child_process');
-    const script = resolve(root, 'scripts/content-operations/export-kit.ps1');
-    if (!existsSync(script)) {
-      console.error('Export script not found:', script);
+    try {
+      console.log(`Offline kit: ${exportKit({ root })}`);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
       process.exitCode = 1;
-      break;
     }
-    const res = spawnSync(
-      'powershell',
-      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script],
-      {
-        cwd: root,
-        stdio: 'inherit',
-        windowsHide: true,
-      },
-    );
-    process.exitCode = res.status ?? 1;
     break;
   }
   default:

@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/container-scan.ts
+ * Unit tests for src/security/container-scan.ts
  * Parsers (Grype/Trivy), severity ordering, and CLI argument parsing.
  */
 
@@ -14,7 +14,7 @@ import {
   parseScanArgs,
   formatResults,
   type ScanResult,
-} from '../../src/container-scan.js';
+} from '../../src/security/container-scan.js';
 
 describe('container-scan parsers', () => {
   it('parses Grype JSON matches', () => {

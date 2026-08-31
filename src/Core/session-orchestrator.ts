@@ -11,9 +11,9 @@
  *     └──reset── closed ◀──close── closing ◀───────(active|cleaning)
  *
  * Delegation map:
- *   bootstrap      → src/session-autostart-detached.ts (detached, fire-and-forget)
- *   startupCleanup → src/session-manager.ts --quiet    (sync phase-0)
- *   close          → src/session-close-orchestrator.ts (sync)
+ *   bootstrap      → src/session/session-autostart-detached.ts (detached, fire-and-forget)
+ *   startupCleanup → src/session/session-manager.ts --quiet    (sync phase-0)
+ *   close          → src/session/session-close-orchestrator.ts (sync)
  *
  * State persists to .runtime/session-orchestrator-state.json so any process
  * (CLI, dashboard, watchtower) can observe the current lifecycle phase.
@@ -102,7 +102,7 @@ export function bootstrapSession(): void {
   // On success the pipeline marks the session active via the session file;
   // we flip the FSM when the caller observes it or on next status check.
   try {
-    runNpxTsx('src/session-autostart-detached.ts', [], { stdio: 'ignore' });
+    runNpxTsx('src/session/session-autostart-detached.ts', [], { stdio: 'ignore' });
     transition('active', 'bootstrap-launched');
   } catch (e) {
     transition('idle', 'bootstrap-failed');
@@ -112,14 +112,14 @@ export function bootstrapSession(): void {
 
 export function startupCleanup(): number {
   transition('cleaning', 'startup-cleanup');
-  const er = runNpxTsxSync('src/session-manager.ts', ['--quiet'], { stdio: 'pipe' });
+  const er = runNpxTsxSync('src/session/session-manager.ts', ['--quiet'], { stdio: 'pipe' });
   transition('active', 'startup-cleanup-done');
   return er.status ?? 1;
 }
 
 export function closeSession(): number {
   transition('closing', 'close');
-  const er = runNpxTsxSync('src/session-close-orchestrator.ts', [], { stdio: 'inherit' });
+  const er = runNpxTsxSync('src/session/session-close-orchestrator.ts', [], { stdio: 'inherit' });
   transition('closed', 'close-done');
   return er.status ?? 1;
 }

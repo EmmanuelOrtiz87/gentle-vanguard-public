@@ -35,20 +35,7 @@ const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
   low: ['critical', 'high', 'moderate', 'low'],
 };
 
-/**
- * Allowlist of advisories with NO available fix (patched version does not exist
- * in the npm registry). These are documented exceptions: the hook will NOT block
- * when the ONLY blocking advisories are in this list.
- *
- * image-size (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq):
- *   - Affects image-size@<=2.0.2 (transitive via pptxgenjs, devDependency only)
- *   - Patched version is >=2.0.3, but that version is NOT published on npm
- *     (latest is 2.0.2). Overrides are therefore impossible.
- *   - DoS (CWE-835) in ICNS/JXL/HEIF parsers; only used at build time for
- *     presentation generation, not in production runtime.
- *   - REVISIT when image-size@>=2.0.3 is published, then remove from this list.
- */
-const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-w3rx-r6r6-pgpr', 'GHSA-5p2g-fcmc-qvqq']);
+const ALLOWLISTED_ADVISORIES = new Set<string>();
 
 function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   const args = process.argv.slice(2);

@@ -171,7 +171,7 @@ function actionSetup(allTools: boolean, tool: string): void {
   if (toolProfiles) {
     for (const t of targets) {
       if (toolProfiles[t]) {
-        toolProfiles[t].mcpBridge = 'src/mcp-bridge.ts';
+        toolProfiles[t].mcpBridge = 'src/integrations/mcp-bridge.ts';
       }
     }
     writeJson(CONFIG_PATH, orchestrator);

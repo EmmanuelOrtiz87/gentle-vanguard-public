@@ -182,7 +182,7 @@ async function getCurrentTokens(): Promise<TokenMetrics> {
       WHERE date(timestamp) = date('now', 'localtime')
     `,
       )
-      .get() as any;
+      .get() as { input?: number; output?: number; reasoning?: number } | undefined;
     db.close();
 
     return {
@@ -260,10 +260,23 @@ async function createCheckpoint(reason: string): Promise<boolean> {
 }
 
 // ─── Alert Actions ────────────────────────────────────────────────────────────────
+interface AlertActions {
+  alert?: boolean;
+  log?: boolean;
+  notify?: boolean;
+  suggestCheckpoint?: boolean;
+  suggestNewSession?: boolean;
+  createCheckpoint?: boolean;
+  warnUser?: boolean;
+  forceNewSession?: boolean;
+  sendKillSwitch?: boolean;
+  emergencyExit?: boolean;
+}
+
 async function sendAlert(
   level: string,
   tokens: TokenMetrics,
-  actions: any,
+  actions: AlertActions,
   burnRate: number,
   projection: number | null,
 ): Promise<void> {
@@ -322,7 +335,7 @@ ${actionsToString(actions)}
   }
 }
 
-function actionsToString(actions: any): string {
+function actionsToString(actions: AlertActions): string {
   const lines: string[] = [];
   if (actions.suggestCheckpoint) lines.push('║ ✓ Suggest checkpoint');
   if (actions.createCheckpoint) lines.push('║ ✓ Auto-create checkpoint');
@@ -369,7 +382,7 @@ async function runGuardLoop(): Promise<void> {
 
       // Determinar nivel de alerta
       let alertLevel: string | null = null;
-      let actions: any = {};
+      let actions: AlertActions = {};
 
       if (metrics.total >= CONFIG.thresholds.emergency15M) {
         alertLevel = 'emergency15M';

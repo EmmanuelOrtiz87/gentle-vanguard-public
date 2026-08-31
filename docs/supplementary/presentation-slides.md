@@ -93,7 +93,8 @@ each release.
 
 **Title:** Self-Optimizing Configuration **Key Points:**
 
-- Adaptive profiles for opencode, claude-cline, cursor, codex-windsurf, continue-copilot, antigravity
+- Adaptive profiles for opencode, claude-cline, cursor, codex-windsurf, continue-copilot,
+  antigravity
 - Auto-detect peak hours and token pressure
 - Automatically switches to optimized config during peak, restores when normalized
 - Shared DRY module eliminates duplication
@@ -105,7 +106,7 @@ each release.
 
 - 4 phases: BA Explore -> SAD Design -> DEV Implement -> QA Verify
 - Each phase has its own specialized agent (`sdd-explore`, `sdd-design`, `sdd-apply`, `sdd-verify`)
-- `src/pre-process-input.ts` analyzes every message and routes to the right phase
+- `src/tools/pre-process-input.ts` analyzes every message and routes to the right phase
 - `PLAN_MODE_REQUIRED` flag prevents jumping to implementation without exploration
 - SDD config enforces strict TDD per phase
 

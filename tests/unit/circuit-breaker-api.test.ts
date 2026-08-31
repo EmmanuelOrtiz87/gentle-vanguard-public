@@ -29,27 +29,27 @@ describe('circuit-breaker-api', () => {
   });
 
   it('source file exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/circuit-breaker-api.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/resilience/circuit-breaker-api.ts')));
   });
 
   it('imports without error', async () => {
-    const mod = await import(SRC('circuit-breaker-api.ts'));
+    const mod = await import(SRC('resilience/circuit-breaker-api.ts'));
     assert.ok(mod);
   });
 
   it('exports registerComponent', async () => {
-    const mod = await import(SRC('circuit-breaker-api.ts'));
+    const mod = await import(SRC('resilience/circuit-breaker-api.ts'));
     assert.strictEqual(typeof mod.registerComponent, 'function');
   });
 
   it('isComponentHealthy returns true for unknown component (safe default)', async () => {
-    const mod = await import(SRC('circuit-breaker-api.ts'));
+    const mod = await import(SRC('resilience/circuit-breaker-api.ts'));
     const result = mod.isComponentHealthy(`${NS}_unknown`);
     assert.strictEqual(result, true);
   });
 
   it('recordFailure+recordSuccess cycle works', async () => {
-    const mod = await import(SRC('circuit-breaker-api.ts'));
+    const mod = await import(SRC('resilience/circuit-breaker-api.ts'));
     const comp = `${NS}_cycle`;
     mod.recordFailure(comp);
     mod.recordSuccess(comp);

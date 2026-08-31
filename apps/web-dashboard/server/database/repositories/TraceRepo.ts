@@ -1,11 +1,70 @@
 import Database from 'better-sqlite3';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import type { TraceRecord, FeedbackRecord } from '../manager';
+import {
+  resolveTraceSessionId,
+  readCurrentRepoSessionId,
+} from '../../../../../src/telemetry/trace-session-resolver.js';
+import { aliasTableExists } from '../../../../../src/session/session-id-bridge.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT = join(__dirname, '..', '..', '..', '..', '..');
 
 export class TraceRepo {
   constructor(private db: Database.Database) {}
 
+  /** Map a tool-native session id to the repo stack session id via the alias table. */
+  private aliasToSessionId(aliasId: string): string | null {
+    try {
+      if (!aliasTableExists(this.db)) return null;
+      const row = this.db
+        .prepare('SELECT session_id FROM session_id_aliases WHERE alias_id = ?')
+        .get(aliasId) as { session_id: string } | undefined;
+      return row?.session_id ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Bridge write: when a tool-native session id (`ses_*`/`sess_*`/`mvs_*`)
+   * appears in a trace payload and is not yet aliased, associate it with the
+   * active repo session (same forward pattern as token-ingest). Best-effort.
+   */
+  private recordTraceAlias(payloadSessionId: string): void {
+    if (!/^(ses_|sess_|mvs_)/.test(payloadSessionId)) return;
+    try {
+      if (!aliasTableExists(this.db)) return;
+      const repoSessionId = readCurrentRepoSessionId(ROOT);
+      if (!repoSessionId || repoSessionId === payloadSessionId) return;
+      this.db
+        .prepare(
+          `INSERT OR IGNORE INTO session_id_aliases (session_id, alias_id, source, confidence, created_at)
+           VALUES (?, ?, 'trace-forward', 0.8, ?)`,
+        )
+        .run(repoSessionId, payloadSessionId, new Date().toISOString());
+    } catch {
+      // Never break a trace write on alias bookkeeping failure.
+    }
+  }
+
   insertTrace(tenantId: string, trace: Partial<TraceRecord>): void {
     if (!trace.span_id) throw new Error('span_id is required');
+    // Forward fix: resolve session_id at write time (correlation context →
+    // payload id via aliases → .session/session-current.json → NULL as before).
+    let sessionId: string | null = null;
+    try {
+      sessionId = resolveTraceSessionId({
+        payloadSessionId: trace.session_id ?? null,
+        repoRoot: ROOT,
+        aliasResolve: (a) => this.aliasToSessionId(a),
+      });
+    } catch {
+      sessionId = trace.session_id ?? null;
+    }
+    if (trace.session_id) this.recordTraceAlias(trace.session_id);
     this.db
       .prepare(
         `INSERT OR REPLACE INTO traces 
@@ -26,7 +85,7 @@ export class TraceRepo {
         trace.input_tokens ?? 0,
         trace.output_tokens ?? 0,
         trace.cost ?? 0,
-        trace.session_id ?? null,
+        sessionId,
         trace.attributes ?? null,
         tenantId,
       );

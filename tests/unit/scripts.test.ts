@@ -7,7 +7,7 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('scripts', () => {
   it('src/session-start-optimized.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'session-start-optimized.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'session', 'session-start-optimized.ts')));
   });
 
   it('src/tokens/token-budget-guard.ts exists', () => {

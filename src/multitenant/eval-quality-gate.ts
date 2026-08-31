@@ -8,10 +8,34 @@
 
 import { EventEmitter } from 'events';
 
+interface Benchmark {
+  id: string;
+  name: string;
+  category: string;
+  baseline: number;
+  threshold: number;
+}
+
+interface Gate {
+  id: string;
+  name: string;
+  benchmarks: string[];
+  status: string;
+  minScore: number;
+}
+
+interface EvalReport {
+  timestamp: number;
+  gateId: string;
+  overallScore: number;
+  status: string;
+  results: unknown[];
+}
+
 export class EvalQualityGate extends EventEmitter {
-  private benchmarks: Map<string, any> = new Map();
-  private gates: Map<string, any> = new Map();
-  private history: any[] = [];
+  private benchmarks: Map<string, Benchmark> = new Map();
+  private gates: Map<string, Gate> = new Map();
+  private history: EvalReport[] = [];
 
   constructor() {
     super();
@@ -46,10 +70,10 @@ export class EvalQualityGate extends EventEmitter {
     this.emit('metricRecorded', { benchmarkId, value, timestamp: Date.now() });
   }
 
-  public evaluate(gateId: string): any {
+  public evaluate(gateId: string): EvalReport {
     const gate = this.gates.get(gateId);
     if (!gate) throw new Error('Gate not found');
-    const report = {
+    const report: EvalReport = {
       timestamp: Date.now(),
       gateId,
       overallScore: 0.85,

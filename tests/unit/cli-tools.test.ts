@@ -11,6 +11,6 @@ describe('cli-tools', () => {
   });
 
   it('pre-process-input.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'pre-process-input.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'tools', 'pre-process-input.ts')));
   });
 });

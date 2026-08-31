@@ -1,14 +1,17 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
-const ROOT = resolve(import.meta.dirname, '..', '..');
-const STATE_FILE = join(ROOT, '.runtime', 'circuit-breaker-v2', 'state.json');
+const stateDirectory = mkdtempSync(join(tmpdir(), 'gv-circuit-breaker-v2-'));
+const STATE_FILE = join(stateDirectory, 'state.json');
+const previousStateFile = process.env.GV_CIRCUIT_BREAKER_STATE_FILE;
+process.env.GV_CIRCUIT_BREAKER_STATE_FILE = STATE_FILE;
 const namespace = `__test_v2_${Date.now()}_`;
 const stateNames: string[] = [];
 
-const modulePromise = import('../../src/circuit-breaker-v2.ts');
+const modulePromise = import('../../src/resilience/circuit-breaker-v2.ts');
 
 function writeCircuit(name: string, overrides: Record<string, unknown> = {}): void {
   const state = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, 'utf8')) : {};
@@ -51,11 +54,20 @@ before(async () => {
 });
 
 after(() => {
-  if (!existsSync(STATE_FILE)) return;
-  const state = JSON.parse(readFileSync(STATE_FILE, 'utf8'));
-  for (const name of stateNames) delete state[name];
-  writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
-  if (Object.keys(state).length === 0) unlinkSync(STATE_FILE);
+  try {
+    if (existsSync(STATE_FILE)) {
+      const state = JSON.parse(readFileSync(STATE_FILE, 'utf8'));
+      for (const name of stateNames) delete state[name];
+      writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
+    }
+  } finally {
+    rmSync(stateDirectory, { recursive: true, force: true });
+    if (previousStateFile === undefined) {
+      delete process.env.GV_CIRCUIT_BREAKER_STATE_FILE;
+    } else {
+      process.env.GV_CIRCUIT_BREAKER_STATE_FILE = previousStateFile;
+    }
+  }
 });
 
 describe('circuit-breaker-v2 reliability', () => {
@@ -99,7 +111,13 @@ describe('circuit-breaker-v2 reliability', () => {
       async () => 'second',
       () => 'fallback',
     );
-    assert.equal(await second, 'fallback');
+    const secondResult = await Promise.race([
+      second,
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error('fallback waited')), 100),
+      ),
+    ]);
+    assert.equal(secondResult, 'fallback');
     release();
     assert.equal(await first, 'first');
   });

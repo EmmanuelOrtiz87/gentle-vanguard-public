@@ -22,6 +22,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { runSyncShell } from '../core/run-command.js';
+import { isWithinRoot } from '../core/path-identity.js';
 import { printBanner } from './banner.js';
 
 const PORT = parseInt(
@@ -115,7 +116,7 @@ const server = http.createServer((req, res) => {
   const filePath = path.join(ROOT, safePath);
 
   // Ensure we're still within ROOT
-  if (!filePath.startsWith(ROOT)) {
+  if (!isWithinRoot(filePath, ROOT)) {
     res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end('<h1>403 — Forbidden</h1>');
     return;

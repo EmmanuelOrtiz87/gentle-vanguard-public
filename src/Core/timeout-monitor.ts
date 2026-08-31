@@ -78,6 +78,7 @@ export interface MonitorState {
 const METRICS_DIR = path.join(ROOT, '.session', 'metrics');
 const METRICS_FILE = path.join(METRICS_DIR, 'timeout-monitor.json');
 const ALERTS_FILE = path.join(METRICS_DIR, 'timeout-alerts.jsonl');
+const PID_FILE = path.join(ROOT, '.runtime', 'monitor-daemon.pid');
 const MAX_RECORDS = 10000;
 const ALERT_COOLDOWN_MS = 300000; // 5 min between same alerts
 
@@ -90,6 +91,17 @@ let _violations: ExecutionRecord[] = [];
 let _alerts: TimeoutAlert[] = [];
 const _lastAlertTimestamps: Map<string, number> = new Map();
 let _daemonTimer: ReturnType<typeof setInterval> | null = null;
+
+export function writeDaemonPidFile(pidFile = PID_FILE, pid = process.pid): void {
+  fs.mkdirSync(path.dirname(pidFile), { recursive: true });
+  fs.writeFileSync(pidFile, String(pid), 'utf-8');
+}
+
+export function removeDaemonPidFile(pidFile = PID_FILE, pid = process.pid): void {
+  try {
+    if (parseInt(fs.readFileSync(pidFile, 'utf-8').trim(), 10) === pid) fs.rmSync(pidFile);
+  } catch {}
+}
 
 // ---------------------------------------------------------------------------
 // Ensure metrics directory exists
@@ -418,6 +430,7 @@ export function startMonitorDaemon(intervalMs?: number): void {
   }
 
   const interval = intervalMs ?? 30000; // default 30s
+  writeDaemonPidFile();
   console.log(`[TIMEOUT-MONITOR] Starting monitoring daemon (interval: ${interval}ms)`);
 
   const run = () => {
@@ -552,10 +565,13 @@ if (
 // Graceful stop
 process.on('SIGINT', () => {
   stopMonitorDaemon();
+  removeDaemonPidFile();
   saveMetrics();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
   stopMonitorDaemon();
+  removeDaemonPidFile();
   saveMetrics();
 });
+process.on('exit', () => removeDaemonPidFile());

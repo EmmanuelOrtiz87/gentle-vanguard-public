@@ -6,29 +6,42 @@
  * via Nexus DB (SQLite). Provides full CRUD, search, triage, and reporting.
  *
  * Usage:
- *   npx tsx src/cli/backlog.ts add --type bug --title "..." --severity high
- *   npx tsx src/cli/backlog.ts list [--status open] [--severity high] [--tag ps1-migration]
- *   npx tsx src/cli/backlog.ts update <id> --status resolved --notes "Fixed in commit xyz"
- *   npx tsx src/cli/backlog.ts get <id>
- *   npx tsx src/cli/backlog.ts search <query>
- *   npx tsx src/cli/backlog.ts comment <id> --text "..."
- *   npx tsx src/cli/backlog.ts relate <id> <related-id> --type supersedes
- *   npx tsx src/cli/backlog.ts stats
- *   npx tsx src/cli/backlog.ts report [--format markdown]
- *   npx tsx src/cli/backlog.ts delete <id>
+ *   npx tsx src/cli/getBacklog().ts add --type bug --title "..." --severity high
+ *   npx tsx src/cli/getBacklog().ts list [--status open] [--severity high] [--tag ps1-migration]
+ *   npx tsx src/cli/getBacklog().ts update <id> --status resolved --notes "Fixed in commit xyz"
+ *   npx tsx src/cli/getBacklog().ts get <id>
+ *   npx tsx src/cli/getBacklog().ts search <query>
+ *   npx tsx src/cli/getBacklog().ts comment <id> --text "..."
+ *   npx tsx src/cli/getBacklog().ts relate <id> <related-id> --type supersedes
+ *   npx tsx src/cli/getBacklog().ts stats
+ *   npx tsx src/cli/getBacklog().ts report [--format markdown]
+ *   npx tsx src/cli/getBacklog().ts delete <id>
  */
 
 import {
   DatabaseManager,
   DEFAULT_TENANT_ID,
 } from '../../apps/web-dashboard/server/database/manager';
-import type { BacklogItem } from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
+import { pathToFileURL } from 'url';
+import type {
+  BacklogItem,
+  BacklogRepo,
+} from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
 
-// ─── Resolve ───────────────────────────────────────────────────────
+// ─── Resolve (lazy: DatabaseManager is a heavy better-sqlite3 singleton;
+//      importing this module must stay side-effect free) ─────────────
 const TENANT_ID = process.env.GENTLE_TENANT_ID ?? DEFAULT_TENANT_ID;
-const database = DatabaseManager.getInstance();
-database.runMigrations();
-const backlog = database.backlog;
+
+let backlogInstance: BacklogRepo | null = null;
+
+function getBacklog(): BacklogRepo {
+  if (!backlogInstance) {
+    const database = DatabaseManager.getInstance();
+    database.runMigrations();
+    backlogInstance = database.backlog;
+  }
+  return backlogInstance;
+}
 
 // ─── Colors ────────────────────────────────────────────────────────
 const C = {
@@ -81,7 +94,7 @@ function cmdAdd(args: Record<string, string>): void {
     process.exit(1);
   }
 
-  const id = backlog.addItem(
+  const id = getBacklog().addItem(
     {
       type: type as BacklogItem['type'],
       title,
@@ -104,9 +117,9 @@ function cmdAdd(args: Record<string, string>): void {
   if (args.tags)
     args.tags.split(',').forEach((t: string) => {
       const tag = t.trim();
-      backlog.addTagToItem(id, tag, undefined, TENANT_ID);
+      getBacklog().addTagToItem(id, tag, undefined, TENANT_ID);
     });
-  if (args.comment) backlog.addComment(id, args.comment, 'system', TENANT_ID);
+  if (args.comment) getBacklog().addComment(id, args.comment, 'system', TENANT_ID);
 
   console.log(`  ${C.green}✅ Created: ${id}${C.reset}`);
   console.log(`  ${title}  [${type}/${severity}]`);
@@ -124,8 +137,8 @@ function cmdList(args: Record<string, string>): void {
     limit,
     offset,
   };
-  const rows = backlog.listItems(filter, TENANT_ID);
-  const count = backlog.countItems(filter, TENANT_ID);
+  const rows = getBacklog().listItems(filter, TENANT_ID);
+  const count = getBacklog().countItems(filter, TENANT_ID);
 
   if (!rows.length) {
     console.log('No items match.');
@@ -142,15 +155,15 @@ function cmdList(args: Record<string, string>): void {
 }
 
 function cmdGet(id: string): void {
-  const r = backlog.getItem(id, TENANT_ID);
+  const r = getBacklog().getItem(id, TENANT_ID);
   if (!r) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
 
-  const comments = backlog.getComments(id, TENANT_ID);
-  const history = backlog.getStatusHistory(id, TENANT_ID);
-  const related = backlog.getRelatedItems(id, TENANT_ID);
+  const comments = getBacklog().getComments(id, TENANT_ID);
+  const history = getBacklog().getStatusHistory(id, TENANT_ID);
+  const related = getBacklog().getRelatedItems(id, TENANT_ID);
 
   console.log(`\n  ID:       ${r.id}`);
   console.log(`  Type:     ${r.type}`);
@@ -187,7 +200,7 @@ function cmdUpdate(args: Record<string, string>): void {
     console.error('<id> required');
     process.exit(1);
   }
-  if (!backlog.getItem(id, TENANT_ID)) {
+  if (!getBacklog().getItem(id, TENANT_ID)) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
@@ -210,13 +223,13 @@ function cmdUpdate(args: Record<string, string>): void {
     console.error('Nothing to update');
     process.exit(1);
   }
-  backlog.updateItem(id, updates, TENANT_ID);
+  getBacklog().updateItem(id, updates, TENANT_ID);
 
-  if (args.comment) backlog.addComment(id, args.comment, 'system', TENANT_ID);
+  if (args.comment) getBacklog().addComment(id, args.comment, 'system', TENANT_ID);
   if (args.tags)
     args.tags.split(',').forEach((t: string) => {
       const tag = t.trim();
-      backlog.addTagToItem(id, tag, undefined, TENANT_ID);
+      getBacklog().addTagToItem(id, tag, undefined, TENANT_ID);
     });
 
   console.log(`  ${C.green}✅ Updated: ${id}${C.reset}`);
@@ -228,11 +241,11 @@ function cmdComment(args: Record<string, string>): void {
     console.error('<id> and --text required');
     process.exit(1);
   }
-  if (!backlog.getItem(id, TENANT_ID)) {
+  if (!getBacklog().getItem(id, TENANT_ID)) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
-  backlog.addComment(id, args.text, args.author ?? 'system', TENANT_ID);
+  getBacklog().addComment(id, args.text, args.author ?? 'system', TENANT_ID);
   console.log(`  ${C.green}✅ Comment added to ${id}${C.reset}`);
 }
 
@@ -247,11 +260,11 @@ function cmdRelate(args: Record<string, string>): void {
     console.error(`--type must be: ${types.join(', ')}`);
     process.exit(1);
   }
-  if (!backlog.getItem(args._id, TENANT_ID) || !backlog.getItem(args._related, TENANT_ID)) {
+  if (!getBacklog().getItem(args._id, TENANT_ID) || !getBacklog().getItem(args._related, TENANT_ID)) {
     console.error('Both items must belong to the selected tenant');
     process.exit(1);
   }
-  backlog.relateItems(args._id, args._related, rel, TENANT_ID);
+  getBacklog().relateItems(args._id, args._related, rel, TENANT_ID);
   console.log(`  ${C.green}✅ ${args._id} → ${rel} → ${args._related}${C.reset}`);
 }
 
@@ -260,7 +273,7 @@ function cmdSearch(query: string): void {
     console.error('query required');
     process.exit(1);
   }
-  const rows = backlog.searchSimilar(query, 10, TENANT_ID);
+  const rows = getBacklog().searchSimilar(query, 10, TENANT_ID);
   if (!rows.length) {
     console.log(`No similar items for "${query}"`);
     return;
@@ -270,7 +283,7 @@ function cmdSearch(query: string): void {
 }
 
 function cmdStats(): void {
-  const stats = backlog.getStats(TENANT_ID) as {
+  const stats = getBacklog().getStats(TENANT_ID) as {
     total: number;
     open: number;
     byStatus: Array<{ status: string; count: number }>;
@@ -296,7 +309,7 @@ function cmdStats(): void {
 
 function cmdReport(args: Record<string, string>): void {
   const fmt = args.format ?? 'table';
-  const rows = backlog.listItems({}, TENANT_ID);
+  const rows = getBacklog().listItems({}, TENANT_ID);
 
   if (fmt === 'markdown') {
     console.log('# Backlog Report\n');
@@ -319,13 +332,13 @@ function cmdDelete(id: string): void {
     console.error('<id> required');
     process.exit(1);
   }
-  const r = backlog.getItem(id, TENANT_ID);
+  const r = getBacklog().getItem(id, TENANT_ID);
   if (!r) {
     console.error(`Not found: ${id}`);
     process.exit(1);
   }
   console.log(`Deleting: ${id} — ${r.title}`);
-  backlog.deleteItem(id, TENANT_ID);
+  getBacklog().deleteItem(id, TENANT_ID);
   console.log(`  ${C.green}✅ Deleted: ${id}${C.reset}`);
 }
 
@@ -407,4 +420,7 @@ Relations: duplicates, blocked_by, related, supersedes, child_of, parent_of
   }
 }
 
-main();
+// CLI entry — guard keeps imports side-effect free when loaded as a library.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

@@ -1,166 +1,94 @@
-# Gentle Vanguard Web Dashboard
+# Gentle-Vanguard Web Dashboard
 
-Real-time metrics dashboard with CopilotKit-native agent interaction patterns. Provides agent chat,
-HITL approvals, shared state, task control, and event timeline — all over WebSocket/MCP.
+Interfaz web local-first para observar el stack y operar sesiones de agentes mediante HTTP y
+WebSocket. Es la superficie operativa, no el motor de ejecución de cada agente.
 
-## Features
+## Propósito y usuarios
 
-### Agent Chat (`/agents`)
+| Aspecto           | Definición                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| Propósito         | Centralizar métricas, trazas, salud, eventos, tareas y conversaciones operativas.         |
+| Usuarios          | DEV, QA, BA, GOV, OPS, DOC y responsables de operación/observabilidad.                    |
+| Clientes objetivo | Equipos que necesitan visibilidad y controles HITL sobre una instalación Gentle-Vanguard. |
+| Operación         | Loopback/local-first; despliegue externo es opcional y requiere controles adicionales.    |
 
-- Conversational interface with 6 agents (DEV, QA, BA, GOV, OPS, DOC)
-- **@mentions autocomplete**: Type `@` in input to mention and route to any agent
-- **Suggested actions**: Quick-action chips (Run tests, Check skills, Review logs, Analyze) in empty
-  state
-- **Streaming responses**: Real-time message streaming with typing indicators
-- **Tool calls**: Expandable tool call cards with status (pending/running/completed/error)
-- **ui_hints rendering**: Native React components from agent responses:
-  - `metric` — Color-coded metric cards (info/warning/error)
-  - `datatable` — Sortable HTML tables
-  - `chart` — Bar charts with multiple series
-  - `diff` — Before/after side-by-side
-  - `form` — Dynamic forms with submit
-  - `list` — Bulleted lists with severity
-  - `alert` — Alert banners with severity
-- **Session history**: Persistent sessions loaded from disk, browsable in sidebar
+## Capacidades actuales
 
-### Human-in-the-Loop (`/agents`)
+- Métricas de tokens, sesiones, Git y salud; trazas OpenTelemetry y feed en vivo.
+- Chat con agentes, menciones, streaming, historial persistente y tarjetas `ui_hints`.
+- HITL para confirmación, selección, formulario y revisión.
+- Control y seguimiento de tareas, timeline de eventos y estado compartido.
+- Alertas, auditoría, panel de procesos, skills/marketplace y documentación interactiva.
+- Multi-tenant de deployment, autenticación configurable, RBAC v1 y fallback HTTP cuando cae
+  WebSocket.
+- API HTTP para métricas, salud, sesiones, herramientas, eventos y tareas.
 
-- 4 HITL modes: confirmation, selection, form, review
-- Auto-detected when user messages contain "approve", "confirm", "delegate", "revisar"
-- Agent pauses execution and shows modal; user response resumes
+## Arquitectura
 
-### Agent Tasks (`/tasks`)
+`server/websocket-server.ts` aloja HTTP/WS; `server/mcp-bridge.ts` conecta herramientas MCP;
+`server/shared-state-bridge.ts` enlaza el event bus; `server/database/manager.ts` administra Nexus
+SQLite WAL. React vive en `src/`, con componentes, hooks, tipos y rutas de la aplicación.
 
-- Real-time task monitoring from the event bus
-- Active/running/completed/error/cancelled status with icons
-- Quick actions to dispatch DEV or QA agents
+La arquitectura vigente integra Obsidian como vault de conocimiento, Engram como memoria
+persistente, Nexus como datos operativos, CodeGraph como índice incremental de tooling y Graphify
+como grafo de análisis/consulta. El Dashboard visualiza o consume los datos disponibles; no
+convierte por sí solo filesystem, vault o grafos en una fuente tenant sin la
+clasificación/proveniencia correspondiente.
 
-### Event Timeline (`/timeline`)
-
-- Visual timeline of event bus events
-- 10 event types with distinct icons (dispatch, agent, session, workflow, validation)
-- Expandable JSON payload viewer
-- Real-time updates via WebSocket
-
-### Dashboard (`/`)
-
-- Live metrics (tokens, sessions, git, health)
-- MCP skill statistics with per-agent breakdown
-- Agent Activity section
-
-## Architecture
-
-```
-apps/web-dashboard/
-├── server/
-│   ├── websocket-server.ts       # WebSocket + HTTP server (metrics, agents, HITL, state)
-│   ├── mcp-bridge.ts             # MCP stdio ↔ WebSocket bridge singleton
-│   └── shared-state-bridge.ts    # Event bus filesystem watcher singleton
-├── src/
-│   ├── components/
-│   │   ├── Dashboard.tsx         # Main dashboard with metrics
-│   │   ├── AgentChat.tsx         # Agent chat with @mentions, suggested actions
-│   │   ├── AgentMessage.tsx      # Message renderer with ui_hints + tool calls
-│   │   ├── HitlModal.tsx         # HITL modal (4 modes)
-│   │   ├── TaskControl.tsx       # Task monitoring + quick dispatch
-│   │   ├── SessionTimeline.tsx   # Event timeline with expandable payloads
-│   │   ├── TracingDashboard.tsx  # OpenTelemetry traces
-│   │   ├── Marketplace.tsx       # Skill publishing/browsing
-│   │   └── InteractiveDocs.tsx   # Guided tutorials
-│   ├── hooks/
-│   │   ├── useAgentStream.ts     # Agent sessions, messages, tools, HITL, history
-│   │   └── useSharedState.ts     # Event bus state (events, tasks)
-│   ├── types/
-│   │   └── agent.ts              # Agent types (ui_hints, messages, sessions, etc.)
-│   └── App.tsx                   # Router with 6 routes (+/tasks, /timeline)
-```
-
-## Quick Start
+## Instalación y comandos
 
 ```bash
-# Install dependencies
+cd apps/web-dashboard
 pnpm install
-
-# Terminal 1: Start WebSocket + HTTP server (port 8080)
-node server/websocket-server.ts
-
-# Terminal 2: Start dev server
-pnpm dev
-
-# Build for production
-pnpm build
+pnpm dev:server   # WS + HTTP
+pnpm dev:client   # Vite
+pnpm dev          # ambos
+pnpm build        # genera tokens y compila TypeScript/Vite
+pnpm typecheck
+pnpm preview
+pnpm test
+pnpm lint
+pnpm i18n:check
 ```
 
-The dashboard auto-connects to `ws://localhost:8080`.
+El cliente usa Vite (por defecto `5173`) y conecta al servidor WS configurado. Variables relevantes:
+`WS_PORT`, `VITE_API_URL`, `GV_DASHBOARD_TOKEN` y `GV_DASHBOARD_CORS_ORIGINS`.
 
-## WebSocket Protocol
+## Operación independiente
 
-### Agent Commands (type: "agent")
+Se puede levantar sin Academy, CMS o Analytics. Para una operación completa necesita los procesos y
+fuentes del stack que alimentan métricas, eventos, sesiones y MCP; una instalación vacía mostrará
+los estados disponibles, no datos simulados. El servidor de base de datos crea/usa
+`.runtime/gentle-vanguard.db`.
 
-| action           | Description                  |
-| ---------------- | ---------------------------- |
-| `create_session` | Create new agent session     |
-| `send_message`   | Send message to session      |
-| `list_sessions`  | List active sessions         |
-| `list_history`   | List all persistent sessions |
-| `get_session`    | Get session by ID            |
-| `list_tools`     | List MCP bridge tools        |
-| `execute_skill`  | Execute skill via MCP bridge |
-| `subscribe`      | Subscribe to session stream  |
-| `hitl_response`  | Resolve HITL request         |
-| `emit_event`     | Emit event to event bus      |
+## API, WebSocket e import/export
 
-### Message Types (server → client)
+El protocolo WS incluye creación/envío/listado de sesiones, ejecución de skills, suscripciones,
+respuestas HITL y eventos. La API expone, entre otras, `/api/metrics`, `/api/health`,
+`/api/agent/tools`, `/api/agent/sessions`, `/api/state/events` y `/api/state/tasks`.
 
-| type                    | Description                          |
-| ----------------------- | ------------------------------------ |
-| `metrics`               | Live dashboard metrics (5s interval) |
-| `bridge_status`         | MCP bridge connection status         |
-| `agent_session_created` | New session created                  |
-| `agent_session`         | Session state snapshot               |
-| `agent_sessions`        | List of sessions                     |
-| `agent_message`         | New/updated message in session       |
-| `agent_stream_done`     | Message streaming complete           |
-| `agent_tools`           | Available MCP tools                  |
-| `agent_history`         | Persistent session history           |
-| `hitl_request`          | HITL approval requested              |
-| `hitl_resolved`         | HITL request resolved                |
-| `state_history`         | Event bus history                    |
-| `state_event`           | New event bus event                  |
-| `state_tasks`           | Active agent tasks                   |
+No hay una exportación/importación general de dashboards o tenants documentada como capacidad del
+producto. Los eventos, trazas y métricas se almacenan en Nexus y sus backups/operaciones de DB deben
+realizarse con las herramientas del stack.
 
-### CopilotKit Patterns Implemented
+## Seguridad y límites
 
-The dashboard implements 5 patterns from CopilotKit natively over MCP:
+- En local, el acceso loopback puede operar sin token; en producción debe configurarse
+  autenticación.
+- Las rutas protegidas aplican autenticación, RBAC v1 y validación de tenant; las mutaciones cookie
+  usan verificación CSRF según la implementación.
+- Restringir CORS y no exponer WS/HTTP sin proxy, TLS, identidad y secretos gestionados.
+- El Dashboard no sustituye un SIEM, IAM empresarial, sistema de tickets ni control de cambios.
+- No se promete alta disponibilidad, retención regulatoria, soporte 24/7 ni aislamiento cloud por
+  defecto.
 
-| Pattern            | Implementation                                       | Files                                         |
-| ------------------ | ---------------------------------------------------- | --------------------------------------------- |
-| **AG-UI Protocol** | `ui_hints` in message payload → 7 React renderers    | `AgentMessage.tsx`, `agent.ts`                |
-| **Streaming**      | WebSocket agent channels with `streaming` flag       | `websocket-server.ts`, `useAgentStream.ts`    |
-| **HITL UI**        | 4-mode modal, auto-detected from keywords            | `HitlModal.tsx`, `websocket-server.ts`        |
-| **Shared State**   | Event bus polling + 3 WS channels                    | `shared-state-bridge.ts`, `useSharedState.ts` |
-| **Chat Interface** | AgentChat with @mentions, history, suggested actions | `AgentChat.tsx`, `useAgentStream.ts`          |
+## Soporte y criterios de comercialización
 
-## HTTP API
+Para soporte, adjuntar ruta, endpoint, estado de salud y logs sin secretos; ejecutar `pnpm test` y
+`pnpm build` antes de reportar. La operación del stack incluye `npm run db:health` y
+`npm run watchtower:health` desde la raíz. No hay SLA comercial definido.
 
-- `GET /api/metrics` — Dashboard metrics
-- `GET /api/mcp/metrics` — MCP skill statistics
-- `GET /api/health` — Server health
-- `GET /api/agent/tools` — Available MCP tools
-- `GET /api/agent/sessions` — Session list
-- `GET /api/agent/session/:id` — Single session
-- `GET /api/state/events` — Event bus history
-- `GET /api/state/tasks` — Active tasks
-- `POST /api/state/emit` — Emit event to bus
-
-## Environment Variables
-
-- `WS_PORT`: WebSocket/HTTP server port (default: 8080)
-- `VITE_API_URL`: API base URL for HTTP fallback
-
-## Scripts
-
-- `pnpm dev` — Start Vite dev server
-- `pnpm build` — TypeScript check + Vite production build
-- `pnpm preview` — Preview production build
-- `pnpm lint` — Run ESLint
+**Apto para operación local, observabilidad interna y demos controladas.** Para comercialización
+enterprise faltan, según el entorno, packaging/deployment soportado, IAM federado, HA/backup
+probado, retención y auditoría contractual, aislamiento multi-tenant validado, hardening perimetral
+y soporte/SLA.

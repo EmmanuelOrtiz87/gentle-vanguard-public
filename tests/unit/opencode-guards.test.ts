@@ -6,7 +6,7 @@ import {
   normalizeSteps,
   validateOpencodeJsonSteps,
   validateAgentMdSteps,
-} from '../../src/opencode-guards.ts';
+} from '../../src/security/opencode-guards.ts';
 
 const TEMP_MD = join(process.cwd(), '.opencode', 'agents', 'temp-agent.md');
 

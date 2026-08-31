@@ -35,7 +35,7 @@ function main(): void {
   for (const rawPath of lines) {
     const p = rawPath.trim();
     if (p && existsSync(p)) {
-      const hashlineScript = join(resolve(__dirname, '..'), 'src', 'hashline.ts');
+      const hashlineScript = join(resolve(__dirname, '..', '..'), 'src', 'tools', 'hashline.ts');
       const quietArgs = args.quiet ? ['--quiet'] : [];
       try {
         runNpxTsxSync(hashlineScript, ['--action', 'update', '--path', p, ...quietArgs], {

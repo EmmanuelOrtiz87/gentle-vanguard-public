@@ -2,4 +2,4 @@ export {
   validateOpencodeJsonSteps,
   validateAgentMdSteps,
   normalizeSteps,
-} from '../opencode-guards.js';
+} from '../security/opencode-guards.js';

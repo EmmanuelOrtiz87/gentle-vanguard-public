@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * i18n gate — verifies every tt('ui.*') literal used in dashboard components
- * exists in src/hooks/useLocale.ts across ALL language sections.
+ * exists in src/i18n/ui-strings.ts across ALL language sections.
  *
  * Native stack capability (no external deps). Run: npm run i18n:check
  * Exit codes: 0 = OK, 1 = missing keys found.
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const srcDir = join(root, 'src');
-const localeFile = join(srcDir, 'hooks', 'useLocale.ts');
+const localeFile = join(srcDir, 'i18n', 'ui-strings.ts');
 
 function walk(dir, exts, acc = []) {
   for (const entry of readdirSync(dir)) {
@@ -40,7 +40,7 @@ for (const file of sourceFiles) {
   }
 }
 
-// 2. Collect defined keys from useLocale.ts
+// 2. Collect defined keys from ui-strings.ts
 const localeContent = readFileSync(localeFile, 'utf8');
 const defined = new Set();
 const DEF = /'(ui\.[a-z0-9_]+)':/g;
@@ -51,14 +51,14 @@ while ((d = DEF.exec(localeContent)) !== null) defined.add(d[1]);
 const missing = [...used.keys()].filter((k) => !defined.has(k)).sort();
 
 if (missing.length === 0) {
-  console.log(`i18n:check OK — ${used.size} keys used across ${sourceFiles.length} files, all defined in useLocale.ts`);
+  console.log(`i18n:check OK — ${used.size} keys used across ${sourceFiles.length} files, all defined in ui-strings.ts`);
   process.exit(0);
 }
 
-console.error(`i18n:check FAILED — ${missing.length} key(s) used but NOT defined in useLocale.ts:\n`);
+console.error(`i18n:check FAILED — ${missing.length} key(s) used but NOT defined in ui-strings.ts:\n`);
 for (const k of missing) {
   console.error(`  ${k}`);
   for (const loc of used.get(k)) console.error(`    at ${loc}`);
 }
-console.error(`\nAdd these keys to ALL language sections (en/es/pt-BR) in src/hooks/useLocale.ts.`);
+console.error(`\nAdd these keys to ALL language sections (en/es/pt-BR) in src/i18n/ui-strings.ts.`);
 process.exit(1);

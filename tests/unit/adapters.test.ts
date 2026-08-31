@@ -119,6 +119,6 @@ describe('adapters', () => {
   });
 
   it('skill-export consumer source exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/skill-export.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/knowledge/skill-export.ts')));
   });
 });

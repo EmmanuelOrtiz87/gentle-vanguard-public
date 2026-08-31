@@ -33,6 +33,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { runSync } from '../core/run-command.js';
 import { createWebCrawler, type SearchResult } from '../web/web-crawler.js';
 import { gradeRetrieval } from '../retrieval/retrieval-grader.js';
+import { cached } from '../resilience/response-cache/cached.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,7 +133,8 @@ export function buildArtifact(
     verdict: results[i].verdict,
     confidence: round2(results[i].confidence),
     // low-confidence flag: below threshold or corrective verdict
-    uncertain: results[i].confidence < DEFAULT_RUN_OPTIONS.threshold || results[i].verdict === 'corrective',
+    uncertain:
+      results[i].confidence < DEFAULT_RUN_OPTIONS.threshold || results[i].verdict === 'corrective',
     sources: results[i].sources,
     claims: [],
   }));
@@ -164,7 +166,9 @@ export function renderMarkdown(a: ResearchArtifact): string {
   lines.push('');
   lines.push(`> artifact: \`${a.artifact}\` | mode: ${a.mode} | generated: ${a.generated}`);
   lines.push(`> grant: ${a.grant.sources.join(' + ')} vía ${a.grant.tool}`);
-  lines.push(`> preguntas: ${a.stats.questions} | fuentes: ${a.stats.sources} (${a.stats.relevantSources} relevantes) | baja confianza: ${a.stats.lowConfidence}`);
+  lines.push(
+    `> preguntas: ${a.stats.questions} | fuentes: ${a.stats.sources} (${a.stats.relevantSources} relevantes) | baja confianza: ${a.stats.lowConfidence}`,
+  );
   lines.push('');
   for (const q of a.questions) {
     const flag = q.uncertain ? '⚠️ baja confianza' : '✓';
@@ -188,7 +192,9 @@ export function renderMarkdown(a: ResearchArtifact): string {
   }
   lines.push('## Mapeo claim → fuente');
   lines.push('');
-  lines.push('_(Capa agente) Cada afirmación que la propuesta usará debe mapear a una fuente de arriba._');
+  lines.push(
+    '_(Capa agente) Cada afirmación que la propuesta usará debe mapear a una fuente de arriba._',
+  );
   lines.push('');
   lines.push('| Claim | Fuente | Confianza |');
   lines.push('|---|---|---|');
@@ -196,9 +202,11 @@ export function renderMarkdown(a: ResearchArtifact): string {
   lines.push('');
   lines.push('## Contradicciones');
   lines.push('');
-  lines.push(a.contradictions.length === 0
-    ? '_(Capa agente) Registrar aquí fuentes que se contradicen y cómo se resuelve._'
-    : a.contradictions.map((c) => `- ${c}`).join('\n'));
+  lines.push(
+    a.contradictions.length === 0
+      ? '_(Capa agente) Registrar aquí fuentes que se contradicen y cómo se resuelve._'
+      : a.contradictions.map((c) => `- ${c}`).join('\n'),
+  );
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -223,42 +231,66 @@ function toResearchSource(r: SearchResult, score: number, relevant: boolean): Re
   };
 }
 
-async function researchQuestion(question: string, opts: RunOptions): Promise<{
+async function researchQuestion(
+  question: string,
+  opts: RunOptions,
+): Promise<{
   verdict: 'relevant' | 'corrective';
   confidence: number;
   sources: ResearchSource[];
 }> {
-  const crawler = createWebCrawler();
-  const search = await crawler.search(question, opts.limit);
-  const texts = search.map((r) => `${r.title}\n${r.description ?? ''}`);
-  const graded = gradeRetrieval(question, texts, { threshold: opts.threshold });
+  // Response cache: same (question, opts) recurs across sessions/re-runs; the
+  // search + BM25 grade pipeline is deterministic and network-bound, so the
+  // 24h exact cache skips the search (and deep scrapes) entirely. Note: cached
+  // sources keep their original fetchedAt — that IS the fetch time of evidence.
+  const { value } = await cached(
+    {
+      context: 'sdd-research',
+      input: JSON.stringify({ question, ...opts }),
+    },
+    async () => {
+      const crawler = createWebCrawler();
+      const search = await crawler.search(question, opts.limit);
+      const texts = search.map((r) => `${r.title}\n${r.description ?? ''}`);
+      const graded = gradeRetrieval(question, texts, { threshold: opts.threshold });
 
-  let sources: ResearchSource[] = search.map((r, i) => toResearchSource(r, graded.chunks[i]?.score ?? 0, graded.chunks[i]?.relevant ?? false));
+      let sources: ResearchSource[] = search.map((r, i) =>
+        toResearchSource(r, graded.chunks[i]?.score ?? 0, graded.chunks[i]?.relevant ?? false),
+      );
 
-  if (opts.deep && search.length > 0) {
-    const deepTargets = sources
-      .slice()
-      .sort((a, b) => b.score - a.score)
-      .slice(0, opts.deepLimit);
-    for (const target of deepTargets) {
-      try {
-        const scraped = await crawler.scrape(target.url);
-        const deepGraded = gradeRetrieval(question, [(scraped.markdown ?? '').slice(0, 20_000)], { threshold: opts.threshold });
-        target.deepScore = round2(deepGraded.chunks[0]?.score ?? 0);
-      } catch {
-        // deep scrape is best-effort — snippet score stands
+      if (opts.deep && search.length > 0) {
+        const deepTargets = sources
+          .slice()
+          .sort((a, b) => b.score - a.score)
+          .slice(0, opts.deepLimit);
+        for (const target of deepTargets) {
+          try {
+            const scraped = await crawler.scrape(target.url);
+            const deepGraded = gradeRetrieval(
+              question,
+              [(scraped.markdown ?? '').slice(0, 20_000)],
+              { threshold: opts.threshold },
+            );
+            target.deepScore = round2(deepGraded.chunks[0]?.score ?? 0);
+          } catch {
+            // deep scrape is best-effort — snippet score stands
+          }
+        }
+        sources = sources.sort((a, b) => (b.deepScore ?? b.score) - (a.deepScore ?? a.score));
+      } else {
+        sources = sources.sort((a, b) => b.score - a.score);
       }
-    }
-    sources = sources.sort((a, b) => (b.deepScore ?? b.score) - (a.deepScore ?? a.score));
-  } else {
-    sources = sources.sort((a, b) => b.score - a.score);
-  }
 
-  return {
-    verdict: graded.verdict === 'relevant' ? 'relevant' : 'corrective',
-    confidence: graded.averageScore ?? 0,
-    sources,
-  };
+      return {
+        verdict: (graded.verdict === 'relevant' ? 'relevant' : 'corrective') as
+          | 'relevant'
+          | 'corrective',
+        confidence: graded.averageScore ?? 0,
+        sources,
+      };
+    },
+  );
+  return value;
 }
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
@@ -373,7 +405,9 @@ async function main(): Promise<number> {
   }
   // FAIL-CLOSED: the SDD case must exist — research is bound to a change.
   if (!existsSync(join(ROOT, '.sdd', feature))) {
-    console.error(`El caso SDD ".sdd/${feature}" no existe. Corre INIT/EXPLORE primero (sdd-pipeline -f ${feature}).`);
+    console.error(
+      `El caso SDD ".sdd/${feature}" no existe. Corre INIT/EXPLORE primero (sdd-pipeline -f ${feature}).`,
+    );
     return 1;
   }
   const questions = parseQuestions(questionsRaw);
@@ -389,7 +423,9 @@ async function main(): Promise<number> {
     deepLimit: parseInt(flag('deep-limit') ?? '3', 10) || 3,
   };
 
-  console.log(`[sdd-research] ${questions.length} pregunta(s) para "${feature}" (deep=${opts.deep}, limit=${opts.limit})`);
+  console.log(
+    `[sdd-research] ${questions.length} pregunta(s) para "${feature}" (deep=${opts.deep}, limit=${opts.limit})`,
+  );
   const results = [];
   for (const q of questions) {
     console.log(`[sdd-research] → ${q}`);
@@ -400,9 +436,13 @@ async function main(): Promise<number> {
   const dir = saveArtifact(artifact);
   engramSave(artifact);
   console.log(`[sdd-research] artefacto ${ARTIFACT_VERSION} guardado en ${dir}`);
-  console.log(`[sdd-research] fuentes: ${artifact.stats.sources} (${artifact.stats.relevantSources} relevantes), baja confianza: ${artifact.stats.lowConfidence}`);
+  console.log(
+    `[sdd-research] fuentes: ${artifact.stats.sources} (${artifact.stats.relevantSources} relevantes), baja confianza: ${artifact.stats.lowConfidence}`,
+  );
   if (artifact.stats.lowConfidence > 0) {
-    console.log('[sdd-research] ⚠️ preguntas de baja confianza — la capa agente debe resolverlas antes de PROPOSE');
+    console.log(
+      '[sdd-research] ⚠️ preguntas de baja confianza — la capa agente debe resolverlas antes de PROPOSE',
+    );
   }
   return 0;
 }

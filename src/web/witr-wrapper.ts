@@ -21,8 +21,9 @@
 
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { runSync } from '../core/run-command.js';
+import { runNpxTsxSync, runSync } from '../core/run-command.js';
 import { ROOT } from '../core/repo-root';
+import { WITR_INSTALL_TIMEOUT } from './witr-installer.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,7 +119,7 @@ export const WITR_VERSION = 'v0.3.3';
 const TOOLS_DIR = join(ROOT, '.runtime', 'tools', 'witr');
 const WITR_BIN = process.platform === 'win32' ? 'witr.exe' : 'witr';
 export const WITR_BIN_PATH = join(TOOLS_DIR, WITR_BIN);
-const INSTALLER_SCRIPT = join(ROOT, 'scripts', 'utilities', 'maintenance', 'witr-installer.ps1');
+const INSTALLER_SCRIPT = join(ROOT, 'src', 'web', 'witr-installer.ts');
 
 const SENSITIVE_ENV_PREFIXES = [
   'GH_',
@@ -131,6 +132,12 @@ const SENSITIVE_ENV_PREFIXES = [
   'OPENAI_',
   'ANTHROPIC_',
 ];
+const SENSITIVE_FIELD = /(env|headers?|args?|query|tokens?|secrets?|passwords?|keys?)/i;
+const SENSITIVE_ASSIGNMENT =
+  /(?:gh|github|gv_dashboard|opencode_server|authorization|[a-z0-9_-]*(?:token|secret|password|api[_-]?key))\s*[=:]\s*[^\s,;]+/gi;
+const SENSITIVE_FLAG = /--?(?:token|secret|password|api[-_]?key)\s+[^\s]+/gi;
+const SENSITIVE_AUTH = /\b(?:bearer|basic)\s+[^\s,;]+/gi;
+const SENSITIVE_QUERY = /[?&](?:token|secret|password|api[-_]?key)=[^&\s]+/gi;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -139,8 +146,18 @@ export function isWitrInstalled(): boolean {
   return existsSync(WITR_BIN_PATH);
 }
 
+export function isWitrCompatible(): boolean {
+  if (!isWitrInstalled()) return false;
+  try {
+    const result = runSync(WITR_BIN_PATH, ['--version'], { timeout: 30_000 });
+    return result.status === 0 && Boolean((result.stdout || result.stderr).trim());
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Install witr via the PowerShell installer if the binary is missing.
+ * Install witr via the TypeScript installer if the binary is missing.
  * Returns true when witr is available afterwards.
  */
 export function ensureWitrInstalled(): boolean {
@@ -148,13 +165,7 @@ export function ensureWitrInstalled(): boolean {
   if (!existsSync(INSTALLER_SCRIPT)) return false;
 
   try {
-    const r = runSync(
-      'pwsh',
-      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', INSTALLER_SCRIPT],
-      {
-        timeout: 120000,
-      },
-    );
+    const r = runNpxTsxSync(INSTALLER_SCRIPT, ['--quiet'], { timeout: WITR_INSTALL_TIMEOUT });
     return r.status === 0 && isWitrInstalled();
   } catch {
     return false;
@@ -189,41 +200,60 @@ function redactEnv(env: string[] | undefined): string[] {
     const key = entry.slice(0, eq);
     const upper = key.toUpperCase();
     const sensitive = SENSITIVE_ENV_PREFIXES.some((p) => upper.includes(p));
-    return sensitive ? `${key}=***REDACTED***` : entry;
+    return sensitive ? '[REDACTED_ENV]' : entry;
   });
+}
+
+function redactText(value: string): string {
+  return value
+    .replace(SENSITIVE_ASSIGNMENT, '[REDACTED]')
+    .replace(SENSITIVE_FLAG, '[REDACTED]')
+    .replace(SENSITIVE_AUTH, '[REDACTED]')
+    .replace(SENSITIVE_QUERY, '[REDACTED]');
+}
+
+export function sanitizeWitrOutput(value: unknown): unknown {
+  if (typeof value === 'string') return redactText(value);
+  if (Array.isArray(value)) return value.map((item) => sanitizeWitrOutput(item));
+  if (!value || typeof value !== 'object') return value;
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (SENSITIVE_FIELD.test(key) || /^env$/i.test(key)) continue;
+    sanitized[key] = sanitizeWitrOutput(item);
+  }
+  return sanitized;
 }
 
 function toCausalChain(ancestry: WitrProcess[] | undefined): CausalLink[] {
   if (!ancestry || ancestry.length === 0) return [];
   return ancestry.map((p) => ({
     pid: p.PID,
-    name: p.Command || `pid ${p.PID}`,
-    command: p.Cmdline || p.Command,
+    name: redactText(p.Command || `pid ${p.PID}`),
+    command: redactText(p.Cmdline || p.Command),
   }));
 }
 
 function mapProcess(result: WitrResult): ProcessChain {
   const p = result.Process;
-  // Strip the full environment from the raw payload before it can leak into
-  // logs/reports — witr returns every env var, including tokens.
-  const sanitized: unknown = {
+  const sanitized = sanitizeWitrOutput({
     ...result,
     Process: { ...p, Env: redactEnv(p.Env) },
-  };
+  });
   return {
     pid: p.PID,
-    name: p.Command || result.ResolvedTarget,
-    command: p.Cmdline || p.Command,
-    user: p.User || undefined,
-    startedAt: p.StartedAt || undefined,
-    workingDir: p.WorkingDir || undefined,
-    gitRepo: p.GitRepo || undefined,
-    gitBranch: p.GitBranch || undefined,
-    source: result.Source?.Type || undefined,
-    sourceName: result.Source?.Name || undefined,
-    health: p.Health || undefined,
+    name: redactText(p.Command || result.ResolvedTarget),
+    command: redactText(p.Cmdline || p.Command),
+    user: redactText(p.User) || undefined,
+    startedAt: redactText(p.StartedAt) || undefined,
+    workingDir: redactText(p.WorkingDir) || undefined,
+    gitRepo: redactText(p.GitRepo) || undefined,
+    gitBranch: redactText(p.GitBranch) || undefined,
+    source: redactText(result.Source?.Type ?? '') || undefined,
+    sourceName: redactText(result.Source?.Name ?? '') || undefined,
+    health: redactText(p.Health) || undefined,
     causalChain: toCausalChain(result.Ancestry),
-    warnings: result.Warnings ?? [],
+    warnings: (result.Warnings ?? []).map((warning) => redactText(warning)),
     raw: sanitized,
   };
 }

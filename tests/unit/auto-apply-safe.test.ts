@@ -9,11 +9,11 @@ const SRC = (name: string) => pathToFileURL(resolve(ROOT, 'src', name)).href;
 
 describe('auto-apply-safe', () => {
   it('source file exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/auto-apply-safe.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/resilience/auto-apply-safe.ts')));
   });
 
   it('imports without error', async () => {
-    const mod = await import(SRC('auto-apply-safe.ts'));
+    const mod = await import(SRC('resilience/auto-apply-safe.ts'));
     assert.ok(mod);
   });
 

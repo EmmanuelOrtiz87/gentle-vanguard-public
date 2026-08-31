@@ -54,7 +54,7 @@ function resolveProjectRoot(): string {
 }
 
 const PROJECT_ROOT = resolveProjectRoot();
-const ROUTER_PATH = join(PROJECT_ROOT, 'src', 'ml-router.ts');
+const ROUTER_PATH = join(PROJECT_ROOT, 'src', 'ml', 'ml-router.ts');
 
 function getWorkspaceContext(): string {
   const analyzerPath = join(resolveProjectRoot(), 'src', 'context-analyzer.ts');
@@ -82,7 +82,7 @@ function invokeSkillRecommendation(queryText: string, topN: number): SkillRecomm
   }
   try {
     const raw = runNpxTsxSync(
-      'src/ml-router.ts',
+      'src/ml/ml-router.ts',
       ['--query', queryText, '--topn', String(topN * 2), '--raw'],
       {
         cwd: PROJECT_ROOT,

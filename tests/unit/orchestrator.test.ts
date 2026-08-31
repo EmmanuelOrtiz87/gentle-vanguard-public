@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('orchestrator', () => {
-  it('src/team-orchestrator.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'team-orchestrator.ts')));
+  it('src/orchestration/team-orchestrator.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'orchestration', 'team-orchestrator.ts')));
   });
 
   it('config/orchestrator.json has version', () => {

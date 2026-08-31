@@ -167,8 +167,11 @@ export function getFallbackAction(operationName: string): string {
 export function getCircuitBreakerSettings(breakerName: string): CircuitBreakerEntry | null {
   // First check centralized timeout-config
   const centralizedCB = getCircuitBreakerConfig();
-  if (centralizedCB && (centralizedCB as any)[breakerName]) {
-    const entry = (centralizedCB as any)[breakerName];
+  if (
+    centralizedCB &&
+    (centralizedCB as Record<string, CircuitBreakerEntry | undefined>)[breakerName]
+  ) {
+    const entry = (centralizedCB as Record<string, CircuitBreakerEntry | undefined>)[breakerName]!;
     return {
       failure_threshold: entry.failure_threshold ?? 5,
       reset_seconds: entry.reset_seconds ?? 60,

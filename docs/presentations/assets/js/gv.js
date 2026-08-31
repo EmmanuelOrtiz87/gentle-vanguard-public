@@ -16,6 +16,34 @@
 
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  function initBrand() {
+    var brands = document.querySelectorAll('.navbar-brand');
+    brands.forEach(function (brand) {
+      if (brand.querySelector('.gv-logo')) return;
+      var logo = document.createElement('img');
+      logo.className = 'gv-logo';
+      logo.src = 'assets/logo.svg';
+      logo.alt = 'Gentle-Vanguard';
+      brand.insertBefore(logo, brand.firstChild);
+      var icon = brand.querySelector('i');
+      if (icon) icon.remove();
+      if (brand.textContent.trim() === 'GV') {
+        brand.innerHTML = '';
+        brand.appendChild(logo);
+        var wordmark = document.createElement('span');
+        wordmark.className = 'gv-wordmark';
+        wordmark.innerHTML = 'Gentle<strong>Vanguard</strong> <small>Presentations</small>';
+        brand.appendChild(wordmark);
+      }
+    });
+    if (!document.querySelector('link[rel="icon"]')) {
+      var favicon = document.createElement('link');
+      favicon.rel = 'icon';
+      favicon.href = 'assets/logo.svg';
+      document.head.appendChild(favicon);
+    }
+  }
+
   /* --- 1. Navbar scroll state ------------------------------------------ */
   function initNavbar() {
     var nav = document.querySelector('.nav-blur');
@@ -25,6 +53,17 @@
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* --- 1b. Shared theme toggle ----------------------------------------- */
+  function initThemeToggle() {
+    if (window.GentleVanguardTheme) return;
+    if (document.querySelector('script[src*="assets/js/theme-toggle.js"]')) return;
+
+    var script = document.createElement('script');
+    script.src = 'assets/js/theme-toggle.js?v=1.0';
+    script.defer = true;
+    document.head.appendChild(script);
   }
 
   /* --- 2. Scroll progress bar (fallback JS) ------------------------------ */
@@ -599,7 +638,9 @@
 
   /* --- 10. Init all ---------------------------------------------------------- */
   function init() {
+    initBrand();
     initNavbar();
+    initThemeToggle();
     initScrollProgress();
     initReveal();
     initSpotlight();

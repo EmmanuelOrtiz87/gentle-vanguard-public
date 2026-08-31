@@ -35,7 +35,7 @@ npm run db:init
 npm run watchtower:health
 
 # Start a session
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 ```
 
 ### Linux/macOS
@@ -53,7 +53,7 @@ pnpm install --frozen-lockfile
 npm run install:doctor -- --strict
 
 # Start a session
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 ```
 
 ## Detailed Setup

@@ -19,7 +19,7 @@ import {
   verifyEnvelope,
   parseSignerArgs,
   DSSE_PAYLOAD_TYPE,
-} from '../../src/slsa-signer.ts';
+} from '../../src/security/slsa-signer.ts';
 
 function makeStatement(): Record<string, unknown> {
   return {

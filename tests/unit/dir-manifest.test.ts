@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { buildManifest, walkFiles } from '../../src/dir-manifest';
+import { buildManifest, walkFiles } from '../../src/tools/dir-manifest';
 
 function makeTree(): string {
   const root = mkdtempSync(join(tmpdir(), 'dir-manifest-'));

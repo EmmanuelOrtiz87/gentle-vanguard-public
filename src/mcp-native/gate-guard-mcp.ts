@@ -8,9 +8,27 @@
 
 import { EventEmitter } from 'events';
 
+interface PolicyRule {
+  id: string;
+  action: string;
+  message: string;
+}
+
+interface Policy {
+  id: string;
+  rules: PolicyRule[];
+  enabled: boolean;
+}
+
+interface ViolationRecord {
+  timestamp: number;
+  connId: string;
+  rule: string;
+}
+
 export class GateGuardMCP extends EventEmitter {
-  private policies: Map<string, any> = new Map();
-  private violationLog: any[] = [];
+  private policies: Map<string, Policy> = new Map();
+  private violationLog: ViolationRecord[] = [];
 
   constructor() {
     super();

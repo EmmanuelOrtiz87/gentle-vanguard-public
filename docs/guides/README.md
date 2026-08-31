@@ -27,6 +27,7 @@ New to Gentle-Vanguard? Start here:
 | Guide                                                                      | Purpose                                                         |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **[SCRIPT-NORMALIZATION-STANDARDS.md](SCRIPT-NORMALIZATION-STANDARDS.md)** | Script normalization and best practices                         |
+| **[SCRIPT-LIFECYCLE.md](SCRIPT-LIFECYCLE.md)**                             | TS-only/CMD-first lifecycle, ownership and legacy handling      |
 | **[COMPATIBILITY-MATRIX.md](COMPATIBILITY-MATRIX.md)**                     | AI tool integration (Claude, Cline, etc.)                       |
 | **[TOKEN-CONTEXT-STANDARDS.md](TOKEN-CONTEXT-STANDARDS.md)**               | Token budgets and efficiency modes                              |
 | **[TOKEN-AUTOPILOT-OPERATIONS.md](TOKEN-AUTOPILOT-OPERATIONS.md)**         | Hard/balanced token autopilot operations and quick commands     |
@@ -69,7 +70,8 @@ New to Gentle-Vanguard? Start here:
 1. [SESSION-GUIDE.md](SESSION-GUIDE.md)
 2. [GITFLOW-QUICK-REFERENCE.md](GITFLOW-QUICK-REFERENCE.md)
 3. [SCRIPT-NORMALIZATION-STANDARDS.md](SCRIPT-NORMALIZATION-STANDARDS.md)
-4. [COMPATIBILITY-MATRIX.md](COMPATIBILITY-MATRIX.md)
+4. [SCRIPT-LIFECYCLE.md](SCRIPT-LIFECYCLE.md)
+5. [COMPATIBILITY-MATRIX.md](COMPATIBILITY-MATRIX.md)
 
 ### For DevOps
 

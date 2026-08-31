@@ -8,9 +8,22 @@
 
 import { EventEmitter } from 'events';
 
+interface MCPConnection {
+  id: string;
+  ideType: string;
+  version: string;
+  connectedAt: number;
+}
+
+interface RequestResult {
+  method: string;
+  timestamp: number;
+  error?: string;
+}
+
 export class MCPGateway extends EventEmitter {
-  private connections: Map<string, any> = new Map();
-  private requestHistory: any[] = [];
+  private connections: Map<string, MCPConnection> = new Map();
+  private requestHistory: RequestResult[] = [];
 
   public connect(ideType: string, version: string): string {
     const connId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -19,11 +32,11 @@ export class MCPGateway extends EventEmitter {
     return connId;
   }
 
-  public async handleRequest(connId: string, method: string): Promise<any> {
+  public async handleRequest(connId: string, method: string): Promise<RequestResult> {
     if (!this.connections.has(connId)) {
-      return { error: 'Not connected' };
+      return { method, timestamp: Date.now(), error: 'Not connected' };
     }
-    const result = { method, timestamp: Date.now() };
+    const result: RequestResult = { method, timestamp: Date.now() };
     this.requestHistory.push(result);
     this.emit('requestHandled', { connId, method });
     return result;

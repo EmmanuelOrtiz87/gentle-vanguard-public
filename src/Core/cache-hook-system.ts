@@ -20,10 +20,17 @@
  * @version 2.0.0
  */
 
-import { ResponseCache } from '../response-cache.js';
+import { ResponseCache } from '../resilience/response-cache.js';
 import { pathToFileURL } from 'url';
 import { mkdirSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
+
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+interface CacheHookGlobal {
+  registerInput: (input: string, context?: string) => void;
+  registerOutput: (output: string, tokensUsed?: number) => void;
+  getStats: () => Record<string, number>;
+}
 
 // ─── Configuración ───────────────────────────────────────────────────────────
 const CACHE_CONFIG = {
@@ -124,7 +131,7 @@ function installHooks(): void {
 
   // Hook 3: Capturar inputs del usuario (variable global)
   if (typeof global !== 'undefined') {
-    (global as any).__cacheHook = {
+    (global as unknown as { __cacheHook: CacheHookGlobal }).__cacheHook = {
       registerInput,
       registerOutput,
       getStats: () => ({ ...STATS }),

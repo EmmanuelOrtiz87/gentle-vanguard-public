@@ -556,6 +556,125 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
         ON routing_rules(tenant_id, enabled, success_rate DESC, hit_count DESC);
     `,
   },
+  {
+    id: '016_token_savings',
+    sql: `
+      CREATE TABLE IF NOT EXISTS token_savings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        message_id TEXT,
+        session_id TEXT,
+        category TEXT,
+        saved_tokens INTEGER,
+        source TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        UNIQUE(message_id, category, tenant_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_token_savings_tenant_created
+        ON token_savings(tenant_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_token_savings_tenant_category
+        ON token_savings(tenant_id, category);
+    `,
+  },
+  {
+    id: '017_cache_telemetry',
+    sql: `
+      ALTER TABLE metric_snapshots ADD COLUMN cache_hits INTEGER DEFAULT 0;
+      ALTER TABLE metric_snapshots ADD COLUMN cache_misses INTEGER DEFAULT 0;
+      ALTER TABLE metric_snapshots ADD COLUMN cache_hit_rate REAL DEFAULT 0;
+      ALTER TABLE response_cache ADD COLUMN last_access TEXT;
+      CREATE INDEX IF NOT EXISTS idx_response_cache_last_access
+        ON response_cache(COALESCE(last_access, created_at));
+    `,
+  },
+  {
+    id: '018_content_os',
+    sql: `
+      CREATE TABLE IF NOT EXISTS content_items (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        title TEXT NOT NULL,
+        brief TEXT NOT NULL DEFAULT '',
+        objective TEXT DEFAULT '',
+        voice TEXT DEFAULT '',
+        tags TEXT DEFAULT '[]',
+        status TEXT NOT NULL DEFAULT 'idea'
+          CHECK(status IN ('idea','draft','ready','scheduled','published','archived')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS content_variants (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        item_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        format TEXT NOT NULL DEFAULT 'text' CHECK(format IN ('text','image','text_image')),
+        body TEXT NOT NULL DEFAULT '',
+        image_prompt TEXT DEFAULT '',
+        image_path TEXT DEFAULT '',
+        spec_json TEXT DEFAULT '{}',
+        status TEXT NOT NULL DEFAULT 'generated'
+          CHECK(status IN ('generated','edited','approved','rejected','published')),
+        score REAL,
+        provider TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (item_id) REFERENCES content_items(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS media_library (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        name TEXT NOT NULL,
+        path TEXT NOT NULL,
+        mime TEXT NOT NULL,
+        size INTEGER DEFAULT 0,
+        width INTEGER,
+        height INTEGER,
+        alt TEXT DEFAULT '',
+        source TEXT NOT NULL DEFAULT 'upload' CHECK(source IN ('upload','generated')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS calendar_slots (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        item_id TEXT NOT NULL,
+        variant_id TEXT,
+        platform TEXT NOT NULL,
+        scheduled_at TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'proposed'
+          CHECK(status IN ('proposed','confirmed','published','skipped')),
+        rationale TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (item_id) REFERENCES content_items(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS publish_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        variant_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        mode TEXT NOT NULL DEFAULT 'assisted' CHECK(mode IN ('assisted','api','manual')),
+        action TEXT NOT NULL,
+        payload TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_content_items_tenant_status
+        ON content_items(tenant_id, status, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_content_variants_item
+        ON content_variants(item_id, platform);
+      CREATE INDEX IF NOT EXISTS idx_calendar_slots_item
+        ON calendar_slots(item_id, scheduled_at);
+      CREATE INDEX IF NOT EXISTS idx_calendar_slots_tenant_sched
+        ON calendar_slots(tenant_id, scheduled_at);
+      CREATE INDEX IF NOT EXISTS idx_publish_log_variant
+        ON publish_log(variant_id, created_at DESC);
+    `,
+  },
 ];
 
 export class MigrationRunner {
@@ -613,6 +732,25 @@ export class MigrationRunner {
             if (!columns.has('success_rate')) {
               this.db.exec(
                 'ALTER TABLE routing_rules ADD COLUMN success_rate REAL NOT NULL DEFAULT 0',
+              );
+            }
+          }
+          if (migration.id === '016_token_savings') {
+            const table = this.db
+              .prepare(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'token_savings'",
+              )
+              .get();
+            const column = table
+              ? this.db
+                  .prepare(
+                    "SELECT 1 FROM pragma_table_info('token_savings') WHERE name = 'tenant_id'",
+                  )
+                  .get()
+              : true;
+            if (table && !column) {
+              this.db.exec(
+                "ALTER TABLE token_savings ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard'",
               );
             }
           }

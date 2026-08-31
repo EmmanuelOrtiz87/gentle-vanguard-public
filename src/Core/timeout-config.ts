@@ -305,7 +305,10 @@ function loadConfigFromDisk(): TimeoutConfig {
     }
 
     // Deep merge with fallback to ensure all fields exist
-    return deepMerge({ ...FALLBACK_TIMEOUTS }, parsed) as TimeoutConfig;
+    return deepMerge(
+      { ...FALLBACK_TIMEOUTS } as unknown as Record<string, unknown>,
+      parsed as unknown as Record<string, unknown>,
+    ) as unknown as TimeoutConfig;
   } catch (err) {
     console.warn('[TIMEOUT-CONFIG] Failed to parse config:', (err as Error).message);
     console.warn('[TIMEOUT-CONFIG] Using fallback defaults');
@@ -313,14 +316,23 @@ function loadConfigFromDisk(): TimeoutConfig {
   }
 }
 
-function deepMerge(target: any, source: any): any {
-  const result = { ...target };
+function deepMerge(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target };
   for (const key of Object.keys(source)) {
     if (key === '$schema') continue;
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(result[key] || {}, source[key]);
-    } else if (source[key] !== undefined) {
-      result[key] = source[key];
+    const srcVal = source[key];
+    if (srcVal && typeof srcVal === 'object' && !Array.isArray(srcVal)) {
+      result[key] = deepMerge(
+        result[key] && typeof result[key] === 'object' && !Array.isArray(result[key])
+          ? (result[key] as Record<string, unknown>)
+          : {},
+        srcVal as Record<string, unknown>,
+      );
+    } else if (srcVal !== undefined) {
+      result[key] = srcVal;
     }
   }
   return result;
@@ -358,13 +370,13 @@ export function getTimeoutConfig(): TimeoutConfig {
 export function getTimeout(path: string, fallback?: number): number {
   const cfg = getTimeoutConfig();
   const parts = path.split('.');
-  let current: any = cfg;
+  let current: unknown = cfg;
 
   for (const part of parts) {
     if (current === undefined || current === null || typeof current !== 'object') {
       return fallback ?? FALLBACK_TIMEOUTS.global.default_timeout_ms;
     }
-    current = current[part];
+    current = (current as Record<string, unknown>)[part];
   }
 
   if (typeof current === 'number' && !isNaN(current)) {

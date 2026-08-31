@@ -45,6 +45,23 @@ export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) 
     return cached?.cachedAt ?? 0;
   });
 
+  // Derived data-freshness state. Thresholds:
+  //   live   — last update ≤ 20s ago (within two WS push cycles)
+  //   stale  — last update > 20s but ≤ 90s (WS may have missed a push)
+  //   error  — isOffline or explicit error
+  //   loading — no data received yet
+  const STALE_THRESHOLD_MS = 20_000;
+  const ERROR_THRESHOLD_MS = 90_000;
+  const dataState: 'live' | 'stale' | 'error' | 'loading' = (() => {
+    if (loading && lastUpdated === 0) return 'loading';
+    if (isOffline || (error !== null && lastUpdated === 0)) return 'error';
+    if (lastUpdated === 0) return 'loading';
+    const age = Date.now() - lastUpdated;
+    if (age > ERROR_THRESHOLD_MS) return 'error';
+    if (age > STALE_THRESHOLD_MS) return 'stale';
+    return 'live';
+  })();
+
   const updateFromPayload = useCallback(
     (payload: Partial<DashboardData> & { timestamp?: string }) => {
       // Keep the last visible snapshot while the next one arrives.
@@ -219,5 +236,6 @@ export function useMetrics(_useWebSocketMode = false, initialTenantId?: string) 
     offlineMode: !wsConnected && hasFreshOfflineCache(tenantId),
     isOffline,
     lastUpdated,
+    dataState,
   };
 }

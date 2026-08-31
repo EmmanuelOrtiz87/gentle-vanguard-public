@@ -28,8 +28,8 @@ async function initializeDependencySecurity() {
       console.log('Please review and address when convenient:');
 
       // Provide remediation guidance based on policy types
-      const criticalIssues = results.issues.filter((i: any) => i.severity === 'critical');
-      const highIssues = results.issues.filter((i: any) => i.severity === 'high');
+      const criticalIssues = results.issues.filter((i) => i.severity === 'critical');
+      const highIssues = results.issues.filter((i) => i.severity === 'high');
 
       if (criticalIssues.length > 0 || highIssues.length > 0) {
         console.log('\nRemediation Commands:');

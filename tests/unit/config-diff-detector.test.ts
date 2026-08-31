@@ -9,11 +9,11 @@ const SRC = (name: string) => pathToFileURL(resolve(ROOT, 'src', name)).href;
 
 describe('config-diff-detector', () => {
   it('source file exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/config-diff-detector.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/tools/config-diff-detector.ts')));
   });
 
   it('imports without error', async () => {
-    const mod = await import(SRC('config-diff-detector.ts'));
+    const mod = await import(SRC('tools/config-diff-detector.ts'));
     assert.ok(mod);
   });
 

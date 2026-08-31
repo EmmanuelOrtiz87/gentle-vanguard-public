@@ -47,9 +47,9 @@ function main(): number {
   console.log('');
 
   // Try TS equivalent first
-  const validateScriptTs = join(repoRoot, 'src', 'validate-readme.ts');
+  const validateScriptTs = join(repoRoot, 'src', 'tools', 'validate-readme.ts');
   if (existsSync(validateScriptTs)) {
-    const result = runNpxTsxSync('src/validate-readme.ts', ['--repo', 'both'], {
+    const result = runNpxTsxSync('src/tools/validate-readme.ts', ['--repo', 'both'], {
       stdio: 'inherit',
       cwd: repoRoot,
     });

@@ -9,11 +9,23 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { analyzeProcesses, DEFAULT_OPTIONS, type ProcessSnapshot, type ProcessInfo } from '../../src/core/process-hygiene.ts';
+import { join } from 'node:path';
+import {
+  analyzeProcesses,
+  DEFAULT_OPTIONS,
+  type ProcessSnapshot,
+  type ProcessInfo,
+} from '../../src/core/process-hygiene.ts';
 
 const REPO = 'C:\\Workspace_local\\gentle-vanguard';
 
-function proc(pid: number, ppid: number, cmdline: string, ageHours = 0, name = 'node.exe'): ProcessInfo {
+function proc(
+  pid: number,
+  ppid: number,
+  cmdline: string,
+  ageHours = 0,
+  name = 'node.exe',
+): ProcessInfo {
   return {
     pid,
     ppid,
@@ -23,7 +35,11 @@ function proc(pid: number, ppid: number, cmdline: string, ageHours = 0, name = '
   };
 }
 
-function snap(repoProcesses: ProcessInfo[], livePids: number[], pidFiles: Record<string, string> = {}): ProcessSnapshot {
+function snap(
+  repoProcesses: ProcessInfo[],
+  livePids: number[],
+  pidFiles: Record<string, string> = {},
+): ProcessSnapshot {
   return {
     repoProcesses,
     livePids: new Set(livePids),
@@ -35,20 +51,40 @@ function snap(repoProcesses: ProcessInfo[], livePids: number[], pidFiles: Record
 const OPTS = { ...DEFAULT_OPTIONS };
 
 test('duplicate daemon: non-port-owner websocket-server is killed, owner kept', () => {
-  const owner = proc(32868, 26192, `"node.exe" --import tsx ${REPO}\\apps\\web-dashboard\\server\\websocket-server.ts`, 0.2);
-  const dup = proc(14960, 26192, `"node.exe" --import tsx ${REPO}\\apps\\web-dashboard\\server\\websocket-server.ts`, 0.1);
-  const s = snap([owner, dup], [32868, 14960, 26192], { '.runtime\\dashboard-ws.pid': '32868' });
+  const owner = proc(
+    32868,
+    26192,
+    `"node.exe" --import tsx ${REPO}\\apps\\web-dashboard\\server\\websocket-server.ts`,
+    0.2,
+  );
+  const dup = proc(
+    14960,
+    26192,
+    `"node.exe" --import tsx ${REPO}\\apps\\web-dashboard\\server\\websocket-server.ts`,
+    0.1,
+  );
+  const s = snap([owner, dup], [32868, 14960, 26192], {
+    [join('.runtime', 'dashboard-ws.pid')]: '32868',
+  });
   s.portOwners.set(8080, 32868); // port file wsPort=8080 is read from disk; emulate via keeper pidfile
   const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
   const dupFindings = findings.filter((f) => f.kind === 'duplicate-daemon');
   assert.strictEqual(dupFindings.length, 1, 'exactly one duplicate finding');
   assert.strictEqual(dupFindings[0].pid, 14960, 'the non-pidfile instance is the duplicate');
   assert.strictEqual(dupFindings[0].action, 'kill');
-  assert.ok(keptHealthy.some((k) => k.classId === 'websocket-server' && k.pid === 32868), 'owner kept healthy');
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'websocket-server' && k.pid === 32868),
+    'owner kept healthy',
+  );
 });
 
 test('hung one-shot: dead parent + age > minAgeMin is killed; young one spared', () => {
-  const hung = proc(19948, 11372, `"node.exe" --import tsx ${REPO}\\src\\multitenant\\ci-rollback-engine.ts --action status`, 1.5);
+  const hung = proc(
+    19948,
+    11372,
+    `"node.exe" --import tsx ${REPO}\\src\\multitenant\\ci-rollback-engine.ts --action status`,
+    1.5,
+  );
   const fresh = proc(20100, 11372, `"node.exe" --import tsx ${REPO}\\src\\some-once.ts`, 0.05); // 3 min
   const s = snap([hung, fresh], [19948, 20100], {}); // parent 11372 NOT in live set → dead
   const { findings } = analyzeProcesses(s, OPTS);
@@ -60,15 +96,28 @@ test('hung one-shot: dead parent + age > minAgeMin is killed; young one spared',
 });
 
 test('one-shot with LIVE parent is never killed (active agent work)', () => {
-  const active = proc(20200, 9999, `"node.exe" --import tsx ${REPO}\\src\\research\\deep-analysis.ts`, 2);
+  const active = proc(
+    20200,
+    9999,
+    `"node.exe" --import tsx ${REPO}\\src\\research\\deep-analysis.ts`,
+    2,
+  );
   const s = snap([active], [20200, 9999], {}); // parent 9999 alive
   const { findings } = analyzeProcesses(s, OPTS);
   const for20200 = findings.filter((f) => f.pid === 20200);
-  assert.ok(for20200.every((f) => f.action === 'report'), 'report-only, never kill');
+  assert.ok(
+    for20200.every((f) => f.action === 'report'),
+    'report-only, never kill',
+  );
 });
 
 test('aged daemon (token-ingest > 24h) is recycled whole when recycleAged', () => {
-  const aged = proc(25672, 38772, `"node.exe" --import tsx ${REPO}\\src\\tokens\\token-ingest.ts --watch 30`, 74);
+  const aged = proc(
+    25672,
+    38772,
+    `"node.exe" --import tsx ${REPO}\\src\\tokens\\token-ingest.ts --watch 30`,
+    74,
+  );
   const s = snap([aged], [25672], { '.runtime\\token-ingest.pid': '25672' });
   const { findings } = analyzeProcesses(s, { ...OPTS, recycleAged: true });
   const agedFindings = findings.filter((f) => f.kind === 'aged-daemon');
@@ -81,7 +130,12 @@ test('aged daemon (token-ingest > 24h) is recycled whole when recycleAged', () =
 });
 
 test('aged daemon with respawn=client (codegraph-mcp) is NEVER recycled', () => {
-  const aged = proc(11016, 11372, `"node.exe" --import loader ${REPO}\\src\\codegraph-mcp-server-start.ts`, 40);
+  const aged = proc(
+    11016,
+    11372,
+    `"node.exe" --import loader ${REPO}\\src\\codegraph-mcp-server-start.ts`,
+    40,
+  );
   const s = snap([aged], [11016], {});
   const { findings } = analyzeProcesses(s, { ...OPTS, recycleAged: true });
   assert.ok(!findings.some((f) => f.pid === 11016), 'client-owned MCP stays untouched');
@@ -102,7 +156,13 @@ test('pidfile pointing at a LIVE pid is not flagged (legit global-path child)', 
 });
 
 test('leftover headless chrome older than threshold is killed', () => {
-  const chrome = proc(77001, 1, `"chrome.exe" --headless=new --user-data-dir=${REPO}\\.runtime\\shots about:blank`, 2, 'chrome.exe');
+  const chrome = proc(
+    77001,
+    1,
+    `"chrome.exe" --headless=new --user-data-dir=${REPO}\\.runtime\\shots about:blank`,
+    2,
+    'chrome.exe',
+  );
   const s = snap([chrome], [77001], {});
   const { findings } = analyzeProcesses(s, OPTS);
   const hc = findings.filter((f) => f.kind === 'headless-chrome');
@@ -111,18 +171,44 @@ test('leftover headless chrome older than threshold is killed', () => {
 });
 
 test('watchdogs classify before their supervised servers (order matters)', () => {
-  const wd = proc(26192, 11372, `"node.exe" --import tsx ${REPO}\\src\\dashboard-ws-autostart.ts --quiet --watch`, 0.2);
+  const wd = proc(
+    26192,
+    11372,
+    `"node.exe" --import tsx ${REPO}\\src\\dashboard-ws-autostart.ts --quiet --watch`,
+    0.2,
+  );
   const s = snap([wd], [26192], {});
   const { keptHealthy } = analyzeProcesses(s, OPTS);
-  assert.ok(keptHealthy.some((k) => k.classId === 'ws-watchdog' && k.pid === 26192), 'watchdog matched its own class, not websocket-server');
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'ws-watchdog' && k.pid === 26192),
+    'watchdog matched its own class, not websocket-server',
+  );
 });
 
 test('vite dev server matches vite-server class, not skill-server', () => {
-  const vite = proc(16580, 26628, `"node.exe" ${REPO}\\apps\\web-dashboard\\node_modules\\vite\\bin\\vite.js`, 0.5);
-  const skill = proc(38196, 32868, `"node.exe" ${REPO}\\apps\\web-dashboard\\server\\scripts\\skill-server.ts`, 0.5);
-  const s = snap([vite, skill], [16580, 38196, 26628, 32868], { '.runtime\\dashboard-vite.pid': '16580' });
+  const vite = proc(
+    16580,
+    26628,
+    `"node.exe" ${REPO}\\apps\\web-dashboard\\node_modules\\vite\\bin\\vite.js`,
+    0.5,
+  );
+  const skill = proc(
+    38196,
+    32868,
+    `"node.exe" ${REPO}\\apps\\web-dashboard\\server\\scripts\\skill-server.ts`,
+    0.5,
+  );
+  const s = snap([vite, skill], [16580, 38196, 26628, 32868], {
+    '.runtime\\dashboard-vite.pid': '16580',
+  });
   const { keptHealthy, findings } = analyzeProcesses(s, OPTS);
-  assert.ok(keptHealthy.some((k) => k.classId === 'vite-server' && k.pid === 16580), 'vite classified');
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'vite-server' && k.pid === 16580),
+    'vite classified',
+  );
   // skill-server is a live-parent repo process → report-only at most
-  assert.ok(!findings.some((f) => f.pid === 38196 && f.action !== 'report'), 'skill-server never killed');
+  assert.ok(
+    !findings.some((f) => f.pid === 38196 && f.action !== 'report'),
+    'skill-server never killed',
+  );
 });

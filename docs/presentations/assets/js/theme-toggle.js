@@ -116,9 +116,12 @@
    */
   function setupToggleButton() {
     const toggleBtn = document.getElementById('theme-toggle');
-    if (!toggleBtn) return;
+    if (!toggleBtn) {
+      createToggleButton();
+      return;
+    }
 
-    // Create button if it doesn't exist
+    // Create button from a template placeholder if a page provides one.
     if (toggleBtn.tagName === 'TEMPLATE') {
       createToggleButton();
       return;

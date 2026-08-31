@@ -17,10 +17,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
     <style>
       /* --- Estilos específicos de glossary.html --- */
@@ -701,6 +697,49 @@
               contenido (Content Credentials).
             </p>
             <div class="gloss-where mono">📍 .opencode/skills/ai-provenance</div>
+          </div>
+          <div class="gloss-card" id="term-command-center">
+            <div class="gloss-head">
+              <span class="gloss-term mono">Command Center</span
+              ><span class="gloss-cat" style="color: #22d3ee">app</span>
+            </div>
+            <p class="gloss-def">
+              Panel standalone para gestionar el ciclo de vida on-demand de las apps construidas, en
+              el puerto 8090.
+            </p>
+            <div class="gloss-where mono">📍 apps/command-center</div>
+          </div>
+          <div class="gloss-card" id="term-design-system-gv">
+            <div class="gloss-head">
+              <span class="gloss-term mono">Design System GV</span
+              ><span class="gloss-cat" style="color: #22d3ee">UI</span>
+            </div>
+            <p class="gloss-def">
+              Tokens y estilos compartidos por las apps del stack mediante gv-design-system.css.
+            </p>
+            <div class="gloss-where mono">📍 assets/gv-design-system.css</div>
+          </div>
+          <div class="gloss-card" id="term-daemon-classes">
+            <div class="gloss-head">
+              <span class="gloss-term mono">DAEMON_CLASSES</span
+              ><span class="gloss-cat" style="color: #f59e0b">operación</span>
+            </div>
+            <p class="gloss-def">
+              Registro de clases de daemons que el reaper protege, incluidas las apps on-demand
+              sanas.
+            </p>
+            <div class="gloss-where mono">📍 src/core/process-hygiene.ts</div>
+          </div>
+          <div class="gloss-card" id="term-apps-on-demand">
+            <div class="gloss-head">
+              <span class="gloss-term mono">Apps on-demand</span
+              ><span class="gloss-cat" style="color: #22d3ee">operación</span>
+            </div>
+            <p class="gloss-def">
+              Modelo en el que cada app se inicia bajo demanda y no es detenida por el cierre de
+              sesión mientras esté sana.
+            </p>
+            <div class="gloss-where mono">📍 Command Center · process hygiene</div>
           </div>
           <div class="gloss-card" id="term-cache">
             <div class="gloss-head">
@@ -1386,7 +1425,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">Utilidad de hashing de líneas para integridad.</p>
-            <div class="gloss-where mono">📍 src/hashline.ts</div>
+            <div class="gloss-where mono">📍 src/tools/hashline.ts</div>
           </div>
           <div class="gloss-card" id="term-hashing">
             <div class="gloss-head">
@@ -2459,7 +2498,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">Pipeline de inicio de sesión: 31 pasos Phase-1 + 70 lazy.</p>
-            <div class="gloss-where mono">📍 src/session-autostart.ts</div>
+            <div class="gloss-where mono">📍 src/session/session-autostart.ts</div>
           </div>
           <div class="gloss-card" id="term-session-close-orchestrator">
             <div class="gloss-head">

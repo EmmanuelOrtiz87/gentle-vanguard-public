@@ -18,7 +18,7 @@ import {
   evaluateFailure,
   resolveIncident,
   getCategoryStats,
-} from '../../src/guardrail-orchestrator.ts';
+} from '../../src/security/guardrail-orchestrator.ts';
 
 // Isolate state per test by pointing the orchestrator at a temp dir via cwd.
 async function withTempDir(fn: () => void | Promise<void>): Promise<void> {
@@ -37,6 +37,15 @@ test('classifyFailure: config errors', () => {
   assert.strictEqual(classifyFailure({ error: 'config file not found: foo.json' }), 'config');
   assert.strictEqual(classifyFailure({ error: 'invalid JSON in config' }), 'config');
   assert.strictEqual(classifyFailure({ error: 'field "agent" is missing' }), 'config');
+  // Real learning (2026-08-28): delegator "Unknown agent" errors are config.
+  assert.strictEqual(
+    classifyFailure({ error: 'Unknown agent: api-and-interface-design' }),
+    'config',
+  );
+  assert.strictEqual(classifyFailure({ error: 'Agent foo not found in configuration' }), 'config');
+  // Real learning (2026-08-28): spawn ENOENT / missing command is config/env.
+  assert.strictEqual(classifyFailure({ error: 'spawn npx ENOENT' }), 'config');
+  assert.strictEqual(classifyFailure({ error: 'command not found: tsx' }), 'config');
 });
 
 test('classifyFailure: network errors', () => {
@@ -68,12 +77,23 @@ test('classifyFailure: security errors', () => {
   assert.strictEqual(classifyFailure({ error: 'prompt injection detected' }), 'security');
   assert.strictEqual(classifyFailure({ error: 'blocked pattern: rm -rf' }), 'security');
   assert.strictEqual(classifyFailure({ error: 'secret found in file' }), 'security');
+  // Real learning (2026-08-28): EACCES (permission denied) is a security error.
+  assert.strictEqual(
+    classifyFailure({ error: 'EACCES: permission denied, open file' }),
+    'security',
+  );
 });
 
 test('classifyFailure: resource errors', () => {
   assert.strictEqual(classifyFailure({ error: 'token budget exceeded' }), 'resource');
   assert.strictEqual(classifyFailure({ error: 'out of memory' }), 'resource');
   assert.strictEqual(classifyFailure({ error: 'workload limit exceeded' }), 'resource');
+  // Real learning (2026-08-28): disk/port exhaustion are resource failures.
+  assert.strictEqual(classifyFailure({ error: 'ENOSPC: no space left on device' }), 'resource');
+  assert.strictEqual(
+    classifyFailure({ error: 'EADDRINUSE: port 8080 already in use' }),
+    'resource',
+  );
 });
 
 test('classifyFailure: reasoning errors', () => {
@@ -160,20 +180,22 @@ test('resolveIncident: unknown id returns false', async () => {
 
 test('delegateWithGuardrail: unknown agent failure is classified and proceeds', async () => {
   await withTempDir(async () => {
-    const { delegateWithGuardrail } = await import('../../src/agent-delegator.ts');
+    const { delegateWithGuardrail } = await import('../../src/orchestration/agent-delegator.ts');
     // Unknown agent -> delegate() fails with "Unknown agent" -> classified as
-    // 'unknown' -> action 'continue' -> proceed: true -> incident id attached.
+    // 'config' (agent not registered) -> action 'correct' -> proceed: true ->
+    // incident id attached.
     const result = await delegateWithGuardrail({ agent: 'nonexistent-agent', task: 'x' });
     assert.strictEqual(result.success, false);
-    assert.match(result.error || '', /GUARDRAIL:unknown/);
+    assert.match(result.error || '', /GUARDRAIL:config/);
     assert.match(result.error || '', /incident=/);
   });
 });
 
 test('delegateWithGuardrail: reasoning loop escalates and blocks retry', async () => {
   await withTempDir(async () => {
-    const { registerAttempt, ESCALATE_AFTER } = await import('../../src/anti-loop-guard.ts');
-    const { delegateWithGuardrail } = await import('../../src/agent-delegator.ts');
+    const { registerAttempt, ESCALATE_AFTER } =
+      await import('../../src/resilience/anti-loop-guard.ts');
+    const { delegateWithGuardrail } = await import('../../src/orchestration/agent-delegator.ts');
     const goal = 'implement feature Z';
     const strategy = 'sdd-apply::implement feature Z';
     // Simulate enough failures to trigger escalation (5+).

@@ -58,12 +58,26 @@ function regDelete(key: string, value: string): CleanupFinding {
       return { target: value, kind: 'run-key', action: 'removed', detail: 'stale Run key removed' };
     }
     const errTxt = (r.stderr ?? '').toLowerCase();
-    if (errTxt.includes('encontrar') || errTxt.includes('cannot find') || errTxt.includes('unable to find')) {
+    if (
+      errTxt.includes('encontrar') ||
+      errTxt.includes('cannot find') ||
+      errTxt.includes('unable to find')
+    ) {
       return { target: value, kind: 'run-key', action: 'not-present', detail: 'already clean' };
     }
-    return { target: value, kind: 'run-key', action: 'error', detail: (r.stderr ?? `exit ${r.status}`).slice(0, 120) };
+    return {
+      target: value,
+      kind: 'run-key',
+      action: 'error',
+      detail: (r.stderr ?? `exit ${r.status}`).slice(0, 120),
+    };
   } catch (e) {
-    return { target: value, kind: 'run-key', action: 'error', detail: e instanceof Error ? e.message : String(e) };
+    return {
+      target: value,
+      kind: 'run-key',
+      action: 'error',
+      detail: e instanceof Error ? e.message : String(e),
+    };
   }
 }
 
@@ -73,19 +87,44 @@ function unregisterTask(name: string): CleanupFinding {
     // being called from a non-elevated context uniformly.
     const query = runSync('schtasks', ['/query', '/tn', name], { timeout: 5000, stdio: 'ignore' });
     if (query.status !== 0) {
-      return { target: name, kind: 'scheduled-task', action: 'not-present', detail: 'already clean' };
+      return {
+        target: name,
+        kind: 'scheduled-task',
+        action: 'not-present',
+        detail: 'already clean',
+      };
     }
     const del = runSync('schtasks', ['/delete', '/tn', name, '/f'], { timeout: 8000 });
     if (del.status === 0) {
-      return { target: name, kind: 'scheduled-task', action: 'removed', detail: 'stale task unregistered' };
+      return {
+        target: name,
+        kind: 'scheduled-task',
+        action: 'removed',
+        detail: 'stale task unregistered',
+      };
     }
     const err = (del.stderr ?? '').toLowerCase();
     if (err.includes('acceso denegado') || err.includes('access denied')) {
-      return { target: name, kind: 'scheduled-task', action: 'denied', detail: 'needs elevation — will retry next session' };
+      return {
+        target: name,
+        kind: 'scheduled-task',
+        action: 'denied',
+        detail: 'needs elevation — will retry next session',
+      };
     }
-    return { target: name, kind: 'scheduled-task', action: 'error', detail: (del.stderr ?? `exit ${del.status}`).slice(0, 120) };
+    return {
+      target: name,
+      kind: 'scheduled-task',
+      action: 'error',
+      detail: (del.stderr ?? `exit ${del.status}`).slice(0, 120),
+    };
   } catch (e) {
-    return { target: name, kind: 'scheduled-task', action: 'error', detail: e instanceof Error ? e.message : String(e) };
+    return {
+      target: name,
+      kind: 'scheduled-task',
+      action: 'error',
+      detail: e instanceof Error ? e.message : String(e),
+    };
   }
 }
 
@@ -99,11 +138,14 @@ export function runLegacyCleanup(): CleanupFinding[] {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const findings = runLegacyCleanup();
   for (const f of findings) {
-    const icon = f.action === 'removed' ? '✓' : f.action === 'denied' ? '⚠' : f.action === 'error' ? '✗' : '·';
+    const icon =
+      f.action === 'removed' ? '✓' : f.action === 'denied' ? '⚠' : f.action === 'error' ? '✗' : '·';
     console.log(`  ${icon} [${f.kind}] ${f.target}: ${f.action} — ${f.detail}`);
   }
   const removed = findings.filter((f) => f.action === 'removed').length;
   const denied = findings.filter((f) => f.action === 'denied').length;
-  console.log(`legacy-cleanup: ${removed} removed, ${denied} denied (elevation), ${findings.length - removed - denied} clean/other`);
+  console.log(
+    `legacy-cleanup: ${removed} removed, ${denied} denied (elevation), ${findings.length - removed - denied} clean/other`,
+  );
   process.exit(0);
 }

@@ -43,7 +43,7 @@ pnpm run health:check
 
 ```bash
 # Iniciar sesión (automatizado)
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 
 # O manualmente
 pnpm run session:start
@@ -55,13 +55,13 @@ pnpm run session:start
 
 ### Core
 
-| Herramienta       | Comando                            | Descripción                       |
-| ----------------- | ---------------------------------- | --------------------------------- |
-| **Health Check**  | `npm run health:check`             | Verifica estado de 81 componentes |
-| **Watchtower**    | `npm run watchtower:health`        | Monitoreo continuo del stack      |
-| **Session Start** | `npx tsx src/session-autostart.ts` | Inicializa pipeline de sesión     |
-| **Type Check**    | `npm run typecheck`                | Valida TypeScript                 |
-| **Lint**          | `npm run lint`                     | ESLint en todo el código          |
+| Herramienta       | Comando                                    | Descripción                       |
+| ----------------- | ------------------------------------------ | --------------------------------- |
+| **Health Check**  | `npm run health:check`                     | Verifica estado de 81 componentes |
+| **Watchtower**    | `npm run watchtower:health`                | Monitoreo continuo del stack      |
+| **Session Start** | `npx tsx src/session/session-autostart.ts` | Inicializa pipeline de sesión     |
+| **Type Check**    | `npm run typecheck`                        | Valida TypeScript                 |
+| **Lint**          | `npm run lint`                             | ESLint en todo el código          |
 
 ### Dashboard
 
@@ -84,11 +84,11 @@ pnpm run session:start
 
 ### Testing
 
-| Herramienta             | Comando                                              | Descripción            |
-| ----------------------- | ---------------------------------------------------- | ---------------------- |
-| **Tests**               | `pnpm test`                                          | Ejecuta suite de tests |
-| **Deterministic Tests** | `npx tsx src/deterministic-test-framework.ts --list` | Tests sin costo de API |
-| **Coverage**            | `pnpm test:coverage`                                 | Reporte de cobertura   |
+| Herramienta             | Comando                                                     | Descripción            |
+| ----------------------- | ----------------------------------------------------------- | ---------------------- |
+| **Tests**               | `pnpm test`                                                 | Ejecuta suite de tests |
+| **Deterministic Tests** | `npx tsx src/review/deterministic-test-framework.ts --list` | Tests sin costo de API |
+| **Coverage**            | `pnpm test:coverage`                                        | Reporte de cobertura   |
 
 ### Auto-Update
 
@@ -105,7 +105,7 @@ pnpm run session:start
 
 ```bash
 # 1. Iniciar sesión
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 
 # 2. Verificar estado
 npm run watchtower:health
@@ -297,7 +297,7 @@ pnpm test
 pnpm run dashboard:start
 
 # Session
-npx tsx src/session-autostart.ts
+npx tsx src/session/session-autostart.ts
 
 # Cloud metrics
 npx tsx src/cloud-metrics-collector.ts show
@@ -307,7 +307,7 @@ npx tsx src/cloud-metrics-collector.ts show
 npx tsx src/auto-update-checker.ts
 
 # Deterministic tests
-npx tsx src/deterministic-test-framework.ts --list
+npx tsx src/review/deterministic-test-framework.ts --list
 ```
 
 ### Estructura de Directorios

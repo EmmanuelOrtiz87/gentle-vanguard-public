@@ -9,16 +9,16 @@ const SRC = (name: string) => pathToFileURL(resolve(ROOT, 'src', name)).href;
 
 describe('auto-norm-enforcer', () => {
   it('source file exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src/auto-norm-enforcer.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src/tools/auto-norm-enforcer.ts')));
   });
 
   it('imports without error', async () => {
-    const mod = await import(SRC('auto-norm-enforcer.ts'));
+    const mod = await import(SRC('tools/auto-norm-enforcer.ts'));
     assert.ok(mod);
   });
 
   it('handles missing norms DB gracefully', async () => {
-    const mod = await import(SRC('auto-norm-enforcer.ts'));
+    const mod = await import(SRC('tools/auto-norm-enforcer.ts'));
     assert.ok(mod);
   });
 });

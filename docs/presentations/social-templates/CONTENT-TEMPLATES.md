@@ -125,7 +125,6 @@ Built with Gentle-Vanguard:
 
 - **Gentle-Music**: AI music streaming
 - **Stock-Vanguard**: Stock & billing for Argentina
-- **Doc-Gentle**: Document intelligence platform
 
 Join the community [Discord link]
 

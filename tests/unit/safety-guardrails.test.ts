@@ -6,11 +6,11 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('safety-guardrails', () => {
-  it('src/safety-guardrails.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'safety-guardrails.ts')));
+  it('src/security/safety-guardrails.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'security', 'safety-guardrails.ts')));
   });
 
-  it('src/prompt-injection-guard.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'prompt-injection-guard.ts')));
+  it('src/security/prompt-injection-guard.ts exists', () => {
+    assert.ok(existsSync(resolve(ROOT, 'src', 'security', 'prompt-injection-guard.ts')));
   });
 });

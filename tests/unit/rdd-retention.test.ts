@@ -25,7 +25,13 @@ function wf(id: string, status: string, startedDaysAgo: number): string {
     status,
     classification: null,
     receipt: null,
-    gates: { 'post-apply': false, 'pre-commit': false, 'pre-push': false, 'pre-pr': false, release: false },
+    gates: {
+      'post-apply': false,
+      'pre-commit': false,
+      'pre-push': false,
+      'pre-pr': false,
+      release: false,
+    },
     startedAt: daysAgo(startedDaysAgo),
     completedAt: status === 'completed' || status === 'failed' ? daysAgo(startedDaysAgo) : null,
   });
@@ -73,7 +79,10 @@ test('DECOY: review estancada >30d se cierra en evento terminal (failed), no se 
     const closed = JSON.parse(readFileSync(join(dir, 'stuck-reviewing.json'), 'utf-8'));
     assert.strictEqual(closed.status, 'failed', 'cerrada en estado terminal');
     assert.ok(closed.completedAt, 'completedAt fijado');
-    assert.ok(res.kept.some((k) => k.includes('aborted-stale')), 'reportada como aborted-stale');
+    assert.ok(
+      res.kept.some((k) => k.includes('aborted-stale')),
+      'reportada como aborted-stale',
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

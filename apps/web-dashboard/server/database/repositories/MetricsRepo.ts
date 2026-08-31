@@ -10,8 +10,8 @@ export class MetricsRepo {
         `INSERT INTO metric_snapshots 
          (tenant_id, timestamp, tokens_used, tokens_limit, cost, sessions_total,
            sessions_active, sessions_today, latency_avg, latency_p50, latency_p95,
-           commits, mcp_calls, mcp_skills, health_status)
-         VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           commits, mcp_calls, mcp_skills, health_status, cache_hits, cache_misses, cache_hit_rate)
+         VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         tenantId,
@@ -28,6 +28,9 @@ export class MetricsRepo {
         data.mcp_calls ?? 0,
         data.mcp_skills ?? 0,
         data.health_status ?? 'unknown',
+        data.cache_hits ?? 0,
+        data.cache_misses ?? 0,
+        data.cache_hit_rate ?? 0,
       );
   }
 

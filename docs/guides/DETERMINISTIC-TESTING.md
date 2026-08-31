@@ -52,11 +52,11 @@ Un test con estas propiedades eventualmente se desactiva.
 
 ### Componentes
 
-| Componente  | Archivo                               | Descripción                          |
-| ----------- | ------------------------------------- | ------------------------------------ |
-| Framework   | `src/deterministic-test-framework.ts` | Servidor HTTP fixture + runner       |
-| Escenarios  | `SCENARIOS` object                    | Secuencias scripteadas de tool calls |
-| Validadores | `validate` functions                  | Verifican requests del agente        |
+| Componente  | Archivo                                      | Descripción                          |
+| ----------- | -------------------------------------------- | ------------------------------------ |
+| Framework   | `src/review/deterministic-test-framework.ts` | Servidor HTTP fixture + runner       |
+| Escenarios  | `SCENARIOS` object                           | Secuencias scripteadas de tool calls |
+| Validadores | `validate` functions                         | Verifican requests del agente        |
 
 ---
 
@@ -67,7 +67,7 @@ Un test con estas propiedades eventualmente se desactiva.
 **Propósito:** Verificar que la ruta `direct_inline` se mantiene inline sin crear artefactos SDD.
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --scenario direct-inline
+npx tsx src/review/deterministic-test-framework.ts --scenario direct-inline
 ```
 
 **Secuencia:**
@@ -84,7 +84,7 @@ npx tsx src/deterministic-test-framework.ts --scenario direct-inline
 **Propósito:** Verificar ruta `delegated_direct` sin ciclo de vida SDD.
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --scenario delegated-direct
+npx tsx src/review/deterministic-test-framework.ts --scenario delegated-direct
 ```
 
 **Secuencia:**
@@ -100,7 +100,7 @@ npx tsx src/deterministic-test-framework.ts --scenario delegated-direct
 **Propósito:** Verificar ciclo completo BA→SAD→DEV→QA.
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --scenario sdd-lifecycle
+npx tsx src/review/deterministic-test-framework.ts --scenario sdd-lifecycle
 ```
 
 **Secuencia:**
@@ -119,7 +119,7 @@ npx tsx src/deterministic-test-framework.ts --scenario sdd-lifecycle
 **Propósito:** Verificar que el kill switch detiene el flujo antes de avanzar.
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --scenario kill-switch
+npx tsx src/review/deterministic-test-framework.ts --scenario kill-switch
 ```
 
 **Secuencia:**
@@ -134,13 +134,13 @@ npx tsx src/deterministic-test-framework.ts --scenario kill-switch
 ### Listar escenarios disponibles
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --list
+npx tsx src/review/deterministic-test-framework.ts --list
 ```
 
 ### Ejecutar un escenario
 
 ```bash
-npx tsx src/deterministic-test-framework.ts --scenario <nombre>
+npx tsx src/review/deterministic-test-framework.ts --scenario <nombre>
 ```
 
 ### Integración en CI
@@ -163,10 +163,10 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run deterministic tests
         run: |
-          npx tsx src/deterministic-test-framework.ts --scenario direct-inline
-          npx tsx src/deterministic-test-framework.ts --scenario delegated-direct
-          npx tsx src/deterministic-test-framework.ts --scenario sdd-lifecycle
-          npx tsx src/deterministic-test-framework.ts --scenario kill-switch
+          npx tsx src/review/deterministic-test-framework.ts --scenario direct-inline
+          npx tsx src/review/deterministic-test-framework.ts --scenario delegated-direct
+          npx tsx src/review/deterministic-test-framework.ts --scenario sdd-lifecycle
+          npx tsx src/review/deterministic-test-framework.ts --scenario kill-switch
 ```
 
 ---
@@ -259,4 +259,4 @@ real y tests de paridad de adapters.
 
 - [gentle-ai testing-agents-deterministically](https://github.com/Gentleman-Programming/gentle-ai/blob/main/docs/testing-agents-deterministically.md)
 - [gentle-ai v2.1.11 release](https://github.com/Gentleman-Programming/gentle-ai/releases/tag/v2.1.11)
-- `src/deterministic-test-framework.ts` — Implementación
+- `src/review/deterministic-test-framework.ts` — Implementación

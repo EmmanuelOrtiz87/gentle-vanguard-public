@@ -19,7 +19,7 @@ import {
   formatResults,
   RESULTS_DIR,
   RESULTS_FILE,
-} from '../../src/chaos-engineering.ts';
+} from '../../src/tools/chaos-engineering.ts';
 
 describe('EXPERIMENTS', () => {
   it('has unique experiment names', () => {

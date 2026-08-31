@@ -7,6 +7,7 @@
 
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 /**
  * Integration point validation result
@@ -227,12 +228,14 @@ export class IntegrationValidator {
 // Export the validator for use in other modules
 export const integrationValidator = new IntegrationValidator();
 
-// If called directly, run validation
-if (process.argv[1] && typeof process !== 'undefined' && process.argv[1]) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const validator = new IntegrationValidator();
 
-  // Example usage
-  const skillPaths = ['./skills/example-skill', './skills/another-skill'];
+  const skillPaths = process.argv.slice(2);
+  if (skillPaths.length === 0) {
+    console.error(`Usage: ${process.argv[1]} <skill-path> [<skill-path> ...]`);
+    process.exit(2);
+  }
 
   validator
     .validateMultipleSkills(skillPaths)

@@ -13,10 +13,30 @@
 
 /* --- 1. Design Tokens (OKLCH perceptual palette) ----------------------- */
 :root {
+  color-scheme: dark;
+  --gv-purple: #a855f7;
+  --gv-cyan: #00bfff;
+  --gv-cyan-deep: #06b6d4;
+  --gv-bg: #0d1117;
+  --gv-bg-deep: #020618;
+  --gv-surface: #1a2035;
+  --gv-surface-raised: #2a2d3a;
+  --gv-text: #ffffff;
+  --gv-muted: #6b7280;
+  --gv-glass: rgba(31, 41, 55, 0.6);
+  --gv-glass-border: rgba(168, 85, 247, 0.18);
+  --gv-gradient: linear-gradient(135deg, #a855f7 0%, #00bfff 100%);
+  --gv-glow: rgba(0, 191, 255, 0.35);
+  --gv-amber: #f59e0b;
+  --gv-red: #ef4444;
+  --gv-green: #22c55e;
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  --header-h: 62px;
   /* Acentos funcionales */
-  --p: #22d3ee; /* cyan primario (oklch ~0.78 0.14 210) */
+  --p: #00bfff; /* cyan primario (oklch ~0.78 0.14 210) */
   --pl: #67e8f9; /* cyan claro */
-  --a: #a78bfa; /* purple acento */
+  --a: #a855f7; /* purple acento */
   --ok: #34d399; /* verde éxito */
   --wn: #fbbf24; /* amber warning */
   --er: #f87171; /* rojo error */
@@ -60,9 +80,9 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font);
+  background: var(--gv-bg);
+  color: var(--gv-text);
   overflow-x: hidden;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
@@ -71,7 +91,25 @@ body {
 
 code,
 .mono {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--mono);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(167, 139, 250, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--gv-cyan);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.18);
 }
 
 ::selection {
@@ -199,11 +237,39 @@ p {
   background: oklch(0.8 0.14 210 / 0.08);
 }
 .nav-blur .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--p), var(--a));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+.nav-blur .navbar-brand img.gv-logo {
+  width: auto;
+  height: 32px;
+  object-fit: contain;
+}
+.nav-blur .navbar-brand .gv-wordmark {
+  font-size: 0.9rem;
+  color: var(--gv-text);
+}
+/* Brand wordmark uses the official GV display font (assets/tokens.json → typography.displayFont) */
+.nav-blur .navbar-brand .gv-wordmark,
+.nav-blur .navbar-brand .gv-wordmark strong {
+  font-family: 'Orbitron', 'Rajdhani', 'Share Tech Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.nav-blur .navbar-brand .gv-wordmark strong {
+  background: var(--gv-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.navbar-toggler {
+  border: 1px solid var(--gv-glass-border) !important;
+  border-radius: 10px;
 }
 
 /* --- 5. Hero ------------------------------------------------------------- */

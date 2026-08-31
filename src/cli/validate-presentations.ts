@@ -16,9 +16,9 @@
  *   npm run presentations:validate
  *   npx tsx src/cli/validate-presentations.ts [--dir <path>] [--quiet] [--main]
  *
- *   --main   Valida solo las 11 main presentations (excluye apps CMS con sidebar
+ *   --main   Valida solo las presentaciones principales (excluye apps CMS con sidebar
  *            que no usan i18n: contract-viewer, image-studio, marketing, md-viewer,
- *            product-doc-gentle, resources-index, social-post, v4-features, video-studio).
+ *            resources-index, social-post, v4-features, video-studio).
  *
  * Exit code: 0 si todo PASS, 1 si algún FAIL.
  */
@@ -33,7 +33,7 @@ const MAIN_ONLY = process.argv.includes('--main');
  * Main presentations: páginas de presentación con i18n completo (gv.css, gv.js,
  * i18n.js, i18n-content.js, selector .lang-seg, títulos sec_* y contenido c_*).
  * Las apps CMS (contract-viewer, image-studio, marketing, md-viewer,
- * product-doc-gentle, resources-index, social-post, v4-features, video-studio)
+ * resources-index, social-post, v4-features, video-studio)
  * son herramientas con sidebar que NO usan i18n y se excluyen con --main.
  */
 const MAIN_PRESENTATIONS = new Set([
@@ -129,13 +129,15 @@ function main(): number {
         errors.push(`${missingTitle}/${triggers.length} info-trigger SIN data-i18n-title`);
     }
 
-    // 6. i18n: títulos sec_* + contenido c_* + diccionario válido
+    const isMainPresentation = MAIN_PRESENTATIONS.has(file);
     const secCount = (html.match(/data-i18n="sec_/g) || []).length;
     const contentCount = (html.match(/data-i18n="c_/g) || []).length;
-    if (secCount === 0) errors.push('SIN títulos data-i18n sec_*');
-    if (contentCount === 0) errors.push('SIN contenido data-i18n c_*');
-    if (!i18nJs.includes('sec_diagrams')) errors.push('i18n.js sin sec_diagrams');
-    if (!contentJs.includes('window.__GV_CONTENT')) errors.push('i18n-content.js inválido');
+    if (isMainPresentation) {
+      if (secCount === 0) errors.push('SIN títulos data-i18n sec_*');
+      if (contentCount === 0) errors.push('SIN contenido data-i18n c_*');
+      if (!i18nJs.includes('sec_diagrams')) errors.push('i18n.js sin sec_diagrams');
+      if (!contentJs.includes('window.__GV_CONTENT')) errors.push('i18n-content.js inválido');
+    }
 
     const status = errors.length === 0 ? 'PASS' : 'FAIL';
     if (status === 'PASS') pass++;

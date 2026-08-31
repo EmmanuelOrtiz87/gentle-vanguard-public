@@ -150,7 +150,7 @@ Skills can be optimized incrementally:
 Run the size checker:
 
 ```TypeScript
-npx tsx src/utilities/check-skill-sizes.ts
+npx tsx src/tools/check-skill-sizes.ts
 <!-- REF-OBSOLETA: src/utilities/check-skill-sizes.ts no existe (ruta migrada o eliminada) -->
 ```
 

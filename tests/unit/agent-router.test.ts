@@ -7,10 +7,10 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 
 describe('agent-router', () => {
   it('agent-message-bus.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'agent-message-bus.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'orchestration', 'agent-message-bus.ts')));
   });
 
   it('adaptive-router.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'adaptive-router.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'orchestration', 'adaptive-router.ts')));
   });
 });

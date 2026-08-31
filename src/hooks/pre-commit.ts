@@ -27,7 +27,7 @@ const EXCLUDED_PATHS = new Set([
   'docs/reference/ARCHITECTURE.md',
   'src/hooks/pre-commit.ts',
   'src/hooks/pre-commit-privacy.ts',
-  'src/check-security.ts',
+  'src/security/check-security.ts',
   'src/cli/gv.ts',
   'skills/docker-devops-skill/SKILL.md',
   'skills/security-expert-skill/references/security-patterns.md',
@@ -80,9 +80,12 @@ function main(_args?: string[]): number {
 
   // Engram integrity check
   console.log('[PRE] Engram integrity verification...');
-  const engramHook = join(gitRoot, 'src', 'engram-integrity-check.ts');
+  const engramHook = join(gitRoot, 'src', 'knowledge', 'engram-integrity-check.ts');
   if (existsSync(engramHook)) {
-    const engramOk = runScript(join(gitRoot, 'src', 'engram-integrity-check.ts'), gitRoot);
+    const engramOk = runScript(
+      join(gitRoot, 'src', 'knowledge', 'engram-integrity-check.ts'),
+      gitRoot,
+    );
     if (!engramOk) return 1;
   } else {
     console.log('[SKIP] Engram integrity check not available');
@@ -95,8 +98,8 @@ function main(_args?: string[]): number {
 
   const checks = [
     {
-      ts: 'src/check-security.ts',
-      ps1: 'src/check-security.ts',
+      ts: 'src/security/check-security.ts',
+      ps1: 'src/security/check-security.ts',
       blocking: true,
       label: 'Security',
     },
@@ -142,9 +145,9 @@ function main(_args?: string[]): number {
     console.log('[INFO] README.md changes detected - running governance validation...');
 
     // Try TS first
-    const validateTs = join(gitRoot, 'src', 'validate-readme.ts');
+    const validateTs = join(gitRoot, 'src', 'tools', 'validate-readme.ts');
     if (existsSync(validateTs)) {
-      const r = runNpxTsxSync('src/validate-readme.ts', ['--repo', 'both'], { cwd: gitRoot });
+      const r = runNpxTsxSync('src/tools/validate-readme.ts', ['--repo', 'both'], { cwd: gitRoot });
       if (r.status !== 0) {
         console.log('[BLOCK] README governance validation failed. See rules/README-GOVERNANCE.md');
         return 1;
@@ -216,7 +219,7 @@ function main(_args?: string[]): number {
   const docHookTs = join(gitRoot, 'src', 'document-analysis-init.ts');
   if (existsSync(docHookTs)) {
     try {
-      const r = runNpxTsxSync('src/document-analysis-init.ts', [], { cwd: gitRoot });
+      const r = runNpxTsxSync('src/tools/document-analysis-init.ts', [], { cwd: gitRoot });
       if (r.status !== 0) {
         console.log('[WARN] Document analysis hook failed (non-blocking)');
       }

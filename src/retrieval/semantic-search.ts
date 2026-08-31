@@ -21,6 +21,11 @@ interface SearchResult {
   context?: string;
 }
 
+interface GraphNode {
+  id?: string;
+  label?: string;
+}
+
 interface SearchResponse {
   query: string;
   totalResults: number;
@@ -159,13 +164,13 @@ function tryCodeGraphSearch(query: string, maxResults: number): SearchResult[] |
 
     // Simple graphify query as extra source (native read — no shell, no quoting issues)
     try {
-      const g = JSON.parse(readFileSync(codegraphIndex, 'utf8')) as { nodes?: unknown[] };
+      const g = JSON.parse(readFileSync(codegraphIndex, 'utf8')) as { nodes?: GraphNode[] };
       const nodes = Array.isArray(g.nodes) ? g.nodes : [];
       const q = query.toLowerCase();
       const matches = nodes
-        .filter((n: any) => n && typeof n.label === 'string' && n.label.toLowerCase().includes(q))
+        .filter((n) => n && typeof n.label === 'string' && n.label.toLowerCase().includes(q))
         .slice(0, maxResults)
-        .map((n: any) => ({ file: n.id || '', line: 0, content: n.label || '', relevance: 3 }));
+        .map((n) => ({ file: n.id || '', line: 0, content: n.label || '', relevance: 3 }));
       if (matches.length > 0) {
         return matches as SearchResult[];
       }
