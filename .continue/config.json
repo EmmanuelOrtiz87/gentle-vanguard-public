@@ -1,9 +1,0 @@
-{
-  "name": "Continue.dev - Gentle-Vanguard Workspace",
-  "version": "2.1.0",
-  "description": "Optimized with checks system per Continue.dev best practices (docs.continue.dev/checks/best-practices)",
-  "mcpServers": {},
-  "experimental": {
-    "modelRegistry": true
-  }
-}

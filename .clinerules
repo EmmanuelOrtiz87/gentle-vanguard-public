@@ -1,8 +1,0 @@
-# Cline Rules for Gentle-Vanguard
-# Auto-managed by maintenance-watchtower
-
-- Always verify health before claiming completion
-- Use pre-process-input for command routing
-- Session management via session-start-optimized.ps1
-- All changes must pass tsc --noEmit
-- Maintenance checks via maintenance-watchtower.ps1
