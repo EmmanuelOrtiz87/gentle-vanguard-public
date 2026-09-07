@@ -97,7 +97,8 @@ export function safeResolveWithin(
 
 // CLI para debugging
 const isMainModule =
-  process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
 if (isMainModule) {
   const [a, b] = process.argv.slice(2);
   if (a && b) {

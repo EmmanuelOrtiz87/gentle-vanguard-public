@@ -113,6 +113,13 @@ interface DaemonClass {
   id: string;
   label: string;
   match: RegExp;
+  /**
+   * Ambiguous cmdline shape (start.sh spawns with RELATIVE script paths and
+   * cwd=app dir, so `server/server.ts` / `vite.js` look identical across
+   * apps). A relativeMatch only claims the class when the process PID is the
+   * content of the class pidFile — the pidfile decides which app it is.
+   */
+  relativeMatch?: RegExp;
   pidFile?: string;
   /** which dashboard port marks the legit instance */
   port?: 'wsPort' | 'vitePort';
@@ -215,19 +222,24 @@ const DAEMON_CLASSES: DaemonClass[] = [
     id: 'gv-analytics-api',
     label: 'Gentle-Vanguard Analytics API',
     match: /apps[\\/]gv-analytics[\\/]server[\\/]index\.ts/,
-    pidFile: join(RUNTIME_DIR, 'gv-analytics-api.pid'),
+    relativeMatch: /server[\\/]index\.ts/,
+    pidFile: join(RUNTIME_DIR, 'app-analytics-api.pid'),
     keep: 'pidfile',
     respawn: 'manual',
-    recycleAged: true,
+    recycleAged: false,
   },
   {
     id: 'gv-analytics-vite',
     label: 'Gentle-Vanguard Analytics Vite dev server',
-    match: /apps[\\/]gv-analytics[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
-    pidFile: join(RUNTIME_DIR, 'gv-analytics-vite.pid'),
+    // Tolerates the npm bin shim path (`node_modules\.bin\..\vite\bin\vite.js`)
+    // used when the dev server is started via npm script instead of the CC.
+    match:
+      /apps[\\/]gv-analytics[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'app-analytics-vite.pid'),
     keep: 'pidfile',
     respawn: 'manual',
-    recycleAged: true,
+    recycleAged: false,
   },
   {
     id: 'gv-analytics-mcp',
@@ -241,6 +253,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     id: 'cms-api',
     label: 'Content CMS API server',
     match: /apps[\\/]content-cms[\\/]server[\\/]server\.ts/,
+    relativeMatch: /server[\\/]server\.ts/,
     pidFile: join(RUNTIME_DIR, 'app-cms-api.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -251,7 +264,9 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Content CMS Vite dev server',
     // Tolerates the npm bin shim path (`node_modules\.bin\..\vite\bin\vite.js`)
     // used when the dev server is started via npm script instead of the CC.
-    match: /apps[\\/]content-cms[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    match:
+      /apps[\\/]content-cms[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
     pidFile: join(RUNTIME_DIR, 'app-cms-vite.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -261,6 +276,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     id: 'prompts-api',
     label: 'Prompt Studio API server',
     match: /apps[\\/]prompt-studio[\\/]server[\\/]server\.ts/,
+    relativeMatch: /server[\\/]server\.ts/,
     pidFile: join(RUNTIME_DIR, 'app-prompts-api.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -269,10 +285,53 @@ const DAEMON_CLASSES: DaemonClass[] = [
   {
     id: 'prompts-vite',
     label: 'Prompt Studio Vite dev server',
-    match: /apps[\\/]prompt-studio[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    match:
+      /apps[\\/]prompt-studio[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
     pidFile: join(RUNTIME_DIR, 'app-prompts-vite.pid'),
     keep: 'pidfile',
     respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'archify-api',
+    label: 'Archify API server',
+    match: /apps[\\/]archify[\\/]server[\\/]server\.ts/,
+    relativeMatch: /server[\\/]server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'app-archify-api.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'archify-vite',
+    label: 'Archify Vite dev server',
+    match:
+      /apps[\\/]archify[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
+    relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'app-archify-vite.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'app-academy-http',
+    label: 'Academy static server (python http.server :4173)',
+    // Port is part of the cmdline in both spawn shapes (start.sh `-d .` and
+    // CC `--directory apps/academy-web`), so the port disambiguates.
+    match: /http\.server[ ]+4173\b/,
+    pidFile: join(RUNTIME_DIR, 'app-academy-http.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'app-design-hub-http',
+    label: 'Design Hub static server (python http.server :8095)',
+    match: /http\.server[ ]+8095\b/,
+    pidFile: join(RUNTIME_DIR, 'app-design-hub-http.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
     recycleAged: false,
   },
   {
@@ -334,13 +393,34 @@ function isRepoScoped(cmdline: string): boolean {
 const repoRootPatternCache = repoRootPattern();
 
 /** Tab-delimited lines: pid \t ppid \t name \t createdIso \t cmdline */
-function scanProcesses(): { repoProcesses: ProcessInfo[]; livePids: Set<number> } {
+/**
+ * Pidfile lookup tolerant to path-separator differences (Windows `\` vs POSIX `/`)
+ * and to absolute-vs-relative keys. Order: exact path → separator-normalized →
+ * basename under .runtime.
+ */
+function pidValueFor(pidFiles: Map<string, string>, pidFile: string): string | undefined {
+  const exact = pidFiles.get(pidFile);
+  if (exact !== undefined) return exact;
+  const norm = (p: string): string => p.replace(/\\/g, '/');
+  const wanted = norm(pidFile);
+  for (const [k, v] of pidFiles) {
+    if (norm(k) === wanted || norm(k).endsWith('/' + basename(wanted))) return v;
+  }
+  return undefined;
+}
+
+function scanProcesses(pidFiles: Map<string, string>): {
+  repoProcesses: ProcessInfo[];
+  livePids: Set<number>;
+} {
   const repoProcesses: ProcessInfo[] = [];
   const livePids = new Set<number>();
   try {
     if (process.platform === 'win32') {
+      // python.exe = static app servers (academy/design-hub http.server);
+      // nohup.exe = msys wrapper whose winpid is what start.sh pidfiles record.
       const psCmd =
-        `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='chrome.exe' OR Name='cmd.exe' OR Name='conhost.exe'" | ` +
+        `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='chrome.exe' OR Name='cmd.exe' OR Name='conhost.exe' OR Name='python.exe' OR Name='py.exe' OR Name='nohup.exe'" | ` +
         `ForEach-Object { "$($_.ProcessId)\`t$($_.ParentProcessId)\`t$($_.Name)\`t$($_.CreationDate.ToString('o'))\`t$($_.CommandLine)" }`;
       const r = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
         timeout: 15000,
@@ -353,9 +433,14 @@ function scanProcesses(): { repoProcesses: ProcessInfo[]; livePids: Set<number> 
         if (isNaN(pid)) continue;
         livePids.add(pid);
         const cmdline = parts.slice(4).join('\t');
-        // cmd.exe/conhost only contribute to parent-liveness, never to findings
-        if (parts[2] !== 'node.exe' && parts[2] !== 'chrome.exe') continue;
-        if (isRepoScoped(cmdline)) {
+        // cmd/conhost/nohup only contribute to parent/pidfile liveness, never findings
+        const admitted =
+          parts[2] === 'node.exe' || parts[2] === 'chrome.exe' || parts[2] === 'python.exe';
+        if (!admitted) continue;
+        // Static app servers are spawned with relative paths (`-d .`,
+        // `--directory apps/...`) so isRepoScoped can miss them — a process
+        // matching a registered daemon class belongs to the repo by definition.
+        if (isRepoScoped(cmdline) || classifyDaemon(cmdline, pid, pidFiles)) {
           repoProcesses.push({
             pid,
             ppid: parseInt(parts[1], 10) || 0,
@@ -376,8 +461,8 @@ function scanProcesses(): { repoProcesses: ProcessInfo[]; livePids: Set<number> 
         if (!m) continue;
         const pid = parseInt(m[1], 10);
         livePids.add(pid);
-        if (m[4] !== 'node' && !m[4].includes('chrome')) continue;
-        if (!m[5].includes(rootPlain)) continue;
+        if (m[4] !== 'node' && !m[4].includes('chrome') && !m[4].startsWith('python')) continue;
+        if (!m[5].includes(rootPlain) && !classifyDaemon(m[5], pid, pidFiles)) continue;
         repoProcesses.push({
           pid,
           ppid: parseInt(m[2], 10),
@@ -421,12 +506,15 @@ function readPidFiles(): Map<string, string> {
 }
 
 export async function buildSnapshot(): Promise<ProcessSnapshot> {
-  const { repoProcesses, livePids } = scanProcesses();
+  // PID files first: class matching for relative-path cmdlines (app servers
+  // spawned by start.sh) needs them to decide which app a process belongs to.
+  const pidFiles = readPidFiles();
+  const { repoProcesses, livePids } = scanProcesses(pidFiles);
   return {
     repoProcesses,
     livePids,
     portOwners: await readPortOwners(),
-    pidFiles: readPidFiles(),
+    pidFiles,
   };
 }
 
@@ -438,9 +526,18 @@ function ageHours(info: ProcessInfo, now = Date.now()): number {
   return Math.max(0, (now - t) / 3_600_000);
 }
 
-function classifyDaemon(cmdline: string): DaemonClass | null {
+function classifyDaemon(
+  cmdline: string,
+  pid: number,
+  pidFiles: Map<string, string> = new Map(),
+): DaemonClass | null {
   for (const c of DAEMON_CLASSES) {
     if (c.match.test(cmdline)) return c;
+    // Ambiguous relative shape: only the pidfile owner may claim the class.
+    if (c.relativeMatch?.test(cmdline) && c.pidFile) {
+      const raw = pidValueFor(pidFiles, c.pidFile);
+      if (raw && /^\d+$/.test(raw) && parseInt(raw, 10) === pid) return c;
+    }
   }
   return null;
 }
@@ -470,8 +567,7 @@ function pickKeeper(
   if (keeperByPort) return keeperByPort;
 
   if (cls.pidFile) {
-    const raw =
-      snap.pidFiles.get(cls.pidFile) ?? snap.pidFiles.get(join('.runtime', basename(cls.pidFile)));
+    const raw = pidValueFor(snap.pidFiles, cls.pidFile);
     if (raw && /^\d+$/.test(raw)) {
       const byPid = instances.find((i) => i.pid === parseInt(raw, 10));
       if (byPid) return byPid;
@@ -505,7 +601,7 @@ export function analyzeProcesses(
     if (info.pid === selfPid) continue;
     if (info.name === 'chrome.exe') continue; // handled separately below
     if (LONG_RUN_ALLOWLIST.some((re) => re.test(info.cmdline))) continue;
-    const cls = classifyDaemon(info.cmdline);
+    const cls = classifyDaemon(info.cmdline, info.pid, snap.pidFiles);
     if (cls) {
       const list = daemons.get(cls.id) ?? [];
       list.push(info);
@@ -565,7 +661,9 @@ export function analyzeProcesses(
 
   // 2. Hung one-shots: repo scripts with no daemon class, dead parent, stale
   const daemonPids = new Set(
-    snap.repoProcesses.filter((i) => classifyDaemon(i.cmdline)).map((i) => i.pid),
+    snap.repoProcesses
+      .filter((i) => classifyDaemon(i.cmdline, i.pid, snap.pidFiles))
+      .map((i) => i.pid),
   );
   for (const info of unclassified) {
     const age = ageHours(info, now);

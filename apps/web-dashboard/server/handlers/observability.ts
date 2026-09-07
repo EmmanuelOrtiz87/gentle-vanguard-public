@@ -15,6 +15,7 @@ import {
   RequestBodyTooLargeError,
   ALERTS_CONFIG_PATH,
   deploymentTenant,
+  ackedAlerts,
 } from '../ws-hub/context.ts';
 import { generateMetrics } from '../ws-hub/metrics.ts';
 
@@ -77,6 +78,29 @@ export async function observabilityHandler(
     return true;
   }
 
+  if (
+    (url.pathname === '/api/alerts/ack' || url.pathname === '/api/alerts/unack') &&
+    req.method === 'POST'
+  ) {
+    const acking = url.pathname.endsWith('/ack');
+    try {
+      const { name } = await readJsonBody<{ name: string }>(req, 4096);
+      if (!name || typeof name !== 'string') {
+        res.writeHead(400, headers);
+        res.end(JSON.stringify({ error: 'name is required' }));
+        return true;
+      }
+      if (acking) ackedAlerts.set(name, Date.now());
+      else ackedAlerts.delete(name);
+      res.writeHead(200, headers);
+      res.end(JSON.stringify({ ok: true, name, acknowledged: acking }));
+    } catch {
+      res.writeHead(400, headers);
+      res.end(JSON.stringify({ error: 'invalid body' }));
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/alerts') {
     let alerts: Record<string, unknown>[] = [];
     try {
@@ -94,6 +118,7 @@ export async function observabilityHandler(
               typeof actual === 'number' &&
               typeof rule.threshold === 'number' &&
               (below ? actual <= rule.threshold : actual >= rule.threshold);
+            if (!triggered) ackedAlerts.delete(name);
             return {
               name,
               rule: rule.label || name,
@@ -102,6 +127,8 @@ export async function observabilityHandler(
               severity: rule.severity || 'info',
               triggered,
               unit: rule.unit || '',
+              acknowledged: triggered && ackedAlerts.has(name),
+              ackedAt: triggered ? ackedAlerts.get(name) : undefined,
             };
           });
       }

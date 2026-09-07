@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 import { isAbsolute, join } from 'path';
 import { createRequire } from 'module';
-import type { DatabaseManager } from '../../../apps/web-dashboard/server/database/manager.js';
+import type { DatabaseManager } from '../../database/nexus//manager.js';
 import type { RouterArgs, RoutingTable } from './types.js';
 import {
   ROOT,
@@ -22,7 +22,7 @@ let _db: DatabaseManager | null = null;
 export function getDb(): DatabaseManager | null {
   if (!_db) {
     try {
-      const mod = _require('../../apps/web-dashboard/server/database/manager');
+      const mod = _require('../../database/nexus//manager');
       _db = mod.DatabaseManager.getInstance();
     } catch {
       // SQLite not available — skip dual-write

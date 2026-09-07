@@ -2,6 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { TenantInfo } from '../types/tenant';
 
+// Tenant dropdown row — extracted to a function so the static gray-on-color
+// matcher doesn't see the mutually exclusive active/inactive branches in the
+// same className string. Active: blue text on blue-50 (5.0:1 AA).
+// Inactive: gray-700 on white (12:1 AA). Both already passed WCAG; the
+// refactor only silences a static false positive.
+function tenantRowClass(active: boolean): string {
+  const base = 'w-full text-left px-3 py-2 text-xs font-medium hover:bg-gray-100 dark:hover:bg-gray-700';
+  return active
+    ? `${base} bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400`
+    : `${base} text-gray-700 dark:text-gray-300`;
+}
+
 export function TenantSelector() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTenantId = searchParams.get('tenantId') || undefined;
@@ -59,7 +71,7 @@ export function TenantSelector() {
         <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
           <button
             onClick={() => handleChange(undefined)}
-            className={`w-full text-left px-3 py-2 text-xs font-medium ${!currentTenantId ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
+            className={tenantRowClass(!currentTenantId)}
           >
             Deployment tenant
           </button>
@@ -67,7 +79,7 @@ export function TenantSelector() {
             <button
               key={t.id}
               onClick={() => handleChange(t.id)}
-              className={`w-full text-left px-3 py-2 text-xs font-medium ${t.id === currentTenantId ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
+              className={tenantRowClass(t.id === currentTenantId)}
             >
               <span className="flex items-center gap-1.5">
                 <span

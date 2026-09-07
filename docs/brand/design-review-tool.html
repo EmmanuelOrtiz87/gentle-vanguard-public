@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GV Academy v2 — Design Review Tool</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%230F1115' width='100' height='100' rx='22'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='%23a78bfa'%3EG%3C/text%3E%3C/svg%3E"
+    />
+    <style>
+      /* ═══════════════════════════════════════════════════════════════
+       DESIGN REVIEW TOOL — Academy v2
+       
+       Esta es una herramienta visual para revisar y ajustar el diseño.
+       Cada propiedad tiene un nombre técnico que podés copiar/pegar.
+       
+       Uso:
+       1. Compará v1 vs v2 en las pestañas
+       2. Mové los sliders para ver qué cambia
+       3. Si querés cambiar algo, copiá el ID (ej: COLOR-BG-BASE)
+       4. Decile a la IA: "Cambiar COLOR-BG-BASE a #0A0C10"
+       ═══════════════════════════════════════════════════════════════ */
+
+      :root {
+        /* Tool UI colors */
+        --tool-bg: #0d0f12;
+        --tool-panel: #151921;
+        --tool-border: #252b38;
+        --tool-text: #e8eef4;
+        --tool-muted: #8b95a8;
+        --tool-cyan: #22d3ee;
+        --tool-purple: #a78bfa;
+
+        /* Layout */
+        --sidebar-width: 320px;
+        --preview-height: 50vh;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--tool-bg);
+        color: var(--tool-text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════════ */
+
+      .tool-header {
+        background: var(--tool-panel);
+        border-bottom: 1px solid var(--tool-border);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .tool-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .tool-title h1 {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .tool-title .badge {
+        background: linear-gradient(135deg, var(--tool-purple), var(--tool-cyan));
+        color: #0a0e17;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .tool-tabs {
+        display: flex;
+        gap: 4px;
+      }
+
+      .tool-tab {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--tool-muted);
+        transition: all 0.2s;
+      }
+
+      .tool-tab:hover {
+        background: rgba(139, 149, 168, 0.1);
+        color: var(--tool-text);
+      }
+
+      .tool-tab.active {
+        background: rgba(34, 211, 238, 0.1);
+        color: var(--tool-cyan);
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       MAIN LAYOUT
+       ═══════════════════════════════════════════════════════════════ */
+
+      .tool-body {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+
+      .tool-preview {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .preview-header {
+        padding: 12px 20px;
+        background: var(--tool-bg);
+        border-bottom: 1px solid var(--tool-border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .preview-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--tool-muted);
+      }
+
+      .preview-label.v1 {
+        color: #6b7280;
+      }
+
+      .preview-label.v2 {
+        background: linear-gradient(90deg, var(--tool-purple), var(--tool-cyan));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .preview-container {
+        flex: 1;
+        overflow: auto;
+        padding: 20px;
+        position: relative;
+      }
+
+      /* Split view */
+      .split-view {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        min-height: 100%;
+      }
+
+      .preview-panel {
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .preview-panel.v1 {
+        border: 2px solid #6b7280;
+      }
+
+      .preview-panel.v2 {
+        border: 2px solid transparent;
+        background:
+          linear-gradient(var(--tool-panel), var(--tool-panel)) padding-box,
+          linear-gradient(135deg, var(--tool-purple), var(--tool-cyan)) border-box;
+      }
+
+      .preview-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #121212;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       SIDEBAR CONTROLS
+       ═══════════════════════════════════════════════════════════════ */
+
+      .tool-sidebar {
+        width: var(--sidebar-width);
+        background: var(--tool-panel);
+        border-left: 1px solid var(--tool-border);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-section {
+        border-bottom: 1px solid var(--tool-border);
+      }
+
+      .sidebar-header {
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .sidebar-header:hover {
+        background: rgba(139, 149, 168, 0.05);
+      }
+
+      .sidebar-title {
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-title .icon {
+        font-size: 12px;
+        color: var(--tool-muted);
+      }
+
+      .sidebar-body {
+        padding: 0 20px 20px;
+      }
+
+      /* Property control */
+      .property-control {
+        margin-bottom: 16px;
+        position: relative;
+      }
+
+      .property-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .property-name {
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 11px;
+        color: var(--tool-cyan);
+        background: rgba(34, 211, 238, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: all;
+        transition: background 0.2s;
+      }
+
+      .property-name:hover {
+        background: rgba(34, 211, 238, 0.2);
+      }
+
+      .property-value {
+        font-size: 11px;
+        color: var(--tool-muted);
+        font-family: monospace;
+      }
+
+      .property-desc {
+        font-size: 11px;
+        color: var(--tool-muted);
+        margin-bottom: 8px;
+        line-height: 1.4;
+      }
+
+      /* Slider */
+      .slider-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      input[type='range'] {
+        flex: 1;
+        height: 4px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: var(--tool-border);
+        border-radius: 2px;
+        outline: none;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--tool-cyan);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      input[type='range']::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+      }
+
+      /* Color picker */
+      .color-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .color-preview {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 2px solid var(--tool-border);
+        cursor: pointer;
+      }
+
+      .color-value {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid var(--tool-border);
+        border-radius: 6px;
+        background: var(--tool-bg);
+        color: var(--tool-text);
+        font-family: monospace;
+        font-size: 12px;
+      }
+
+      /* Select */
+      select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--tool-border);
+        border-radius: 6px;
+        background: var(--tool-bg);
+        color: var(--tool-text);
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       ACTION BUTTONS
+       ═══════════════════════════════════════════════════════════════ */
+
+      .sidebar-footer {
+        padding: 20px;
+        border-top: 1px solid var(--tool-border);
+        margin-top: auto;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--tool-purple), var(--tool-cyan));
+        color: #0a0e17;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--tool-border);
+        color: var(--tool-text);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(139, 149, 168, 0.1);
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       PREVIEW COMPONENT STYLES (v1 vs v2)
+       ═══════════════════════════════════════════════════════════════ */
+
+      .demo-container {
+        padding: 40px;
+        min-height: 100%;
+      }
+
+      /* v1 Styles */
+      .demo-v1 {
+        background: #121212;
+        color: #e5e7eb;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .demo-v1 h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+
+      .demo-v1 .btn {
+        background: linear-gradient(135deg, #a855f7, #00bfff);
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.12s;
+      }
+
+      .demo-v1 .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .demo-v1 .card {
+        background: rgba(31, 41, 55, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(167, 139, 250, 0.18);
+        border-radius: 18px;
+        padding: 24px;
+        margin-top: 20px;
+        max-width: 400px;
+      }
+
+      /* v2 Styles */
+      .demo-v2 {
+        background: #0f1115;
+        color: #e8eef4;
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: relative;
+      }
+
+      /* Atmosphere */
+      .demo-v2::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(167, 139, 250, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(167, 139, 250, 0.035) 1px, transparent 1px),
+          linear-gradient(rgba(34, 211, 238, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(34, 211, 238, 0.02) 1px, transparent 1px);
+        background-size:
+          48px 48px,
+          48px 48px,
+          16px 16px,
+          16px 16px;
+        mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 80%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .demo-v2 h1 {
+        font-size: 52px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+      }
+
+      .demo-v2 h1 span {
+        background: linear-gradient(135deg, #a78bfa, #22d3ee);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .demo-v2 .btn {
+        position: relative;
+        background: linear-gradient(135deg, #a78bfa, #22d3ee);
+        color: #0a0e17;
+        border: none;
+        padding: 13px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        overflow: hidden;
+        transition:
+          transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .demo-v2 .btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 50%);
+        pointer-events: none;
+      }
+
+      .demo-v2 .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 40px rgba(34, 211, 238, 0.4);
+      }
+
+      .demo-v2 .card {
+        position: relative;
+        background: rgba(26, 31, 42, 0.72);
+        backdrop-filter: blur(20px) saturate(180%);
+        border-radius: 20px;
+        padding: 24px;
+        margin-top: 24px;
+        max-width: 420px;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+        transition:
+          transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .demo-v2 .card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        padding: 1px;
+        background: linear-gradient(
+          135deg,
+          rgba(167, 139, 250, 0.3) 0%,
+          rgba(34, 211, 238, 0.15) 50%,
+          rgba(167, 139, 250, 0.2) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+
+      .demo-v2 .card:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.4),
+          0 0 0 1px rgba(34, 211, 238, 0.1) inset;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       CHANGE LOG
+       ═══════════════════════════════════════════════════════════════ */
+
+      .change-log {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--tool-panel);
+        border: 1px solid var(--tool-border);
+        border-radius: 12px;
+        padding: 16px;
+        max-width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-size: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+      }
+
+      .change-log h4 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--tool-muted);
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--tool-border);
+      }
+
+      .change-item {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--tool-border);
+      }
+
+      .change-item:last-child {
+        border-bottom: none;
+      }
+
+      .change-name {
+        font-family: 'SF Mono', monospace;
+        font-size: 10px;
+        color: var(--tool-cyan);
+        margin-bottom: 2px;
+      }
+
+      .change-values {
+        color: var(--tool-muted);
+      }
+
+      .change-arrow {
+        color: var(--tool-purple);
+        margin: 0 4px;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════════ */
+
+      @media (max-width: 1024px) {
+        .tool-sidebar {
+          position: fixed;
+          right: -100%;
+          top: 0;
+          bottom: 0;
+          z-index: 100;
+          transition: right 0.3s;
+        }
+
+        .tool-sidebar.open {
+          right: 0;
+        }
+
+        .split-view {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-panel.v1 {
+          display: none;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+       UTILITY
+       ═══════════════════════════════════════════════════════════════ */
+
+      .hidden {
+        display: none !important;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .mb-2 {
+        margin-bottom: 8px;
+      }
+
+      .mb-4 {
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════════ -->
+    <header class="tool-header">
+      <div class="tool-title">
+        <h1>Design Review Tool</h1>
+        <span class="badge">Academy v2</span>
+      </div>
+
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="showTab('compare')">Comparar v1/v2</button>
+        <button class="tool-tab" onclick="showTab('controls')">Controles</button>
+        <button class="tool-tab" onclick="showTab('export')">Exportar</button>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+       MAIN BODY
+       ═══════════════════════════════════════════════════════════════ -->
+    <div class="tool-body">
+      <!-- PREVIEW AREA -->
+      <div class="tool-preview" id="previewArea">
+        <div class="preview-header">
+          <span class="preview-label v1">● v1 (Actual)</span>
+          <span style="flex: 1"></span>
+          <span class="preview-label v2">● v2 (Nuevo)</span>
+        </div>
+
+        <div class="preview-container">
+          <div class="split-view">
+            <!-- v1 Preview -->
+            <div class="preview-panel v1">
+              <div class="demo-container demo-v1">
+                <h1>Gentle-Vanguard Academy</h1>
+                <p style="color: #9ca3af; margin-bottom: 24px">
+                  Aprende el stack de orquestación de agentes IA
+                </p>
+                <button class="btn">Comenzar ahora</button>
+                <div class="card">
+                  <h3 style="margin-bottom: 12px">Fundamentos</h3>
+                  <p style="color: #6b7280; font-size: 14px">
+                    Conoce los conceptos base del ecosistema Gentle-Vanguard.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- v2 Preview -->
+            <div class="preview-panel v2">
+              <div class="demo-container demo-v2" id="demoV2">
+                <h1><span>Gentle-Vanguard</span> Academy</h1>
+                <p style="color: #8b95a8; margin-bottom: 24px; font-size: 17px">
+                  Aprende el stack de orquestación de agentes IA
+                </p>
+                <button class="btn">Comenzar ahora</button>
+                <div class="card" style="position: relative; z-index: 1">
+                  <span
+                    style="
+                      font-family: 'Space Mono', monospace;
+                      font-size: 11px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.2em;
+                      color: #22d3ee;
+                      margin-bottom: 12px;
+                      display: block;
+                    "
+                    >CURSO</span
+                  >
+                  <h3 style="margin-bottom: 12px; font-size: 22px">Fundamentos</h3>
+                  <p style="color: #8b95a8; font-size: 14px; line-height: 1.65">
+                    Conoce los conceptos base del ecosistema Gentle-Vanguard.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR CONTROLS -->
+      <aside class="tool-sidebar" id="sidebar">
+        <!-- Help Text -->
+        <div
+          style="
+            padding: 20px;
+            background: rgba(34, 211, 238, 0.05);
+            border-bottom: 1px solid var(--tool-border);
+          "
+        >
+          <p style="font-size: 12px; color: var(--tool-muted); line-height: 1.5">
+            <strong style="color: var(--tool-cyan)">Cómo usar:</strong><br />
+            Cada propiedad tiene un ID (ej:
+            <code style="background: rgba(34, 211, 238, 0.1); padding: 2px 4px; border-radius: 3px"
+              >COLOR-BG-BASE</code
+            >) que podés copiar.<br /><br />
+            Si querés cambiar algo, decí: <em>"Cambiar COLOR-BG-BASE a #123456"</em>
+          </p>
+        </div>
+
+        <!-- COLORS SECTION -->
+        <div class="sidebar-section">
+          <div class="sidebar-header" onclick="toggleSection('colors')">
+            <div class="sidebar-title">
+              <span class="icon">🎨</span>
+              Colores
+            </div>
+            <span class="icon">▼</span>
+          </div>
+          <div class="sidebar-body" id="section-colors">
+            <div class="property-control">
+              <div class="property-desc">Color de fondo principal</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: COLOR-BG-BASE">COLOR-BG-BASE</span>
+                <span class="property-value" id="val-COLOR-BG-BASE">#0F1115</span>
+              </div>
+              <div class="color-control">
+                <div
+                  class="color-preview"
+                  style="background: #0f1115"
+                  id="preview-COLOR-BG-BASE"
+                ></div>
+                <input
+                  type="text"
+                  class="color-value"
+                  value="#0F1115"
+                  id="input-COLOR-BG-BASE"
+                  onchange="updateColor('COLOR-BG-BASE', this.value)"
+                />
+              </div>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Texto principal</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: COLOR-TEXT">COLOR-TEXT</span>
+                <span class="property-value" id="val-COLOR-TEXT">#e8eef4</span>
+              </div>
+              <div class="color-control">
+                <div
+                  class="color-preview"
+                  style="background: #e8eef4"
+                  id="preview-COLOR-TEXT"
+                ></div>
+                <input
+                  type="text"
+                  class="color-value"
+                  value="#e8eef4"
+                  id="input-COLOR-TEXT"
+                  onchange="updateColor('COLOR-TEXT', this.value)"
+                />
+              </div>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Texto secundario</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: COLOR-MUTED">COLOR-MUTED</span>
+                <span class="property-value" id="val-COLOR-MUTED">#8b95a8</span>
+              </div>
+              <div class="color-control">
+                <div
+                  class="color-preview"
+                  style="background: #8b95a8"
+                  id="preview-COLOR-MUTED"
+                ></div>
+                <input
+                  type="text"
+                  class="color-value"
+                  value="#8b95a8"
+                  id="input-COLOR-MUTED"
+                  onchange="updateColor('COLOR-MUTED', this.value)"
+                />
+              </div>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Acento cian (links, focus)</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: COLOR-CYAN">COLOR-CYAN</span>
+                <span class="property-value" id="val-COLOR-CYAN">#22d3ee</span>
+              </div>
+              <div class="color-control">
+                <div
+                  class="color-preview"
+                  style="background: #22d3ee"
+                  id="preview-COLOR-CYAN"
+                ></div>
+                <input
+                  type="text"
+                  class="color-value"
+                  value="#22d3ee"
+                  id="input-COLOR-CYAN"
+                  onchange="updateColor('COLOR-CYAN', this.value)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TYPOGRAPHY SECTION -->
+        <div class="sidebar-section">
+          <div class="sidebar-header" onclick="toggleSection('typography')">
+            <div class="sidebar-title">
+              <span class="icon">⌨️</span>
+              Tipografía
+            </div>
+            <span class="icon">▼</span>
+          </div>
+          <div class="sidebar-body" id="section-typography" style="display: none">
+            <div class="property-control">
+              <div class="property-desc">Fuente para títulos</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: FONT-DISPLAY">FONT-DISPLAY</span>
+              </div>
+              <select id="select-FONT-DISPLAY" onchange="updateFont('FONT-DISPLAY', this.value)">
+                <option value="'Space Grotesk', 'Orbitron', sans-serif" selected>
+                  Space Grotesk
+                </option>
+                <option value="'Orbitron', sans-serif">Orbitron (v1)</option>
+                <option value="'Inter', sans-serif">Inter</option>
+                <option value="system-ui, sans-serif">System UI</option>
+              </select>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Fuente body</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: FONT-BODY">FONT-BODY</span>
+              </div>
+              <select id="select-FONT-BODY" onchange="updateFont('FONT-BODY', this.value)">
+                <option value="'Inter', 'Inter Variable', system-ui, sans-serif" selected>
+                  Inter Variable
+                </option>
+                <option value="'Inter', system-ui, sans-serif">Inter</option>
+                <option value="system-ui, sans-serif">System UI</option>
+              </select>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Tamaño H1</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: SIZE-H1">SIZE-H1</span>
+                <span class="property-value" id="val-SIZE-H1">52px</span>
+              </div>
+              <div class="slider-control">
+                <input
+                  type="range"
+                  min="36"
+                  max="72"
+                  value="52"
+                  id="range-SIZE-H1"
+                  oninput="updateSize('SIZE-H1', this.value, 'px')"
+                />
+                <span style="font-size: 12px; min-width: 40px" id="display-SIZE-H1">52px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPACING SECTION -->
+        <div class="sidebar-section">
+          <div class="sidebar-header" onclick="toggleSection('spacing')">
+            <div class="sidebar-title">
+              <span class="icon">↔️</span>
+              Espaciado
+            </div>
+            <span class="icon">▼</span>
+          </div>
+          <div class="sidebar-body" id="section-spacing" style="display: none">
+            <div class="property-control">
+              <div class="property-desc">Radio de bordes (cards)</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: RADIUS-CARD">RADIUS-CARD</span>
+                <span class="property-value" id="val-RADIUS-CARD">20px</span>
+              </div>
+              <div class="slider-control">
+                <input
+                  type="range"
+                  min="12"
+                  max="32"
+                  value="20"
+                  id="range-RADIUS-CARD"
+                  oninput="updateSize('RADIUS-CARD', this.value, 'px')"
+                />
+                <span style="font-size: 12px; min-width: 40px" id="display-RADIUS-CARD">20px</span>
+              </div>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Padding cards</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: PADDING-CARD">PADDING-CARD</span>
+                <span class="property-value" id="val-PADDING-CARD">24px</span>
+              </div>
+              <div class="slider-control">
+                <input
+                  type="range"
+                  min="16"
+                  max="40"
+                  value="24"
+                  id="range-PADDING-CARD"
+                  oninput="updateSize('PADDING-CARD', this.value, 'px')"
+                />
+                <span style="font-size: 12px; min-width: 40px" id="display-PADDING-CARD">24px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EFFECTS SECTION -->
+        <div class="sidebar-section">
+          <div class="sidebar-header" onclick="toggleSection('effects')">
+            <div class="sidebar-title">
+              <span class="icon">✨</span>
+              Efectos
+            </div>
+            <span class="icon">▼</span>
+          </div>
+          <div class="sidebar-body" id="section-effects" style="display: none">
+            <div class="property-control">
+              <div class="property-desc">Blur del glass</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: BLUR-GLASS">BLUR-GLASS</span>
+                <span class="property-value" id="val-BLUR-GLASS">20px</span>
+              </div>
+              <div class="slider-control">
+                <input
+                  type="range"
+                  min="10"
+                  max="40"
+                  value="20"
+                  id="range-BLUR-GLASS"
+                  oninput="updateSize('BLUR-GLASS', this.value, 'px')"
+                />
+                <span style="font-size: 12px; min-width: 40px" id="display-BLUR-GLASS">20px</span>
+              </div>
+            </div>
+
+            <div class="property-control">
+              <div class="property-desc">Animación de glows</div>
+              <div class="property-header">
+                <span class="property-name" title="Copiar: GLOW-ANIMATION">GLOW-ANIMATION</span>
+              </div>
+              <select
+                id="select-GLOW-ANIMATION"
+                onchange="updateEffect('GLOW-ANIMATION', this.value)"
+              >
+                <option value="breathing" selected>Respiración (recomendado)</option>
+                <option value="static">Estático</option>
+                <option value="pulse">Pulso</option>
+                <option value="none">Sin animación</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="sidebar-footer">
+          <button class="btn btn-primary" onclick="generateReport()">
+            📋 Generar Reporte de Cambios
+          </button>
+          <button class="btn btn-secondary" onclick="resetToDefaults()">↺ Resetear a v2</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+       JAVASCRIPT
+       ═══════════════════════════════════════════════════════════════ -->
+    <script>
+      // State
+      const changes = new Map();
+      const defaults = {
+        'COLOR-BG-BASE': '#0F1115',
+        'COLOR-TEXT': '#e8eef4',
+        'COLOR-MUTED': '#8b95a8',
+        'COLOR-CYAN': '#22d3ee',
+        'SIZE-H1': '52px',
+        'RADIUS-CARD': '20px',
+        'PADDING-CARD': '24px',
+        'BLUR-GLASS': '20px',
+      };
+
+      // Toggle sections
+      function toggleSection(id) {
+        const el = document.getElementById('section-' + id);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+      }
+
+      // Show tabs
+      function showTab(tab) {
+        document.querySelectorAll('.tool-tab').forEach((t) => t.classList.remove('active'));
+        event.target.classList.add('active');
+
+        if (tab === 'export') {
+          generateReport();
+        }
+      }
+
+      // Update color
+      function updateColor(id, value) {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          alert('Color inválido. Usar formato: #RRGGBB');
+          return;
+        }
+
+        document.getElementById('val-' + id).textContent = value;
+        document.getElementById('preview-' + id).style.background = value;
+        changes.set(id, { from: defaults[id], to: value });
+
+        // Apply to preview
+        if (id === 'COLOR-BG-BASE') {
+          document.querySelector('.demo-v2').style.background = value;
+        } else if (id === 'COLOR-TEXT') {
+          document.querySelector('.demo-v2 h1').style.color = value;
+        } else if (id === 'COLOR-MUTED') {
+          document.querySelector('.demo-v2 p').style.color = value;
+        } else if (id === 'COLOR-CYAN') {
+          document.querySelector('.demo-v2 span').style.background =
+            `linear-gradient(135deg, #a78bfa, ${value})`;
+        }
+      }
+
+      // Update font
+      function updateFont(id, value) {
+        changes.set(id, { from: 'default', to: value });
+
+        if (id === 'FONT-DISPLAY') {
+          document.querySelector('.demo-v2 h1').style.fontFamily = value;
+        } else if (id === 'FONT-BODY') {
+          document.querySelector('.demo-v2').style.fontFamily = value;
+        }
+      }
+
+      // Update size
+      function updateSize(id, value, unit) {
+        const fullValue = value + unit;
+        document.getElementById('val-' + id).textContent = fullValue;
+        document.getElementById('display-' + id).textContent = fullValue;
+        changes.set(id, { from: defaults[id], to: fullValue });
+
+        if (id === 'SIZE-H1') {
+          document.querySelector('.demo-v2 h1').style.fontSize = fullValue;
+        } else if (id === 'RADIUS-CARD') {
+          document.querySelector('.demo-v2 .card').style.borderRadius = fullValue;
+        } else if (id === 'PADDING-CARD') {
+          document.querySelector('.demo-v2 .card').style.padding = fullValue;
+        } else if (id === 'BLUR-GLASS') {
+          document.querySelector('.demo-v2 .card').style.backdropFilter =
+            `blur(${fullValue}) saturate(180%)`;
+        }
+      }
+
+      // Update effect
+      function updateEffect(id, value) {
+        changes.set(id, { from: 'default', to: value });
+      }
+
+      // Generate report
+      function generateReport() {
+        let report = '## Cambios solicitados:\n\n';
+        changes.forEach((change, id) => {
+          report += `- **${id}**: \`${change.from}\` → \`${change.to}\`\n`;
+        });
+
+        if (changes.size === 0) {
+          report = 'Sin cambios. Usar valores por defecto de v2.';
+        }
+
+        report += '\n\nCopiar y pegar este mensaje al agente para aplicar.';
+
+        alert(report);
+        console.log(report);
+      }
+
+      // Reset
+      function resetToDefaults() {
+        changes.clear();
+        Object.keys(defaults).forEach((key) => {
+          const input = document.getElementById('input-' + key);
+          if (input) {
+            input.value = defaults[key];
+            updateColor(key, defaults[key]);
+          }
+          const range = document.getElementById('range-' + key);
+          if (range) {
+            range.value = parseInt(defaults[key]);
+            updateSize(key, parseInt(defaults[key]), 'px');
+          }
+        });
+        location.reload();
+      }
+    </script>
+  </body>
+</html>

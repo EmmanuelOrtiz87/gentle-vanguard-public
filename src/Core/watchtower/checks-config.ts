@@ -5,8 +5,8 @@ import { readdirSync, existsSync } from 'fs';
 import { join, basename } from 'path';
 import { runSync } from '../run-command';
 import { getEffectiveProcessTimeout } from '../timeout-config';
-import { addResult, quiet, ROOT } from './context';
-import { fileExists, payloadFileOk } from './helpers';
+import { addResult, quiet, ROOT, RUNTIME_DIR } from './context';
+import { fileExists, payloadFileOk, readJson } from './helpers';
 const logger = log('CORE-WATCHTOWER-CHECKS-CONFIG');
 import { log } from '../../utils/logger.js';
 
@@ -148,5 +148,44 @@ export async function checkToolConfigs() {
     payloadFileOk('tool-configs', '.windsurf/config.json', windsurfCfg, 'fix');
   } else {
     addResult('tool-configs', '.windsurf/config.json', 'WARN', 'Not found', 'manual');
+  }
+}
+
+// ─── Component: Autostart Script Integrity (auto-heal report) ───────────────
+// The session-autostart self-heals broken script paths and writes any that it
+// could NOT resolve to .runtime/autostart-missing-scripts.json. This check
+// surfaces that report proactively so unresolved wiring is caught between
+// sessions — not only at the moment the autostart runs.
+
+export async function checkMissingScripts() {
+  if (!quiet) logger.info('  [Configs] Autostart missing-scripts report...');
+
+  const reportPath = join(RUNTIME_DIR, 'autostart-missing-scripts.json');
+  if (!fileExists(reportPath)) {
+    addResult('configs', 'autostart-missing-scripts (report)', 'PASS', 'No unresolved scripts', 'ok');
+    return;
+  }
+  try {
+    const report = readJson(reportPath) as { missing?: { id: string; script: string }[] };
+    const missing = report?.missing ?? [];
+    if (missing.length === 0) {
+      addResult('configs', 'autostart-missing-scripts (report)', 'PASS', 'Report empty — all resolved', 'ok');
+    } else {
+      addResult(
+        'configs',
+        'autostart-missing-scripts (report)',
+        'WARN',
+        `${missing.length} unresolved: ${missing.map((m) => m.id).join(', ')}`,
+        'fix',
+      );
+    }
+  } catch {
+    addResult(
+      'configs',
+      'autostart-missing-scripts (report)',
+      'WARN',
+      'Report unreadable (invalid JSON)',
+      'fix',
+    );
   }
 }

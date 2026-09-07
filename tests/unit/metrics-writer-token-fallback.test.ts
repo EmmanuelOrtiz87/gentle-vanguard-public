@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import Database from 'better-sqlite3';
-import { getRecentTokenTotals } from '../../apps/web-dashboard/server/database/metrics-writer.ts';
+import { getRecentTokenTotals } from '../../src/database/nexus//metrics-writer.ts';
 
 test('metrics writer reads recent Nexus tokens and cost with SQLite datetime cutoff', () => {
   const db = new Database(':memory:');

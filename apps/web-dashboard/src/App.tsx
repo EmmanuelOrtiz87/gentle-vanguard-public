@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   UserCog,
   CircleDollarSign,
+  CalendarClock,
 } from 'lucide-react';
 import { useSharedState } from './hooks/useSharedState';
 import { TenantSelector } from './components/TenantSelector';
@@ -33,6 +34,7 @@ const MultiRepoView = lazy(() => import('./components/MultiRepoView'));
 const AuditPanel = lazy(() => import('./components/AuditPanel'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 const CostPanel = lazy(() => import('./components/CostPanel'));
+const HistoryPanel = lazy(() => import('./components/HistoryPanel'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen">
@@ -52,6 +54,7 @@ function Navigation() {
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/tracing', icon: Activity, label: 'Tracing' },
         { to: '/timeline', icon: History, label: 'Timeline' },
+        { to: '/history', icon: CalendarClock, label: 'Histórico' },
         { to: '/tasks', icon: ListTodo, label: 'Tasks' },
         { to: '/agents', icon: Bot, label: 'Agents' },
         { to: '/costs', icon: CircleDollarSign, label: 'Costs' },
@@ -258,12 +261,13 @@ function App() {
                     <Route path="/knowledge" element={<KnowledgePanel />} />
                     <Route path="/multi-repo" element={<MultiRepoView />} />
                     <Route path="/costs" element={<CostPanel />} />
+                    <Route path="/history" element={<HistoryPanel />} />
                   </Routes>
                 </Suspense>
               </div>
             </main>
             <footer className="gv-footer">
-              <strong>GentleVanguard</strong> · Stack Operations — v3.8.2 · 2026
+              <strong>GentleVanguard</strong> · Stack Operations — v3.9.0 · 2026
             </footer>
           </div>
         </AuthGate>

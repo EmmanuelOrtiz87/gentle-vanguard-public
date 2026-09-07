@@ -447,7 +447,10 @@ function cmdCc(args: string[]): CommandResult {
           cwd: ROOT,
         });
         child.unref();
-        return { success: true, message: `Command Center starting on http://127.0.0.1:${ccPort()}/` };
+        return {
+          success: true,
+          message: `Command Center starting on http://127.0.0.1:${ccPort()}/`,
+        };
       } catch (e) {
         return { success: false, message: `Failed: ${e}` };
       }
@@ -478,7 +481,10 @@ function cmdCc(args: string[]): CommandResult {
           return { success: false, message: 'Command Center not running' };
         }
         if (process.platform === 'win32')
-          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], { timeout: 8000, stdio: 'ignore' });
+          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], {
+            timeout: 8000,
+            stdio: 'ignore',
+          });
         else process.kill(pid, 'SIGTERM');
         if (existsSync(pidFile)) unlinkSync(pidFile);
         return { success: true, message: `Command Center stopped (PID ${pid})` };
@@ -1006,11 +1012,11 @@ async function main(): Promise<void> {
     case 'eval': {
       const evalArgs = args.slice(1);
       if (evalArgs.length === 0 || evalArgs.includes('--help')) {
-        console.log(
-          'Usage: gv eval [--gate] [--threshold N] [--limit N] [--json] [--db PATH]',
-        );
+        console.log('Usage: gv eval [--gate] [--threshold N] [--limit N] [--json] [--db PATH]');
         console.log('  Runs continuous evaluation over real Nexus traces (F3.1).');
-        console.log('  --gate exits 1 if the aggregate score regresses beyond --threshold % (default 5).');
+        console.log(
+          '  --gate exits 1 if the aggregate score regresses beyond --threshold % (default 5).',
+        );
         process.exit(0);
       }
       try {
@@ -1032,7 +1038,9 @@ async function main(): Promise<void> {
     case 'telemetry': {
       const tArgs = args.slice(1);
       if (tArgs.length === 0 || tArgs.includes('--help')) {
-        console.log('Usage: gv telemetry --session <id> | --trace <id> [--from --to --no-tokens --json]');
+        console.log(
+          'Usage: gv telemetry --session <id> | --trace <id> [--from --to --no-tokens --json]',
+        );
         console.log('  Unified correlation timeline: session_id ↔ trace_id ↔ token usage (F3.6).');
         process.exit(0);
       }

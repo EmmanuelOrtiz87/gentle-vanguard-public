@@ -59,7 +59,7 @@ class COECMS {
       PACKAGED: '#a78bfa',
       REVIEW: '#fbbf24',
       APPROVED: '#34d399',
-      PUBLISHED: '#22c55e',
+      PUBLISHED: '#4ade80',
       MEASURED: '#64748b',
       FAILED: '#ef4444',
     };
@@ -331,7 +331,7 @@ class COECMS {
           <div class="label">En Review</div>
         </div>
         <div class="stat-card">
-          <div class="value" style="color: #22c55e">${stats.byState['PUBLISHED'] || 0}</div>
+          <div class="value" style="color: #4ade80">${stats.byState['PUBLISHED'] || 0}</div>
           <div class="label">Publicados</div>
         </div>
       </div>

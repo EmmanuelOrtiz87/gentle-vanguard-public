@@ -34,14 +34,20 @@ function printHuman(result: EvalRunResult): void {
     return;
   }
   console.log(`[EVAL] Continuous eval run #${runId}`);
-  console.log(`[EVAL] Dataset: ${dataset.items.length} sessions (${dataset.positives} positive / ${dataset.negatives} negative)`);
+  console.log(
+    `[EVAL] Dataset: ${dataset.items.length} sessions (${dataset.positives} positive / ${dataset.negatives} negative)`,
+  );
   console.log(`[EVAL] Scores:`);
   console.log(`         successRate:        ${(scores.successRate * 100).toFixed(1)}%`);
   console.log(`         tokenEfficiency:    ${scores.tokenEfficiency.toFixed(3)}`);
   console.log(`         durationEfficiency: ${scores.durationEfficiency.toFixed(3)}`);
   console.log(`         aggregateScore:     ${scores.aggregateScore.toFixed(4)}`);
-  console.log(`[EVAL] Tokens: avg ${scores.avgTokens} / median ${scores.medianTokens} / p95 ${scores.p95Tokens}`);
-  console.log(`[EVAL] Duration (ms): median ${scores.medianDurationMs} / p95 ${scores.p95DurationMs}`);
+  console.log(
+    `[EVAL] Tokens: avg ${scores.avgTokens} / median ${scores.medianTokens} / p95 ${scores.p95Tokens}`,
+  );
+  console.log(
+    `[EVAL] Duration (ms): median ${scores.medianDurationMs} / p95 ${scores.p95DurationMs}`,
+  );
   if (trend.direction === 'first-run') {
     console.log(`[EVAL] Trend: first run (no baseline)`);
   } else {
@@ -112,9 +118,7 @@ async function main(): Promise<number> {
   }
 }
 
-const isMain = process.argv[1]
-  ? import.meta.url === pathToFileURL(process.argv[1]).href
-  : false;
+const isMain = process.argv[1] ? import.meta.url === pathToFileURL(process.argv[1]).href : false;
 
 if (isMain) {
   void main().then((code) => process.exit(code));

@@ -9,10 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import {
-  listContracts,
-  describeContract,
-} from '../../src/core/capabilities.ts';
+import { listContracts, describeContract } from '../../src/core/capabilities.ts';
 import { isTypedRefusal } from '../../src/core/typed-refusal.ts';
 
 test('every native contract is registered with protocol and operations', () => {

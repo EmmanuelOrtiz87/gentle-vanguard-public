@@ -7,6 +7,7 @@ import {
   bridgeToolCount,
   ALERTS_CONFIG_PATH,
   prevAlertState,
+  ackedAlerts,
 } from '../ws-hub/context.ts';
 
 export function broadcastValidations(): void {
@@ -38,6 +39,8 @@ export function evaluateAlerts(metrics: any): Array<{
   unit: string;
   direction: 'above' | 'below';
   transition?: string;
+  acknowledged?: boolean;
+  ackedAt?: number;
 }> {
   try {
     if (!existsSync(ALERTS_CONFIG_PATH)) return [];
@@ -57,6 +60,9 @@ export function evaluateAlerts(metrics: any): Array<{
         let transition: string | undefined;
         if (triggered && !wasTriggered) transition = 'fired';
         else if (!triggered && wasTriggered) transition = 'resolved';
+        // Ack lifecycle: resolving the alert releases the ack, so the next
+        // trigger (after a healthy period) surfaces as new instead of muted.
+        if (!triggered) ackedAlerts.delete(name);
         return {
           name,
           rule: rule.label || name,
@@ -67,6 +73,8 @@ export function evaluateAlerts(metrics: any): Array<{
           unit: rule.unit || '',
           direction: below ? 'below' : 'above',
           transition,
+          acknowledged: triggered && ackedAlerts.has(name),
+          ackedAt: triggered ? ackedAlerts.get(name) : undefined,
         };
       })
       .filter(Boolean) as any[];

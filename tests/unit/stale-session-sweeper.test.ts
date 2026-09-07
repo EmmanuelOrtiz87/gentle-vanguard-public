@@ -64,7 +64,14 @@ function insertSession(
   db.prepare(
     `INSERT INTO sessions (id, agent, status, created_at, updated_at, tokens_used, cost, message_count, metadata, tenant_id)
      VALUES (?, 'test', ?, ?, ?, ?, 0, ?, NULL, 't')`,
-  ).run(id, extra.status ?? 'active', iso(updatedAtMs - D), iso(updatedAtMs), extra.tokens ?? 0, extra.messages ?? 0);
+  ).run(
+    id,
+    extra.status ?? 'active',
+    iso(updatedAtMs - D),
+    iso(updatedAtMs),
+    extra.tokens ?? 0,
+    extra.messages ?? 0,
+  );
 }
 
 /* ── Tests ── */
@@ -75,13 +82,15 @@ test('classifies stale sessions: idle (recent traces), completed (lifetime activ
   const t3d = NOW - 3 * D;
 
   insertSession(db, 'recent-trace', t3d); // trace within 7d -> idle
-  db.prepare(`INSERT INTO traces (session_id, start_time, duration, status) VALUES (?, ?, 5, 'completed')`)
-    .run('recent-trace', NOW - 2 * D);
+  db.prepare(
+    `INSERT INTO traces (session_id, start_time, duration, status) VALUES (?, ?, 5, 'completed')`,
+  ).run('recent-trace', NOW - 2 * D);
 
   // updated 10 days ago (beyond the 7d idle window), tokens > 0 -> completed
   insertSession(db, 'old-but-real', NOW - 10 * D, { tokens: 500 });
-  db.prepare(`INSERT INTO traces (session_id, start_time, duration, status) VALUES (?, ?, 5, 'completed')`)
-    .run('old-but-real', NOW - 20 * D);
+  db.prepare(
+    `INSERT INTO traces (session_id, start_time, duration, status) VALUES (?, ?, 5, 'completed')`,
+  ).run('old-but-real', NOW - 20 * D);
 
   insertSession(db, 'empty-ghost', NOW - 10 * D); // nothing anywhere, beyond idle window -> abandoned
 
@@ -97,7 +106,10 @@ test('classifies stale sessions: idle (recent traces), completed (lifetime activ
   assert.equal(byId.get('empty-ghost'), 'abandoned');
   assert.equal(summary.skippedProtected, 1);
   // dry-run must not write
-  const statuses = db.prepare(`SELECT id, status FROM sessions`).all() as Array<{ id: string; status: string }>;
+  const statuses = db.prepare(`SELECT id, status FROM sessions`).all() as Array<{
+    id: string;
+    status: string;
+  }>;
   assert.ok(statuses.every((s) => s.status === 'active'));
 });
 
@@ -112,11 +124,14 @@ test('apply writes statuses, is idempotent, and stamps metadata', () => {
     'abandoned',
   );
   const meta = JSON.parse(
-    (db.prepare(`SELECT metadata FROM sessions WHERE id='ghost'`).get() as { metadata: string }).metadata,
+    (db.prepare(`SELECT metadata FROM sessions WHERE id='ghost'`).get() as { metadata: string })
+      .metadata,
   ) as { swept: { to: string } };
   assert.equal(meta.swept.to, 'abandoned');
   // updated_at preserved
-  const row = db.prepare(`SELECT updated_at FROM sessions WHERE id='ghost'`).get() as { updated_at: string };
+  const row = db.prepare(`SELECT updated_at FROM sessions WHERE id='ghost'`).get() as {
+    updated_at: string;
+  };
   assert.equal(row.updated_at, iso(NOW - 10 * D));
 
   // second run: no active candidates -> no-op (idempotent)
@@ -130,11 +145,7 @@ test('hard floor: sessions updated within 2h are never touched even with tiny --
   insertSession(db, 'just-now', NOW - 30 * 60 * 1000); // 30 min ago
   insertSession(db, '90min', NOW - 90 * 60 * 1000); // 1.5h ago
 
-  const summary = sweepStaleSessions(
-    db,
-    { ...baseOpts(db, '.'), staleHours: 0.5 },
-    NOW,
-  );
+  const summary = sweepStaleSessions(db, { ...baseOpts(db, '.'), staleHours: 0.5 }, NOW);
   assert.equal(summary.wouldSweep.length, 0);
   assert.equal(summary.scannedActive, 2);
   assert.equal(summary.skippedProtected, 2);
@@ -144,11 +155,15 @@ test('token_transactions activity counts: recent tx -> idle, old tx -> completed
   const db = makeTestDb();
   const t3d = NOW - 3 * D;
   insertSession(db, 'tx-recent', t3d);
-  db.prepare(`INSERT INTO token_transactions (session_id, created_at) VALUES (?, ?)`)
-    .run('tx-recent', iso(NOW - 2 * D));
+  db.prepare(`INSERT INTO token_transactions (session_id, created_at) VALUES (?, ?)`).run(
+    'tx-recent',
+    iso(NOW - 2 * D),
+  );
   insertSession(db, 'tx-old', NOW - 10 * D);
-  db.prepare(`INSERT INTO token_transactions (session_id, created_at) VALUES (?, ?)`)
-    .run('tx-old', iso(NOW - 30 * D));
+  db.prepare(`INSERT INTO token_transactions (session_id, created_at) VALUES (?, ?)`).run(
+    'tx-old',
+    iso(NOW - 30 * D),
+  );
 
   const summary = sweepStaleSessions(db, baseOpts(db, '.'), NOW);
   const byId = new Map(summary.wouldSweep.map((d) => [d.id, d.newStatus]));

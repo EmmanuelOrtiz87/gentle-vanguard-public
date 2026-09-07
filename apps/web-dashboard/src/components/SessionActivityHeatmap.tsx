@@ -9,15 +9,16 @@ interface SessionActivityHeatmapProps {
 }
 
 const HEAT_COLORS = [
-  '#e0f2fe', // 0 - very light
-  '#bae6fd',
-  '#7dd3fc',
-  '#38bdf8',
-  '#0ea5e9',
-  '#0284c7', // 5 - medium
-  '#0369a1',
-  '#075985',
-  '#0c4a6e', // 8 - very dark
+  // v2 cyan ramp (brand: docs/brand/TOKENS-v2.json) — light → dark
+  '#ecfeff', // 0 - very light
+  '#cffafe',
+  '#a5f3fc',
+  '#67e8f9',
+  '#22d3ee',
+  '#06b6d4', // 5 - medium
+  '#0891b2',
+  '#0e7490',
+  '#155e75', // 8 - very dark
 ];
 
 function getHeatLevel(count: number, maxCount: number): number {

@@ -44,7 +44,9 @@ async function withTempTelemetry(fn: () => void | Promise<void>): Promise<string
 }
 
 function readEvents(dir: string): Array<Record<string, unknown>> {
-  const files = existsSync(dir) ? join(dir, 'correlation-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.jsonl') : null;
+  const files = existsSync(dir)
+    ? join(dir, 'correlation-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.jsonl')
+    : null;
   if (!files || !existsSync(files)) return [];
   return readFileSync(files, 'utf-8')
     .split('\n')
@@ -81,11 +83,14 @@ test('withCorrelation propagates context to nested and async code', async () => 
 
 test('emitted events are enriched and persisted as JSONL', async () => {
   const dir = await withTempTelemetry(async () => {
-    withCorrelation({ sessionId: 'sess-jsonl', agentName: 'agent-x', traceId: 'b'.repeat(32) }, () => {
-      traceEvent('span.start', { op: 'skill.run' });
-      metricEvent('tokens.consumed', 42, { model: 'glm' });
-      logEvent('INFO', 'hello', { extra: 1 });
-    });
+    withCorrelation(
+      { sessionId: 'sess-jsonl', agentName: 'agent-x', traceId: 'b'.repeat(32) },
+      () => {
+        traceEvent('span.start', { op: 'skill.run' });
+        metricEvent('tokens.consumed', 42, { model: 'glm' });
+        logEvent('INFO', 'hello', { extra: 1 });
+      },
+    );
   });
   const events = readEvents(dir);
   assert.equal(events.length, 3);
@@ -158,8 +163,13 @@ test('queryCorrelation returns a unified, ordered timeline with token join', asy
     });
 
     // Pin deterministic ordering: rewrite the trace event ts between the two txs.
-    const file = join(dir, 'correlation-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.jsonl');
-    const lines = readFileSync(file, 'utf-8').split('\n').filter((l) => l.trim());
+    const file = join(
+      dir,
+      'correlation-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.jsonl',
+    );
+    const lines = readFileSync(file, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim());
     const fixed = lines.map((l) => {
       const ev = JSON.parse(l);
       if (ev.name === 'op.a') ev.ts = '2026-08-31T10:00:00.100Z';

@@ -37,3 +37,6 @@ docs/sessions/
 test-opcode-broken.json
 test-agent-broken2.json
 test-agent-broken.json
+
+# test fixtures: hand-crafted, must not be reformatted
+tests/fixtures/**

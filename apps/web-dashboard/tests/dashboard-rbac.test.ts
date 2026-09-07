@@ -6,8 +6,8 @@ import {
   can,
   resolveRoutePermission,
   roleHasAction,
-} from '../../apps/web-dashboard/server/rbac';
-import { LoginRateLimiter } from '../../apps/web-dashboard/server/login-rate-limiter';
+} from '../server/rbac';
+import { LoginRateLimiter } from '../server/login-rate-limiter';
 
 test('rbac policy version is pinned', () => {
   assert.equal(RBAC_POLICY_VERSION, 1);

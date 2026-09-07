@@ -7,6 +7,12 @@ import { loadConfigFile } from '../core/config-loader.js';
 
 const ROOT = resolve(process.cwd());
 
+export interface AdaptiveModeConfig {
+  thresholdPct: number;
+  action: 'log_only' | 'notify' | 'block_new_tasks' | 'critical_only';
+  description: string;
+}
+
 export interface GuardConfig {
   enabled: boolean;
   non_blocking: boolean;
@@ -16,6 +22,13 @@ export interface GuardConfig {
   hard_threshold_pct: number;
   enforce_on_commands: string[];
   fallback_actions: string[];
+  enforcement_mode: 'soft' | 'adaptive';
+  adaptive_modes?: {
+    soft?: AdaptiveModeConfig;
+    warn?: AdaptiveModeConfig;
+    strict?: AdaptiveModeConfig;
+    emergency?: AdaptiveModeConfig;
+  };
 }
 
 export interface GuardResult {
@@ -51,6 +64,7 @@ const DEFAULT_CONFIG: GuardConfig = {
     'publish',
   ],
   fallback_actions: [],
+  enforcement_mode: 'soft',
 };
 
 const TASK_TOKENS: Record<string, number> = {
@@ -73,17 +87,33 @@ function ensureDir(filePath: string) {
 }
 
 function loadConfig(): GuardConfig {
-  const config = { ...DEFAULT_CONFIG };
+  const config: GuardConfig = {
+    ...DEFAULT_CONFIG,
+    enforcement_mode: 'soft',
+  };
 
-  // Priority 1: token-budget-guard.json (single source of truth, v2) — via unified loader
-  const primary = loadConfigFile<{ tokenBudget?: { limits?: Record<string, number> } }>(
-    'token-budget-guard',
-  );
-  const tb = primary.data?.tokenBudget?.limits;
+  // Priority 1: token-budget-guard.json (single source of truth, v3) — via unified loader
+  const primary = loadConfigFile<{
+    tokenBudget?: {
+      limits?: Record<string, number>;
+      enforcement?: {
+        mode?: string;
+        adaptiveModes?: Record<string, AdaptiveModeConfig>;
+      };
+    };
+  }>('token-budget-guard');
+
+  const tb = primary.data?.tokenBudget;
   if (tb) {
-    config.daily_budget_tokens = tb.daily ?? config.daily_budget_tokens;
-    config.soft_threshold_pct = tb.softThreshold ?? config.soft_threshold_pct;
-    config.hard_threshold_pct = tb.hardThreshold ?? config.hard_threshold_pct;
+    config.daily_budget_tokens = tb.limits?.daily ?? config.daily_budget_tokens;
+    config.soft_threshold_pct = tb.limits?.softThreshold ?? config.soft_threshold_pct;
+    config.hard_threshold_pct = tb.limits?.hardThreshold ?? config.hard_threshold_pct;
+
+    // Load adaptive mode configuration
+    if (tb.enforcement?.mode) {
+      config.enforcement_mode = tb.enforcement.mode as 'soft' | 'adaptive';
+      config.adaptive_modes = tb.enforcement.adaptiveModes;
+    }
     return config;
   }
   for (const w of primary.warnings) console.warn(`[TOKEN-BUDGET] ${w}`);
@@ -96,7 +126,7 @@ function loadConfig(): GuardConfig {
         raw?.orchestrator?.token_budget_guard || raw?.subagent_orchestration?.token_budget_guard;
       if (custom) {
         for (const key of Object.keys(DEFAULT_CONFIG)) {
-          if (key in custom) (config as Record<string, unknown>)[key] = custom[key];
+          if (key in custom) (config as unknown as Record<string, unknown>)[key] = custom[key];
         }
         console.log(
           `[TOKEN-BUDGET] Loaded from orchestrator.json (legacy): daily_budget=${config.daily_budget_tokens}, soft=${config.soft_threshold_pct}%, hard=${config.hard_threshold_pct}%`,
@@ -229,9 +259,30 @@ export function runGuard(opts: {
   const budget = config.daily_budget_tokens;
   const pct = budget > 0 ? Math.round((projected / budget) * 10000) / 100 : 0;
 
+  // Determine status based on mode (soft vs adaptive)
   let status = 'PASS';
-  if (pct >= config.hard_threshold_pct) status = 'HARD_LIMIT';
-  else if (pct >= config.soft_threshold_pct) status = 'SOFT_LIMIT';
+
+  if (config.enforcement_mode === 'adaptive' && config.adaptive_modes) {
+    // Adaptive mode: use thresholds from config
+    const modes = config.adaptive_modes;
+
+    if (pct >= (modes.emergency?.thresholdPct ?? 100)) {
+      status = 'EMERGENCY';
+    } else if (pct >= (modes.strict?.thresholdPct ?? 95)) {
+      status = 'STRICT';
+    } else if (pct >= (modes.warn?.thresholdPct ?? 85)) {
+      status = 'WARN';
+    } else if (pct >= (modes.soft?.thresholdPct ?? 70)) {
+      status = 'SOFT_LIMIT';
+    }
+  } else {
+    // Legacy soft mode
+    if (pct >= config.hard_threshold_pct) {
+      status = 'HARD_LIMIT';
+    } else if (pct >= config.soft_threshold_pct) {
+      status = 'SOFT_LIMIT';
+    }
+  }
 
   const engram = checkEngram();
   if (config.require_engram && !engram.available && status === 'PASS') status = 'ENGRAM_MISSING';

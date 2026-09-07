@@ -60,7 +60,9 @@ export function runCLI(): void {
       console.log(
         `cached() Savings (token_savings): ${savings.tokensSaved} tokens across ${savings.hits} recorded hits`,
       );
-      console.log(`Cache Bypassed:  ${process.env.GV_CACHE_DISABLED === '1' ? 'YES (GV_CACHE_DISABLED=1)' : 'no'}`);
+      console.log(
+        `Cache Bypassed:  ${process.env.GV_CACHE_DISABLED === '1' ? 'YES (GV_CACHE_DISABLED=1)' : 'no'}`,
+      );
       console.log('\nExpected Impact: 33-41% latency reduction');
       console.log('                 25-35% token cost reduction\n');
       break;

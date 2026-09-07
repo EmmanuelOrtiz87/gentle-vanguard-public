@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0b1020" />
+    <meta name="theme-color" content="#0F1115" />
     <meta
       name="description"
       content="📊 Stack Health & Metrics — Gentle-Vanguard — Gentle-Vanguard documentation"
@@ -42,7 +42,7 @@
         r: 52;
       }
       .metric-ring .bg {
-        stroke: #1e293b;
+        stroke: #252b38;
       }
       .metric-ring .fg {
         stroke-linecap: round;
@@ -77,7 +77,10 @@
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
         <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
+            class="gv-wordmark"
+            >Gentle<strong>Vanguard</strong></span
+          ></a
         >
         <button
           class="navbar-toggler"
@@ -191,10 +194,10 @@
     <!-- Hero -->
     <section class="hero" id="overview">
       <div>
-        <span class="hero-badge mb-3">✦ v4.0 — 113/113 PASS · 22 componentes</span>
+        <span class="hero-badge mb-3">✦ v4.0 — 96/96 PASS · 22 componentes</span>
         <h1 class="glow"><i class="bi bi-heart-pulse me-2"></i>Stack Health & Metrics</h1>
         <p class="lead" data-i18n="c_health_2">
-          Monitoreo continuo, 113 health checks, 109 Tests automatizados, y trazabilidad total del
+          Monitoreo continuo, 96 health checks, 175 Tests automatizados, y trazabilidad total del
           stack Gentle-Vanguard
         </p>
         <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
@@ -227,7 +230,7 @@
                 cx="60"
                 cy="60"
                 r="52"
-                stroke="#22c55e"
+                stroke="#4ade80"
                 stroke-dasharray="326.7"
                 stroke-dashoffset="0"
               />
@@ -247,7 +250,7 @@
                 cx="60"
                 cy="60"
                 r="52"
-                stroke="#22c55e"
+                stroke="#4ade80"
                 stroke-dasharray="326.7"
                 stroke-dashoffset="0"
               />
@@ -267,7 +270,7 @@
                 cx="60"
                 cy="60"
                 r="52"
-                stroke="#00bfff"
+                stroke="#22d3ee"
                 stroke-dasharray="326.7"
                 stroke-dashoffset="0"
               />
@@ -287,7 +290,7 @@
                 cx="60"
                 cy="60"
                 r="52"
-                stroke="#00bfff"
+                stroke="#22d3ee"
                 stroke-dasharray="326.7"
                 stroke-dashoffset="0"
               />
@@ -305,9 +308,9 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i>Watchtower — 113 Checks
+          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i>Watchtower — 96 checks
         </h2>
-        <p data-i18n="c_health_4">21 componentes monitoreados en cada ciclo de health check</p>
+        <p data-i18n="c_health_4">26 componentes monitoreados en cada ciclo de health check</p>
       </div>
       <div class="table-responsive">
         <table class="table-health">
@@ -340,11 +343,11 @@
               <td><span class="badge-gv badge-ok">PASS</span></td>
               <td>
                 <span data-i18n="c_health_6"
-                  >Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB</span
+                  >Index exists, 600+ files, 10,000+ nodes, 20,000+ edges, 44MB</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_c_health_6"
-                  title="Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB"
+                  title="Index exists, 600+ files, 10,000+ nodes, 20,000+ edges, 44MB"
                   >i</span
                 >
               </td>
@@ -383,11 +386,12 @@
               <td>4</td>
               <td><span class="badge-gv badge-ok">PASS</span></td>
               <td>
-                <span data-i18n="c_health_9">DB integrity, reindex log, RAG pipeline, 2078 obs</span
+                <span data-i18n="c_health_9"
+                  >DB integrity, reindex log, RAG pipeline, 3,600+ obs</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_c_health_9"
-                  title="DB integrity, reindex log, RAG pipeline, 2078 obs"
+                  title="DB integrity, reindex log, RAG pipeline, 3,600+ obs"
                   >i</span
                 >
               </td>
@@ -525,11 +529,11 @@
               <td><span class="badge-gv badge-ok">PASS</span></td>
               <td>
                 <span data-i18n="c_health_19"
-                  >Nexus DB file, WAL, integrity check, 7 migrations, 21 tables</span
+                  >Nexus DB file, WAL, integrity check, 16 migrations, 23 tables</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_c_health_19"
-                  title="Nexus DB file, WAL, integrity check, 7 migrations, 21 tables"
+                  title="Nexus DB file, WAL, integrity check, 16 migrations, 23 tables"
                   >i</span
                 >
               </td>
@@ -588,7 +592,7 @@
           <i class="bi bi-database me-2" style="color: var(--p)"></i>Nexus DB — Operational Database
         </h2>
         <p data-i18n="c_health_23">
-          SQLite WAL mode, 7 migrations, 21 tables, monitoreado por watchtower
+          SQLite WAL mode, 16 migrations, 23 tables, monitoreado por watchtower
         </p>
       </div>
       <div class="row g-4">
@@ -1061,9 +1065,9 @@
                 <code>npm run lint</code> — ESLint with <code>--max-warnings 0</code>. Zero
                 tolerance for warnings.
               </li>
-              <li><code>npm test</code> — 109 Test files, all must pass</li>
+              <li><code>npm test</code> — 175 Test files, all must pass</li>
               <li>
-                <code>npm run watchtower:health</code> — 113 Checks across 22 components, 100% PASS
+                <code>npm run watchtower:health</code> — 96 checks across 22 components, 100% PASS
                 required
               </li>
               <li>
@@ -1112,7 +1116,7 @@
             <div class="stat-n" style="font-size: 1.6rem">100%</div>
             <div class="stat-l">Health Uptime</div>
             <p class="card-text small mt-2" data-i18n="c_health_62">
-              Watchtower expects 113/113 PASS every cycle
+              Watchtower expects 96/96 PASS every cycle
             </p>
           </div>
         </div>
@@ -1197,22 +1201,22 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >109 Test Files</span
+          >175 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >95/95 Health</span
+          >113/113 Health</span
         >
         <span
           class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >11 Repos</span
+          >16 Repos</span
         >
         <span
           class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >263 Skills</span
+          >92 Skills</span
         >
         <span
           class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"

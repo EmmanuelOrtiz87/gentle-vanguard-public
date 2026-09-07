@@ -87,7 +87,11 @@ interface RecordedSpan {
   startTime: string;
   endTime?: string;
   attributes: Record<string, string | number | boolean>;
-  events: { name: string; timestamp: string; attributes?: Record<string, string | number | boolean> }[];
+  events: {
+    name: string;
+    timestamp: string;
+    attributes?: Record<string, string | number | boolean>;
+  }[];
   status: { code: 'UNSET' | 'OK' | 'ERROR'; message?: string };
 }
 
@@ -117,7 +121,10 @@ class OtelSpan implements SpanHandle {
   }
 
   recordException(error: unknown): this {
-    this.span.status = { code: 'ERROR', message: error instanceof Error ? error.message : String(error) };
+    this.span.status = {
+      code: 'ERROR',
+      message: error instanceof Error ? error.message : String(error),
+    };
     this.event('exception', { 'exception.type': error instanceof Error ? error.name : 'Unknown' });
     return this;
   }
@@ -138,7 +145,11 @@ export class OtelTracingPort implements TracingPort {
 
   constructor(opts: OtelTracingPortOptions = {}) {
     const base = opts.endpoint ?? process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.replace(/\/+$/, '');
-    this.endpoint = base ? (base.endsWith('/v1/traces') ? base : `${base}/v1/traces`) : 'http://localhost:4318/v1/traces';
+    this.endpoint = base
+      ? base.endsWith('/v1/traces')
+        ? base
+        : `${base}/v1/traces`
+      : 'http://localhost:4318/v1/traces';
     this.bufferSize = opts.bufferSize ?? 64;
   }
 
@@ -164,7 +175,9 @@ export class OtelTracingPort implements TracingPort {
     const body = JSON.stringify({
       resourceSpans: [
         {
-          resource: { attributes: [{ key: 'service.name', value: { stringValue: 'gentle-vanguard' } }] },
+          resource: {
+            attributes: [{ key: 'service.name', value: { stringValue: 'gentle-vanguard' } }],
+          },
           scopeSpans: [{ spans: spans.map(toOtlpSpan) }],
         },
       ],
@@ -178,7 +191,14 @@ export class OtelTracingPort implements TracingPort {
       const mod = url.protocol === 'https:' ? requestSecure : request;
       const req = mod(
         url,
-        { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) }, timeout: 5_000 },
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'content-length': Buffer.byteLength(body),
+          },
+          timeout: 5_000,
+        },
         (res) => {
           res.resume();
           res.on('end', () => resolve());
@@ -202,11 +222,19 @@ function toOtlpSpan(s: RecordedSpan): Record<string, unknown> {
     kind: 'SPAN_KIND_INTERNAL',
     startTimeUnixNano: String(Date.parse(s.startTime) * 1e6),
     ...(s.endTime ? { endTimeUnixNano: String(Date.parse(s.endTime) * 1e6) } : {}),
-    attributes: Object.entries(s.attributes).map(([key, value]) => ({ key, value: { stringValue: String(value) } })),
+    attributes: Object.entries(s.attributes).map(([key, value]) => ({
+      key,
+      value: { stringValue: String(value) },
+    })),
     events: s.events.map((e) => ({
       name: e.name,
       timeUnixNano: String(Date.parse(e.timestamp) * 1e6),
-      attributes: e.attributes ? Object.entries(e.attributes).map(([key, v]) => ({ key, value: { stringValue: String(v) } })) : [],
+      attributes: e.attributes
+        ? Object.entries(e.attributes).map(([key, v]) => ({
+            key,
+            value: { stringValue: String(v) },
+          }))
+        : [],
     })),
     status: { code: s.status.code, ...(s.status.message ? { message: s.status.message } : {}) },
   };

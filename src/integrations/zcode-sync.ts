@@ -72,6 +72,11 @@ const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }> = [
   { dir: 'huashu-design', root: 'stack' },
   { dir: 'ui-taste', root: 'stack' },
   { dir: 'brand-guidelines-gv', root: 'stack' },
+  // Fase 4 adopción (2026-09-01) — design skills from GitHub + getdesign.md + ui-skills.com
+  { dir: 'impeccable', root: 'opencode' },
+  { dir: 'playwright-cli', root: 'opencode' },
+  { dir: 'brand-design-systems', root: 'opencode' },
+  { dir: 'design-engineering', root: 'opencode' },
 ];
 
 /**

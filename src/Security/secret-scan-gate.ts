@@ -32,7 +32,11 @@ function gitDiff(args: CliArgs): string {
   } else if (args.staged) {
     diffArgs.push('--cached');
   }
-  return execFileSync('git', diffArgs, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 });
+  return execFileSync('git', diffArgs, {
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    windowsHide: true, // procesos-ocultos: no console allocation when run from hidden daemons
+  });
 }
 
 function addedContent(diff: string): Map<string, string> {

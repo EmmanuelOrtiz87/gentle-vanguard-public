@@ -1,12 +1,11 @@
 {
   "name": "@gentle-vanguard/web-dashboard",
-  "version": "3.8.2",
+  "version": "4.0.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -n client,server -c cyan,yellow \"vite\" \"tsx server/websocket-server.ts\"",
     "dev:server": "tsx server/websocket-server.ts",
     "dev:client": "vite",
-    "prebuild": "pnpm --dir ../.. design:tokens -- --format css --output apps/web-dashboard/src/styles/generated-tokens.css",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",

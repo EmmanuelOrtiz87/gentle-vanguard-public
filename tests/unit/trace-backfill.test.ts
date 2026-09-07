@@ -36,7 +36,12 @@ function addSession(db: Database.Database, id: string, iso: string): void {
   ).run(id, iso, iso);
 }
 
-function addTrace(db: Database.Database, span: string, tsMs: number, sessionId: string | null): void {
+function addTrace(
+  db: Database.Database,
+  span: string,
+  tsMs: number,
+  sessionId: string | null,
+): void {
   db.prepare(
     `INSERT INTO traces (span_id, trace_id, name, start_time, session_id) VALUES (?, 't', 'op', ?, ?)`,
   ).run(span, tsMs, sessionId);
@@ -111,8 +116,8 @@ test('backfillTraces: only NULL/empty session rows are touched', () => {
 
   const res = backfillTraces(db, { apply: true });
   assert.equal(res.totalNullTraces, 1); // only span-empty
-  const row = db
-    .prepare(`SELECT session_id FROM traces WHERE span_id = 'span-set'`)
-    .get() as { session_id: string };
+  const row = db.prepare(`SELECT session_id FROM traces WHERE span_id = 'span-set'`).get() as {
+    session_id: string;
+  };
   assert.equal(row.session_id, 'already-set');
 });

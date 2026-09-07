@@ -181,3 +181,10 @@ export interface ActiveSkillExecution {
 export const activeSkillExecutions = new Map<string, ActiveSkillExecution>();
 
 export const prevAlertState = new Map<string, boolean>();
+
+/**
+ * Alerts acknowledged by the operator (in-memory). Key: alert rule name,
+ * value: ack epoch ms. EvaluateAlerts clears the ack when the alert resolves,
+ * so a NEW trigger after a healthy period surfaces again (no permanent mute).
+ */
+export const ackedAlerts = new Map<string, number>();

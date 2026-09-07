@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import {
   assertDashboardSourceBelongsToTenant,
   classifyDashboardSource,
-} from '../../apps/web-dashboard/server/dashboard-source-provenance.ts';
+} from '../server/dashboard-source-provenance.ts';
 
 describe('dashboard source provenance', () => {
   it('classifies legacy filesystem data as unprovenanced system-wide data', () => {

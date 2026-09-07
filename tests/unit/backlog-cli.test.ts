@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import test from 'node:test';
 import Database from 'better-sqlite3';
 
-import { BacklogRepo } from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
-import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
+import { BacklogRepo } from '../../src/database/nexus//repositories/BacklogRepo';
+import { MigrationRunner } from '../../src/database/nexus//repositories/MigrationRunner';
 
 const root = join(import.meta.dirname, '..', '..');
 const cli = join(root, 'src', 'cli', 'backlog.ts');

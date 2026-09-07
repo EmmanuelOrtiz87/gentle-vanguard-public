@@ -31,7 +31,7 @@
       .note {
         border-left: 3px solid var(--wn);
         padding-left: 1rem;
-        color: #cbd5e1;
+        color: #c4cdd8;
       }
       table {
         color: inherit !important;
@@ -41,11 +41,18 @@
   <body class="grain">
     <nav class="navbar navbar-expand-lg nav-blur fixed-top">
       <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html">GV</a>
+        <a class="navbar-brand text-light fw-bold mono" href="index.html"
+          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
+            class="gv-wordmark"
+            >Gentle<strong>Vanguard</strong></span
+          ></a
+        >
         <div class="ms-auto d-flex align-items-center gap-3">
-          <a class="nav-link" href="architecture.html">Arquitectura</a
-          ><a class="nav-link" href="memory-knowledge.html">Knowledge</a
-          ><a class="nav-link" href="index.html">Índice</a>
+          <a class="nav-link" href="architecture.html"
+            ><span data-i18n="nav_arch">Arquitectura</span></a
+          ><a class="nav-link" href="memory-knowledge.html"
+            ><span data-i18n="nav_knowledge">Knowledge</span></a
+          ><a class="nav-link" href="index.html"><span data-i18n="nav_home">Índice</span></a>
           <div class="lang-seg" role="group" aria-label="Language">
             <button type="button" data-lang="es" aria-pressed="true">ES</button
             ><button type="button" data-lang="en" aria-pressed="false">EN</button
@@ -160,21 +167,21 @@
         >
           <defs>
             <linearGradient id="g" x1="0" x2="1">
-              <stop stop-color="#00bfff" />
-              <stop offset="1" stop-color="#a855f7" />
+              <stop stop-color="#a78bfa" />
+              <stop offset="1" stop-color="#22d3ee" />
             </linearGradient>
           </defs>
-          <rect x="20" y="55" width="180" height="70" rx="12" fill="#111827" stroke="#00bfff" />
+          <rect x="20" y="55" width="180" height="70" rx="12" fill="#151921" stroke="#22d3ee" />
           <text x="110" y="85" fill="white" text-anchor="middle">Alcance</text>
-          <text x="110" y="106" fill="#94a3b8" text-anchor="middle">misma tarea</text>
+          <text x="110" y="106" fill="#8b95a8" text-anchor="middle">misma tarea</text>
           <path d="M205 90h85M275 80l15 10-15 10" stroke="url(#g)" stroke-width="3" />
-          <rect x="300" y="55" width="180" height="70" rx="12" fill="#111827" stroke="#00bfff" />
+          <rect x="300" y="55" width="180" height="70" rx="12" fill="#151921" stroke="#22d3ee" />
           <text x="390" y="85" fill="white" text-anchor="middle">Baseline</text>
-          <text x="390" y="106" fill="#94a3b8" text-anchor="middle">fuente + fecha</text>
+          <text x="390" y="106" fill="#8b95a8" text-anchor="middle">fuente + fecha</text>
           <path d="M485 90h85M555 80l15 10-15 10" stroke="url(#g)" stroke-width="3" />
-          <rect x="590" y="55" width="180" height="70" rx="12" fill="#111827" stroke="#a855f7" />
+          <rect x="590" y="55" width="180" height="70" rx="12" fill="#151921" stroke="#a78bfa" />
           <text x="680" y="85" fill="white" text-anchor="middle">Repetición GV</text>
-          <text x="680" y="106" fill="#94a3b8" text-anchor="middle">validar y comparar</text>
+          <text x="680" y="106" fill="#8b95a8" text-anchor="middle">validar y comparar</text>
         </svg>
       </section>
       <section class="row g-3">

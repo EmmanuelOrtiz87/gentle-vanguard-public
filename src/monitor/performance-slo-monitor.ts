@@ -222,7 +222,9 @@ function saveMetricsSnapshot(snapshot: MetricSnapshot): void {
 }
 
 /** Library entry: run SLO checks, persist snapshot + report, return the report (no process exit). */
-export function runSloChecks(options: { json?: boolean; ciGate?: boolean; output?: string } = {}): SLOReport {
+export function runSloChecks(
+  options: { json?: boolean; ciGate?: boolean; output?: string } = {},
+): SLOReport {
   const args = parseArgs();
   if (options.ciGate !== undefined) args.ciGate = options.ciGate;
   if (options.json !== undefined) args.json = options.json;

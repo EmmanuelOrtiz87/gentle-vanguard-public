@@ -76,7 +76,8 @@ function formatEntry(entry: {
   const agent = (entry.agent ?? '-').padEnd(12).slice(0, 12);
   const kind = entry.kind.toUpperCase().padEnd(5);
   let detail = entry.name;
-  if (entry.kind === 'log' && entry.payload?.message) detail = `${entry.name}: ${entry.payload.message}`;
+  if (entry.kind === 'log' && entry.payload?.message)
+    detail = `${entry.name}: ${entry.payload.message}`;
   if (entry.kind === 'metric' && entry.payload?.value !== undefined) {
     detail = `${entry.name} = ${entry.payload.value}`;
   }

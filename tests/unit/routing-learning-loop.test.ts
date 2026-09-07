@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
 import { describe, it } from 'node:test';
-import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
-import { SkillRepo } from '../../apps/web-dashboard/server/database/repositories/SkillRepo';
+import { MigrationRunner } from '../../src/database/nexus//repositories/MigrationRunner';
+import { SkillRepo } from '../../src/database/nexus//repositories/SkillRepo';
 import { recommend } from '../../src/orchestration/recommend-agent';
 import { recordRoutingOutcome } from '../../src/orchestration/route-and-delegate';
 

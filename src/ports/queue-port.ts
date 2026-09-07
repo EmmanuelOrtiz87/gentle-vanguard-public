@@ -67,11 +67,20 @@ export class InProcessQueue implements QueuePort {
 
   enqueue<T>(queue: string, payload: T): string {
     const id = `qmsg-${this.nextId++}`;
-    this.q(queue).push({ id, payload, enqueuedAt: new Date().toISOString(), attempts: 0, reservedUntil: 0 });
+    this.q(queue).push({
+      id,
+      payload,
+      enqueuedAt: new Date().toISOString(),
+      attempts: 0,
+      reservedUntil: 0,
+    });
     return id;
   }
 
-  dequeue<T = unknown>(queue: string, opts: { reserveMs?: number } = {}): QueueMessage<T> | undefined {
+  dequeue<T = unknown>(
+    queue: string,
+    opts: { reserveMs?: number } = {},
+  ): QueueMessage<T> | undefined {
     const reserveMs = opts.reserveMs ?? 30_000;
     const now = Date.now();
     const list = this.q(queue);
@@ -80,7 +89,13 @@ export class InProcessQueue implements QueuePort {
     const m = list[idx];
     m.reservedUntil = now + reserveMs;
     m.attempts += 1;
-    return { id: m.id, queue, payload: m.payload as T, enqueuedAt: m.enqueuedAt, attempts: m.attempts };
+    return {
+      id: m.id,
+      queue,
+      payload: m.payload as T,
+      enqueuedAt: m.enqueuedAt,
+      attempts: m.attempts,
+    };
   }
 
   private takeInFlight(queue: string, id: string): StoredMessage | undefined {

@@ -1,4 +1,5 @@
-import { AlertTriangle, Bell } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, Bell, CheckCircle2, Undo2 } from 'lucide-react';
 import type { Alert } from '../hooks/useAlerts';
 import { useT } from '../hooks/useLocale';
 
@@ -8,8 +9,24 @@ interface AlertPanelProps {
 
 export function AlertPanel({ alerts }: AlertPanelProps) {
   const { tt } = useT();
+  const [pending, setPending] = useState<string | null>(null);
   const triggeredAlerts = alerts.filter((a) => a.triggered);
   if (triggeredAlerts.length === 0) return null;
+
+  const setAck = async (alert: Alert, acking: boolean) => {
+    setPending(alert.name);
+    try {
+      await fetch(`/api/alerts/${acking ? 'ack' : 'unack'}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: alert.name }),
+      });
+    } catch {
+      /* el próximo ciclo de WS reconcilia el estado */
+    } finally {
+      setPending(null);
+    }
+  };
 
   return (
     <div className="mb-8">
@@ -27,7 +44,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 : alert.severity === 'warning'
                   ? 'border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10'
                   : 'border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10'
-            }`}
+            } ${alert.acknowledged ? 'opacity-60' : ''}`}
           >
             <AlertTriangle
               className={`w-5 h-5 ${
@@ -44,6 +61,13 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 {alert.actual}
                 {alert.unit} {tt('ui.exceeds_threshold')} {alert.threshold}
                 {alert.unit}
+                {alert.acknowledged && alert.ackedAt && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-3 h-3" />
+                    {tt('ui.acked_at')}{' '}
+                    {new Date(alert.ackedAt).toLocaleTimeString()}
+                  </span>
+                )}
               </p>
             </div>
             <span
@@ -57,6 +81,22 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
             >
               {alert.severity}
             </span>
+            <button
+              onClick={() => void setAck(alert, !alert.acknowledged)}
+              disabled={pending === alert.name}
+              title={alert.acknowledged ? tt('ui.unack') : tt('ui.ack')}
+              className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              {alert.acknowledged ? (
+                <>
+                  <Undo2 className="w-3.5 h-3.5" /> {tt('ui.unack')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {tt('ui.ack')}
+                </>
+              )}
+            </button>
           </div>
         ))}
       </div>

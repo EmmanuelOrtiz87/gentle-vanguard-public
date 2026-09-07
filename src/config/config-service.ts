@@ -23,9 +23,12 @@ const emptyAsUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   }, schema);
 
 const str = (fallback?: string) =>
-  fallback === undefined ? emptyAsUndefined(z.string().optional()) : emptyAsUndefined(z.string().default(fallback));
+  fallback === undefined
+    ? emptyAsUndefined(z.string().optional())
+    : emptyAsUndefined(z.string().default(fallback));
 
-const num = (fallback: number) => emptyAsUndefined(z.coerce.number().int().min(1).max(65535).default(fallback));
+const num = (fallback: number) =>
+  emptyAsUndefined(z.coerce.number().int().min(1).max(65535).default(fallback));
 
 const bool = (fallback: boolean) =>
   emptyAsUndefined(
@@ -205,7 +208,9 @@ export function resetConfigService(): void {
  * env (plus real HOME/USERPROFILE so path-derived defaults stay sane) and
  * applies overrides. Never touches the singleton or process.env.
  */
-export function createTestConfig(overrides: Record<string, string | undefined> = {}): ConfigService {
+export function createTestConfig(
+  overrides: Record<string, string | undefined> = {},
+): ConfigService {
   const base: Record<string, string | undefined> = {
     NODE_ENV: 'test',
     GV_QUIET: 'true',

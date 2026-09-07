@@ -125,7 +125,10 @@ test('cached(): custom ttlMinutes is forwarded to the cache backend', async () =
   const e = cache.entries.get('x|ttl-fwd');
   assert.ok(e);
   const expected = Date.now() + 5 * 60_000;
-  assert.ok(Math.abs(e.expiresAt - expected) < 1000, `ttl ~5min, got ${e.expiresAt - Date.now()}ms`);
+  assert.ok(
+    Math.abs(e.expiresAt - expected) < 1000,
+    `ttl ~5min, got ${e.expiresAt - Date.now()}ms`,
+  );
 });
 
 test('cached(): corrupt cached payload degrades to miss without throwing', async () => {
@@ -162,5 +165,8 @@ test('defaultTtlMinutes(): env override + fallback to 24h', () => {
 
 test('estimateTokensFor(): ~chars/4 heuristic', () => {
   assert.equal(estimateTokensFor('abcd'.repeat(10)), 10);
-  assert.equal(estimateTokensFor({ a: 'abcd' }), Math.ceil(JSON.stringify({ a: 'abcd' }).length / 4));
+  assert.equal(
+    estimateTokensFor({ a: 'abcd' }),
+    Math.ceil(JSON.stringify({ a: 'abcd' }).length / 4),
+  );
 });

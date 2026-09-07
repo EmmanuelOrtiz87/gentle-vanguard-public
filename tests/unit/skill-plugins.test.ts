@@ -40,7 +40,9 @@ function tmpRoot(): string {
 // ─── Manifest: frontmatter parsing ──────────────────────────────────────────
 
 test('parseSkillFrontmatter: nested metadata + folded description (real repo format)', () => {
-  const fm = parseSkillFrontmatter(readFileSync(join(FIXTURES, 'valid-skill', 'SKILL.md'), 'utf-8'));
+  const fm = parseSkillFrontmatter(
+    readFileSync(join(FIXTURES, 'valid-skill', 'SKILL.md'), 'utf-8'),
+  );
   assert.strictEqual(fm.fields.name, 'demo-tutor-skill');
   assert.ok(fm.fields.description.length > 20, 'folded description is joined');
   assert.strictEqual(fm.nested.metadata.license, 'MIT');
@@ -58,9 +60,14 @@ test('manifest: valid SKILL.md frontmatter passes', () => {
 });
 
 test('manifest: unknown permission is rejected', () => {
-  const r = manifestFromSkillMd(readFileSync(join(FIXTURES, 'invalid-permission', 'SKILL.md'), 'utf-8'));
+  const r = manifestFromSkillMd(
+    readFileSync(join(FIXTURES, 'invalid-permission', 'SKILL.md'), 'utf-8'),
+  );
   assert.ok(!r.ok);
-  assert.ok(r.errors.some((e) => e.includes('permissions')), JSON.stringify(r.errors));
+  assert.ok(
+    r.errors.some((e) => e.includes('permissions')),
+    JSON.stringify(r.errors),
+  );
 });
 
 test('manifest: none is exclusive with other permissions', () => {
@@ -113,12 +120,24 @@ test('registry: install -> disable -> deprecate -> enable -> remove (idempotent 
       entrypoint: 'SKILL.md',
     };
     upsertEntry(
-      { manifest, origin: 'test://fixture', originType: 'local', checksum: 'a'.repeat(64), manifestOrigin: 'SKILL.md' },
+      {
+        manifest,
+        origin: 'test://fixture',
+        originType: 'local',
+        checksum: 'a'.repeat(64),
+        manifestOrigin: 'SKILL.md',
+      },
       { root },
     );
     // Idempotent reinstall keeps first installedAt and status.
     upsertEntry(
-      { manifest, origin: 'test://fixture-2', originType: 'local', checksum: 'a'.repeat(64), manifestOrigin: 'SKILL.md' },
+      {
+        manifest,
+        origin: 'test://fixture-2',
+        originType: 'local',
+        checksum: 'a'.repeat(64),
+        manifestOrigin: 'SKILL.md',
+      },
       { root },
     );
     let e = getEntry('lifecycle-skill', { root });

@@ -351,9 +351,10 @@ function main(): void {
       operation: `sdd.${nextPhase.toLowerCase()}`,
       args: { feature: opts.feature, phase: nextPhase },
       command,
-      revision: runGit(['rev-parse', '--short', 'HEAD'], root) !== 'unknown'
-        ? runGit(['rev-parse', '--short', 'HEAD'], root)
-        : undefined,
+      revision:
+        runGit(['rev-parse', '--short', 'HEAD'], root) !== 'unknown'
+          ? runGit(['rev-parse', '--short', 'HEAD'], root)
+          : undefined,
       root,
     });
     console.log(`\x1b[36m[NEXT] Run verbatim to continue:\n  ${command}\x1b[0m`);

@@ -170,9 +170,11 @@ test('capture: positive session writes up row linked via trace_id', () => {
   const r = captureOutcomeFeedback(db, 's-pos');
   assert.equal(r.written, true);
   assert.equal(r.type, 'up');
-  const rows = db
-    .prepare(`SELECT trace_id, span_id, type FROM feedback`)
-    .all() as Array<{ trace_id: string; span_id: string; type: string }>;
+  const rows = db.prepare(`SELECT trace_id, span_id, type FROM feedback`).all() as Array<{
+    trace_id: string;
+    span_id: string;
+    type: string;
+  }>;
   assert.equal(rows.length, 1);
   assert.equal(rows[0].trace_id, 's-pos-trace'); // the linkage the eval reader joins on
   assert.equal(rows[0].span_id, `s-pos-span${AUTO_OUTCOME_SPAN_SUFFIX}`);

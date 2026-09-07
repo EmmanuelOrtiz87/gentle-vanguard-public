@@ -69,7 +69,17 @@ const REGISTRY: ContractDescriptor[] = [
   {
     contract: 'gentle-vanguard.rdd-workflow/v1',
     protocol: '1.1',
-    operations: ['start', 'classify', 'review', 'receipt', 'gate', 'status', 'ack', 'abort', 'prune'],
+    operations: [
+      'start',
+      'classify',
+      'review',
+      'receipt',
+      'gate',
+      'status',
+      'ack',
+      'abort',
+      'prune',
+    ],
     status: 'stable',
     description:
       'Native Receipt-Driven Development workflow. 1.1 adds continuation publication and receipt acknowledgement.',
@@ -77,7 +87,17 @@ const REGISTRY: ContractDescriptor[] = [
   {
     contract: 'gentle-vanguard.sdd-pipeline/v1',
     protocol: '1.1',
-    operations: ['init', 'explore', 'propose', 'spec', 'tasks', 'design', 'apply', 'verify', 'archive'],
+    operations: [
+      'init',
+      'explore',
+      'propose',
+      'spec',
+      'tasks',
+      'design',
+      'apply',
+      'verify',
+      'archive',
+    ],
     status: 'stable',
     description:
       'Spec-Driven Development phase pipeline. 1.1 publishes per-phase continuations with the verbatim next-phase command.',
@@ -110,7 +130,9 @@ const REGISTRY: ContractDescriptor[] = [
   },
 ];
 
-export function listContracts(filter?: { status?: ContractDescriptor['status'] }): ContractDescriptor[] {
+export function listContracts(filter?: {
+  status?: ContractDescriptor['status'];
+}): ContractDescriptor[] {
   return REGISTRY.filter((c) => !filter?.status || c.status === filter.status);
 }
 
@@ -143,7 +165,8 @@ export function describeContract(contract: string): CapabilitiesAnswer {
 // ─── CLI ──────────────────────────────────────────────────────────────────────
 
 const isMainModule =
-  process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
 if (isMainModule) {
   const [cmd, target] = process.argv.slice(2);
   if (cmd === 'list' || !cmd) {

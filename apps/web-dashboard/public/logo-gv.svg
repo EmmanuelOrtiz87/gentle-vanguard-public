@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" width="360" height="240" role="img" aria-label="Gentle Vanguard GV monogram">
+  <!-- OFFICIAL LOGO (v2.1): v1 monogram form + v2 Premium gradient. Decision: docs/brand/BRAND-DECISION-2026-09-01.md -->
   <defs>
     <linearGradient id="gvGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A78BFA"/>

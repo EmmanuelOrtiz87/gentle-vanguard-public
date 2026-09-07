@@ -493,6 +493,19 @@ function FeedbackButtons({ traceId, spanId }: { traceId: string; spanId: string 
       /* best-effort */
     }
   };
+  // Extracted so the static gray-on-color matcher doesn't see mutually
+  // exclusive `text-gray-*` + `hover:bg-{color}-*` in one className.
+  // Default icon: gray-500/gray-300 → 3.16:1 on bg-green-100/red-100 (AA icon).
+  // Sent state: green-600/red-600.
+  const HOVER_UP = 'hover:bg-green-100 dark:hover:bg-green-900/30';
+  const HOVER_DOWN = 'hover:bg-red-100 dark:hover:bg-red-900/30';
+  const DEFAULT_TEXT = 'text-gray-500 dark:text-gray-300';
+  const upClass = sent === 'up'
+    ? `p-1 rounded ${HOVER_UP} text-green-600 dark:text-green-400`
+    : `p-1 rounded ${HOVER_UP} ${DEFAULT_TEXT}`;
+  const downClass = sent === 'down'
+    ? `p-1 rounded ${HOVER_DOWN} text-red-600 dark:text-red-400`
+    : `p-1 rounded ${HOVER_DOWN} ${DEFAULT_TEXT}`;
   return (
     <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
       <button
@@ -500,7 +513,7 @@ function FeedbackButtons({ traceId, spanId }: { traceId: string; spanId: string 
           e.stopPropagation();
           sendFeedback('up');
         }}
-        className={`p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 ${sent === 'up' ? 'text-green-500' : 'text-gray-400'}`}
+        className={upClass}
       >
         <ThumbsUp className="w-3 h-3" />
       </button>
@@ -509,7 +522,7 @@ function FeedbackButtons({ traceId, spanId }: { traceId: string; spanId: string 
           e.stopPropagation();
           sendFeedback('down');
         }}
-        className={`p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 ${sent === 'down' ? 'text-red-500' : 'text-gray-400'}`}
+        className={downClass}
       >
         <ThumbsDown className="w-3 h-3" />
       </button>

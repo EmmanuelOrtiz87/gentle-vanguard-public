@@ -67,7 +67,9 @@ export function readCorrelationFiles(root = process.cwd()): CorrelationEvent[] {
   const dir = correlationDir(root);
   if (!existsSync(dir)) return [];
   const events: CorrelationEvent[] = [];
-  for (const file of readdirSync(dir).filter((f) => /^correlation-\d{8}\.jsonl$/.test(f)).sort()) {
+  for (const file of readdirSync(dir)
+    .filter((f) => /^correlation-\d{8}\.jsonl$/.test(f))
+    .sort()) {
     const content = readFileSync(join(dir, file), 'utf-8');
     for (const line of content.split('\n')) {
       const trimmed = line.trim();
@@ -95,10 +97,13 @@ export async function readTokenTransactions(
   try {
     // Dynamic import so environments without the native module still work.
     const { default: Database } = (await import('better-sqlite3')) as {
-      default: new (p: string, o?: unknown) => {
-      prepare: (sql: string) => { all: (...a: unknown[]) => unknown[] };
-      close: () => void;
-    };
+      default: new (
+        p: string,
+        o?: unknown,
+      ) => {
+        prepare: (sql: string) => { all: (...a: unknown[]) => unknown[] };
+        close: () => void;
+      };
     };
     const db = new Database(path, { readonly: true, fileMustExist: true });
     try {

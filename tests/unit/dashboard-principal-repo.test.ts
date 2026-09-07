@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import Database from 'better-sqlite3';
 
-import { AuthSessionRepo } from '../../apps/web-dashboard/server/database/repositories/AuthSessionRepo';
+import { AuthSessionRepo } from '../../src/database/nexus//repositories/AuthSessionRepo';
 import {
   DASHBOARD_ROLES,
   PrincipalRepo,
   isDashboardRole,
-} from '../../apps/web-dashboard/server/database/repositories/PrincipalRepo';
-import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
+} from '../../src/database/nexus//repositories/PrincipalRepo';
+import { MigrationRunner } from '../../src/database/nexus//repositories/MigrationRunner';
 
 const DEFAULT_TENANT = 'gentle-vanguard';
 

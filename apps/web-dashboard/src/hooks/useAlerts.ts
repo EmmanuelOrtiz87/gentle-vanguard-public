@@ -13,6 +13,8 @@ export interface Alert {
   triggered: boolean;
   unit: string;
   transition?: string;
+  acknowledged?: boolean;
+  ackedAt?: number;
 }
 
 export function useAlerts() {

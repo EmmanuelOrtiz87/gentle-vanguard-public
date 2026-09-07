@@ -1,5 +1,6 @@
-# Root Dockerfile — builds the full Gentle-Vanguard stack image:
-# MCP skill server (dist/) + dashboard WebSocket server (tsx).
+# Root Dockerfile — builds the Gentle-Vanguard stack image: MCP skill
+# server (dist/) + compiled src. The dashboard moved out of the stack repo
+# (local-first apps with own git, ADR-0017) and now ships its own image.
 # Build from repo root: docker build -t gentle-vanguard .
 
 FROM node:22-alpine AS builder
@@ -26,17 +27,10 @@ COPY --from=builder --chown=app:app /app/dist ./dist
 COPY --from=builder --chown=app:app /app/node_modules ./node_modules
 COPY --from=builder --chown=app:app /app/package.json ./package.json
 COPY --from=builder --chown=app:app /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-# Dashboard (source + deps) for the WebSocket server — workspace member installed
-# by the root pnpm install in the builder stage
-COPY --from=builder --chown=app:app /app/apps/web-dashboard ./apps/web-dashboard
-# src/core needed for @gentle-vanguard/core resolution via tsconfig paths
 COPY --from=builder --chown=app:app /app/src ./src
-# Recreate the @gentle-vanguard/core link (mimics src/bootstrap-symlink.ts)
-RUN mkdir -p apps/web-dashboard/node_modules/@gentle-vanguard \
-    && ln -s /app/src/core apps/web-dashboard/node_modules/@gentle-vanguard/core \
-    && chown -R app:app /app
+RUN chown -R app:app /app
 USER app
-EXPOSE 8080 3001 8081 9090
+EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:8080/api/health || exit 1
-CMD ["sh", "-c", "cd apps/web-dashboard && npx tsx server/websocket-server.ts"]
+  CMD node -e "require('node:fs').statSync('dist/scripts/mcp/skill-server.js')" || exit 1
+CMD ["node", "dist/scripts/mcp/skill-server.js"]

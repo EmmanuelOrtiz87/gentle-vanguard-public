@@ -114,7 +114,10 @@ export function inspectKubernetesManifest(content: string): GateFinding[] {
 
 export function trackedGeneratedArtifacts(root = process.cwd()): string[] {
   try {
-    const output = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8' });
+    const output = execFileSync('git', ['-C', root, 'ls-files', '-z'], {
+      encoding: 'utf8',
+      windowsHide: true, // procesos-ocultos: no console allocation when run from hidden daemons
+    });
     return output
       .split('\0')
       .filter((file) => file && GENERATED_PATHS.some((pattern) => pattern.test(file)));

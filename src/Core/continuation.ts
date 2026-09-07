@@ -83,8 +83,7 @@ export interface AckPending {
 }
 
 export type AckResult =
-  | { ok: true; burned: true; resource: string }
-  | { ok: false; refusal: TypedRefusal };
+  { ok: true; burned: true; resource: string } | { ok: false; refusal: TypedRefusal };
 
 let baseDirOverride: string | null = null;
 
@@ -523,7 +522,8 @@ export function ackRefusal(result: AckResult): TypedRefusal | null {
 // ─── CLI ──────────────────────────────────────────────────────────────────────
 
 const isMainModule =
-  process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop()!);
 if (isMainModule) {
   const [cmd, ...rest] = process.argv.slice(2);
   const flag = (name: string): string | undefined => {
@@ -550,8 +550,6 @@ if (isMainModule) {
     const pending = resource ? getPendingAck(resource) : null;
     console.log(pending ? JSON.stringify(pending, null, 2) : 'no pending acknowledgement');
   } else {
-    console.log(
-      'usage: continuation.ts next --workflow <id> | ack-status --resource <r>',
-    );
+    console.log('usage: continuation.ts next --workflow <id> | ack-status --resource <r>');
   }
 }

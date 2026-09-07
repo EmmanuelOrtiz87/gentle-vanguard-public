@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import Database from 'better-sqlite3';
 
-import { EventRepo } from '../../apps/web-dashboard/server/database/repositories/EventRepo';
-import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
-import { MetricsRepo } from '../../apps/web-dashboard/server/database/repositories/MetricsRepo';
-import { SessionRepo } from '../../apps/web-dashboard/server/database/repositories/SessionRepo';
-import { TraceRepo } from '../../apps/web-dashboard/server/database/repositories/TraceRepo';
-import { EventRepo as AlertRepo } from '../../apps/web-dashboard/server/database/repositories/EventRepo';
-import { SkillRepo } from '../../apps/web-dashboard/server/database/repositories/SkillRepo';
-import { CacheRepo } from '../../apps/web-dashboard/server/database/repositories/CacheRepo';
-import { BacklogRepo } from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
-import { TokenRepo } from '../../apps/web-dashboard/server/database/repositories/TokenRepo';
+import { EventRepo } from '../../src/database/nexus//repositories/EventRepo';
+import { MigrationRunner } from '../../src/database/nexus//repositories/MigrationRunner';
+import { MetricsRepo } from '../../src/database/nexus//repositories/MetricsRepo';
+import { SessionRepo } from '../../src/database/nexus//repositories/SessionRepo';
+import { TraceRepo } from '../../src/database/nexus//repositories/TraceRepo';
+import { EventRepo as AlertRepo } from '../../src/database/nexus//repositories/EventRepo';
+import { SkillRepo } from '../../src/database/nexus//repositories/SkillRepo';
+import { CacheRepo } from '../../src/database/nexus//repositories/CacheRepo';
+import { BacklogRepo } from '../../src/database/nexus//repositories/BacklogRepo';
+import { TokenRepo } from '../../src/database/nexus//repositories/TokenRepo';
 
 function createDatabase(): Database.Database {
   const db = new Database(':memory:');

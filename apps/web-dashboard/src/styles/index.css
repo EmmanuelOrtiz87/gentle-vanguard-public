@@ -1,4 +1,4 @@
-@import './generated-tokens.css';
+@import './gv-tokens-v2.css';
 @import '../../../../styles/animations.css';
 
 @tailwind base;
@@ -8,50 +8,57 @@
 @layer base {
   :root {
     color-scheme: light;
-    --dash-ink: #f3f7fa;
+    /* v2 Premium light overrides — see docs/brand/TOKENS-v2.json */
+    --dash-ink: #f5f7fa;
     --dash-panel: #ffffff;
-    --dash-panel-raised: #e8f0f4;
-    --dash-line: rgba(22, 58, 78, 0.2);
-    --dash-text: #163247;
-    --dash-muted: #496779;
-    --dash-teal: #087f78;
-    --dash-amber: #a95e12;
+    --dash-panel-raised: #e8edf1;
+    --dash-line: rgba(15, 23, 42, 0.14);
+    --dash-text: #0f172a;
+    --dash-muted: #64748b;
+    --dash-teal: #0891b2;
+    --dash-amber: #b45309;
     --dash-topbar: rgba(255, 255, 255, 0.96);
-    --dash-shadow: rgba(22, 58, 78, 0.12);
-    --dash-primary: #087f78;
-    --dash-primary-hover: #0a9e95;
+    --dash-shadow: rgba(15, 23, 42, 0.12);
+    --dash-primary: #0891b2;
+    --dash-primary-hover: #06b6d4;
     --dash-accent: #7c3aed;
     --dash-success: #16a34a;
-    --dash-warning: #a95e12;
+    --dash-warning: #b45309;
     --dash-error: #dc2626;
-    --dash-glass: rgba(255, 255, 255, 0.7);
+    --dash-glass: rgba(255, 255, 255, 0.8);
     --dash-glass-border: rgba(15, 23, 42, 0.1);
-    --dash-brand-gradient: linear-gradient(135deg, #a855f7 0%, #00bfff 100%);
+    --dash-brand-gradient: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
     --dash-glow: rgba(8, 145, 178, 0.18);
   }
 
   :root.dark {
     color-scheme: dark;
-    --dash-ink: #0d1117;
-    --dash-panel: #1a2035;
-    --dash-panel-raised: #2a2d3a;
-    --dash-line: #1e3a5f;
-    --dash-text: #ffffff;
-    --dash-muted: #6b7280;
-    --dash-teal: #00bfff;
-    --dash-amber: #f59e0b;
-    --dash-topbar: rgba(13, 17, 23, 0.88);
-    --dash-shadow: rgba(0, 0, 0, 0.3);
-    --dash-primary: #00bfff;
-    --dash-primary-hover: #4dcfff;
-    --dash-accent: #a855f7;
-    --dash-success: #22c55e;
-    --dash-warning: #f59e0b;
-    --dash-error: #ef4444;
-    --dash-glass: rgba(26, 32, 53, 0.6);
-    --dash-glass-border: rgba(168, 85, 247, 0.18);
-    --dash-brand-gradient: linear-gradient(135deg, #a855f7 0%, #00bfff 100%);
-    --dash-glow: rgba(0, 191, 255, 0.35);
+    /* v2 Premium dark (default theme) — docs/brand/TOKENS-v2.json */
+    --dash-ink: #0f1115;
+    --dash-panel: #151921;
+    --dash-panel-raised: #252b38;
+    --dash-line: rgba(139, 149, 168, 0.2);
+    --dash-text: #e8eef4;
+    --dash-muted: #8b95a8;
+    --dash-teal: #22d3ee;
+    --dash-amber: #f4bb4f;
+    --dash-topbar: rgba(15, 17, 21, 0.88);
+    --dash-shadow: rgba(0, 0, 0, 0.5);
+    --dash-primary: #22d3ee;
+    --dash-primary-hover: #67e8f9;
+    --dash-accent: #a78bfa;
+    --dash-success: #4ade80;
+    --dash-warning: #f4bb4f;
+    --dash-error: #ee6d75;
+    --dash-glass: rgba(26, 31, 42, 0.72);
+    --dash-glass-border: rgba(167, 139, 250, 0.24);
+    --dash-brand-gradient: linear-gradient(
+      135deg,
+      #a78bfa 0%,
+      color-mix(in srgb, #a78bfa 50%, #22d3ee) 50%,
+      #22d3ee 100%
+    );
+    --dash-glow: rgba(34, 211, 238, 0.35);
   }
 
   html {
@@ -93,8 +100,8 @@
 
   .card:hover {
     transform: translateY(-3px);
-    border-color: rgba(0, 191, 255, 0.45);
-    box-shadow: 0 14px 40px rgba(13, 17, 23, 0.5);
+    border-color: rgba(34, 211, 238, 0.45);
+    box-shadow: 0 14px 40px rgba(9, 12, 17, 0.5);
   }
 
   .metric-value {
@@ -131,8 +138,8 @@
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(168, 85, 247, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 191, 255, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(167, 139, 250, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 .gv-glow-a,
@@ -147,14 +154,14 @@
   height: 720px;
   top: -340px;
   right: -220px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.16), transparent 65%);
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.16), transparent 65%);
 }
 .gv-glow-b {
   width: 640px;
   height: 640px;
   bottom: -320px;
   left: -200px;
-  background: radial-gradient(circle, rgba(0, 191, 255, 0.13), transparent 65%);
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.13), transparent 65%);
 }
 .gv-topbar {
   position: sticky;
@@ -195,7 +202,7 @@
   height: 34px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(168, 85, 247, 0.55);
+  border: 1px solid rgba(167, 139, 250, 0.55);
   background: var(--dash-brand-gradient);
   -webkit-background-clip: text;
   background-clip: text;
@@ -243,7 +250,7 @@
   gap: 8px;
   flex-shrink: 0;
   padding: 6px 14px;
-  border: 1.5px solid rgba(0, 191, 255, 0.5);
+  border: 1.5px solid rgba(34, 211, 238, 0.5);
   border-radius: 999px;
   color: var(--dash-teal);
   font: 700 12px var(--dash-mono, 'JetBrains Mono', monospace);
@@ -262,7 +269,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--dash-teal);
-  box-shadow: 0 0 0 3px rgba(54, 214, 194, 0.13);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.13);
 }
 .gv-nav-links {
   align-items: center;
@@ -299,8 +306,8 @@
 }
 .gv-nav-link.is-active {
   color: var(--dash-teal);
-  background: rgba(54, 214, 194, 0.09);
-  border-color: rgba(54, 214, 194, 0.25);
+  background: rgba(34, 211, 238, 0.09);
+  border-color: rgba(34, 211, 238, 0.25);
 }
 .gv-menu-button {
   margin-left: auto;
@@ -374,12 +381,12 @@
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
-  background: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  background: #f4bb4f;
+  box-shadow: 0 0 0 3px rgba(244, 187, 79, 0.12);
 }
 .gv-live-status-dot.is-connected {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
 }
 .gv-live-status-divider {
   width: 1px;
@@ -507,5 +514,5 @@
 .dark .bg-blue-100,
 .dark .dark\:bg-blue-900\/20,
 .dark .dark\:bg-blue-900\/30 {
-  background-color: rgba(0, 191, 255, 0.12) !important;
+  background-color: rgba(34, 211, 238, 0.12) !important;
 }

@@ -115,7 +115,7 @@ export function CostPanel() {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <CircleDollarSign className="w-5 h-5" style={{ color: '#00BFFF' }} />
+            <CircleDollarSign className="w-5 h-5" style={{ color: '#22D3EE' }} />
             {tt('ui.costs_title') ?? 'Runtime Costs'}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -132,13 +132,13 @@ export function CostPanel() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div className="card p-4">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <CircleDollarSign className="w-4 h-4" style={{ color: '#00BFFF' }} />
+            <CircleDollarSign className="w-4 h-4" style={{ color: '#22D3EE' }} />
             {tt('ui.costs_spent_month') ?? 'Spent this month'}
           </div>
           <div
             className="text-2xl font-semibold tabular-nums"
             data-testid="cost-card-month"
-            style={{ color: '#00BFFF' }}
+            style={{ color: '#22D3EE' }}
           >
             {fmtUsd(report.totals.monthToDateCostUsd)}
           </div>
@@ -148,13 +148,13 @@ export function CostPanel() {
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <TrendingUp className="w-4 h-4" style={{ color: '#A855F7' }} />
+            <TrendingUp className="w-4 h-4" style={{ color: '#A78BFA' }} />
             {tt('ui.costs_projection') ?? 'Monthly projection'}
           </div>
           <div
             className="text-2xl font-semibold tabular-nums"
             data-testid="cost-card-projection"
-            style={{ color: '#A855F7' }}
+            style={{ color: '#A78BFA' }}
           >
             {fmtUsd(report.monthlyProjection.from30d)}
           </div>
@@ -180,7 +180,7 @@ export function CostPanel() {
       {/* Insight */}
       <div
         className="flex items-start gap-2 rounded-lg border px-3 py-2 mb-4 text-xs"
-        style={{ borderColor: '#A855F7', color: '#A855F7' }}
+        style={{ borderColor: '#A78BFA', color: '#A78BFA' }}
         data-testid="cost-insight"
       >
         <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" />
@@ -209,16 +209,16 @@ export function CostPanel() {
               />
               <YAxis tick={{ fontSize: 9, fill: '#8b949e' }} width={48} />
               <Tooltip
-                cursor={{ fill: 'rgba(0,191,255,0.08)' }}
+                cursor={{ fill: 'rgba(34,211,238,0.08)' }}
                 contentStyle={{
-                  background: '#0D1117',
+                  background: '#090C11',
                   border: '1px solid #30363d',
                   borderRadius: 8,
                   fontSize: 11,
                 }}
                 formatter={(value: number) => [fmtUsd(value), 'cost']}
               />
-              <Bar dataKey="costUsd" fill="#00BFFF" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="costUsd" fill="#22D3EE" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -309,7 +309,7 @@ function BreakdownTable({ title, rows }: { title: string; rows: CostSlice[] }) {
                 <td className="px-3 py-1.5 text-right tabular-nums text-gray-500 dark:text-gray-400">
                   {r.totalTokens.toLocaleString()}
                 </td>
-                <td className="px-3 py-1.5 text-right tabular-nums" style={{ color: '#A855F7' }}>
+                <td className="px-3 py-1.5 text-right tabular-nums" style={{ color: '#A78BFA' }}>
                   {r.sharePct.toFixed(1)}
                 </td>
               </tr>

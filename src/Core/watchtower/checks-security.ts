@@ -244,6 +244,67 @@ export async function checkHiddenSpawns() {
   }
 }
 
+// ─── Component: Agent Governance (ADR-0027/0028/0029) ────────────────────────
+
+export async function checkAgentGovernance() {
+  if (!quiet) logger.info('  [Agent Governance] Checking...');
+
+  // Policy Engine (ADR-0027)
+  const policySrc = join(ROOT, 'src', 'security', 'policy-engine', 'policy-engine.ts');
+  const policyCfg = join(ROOT, 'config', 'policy-engine.json');
+  const policySchema = join(ROOT, 'config', 'policy-engine.schema.json');
+  const policyTest = join(ROOT, 'tests', 'unit', 'policy-engine.test.ts');
+  payloadFileOk('agent-governance', 'policy engine (src)', policySrc, 'manual', true);
+  payloadFileOk('agent-governance', 'policy config', policyCfg, 'manual', true);
+  payloadFileOk('agent-governance', 'policy schema', policySchema, 'manual', true);
+  payloadFileOk('agent-governance', 'policy tests', policyTest, 'manual', true);
+
+  // MCP Security Gateway (ADR-0028)
+  const mcpSecSrc = join(ROOT, 'src', 'mcp', 'security-gateway', 'mcp-security-gateway.ts');
+  const mcpSecTest = join(ROOT, 'tests', 'unit', 'mcp-security-gateway.test.ts');
+  payloadFileOk('agent-governance', 'mcp security gateway (src)', mcpSecSrc, 'manual', true);
+  payloadFileOk('agent-governance', 'mcp security gateway tests', mcpSecTest, 'manual', true);
+
+  // OWASP Agentic Top 10 (ADR-0029)
+  const owaspSrc = join(ROOT, 'src', 'security', 'owasp', 'owasp-agentic-top10.ts');
+  const owaspTest = join(ROOT, 'tests', 'unit', 'owasp-agentic-top10.test.ts');
+  payloadFileOk('agent-governance', 'owasp mapping (src)', owaspSrc, 'manual', true);
+  payloadFileOk('agent-governance', 'owasp mapping tests', owaspTest, 'manual', true);
+
+  // Integration facade
+  const facadeSrc = join(ROOT, 'src', 'security', 'agent-governance-integration.ts');
+  const facadeTest = join(ROOT, 'tests', 'unit', 'agent-governance-integration.test.ts');
+  payloadFileOk('agent-governance', 'integration facade (src)', facadeSrc, 'manual', true);
+  payloadFileOk('agent-governance', 'integration facade tests', facadeTest, 'manual', true);
+
+  // OWASP coverage from the last generated report (if present)
+  const owaspReport = join(RUNTIME_DIR, 'owasp-agentic-top10.json');
+  if (fileExists(owaspReport)) {
+    try {
+      const report = readJson(owaspReport) as { overallCoverage?: number; strictPass?: boolean };
+      if (typeof report.overallCoverage === 'number') {
+        addResult(
+          'agent-governance',
+          'owasp coverage',
+          report.overallCoverage >= 80 ? 'PASS' : 'WARN',
+          `coverage=${report.overallCoverage}% (strict threshold 80%)`,
+          'manual',
+        );
+      }
+    } catch {
+      addResult('agent-governance', 'owasp coverage', 'FAIL', 'Invalid report JSON', 'manual');
+    }
+  } else {
+    addResult(
+      'agent-governance',
+      'owasp coverage',
+      'WARN',
+      'Report not generated yet (run npm run owasp:top10 -- report)',
+      'manual',
+    );
+  }
+}
+
 // ─── Component: Cloud Connectors ────────────────────────────────────────────
 // NOTE: Cloud connectors deprecated - stack operates in local-only mode
 // This check now verifies local execution mode without cloud dependencies
@@ -320,5 +381,79 @@ export async function checkWebCrawler() {
     }
   } else {
     addResult('web-crawler', 'health snapshot', 'WARN', 'Not generated yet', 'manual');
+  }
+}
+
+// ─── Component: Git History Secrets (advisory scan) ──────────────────────────
+// Scans a recent slice of the full git history (all branches, textual diff) with
+// the stack's native secret-scanner (80 patterns). Findings are ADVISORY (WARN,
+// never blocks) — matches the repo policy for a single-operator private repo;
+// promote to FAIL when collaboration grows (gitleaks in CI stays authoritative).
+
+// ~45MB of textual diff at 150 commits measured locally — a fast advisory sample
+// of recent history; CI gitleaks remains the authoritative full-history gate.
+const HISTORY_SCAN_DEPTH = 150;
+
+export async function checkGitHistorySecrets() {
+  if (!quiet) logger.info('  [History Secrets] Scanning recent git history...');
+  const { runSync } = await import('../run-command.js');
+  const { writeFileSync, rmSync, mkdirSync } = await import('fs');
+  const { tmpdir } = await import('os');
+  const { join } = await import('path');
+  const { spawnSync } = await import('child_process');
+
+  // Ensure the native scanner exists before doing anything.
+  if (!fileExists(join(ROOT, 'src', 'security', 'secret-scanner.ts'))) {
+    addResult('history-secrets', 'advisory history scan', 'WARN', 'secret-scanner module missing', 'manual');
+    return;
+  }
+
+  const dumpPath = join(tmpdir(), `gv-history-dump-${process.pid}.txt`);
+  try {
+    // Materialize a textual diff of recent commits on ALL branches.
+    const log = spawnSync('git', ['log', '--all', '--no-merges', '-p', `-${HISTORY_SCAN_DEPTH}`], {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      maxBuffer: 512 * 1024 * 1024,
+      windowsHide: true,
+      timeout: 90000,
+    });
+    if (log.status !== 0) {
+      addResult('history-secrets', 'advisory history scan', 'WARN', `git log failed: ${log.stderr?.slice(0, 120)}`, 'manual');
+      return;
+    }
+    mkdirSync(join(tmpdir()), { recursive: true });
+    writeFileSync(dumpPath, log.stdout ?? '', 'utf-8');
+
+    const scan = runSync(
+      'node',
+      ['--import', 'tsx', join(ROOT, 'src', 'security', 'secret-scanner-cli.ts'), '--scan', dumpPath, '--json'],
+      { timeout: 90000, cwd: ROOT },
+    );
+    if (scan.status !== 0) {
+      addResult(
+        'history-secrets',
+        'advisory history scan',
+        'WARN',
+        `Scan found potential secrets in recent history — review .runtime/secret-scan-report or the scan output.`,
+        'manual',
+      );
+      return;
+    }
+    addResult('history-secrets', 'advisory history scan', 'PASS', `No secrets in last ${HISTORY_SCAN_DEPTH} commits`, 'ok');
+  } catch (e: unknown) {
+    addResult(
+      'history-secrets',
+      'advisory history scan',
+      'WARN',
+      `scan error: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`,
+      'manual',
+    );
+  } finally {
+    try {
+      rmSync(dumpPath, { force: true });
+    } catch {
+      /* best-effort cleanup */
+    }
   }
 }

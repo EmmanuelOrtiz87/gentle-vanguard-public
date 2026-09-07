@@ -4,7 +4,7 @@ import type { IncomingMessage } from 'node:http';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { DashboardAuth, SESSION_COOKIE } from '../../apps/web-dashboard/server/auth.ts';
+import { DashboardAuth, SESSION_COOKIE } from '../server/auth.ts';
 
 function request(cookie?: string, host = 'localhost'): IncomingMessage {
   return {
@@ -60,8 +60,7 @@ describe('DashboardAuth', () => {
     let now = 100;
 
     try {
-      const { DatabaseManager } =
-        await import('../../apps/web-dashboard/server/database/manager.ts');
+      const { DatabaseManager } = await import('../server/database/manager.ts');
       const firstManager = DatabaseManager.getInstance();
       const firstAuth = new DashboardAuth({
         token: 'secret',

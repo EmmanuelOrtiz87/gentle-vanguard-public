@@ -35,7 +35,8 @@
     "scripts/utilities/security/**/*.ts",
     "scripts/utilities/MODEL-ROUTER/**/*.ts",
     "scripts/validation/**/*.ts",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "scripts/apps/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", "build", "coverage", "templates", "src/convergence"]
 }

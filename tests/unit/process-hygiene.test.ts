@@ -212,3 +212,63 @@ test('vite dev server matches vite-server class, not skill-server', () => {
     'skill-server never killed',
   );
 });
+
+test('static app servers (python http.server) are protected classes, not hung one-shots', () => {
+  // academy: start.sh shape — relative `-d .`, pidfile records the msys nohup
+  // wrapper pid (alive, but not a class instance itself).
+  const academy = proc(
+    33728,
+    17396,
+    'C:\\Python314\\python.exe -m http.server 4173 --bind 127.0.0.1 -d .',
+    2,
+    'python.exe',
+  );
+  // design-hub: node-spawned shape — absolute --directory, dead parent, old.
+  const hub = proc(
+    888,
+    7,
+    'python -m http.server 8095 --bind 127.0.0.1 --directory C:\\Workspace_local\\gentle-vanguard\\apps\\design-hub',
+    26,
+    'python.exe',
+  );
+  const s = snap([academy, hub], [33728, 17396, 888], {
+    '.runtime\\app-academy-http.pid': '17396',
+    '.runtime\\app-design-hub-http.pid': '888',
+  });
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(
+    !findings.some((f) => f.pid === 33728 || f.pid === 888),
+    'static app servers never flagged (regression: session-close reaper killed academy)',
+  );
+  assert.ok(!findings.some((f) => f.kind === 'stale-pidfile'), 'pidfiles point at live pids');
+  assert.ok(keptHealthy.some((k) => k.classId === 'app-academy-http' && k.pid === 33728));
+  assert.ok(keptHealthy.some((k) => k.classId === 'app-design-hub-http' && k.pid === 888));
+});
+
+test('relative server/server.ts instances are disambiguated by pidfile (cms vs archify)', () => {
+  // start.sh spawns both with cwd=app dir → IDENTICAL relative cmdlines.
+  const cms = proc(37652, 500, '"node.exe" --import tsx server/server.ts', 1);
+  const arch = proc(36848, 501, '"node.exe" --import tsx server/server.ts', 1);
+  const s = snap([cms, arch], [37652, 36848], {
+    '.runtime\\app-cms-api.pid': '37652',
+    '.runtime\\app-archify-api.pid': '36848',
+  });
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(!findings.some((f) => f.kind === 'duplicate-daemon'), 'not duplicates of each other');
+  assert.ok(!findings.some((f) => f.kind === 'hung-oneshot'), 'classified, not hung one-shots');
+  assert.ok(keptHealthy.some((k) => k.classId === 'cms-api' && k.pid === 37652));
+  assert.ok(keptHealthy.some((k) => k.classId === 'archify-api' && k.pid === 36848));
+});
+
+test('relative vite.js with pidfile maps to its app class (analytics)', () => {
+  const vite = proc(
+    37532,
+    900,
+    '"node.exe" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5174',
+    1,
+  );
+  const s = snap([vite], [37532], { '.runtime\\app-analytics-vite.pid': '37532' });
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(keptHealthy.some((k) => k.classId === 'gv-analytics-vite' && k.pid === 37532));
+  assert.ok(!findings.some((f) => f.pid === 37532), 'kept healthy, no findings');
+});

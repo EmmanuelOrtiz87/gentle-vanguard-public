@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { OrchestratorLoopGuard } from '../../src/core/orchestrator-loop-guard.js';
 
 describe('OrchestratorLoopGuard', () => {
@@ -6,11 +7,11 @@ describe('OrchestratorLoopGuard', () => {
     const g = new OrchestratorLoopGuard({ stalledThreshold: 99 });
     g.recordIntent('Déjame verificar que el codemod compila');
     g.recordIntent('Déjame verificar que el codemod compila');
-    expect(g.shouldBreak().break).toBe(false);
+    assert.equal(g.shouldBreak().break, false);
     g.recordIntent('Déjame verificar que el codemod compila');
     const v = g.shouldBreak();
-    expect(v.break).toBe(true);
-    if (v.break) expect(v.kind).toBe('intent-loop');
+    assert.equal(v.break, true);
+    if (v.break) assert.equal(v.kind, 'intent-loop');
   });
 
   it('detects tool-loop after 3 identical tool calls', () => {
@@ -20,8 +21,8 @@ describe('OrchestratorLoopGuard', () => {
     g.recordToolCall('default.read', args);
     g.recordToolCall('default.read', args);
     const v = g.shouldBreak();
-    expect(v.break).toBe(true);
-    if (v.break) expect(v.kind).toBe('tool-loop');
+    assert.equal(v.break, true);
+    if (v.break) assert.equal(v.kind, 'tool-loop');
   });
 
   it('detects ping-pong alternation', () => {
@@ -31,8 +32,8 @@ describe('OrchestratorLoopGuard', () => {
     g.recordToolCall('a', JSON.stringify({ x: 1 }));
     g.recordToolCall('b', JSON.stringify({ x: 2 }));
     const v = g.shouldBreak();
-    expect(v.break).toBe(true);
-    if (v.break) expect(v.kind).toBe('ping-pong');
+    assert.equal(v.break, true);
+    if (v.break) assert.equal(v.kind, 'ping-pong');
   });
 
   it('detects stalled-progress without side-effect', () => {
@@ -41,8 +42,8 @@ describe('OrchestratorLoopGuard', () => {
     g.recordIntent('b');
     g.recordIntent('c');
     const v = g.shouldBreak();
-    expect(v.break).toBe(true);
-    if (v.break) expect(v.kind).toBe('stalled-progress');
+    assert.equal(v.break, true);
+    if (v.break) assert.equal(v.kind, 'stalled-progress');
   });
 
   it('resets on effect', () => {
@@ -50,6 +51,6 @@ describe('OrchestratorLoopGuard', () => {
     g.recordIntent('a');
     g.recordIntent('b');
     g.recordEffect();
-    expect(g.shouldBreak().break).toBe(false);
+    assert.equal(g.shouldBreak().break, false);
   });
 });

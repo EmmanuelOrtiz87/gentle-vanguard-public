@@ -22,6 +22,7 @@ import { meshHandler } from './handlers/mesh.ts';
 import { agentHandler } from './handlers/agent.ts';
 import { marketplaceHandler } from './handlers/marketplace.ts';
 import { costsHandler } from './handlers/costs.ts';
+import { historyHandler } from './handlers/history.ts';
 import { continuationsHandler } from './handlers/continuations.ts';
 
 const otelPipeline = getOtelPipeline();
@@ -151,6 +152,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     if (await marketplaceHandler(req, res, url, ctx, headers)) return;
     if (await costsHandler(req, res, url, ctx, headers)) return;
     if (await continuationsHandler(req, res, url, ctx, headers)) return;
+    if (await historyHandler(req, res, url, ctx, headers)) return;
 
     res.writeHead(404, headers);
     res.end(JSON.stringify({ error: 'Not found' }));
