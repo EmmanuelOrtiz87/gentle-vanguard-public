@@ -95,6 +95,22 @@ function rmIf(p: string, { recurse = false } = {}): void {
   }
 }
 
+/** Recursively collect all file paths under a directory (skips node_modules/.git). */
+function walkFiles(dir: string): string[] {
+  const out: string[] = [];
+  if (!fs.existsSync(dir)) return out;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '.git') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkFiles(full));
+    } else {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
 /**
  * Sync-FilesToBranch — runs file-by-file copy operations for one branch.
  */
@@ -265,6 +281,15 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     }
   }
 
+  // 9b. Legacy PowerShell scripts are never part of the public distribution:
+  // the stack migrated to TypeScript (NORM-TS-001). Remove every .ps1 that
+  // survived from previous syncs (bootstrap is shipped as TS in
+  // scripts/gentle-vanguard/).
+  const ps1Files = walkFiles(targetDir).filter((f) => f.endsWith('.ps1'));
+  for (const f of ps1Files) {
+    rmIf(f);
+  }
+
   // 10. Public runtime and CI inputs.
   // The public distribution is executable source, but its workflow is deliberately
   // narrower than the private engineering CI.
@@ -276,13 +301,9 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   rmIf(path.join(targetDir, '.session'), { recurse: true });
   rmIf(path.join(targetDir, '.telemetry'), { recurse: true });
 
-  // The dashboard database manager is a runtime dependency of db-init.
-  rmIf(path.join(targetDir, 'apps', 'web-dashboard'), { recurse: true });
-  copyIf(
-    path.join(privateRepo, 'apps', 'web-dashboard'),
-    path.join(targetDir, 'apps', 'web-dashboard'),
-    { recurse: true },
-  );
+  // Apps are local-first products (ADR-0017): they must never cross the
+  // publication boundary. Remove any legacy apps/ tree from the target.
+  rmIf(path.join(targetDir, 'apps'), { recurse: true });
 
   const ciScripts = [
     'src/installer-doctor.ts',
