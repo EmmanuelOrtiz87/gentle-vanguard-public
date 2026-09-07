@@ -209,12 +209,24 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     path.join(targetDir, 'gentle-vanguard-presentation.html'),
   );
 
-  // 7. Installer exe
-  if (fs.existsSync(path.join(distDir, 'Gentle-Vanguard.exe'))) {
+  // 7. Installer exe — prefer the newest versioned installer (Gentle-Vanguard-Setup-<ver>.exe),
+  //    falling back to the legacy unversioned name.
+  const versionedInstallers = fs
+    .readdirSync(distDir)
+    .filter((f) => /^Gentle-Vanguard-Setup-\d+\.\d+\.\d+\.exe$/.test(f))
+    .sort()
+    .reverse();
+  const newestInstaller = versionedInstallers[0] || 'Gentle-Vanguard.exe';
+  if (fs.existsSync(path.join(distDir, newestInstaller))) {
     for (const old of ['Gentle-Vanguard-Launcher.exe', 'Gentle-Vanguard-Setup.exe']) {
       rmIf(path.join(targetDir, old));
     }
-    copyIf(path.join(distDir, 'Gentle-Vanguard.exe'), path.join(targetDir, 'Gentle-Vanguard.exe'));
+    copyIf(path.join(distDir, newestInstaller), path.join(targetDir, 'Gentle-Vanguard.exe'));
+    // Ship the matching checksum alongside the installer when present.
+    const shaPath = path.join(distDir, `${newestInstaller}.sha256`);
+    if (fs.existsSync(shaPath)) {
+      copyIf(shaPath, path.join(targetDir, 'Gentle-Vanguard.exe.sha256'));
+    }
   }
 
   // 8. Root infra files
