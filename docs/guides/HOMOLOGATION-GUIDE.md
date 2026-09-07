@@ -108,23 +108,44 @@ gentle-vanguard-public/
 | Rules                  | `rules/`                         | Solo para desarrollo  |
 | Adapters               | `adapters/`                      | Solo para desarrollo  |
 | Build artifacts        | `build/`, `dist/`                | Internos              |
+| Apps                   | `apps/*`                         | Local-first (ADR-0017) |
+| Scripts .ps1           | `scripts/*.ps1`, `hooks/*.ps1`   | Migrados a TS (NORM-TS-001) |
+| Reports/Research       | `reports/`, `research/`          | Internos              |
 
 ## Verificación post-homologación
 
 ```TypeScript
 # En gentle-vanguard-public:
-# 1. No debe haber scripts .ps1 fuera de scripts/gentle-vanguard/
-Get-ChildItem -Recurse -Include "*.ps1" | Where-Object { $_.FullName -notmatch '\\scripts\\gentle-vanguard\\' }
+# 1. NO debe haber scripts .ps1 en NINGUNA ruta (el stack migró a TS — NORM-TS-001;
+#    el bootstrap se distribuye como TS en scripts/gentle-vanguard/)
+Get-ChildItem -Recurse -Include "*.ps1"   # 0 resultados
 
-# 2. No debe haber configs planos (solo .example)
+# 2. NO debe haber apps (ADR-0017: apps local-first, nunca cruzan la frontera)
+Test-Path apps/   # False
+
+# 3. No debe haber configs planos (solo .example + allowlist explícito)
 Get-ChildItem config/ | Where-Object { $_.Name -notlike "*.example.*" }
+#   Permitidos: README.md, PSScriptAnalyzerSettings.psd1, installer-manifest.json,
+#   model-router.json, session-autostart.config.json
 
-# 3. protected/ debe tener archivos .enc
+# 4. protected/ debe tener archivos .enc
 (Get-ChildItem protected/ -Recurse -Include "*.enc").Count  # > 400
 
-# 4. .exe deben existir
+# 5. .exe deben existir
 Test-Path Gentle-Vanguard.exe   # True
+
+# 6. Solo directorios del allowlist (docs, protected, public, demos, src, adapters,
+#    tests/unit, tests/smoke, scripts/gentle-vanguard, config, .github)
+Get-ChildItem -Directory | Select-Object Name
+#   NO debe haber: reports, templates, docs-archive, rules, rules-archive, research,
+#   tools, legacy-foundation, openspec, plugins, releases, client, gentle-vanguard,
+#   .ft, .cursor, .continue, .engram, .codex, .antigravity, .devcontainer, .cline,
+#   .engram-data, .workspace, .windsurf, .event-bus
 ```
+
+> **Nota**: `sync-to-public.ts` aplica estas reglas automáticamente en cada sync — elimina
+> cualquier `.ps1`, `apps/`, directorio stale y archivo root fuera del allowlist. La verificación
+> manual es un control de regresión, no un paso manual obligatorio.
 
 ## Notas importantes
 
