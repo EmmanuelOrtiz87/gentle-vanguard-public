@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es" data-bs-theme="dark" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0b1020" />
+    <meta name="theme-color" content="#0F1115" />
     <meta
       name="description"
       content="Gentle-Vanguard — Autonomous AI Stack — Gentle-Vanguard documentation"
@@ -152,7 +152,10 @@
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
         <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
+            class="gv-wordmark"
+            >Gentle<strong>Vanguard</strong></span
+          ></a
         >
         <button
           class="navbar-toggler"
@@ -281,15 +284,15 @@
       </p>
       <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
         <div class="text-center">
-          <div class="stat-n" data-count="436">436</div>
+          <div class="stat-n" data-count="604">604</div>
           <div class="stat-l">TS Files</div>
         </div>
         <div class="text-center">
-          <div class="stat-n" data-count="109">109</div>
+          <div class="stat-n" data-count="175">175</div>
           <div class="stat-l">Test Files</div>
         </div>
         <div class="text-center">
-          <div class="stat-n"><span data-count="113">113</span>/113</div>
+          <div class="stat-n"><span data-count="96">96</span>/96</div>
           <div class="stat-l">Health PASS</div>
         </div>
         <div class="text-center">
@@ -297,7 +300,7 @@
           <div class="stat-l">Agents</div>
         </div>
         <div class="text-center">
-          <div class="stat-n" data-count="263">263</div>
+          <div class="stat-n" data-count="92">92</div>
           <div class="stat-l">Skills</div>
         </div>
         <div class="text-center">
@@ -331,9 +334,11 @@
       <div class="section-card">
         <strong>Command Center</strong> <code>8090</code> · Dashboard <code>5173</code> · Analytics
         <code>5174</code> · Content Studio (CMS) <code>5175</code> · Academy <code>4173</code> ·
-        Prompt Studio <code>5176</code>.
+        Prompt Studio <code>5176</code> · Design Hub <code>8095</code> · Design Studio · Design
+        System Catalog · Archify.
         <div class="mt-2">
-          <code>npm run cc:start</code> o <code>npx tsx src/cli/gv.ts cc start|stop|status</code>
+          <code>npm run cc:start</code> o <code>npx tsx src/cli/gv.ts cc start|stop|status</code> —
+          el Command Center es solo visual para prender/apagar apps (sin integración).
         </div>
       </div>
     </section>
@@ -372,32 +377,33 @@
       </div>
       <div class="arch-layer">
         <div class="layer-name">
-          <i class="bi bi-gear me-1"></i>Layer 3 — Pipeline (101 enabled / 70 lazy)
+          <i class="bi bi-gear me-1"></i>Layer 3 — Pipeline (117 steps / 112 enabled / 83 lazy)
         </div>
         <div class="items">
           <span>tool-detection</span><span>session-manager</span><span>token-budget</span
           ><span>karpathy-guidelines</span><span>codegraph-sync</span><span>security-orch</span
           ><span>db-init</span><span>auto-apply-safe</span><span>predictive-governor</span
-          ><span>auto-norm-learner</span><span>+70 background</span>
+          ><span>auto-norm-learner</span><span>+83 background</span>
         </div>
       </div>
       <div class="arch-layer">
         <div class="layer-name"><i class="bi bi-book me-1"></i>Layer 4 — Memory & Knowledge</div>
         <div class="items">
-          <span>Engram (2078 obs)</span><span>CodeGraph (10663 nodes)</span
-          ><span>Graphify (18MB)</span><span>ML Embeddings</span><span>Nexus DB</span
+          <span>Engram (3,600+ obs)</span><span>CodeGraph (10,000+ nodes)</span
+          ><span>Graphify (AST graph)</span><span>ML Embeddings</span><span>Nexus DB</span
           ><span>Knowledge Vault</span>
         </div>
       </div>
       <div class="arch-layer">
         <div class="layer-name">
-          <i class="bi bi-database me-1"></i>Layer 5 — Data (11 Repos / 7 Migrations)
+          <i class="bi bi-database me-1"></i>Layer 5 — Data (16 Repos / 16 Migrations)
         </div>
         <div class="items">
           <span>MetricsRepo</span><span>SessionRepo</span><span>TraceRepo</span
           ><span>EventRepo</span><span>CacheRepo</span><span>SkillRepo</span
           ><span>ContractRepo</span><span>ErrorMemoryRepo</span><span>BacklogRepo</span
-          ><span>HousekeepingRepo</span><span>MigrationRunner</span>
+          ><span>HousekeepingRepo</span><span>AuthSessionRepo</span><span>TokenRepo</span
+          ><span>PrincipalRepo</span><span>ContentOSRepo</span><span>MigrationRunner</span>
         </div>
       </div>
       <div class="arch-layer">
@@ -443,12 +449,12 @@
                       Session Pipeline<span
                         class="info-trigger"
                         data-i18n-title="tip_pipeline"
-                        title="Session autostart: 31 parallel Phase-1 steps + 70 lazy background steps launched in batches of 5. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init."
+                        title="Session autostart: 117 steps total (112 enabled) with 83 lazy background steps launched in batches of 2. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_4">
-                      111-step autostart pipeline (106 enabled), 79 lazy background steps,
+                      117-step autostart pipeline (112 enabled), 83 lazy background steps,
                       auto-apply integration
                     </p>
                     <span class="badge-tag ok">Active</span>
@@ -461,12 +467,12 @@
                       Engram Memory<span
                         class="info-trigger"
                         data-i18n-title="tip_engram"
-                        title="Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 2,078 observations across 369 sessions. Survives across sessions and compactions."
+                        title="Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 3,600+ observations across 398+ sessions. Survives across sessions and compactions."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_5">
-                      Persistent memory with auto-sync, integrity checks, compaction. 2078
+                      Persistent memory with auto-sync, integrity checks, compaction. 3,600+
                       observations
                     </p>
                     <span class="badge-tag ok">Active</span>
@@ -479,12 +485,12 @@
                       CodeGraph<span
                         class="info-trigger"
                         data-i18n-title="tip_codegraph"
-                        title="SQLite knowledge graph for symbol intelligence. 10,663 nodes and 21,746 edges across 677 files with sub-millisecond symbol queries."
+                        title="SQLite knowledge graph for symbol intelligence. 10,000+ nodes and 20,000+ edges across 600+ files with sub-millisecond symbol queries."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_6">
-                      Knowledge graph: 10,663 nodes, 21,746 edges, sub-millisecond symbol queries
+                      Knowledge graph: 10,000+ nodes, 20,000+ edges, sub-millisecond symbol queries
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -651,12 +657,12 @@
                       Nexus DB<span
                         class="info-trigger"
                         data-i18n-title="tip_nexus"
-                        title="Operational SQLite database (WAL mode, FK ON) with 11 repositories, 7 migrations and 21 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring."
+                        title="Operational SQLite database (WAL mode, FK ON) with 16 repositories, 16 migrations and 23 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_15">
-                      SQLite WAL mode, 7 migrations, 21 tables, 11 repos. Cache LRU, WAL
+                      SQLite WAL mode, 16 migrations, 23 tables, 16 repos. Cache LRU, WAL
                       auto-checkpoint &gt;1MB
                     </p>
                     <span class="badge-tag ok">Active</span>
@@ -918,6 +924,81 @@
             </p>
           </div>
         </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-list-check text-info me-1"></i> BacklogRepo<span
+                class="info-trigger"
+                data-i18n-title="tip_backlogrepo"
+                title="backlog — pending work items and feature requests tracked for autonomous execution planning."
+                >i</span
+              >
+            </h3>
+            <p class="small text-secondary mb-0">
+              backlog — work items y planificación de ejecución autónoma
+            </p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-key text-info me-1"></i> AuthSessionRepo<span
+                class="info-trigger"
+                data-i18n-title="tip_authsessionrepo"
+                title="auth_sessions — session authentication state, tokens and expiry for the stack's own services."
+                >i</span
+              >
+            </h3>
+            <p class="small text-secondary mb-0">
+              auth_sessions — estado de autenticación y expiración
+            </p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-coin text-info me-1"></i> TokenRepo<span
+                class="info-trigger"
+                data-i18n-title="tip_tokenrepo"
+                title="token_usage + token_transactions + token_savings — real token accounting per message/agent with cache and compression savings."
+                >i</span
+              >
+            </h3>
+            <p class="small text-secondary mb-0">
+              token_usage, token_transactions, token_savings — contabilidad real de tokens
+            </p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-person-badge text-info me-1"></i> PrincipalRepo<span
+                class="info-trigger"
+                data-i18n-title="tip_principalrepo"
+                title="principals — identity and permission records for agents and services in the stack."
+                >i</span
+              >
+            </h3>
+            <p class="small text-secondary mb-0">
+              principals — identidad y permisos de agentes y servicios
+            </p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <div class="section-card">
+            <h3>
+              <i class="bi bi-box-seam text-info me-1"></i> ContentOSRepo<span
+                class="info-trigger"
+                data-i18n-title="tip_contentosrepo"
+                title="content_os — content operations state for the CMS and content pipeline (academy, marketing, docs)."
+                >i</span
+              >
+            </h3>
+            <p class="small text-secondary mb-0">
+              content_os — estado de operaciones de contenido (CMS, academy, marketing)
+            </p>
+          </div>
+        </div>
       </div>
       <div class="text-center mt-4">
         <img
@@ -927,11 +1008,11 @@
           style="max-width: 90%; background: #0a0e1a; box-shadow: 0 0 40px rgba(0, 191, 255, 0.15)"
         />
         <p class="text-secondary small mt-2">
-          <i class="bi bi-database me-1"></i>Nexus DB in the center surrounded by 10 specialized
-          DAOs — SQLite WAL mode with auto-prune &amp; backup<span
+          <i class="bi bi-database me-1"></i>Nexus DB in the center surrounded by 16 specialized
+          repos — SQLite WAL mode with auto-prune &amp; backup<span
             class="info-trigger"
             data-i18n-title="tip_nexus_arch"
-            title="Nexus is the operational brain: SQLite in WAL mode with FK ON. 11 repositories (10 DAOs + MigrationRunner), 7 migrations (m001 initial schema, m002 stack tables, m003 session scoring, …) and 21 tables. Each component persists its live state to .state.json files under .session/context-log/. Auto-init, auto-prune, auto-backup and watchtower monitoring (gentle-vanguard-db component)."
+            title="Nexus is the operational brain: SQLite in WAL mode with FK ON. 16 repositories (15 DAOs + MigrationRunner), 16 migrations (m001 initial schema, m002 stack tables, m003 session scoring, … m016 token_savings) and 23 tables. Each component persists its live state to .state.json files under .session/context-log/. Auto-init, auto-prune, auto-backup and watchtower monitoring (gentle-vanguard-db component)."
             >i</span
           >
         </p>
@@ -1183,11 +1264,11 @@
             <tr>
               <td><span class="text-info">Architecture</span></td>
               <td>
-                <span data-i18n="c_index_55">11 Repos (11 Repos + MigrationRunner)</span
+                <span data-i18n="c_index_55">16 Repos (15 DAOs + MigrationRunner)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_55"
-                  title="11 repositories total: 10 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode."
+                  title="16 repositories total: 15 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode."
                   >i</span
                 >
               </td>
@@ -1196,11 +1277,11 @@
             <tr>
               <td><span class="text-info">Architecture</span></td>
               <td>
-                <span data-i18n="c_index_56">7 DB Migrations / 21 Tables (WAL mode, FK ON)</span
+                <span data-i18n="c_index_56">16 DB Migrations / 23 Tables (WAL mode, FK ON)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_56"
-                  title="7 schema migrations create 21 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, applied automatically by DatabaseManager at session start."
+                  title="16 schema migrations create 23 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, … 016 = token_savings, applied automatically by DatabaseManager at session start."
                   >i</span
                 >
               </td>
@@ -1222,11 +1303,11 @@
             <tr>
               <td><span class="text-warning">Pipeline</span></td>
               <td>
-                <span data-i18n="c_index_58">31 Phase-1 Steps (parallel exec)</span
+                <span data-i18n="c_index_58">117 Pipeline Steps (112 enabled / 83 lazy)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_58"
-                  title="31 Phase-1 steps run in parallel at session start using Promise.allSettled. Non-blocking and idempotent."
+                  title="117 total pipeline steps: 112 enabled run at session start (Phase-1 parallel + batches) using Promise.allSettled. Non-blocking and idempotent."
                   >i</span
                 >
               </td>
@@ -1235,11 +1316,11 @@
             <tr>
               <td><span class="text-warning">Pipeline</span></td>
               <td>
-                <span data-i18n="c_index_59">70 Lazy Background Tasks</span
+                <span data-i18n="c_index_59">83 Lazy Background Tasks</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_59"
-                  title="70 lazy background tasks are queued in batches after session start (batch delay 500ms -&gt; 100ms)."
+                  title="83 lazy background tasks are queued in batches after session start (batch delay 500ms -&gt; 100ms)."
                   >i</span
                 >
               </td>
@@ -1352,11 +1433,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_68">Engram (2078 obs, auto-sync)</span
+                <span data-i18n="c_index_68">Engram (3,600+ obs, auto-sync)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_68"
-                  title="Engram persistent memory: 2078 observations, auto-sync across sessions and projects."
+                  title="Engram persistent memory: 3,600+ observations across 398+ sessions, auto-sync across sessions and projects."
                   >i</span
                 >
               </td>
@@ -1365,11 +1446,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_69">CodeGraph (10,663 nodes, 21,746 edges)</span
+                <span data-i18n="c_index_69">CodeGraph (10,000+ nodes, 20,000+ edges)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_69"
-                  title="CodeGraph knowledge graph: 10,663 nodes and 21,746 edges derived from AST analysis."
+                  title="CodeGraph knowledge graph: 10,000+ nodes and 20,000+ edges derived from AST analysis."
                   >i</span
                 >
               </td>
@@ -1378,11 +1459,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_70">Graphify (18MB knowledge graph)</span
+                <span data-i18n="c_index_70">Graphify (4MB knowledge graph)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_70"
-                  title="Graphify 18MB knowledge graph with god nodes, community structure and cross-file relationships."
+                  title="Graphify 4MB knowledge graph with god nodes, community structure and cross-file relationships."
                   >i</span
                 >
               </td>
@@ -1391,11 +1472,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_71">Nexus DB (SQLite WAL, 21 tables)</span
+                <span data-i18n="c_index_71">Nexus DB (SQLite WAL, 23 tables)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_71"
-                  title="Nexus operational DB: SQLite WAL mode, 21 tables, auto-init, auto-prune, auto-backup and watchtower monitoring."
+                  title="Nexus operational DB: SQLite WAL mode, 23 tables, 16 migrations, auto-init, auto-prune, auto-backup and watchtower monitoring."
                   >i</span
                 >
               </td>
@@ -1612,11 +1693,11 @@
             <tr>
               <td><span class="text-warning">Quality</span></td>
               <td>
-                <span data-i18n="c_index_88">109 Test Files (10 suites)</span
+                <span data-i18n="c_index_88">175 Test Files (10+ suites)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_88"
-                  title="109 test files across 10 suites covering units, configs, workflows and CI/CD."
+                  title="175 test files across 10+ suites covering units, configs, workflows and CI/CD."
                   >i</span
                 >
               </td>
@@ -1625,11 +1706,11 @@
             <tr>
               <td><span class="text-warning">Quality</span></td>
               <td>
-                <span data-i18n="c_index_89">113 Health Checks (22 components)</span
+                <span data-i18n="c_index_89">96 Health Checks (22 components)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_89"
-                  title="113 health checks across 22 components. All green: 113/113 PASS, 0 WARN, 0 FAIL."
+                  title="96 health checks across 22 components. All green: 96/96 PASS, 0 WARN, 0 FAIL."
                   >i</span
                 >
               </td>
@@ -1725,7 +1806,7 @@
         <div class="display-4 mb-2">🧰</div>
         <h2 data-i18n="sec_skills_rules">Skills</h2>
         <p data-i18n="c_index_93">
-          118 skills · 52 normatives — organized intelligence across 9 categories
+          92 skills · 60+ normatives — organized intelligence across 9 categories
         </p>
       </div>
       <div class="row g-3">
@@ -1868,7 +1949,7 @@
       <div class="text-center mt-4">
         <span
           class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill me-2"
-          >263 Skills</span
+          >92 Skills</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill"
@@ -1893,7 +1974,7 @@
               <i class="bi bi-heart-pulse text-success me-2"></i>Health Overview<span
                 class="info-trigger"
                 data-i18n-title="tip_met_health"
-                title="95/96 checks PASS across 22 components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks, configs, tool-configs, security, cloud-connectors, tracing, state-persistence, audit, governance, gentle-vanguard-db, dashboard-ws and more. Measured by the maintenance watchtower."
+                title="96/96 checks PASS across 22 components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks, configs, tool-configs, security, cloud-connectors, tracing, state-persistence, audit, governance, gentle-vanguard-db, dashboard-ws and more. Measured by the maintenance watchtower."
                 >i</span
               >
             </h3>
@@ -2037,7 +2118,7 @@
             <div class="page-num">PAGE 01</div>
             <h4 data-i18n="c_index_96">🏗️ Architecture</h4>
             <p data-i18n="c_index_97">
-              Deep architecture, 6 layers, 11 Repos, pipeline topology, system design decisions
+              Deep architecture, 6 layers, 16 Repos, pipeline topology, system design decisions
             </p>
             <span class="badge-count">architecture.html →</span>
           </div>
@@ -2087,7 +2168,7 @@
             <div class="page-num">PAGE 06</div>
             <h4 data-i18n="c_index_106">🔒 Security & Governance</h4>
             <p data-i18n="c_index_107">
-              Audit pipeline, policy enforcement, 52 normatives, guardrails, incident response
+              Audit pipeline, policy enforcement, 60+ normatives, guardrails, incident response
             </p>
             <span class="badge-count">security-governance.html →</span>
           </div>
@@ -2127,8 +2208,7 @@
             <div class="page-num">PAGE 10</div>
             <h4 data-i18n="c_index_114">📈 Stack Health & Metrics</h4>
             <p data-i18n="c_index_115">
-              113 health checks, watchtower, performance KPIs, system observability, backlog
-              tracking
+              96 health checks, watchtower, performance KPIs, system observability, backlog tracking
             </p>
             <a href="health.html" class="badge-count text-decoration-none">health.html →</a>
           </div>
@@ -2187,7 +2267,7 @@
             <div class="page-num">INICIO</div>
             <h4>🚀 Inicio de sesión</h4>
             <p>
-              Pipeline lazy de 70+ background tasks con sesión autostart en ~1.3s. Token ingest
+              Pipeline lazy de 83+ background tasks con sesión autostart en ~1.3s. Token ingest
               arranca en watch para capturar el consumo real desde el primer mensaje.
             </p>
           </div>
@@ -2262,8 +2342,8 @@
               loading="lazy"
             />
             <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>101 pasos habilitados: 31 Phase 1 paralelos + 70
-              lazy background en batches.
+              <i class="bi bi-info-circle me-1"></i>117 pasos: 112 enabled + 83 lazy background en
+              batches.
             </p>
           </div>
         </div>
@@ -2277,8 +2357,8 @@
               loading="lazy"
             />
             <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>Nexus SQLite central con 11 repos especializados
-              (7 migraciones, 21 tablas).
+              <i class="bi bi-info-circle me-1"></i>Nexus SQLite central con 16 repos especializados
+              (16 migraciones, 23 tablas).
             </p>
           </div>
         </div>
@@ -2379,7 +2459,7 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >109 Test Files</span
+          >175 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
@@ -2389,12 +2469,12 @@
         <span
           class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >11 Repos</span
+          >16 Repos</span
         >
         <span
           class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >263 Skills</span
+          >92 Skills</span
         >
         <span
           class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"

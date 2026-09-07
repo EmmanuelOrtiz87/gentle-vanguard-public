@@ -2,8 +2,9 @@
 
 > Registro oficial del estandar visual para toda aplicacion del ecosistema Gentle-Vanguard
 > (dashboard, academy, analytics, y las que vengan). Version 1.0.0 · 2026-08-28. Fuente de
-> referencia viva: `apps/academy-web/style.css` + `apps/academy-web/assets/logo.svg`. Aplicacion de
-> referencia implementada: `apps/gv-analytics`.
+> referencia viva: `apps/academy-web/academy-*-v2.css` + `apps/academy-web/assets/logo.svg` (el CSS
+> v1 `style.css`/`gv-design-system.css` fue eliminado en la migración v2). Aplicacion de referencia
+> implementada: `apps/gv-analytics`.
 
 ## Regla de oro
 

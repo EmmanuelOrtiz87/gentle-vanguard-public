@@ -18,15 +18,9 @@
  *   npx tsx src/cli/getBacklog().ts delete <id>
  */
 
-import {
-  DatabaseManager,
-  DEFAULT_TENANT_ID,
-} from '../../apps/web-dashboard/server/database/manager';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager';
 import { pathToFileURL } from 'url';
-import type {
-  BacklogItem,
-  BacklogRepo,
-} from '../../apps/web-dashboard/server/database/repositories/BacklogRepo';
+import type { BacklogItem, BacklogRepo } from '../database/nexus//repositories/BacklogRepo';
 
 // ─── Resolve (lazy: DatabaseManager is a heavy better-sqlite3 singleton;
 //      importing this module must stay side-effect free) ─────────────
@@ -260,7 +254,10 @@ function cmdRelate(args: Record<string, string>): void {
     console.error(`--type must be: ${types.join(', ')}`);
     process.exit(1);
   }
-  if (!getBacklog().getItem(args._id, TENANT_ID) || !getBacklog().getItem(args._related, TENANT_ID)) {
+  if (
+    !getBacklog().getItem(args._id, TENANT_ID) ||
+    !getBacklog().getItem(args._related, TENANT_ID)
+  ) {
     console.error('Both items must belong to the selected tenant');
     process.exit(1);
   }

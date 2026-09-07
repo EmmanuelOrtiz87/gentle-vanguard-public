@@ -5,20 +5,68 @@
  * Unifica el flujo de sesiones Engram para que funcione idénticamente
  * en TODAS las herramientas (OpenCode, Claude, Cline, Cursor, etc.)
  *
- * Flujo:
- *   1. sessionStart() → Crea un identificador de sesión local
- *   2. Durante sesión → Usar mem_save, mem_search directamente
- *   3. sessionEnd() → Persiste el resumen vía CLI + HTTP fallback
+ * PATRÓN REAL DE SESIONES ENGRAM (importante — evita "unknown_session"):
+ *   Engram nativo NO tiene comando de session-start/session-end: crea sesiones
+ *   AUTOMÁTICAMENTE agrupando observaciones por ventana temporal. Por eso el
+ *   sessionId del stack (`session-<ISO>`) es SOLO un identificador local de
+ *   tracking en `.session/session-current.json` — NUNCA debe pasarse a la
+ *   capa Engram como id de sesión, porque Engram lo rechaza como unknown.
  *
- * NO depende del plugin OpenCode automático - funciona en todas las herramientas
+ *   El cierre real ante Engram es PERSISTIR un resumen (`engram save
+ *   --type session_summary`), que adjunta la observación a la sesión
+ *   automática vigente de Engram. Este fichero NO depende del plugin OpenCode.
+ *
+ * Flujo correcto:
+ *   1. sessionStart() → Persiste el tracking local (status:'active') en .session/
+ *   2. Durante sesión → Usar mem_save, mem_search directamente (MCP/CLI)
+ *   3. sessionEnd()   → 1) Persiste resumen vía CLI (MCP), 2) marca el cierre
+ *                       local (status:'closed') para que ninguna sesión quede
+ *                       colgada, 3) fallback HTTP (server opcional, puede no
+ *                       estar escuchando — NO es la fuente de verdad).
  */
 
 import { runSync } from '../core/run-command.js';
 import { pathToFileURL } from 'url';
 import * as http from 'http';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { resolve, join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const ENGRAM_PORT = Number(process.env.ENGRAM_PORT || 7437);
 const PROJECT = 'gentle-vanguard';
+const ROOT = resolve(__dirname, '..', '..');
+const SESSION_FILE = join(ROOT, '.session', 'session-current.json');
+
+/** Actualiza el estado de tracking local en .session/session-current.json. */
+function updateLocalSessionState(sessionId: string, status: 'active' | 'closed'): boolean {
+  try {
+    let state: Record<string, unknown> = {};
+    if (existsSync(SESSION_FILE)) {
+      try {
+        state = JSON.parse(readFileSync(SESSION_FILE, 'utf-8')) as Record<string, unknown>;
+      } catch {
+        /* corrupto — sobreescribir limpio */
+      }
+    } else {
+      mkdirSync(dirname(SESSION_FILE), { recursive: true });
+    }
+    state.sessionId = sessionId;
+    state.id = sessionId;
+    state.engramBridge = status;
+    if (status === 'closed') {
+      state.status = 'closed';
+      state.closedAt = new Date().toISOString();
+    } else {
+      state.status = 'active';
+    }
+    writeFileSync(SESSION_FILE, JSON.stringify(state, null, 2), 'utf-8');
+    return true;
+  } catch (error) {
+    console.warn(`[ENGRAM] Local session state update failed:`, error);
+    return false;
+  }
+}
 
 export interface SessionStartResult {
   success: boolean;
@@ -31,15 +79,20 @@ export interface SessionEndResult {
   sessionId: string;
   mcpSuccess: boolean;
   httpSuccess: boolean;
+  localClosed: boolean;
   error?: string;
 }
 
 /**
- * Creates a local session identifier. The native CLI has no session-start command.
+ * Registers a LOCAL session identifier for stack tracking. Engram nativo no
+ * tiene session-start (crea sesiones automáticamente), así que esto SOLO
+ * persiste el estado local en .session/session-current.json — no pretende
+ * crear una sesión en Engram.
  */
 export function sessionStart(sessionId?: string): SessionStartResult {
   const sid = sessionId || `session-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`;
-  console.log(`[ENGRAM] Session started locally: ${sid}`);
+  const persisted = updateLocalSessionState(sid, 'active');
+  console.log(`[ENGRAM] Session started locally: ${sid} (tracking persisted: ${persisted})`);
   return { success: true, sessionId: sid };
 }
 
@@ -109,7 +162,7 @@ export async function sessionEnd(
   let httpSuccess = false;
   let error = '';
 
-  // 1. Intentar generar resumen vía MCP
+  // 1. Intentar generar resumen vía MCP (CLI `engram save --type session_summary`)
   if (summary) {
     mcpSuccess = sessionSummary(summary, sessionId);
   }
@@ -123,7 +176,8 @@ export async function sessionEnd(
     console.warn(`[ENGRAM] MCP close warning: ${error}`);
   }
 
-  // 3. Fallback HTTP API (para compatibilidad con plugin OpenCode)
+  // 3. Fallback HTTP API (server opcional — puede no estar escuchando; NO es
+  //    la fuente de verdad del cierre, que es el resumen persistido por CLI)
   try {
     const saved = await postSessionEndHttp(sessionId, summary);
     if (saved) {
@@ -137,9 +191,10 @@ export async function sessionEnd(
 
   const success = mcpSuccess || httpSuccess;
 
-  if (!success) {
-    console.warn(`[ENGRAM] Could not close session gracefully: ${sessionId}`);
-  }
+  // 4. SIEMPRE marcar el cierre local en .session/session-current.json para que
+  //    ninguna sesión del stack quede colgada como "active" sin actividad real.
+  const localClosed = updateLocalSessionState(sessionId, 'closed');
+  if (localClosed) console.log(`[ENGRAM] Local session closed: ${sessionId}`);
 
   return {
     success,
@@ -147,6 +202,7 @@ export async function sessionEnd(
     mcpSuccess,
     httpSuccess,
     error: error || undefined,
+    localClosed,
   };
 }
 

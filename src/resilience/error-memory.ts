@@ -14,7 +14,7 @@
 
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import type { DatabaseManager } from '../../apps/web-dashboard/server/database/manager.js';
+import type { DatabaseManager } from '../database/nexus//manager.js';
 
 // ---- Types ----
 

@@ -53,9 +53,10 @@ function addSession(db: Database.Database, id: string, createdIso: string): void
 function addTx(db: Database.Database, aliasId: string, at: Date, tokens = 100): void {
   const local = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(
     at.getDate(),
-  ).padStart(2, '0')} ${String(at.getHours()).padStart(2, '0')}:${String(
-    at.getMinutes(),
-  ).padStart(2, '0')}:${String(at.getSeconds()).padStart(2, '0')}`;
+  ).padStart(2, '0')} ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(
+    2,
+    '0',
+  )}:${String(at.getSeconds()).padStart(2, '0')}`;
   db.prepare(
     `INSERT INTO token_transactions (message_id, session_id, agent, model, input_tokens, output_tokens, cost, created_at, tenant_id)
      VALUES (?, ?, 'orchestrator', 'm', ?, 0, 0, ?, 't')`,
@@ -93,9 +94,11 @@ test('backfill: unique window match creates alias', () => {
   assert.equal(res.candidates[0].sessionId, 'session-A');
   assert.equal(res.applied, 1);
 
-  const rows = db
-    .prepare(`SELECT * FROM session_id_aliases`)
-    .all() as Array<{ session_id: string; alias_id: string; source: string }>;
+  const rows = db.prepare(`SELECT * FROM session_id_aliases`).all() as Array<{
+    session_id: string;
+    alias_id: string;
+    source: string;
+  }>;
   assert.equal(rows.length, 1);
   assert.equal(rows[0].session_id, 'session-A');
   assert.equal(rows[0].alias_id, 'ses_alpha');
@@ -160,11 +163,15 @@ test('recordForwardAliases: aliases recent activity to explicit repo session', (
   const db = makeTestDb();
   ensureAliasTable(db);
   const now = Date.now();
-  const inserted = recordForwardAliases(db, [
-    { aliasId: 'sess_forward1', lastActivityMs: now - 60_000, source: 'zcode' },
-    { aliasId: 'sess_subagent_agent_x', lastActivityMs: now - 60_000, source: 'zcode' },
-    { aliasId: 'sess_stale', lastActivityMs: now - 60 * 60_000, source: 'zcode' }, // > recency
-  ], { repoSessionId: 'session-CURRENT', recencyMs: 15 * 60_000 });
+  const inserted = recordForwardAliases(
+    db,
+    [
+      { aliasId: 'sess_forward1', lastActivityMs: now - 60_000, source: 'zcode' },
+      { aliasId: 'sess_subagent_agent_x', lastActivityMs: now - 60_000, source: 'zcode' },
+      { aliasId: 'sess_stale', lastActivityMs: now - 60 * 60_000, source: 'zcode' }, // > recency
+    ],
+    { repoSessionId: 'session-CURRENT', recencyMs: 15 * 60_000 },
+  );
   assert.equal(inserted, 2);
   const ids = sessionPlusAliasIds(db, 'session-CURRENT');
   assert.ok(ids.includes('session-CURRENT'));
@@ -172,9 +179,10 @@ test('recordForwardAliases: aliases recent activity to explicit repo session', (
   assert.ok(ids.includes('sess_subagent_agent_x'));
   assert.ok(!ids.includes('sess_stale'));
   // confianza: subagente menor que orquestador
-  const rows = db
-    .prepare(`SELECT alias_id, confidence FROM session_id_aliases`)
-    .all() as Array<{ alias_id: string; confidence: number }>;
+  const rows = db.prepare(`SELECT alias_id, confidence FROM session_id_aliases`).all() as Array<{
+    alias_id: string;
+    confidence: number;
+  }>;
   const sub = rows.find((r) => r.alias_id.startsWith('sess_subagent'));
   const main = rows.find((r) => r.alias_id === 'sess_forward1');
   assert.ok(sub && main && sub.confidence < main.confidence);

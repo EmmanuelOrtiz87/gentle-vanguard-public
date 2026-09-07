@@ -7,6 +7,7 @@
 
 import { dependencySecurityEnforcer } from './dependency-security-enforcer';
 import { checkDependencySecurity } from './dependency-security-checker';
+import { generateReport } from './owasp/owasp-agentic-top10';
 
 /**
  * Initialize security components
@@ -50,6 +51,20 @@ async function initializeSecurity() {
           console.log(`   - ${issue}`);
         }
       }
+    }
+
+    // 4. Generate OWASP Agentic AI Top 10 coverage report (ADR-0029)
+    console.log('\n4. Generating OWASP Agentic AI Top 10 coverage report...');
+    try {
+      const owasp = generateReport(false);
+      console.log(
+        `   ✓ OWASP coverage: ${owasp.overallCoverage}% (${owasp.fullCoverage} full / ${owasp.partialCoverage} partial / ${owasp.noneCoverage} none)`,
+      );
+      if (!owasp.strictPass) {
+        console.log('   ℹ️  OWASP strict coverage not met (<80%) — review partial categories');
+      }
+    } catch (error) {
+      console.log('   ℹ️  OWASP report generation skipped (non-blocking):', error);
     }
 
     console.log('\n✅ Security initialization completed');

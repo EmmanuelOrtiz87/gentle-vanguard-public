@@ -62,9 +62,7 @@ const als = new AsyncLocalStorage<CorrelationContext>();
 
 /** Root dir for correlation JSONL. Override via GV_TELEMETRY_CORRELATION_DIR (tests). */
 export function correlationDir(root: string = process.cwd()): string {
-  return (
-    process.env.GV_TELEMETRY_CORRELATION_DIR ?? join(root, '.telemetry', 'correlation')
-  );
+  return process.env.GV_TELEMETRY_CORRELATION_DIR ?? join(root, '.telemetry', 'correlation');
 }
 
 /** Generate an OTLP-format trace id (32 lowercase hex chars). */

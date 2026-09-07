@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-09-01 — Stack Consolidado
+
+### Hitos
+
+- Absorción gentle-ai v2.5.0: continuations end-to-end, ack-before-burn, path-identity, typed
+  refusals, capabilities.
+- Design system GV v1 (css canonico, re-skin 6 apps, logo oficial, i18n es/en/pt dual-theme).
+- Apps local-first desacopladas del repo del stack (git propio por producto).
+- Nexus DB movido a `src/database/nexus/` (stack-tracked; dashboard usa re-export shims).
+- Command Center: power widget en todas las apps; Prompt Studio v2 standalone; CMS F2.
+
+### Seguridad
+
+- CVE-2026-39824 purgado (golang.org/x/sys v0.36.0 en go.sum).
+- Deps: setup-node v7, pnpm/action-setup v6, codecov v7, js-yaml 5.3.0.
+
+### Limpieza
+
+- PRs dependabot obsoletos cerrados, ramas stale eliminadas, deployments github-pages eliminados.
+- Dockerfile/compose simplificados a imagen MCP-only; CI completamente verde.
+
 ### Added
 
 - **Process Hygiene (reaper nativo)**: `src/core/process-hygiene.ts` — detección y limpieza de

@@ -133,10 +133,20 @@ describe('OtelTracingPort (offline)', () => {
 // ─── resolvePorts wiring ───────────────────────────────────────────────────
 
 describe('resolvePorts — configuration swap', () => {
-  const { resolvePorts, InMemoryStorage, SqliteDiskStorage, InProcessQueue, NoopTracingPort, OtelTracingPort } = INDEX;
+  const {
+    resolvePorts,
+    InMemoryStorage,
+    SqliteDiskStorage,
+    InProcessQueue,
+    NoopTracingPort,
+    OtelTracingPort,
+  } = INDEX;
 
   it('defaults to local-first: sqlite-disk + in-process + noop', () => {
-    const p = resolvePorts({ env: {}, sqlitePath: join(ROOT, '.runtime', 'test-ports-default.db') });
+    const p = resolvePorts({
+      env: {},
+      sqlitePath: join(ROOT, '.runtime', 'test-ports-default.db'),
+    });
     assert.ok(p.storage instanceof SqliteDiskStorage);
     assert.ok(p.queue instanceof InProcessQueue);
     assert.ok(p.tracing instanceof NoopTracingPort);

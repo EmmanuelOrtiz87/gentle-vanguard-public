@@ -19,10 +19,7 @@ function makeSessionDir(sessionId?: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'gv-tsr-'));
   mkdirSync(join(dir, '.session'), { recursive: true });
   if (sessionId) {
-    writeFileSync(
-      join(dir, '.session', 'session-current.json'),
-      JSON.stringify({ sessionId }),
-    );
+    writeFileSync(join(dir, '.session', 'session-current.json'), JSON.stringify({ sessionId }));
   }
   return dir;
 }

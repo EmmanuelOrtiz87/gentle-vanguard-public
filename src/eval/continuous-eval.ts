@@ -195,7 +195,9 @@ export function buildGoldenDataset(
 
     const errorTraces = (
       db
-        .prepare(`SELECT COUNT(*) AS c FROM traces WHERE session_id IN (${ph}) AND status = 'error'`)
+        .prepare(
+          `SELECT COUNT(*) AS c FROM traces WHERE session_id IN (${ph}) AND status = 'error'`,
+        )
         .get(...ids) as { c: number }
     ).c;
 
@@ -262,10 +264,7 @@ export function percentile(sorted: number[], p: number): number {
   return sorted[idx];
 }
 
-export function scoreDataset(
-  dataset: GoldenDataset,
-  opts: RunEvalOptions = {},
-): DatasetScores {
+export function scoreDataset(dataset: GoldenDataset, opts: RunEvalOptions = {}): DatasetScores {
   const tokenBudget = opts.tokenBudget ?? 50_000;
   const durationBudgetMs = opts.durationBudgetMs ?? 120_000;
   const { items } = dataset;
@@ -280,18 +279,12 @@ export function scoreDataset(
   // Efficiency: ratio of budget actually consumed (capped at 1 = fully
   // efficient). Uses the average for tokens and p95 for duration so a single
   // outlier session does not dominate.
-  const tokenEfficiency =
-    avgTokens <= 0 ? 1 : Math.min(1, tokenBudget / avgTokens);
+  const tokenEfficiency = avgTokens <= 0 ? 1 : Math.min(1, tokenBudget / avgTokens);
   const p95Dur = percentile(durations, 95);
-  const durationEfficiency =
-    p95Dur <= 0 ? 1 : Math.min(1, durationBudgetMs / p95Dur);
+  const durationEfficiency = p95Dur <= 0 ? 1 : Math.min(1, durationBudgetMs / p95Dur);
 
   const aggregateScore = Number(
-    (
-      successRate * 0.5 +
-      tokenEfficiency * 0.3 +
-      durationEfficiency * 0.2
-    ).toFixed(4),
+    (successRate * 0.5 + tokenEfficiency * 0.3 + durationEfficiency * 0.2).toFixed(4),
   );
 
   return {
@@ -339,8 +332,7 @@ export function computeTrend(current: number, previous: EvalRunRecord | null): T
   const deltaPercent =
     prevScore !== 0 ? Number(((delta / Math.abs(prevScore)) * 100).toFixed(2)) : null;
   const EPS = 0.0001;
-  const direction =
-    Math.abs(delta) <= EPS ? 'stable' : delta > 0 ? 'improved' : 'regressed';
+  const direction = Math.abs(delta) <= EPS ? 'stable' : delta > 0 ? 'improved' : 'regressed';
   return {
     previousRunId: previous.id,
     previousAggregateScore: prevScore,
@@ -375,25 +367,21 @@ export function evaluateGate(
 /* ── Persistence ── */
 
 export function getPreviousRun(db: Database.Database): EvalRunRecord | null {
-  const tableExists = (
-    db
-      .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='eval_runs'`)
-      .get() as { name: string } | undefined
-  );
+  const tableExists = db
+    .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='eval_runs'`)
+    .get() as { name: string } | undefined;
   if (!tableExists) return null;
   return (
     (db
-      .prepare(`SELECT id, created_at, dataset_size, scores_json, trend_json
-                FROM eval_runs ORDER BY id DESC LIMIT 1`)
+      .prepare(
+        `SELECT id, created_at, dataset_size, scores_json, trend_json
+                FROM eval_runs ORDER BY id DESC LIMIT 1`,
+      )
       .get() as EvalRunRecord | undefined) ?? null
   );
 }
 
-export function persistRun(
-  db: Database.Database,
-  scores: DatasetScores,
-  trend: TrendInfo,
-): number {
+export function persistRun(db: Database.Database, scores: DatasetScores, trend: TrendInfo): number {
   ensureEvalRunsTable(db);
   const info = db
     .prepare(

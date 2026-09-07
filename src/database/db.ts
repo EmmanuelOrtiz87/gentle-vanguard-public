@@ -18,7 +18,7 @@
 // We use require() via createRequire for cross-module compatibility
 // to import the dashboard's DatabaseManager from src/
 import { createRequire } from 'module';
-import type { DatabaseManager } from '../../apps/web-dashboard/server/database/manager.js';
+import type { DatabaseManager } from './nexus/manager.js';
 const _require = createRequire(import.meta.url);
 
 let _mgr: DatabaseManager | null = null;
@@ -26,7 +26,7 @@ let _mgr: DatabaseManager | null = null;
 /** Get the DatabaseManager singleton (lazy-loaded) */
 export function db(): DatabaseManager {
   if (!_mgr) {
-    const mod = _require('../../apps/web-dashboard/server/database/manager');
+    const mod = _require('./nexus/manager.js');
     _mgr = mod.DatabaseManager.getInstance() as DatabaseManager;
   }
   return _mgr;

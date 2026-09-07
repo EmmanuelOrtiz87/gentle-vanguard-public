@@ -1,47 +1,47 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="100%" height="100%" role="img" aria-labelledby="executive-loop-title executive-loop-desc" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="100%" height="100%" role="img" aria-labelledby="executive-loop-title executive-loop-desc" focusable="false">
 <title id="executive-loop-title">Executive Loop</title>
 <desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0e1a"/>
+      <stop offset="0%" stop-color="#0a0e17"/>
       <stop offset="100%" stop-color="#0f1525"/>
     </linearGradient>
     <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00bfff" stop-opacity="0.15"/>
-      <stop offset="60%" stop-color="#00bfff" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#00bfff" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
+      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="detectGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00bfff"/>
-      <stop offset="100%" stop-color="#0099cc"/>
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
     </linearGradient>
     <linearGradient id="evalGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#8833cc"/>
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
     <linearGradient id="decideGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22c55e"/>
-      <stop offset="100%" stop-color="#16a34a"/>
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#4ade80"/>
     </linearGradient>
     <linearGradient id="execGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#d97706"/>
+      <stop offset="0%" stop-color="#f4bb4f"/>
+      <stop offset="100%" stop-color="#f4bb4f"/>
     </linearGradient>
     <linearGradient id="verifyGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ef4444"/>
-      <stop offset="100%" stop-color="#dc2626"/>
+      <stop offset="0%" stop-color="#ee6d75"/>
+      <stop offset="100%" stop-color="#ee6d75"/>
     </linearGradient>
     <linearGradient id="learnGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00bfff"/>
-      <stop offset="100%" stop-color="#a855f7"/>
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
     </linearGradient>
     <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00bfff"/>
-      <stop offset="100%" stop-color="#a855f7"/>
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
     </linearGradient>
     <filter id="glow">
       <feGaussianBlur stdDeviation="3" result="blur"/>
@@ -58,10 +58,10 @@
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
     </marker>
     <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
     </marker>
     <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a855f7"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
     </marker>
   </defs>
 
@@ -83,50 +83,50 @@
 
   <!-- Detection (top) - 0° -->
   <g filter="url(#shadow)">
-    <circle cx="400" cy="155" r="44" fill="#111827" stroke="#00bfff" stroke-width="2"/>
+    <circle cx="400" cy="155" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
     <circle cx="400" cy="155" r="44" fill="url(#detectGrad)" fill-opacity="0.1"/>
-    <text x="400" y="160" text-anchor="middle" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
+    <text x="400" y="160" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
   </g>
   <text x="400" y="183" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Detection</text>
-  <text x="400" y="145" text-anchor="middle" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
+  <text x="400" y="145" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
 
   <!-- Evaluation (top-right) - 60° -->
   <g filter="url(#shadow)">
-    <circle cx="570" cy="248" r="44" fill="#111827" stroke="#a855f7" stroke-width="2"/>
+    <circle cx="570" cy="248" r="44" fill="#151921" stroke="#a78bfa" stroke-width="2"/>
     <circle cx="570" cy="248" r="44" fill="url(#evalGrad)" fill-opacity="0.1"/>
-    <text x="570" y="253" text-anchor="middle" fill="#a855f7" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
+    <text x="570" y="253" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
   </g>
   <text x="570" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Evaluation</text>
 
   <!-- Decision (bottom-right) - 120° -->
   <g filter="url(#shadow)">
-    <circle cx="530" cy="355" r="44" fill="#111827" stroke="#22c55e" stroke-width="2"/>
+    <circle cx="530" cy="355" r="44" fill="#151921" stroke="#4ade80" stroke-width="2"/>
     <circle cx="530" cy="355" r="44" fill="url(#decideGrad)" fill-opacity="0.1"/>
-    <text x="530" y="360" text-anchor="middle" fill="#22c55e" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
+    <text x="530" y="360" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
   </g>
   <text x="530" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Decision</text>
 
   <!-- Execution (bottom-left) - 180° -->
   <g filter="url(#shadow)">
-    <circle cx="400" cy="385" r="44" fill="#111827" stroke="#f59e0b" stroke-width="2"/>
+    <circle cx="400" cy="385" r="44" fill="#151921" stroke="#f4bb4f" stroke-width="2"/>
     <circle cx="400" cy="385" r="44" fill="url(#execGrad)" fill-opacity="0.1"/>
-    <text x="400" y="390" text-anchor="middle" fill="#f59e0b" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
+    <text x="400" y="390" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
   </g>
   <text x="400" y="413" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Execution</text>
 
   <!-- Verification (bottom-left-more) - 240° -->
   <g filter="url(#shadow)">
-    <circle cx="270" cy="355" r="44" fill="#111827" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="270" cy="355" r="44" fill="#151921" stroke="#ee6d75" stroke-width="2"/>
     <circle cx="270" cy="355" r="44" fill="url(#verifyGrad)" fill-opacity="0.1"/>
-    <text x="270" y="360" text-anchor="middle" fill="#ef4444" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
+    <text x="270" y="360" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
   </g>
   <text x="270" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Verification</text>
 
   <!-- Learning (top-left) - 300° -->
   <g filter="url(#shadow)">
-    <circle cx="230" cy="248" r="44" fill="#111827" stroke="#00bfff" stroke-width="2"/>
+    <circle cx="230" cy="248" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
     <circle cx="230" cy="248" r="44" fill="url(#learnGrad)" fill-opacity="0.1"/>
-    <text x="230" y="253" text-anchor="middle" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
+    <text x="230" y="253" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
   </g>
   <text x="230" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Learning</text>
 
@@ -140,64 +140,64 @@
 
   <!-- ====== CENTER ====== -->
   <g filter="url(#strongGlow)">
-    <circle cx="400" cy="265" r="50" fill="#111827" stroke="url(#centerGrad)" stroke-width="2"/>
+    <circle cx="400" cy="265" r="50" fill="#151921" stroke="url(#centerGrad)" stroke-width="2"/>
     <circle cx="400" cy="265" r="50" fill="url(#centerGrad)" fill-opacity="0.08"/>
   </g>
   <text x="400" y="258" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="700">Auto-Apply</text>
-  <text x="400" y="275" text-anchor="middle" fill="#22c55e" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
+  <text x="400" y="275" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
 
   <!-- ====== OUTER RING MODULES ====== -->
 
   <!-- Circuit Breaker (top-right outer) -->
   <g filter="url(#shadow)">
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#111827" stroke="#ef4444" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ef4444" fill-opacity="0.05"/>
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#151921" stroke="#ee6d75" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ee6d75" fill-opacity="0.05"/>
   </g>
-  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ef4444"/>
-  <text x="635" y="163" fill="#ef4444" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
-  <line x1="595" y1="175" x2="570" y2="220" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ee6d75"/>
+  <text x="635" y="163" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
+  <line x1="595" y1="175" x2="570" y2="220" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
 
   <!-- Auto-Escalation (bottom-right outer) -->
   <g filter="url(#shadow)">
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#111827" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f59e0b" fill-opacity="0.05"/>
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f4bb4f" fill-opacity="0.05"/>
   </g>
-  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f59e0b"/>
-  <text x="635" y="363" fill="#f59e0b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
-  <line x1="610" y1="358" x2="576" y2="358" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f4bb4f"/>
+  <text x="635" y="363" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
+  <line x1="610" y1="358" x2="576" y2="358" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
 
   <!-- Session Scoring (bottom-left outer) -->
   <g filter="url(#shadow)">
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#111827" stroke="#00bfff" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#00bfff" fill-opacity="0.05"/>
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#22d3ee" fill-opacity="0.05"/>
   </g>
-  <rect x="60" y="349" width="8" height="18" rx="2" fill="#00bfff"/>
-  <text x="75" y="363" fill="#00bfff" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
-  <line x1="190" y1="358" x2="225" y2="358" stroke="#00bfff" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+  <rect x="60" y="349" width="8" height="18" rx="2" fill="#22d3ee"/>
+  <text x="75" y="363" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
+  <line x1="190" y1="358" x2="225" y2="358" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
 
   <!-- Norms Learner (top-left outer) -->
   <g filter="url(#shadow)">
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#111827" stroke="#22c55e" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#22c55e" fill-opacity="0.05"/>
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#151921" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#4ade80" fill-opacity="0.05"/>
   </g>
-  <rect x="60" y="149" width="8" height="18" rx="2" fill="#22c55e"/>
-  <text x="75" y="163" fill="#22c55e" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
-  <line x1="190" y1="158" x2="228" y2="220" stroke="#22c55e" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+  <rect x="60" y="149" width="8" height="18" rx="2" fill="#4ade80"/>
+  <text x="75" y="163" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
+  <line x1="190" y1="158" x2="228" y2="220" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
 
   <!-- Legend -->
   <g transform="translate(52, 388)">
     <text x="0" y="0" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">FASES DEL CICLO</text>
-    <circle cx="5" cy="12" r="3.5" fill="#00bfff"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
-    <circle cx="5" cy="24" r="3.5" fill="#a855f7"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
-    <circle cx="5" cy="36" r="3.5" fill="#22c55e"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
-    <circle cx="5" cy="48" r="3.5" fill="#f59e0b"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
-    <circle cx="5" cy="60" r="3.5" fill="#ef4444"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
+    <circle cx="5" cy="12" r="3.5" fill="#22d3ee"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
+    <circle cx="5" cy="24" r="3.5" fill="#a78bfa"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
+    <circle cx="5" cy="36" r="3.5" fill="#4ade80"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
+    <circle cx="5" cy="48" r="3.5" fill="#f4bb4f"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
+    <circle cx="5" cy="60" r="3.5" fill="#ee6d75"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
     <circle cx="5" cy="72" r="3.5" fill="url(#learnGrad)"/><text x="13" y="75" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">6 Learning</text>
     <line x1="0" y1="81" x2="120" y2="81" stroke="#1e3a5f" stroke-width="0.5"/>
-    <circle cx="5" cy="90" r="3.5" fill="#111827" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#22c55e" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
-    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ef4444" fill-opacity="0.3" stroke="#ef4444" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
+    <circle cx="5" cy="90" r="3.5" fill="#151921" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
+    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ee6d75" fill-opacity="0.3" stroke="#ee6d75" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
     <line x1="0" y1="112" x2="30" y2="112" stroke="#4b5563" stroke-width="1"/><text x="35" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Core cycle</text>
-    <line x1="0" y1="124" x2="30" y2="124" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
+    <line x1="0" y1="124" x2="30" y2="124" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
   </g>
 
   <!-- Footer -->

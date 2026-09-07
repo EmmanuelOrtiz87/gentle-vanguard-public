@@ -85,7 +85,10 @@ export class InMemoryStorage implements StoragePort {
 
   list(prefix = ''): StorageEntry[] {
     this.assertOpen();
-    return [...this.map.entries()].filter(([k]) => k.startsWith(prefix)).map(([key, value]) => ({ key, value })).sort((a, b) => (a.key < b.key ? -1 : 1));
+    return [...this.map.entries()]
+      .filter(([k]) => k.startsWith(prefix))
+      .map(([key, value]) => ({ key, value }))
+      .sort((a, b) => (a.key < b.key ? -1 : 1));
   }
 
   append(key: string, chunk: string): number {
@@ -138,7 +141,8 @@ export class SqliteDiskStorage implements StoragePort {
 
   get(key: string): string | undefined {
     this.assertOpen();
-    const row = this.db.prepare('SELECT value FROM port_kv WHERE key = ?').get(key) as { value: string } | undefined;
+    const row = this.db.prepare('SELECT value FROM port_kv WHERE key = ?').get(key) as
+      { value: string } | undefined;
     return row?.value;
   }
 
@@ -148,7 +152,9 @@ export class SqliteDiskStorage implements StoragePort {
     // "returns true when a previous value was replaced" contract.
     const existed = this.exists(key);
     this.db
-      .prepare('INSERT INTO port_kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+      .prepare(
+        'INSERT INTO port_kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+      )
       .run(key, value);
     return existed;
   }
@@ -176,7 +182,11 @@ export class SqliteDiskStorage implements StoragePort {
     const tx = this.db.transaction(() => {
       const current = this.get(key) ?? '';
       const next = current + chunk;
-      this.db.prepare('INSERT INTO port_kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, next);
+      this.db
+        .prepare(
+          'INSERT INTO port_kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        )
+        .run(key, next);
       return next.length;
     });
     return tx();
@@ -184,7 +194,9 @@ export class SqliteDiskStorage implements StoragePort {
 
   count(prefix = ''): number {
     this.assertOpen();
-    const row = this.db.prepare(`SELECT COUNT(*) AS n FROM port_kv WHERE key LIKE ? ESCAPE '\\'`).get(escapeLike(prefix) + '%') as { n: number };
+    const row = this.db
+      .prepare(`SELECT COUNT(*) AS n FROM port_kv WHERE key LIKE ? ESCAPE '\\'`)
+      .get(escapeLike(prefix) + '%') as { n: number };
     return row.n;
   }
 

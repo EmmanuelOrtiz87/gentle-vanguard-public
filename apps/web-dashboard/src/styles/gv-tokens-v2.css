@@ -1,0 +1,176 @@
+/*
+ * Gentle-Vanguard web-dashboard — LOCAL v2 Premium token override.
+ *
+ * Why local: the shared packages/gv-design-system tokens still carry pre-v2
+ * surface values (#121212 bg, #1f2937 surface, #9ca3af muted, Orbitron display)
+ * and an unlayered `color-scheme: dark` that leaks into light mode. The shared
+ * package is owned by migration etapa 3 — it is NOT edited from here. This file
+ * re-declares the --gv-* custom properties at the OFFICIAL v2 values.
+ *
+ * Source of truth: docs/brand/TOKENS-v2.json (decision 2026-09-01).
+ * Reference application: apps/academy-web/academy-tokens-v2.css.
+ * Scope: :root = light, :root.dark = dark (default theme is dark).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* === ACCENTS (v2) === */
+  --gv-purple: #7c3aed;
+  --gv-purple-deep: #6d28d9;
+  --gv-purple-soft: #a78bfa;
+  --gv-cyan: #0891b2;
+  --gv-cyan-deep: #0e7490;
+  --gv-cyan-soft: #22d3ee;
+  --gv-gold: #b45309;
+
+  /* === SURFACE === */
+  --gv-bg: #f5f7fa;
+  --gv-bg-deep: #e8edf1;
+  --gv-surface: #ffffff;
+  --gv-surface-raised: #e8edf1;
+  --gv-surface-overlay: rgba(255, 255, 255, 0.8);
+
+  /* === TEXT === */
+  --gv-text: #0f172a;
+  --gv-text-secondary: #334155;
+  --gv-muted: #64748b;
+  --gv-text-inverse: #ffffff;
+
+  /* === STATUS === */
+  --gv-amber: #b45309;
+  --gv-red: #dc2626;
+  --gv-green: #16a34a;
+  --gv-info: #0891b2;
+
+  /* === BORDER === */
+  --gv-border: rgba(15, 23, 42, 0.14);
+  --gv-border-accent: rgba(124, 58, 237, 0.25);
+  --gv-border-accent-strong: rgba(8, 145, 178, 0.5);
+
+  /* === GLOW === */
+  --gv-glow-purple: rgba(124, 58, 237, 0.14);
+  --gv-glow-cyan: rgba(8, 145, 178, 0.12);
+
+  /* === GRADIENT === */
+  --gv-gradient: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+  --gv-gradient-subtle: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.18) 0%,
+    rgba(8, 145, 178, 0.18) 100%
+  );
+  --gv-gradient-text: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+
+  /* === TYPOGRAPHY (v2) === */
+  --gv-font-display: 'Space Grotesk', 'Orbitron', sans-serif;
+  --gv-font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --gv-font-mono: 'JetBrains Mono NL', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* === SPACING === */
+  --gv-space-1: 4px;
+  --gv-space-2: 8px;
+  --gv-space-3: 12px;
+  --gv-space-4: 16px;
+  --gv-space-5: 20px;
+  --gv-space-6: 24px;
+  --gv-space-8: 32px;
+  --gv-space-10: 40px;
+  --gv-space-12: 48px;
+  --gv-space-16: 64px;
+  --gv-space-20: 80px;
+  --gv-space-24: 96px;
+
+  /* === RADIUS (v2) === */
+  --gv-radius-sm: 6px;
+  --gv-radius-md: 10px;
+  --gv-radius-lg: 14px;
+  --gv-radius-xl: 20px;
+  --gv-radius-2xl: 28px;
+  --gv-radius-pill: 999px;
+
+  /* === ELEVATION === */
+  --gv-elev-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --gv-elev-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --gv-elev-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --gv-elev-xl: 0 20px 60px rgba(15, 23, 42, 0.18);
+  --gv-elev-glow: 0 0 0 1px rgba(8, 145, 178, 0.15) inset, 0 8px 32px rgba(8, 145, 178, 0.25);
+
+  /* === MOTION (v2) === */
+  --gv-duration-instant: 100ms;
+  --gv-duration-fast: 180ms;
+  --gv-duration-base: 280ms;
+  --gv-duration-slow: 400ms;
+  --gv-ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --gv-ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --gv-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --gv-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === BREAKPOINTS (v2) === */
+  --gv-breakpoint-sm: 640px;
+  --gv-breakpoint-md: 768px;
+  --gv-breakpoint-lg: 1024px;
+  --gv-breakpoint-xl: 1280px;
+
+  /* === Z-INDEX === */
+  --gv-z-base: 0;
+  --gv-z-raised: 10;
+  --gv-z-sticky: 50;
+  --gv-z-overlay: 100;
+  --gv-z-modal: 200;
+  --gv-z-toast: 300;
+  --gv-z-max: 9999;
+
+  /* === LAYOUT (v2) === */
+  --gv-header-height: 64px;
+  --gv-content-max-width: 1200px;
+}
+
+/* === DARK (v2 Premium — default theme of this app) === */
+:root.dark {
+  color-scheme: dark;
+
+  --gv-purple: #a78bfa;
+  --gv-purple-deep: #7c3aed;
+  --gv-purple-soft: #c4b5fd;
+  --gv-cyan: #22d3ee;
+  --gv-cyan-deep: #0891b2;
+  --gv-cyan-soft: #67e8f9;
+  --gv-gold: #fbbf24;
+
+  --gv-bg: #0f1115;
+  --gv-bg-deep: #090c11;
+  --gv-surface: #1a1f2a;
+  --gv-surface-raised: #252b38;
+  --gv-surface-overlay: rgba(26, 31, 42, 0.72);
+
+  --gv-text: #e8eef4;
+  --gv-text-secondary: #c4cdd8;
+  --gv-muted: #8b95a8;
+  --gv-text-inverse: #090c11;
+
+  --gv-amber: #f4bb4f;
+  --gv-red: #ee6d75;
+  --gv-green: #4ade80;
+  --gv-info: #22d3ee;
+
+  --gv-border: rgba(139, 149, 168, 0.2);
+  --gv-border-accent: rgba(167, 139, 250, 0.24);
+  --gv-border-accent-strong: rgba(34, 211, 238, 0.5);
+
+  --gv-glow-purple: rgba(167, 139, 250, 0.16);
+  --gv-glow-cyan: rgba(34, 211, 238, 0.13);
+
+  --gv-gradient: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+  --gv-gradient-subtle: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.18) 0%,
+    rgba(34, 211, 238, 0.18) 100%
+  );
+  --gv-gradient-text: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+
+  --gv-elev-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --gv-elev-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --gv-elev-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --gv-elev-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --gv-elev-glow: 0 0 0 1px rgba(34, 211, 238, 0.15) inset, 0 8px 32px rgba(34, 211, 238, 0.35);
+}

@@ -91,8 +91,18 @@ test('CAS: re-recording replaces in place with version+1 — one durable owner',
 });
 
 test('a new operation for the same workflow SUPERSEDES the previous active one', () => {
-  recordContinuation({ workflowId: 'w3', operation: 'rdd.classify', command: 'cmd-classify', root: process.cwd() });
-  recordContinuation({ workflowId: 'w3', operation: 'rdd.review', command: 'cmd-review', root: process.cwd() });
+  recordContinuation({
+    workflowId: 'w3',
+    operation: 'rdd.classify',
+    command: 'cmd-classify',
+    root: process.cwd(),
+  });
+  recordContinuation({
+    workflowId: 'w3',
+    operation: 'rdd.review',
+    command: 'cmd-review',
+    root: process.cwd(),
+  });
 
   // one durable owner: nextTransition must return the LATEST, never the stale one
   const next = nextTransition('w3');
@@ -189,7 +199,10 @@ test('refusal evidence: only filed when something started', () => {
 test('describe renders the refusal block without paths', () => {
   const text = describeRefusal(
     refusal('replay', 'ack.replayed', 'acknowledgement already consumed', {
-      remediation: { command: 'npx tsx src/core/continuation.ts ack-status --resource rdd.w1', description: 'inspect pending' },
+      remediation: {
+        command: 'npx tsx src/core/continuation.ts ack-status --resource rdd.w1',
+        description: 'inspect pending',
+      },
     }),
   );
   assert.match(text, /REFUSED \[replay\] ack\.replayed/);
@@ -198,7 +211,12 @@ test('describe renders the refusal block without paths', () => {
 });
 
 test('listActiveContinuations + listPendingAcks: dashboard surface', () => {
-  recordContinuation({ workflowId: 'w-list', operation: 'op.a', command: 'cmd-a', root: process.cwd() });
+  recordContinuation({
+    workflowId: 'w-list',
+    operation: 'op.a',
+    command: 'cmd-a',
+    root: process.cwd(),
+  });
   stageAck('rdd.w-list', 'rev-1');
   const actives = listActiveContinuations();
   assert.ok(actives.some((e) => e.binding.workflowId === 'w-list' && e.command === 'cmd-a'));
@@ -208,7 +226,12 @@ test('listActiveContinuations + listPendingAcks: dashboard surface', () => {
 
 test('pruneContinuations: resolved deleted, stale actives closed, stale acks burned, index rebuilt', () => {
   // fresh active + fresh ack — must survive a 30d prune
-  recordContinuation({ workflowId: 'w-fresh', operation: 'op', command: 'cmd-fresh', root: process.cwd() });
+  recordContinuation({
+    workflowId: 'w-fresh',
+    operation: 'op',
+    command: 'cmd-fresh',
+    root: process.cwd(),
+  });
   const freshAck = stageAck('rdd.w-fresh', 'rev-fresh');
 
   // old resolved → deleted; old active → closed honestly; old ack → burned
@@ -217,16 +240,30 @@ test('pruneContinuations: resolved deleted, stale actives closed, stale acks bur
   const contFile = (workflowId: string, op: string) =>
     join(dir, 'continuations', `${`${workflowId}::${op}`.replace(/[^a-zA-Z0-9_-]+/g, '_')}.json`);
 
-  const oldResolved = recordContinuation({ workflowId: 'w-old-r', operation: 'op', command: 'cmd-old-r', root: process.cwd() });
+  const oldResolved = recordContinuation({
+    workflowId: 'w-old-r',
+    operation: 'op',
+    command: 'cmd-old-r',
+    root: process.cwd(),
+  });
   oldResolved.status = 'resolved';
   oldResolved.createdAt = old;
   writeFileSync(contFile('w-old-r', 'op'), JSON.stringify(oldResolved, null, 2), 'utf-8');
-  const oldActive = recordContinuation({ workflowId: 'w-old-a', operation: 'op', command: 'cmd-old-a', root: process.cwd() });
+  const oldActive = recordContinuation({
+    workflowId: 'w-old-a',
+    operation: 'op',
+    command: 'cmd-old-a',
+    root: process.cwd(),
+  });
   oldActive.createdAt = old;
   writeFileSync(contFile('w-old-a', 'op'), JSON.stringify(oldActive, null, 2), 'utf-8');
   writeFileSync(
     join(dir, 'acks', 'rdd.w-old-ack.json'),
-    JSON.stringify({ resource: 'rdd.w-old-ack', token: 'ack-x', revision: 'r', createdAt: old }, null, 2),
+    JSON.stringify(
+      { resource: 'rdd.w-old-ack', token: 'ack-x', revision: 'r', createdAt: old },
+      null,
+      2,
+    ),
     'utf-8',
   );
 

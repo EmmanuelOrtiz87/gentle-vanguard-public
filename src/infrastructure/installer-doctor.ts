@@ -93,7 +93,8 @@ function main(): void {
     );
   for (const item of manifest.optional) checks.push(commandCheck(item.id, item.command, false));
   checks.push(pathCheck('node_modules', 'node_modules', true));
-  checks.push(pathCheck('dashboard', manifest.runtime.dashboard, true));
+  // dashboard decoupled from the stack repo (local-first apps with own git) — optional now
+  checks.push(pathCheck('dashboard', manifest.runtime.dashboard, false));
   checks.push(pathCheck('lockfile', 'pnpm-lock.yaml', true));
   checks.push(pathCheck('database-driver', 'node_modules/better-sqlite3', true));
   for (const file of manifest.runtime.configuration) checks.push(pathCheck(file, file, true));

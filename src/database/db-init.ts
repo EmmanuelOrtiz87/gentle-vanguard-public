@@ -58,7 +58,7 @@ export async function initDb(options: DbInitOptions = {}): Promise<DbInitResult>
   }
 
   // Dynamic import to avoid better-sqlite3 loading if just checking
-  const { DatabaseManager } = await import('../../apps/web-dashboard/server/database/manager');
+  const { DatabaseManager } = await import('./nexus/manager.js');
 
   const db = DatabaseManager.getInstance();
 

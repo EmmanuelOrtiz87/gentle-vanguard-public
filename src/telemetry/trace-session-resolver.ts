@@ -58,9 +58,7 @@ export function readCurrentRepoSessionId(repoRoot: string = process.cwd()): stri
  * Resolve the session id for a trace about to be written. Returns null when
  * nothing honest can be determined (writers must then keep NULL — never throw).
  */
-export function resolveTraceSessionId(
-  opts: ResolveTraceSessionOptions = {},
-): string | null {
+export function resolveTraceSessionId(opts: ResolveTraceSessionOptions = {}): string | null {
   // 1. Correlation context (AsyncLocalStorage) — strongest signal when present.
   const ctx = getCorrelation();
   if (ctx?.sessionId) return ctx.sessionId;

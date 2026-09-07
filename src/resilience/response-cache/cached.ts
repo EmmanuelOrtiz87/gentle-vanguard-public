@@ -64,7 +64,7 @@ export function defaultTtlMinutes(): number {
 
 /** Rough token estimate: ~4 chars per token (same heuristic family as token-ingest). */
 export function estimateTokensFor(value: unknown): number {
-  const s = typeof value === 'string' ? value : JSON.stringify(value) ?? '';
+  const s = typeof value === 'string' ? value : (JSON.stringify(value) ?? '');
   return Math.ceil(s.length / 4);
 }
 
@@ -108,7 +108,10 @@ function recordTokenSaving(key: string, savedTokens: number): void {
  * - miss: run fn, store result, return it (tokensSaved = 0).
  * - hit: skip fn, return deserialized cached value + tokensSaved estimate.
  */
-export async function cached<T>(options: CachedOptions, fn: () => Promise<T>): Promise<CachedResult<T>> {
+export async function cached<T>(
+  options: CachedOptions,
+  fn: () => Promise<T>,
+): Promise<CachedResult<T>> {
   const { context, input, ttlMinutes, estimateTokens = estimateTokensFor } = options;
 
   if (isCacheDisabled()) {
@@ -137,7 +140,13 @@ export async function cached<T>(options: CachedOptions, fn: () => Promise<T>): P
 
   // Write side — never let a cache write failure break the host path.
   try {
-    cache.set(input, JSON.stringify(value), estimateTokens(value), context, ttlMinutes ?? defaultTtlMinutes());
+    cache.set(
+      input,
+      JSON.stringify(value),
+      estimateTokens(value),
+      context,
+      ttlMinutes ?? defaultTtlMinutes(),
+    );
   } catch {
     /* ignore */
   }

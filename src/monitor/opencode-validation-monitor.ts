@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { db } from '../database/db.js';
 import { pathToFileURL } from 'url';
-import type { AlertRecord } from '../../apps/web-dashboard/server/database/manager.js';
+import type { AlertRecord } from '../database/nexus//manager.js';
 
 function formatAlert(alert: AlertRecord): string {
   return `[${alert.severity.toUpperCase()}] ${alert.name} (${alert.rule}) — actual=${alert.actual} threshold=${alert.threshold} created_at=${alert.created_at}`;

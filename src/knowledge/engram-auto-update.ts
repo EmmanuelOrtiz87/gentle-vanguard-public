@@ -6,7 +6,7 @@
  * to keep engram current without breaking the stack.
  *
  * Usage:
- *   npx tsx src/engram-auto-update.ts [--check-only] [--force]
+ *   npx tsx src/knowledge/engram-auto-update.ts [--check-only] [--force]
  */
 
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';

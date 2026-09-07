@@ -26,10 +26,7 @@ import { pathToFileURL } from 'url';
 import { recommend } from './recommend-agent.js';
 import { delegateWithGuardrail, compressDelegationLossless } from './agent-delegator.js';
 import { resolveAgentTier } from '../sdd/domain-tier.js';
-import {
-  DatabaseManager,
-  DEFAULT_TENANT_ID,
-} from '../../apps/web-dashboard/server/database/manager.js';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager.js';
 
 const ROOT = resolve(process.cwd());
 const HITS_FILE = join(ROOT, '.session', 'routing', 'hits.jsonl');

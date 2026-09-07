@@ -267,6 +267,88 @@ function validatePermissions(permissions: unknown): string[] {
   return errors;
 }
 
+interface ProviderDef {
+  npm?: string;
+  options?: { apiKey?: string; headers?: Record<string, string> };
+  models?: Record<string, { npm?: string } & Record<string, unknown>>;
+}
+
+/**
+ * Validate provider configuration against known SDK anti-patterns.
+ *
+ * Anti-patterns detected (learned from opencode.json 2026-09-06 incident):
+ *  - npm override on a model that differs from the provider's npm.
+ *    The OpenAI SDK and OpenAI-compatible SDK build different request payloads.
+ *    Mixing them in the same provider causes "Internal server error" with no useful code.
+ *    See: muse-spark-1.2-contributor-free in opencode-zen-A/B (the override `npm: "@ai-sdk/openai"`
+ *    while parent used `@ai-sdk/openai-compatible`).
+ *  - Model name suffix `-contributor-free` (or any variant of `contributor-free`) on a
+ *    provider whose parent npm is `openai-compatible`. This is a smell, not a hard rule.
+ *  - Empty apiKey in provider.options AND no auth.json entry. Means provider will reject
+ *    every request silently.
+ */
+function validateProviders(
+  providers: Record<string, ProviderDef> | undefined,
+  disabled: string[] | undefined,
+): string[] {
+  const errors: string[] = [];
+  if (!providers) return errors;
+
+  const disabledSet = new Set(disabled || []);
+
+  for (const [id, p] of Object.entries(providers)) {
+    if (disabledSet.has(id)) continue;
+    if (!p) continue;
+
+    const parentNpm = p.npm;
+
+    if (p.models) {
+      for (const [modelId, modelDef] of Object.entries(p.models)) {
+        if (!modelDef || typeof modelDef !== 'object') continue;
+
+        // Anti-pattern 1: model-level npm override that differs from provider npm
+        if (modelDef.npm && modelDef.npm !== parentNpm) {
+          errors.push(
+            `WARN: provider.${id}.models.${modelId}.npm = "${modelDef.npm}" differs from parent npm "${parentNpm}". ` +
+            `Mixing @ai-sdk/openai and @ai-sdk/openai-compatible in the same provider causes "Internal server error" ` +
+            `with no useful diagnostic. Remove the override or remove the model.`,
+          );
+        }
+
+        // Anti-pattern 2: contributor-free models on openai-compatible parents are
+        // historically a smell. Not a hard rule but worth flagging.
+        if (
+          parentNpm === '@ai-sdk/openai-compatible' &&
+          /contributor-free$/.test(modelId)
+        ) {
+          errors.push(
+            `INFO: provider.${id}.models.${modelId} matches "contributor-free" pattern under an openai-compatible parent. ` +
+            `If you see "Internal server error" on this model, the model is broken by config, not by upstream.`,
+          );
+        }
+      }
+    }
+
+    // Anti-pattern 3: provider has no usable auth (no apiKey in options, no auth.json lookup here)
+    if (!p.options?.apiKey) {
+      const headers = p.options?.headers || {};
+      const hasAuthHeader = Boolean(
+        headers.Authorization || headers.authorization ||
+        headers['x-api-key'] || headers['X-Api-Key'],
+      );
+      if (!hasAuthHeader) {
+        // Note: we can't check auth.json here without a path; just flag if there's clearly no auth source in config.
+        errors.push(
+          `INFO: provider.${id} has no apiKey, no Authorization header, no x-api-key header. ` +
+          `It must have an entry in auth.json (managed by opencode auth login or oc-keyring).`,
+        );
+      }
+    }
+  }
+
+  return errors;
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const configPath = resolve(
@@ -349,6 +431,23 @@ function main(): void {
       console.log('Permission validation errors:');
       for (const error of permErrors) {
         console.log(`  - ${error}`);
+      }
+    }
+  }
+
+  // Validate provider SDK anti-patterns (npm overrides, missing auth, etc.)
+  if ('provider' in config) {
+    const providers = config.provider as Record<string, ProviderDef>;
+    const disabled = (config.disabled_providers as string[] | undefined) || [];
+    const providerErrors = validateProviders(providers, disabled);
+    // Only push WARN/ERROR to errors (INFO is informational, doesn't fail validation)
+    const blockingErrors = providerErrors.filter((e) => !e.startsWith('INFO:'));
+    errors.push(...blockingErrors);
+    if (providerErrors.length > 0) {
+      console.log('Provider validation:');
+      for (const error of providerErrors) {
+        const tag = error.startsWith('WARN:') ? '⚠️ ' : error.startsWith('INFO:') ? 'ℹ️  ' : '❌ ';
+        console.log(`  ${tag}${error}`);
       }
     }
   }

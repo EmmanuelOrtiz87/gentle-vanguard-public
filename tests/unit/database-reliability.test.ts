@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import test from 'node:test';
 import Database from 'better-sqlite3';
 
-import { MigrationRunner } from '../../apps/web-dashboard/server/database/repositories/MigrationRunner';
-import { HousekeepingRepo } from '../../apps/web-dashboard/server/database/repositories/HousekeepingRepo';
+import { MigrationRunner } from '../../src/database/nexus//repositories/MigrationRunner';
+import { HousekeepingRepo } from '../../src/database/nexus//repositories/HousekeepingRepo';
 
 test('MigrationRunner applies migrations atomically', () => {
   const db = new Database(':memory:');
@@ -56,7 +56,7 @@ test('DatabaseManager applies the configured SQLite busy timeout', async () => {
   process.env.GENTLE_VANGUARD_DB_FILE = 'reliability-test.db';
 
   try {
-    const { DatabaseManager } = await import('../../apps/web-dashboard/server/database/manager');
+    const { DatabaseManager } = await import('../../src/database/nexus//manager');
     const manager = DatabaseManager.getInstance();
     assert.equal(manager.getDb().pragma('busy_timeout', { simple: true }), 5000);
     DatabaseManager.resetInstance();

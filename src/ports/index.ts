@@ -41,7 +41,8 @@ export interface ResolvePortsOptions {
 }
 
 /** Minimal env-shaped source so ConfigService instances satisfy it structurally. */
-type EnvSource = Pick<NodeJS.ProcessEnv, 'GV_STORAGE' | 'GV_QUEUE' | 'GV_TRACING'> | NodeJS.ProcessEnv;
+type EnvSource =
+  Pick<NodeJS.ProcessEnv, 'GV_STORAGE' | 'GV_QUEUE' | 'GV_TRACING'> | NodeJS.ProcessEnv;
 
 export function resolvePorts(opts: ResolvePortsOptions & { env?: EnvSource } = {}): Ports {
   const env = (opts.env ?? process.env) as NodeJS.ProcessEnv;
@@ -67,14 +68,20 @@ export function resolvePorts(opts: ResolvePortsOptions & { env?: EnvSource } = {
     queue = new InProcessQueue();
   }
 
-  const tracing: TracingPort = tracingKind === 'otel' ? new OtelTracingPort() : new NoopTracingPort();
+  const tracing: TracingPort =
+    tracingKind === 'otel' ? new OtelTracingPort() : new NoopTracingPort();
 
   return {
     storage,
     queue,
     tracing,
     adapters: {
-      storage: storage instanceof InMemoryStorage ? (storageKind === 'memory' ? 'memory' : `${storageKind} (fallback→memory)`) : 'sqlite-disk',
+      storage:
+        storage instanceof InMemoryStorage
+          ? storageKind === 'memory'
+            ? 'memory'
+            : `${storageKind} (fallback→memory)`
+          : 'sqlite-disk',
       queue: queueKind === 'in-process' ? 'in-process' : `${queueKind} (fallback→in-process)`,
       tracing: tracingKind === 'otel' ? 'otel' : 'noop',
     },

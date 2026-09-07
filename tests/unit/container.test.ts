@@ -142,9 +142,10 @@ describe('createTestContainer (test isolation)', () => {
     const em = c.resolve<typeof import('../../src/resilience/error-memory.js')>('errorMemory');
     assert.equal(typeof em.saveError, 'function');
     // Container db injection is observable through adaptive-router's exported getDb():
-    const ar = c.resolve<typeof import('../../src/orchestration/adaptive-router/index.js')>(
-      'adaptiveRouter',
-    );
+    const ar =
+      c.resolve<typeof import('../../src/orchestration/adaptive-router/index.js')>(
+        'adaptiveRouter',
+      );
     assert.equal(ar.getDb(), stubDb);
     assert.equal(ar.getDb(), c.resolve('db'), 'injected db must be the container db');
   });
@@ -159,13 +160,13 @@ describe('createTestContainer (test isolation)', () => {
   it('legacy getInstance() delegation returns the container-resolved instance', async () => {
     const c = createTestContainer();
     const metrics = c.resolve<{
-      forSession: (id: string) => import('../../src/core/session-metrics-tracker.js').SessionMetricsTracker;
+      forSession: (
+        id: string,
+      ) => import('../../src/core/session-metrics-tracker.js').SessionMetricsTracker;
     }>('sessionMetrics');
     const tracker = metrics.forSession('container-test-session');
     // Legacy static path must return the SAME object the container façade returned:
-    const {
-      SessionMetricsTracker,
-    } = await import('../../src/core/session-metrics-tracker.js');
+    const { SessionMetricsTracker } = await import('../../src/core/session-metrics-tracker.js');
     assert.equal(SessionMetricsTracker.getInstance('container-test-session'), tracker);
     SessionMetricsTracker.destroy('container-test-session');
   });

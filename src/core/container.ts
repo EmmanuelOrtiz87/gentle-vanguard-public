@@ -25,7 +25,7 @@
 import { getConfigService, ConfigService, createTestConfig } from '../config/config-service.js';
 import { db } from '../database/db.js';
 import { runGuard } from '../tokens/token-budget-guard.js';
-import type { DatabaseManager } from '../../apps/web-dashboard/server/database/manager.js';
+import type { DatabaseManager } from '../database/nexus//manager.js';
 import * as errorMemory from '../resilience/error-memory.js';
 import * as resultGatekeeper from '../review/result-gatekeeper.js';
 import * as eventSourcing from '../tools/event-sourcing.js';

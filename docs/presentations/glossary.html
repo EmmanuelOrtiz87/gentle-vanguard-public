@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es" data-bs-theme="dark" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0b1020" />
+    <meta name="theme-color" content="#0F1115" />
     <meta
       name="description"
       content="Glosario e Índice — Gentle-Vanguard — Gentle-Vanguard documentation"
@@ -148,7 +148,10 @@
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
         <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
+            class="gv-wordmark"
+            >Gentle<strong>Vanguard</strong></span
+          ></a
         >
         <button
           class="navbar-toggler"
@@ -834,8 +837,8 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">
-              Grafo de conocimiento SQLite para inteligencia de símbolos (AST). 10.663 nodos, 21.746
-              aristas.
+              Grafo de conocimiento SQLite para inteligencia de símbolos (AST). 10.000+ nodos,
+              20.000+ aristas.
             </p>
             <div class="gloss-where mono">📍 src/ · .codegraph/</div>
           </div>
@@ -1124,7 +1127,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">
-              Memoria persistente que sobrevive sesiones y compactaciones (2078 observaciones).
+              Memoria persistente que sobrevive sesiones y compactaciones (3,600+ observaciones).
             </p>
             <div class="gloss-where mono">📍 src/engram-* · MCP engram</div>
           </div>
@@ -1374,7 +1377,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">
-              Grafo de conocimiento del proyecto (god nodes, comunidades, 18MB) con CLI
+              Grafo de conocimiento del proyecto (god nodes, comunidades, 4MB) con CLI
               query/explain/path.
             </p>
             <div class="gloss-where mono">📍 src/cli/graphify.ts · graphify-out/</div>
@@ -1771,7 +1774,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">
-              Orquestador central de health/autoheal: 95 checks en 13 componentes, 6 modos.
+              Orquestador central de health/autoheal: 113 checks en 26 componentes, 6 modos.
             </p>
             <div class="gloss-where mono">📍 src/core/maintenance-watchtower.ts</div>
           </div>
@@ -1824,7 +1827,7 @@
               <span class="gloss-term mono">Migration</span>
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
-            <p class="gloss-def">Evolución del esquema de Nexus (7 migraciones, m001-m003+).</p>
+            <p class="gloss-def">Evolución del esquema de Nexus (16 migraciones, m001-m003+).</p>
             <div class="gloss-where mono">📍 apps/web-dashboard/server/database/</div>
           </div>
           <div class="gloss-card" id="term-mitre">
@@ -1923,7 +1926,7 @@
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
             <p class="gloss-def">
-              Base de datos operacional SQLite (WAL, FK ON, 12+ tablas, 7 migraciones). Cerebro
+              Base de datos operacional SQLite (WAL, FK ON, 12+ tablas, 16 migraciones). Cerebro
               operacional.
             </p>
             <div class="gloss-where mono">📍 .runtime/gentle-vanguard.db</div>
@@ -2085,7 +2088,7 @@
               <span class="gloss-term mono">Pipeline</span>
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
-            <p class="gloss-def">Pipeline de sesión: 31 Phase-1 paralelos + 70 lazy background.</p>
+            <p class="gloss-def">Pipeline de sesión: 31 Phase-1 paralelos + 83 lazy background.</p>
             <div class="gloss-where mono">📍 config/session-autostart.config.json</div>
           </div>
           <div class="gloss-card" id="term-pie">
@@ -2497,7 +2500,7 @@
               <span class="gloss-term mono">Session-Autostart</span>
               <span class="gloss-cat" style="color: var(--p)">stack</span>
             </div>
-            <p class="gloss-def">Pipeline de inicio de sesión: 31 pasos Phase-1 + 70 lazy.</p>
+            <p class="gloss-def">Pipeline de inicio de sesión: 31 pasos Phase-1 + 83 lazy.</p>
             <div class="gloss-where mono">📍 src/session/session-autostart.ts</div>
           </div>
           <div class="gloss-card" id="term-session-close-orchestrator">
@@ -2831,7 +2834,7 @@
               <span class="gloss-cat" style="color: #38bdf8">herramienta</span>
             </div>
             <p class="gloss-def">
-              JavaScript con tipos. Lenguaje de todo el stack (436+ TS files).
+              JavaScript con tipos. Lenguaje de todo el stack (604+ TS files).
             </p>
             <div class="gloss-where mono">📍 src/ · apps/web-dashboard/</div>
           </div>
@@ -3087,22 +3090,22 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >109 Test Files</span
+          >175 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >95/95 Health</span
+          >113/113 Health</span
         >
         <span
           class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >11 Repos</span
+          >16 Repos</span
         >
         <span
           class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >263 Skills</span
+          >92 Skills</span
         >
         <span
           class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"

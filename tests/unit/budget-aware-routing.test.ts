@@ -34,6 +34,7 @@ function makeState(used: number, extra: Partial<BudgetRoutingState> = {}): Budge
   const state = getBudgetRoutingState({
     usedTokensToday: used,
     configOverride: { ...BASE_CONFIG },
+    dailyBudgetOverride: 5_000_000,
   });
   return Object.assign(state, { enabled: true, ...extra });
 }
@@ -90,6 +91,7 @@ test('env GV_BUDGET_ROUTING=0 disables routing', () => {
     const state = getBudgetRoutingState({
       usedTokensToday: 7_500_000,
       configOverride: { ...BASE_CONFIG },
+      dailyBudgetOverride: 5_000_000,
     });
     assert.equal(state.enabled, false);
     assert.equal(state.disabledByEnv, true);
@@ -105,9 +107,7 @@ test('downgrade decision is logged to the JSONL decision log', () => {
   const resolved = resolveBudgetAwareModel('research', MODEL, state);
   assert.equal(resolved, CHEAP);
   const last = readLastDecisions(3);
-  const row = last.find(
-    (r) => r.path === 'research' && r.from === MODEL && r.to === CHEAP,
-  );
+  const row = last.find((r) => r.path === 'research' && r.from === MODEL && r.to === CHEAP);
   assert.ok(row, 'decision row found in budget-routing-decisions.jsonl');
   assert.ok(typeof row.ts === 'string' && row.ts);
   assert.ok(typeof row.usagePct === 'number' && (row.usagePct as number) >= 150);

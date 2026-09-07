@@ -59,10 +59,7 @@ test('writer: different sessions or tenants are separate rows', () => {
   writeSkillUsageRow(db, { skillId: 'sk', sessionId: 'a' });
   writeSkillUsageRow(db, { skillId: 'sk', sessionId: 'b' });
   writeSkillUsageRow(db, { skillId: 'sk', tenantId: 'other' });
-  assert.equal(
-    (db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c,
-    3,
-  );
+  assert.equal((db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c, 3);
 });
 
 /* ── recordSkillUsage via provider (failure tolerance) ── */
@@ -72,10 +69,7 @@ test('recordSkillUsage: writes through the provider and never throws', () => {
   setDbProviderForTests({ getDb: () => db });
   try {
     assert.equal(recordSkillUsage({ skillId: 'via-provider', sessionId: 'sess-9' }), true);
-    assert.equal(
-      (db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c,
-      1,
-    );
+    assert.equal((db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c, 1);
   } finally {
     setDbProviderForTests(null);
   }
@@ -126,10 +120,7 @@ test('backfill: derives rows from real stats counters, session NULL', () => {
       skills: 2,
       skipped: false,
     });
-    assert.equal(
-      (db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c,
-      2,
-    );
+    assert.equal((db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c, 2);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -148,10 +139,7 @@ test('backfill: no evidence → skipped, nothing fabricated', () => {
     assert.deepEqual(backfillSkillUsageFromStats(db, p), { skills: 0, skipped: true });
     writeFileSync(p, '{broken');
     assert.deepEqual(backfillSkillUsageFromStats(db, p), { skills: 0, skipped: true });
-    assert.equal(
-      (db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c,
-      0,
-    );
+    assert.equal((db.prepare(`SELECT COUNT(*) c FROM skill_usage`).get() as { c: number }).c, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

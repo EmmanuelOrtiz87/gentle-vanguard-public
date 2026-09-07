@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es" data-bs-theme="dark" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0b1020" />
+    <meta name="theme-color" content="#0F1115" />
     <meta
       name="description"
       content="Architecture — Gentle-Vanguard — Gentle-Vanguard documentation"
@@ -58,7 +58,10 @@
     <nav class="navbar navbar-expand-xl nav-blur fixed-top">
       <div class="container-fluid px-3">
         <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><i class="bi bi-robot me-2" style="color: var(--p)"></i>GV</a
+          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
+            class="gv-wordmark"
+            >Gentle<strong>Vanguard</strong></span
+          ></a
         >
         <button
           class="navbar-toggler"
@@ -250,7 +253,7 @@
         </div>
         <div class="arch-layer">
           <div class="layer-name">
-            <i class="bi bi-gear me-1"></i> Layer 3 — Pipeline (53 steps / 70 lazy)
+            <i class="bi bi-gear me-1"></i> Layer 3 — Pipeline (117 steps / 83 lazy)
           </div>
           <div class="items">
             <span>tool-detection</span><span>session-manager</span><span>token-budget</span
@@ -264,14 +267,14 @@
             <i class="bi bi-memory me-1"></i> Layer 4 — Memory & Knowledge
           </div>
           <div class="items">
-            <span>Engram (2078 obs)</span><span>CodeGraph (10663 nodes, 21746 edges)</span
-            ><span>Graphify (18MB)</span><span>ML Embeddings</span><span>Nexus DB</span
+            <span>Engram (3,600+ obs)</span><span>CodeGraph (10,000+ nodes, 20,000+ edges)</span
+            ><span>Graphify (4MB)</span><span>ML Embeddings</span><span>Nexus DB</span
             ><span>Knowledge Vault</span>
           </div>
         </div>
         <div class="arch-layer">
           <div class="layer-name">
-            <i class="bi bi-database me-1"></i> Layer 5 — Data (11 Repos / 7 Migrations)
+            <i class="bi bi-database me-1"></i> Layer 5 — Data (16 Repos / 16 Migrations)
           </div>
           <div class="items">
             <span>MetricsRepo</span><span>SessionRepo</span><span>TraceRepo</span
@@ -287,7 +290,7 @@
           <div class="items">
             <span>Auto-Apply Safe</span><span>Circuit Breaker</span><span>Auto-Escalation</span
             ><span>Dependency Graph</span><span>AB Testing</span><span>Session Scoring</span
-            ><span>Norms Learner</span><span>Watchtower 113/113</span>
+            ><span>Norms Learner</span><span>Watchtower 96/96</span>
           </div>
         </div>
       </section>
@@ -433,7 +436,7 @@
       <section class="fade-in" id="pipeline">
         <div class="sh">
           <h2 data-i18n="sec_pipeline">⚙️ Session Pipeline</h2>
-          <p data-i18n="c_architecture_9">53 steps steps + 70 lazy background</p>
+          <p data-i18n="c_architecture_9">117 steps + 83 lazy background</p>
         </div>
         <div class="row g-3">
           <div class="col-md-6">
@@ -457,14 +460,14 @@
           </div>
         </div>
         <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 mt-3">
-          <span class="badge bg-info bg-opacity-10 text-info p-2">🔵 101 Steps</span>
+          <span class="badge bg-info bg-opacity-10 text-info p-2">🔵 117 Steps</span>
           <span class="flow-arrow">→</span>
           <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"
             >⚡ Parallel Phase 1</span
           >
           <span class="flow-arrow">→</span>
           <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"
-            >⏳ 70 Lazy Background</span
+            >⏳ 83 lazy background</span
           >
           <span class="flow-arrow">→</span>
           <span class="badge bg-success bg-opacity-10 text-success p-2">✅ 100% Operational</span>
@@ -481,13 +484,13 @@
             <div class="card-dao">
               <h6 class="text-success"><i class="bi bi-lightning me-1"></i>Parallel Watchtower</h6>
               <div class="d-flex justify-content-between small mb-1">
-                <span>113 Checks</span><span class="text-info">Promise.allSettled</span>
+                <span>96 checks</span><span class="text-info">Promise.allSettled</span>
               </div>
               <div class="progress-bar-custom">
                 <div class="progress-bar-fill bg-success" style="width: 100%"></div>
               </div>
               <small class="text-secondary mt-2 d-block"
-                >All 113 health checks run concurrently</small
+                >All 96 health checks run concurrently</small
               >
             </div>
           </div>
@@ -571,7 +574,7 @@
               loading="lazy"
             />
             <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>101 pasos habilitados: 31 Phase 1 paralelos + 70
+              <i class="bi bi-info-circle me-1"></i>117 pasos habilitados: 31 Phase 1 paralelos + 83
               lazy background en batches.
             </p>
           </div>
@@ -620,22 +623,22 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >109 Test Files</span
+          >175 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >95/95 Health</span
+          >113/113 Health</span
         >
         <span
           class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >11 Repos</span
+          >16 Repos</span
         >
         <span
           class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >263 Skills</span
+          >92 Skills</span
         >
         <span
           class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"

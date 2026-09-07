@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gentle-Vanguard Icon v2.0
+  Simplified version for small sizes (favicon, app icon, mobile)
+  
+  Recommended sizes:
+  - Favicon: 32×32, 64×64
+  - Touch icon: 180×180, 192×192
+  - App icon: 512×512
+  
+  ViewBox: 0 0 100 100
+  Safe zone: Keep within 90×90 center
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    
+    <linearGradient id="iconGradAlt" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background (for contexts that need square background) -->
+  <rect width="100" height="100" rx="22" fill="#0F1115"/>
+  
+  <g transform="translate(0, 5)">
+    <!-- G - Core Node -->
+    <circle 
+      cx="38" 
+      cy="45" 
+      r="22" 
+      fill="none" 
+      stroke="url(#iconGrad)" 
+      stroke-width="12"
+    />
+    
+    <!-- Connection dot -->
+    <circle cx="60" cy="45" r="6" fill="#22d3ee"/>
+    
+    <!-- V - Forward mark (simplified) -->
+    <path 
+      d="M65 25 L85 45 L65 65" 
+      fill="none" 
+      stroke="url(#iconGradAlt)" 
+      stroke-width="10" 
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Arrow tip -->
+    <path 
+      d="M78 32 L90 22" 
+      stroke="#22d3ee" 
+      stroke-width="6" 
+      stroke-linecap="round"
+    />
+  </g>
+</svg>

@@ -20,6 +20,7 @@
         "script": "src/core/process-hygiene.ts",
         "args": "--apply --quiet",
         "required": false,
+        "critical": true,
         "phase": 1,
         "skipOnFailure": true,
         "timeout": 30000,
@@ -33,6 +34,7 @@
         "script": "src/ml/model-enforcer.ts",
         "args": "--apply",
         "required": true,
+        "critical": true,
         "phase": 0,
         "description": "Enforce free model (opencode/mimo-v2.5-free) when credits exhausted"
       },
@@ -50,6 +52,7 @@
         "script": "src/infrastructure/bootstrap-symlink.ts",
         "args": "",
         "required": true,
+        "critical": true,
         "phase": 0,
         "description": "Auto-create @gentle-vanguard/core symlink for module resolution"
       },
@@ -59,6 +62,7 @@
         "script": "src/session/session-cleanup-start.ts",
         "args": "--quiet --skip-cache-flush --skip-compression",
         "required": true,
+        "critical": true,
         "phase": 0,
         "description": "Initialize session ID and create session file (TS)"
       },
@@ -70,6 +74,16 @@
         "args": "-Quiet -SkipSessionInit -SkipCacheFlush",
         "required": false,
         "description": "Cleanup ligero al inicio (lazy): remueve sesiones stale >8h y cierra sesiones huerfanas. -SkipSessionInit impide regenerar la sesion que session-manager (phase 0) ya creo; -SkipCacheFlush evita resetear los caches de tokens que el daemon token-ingest esta escribiendo."
+      },
+      {
+        "id": "session-retention",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/session/session-retention.ts",
+        "args": "prune",
+        "required": false,
+        "phase": 95,
+        "description": "Session retention - prune old sessions, checkpoints, backups according to retention policy (max 10 sessions, 5 checkpoints, 3 backups)"
       },
       {
         "id": "github-bypass",
@@ -102,6 +116,7 @@
         "script": "src/knowledge/engram-policy.ts",
         "args": "",
         "required": true,
+        "critical": true,
         "description": "Verify Engram is installed and running (TS)"
       },
       {
@@ -308,7 +323,7 @@
         "id": "knowledge-base-init",
         "enabled": true,
         "lazy": true,
-        "script": "src/knowledge-base-init.ts",
+        "script": "src/knowledge/knowledge-base-init.ts",
         "args": "--quiet",
         "required": false,
         "description": "Initialize Knowledge Base vault, validate structure, and run full sync with Engram/documents (TS)"
@@ -548,7 +563,7 @@
         "id": "engram-auto-reindex",
         "enabled": true,
         "lazy": true,
-        "script": "src/engram-rag-reindex.ts",
+        "script": "src/knowledge/engram-rag-reindex.ts",
         "args": "--project workspace_gentle_vanguard",
         "required": false,
         "description": "Auto-reindex Engram RAG if older than 24 hours (prevents freshness WARN)"
@@ -575,7 +590,7 @@
         "id": "engram-auto-update",
         "enabled": true,
         "lazy": true,
-        "script": "src/engram-auto-update.ts",
+        "script": "src/knowledge/engram-auto-update.ts",
         "args": "--check-only",
         "required": false,
         "description": "Check for engram updates and install if available â€” validates post-update (auto-evolution)"
@@ -1035,24 +1050,24 @@
         "required": false,
         "description": "Validate module maturity registry — surface gated experimental modules and deprecated entries at session start (Phase 1 maturity governance)"
       },
-  {
-    "id": "plugin-registry-load",
-    "enabled": true,
-    "lazy": true,
-    "script": "src/tools/plugin-manager.ts",
-    "args": "list --quiet",
-    "required": false,
-    "description": "Load local-first plugin registry at session start — discovers plugins/ and ~/.gentle-vanguard/plugins, validates manifests, persists enabled state (non-blocking)"
-  },
-  {
-    "id": "command-center",
-    "enabled": true,
-    "lazy": true,
-    "script": "apps/command-center/start.ts",
-    "args": "--no-browser",
-    "required": false,
-    "description": "Command Center standalone (puerto 8090): lifecycle on-demand de las apps construidas (dashboard/analytics/cms/academy). Idempotente — si ya esta vivo no re-ejecuta; --no-browser evita poppear tab en cada sesion"
-  }
+      {
+        "id": "plugin-registry-load",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tools/plugin-manager.ts",
+        "args": "list --quiet",
+        "required": false,
+        "description": "Load local-first plugin registry at session start — discovers plugins/ and ~/.gentle-vanguard/plugins, validates manifests, persists enabled state (non-blocking)"
+      },
+      {
+        "id": "command-center",
+        "enabled": true,
+        "lazy": true,
+        "script": "apps/command-center/start.ts",
+        "args": "--no-browser",
+        "required": false,
+        "description": "Command Center standalone (puerto 8090): lifecycle on-demand de las apps construidas (dashboard/analytics/cms/academy). Idempotente — si ya esta vivo no re-ejecuta; --no-browser evita poppear tab en cada sesion"
+      }
     ],
     "onStepFailure": "continue",
     "requiredStepFailureAction": "exit"
@@ -1079,5 +1094,16 @@
     "maxAgeHours": 24,
     "statusesToClean": ["active", "orphaned", "ended"],
     "description": "Clean up sessions left in 'active' status after maxAgeHours (crash recovery)"
+  },
+  "retention": {
+    "enabled": true,
+    "maxSessionFiles": 10,
+    "maxCheckpointsPerSession": 5,
+    "maxBackups": 3,
+    "maxCloseReports": 20,
+    "sessionAgeThresholdDays": 30,
+    "highScoreThreshold": 80,
+    "extraHighScoreSessions": 5,
+    "description": "Session retention policies - automatic cleanup to prevent disk bloat"
   }
 }

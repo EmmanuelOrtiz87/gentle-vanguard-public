@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gentle-Vanguard Monochrome Logo v2
+  For single-color applications
+  
+  Light version: for dark backgrounds
+  Stroke: white on transparent
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <g stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.95">
+    <!-- G - Node -->
+    <circle cx="70" cy="80" r="30"/>
+    <path d="M100 80 L118 65"/>
+    <path d="M100 80 L118 95"/>
+    <path d="M70 50 L70 30"/>
+    
+    <!-- Connection points -->
+    <circle cx="118" cy="65" r="4" fill="#FFFFFF" stroke="none"/>
+    <circle cx="118" cy="95" r="4" fill="#FFFFFF" stroke="none"/>
+    
+    <!-- V - Arrow -->
+    <path d="M125 50 L152 85 L179 50"/>
+    <path d="M170 58 L185 45" stroke-width="6"/>
+    
+    <!-- Path connection -->
+    <path d="M118 80 L125 67" stroke-width="3" opacity="0.7"/>
+  </g>
+</svg>

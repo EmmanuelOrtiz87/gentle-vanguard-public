@@ -76,7 +76,11 @@ function contractSuite(name: string, make: () => MOD.StoragePort, cleanup?: () =
     it('JSON payloads survive round-trip (consumer pattern)', () => {
       const payload = JSON.stringify({ agents: 21, ok: true, nested: { a: [1, 2, 3] } });
       s.set('session/state', payload);
-      assert.deepStrictEqual(JSON.parse(s.get('session/state')!), { agents: 21, ok: true, nested: { a: [1, 2, 3] } });
+      assert.deepStrictEqual(JSON.parse(s.get('session/state')!), {
+        agents: 21,
+        ok: true,
+        nested: { a: [1, 2, 3] },
+      });
     });
 
     it('operations after close throw', () => {

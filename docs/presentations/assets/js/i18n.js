@@ -26,11 +26,13 @@
       nav_patterns: 'Patterns',
       nav_health: 'Health',
       nav_diagrams: 'Diagrams',
+      nav_case: 'Case Study',
+      nav_knowledge: 'Knowledge',
       /* Títulos de sección — index */
       sec_architecture: 'System Architecture',
       sec_components: 'Stack Components',
       sec_autonomous: 'Autonomous Systems',
-      sec_data_layer: 'Data Layer — 11 Repos',
+      sec_data_layer: 'Data Layer — 16 Repos',
       sec_executive: 'Executive Systems',
       sec_feature_matrix: 'Feature Matrix',
       sec_skills_rules: 'Skills & Rules Explorer',
@@ -103,11 +105,11 @@
       lbox_hint_drag: 'Drag to pan',
       lbox_hint_dbl: 'Double-click to toggle',
       tip_pipeline:
-        'Session autostart: 31 parallel Phase-1 steps + 70 lazy background steps launched in batches of 5. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init.',
+        'Session autostart: 31 parallel Phase-1 steps + 83 lazy background steps launched in batches of 2. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init.',
       tip_engram:
-        'Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 2,078 observations across 369 sessions. Survives across sessions and compactions.',
+        'Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 2,078 observations across 398+ sessions. Survives across sessions and compactions.',
       tip_codegraph:
-        'SQLite knowledge graph for symbol intelligence. 10,663 nodes and 21,746 edges across 677 files with sub-millisecond symbol queries.',
+        'SQLite knowledge graph for symbol intelligence. 10,000+ nodes and 20,000+ edges across 600+ files with sub-millisecond symbol queries.',
       tip_dashboard:
         'React + TypeScript + Vite observability SPA. WebSocket real-time updates every 5s with HTTP polling fallback, 7 dashboard sections, i18n in 3 languages and 8 alert rules.',
       tip_circuit:
@@ -125,9 +127,9 @@
       tip_watchtower:
         'Central health orchestrator: 95 checks across 21 components with Promise.allSettled parallel execution and auto-heal modes (health, rebuild, autoheal, report, continuous).',
       tip_nexus:
-        'Operational SQLite database (WAL mode, FK ON) with 11 repositories, 7 migrations and 21 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring.',
+        'Operational SQLite database (WAL mode, FK ON) with 16 repositories, 16 migrations and 23 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring.',
       tip_layers:
-        'The stack is organized in 6 layers: Tools (10 IDEs) → Agents (21 specialized) → Pipeline (101 enabled steps) → Memory & Knowledge → Data (11 repos) → Executive systems.',
+        'The stack is organized in 6 layers: Tools (10 IDEs) → Agents (21 specialized) → Pipeline (117 enabled steps) → Memory & Knowledge → Data (16 Repos) → Executive systems.',
       section_overview: 'Overview',
       section_architecture: 'Architecture',
       section_metrics: 'Metrics',
@@ -190,7 +192,7 @@
       tip_hs_data_repos_green:
         'Quality DAOs (green): CacheRepo (response_cache) and EventRepo (events) - caching and event sourcing audit trail.',
       tip_hs_data_repos_orange:
-        'Ops DAOs (orange): HousekeepingRepo (token_usage) and MigrationRunner (7 migrations) - maintenance and schema evolution.',
+        'Ops DAOs (orange): HousekeepingRepo (token_usage) and MigrationRunner (16 migrations) - maintenance and schema evolution.',
       tip_hs_data_repos_purple:
         'Memory DAOs (purple): SkillRepo (skill_usage), ContractRepo (contract_results) and ErrMemoryRepo (scoring) - usage and scoring.',
       tip_hs_flow_karpathy:
@@ -200,9 +202,9 @@
       tip_hs_flow_phase1:
         'Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure.',
       tip_hs_flow_phase2:
-        'Phase 2 - 70 lazy background steps: deferred heavy work executed in batches of 5 workers after session start.',
+        'Phase 2 - 83 lazy background steps: deferred heavy work executed in batches of 2 workers after session start.',
       tip_hs_flow_process_bar:
-        'Process bar: parallel steps (31) then lazy background (70) then DONE - the full 101-step session pipeline.',
+        'Process bar: parallel steps (31) then lazy background (70) then DONE - the full 117-step session pipeline.',
       tip_hs_flow_session_manager:
         'Session Manager: generates the session ID, syncs Engram and tracks the session lifecycle.',
       tip_hs_flow_token_budget:
@@ -234,13 +236,13 @@
       tip_hs_agents:
         'Agents - 21 specialized subagents: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
       tip_hs_data:
-        'Data Layer - Nexus SQLite DB with 11 repositories (10 DAOs + MigrationRunner), 7 migrations and 21 tables. WAL mode and FK ON enabled.',
+        'Data Layer - Nexus SQLite DB with 16 repositories (15 DAOs + MigrationRunner), 16 migrations and 23 tables. WAL mode and FK ON enabled.',
       tip_hs_executive:
         'Executive Systems - 12 autonomous subsystems: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (2078 observations), CodeGraph (10,663 nodes), Graphify 18MB knowledge graph, ML Embeddings vector index, Nexus DB and Knowledge Vault.',
+        'Memory Layer - Engram (3,600+ observations), CodeGraph (10,000+ nodes), Graphify 4MB knowledge graph, ML Embeddings vector index, Nexus DB and Knowledge Vault.',
       tip_hs_pipeline:
-        'Pipeline - 105 steps configured, 101 enabled: 31 Phase 1 parallel + 70 lazy background in batches of 5. Promise.allSettled never blocks on failure.',
+        'Pipeline - 117 steps configured, 117 enabled: 31 Phase 1 parallel + 83 lazy background in batches of 2. Promise.allSettled never blocks on failure.',
       tip_hs_tools:
         'Tools - 10 IDE integrations: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Code generation, feature building, refactoring',
@@ -285,7 +287,7 @@
       tip_c_health_16: 'Hybrid executor, AWS/Azure delegators',
       tip_c_health_17: 'Tracing spans, OTLP export, span files',
       tip_c_health_18: 'Checkpoint dir, snapshots, rollback readiness',
-      tip_c_health_19: 'Nexus DB file, WAL, integrity check, 7 migrations, 21 tables',
+      tip_c_health_19: 'Nexus DB file, WAL, integrity check, 16 migrations, 23 tables',
       tip_c_health_20: 'Model router, profiles, fallback configuration',
       tip_c_health_21: 'Audit logs, pipeline, archive',
       tip_c_health_22: 'Policy files, rules directory, 60 normatives',
@@ -320,10 +322,10 @@
       tip_c_health_55: 'Find similar items to prevent duplicates',
       tip_c_health_56: 'Auto-prune',
       tip_c_health_57: 'Remove old resolved items (configurable TTL)',
-      tip_c_health_6: 'Index exists, 677 files, 10,663 nodes, 21,746 edges, 28MB',
+      tip_c_health_6: 'Index exists, 600+ files, 10,000+ nodes, 20,000+ edges, 44MB',
       tip_c_health_7: 'Timeout daemon, watchdog PIDs, restart loop protection',
       tip_c_health_8: 'ML index, embedding files, skill embeddings',
-      tip_c_health_9: 'DB integrity, reindex log, RAG pipeline, 2078 obs',
+      tip_c_health_9: 'DB integrity, reindex log, RAG pipeline, 3,600+ obs',
       tip_c_operationscloud_10: 'Verify CI/CD workflow syntax',
       tip_c_operationscloud_11: 'Research script integrity',
       tip_c_operationscloud_12: 'Nexus DB health check',
@@ -389,15 +391,15 @@
       tip_c_securitygovernance_96: 'Cost tracking &amp; attribution',
       tip_c_securitygovernance_97: 'Finance',
       tip_fm_55:
-        '11 repositories total: 10 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode.',
+        '16 repositories total: 15 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode.',
       tip_fm_56:
-        '7 schema migrations create 21 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, applied automatically by DatabaseManager at session start.',
+        '7 schema migrations create 23 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, applied automatically by DatabaseManager at session start.',
       tip_fm_57:
         '6-layer decoupled design: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
         '31 Phase-1 steps run in parallel at session start using Promise.allSettled. Non-blocking and idempotent.',
       tip_fm_59:
-        '70 lazy background tasks are queued in batches after session start (batch delay 500ms -> 100ms).',
+        '83 lazy background tasks are queued in batches after session start (batch delay 500ms -> 100ms).',
       tip_fm_60:
         'All batch tasks use Promise.allSettled so a single failure never blocks the pipeline.',
       tip_fm_61:
@@ -415,13 +417,13 @@
       tip_fm_67:
         'Auto-discovers patterns in executions and writes LEARNED-NORMS.md. Adaptive evolution.',
       tip_fm_68:
-        'Engram persistent memory: 2078 observations, auto-sync across sessions and projects.',
+        'Engram persistent memory: 3,600+ observations, auto-sync across sessions and projects.',
       tip_fm_69:
-        'CodeGraph knowledge graph: 10,663 nodes and 21,746 edges derived from AST analysis.',
+        'CodeGraph knowledge graph: 10,000+ nodes and 20,000+ edges derived from AST analysis.',
       tip_fm_70:
-        'Graphify 18MB knowledge graph with god nodes, community structure and cross-file relationships.',
+        'Graphify 4MB knowledge graph with god nodes, community structure and cross-file relationships.',
       tip_fm_71:
-        'Nexus operational DB: SQLite WAL mode, 21 tables, auto-init, auto-prune, auto-backup and watchtower monitoring.',
+        'Nexus operational DB: SQLite WAL mode, 23 tables, auto-init, auto-prune, auto-backup and watchtower monitoring.',
       tip_fm_72:
         'ML Embeddings vector index for semantic search over skills, norms and documentation.',
       tip_fm_73:
@@ -449,7 +451,7 @@
         'Checkpoints, snapshots and rollback with dry-run validation. Auto-create at session start.',
       tip_fm_87:
         'Append-only event store + saga orchestrator with compensation steps for consistency.',
-      tip_fm_88: '109 test files across 10 suites covering units, configs, workflows and CI/CD.',
+      tip_fm_88: '175 Test Files across 10 suites covering units, configs, workflows and CI/CD.',
       tip_fm_89: '95 health checks across 21 components. All green: 95/95 PASS, 0 WARN, 0 FAIL.',
       tip_fm_90:
         'Multi-axis code review: correctness, readability, architecture, security and performance.',
@@ -501,7 +503,7 @@
       tip_metricsrepo:
         'CRUD for metric_snapshots — time-series of tokens, latency and health sampled every 30s. Powers the real-time dashboard charts and trend analysis.',
       tip_nexus_arch:
-        'Nexus is the operational brain: SQLite in WAL mode with FK ON. 11 repositories (10 DAOs + MigrationRunner), 7 migrations (m001 initial schema, m002 stack tables, m003 session scoring, …) and 21 tables. Each component persists its live state to .state.json files under .session/context-log/. Auto-init, auto-prune, auto-backup and watchtower monitoring (gentle-vanguard-db component).',
+        'Nexus is the operational brain: SQLite in WAL mode with FK ON. 16 repositories (15 DAOs + MigrationRunner), 16 migrations (m001 initial schema, m002 stack tables, m003 session scoring, …) and 23 tables. Each component persists its live state to .state.json files under .session/context-log/. Auto-init, auto-prune, auto-backup and watchtower monitoring (gentle-vanguard-db component).',
       tip_sessionrepo:
         'sessions + session_scoring — upsert by session_id, active session queries and per-session quality scoring (delegations, corrections, proactive hits).',
       tip_sk_analysis:
@@ -564,11 +566,13 @@
       nav_patterns: 'Patrones',
       nav_health: 'Salud',
       nav_diagrams: 'Diagramas',
+      nav_case: 'Caso',
+      nav_knowledge: 'Knowledge',
       /* Títulos de sección — index */
       sec_architecture: 'Arquitectura del Sistema',
       sec_components: 'Componentes del Stack',
       sec_autonomous: 'Sistemas Autónomos',
-      sec_data_layer: 'Capa de Datos — 11 Repos',
+      sec_data_layer: 'Capa de Datos — 16 Repos',
       sec_executive: 'Sistemas Ejecutivos',
       sec_feature_matrix: 'Matriz de Funcionalidades',
       sec_skills_rules: 'Explorador de Skills y Reglas',
@@ -641,11 +645,11 @@
       lbox_hint_drag: 'Arrastra para mover',
       lbox_hint_dbl: 'Doble clic para alternar',
       tip_pipeline:
-        'Autostart de sesión: 31 pasos Phase-1 en paralelo + 70 pasos lazy en background lanzados en lotes de 5. Incluye detección de herramientas, presupuesto de tokens, guías Karpathy, sync de codegraph, orquestación de seguridad e init de BD.',
+        'Autostart de sesión: 31 pasos Phase-1 en paralelo + 70 pasos lazy en background lanzados en lotes de 2. Incluye detección de herramientas, presupuesto de tokens, guías Karpathy, sync de codegraph, orquestación de seguridad e init de BD.',
       tip_engram:
         'Memoria persistente con sincronización automática, checks de integridad SHA256 y compactación. Actualmente con 2,078 observaciones en 369 sesiones. Sobrevive entre sesiones y compactaciones.',
       tip_codegraph:
-        'Grafo de conocimiento SQLite para inteligencia de símbolos. 10,663 nodos y 21,746 aristas en 677 archivos con consultas de símbolos en menos de un milisegundo.',
+        'Grafo de conocimiento SQLite para inteligencia de símbolos. 10,000+ nodos y 20,000+ aristas en 600+ archivos con consultas de símbolos en menos de un milisegundo.',
       tip_dashboard:
         'SPA de observabilidad React + TypeScript + Vite. WebSocket con actualizaciones en tiempo real cada 5s con fallback de polling HTTP, 7 secciones del dashboard, i18n en 3 idiomas y 8 reglas de alerta.',
       tip_circuit:
@@ -663,9 +667,9 @@
       tip_watchtower:
         'Orquestador central de salud: 95 checks en 21 componentes con ejecución paralela Promise.allSettled y modos de auto-healing (health, rebuild, autoheal, report, continuous).',
       tip_nexus:
-        'Base de datos operacional SQLite (modo WAL, FK ON) con 11 repositorios, 7 migraciones y 21 tablas. Auto-init, auto-prune, auto-backup y monitoreo por watchtower.',
+        'Base de datos operacional SQLite (modo WAL, FK ON) con 16 repositorios, 16 migraciones y 23 tablas. Auto-init, auto-prune, auto-backup y monitoreo por watchtower.',
       tip_layers:
-        'El stack se organiza en 6 capas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (101 pasos habilitados) → Memoria y Conocimiento → Datos (11 repos) → Sistemas ejecutivos.',
+        'El stack se organiza en 6 capas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (117 pasos habilitados) → Memoria y Conocimiento → Datos (16 Repos) → Sistemas ejecutivos.',
       section_overview: 'Resumen',
       section_architecture: 'Arquitectura',
       section_metrics: 'Métricas',
@@ -728,7 +732,7 @@
       tip_hs_data_repos_green:
         'DAOs de calidad (verde): CacheRepo (response_cache) y EventRepo (events) - caché y auditoría de event sourcing.',
       tip_hs_data_repos_orange:
-        'DAOs de ops (naranja): HousekeepingRepo (token_usage) y MigrationRunner (7 migraciones) - mantenimiento y evolución de esquema.',
+        'DAOs de ops (naranja): HousekeepingRepo (token_usage) y MigrationRunner (16 migraciones) - mantenimiento y evolución de esquema.',
       tip_hs_data_repos_purple:
         'DAOs de memoria (púrpura): SkillRepo (skill_usage), ContractRepo (contract_results) y ErrMemoryRepo (scoring) - uso y puntuación.',
       tip_hs_flow_karpathy:
@@ -738,9 +742,9 @@
       tip_hs_flow_phase1:
         'Fase 1 - 31 pasos paralelos: inicializadores rápidos e independientes que corren en concurrencia y nunca bloquean ante fallos.',
       tip_hs_flow_phase2:
-        'Fase 2 - 70 pasos lazy background: trabajo pesado diferido ejecutado en batches de 5 workers tras el inicio de sesión.',
+        'Fase 2 - 70 pasos lazy background: trabajo pesado diferido ejecutado en batches de 2 workers tras el inicio de sesión.',
       tip_hs_flow_process_bar:
-        'Barra de proceso: pasos paralelos (31), luego lazy background (70) y DONE - el pipeline completo de 101 pasos.',
+        'Barra de proceso: pasos paralelos (31), luego lazy background (70) y DONE - el pipeline completo de 117 pasos.',
       tip_hs_flow_session_manager:
         'Session Manager: genera el ID de sesión, sincroniza Engram y rastrea el ciclo de vida de la sesión.',
       tip_hs_flow_token_budget:
@@ -772,13 +776,13 @@
       tip_hs_agents:
         'Agents - 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
       tip_hs_data:
-        'Data Layer - Base Nexus SQLite con 11 repositorios (10 DAOs + MigrationRunner), 7 migraciones y 21 tablas. Modo WAL y FK ON habilitados.',
+        'Data Layer - Base Nexus SQLite con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas. Modo WAL y FK ON habilitados.',
       tip_hs_executive:
         'Executive Systems - 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (2078 observaciones), CodeGraph (10.663 nodos), Graphify 18MB grafo de conocimiento, ML Embeddings índice vectorial, Nexus DB y Knowledge Vault.',
+        'Memory Layer - Engram (3,600+ observaciones), CodeGraph (10.000+ nodos), Graphify 4MB grafo de conocimiento, ML Embeddings índice vectorial, Nexus DB y Knowledge Vault.',
       tip_hs_pipeline:
-        'Pipeline - 105 pasos configurados, 101 habilitados: 31 Phase 1 paralelos + 70 lazy background en batches de 5. Promise.allSettled nunca bloquea ante fallos.',
+        'Pipeline - 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2. Promise.allSettled nunca bloquea ante fallos.',
       tip_hs_tools:
         'Tools - 10 integraciones IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Generación de código, construcción de features, refactoring',
@@ -824,7 +828,7 @@
       tip_c_health_17: 'Spans de tracing, exportación OTLP, archivos de spans',
       tip_c_health_18: 'Directorio de checkpoints, snapshots, preparación para rollback',
       tip_c_health_19:
-        'Archivo de Nexus DB, WAL, comprobación de integridad, 7 migrations, 21 tables',
+        'Archivo de Nexus DB, WAL, comprobación de integridad, 16 migrations, 23 tables',
       tip_c_health_20: 'Model router, perfiles, configuración de fallback',
       tip_c_health_21: 'Logs de auditoría, pipeline, archivo',
       tip_c_health_22: 'Archivos de políticas, directorio de reglas, 60 normativas',
@@ -859,10 +863,10 @@
       tip_c_health_55: 'Encontrar elementos similares para evitar duplicados',
       tip_c_health_56: 'Auto-prune',
       tip_c_health_57: 'Eliminar elementos resueltos antiguos (TTL configurable)',
-      tip_c_health_6: 'Índice existente, 677 archivos, 10,663 nodos, 21,746 aristas, 28MB',
+      tip_c_health_6: 'Índice existente, 600+ archivos, 10,000+ nodos, 20,000+ aristas, 44MB',
       tip_c_health_7: 'Daemon de timeout, PIDs del watchdog, protección contra bucles de reinicio',
       tip_c_health_8: 'Índice ML, archivos de embeddings, skill embeddings',
-      tip_c_health_9: 'Integridad de la DB, log de reindexación, pipeline RAG, 2078 obs',
+      tip_c_health_9: 'Integridad de la DB, log de reindexación, pipeline RAG, 3,600+ obs',
       tip_c_operationscloud_10: 'Verificar la sintaxis del workflow de CI/CD',
       tip_c_operationscloud_11: 'Integridad de los scripts de research',
       tip_c_operationscloud_12: 'Health check de la base de datos Nexus',
@@ -928,9 +932,9 @@
       tip_c_securitygovernance_96: 'Seguimiento de costos &amp; atribución',
       tip_c_securitygovernance_97: 'Finanzas',
       tip_fm_55:
-        '11 repositorios en total: 10 DAOs + MigrationRunner. El MigrationRunner aplica las migraciones de esquema en orden con FK ON y modo WAL.',
+        '16 repositorios en total: 15 DAOs + MigrationRunner. El MigrationRunner aplica las migraciones de esquema en orden con FK ON y modo WAL.',
       tip_fm_56:
-        '7 migraciones de esquema crean 21 tablas. Migración 001 = esquema inicial, 002 = tablas del stack, 003 = session scoring, aplicadas automáticamente por DatabaseManager al inicio de sesión.',
+        '16 migraciones de esquema crean 23 tablas. Migración 001 = esquema inicial, 002 = tablas del stack, 003 = session scoring, aplicadas automáticamente por DatabaseManager al inicio de sesión.',
       tip_fm_57:
         'Diseño desacoplado de 6 capas: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
@@ -953,13 +957,13 @@
       tip_fm_67:
         'Descubre automáticamente patrones en las ejecuciones y escribe LEARNED-NORMS.md. Evolución adaptativa.',
       tip_fm_68:
-        'Memoria persistente Engram: 2078 observaciones, auto-sync entre sesiones y proyectos.',
+        'Memoria persistente Engram: 3,600+ observaciones, auto-sync entre sesiones y proyectos.',
       tip_fm_69:
-        'Grafo de conocimiento CodeGraph: 10.663 nodos y 21.746 aristas derivadas del análisis AST.',
+        'Grafo de conocimiento CodeGraph: 10.000+ nodos y 20.000+ aristas derivadas del análisis AST.',
       tip_fm_70:
-        'Grafo de conocimiento Graphify de 18MB con god nodes, estructura de comunidades y relaciones entre archivos.',
+        'Grafo de conocimiento Graphify de 4MB con god nodes, estructura de comunidades y relaciones entre archivos.',
       tip_fm_71:
-        'BD operacional Nexus: SQLite modo WAL, 21 tablas, auto-init, auto-prune, auto-backup y monitoreo del watchtower.',
+        'BD operacional Nexus: SQLite modo WAL, 23 tablas, auto-init, auto-prune, auto-backup y monitoreo del watchtower.',
       tip_fm_72:
         'Índice vectorial ML Embeddings para búsqueda semántica sobre skills, normas y documentación.',
       tip_fm_73:
@@ -1042,7 +1046,7 @@
       tip_metricsrepo:
         'CRUD de metric_snapshots — series temporales de tokens, latencia y salud muestreadas cada 30s. Alimenta las gráficas del dashboard en tiempo real y el análisis de tendencias.',
       tip_nexus_arch:
-        'Nexus es el cerebro operacional: SQLite en modo WAL con FK ON. 11 repositorios (10 DAOs + MigrationRunner), 7 migraciones (m001 esquema inicial, m002 tablas del stack, m003 session scoring, …) y 21 tablas. Cada componente persiste su estado vivo en archivos .state.json bajo .session/context-log/. Auto-init, auto-prune, auto-backup y monitoreo del watchtower (componente gentle-vanguard-db).',
+        'Nexus es el cerebro operacional: SQLite en modo WAL con FK ON. 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones (m001 esquema inicial, m002 tablas del stack, m003 session scoring, …) y 23 tablas. Cada componente persiste su estado vivo en archivos .state.json bajo .session/context-log/. Auto-init, auto-prune, auto-backup y monitoreo del watchtower (componente gentle-vanguard-db).',
       tip_sessionrepo:
         'sessions + session_scoring — upsert por session_id, consultas de sesiones activas y scoring de calidad por sesión (delegaciones, correcciones, aciertos proactivos).',
       tip_sk_analysis:
@@ -1103,11 +1107,13 @@
       nav_patterns: 'Padrões',
       nav_health: 'Saúde',
       nav_diagrams: 'Diagramas',
+      nav_case: 'Caso',
+      nav_knowledge: 'Knowledge',
       /* Títulos de sección — index */
       sec_architecture: 'Arquitetura do Sistema',
       sec_components: 'Componentes da Stack',
       sec_autonomous: 'Sistemas Autônomos',
-      sec_data_layer: 'Camada de Dados — 11 Repos',
+      sec_data_layer: 'Camada de Dados — 16 Repos',
       sec_executive: 'Sistemas Executivos',
       sec_feature_matrix: 'Matriz de Funcionalidades',
       sec_skills_rules: 'Explorador de Skills e Regras',
@@ -1180,11 +1186,11 @@
       lbox_hint_drag: 'Arraste para mover',
       lbox_hint_dbl: 'Clique duplo para alternar',
       tip_pipeline:
-        'Autostart de sessão: 31 passos Phase-1 em paralelo + 70 passos lazy em background lançados em lotes de 5. Inclui detecção de ferramentas, orçamento de tokens, guias Karpathy, sync de codegraph, orquestração de segurança e init de BD.',
+        'Autostart de sessão: 31 passos Phase-1 em paralelo + 70 passos lazy em background lançados em lotes de 2. Inclui detecção de ferramentas, orçamento de tokens, guias Karpathy, sync de codegraph, orquestração de segurança e init de BD.',
       tip_engram:
         'Memória persistente com sincronização automática, checks de integridade SHA256 e compactação. Atualmente com 2.078 observações em 369 sessões. Sobrevive entre sessões e compactações.',
       tip_codegraph:
-        'Grafo de conhecimento SQLite para inteligência de símbolos. 10.663 nós e 21.746 arestas em 677 arquivos com consultas de símbolos em menos de um milissegundo.',
+        'Grafo de conhecimento SQLite para inteligência de símbolos. 10.000+ nós e 20.000+ arestas em 600+ arquivos com consultas de símbolos em menos de um milissegundo.',
       tip_dashboard:
         'SPA de observabilidade React + TypeScript + Vite. WebSocket com atualizações em tempo real a cada 5s com fallback de polling HTTP, 7 seções do dashboard, i18n em 3 idiomas e 8 regras de alerta.',
       tip_circuit:
@@ -1202,9 +1208,9 @@
       tip_watchtower:
         'Orquestrador central de saúde: 95 checks em 21 componentes com execução paralela Promise.allSettled e modos de auto-healing (health, rebuild, autoheal, report, continuous).',
       tip_nexus:
-        'Banco de dados operacional SQLite (modo WAL, FK ON) com 11 repositórios, 7 migrações e 21 tabelas. Auto-init, auto-prune, auto-backup e monitoramento por watchtower.',
+        'Banco de dados operacional SQLite (modo WAL, FK ON) com 16 repositórios, 16 migrações e 23 tabelas. Auto-init, auto-prune, auto-backup e monitoramento por watchtower.',
       tip_layers:
-        'A stack se organiza em 6 camadas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (101 passos habilitados) → Memória e Conhecimento → Dados (11 repos) → Sistemas executivos.',
+        'A stack se organiza em 6 camadas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (117 passos habilitados) → Memória e Conhecimento → Dados (16 Repos) → Sistemas executivos.',
       section_overview: 'Visão Geral',
       section_architecture: 'Arquitetura',
       section_metrics: 'Métricas',
@@ -1267,7 +1273,7 @@
       tip_hs_data_repos_green:
         'DAOs de qualidade (verde): CacheRepo (response_cache) e EventRepo (events) - cache e auditoria de event sourcing.',
       tip_hs_data_repos_orange:
-        'DAOs de ops (laranja): HousekeepingRepo (token_usage) e MigrationRunner (7 migrações) - manutenção e evolução de esquema.',
+        'DAOs de ops (laranja): HousekeepingRepo (token_usage) e MigrationRunner (16 migrações) - manutenção e evolução de esquema.',
       tip_hs_data_repos_purple:
         'DAOs de memória (roxo): SkillRepo (skill_usage), ContractRepo (contract_results) e ErrMemoryRepo (scoring) - uso e pontuação.',
       tip_hs_flow_karpathy:
@@ -1277,7 +1283,7 @@
       tip_hs_flow_phase1:
         'Fase 1 - 31 etapas paralelas: inicializadores rápidos e independentes que rodam em concorrência e nunca bloqueiam ante falhas.',
       tip_hs_flow_phase2:
-        'Fase 2 - 70 etapas lazy background: trabalho pesado adiado executado em lotes de 5 workers após o início da sessão.',
+        'Fase 2 - 70 etapas lazy background: trabalho pesado adiado executado em lotes de 2 workers após o início da sessão.',
       tip_hs_flow_process_bar:
         'Barra de processo: etapas paralelas (31), depois lazy background (70) e DONE - o pipeline completo de 101 etapas.',
       tip_hs_flow_session_manager:
@@ -1311,13 +1317,13 @@
       tip_hs_agents:
         'Agents - 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
       tip_hs_data:
-        'Data Layer - Banco Nexus SQLite com 11 repositórios (10 DAOs + MigrationRunner), 7 migrações e 21 tabelas. Modo WAL e FK ON habilitados.',
+        'Data Layer - Banco Nexus SQLite com 16 repositórios (15 DAOs + MigrationRunner), 16 migrações e 23 tabelas. Modo WAL e FK ON habilitados.',
       tip_hs_executive:
         'Executive Systems - 12 subsistemas autônomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (2078 observações), CodeGraph (10.663 nós), Graphify 18MB grafo de conhecimento, ML Embeddings índice vetorial, Nexus DB e Knowledge Vault.',
+        'Memory Layer - Engram (3,600+ observações), CodeGraph (10.000+ nós), Graphify 4MB grafo de conhecimento, ML Embeddings índice vetorial, Nexus DB e Knowledge Vault.',
       tip_hs_pipeline:
-        'Pipeline - 105 etapas configuradas, 101 habilitadas: 31 Phase 1 paralelas + 70 lazy background em lotes de 5. Promise.allSettled nunca bloqueia ante falhas.',
+        'Pipeline - 117 etapas configuradas, 117 habilitadas: 31 Phase 1 paralelas + 83 lazy background em lotes de 2. Promise.allSettled nunca bloqueia ante falhas.',
       tip_hs_tools:
         'Tools - 10 integrações IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Geração de código, construção de features, refatoração',
@@ -1363,7 +1369,7 @@
       tip_c_health_17: 'Spans de tracing, exportação OTLP, arquivos de spans',
       tip_c_health_18: 'Diretório de checkpoints, snapshots, prontidão para rollback',
       tip_c_health_19:
-        'Arquivo da Nexus DB, WAL, verificação de integridade, 7 migrations, 21 tables',
+        'Arquivo da Nexus DB, WAL, verificação de integridade, 16 migrations, 23 tables',
       tip_c_health_20: 'Model router, perfis, configuração de fallback',
       tip_c_health_21: 'Logs de auditoria, pipeline, arquivo',
       tip_c_health_22: 'Arquivos de políticas, diretório de regras, 60 normativas',
@@ -1398,10 +1404,10 @@
       tip_c_health_55: 'Encontrar itens semelhantes para evitar duplicados',
       tip_c_health_56: 'Auto-prune',
       tip_c_health_57: 'Remover itens resolvidos antigos (TTL configurável)',
-      tip_c_health_6: 'Índice existente, 677 arquivos, 10,663 nós, 21,746 arestas, 28MB',
+      tip_c_health_6: 'Índice existente, 600+ arquivos, 10,000+ nós, 20,000+ arestas, 44MB',
       tip_c_health_7: 'Daemon de timeout, PIDs do watchdog, proteção contra loops de reinício',
       tip_c_health_8: 'Índice ML, arquivos de embeddings, skill embeddings',
-      tip_c_health_9: 'Integridade da DB, log de reindexação, pipeline RAG, 2078 obs',
+      tip_c_health_9: 'Integridade da DB, log de reindexação, pipeline RAG, 3,600+ obs',
       tip_c_operationscloud_10: 'Verificar a sintaxe do workflow de CI/CD',
       tip_c_operationscloud_11: 'Integridade dos scripts de research',
       tip_c_operationscloud_12: 'Health check do banco de dados Nexus',
@@ -1467,9 +1473,9 @@
       tip_c_securitygovernance_96: 'Rastreamento de custos &amp; atribuição',
       tip_c_securitygovernance_97: 'Finanças',
       tip_fm_55:
-        '11 repositórios no total: 10 DAOs + MigrationRunner. O MigrationRunner aplica as migrações de esquema em ordem com FK ON e modo WAL.',
+        '16 repositórios no total: 15 DAOs + MigrationRunner. O MigrationRunner aplica as migrações de esquema em ordem com FK ON e modo WAL.',
       tip_fm_56:
-        '7 migrações de esquema criam 21 tabelas. Migração 001 = esquema inicial, 002 = tabelas do stack, 003 = session scoring, aplicadas automaticamente pelo DatabaseManager no início da sessão.',
+        '16 migrações de esquema criam 23 tabelas. Migração 001 = esquema inicial, 002 = tabelas do stack, 003 = session scoring, aplicadas automaticamente pelo DatabaseManager no início da sessão.',
       tip_fm_57:
         'Design desacoplado de 6 camadas: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
@@ -1493,13 +1499,13 @@
       tip_fm_67:
         'Descobre automaticamente padrões nas execuções e escreve LEARNED-NORMS.md. Evolução adaptativa.',
       tip_fm_68:
-        'Memória persistente Engram: 2078 observações, auto-sync entre sessões e projetos.',
+        'Memória persistente Engram: 3,600+ observações, auto-sync entre sessões e projetos.',
       tip_fm_69:
-        'Grafo de conhecimento CodeGraph: 10.663 nós e 21.746 arestas derivadas da análise AST.',
+        'Grafo de conhecimento CodeGraph: 10.000+ nós e 20.000+ arestas derivadas da análise AST.',
       tip_fm_70:
-        'Grafo de conhecimento Graphify de 18MB com god nodes, estrutura de comunidades e relações entre arquivos.',
+        'Grafo de conhecimento Graphify de 4MB com god nodes, estrutura de comunidades e relações entre arquivos.',
       tip_fm_71:
-        'BD operacional Nexus: SQLite modo WAL, 21 tabelas, auto-init, auto-prune, auto-backup e monitoramento do watchtower.',
+        'BD operacional Nexus: SQLite modo WAL, 23 tabelas, auto-init, auto-prune, auto-backup e monitoramento do watchtower.',
       tip_fm_72:
         'Índice vetorial ML Embeddings para busca semântica sobre skills, normas e documentação.',
       tip_fm_73:
@@ -1581,7 +1587,7 @@
       tip_metricsrepo:
         'CRUD de metric_snapshots — séries temporais de tokens, latência e saúde amostradas a cada 30s. Alimenta os gráficos do dashboard em tempo real e a análise de tendências.',
       tip_nexus_arch:
-        'Nexus é o cérebro operacional: SQLite em modo WAL com FK ON. 11 repositórios (10 DAOs + MigrationRunner), 7 migrações (m001 esquema inicial, m002 tabelas do stack, m003 session scoring, …) e 21 tabelas. Cada componente persiste seu estado vivo em arquivos .state.json sob .session/context-log/. Auto-init, auto-prune, auto-backup e monitoramento do watchtower (componente gentle-vanguard-db).',
+        'Nexus é o cérebro operacional: SQLite em modo WAL com FK ON. 16 repositórios (15 DAOs + MigrationRunner), 16 migrações (m001 esquema inicial, m002 tabelas do stack, m003 session scoring, …) e 23 tabelas. Cada componente persiste seu estado vivo em arquivos .state.json sob .session/context-log/. Auto-init, auto-prune, auto-backup e monitoramento do watchtower (componente gentle-vanguard-db).',
       tip_sessionrepo:
         'sessions + session_scoring — upsert por session_id, consultas de sessões ativas e scoring de qualidade por sessão (delegações, correções, acertos proativos).',
       tip_sk_analysis:

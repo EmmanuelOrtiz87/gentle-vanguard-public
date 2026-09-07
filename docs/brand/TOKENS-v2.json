@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gentle-vanguard-tokens-v2",
+  "title": "Gentle-Vanguard Design Tokens v2.0",
+  "description": "Official design tokens for Gentle-Vanguard Academy v2.0 - Premium Evolution",
+  "version": "2.0.0",
+  "date": "2026-09-01",
+  "meta": {
+    "designRead": "Academy/educational platform for developers, dark-tech premium language",
+    "variance": 7,
+    "motion": 6,
+    "density": 4
+  },
+  "color": {
+    "background": {
+      "base": {
+        "$value": "#0F1115",
+        "$type": "color",
+        "description": "Primary background — evolved from #121212"
+      },
+      "elevated": {
+        "$value": "#151921",
+        "$type": "color",
+        "description": "Cards, containers"
+      },
+      "deep": {
+        "$value": "#090C11",
+        "$type": "color",
+        "description": "Code blocks, inputs, deep surfaces"
+      }
+    },
+    "accent": {
+      "cyan": {
+        "$value": "#22d3ee",
+        "$type": "color",
+        "description": "Primary accent — links, focus, data"
+      },
+      "cyanDeep": {
+        "$value": "#0891b2",
+        "$type": "color"
+      },
+      "cyanSoft": {
+        "$value": "#67e8f9",
+        "$type": "color"
+      },
+      "purple": {
+        "$value": "#a78bfa",
+        "$type": "color",
+        "description": "Secondary accent — headings, labels"
+      },
+      "purpleDeep": {
+        "$value": "#7c3aed",
+        "$type": "color"
+      },
+      "gold": {
+        "$value": "#fbbf24",
+        "$type": "color",
+        "description": "Premium moments — use sparingly"
+      }
+    },
+    "surface": {
+      "base": {
+        "$value": "#1a1f2a",
+        "$type": "color"
+      },
+      "raised": {
+        "$value": "#252b38",
+        "$type": "color"
+      },
+      "glass": {
+        "$value": "rgba(26, 31, 42, 0.72)",
+        "$type": "color"
+      },
+      "glassBorder": {
+        "$value": "rgba(167, 139, 250, 0.24)",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "#e8eef4",
+        "$type": "color",
+        "description": "Primary text — warmer than v1"
+      },
+      "secondary": {
+        "$value": "#c4cdd8",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "#8b95a8",
+        "$type": "color",
+        "description": "Meta, metadata — refined from v1"
+      },
+      "disabled": {
+        "$value": "#5a6370",
+        "$type": "color"
+      }
+    },
+    "status": {
+      "success": {
+        "$value": "#4ade80",
+        "$type": "color"
+      },
+      "warning": {
+        "$value": "#f4bb4f",
+        "$type": "color"
+      },
+      "error": {
+        "$value": "#ee6d75",
+        "$type": "color"
+      },
+      "info": {
+        "$value": "#22d3ee",
+        "$type": "color"
+      }
+    }
+  },
+  "gradient": {
+    "primary": {
+      "$value": "linear-gradient(135deg, #a78bfa 0%, color-mix(in srgb, #a78bfa 50%, #22d3ee) 50%, #22d3ee 100%)",
+      "$type": "gradient"
+    },
+    "border": {
+      "$value": "linear-gradient(135deg, rgba(167,139,250,0.3) 0%, rgba(34,211,238,0.15) 50%, rgba(167,139,250,0.2) 100%)",
+      "$type": "gradient"
+    }
+  },
+  "shadow": {
+    "sm": {
+      "$value": "0 1px 2px rgba(0, 0, 0, 0.4)",
+      "$type": "shadow"
+    },
+    "md": {
+      "$value": "0 4px 12px rgba(0, 0, 0, 0.5)",
+      "$type": "shadow"
+    },
+    "lg": {
+      "$value": "0 8px 24px rgba(0, 0, 0, 0.5)",
+      "$type": "shadow"
+    },
+    "xl": {
+      "$value": "0 20px 60px rgba(0, 0, 0, 0.6)",
+      "$type": "shadow"
+    },
+    "glowCyan": {
+      "$value": "0 0 0 1px rgba(34, 211, 238, 0.15) inset, 0 8px 32px rgba(34, 211, 238, 0.35)",
+      "$type": "shadow"
+    },
+    "glowPurple": {
+      "$value": "0 0 0 1px rgba(167, 139, 250, 0.2) inset, 0 8px 32px rgba(167, 139, 250, 0.25)",
+      "$type": "shadow"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "display": {
+        "$value": "'Space Grotesk', 'Orbitron', sans-serif",
+        "$type": "fontFamily"
+      },
+      "body": {
+        "$value": "'Inter', 'Inter Variable', system-ui, -apple-system, sans-serif",
+        "$type": "fontFamily"
+      },
+      "mono": {
+        "$value": "'JetBrains Mono NL', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace",
+        "$type": "fontFamily"
+      },
+      "monoAccent": {
+        "$value": "'Space Mono', monospace",
+        "$type": "fontFamily"
+      }
+    },
+    "fontSize": {
+      "hero": {
+        "$value": "52px",
+        "$type": "fontSize"
+      },
+      "h1": {
+        "$value": "40px",
+        "$type": "fontSize"
+      },
+      "h2": {
+        "$value": "28px",
+        "$type": "fontSize"
+      },
+      "h3": {
+        "$value": "22px",
+        "$type": "fontSize"
+      },
+      "eyebrow": {
+        "$value": "11px",
+        "$type": "fontSize"
+      },
+      "bodyLarge": {
+        "$value": "17px",
+        "$type": "fontSize"
+      },
+      "body": {
+        "$value": "15.5px",
+        "$type": "fontSize"
+      },
+      "caption": {
+        "$value": "12.5px",
+        "$type": "fontSize"
+      },
+      "metric": {
+        "$value": "32px",
+        "$type": "fontSize"
+      }
+    },
+    "lineHeight": {
+      "hero": {
+        "$value": "1.05",
+        "$type": "lineHeight"
+      },
+      "h1": {
+        "$value": "1.1",
+        "$type": "lineHeight"
+      },
+      "h2": {
+        "$value": "1.2",
+        "$type": "lineHeight"
+      },
+      "body": {
+        "$value": "1.7",
+        "$type": "lineHeight"
+      }
+    },
+    "letterSpacing": {
+      "hero": {
+        "$value": "-0.025em",
+        "$type": "letterSpacing"
+      },
+      "h1": {
+        "$value": "-0.02em",
+        "$type": "letterSpacing"
+      },
+      "eyebrow": {
+        "$value": "0.2em",
+        "$type": "letterSpacing"
+      }
+    },
+    "fontWeight": {
+      "regular": {
+        "$value": "400",
+        "$type": "fontWeight"
+      },
+      "medium": {
+        "$value": "500",
+        "$type": "fontWeight"
+      },
+      "semibold": {
+        "$value": "600",
+        "$type": "fontWeight"
+      },
+      "bold": {
+        "$value": "700",
+        "$type": "fontWeight"
+      }
+    }
+  },
+  "size": {
+    "space": {
+      "1": { "$value": "4px", "$type": "dimension" },
+      "2": { "$value": "8px", "$type": "dimension" },
+      "3": { "$value": "12px", "$type": "dimension" },
+      "4": { "$value": "16px", "$type": "dimension" },
+      "5": { "$value": "20px", "$type": "dimension" },
+      "6": { "$value": "24px", "$type": "dimension" },
+      "8": { "$value": "32px", "$type": "dimension" },
+      "10": { "$value": "40px", "$type": "dimension" },
+      "12": { "$value": "48px", "$type": "dimension" },
+      "16": { "$value": "64px", "$type": "dimension" },
+      "20": { "$value": "80px", "$type": "dimension" },
+      "24": { "$value": "96px", "$type": "dimension" }
+    },
+    "radius": {
+      "sm": { "$value": "6px", "$type": "dimension" },
+      "md": { "$value": "10px", "$type": "dimension" },
+      "lg": { "$value": "14px", "$type": "dimension" },
+      "xl": { "$value": "20px", "$type": "dimension" },
+      "2xl": { "$value": "28px", "$type": "dimension" },
+      "pill": { "$value": "999px", "$type": "dimension" }
+    },
+    "layout": {
+      "headerHeight": { "$value": "64px", "$type": "dimension" },
+      "maxContent": { "$value": "1200px", "$type": "dimension" },
+      "maxReading": { "$value": "720px", "$type": "dimension" }
+    }
+  },
+  "time": {
+    "duration": {
+      "instant": { "$value": "100ms", "$type": "duration" },
+      "fast": { "$value": "180ms", "$type": "duration" },
+      "base": { "$value": "280ms", "$type": "duration" },
+      "slow": { "$value": "400ms", "$type": "duration" },
+      "epic": { "$value": "800ms", "$type": "duration" }
+    },
+    "easing": {
+      "smooth": {
+        "$value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "$type": "cubicBezier"
+      },
+      "bounceSubtle": {
+        "$value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "$type": "cubicBezier"
+      },
+      "outExpo": {
+        "$value": "cubic-bezier(0.19, 1, 0.22, 1)",
+        "$type": "cubicBezier"
+      }
+    }
+  },
+  "breakpoint": {
+    "sm": { "$value": "640px", "$type": "dimension" },
+    "md": { "$value": "768px", "$type": "dimension" },
+    "lg": { "$value": "1024px", "$type": "dimension" },
+    "xl": { "$value": "1280px", "$type": "dimension" },
+    "2xl": { "$value": "1536px", "$type": "dimension" }
+  }
+}

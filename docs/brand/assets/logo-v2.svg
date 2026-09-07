@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gentle-Vanguard Logo v2.0
+  Concept: "Connected Vanguard"
+  
+  G represents a network node with connection points
+  V represents forward motion emerging from the network
+  Combined: The guardian (gentle) leading the vanguard (advance)
+  
+  Design principles:
+  - Geometric construction based on circles and lines
+  - Connection points at node intersections
+  - Gradient follows brand purple→cyan
+  - Glow effect on active elements
+  - Negative space suggests flow/path
+  
+  Usage:
+  - ViewBox: 0 0 200 160 (aspect ratio 5:4)
+  - Recommended minimum display size: 32px height
+  - Clear space: 20% of height on all sides
+  - Background: dark (#0F1115) or light (#FFFFFF)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160" role="img" aria-label="Gentle-Vanguard Connected Vanguard Logo">
+  <defs>
+    <!-- Brand gradient: purple → cyan -->
+    <linearGradient id="gvGradientV2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    
+    <!-- Glow filter for nodes -->
+    <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Subtle glow for V -->
+    <filter id="vglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Clip path for clean edges -->
+    <clipPath id="logoBounds">
+      <rect width="200" height="160"/>
+    </clipPath>
+  </defs>
+  
+  <g clip-path="url(#logoBounds)">
+    <!--
+      G - THE NODE
+      Construction: A network node with 3 connection points
+      The circle represents the node itself
+      Lines extend to connection points
+    -->
+    <g stroke="url(#gvGradientV2)" stroke-width="10" stroke-linecap="round" fill="none">
+      <!-- Main circular node (G) -->
+      <circle cx="70" cy="80" r="30"/>
+      
+      <!-- Connection lines -->
+      <path d="M100 80 L118 65"/>
+      <path d="M100 80 L118 95"/>
+      <path d="M70 50 L70 30"/>
+    </g>
+    
+    <!-- Connection point markers (nodes) -->
+    <circle cx="118" cy="65" r="4" fill="#22d3ee" filter="url(#nodeGlow)"/>
+    <circle cx="118" cy="95" r="4" fill="#22d3ee"/>
+    <circle cx="70" cy="30" r="3" fill="#a78bfa"/>
+    
+    <!--
+      V - THE ADVANCE
+      Construction: Arrow emerging from the network
+      Suggests forward movement, vanguard, progress
+      
+      Shape notes:
+      - Starts from the G node's right edge
+      - Two strokes forming V
+      - Accent mark showing direction
+    -->
+    <g filter="url(#vglow)">
+      <!-- Left stroke of V -->
+      <path 
+        d="M125 50 L152 85" 
+        stroke="url(#gvGradientV2)" 
+        stroke-width="12" 
+        stroke-linecap="round"
+      />
+      
+      <!-- Right stroke of V (extends further) -->
+      <path 
+        d="M152 85 L179 50" 
+        stroke="url(#gvGradientV2)" 
+        stroke-width="12" 
+        stroke-linecap="round"
+      />
+    </g>
+    
+    <!-- Arrow head accent -->
+    <path 
+      d="M170 58 L185 45" 
+      stroke="#22d3ee" 
+      stroke-width="6" 
+      stroke-linecap="round"
+      filter="url(#nodeGlow)"
+    />
+    
+    <!--
+      Subtle connection line: suggests the path
+      Between G and V nodes
+    -->
+    <path 
+      d="M118 80 L125 67" 
+      stroke="url(#gvGradientV2)" 
+      stroke-width="3" 
+      opacity="0.5"
+      stroke-linecap="round"
+    />
+  </g>
+</svg>

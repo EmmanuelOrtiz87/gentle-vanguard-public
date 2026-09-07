@@ -1,8 +1,11 @@
 /* ==========================================================================
-   Gentle-Vanguard — Unified Design System (v2.0)
+   Gentle-Vanguard — Unified Design System (v2.0 — Official Brand v2 Premium)
    --------------------------------------------------------------------------
-   Shared stylesheet for ALL presentations. Built on 2025-2026 design trends:
-   - Dark-mode "lujo" con superficies OKLCH (nunca #000 puro)
+   Shared stylesheet for ALL presentations. Aligned with the canonical
+   design system (packages/gv-design-system/src/tokens/tokens.json v2.0.0-alpha.1)
+   and the official brand decision (docs/brand/BRAND-DECISION-2026-09-01.md):
+   - Palette: #a78bfa (purple) / #22d3ee (cyan) / #0F1115 (bg) — BRAND-DECISION-2026-09-01.md (v2 Premium)
+   - Dark-first, WCAG 2.2 AA, Anti-AI-Slop, Premium Commercial Grade
    - Aurora / mesh gradients + grain noise (fondo premium estilo Linear/Vercel)
    - Glassmorphism refinado (blur sutil en navbar y sticky headers)
    - Hover spotlight cards (luz que sigue al cursor)
@@ -11,49 +14,59 @@
    - Fluid typography, text-wrap balance, prefers-reduced-motion
    ========================================================================== */
 
-/* --- 1. Design Tokens (OKLCH perceptual palette) ----------------------- */
+/* --- 1. Design Tokens (Official v2 palette — source of truth) ---------- */
 :root {
   color-scheme: dark;
-  --gv-purple: #a855f7;
-  --gv-cyan: #00bfff;
-  --gv-cyan-deep: #06b6d4;
-  --gv-bg: #0d1117;
-  --gv-bg-deep: #020618;
-  --gv-surface: #1a2035;
-  --gv-surface-raised: #2a2d3a;
-  --gv-text: #ffffff;
-  --gv-muted: #6b7280;
-  --gv-glass: rgba(31, 41, 55, 0.6);
-  --gv-glass-border: rgba(168, 85, 247, 0.18);
-  --gv-gradient: linear-gradient(135deg, #a855f7 0%, #00bfff 100%);
-  --gv-glow: rgba(0, 191, 255, 0.35);
-  --gv-amber: #f59e0b;
-  --gv-red: #ef4444;
-  --gv-green: #22c55e;
+  --gv-purple: #a78bfa;
+  --gv-purple-deep: #7c3aed;
+  --gv-purple-soft: #c4b5fd;
+  --gv-cyan: #22d3ee;
+  --gv-cyan-deep: #0891b2;
+  --gv-cyan-soft: #67e8f9;
+  --gv-bg: #0f1115;
+  --gv-bg-deep: #090c11;
+  --gv-surface: #1a1f2a;
+  --gv-surface-raised: #252b38;
+  --gv-text: #e8eef4;
+  --gv-muted: #c4cdd8;
+  --gv-glass: rgba(26, 31, 42, 0.6);
+  --gv-glass-border: rgba(167, 139, 250, 0.24);
+  --gv-gradient: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+  --gv-gradient-subtle: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.18) 0%,
+    rgba(34, 211, 238, 0.18) 100%
+  );
+  --gv-glow: rgba(34, 211, 238, 0.45);
+  --gv-amber: #f4bb4f;
+  --gv-red: #ee6d75;
+  --gv-green: #4ade80;
+  --gv-info: #22d3ee;
   --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --header-h: 62px;
-  /* Acentos funcionales */
-  --p: #00bfff; /* cyan primario (oklch ~0.78 0.14 210) */
+  /* Acentos funcionales (oficiales v2.0) */
+  --p: #22d3ee; /* cyan primario oficial */
   --pl: #67e8f9; /* cyan claro */
-  --a: #a855f7; /* purple acento */
-  --ok: #34d399; /* verde éxito */
-  --wn: #fbbf24; /* amber warning */
-  --er: #f87171; /* rojo error */
+  --a: #a78bfa; /* purple acento oficial */
+  --ok: #4ade80; /* verde éxito */
+  --wn: #f4bb4f; /* amber warning */
+  --er: #ee6d75; /* rojo error */
 
-  /* Superficies oscuras (escala OKLCH, nunca negro puro) */
-  --bg: oklch(0.17 0.03 262); /* fondo base #0a0e1a */
-  --bg2: oklch(0.19 0.03 262); /* fondo secundario */
-  --card: oklch(0.22 0.03 262); /* card base */
-  --card2: oklch(0.25 0.03 262); /* card elevada / hover */
-  --card3: oklch(0.28 0.03 262); /* popover / modal */
-  --br: oklch(0.3 0.03 262); /* borde base */
+  /* Superficies oscuras (escala oficial v2.0) */
+  --bg: oklch(0.17 0.02 262); /* fondo base #0F1115 */
+  --bg2: oklch(0.19 0.02 262); /* fondo secundario */
+  --card: oklch(0.22 0.025 262); /* card base */
+  --card2: oklch(0.25 0.025 262); /* card elevada / hover */
+  --card3: oklch(0.28 0.025 262); /* popover / modal */
+  --br: oklch(0.3 0.02 262); /* borde base */
   --br-soft: color-mix(in oklab, white 8%, transparent); /* borde sutil premium */
 
   /* Texto */
-  --text: #e2e8f0;
-  --text-dim: #94a3b8;
-  --text-faint: #64748b;
+  --text: #e8eef4;
+  --text-dim: #c4cdd8;
+  --text-faint: #8b95a8;
 
   /* Radii y sombras */
   --r-lg: 18px;
@@ -255,10 +268,10 @@ p {
   font-size: 0.9rem;
   color: var(--gv-text);
 }
-/* Brand wordmark uses the official GV display font (assets/tokens.json → typography.displayFont) */
+/* Brand wordmark uses the official GV display font (docs/brand/TOKENS-v2.json → typography.displayFont) */
 .nav-blur .navbar-brand .gv-wordmark,
 .nav-blur .navbar-brand .gv-wordmark strong {
-  font-family: 'Orbitron', 'Rajdhani', 'Share Tech Mono', monospace;
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   letter-spacing: 0.02em;
 }
 .nav-blur .navbar-brand .gv-wordmark strong {
@@ -293,8 +306,9 @@ p {
   pointer-events: none;
 }
 .hero h1 {
+  font-family: var(--display);
   font-size: var(--fs-hero);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.08;
 }
@@ -1266,7 +1280,7 @@ section {
   filter: brightness(1.25) drop-shadow(0 0 6px rgba(168, 85, 247, 0.8));
 }
 .gv-lightbox-svg .gv-hotspot:focus-visible {
-  outline: 2px solid var(--a, #a855f7);
+  outline: 2px solid var(--a, #a78bfa);
   outline-offset: 1px;
 }
 .gv-lightbox-toolbar {

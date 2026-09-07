@@ -25,7 +25,7 @@ let _db: SkillUsageDbManager | null = null;
 function getDb(): SkillUsageDbManager | null {
   if (!_db) {
     try {
-      const mod = _require('../../apps/web-dashboard/server/database/manager');
+      const mod = _require('../database/nexus//manager');
       _db = mod.DatabaseManager.getInstance();
     } catch {
       // SQLite not available — skip dual-write

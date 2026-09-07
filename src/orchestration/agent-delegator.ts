@@ -847,7 +847,7 @@ Features:
 }
 
 // Export for module use
-export { loadAgents, generateAgentTemplate };
+export { loadAgents, generateAgentTemplate, main };
 
 // Run CLI
 import { pathToFileURL } from 'url';

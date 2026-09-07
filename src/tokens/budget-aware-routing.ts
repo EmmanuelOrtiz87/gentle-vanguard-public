@@ -193,15 +193,16 @@ export function getBudgetRoutingState(overrides?: {
   usedTokensToday?: number;
   /** Test/override hook: force the routingDowngrade config section. */
   configOverride?: RoutingDowngradeConfig;
+  /** Test/override hook: force the daily budget (skips the config read; hermetic tests). */
+  dailyBudgetOverride?: number;
 }): BudgetRoutingState {
   const cfg = overrides?.configOverride ?? loadRoutingConfig();
   const disabledByEnv = process.env.GV_BUDGET_ROUTING === '0';
   const enabled = cfg.enabled && !disabledByEnv;
 
   const usedTokensToday = overrides?.usedTokensToday ?? getUsedTokensToday();
-  const dailyBudget = loadDailyBudget();
-  const usagePct =
-    dailyBudget > 0 ? Math.round((usedTokensToday / dailyBudget) * 10000) / 100 : 0;
+  const dailyBudget = overrides?.dailyBudgetOverride ?? loadDailyBudget();
+  const usagePct = dailyBudget > 0 ? Math.round((usedTokensToday / dailyBudget) * 10000) / 100 : 0;
 
   let tier: BudgetTier = 'ok';
   if (usagePct >= cfg.hardThresholdPct) tier = 'hard';
@@ -228,9 +229,10 @@ function recordNexusEvent(decision: RoutingDecision): void {
     const Database = _require('better-sqlite3');
     const db = new Database(NEXUS_DB_PATH);
     try {
-      db
-        .prepare('INSERT INTO events (type, payload) VALUES (?, ?)')
-        .run('budget.routing_downgrade', JSON.stringify({ event: 'budget.routing_downgrade', ...decision }));
+      db.prepare('INSERT INTO events (type, payload) VALUES (?, ?)').run(
+        'budget.routing_downgrade',
+        JSON.stringify({ event: 'budget.routing_downgrade', ...decision }),
+      );
     } finally {
       db.close();
     }

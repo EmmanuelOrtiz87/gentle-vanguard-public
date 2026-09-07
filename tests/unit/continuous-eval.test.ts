@@ -69,10 +69,21 @@ function insertTrace(
 ): void {
   db.prepare(
     `INSERT INTO traces (span_id, trace_id, duration, status, session_id) VALUES (?, ?, ?, ?, ?)`,
-  ).run(`span-${Math.random().toString(36).slice(2)}`, `t-${sessionId}`, duration, status, sessionId);
+  ).run(
+    `span-${Math.random().toString(36).slice(2)}`,
+    `t-${sessionId}`,
+    duration,
+    status,
+    sessionId,
+  );
 }
 
-function insertTokens(db: Database.Database, sessionId: string, inputT: number, outputT: number): void {
+function insertTokens(
+  db: Database.Database,
+  sessionId: string,
+  inputT: number,
+  outputT: number,
+): void {
   db.prepare(
     `INSERT INTO token_transactions (session_id, input_tokens, output_tokens) VALUES (?, ?, ?)`,
   ).run(sessionId, inputT, outputT);
@@ -108,7 +119,14 @@ test('buildGoldenDataset labels successes as positive and failures as negative',
 
 test('buildGoldenDataset treats error traces and negative feedback as negative, falls back to session tokens and lifetime', () => {
   const db = makeTestDb();
-  insertSession(db, 's-err-trace', 'completed', 42, '2026-08-01T10:00:00.000Z', '2026-08-01T10:10:00.000Z');
+  insertSession(
+    db,
+    's-err-trace',
+    'completed',
+    42,
+    '2026-08-01T10:00:00.000Z',
+    '2026-08-01T10:10:00.000Z',
+  );
   insertTrace(db, 's-err-trace', 'error', 0); // error trace flips label; duration 0 -> lifetime fallback
   insertSession(db, 's-fb', 'active', 0);
   insertTrace(db, 's-fb', 'completed', 10);
@@ -221,12 +239,34 @@ test('ensureEvalRunsTable is idempotent and persistRun/getPreviousRun round-trip
 
   const id1 = persistRun(
     db,
-    { datasetSize: 3, successRate: 1, tokenEfficiency: 1, durationEfficiency: 1, aggregateScore: 1, avgTokens: 100, medianTokens: 100, p95Tokens: 100, medianDurationMs: 1, p95DurationMs: 1 },
+    {
+      datasetSize: 3,
+      successRate: 1,
+      tokenEfficiency: 1,
+      durationEfficiency: 1,
+      aggregateScore: 1,
+      avgTokens: 100,
+      medianTokens: 100,
+      p95Tokens: 100,
+      medianDurationMs: 1,
+      p95DurationMs: 1,
+    },
     computeTrend(1, null),
   );
   const id2 = persistRun(
     db,
-    { datasetSize: 3, successRate: 0.5, tokenEfficiency: 1, durationEfficiency: 1, aggregateScore: 0.5, avgTokens: 100, medianTokens: 100, p95Tokens: 100, medianDurationMs: 1, p95DurationMs: 1 },
+    {
+      datasetSize: 3,
+      successRate: 0.5,
+      tokenEfficiency: 1,
+      durationEfficiency: 1,
+      aggregateScore: 0.5,
+      avgTokens: 100,
+      medianTokens: 100,
+      p95Tokens: 100,
+      medianDurationMs: 1,
+      p95DurationMs: 1,
+    },
     computeTrend(0.5, getPreviousRun(db)),
   );
   assert.ok(id2 > id1);

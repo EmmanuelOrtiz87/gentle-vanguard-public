@@ -283,8 +283,7 @@ async function researchQuestion(
 
       return {
         verdict: (graded.verdict === 'relevant' ? 'relevant' : 'corrective') as
-          | 'relevant'
-          | 'corrective',
+          'relevant' | 'corrective',
         confidence: graded.averageScore ?? 0,
         sources,
       };

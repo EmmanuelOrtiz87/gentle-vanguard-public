@@ -1,12 +1,12 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" role="img" aria-labelledby="architecture-layers-title architecture-layers-desc" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" role="img" aria-labelledby="architecture-layers-title architecture-layers-desc" focusable="false">
 <title id="architecture-layers-title">Architecture Layers</title>
 <desc id="architecture-layers-desc">Gentle-Vanguard Architecture Layers diagram showing the main components, relationships and operational flow.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e17"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
 <linearGradient id="l1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".18"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
 <linearGradient id="l2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#34d399" stop-opacity=".18"/><stop offset="100%" stop-color="#34d399" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".18"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f87171" stop-opacity=".18"/><stop offset="100%" stop-color="#f87171" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f4bb4f" stop-opacity=".18"/><stop offset="100%" stop-color="#f4bb4f" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ee6d75" stop-opacity=".18"/><stop offset="100%" stop-color="#ee6d75" stop-opacity=".03"/></linearGradient>
 <linearGradient id="l6" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".22"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
 <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#131a2e"/><stop offset="100%" stop-color="#1a2235"/></linearGradient>
 <filter id="s"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".45"/></filter>
@@ -36,18 +36,18 @@
 <rect x="336" y="116" width="72" height="24"/><text x="372" y="132" fill="#e2e8f0">Tracing</text>
 <rect x="414" y="116" width="72" height="24"/><text x="450" y="132" fill="#e2e8f0">Cloud</text>
 </g>
-<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
+<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
 </g>
 
 <line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L5 DATA ================= -->
-<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 11 repositorios (10 DAOs + MigrationRunner), 7 migraciones y 21 tablas">
+<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas">
 <g filter="url(#s)"><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#l5)"/></g>
 <text x="60" y="206" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">DATA</text>
-<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">11 repos · SQLite Nexus · 21 tables</text>
+<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">16 repos · SQLite Nexus · 23 tables</text>
 <text x="60" y="252" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#f87171" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<g fill="#1e293b" stroke="#ee6d75" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
 <rect x="180" y="196" width="62" height="24"/><text x="211" y="212" fill="#e2e8f0">Metrics</text>
 <rect x="248" y="196" width="62" height="24"/><text x="279" y="212" fill="#e2e8f0">Session</text>
 <rect x="316" y="196" width="62" height="24"/><text x="347" y="212" fill="#e2e8f0">Trace</text>
@@ -60,42 +60,42 @@
 <rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
 <rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
 </g>
-<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
+<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
 </g>
 
 <line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L4 MEMORY ================= -->
-<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (2078 obs), CodeGraph (10,663 nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
+<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (3,600+ obs), CodeGraph (10,000+ nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
 <g filter="url(#s)"><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#l4)"/></g>
 <text x="60" y="316" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">MEMORY</text>
 <text x="60" y="332" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">6 nodes · Persistent knowledge</text>
 <text x="60" y="362" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#fbbf24" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (2078)</text>
+<g fill="#1e293b" stroke="#f4bb4f" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
+<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (3,600+)</text>
 <rect x="306" y="304" width="128" height="24"/><text x="370" y="320" fill="#e2e8f0">CodeGraph</text>
 <rect x="442" y="304" width="100" height="24"/><text x="492" y="320" fill="#e2e8f0">Graphify</text>
 <rect x="550" y="304" width="112" height="24"/><text x="606" y="320" fill="#e2e8f0">ML Embeddings</text>
 <rect x="670" y="304" width="90" height="24"/><text x="715" y="320" fill="#e2e8f0">Nexus DB</text>
 <rect x="768" y="304" width="120" height="24"/><text x="828" y="320" fill="#e2e8f0">Knowledge Vault</text>
 </g>
-<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
+<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
 </g>
 
 <line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L3 PIPELINE ================= -->
-<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 105 pasos configurados, 101 habilitados: 31 Phase 1 paralelos + 70 lazy background en batches de 5">
+<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2">
 <g filter="url(#s)"><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#l3)"/></g>
 <text x="60" y="426" fill="#6ee7b7" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">PIPELINE</text>
 <text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">101 steps · Parallel + lazy</text>
 <text x="60" y="472" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
 <g font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="416" width="250" height="26" rx="8" fill="#34d399" fill-opacity=".14" stroke="#34d399" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
+<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
 <text x="442" y="433" fill="#64748b" font-size="15">→</text>
-<rect x="460" y="416" width="270" height="26" rx="8" fill="#34d399" fill-opacity=".14" stroke="#34d399" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 70 lazy bg</text>
+<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 83 lazy bg</text>
 </g>
-<g fill="#1e293b" stroke="#34d399" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
+<g fill="#1e293b" stroke="#4ade80" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
 <rect x="180" y="448" width="46" height="20"/><text x="203" y="462" fill="#e2e8f0">ToolDet</text>
 <rect x="232" y="448" width="46" height="20"/><text x="255" y="462" fill="#e2e8f0">SessMgr</text>
 <rect x="284" y="448" width="46" height="20"/><text x="307" y="462" fill="#e2e8f0">TokBud</text>
@@ -107,7 +107,7 @@
 <rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
 <rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
 </g>
-<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
+<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
 </g>
 
 <line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -136,7 +136,7 @@
 <rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
 <rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
 </g>
-<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
+<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
 </g>
 
 <line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -158,7 +158,7 @@
 <rect x="724" y="634" width="62" height="24"/><text x="755" y="650" fill="#e2e8f0">Aider</text>
 <rect x="792" y="634" width="62" height="24"/><text x="823" y="650" fill="#e2e8f0">Roo Code</text>
 </g>
-<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#0a0e1a" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
+<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
 </g>
 
 <text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>
