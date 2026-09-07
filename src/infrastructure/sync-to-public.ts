@@ -290,6 +290,79 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     rmIf(f);
   }
 
+  // 9c. Legacy top-level directories that are no longer part of the public
+  // distribution. The sync copies an explicit allowlist (docs, protected,
+  // public, demos, src, adapters, tests/unit, tests/smoke, scripts/gentle-vanguard,
+  // config examples + a few runtime configs). Anything else that survived from
+  // previous syncs is stale and must be removed so the public repo stays
+  // homologated: no apps, no .ps1, no internal reports/rules/research.
+  for (const staleDir of [
+    'reports',
+    'templates',
+    'docs-archive',
+    'rules',
+    'rules-archive',
+    'research',
+    'tools',
+    'legacy-foundation',
+    'openspec',
+    'plugins',
+    'releases',
+    'client',
+    'gentle-vanguard',
+    '.ft',
+    '.cursor',
+    '.continue',
+    '.engram',
+    '.codex',
+    '.antigravity',
+    '.devcontainer',
+    '.cline',
+    '.engram-data',
+    '.workspace',
+    '.windsurf',
+    '.event-bus',
+  ]) {
+    rmIf(path.join(targetDir, staleDir), { recurse: true });
+  }
+
+  // 9d. Stale root files that are not part of the public allowlist. The sync
+  // copies an explicit set of root files (README, LICENSE, CONTRIBUTING,
+  // SECURITY, CHANGELOG, BUILD-README, INSTALLATION, docker-compose*, Dockerfile,
+  // .gitleaks.toml, package.json, .prettier*, VERSION, pnpm-*, tsconfig.json,
+  // config/*.example, installer-manifest.json, runtime configs, presentation,
+  // installer exe). Anything else at the root that survived from previous syncs
+  // is stale and must be removed.
+  for (const staleFile of [
+    'README-PUBLIC.md',
+    'CLAUDE.md',
+    'AGENTS.md',
+    'opencode.json',
+    'pyproject.toml',
+    'renovate.json',
+    'skills-lock.json',
+    '.cursorrules',
+    '.clinerules',
+    '.clineignore',
+    '.orchestrator-active',
+    '.graphifyignore',
+    '.eslintrc.json',
+    '.eslintignore',
+    '.env.example',
+    '.env.local.example',
+    '.lefthook.yml',
+    '.markdownlint.json',
+    '.secretlintrc.json',
+    '.secretlintignore',
+    '.trivyignore',
+    '.editorconfig',
+    '.npmrc',
+    '.nvmrc',
+    '.node-version',
+  ]) {
+    rmIf(path.join(targetDir, staleFile));
+  }
+
   // 10. Public runtime and CI inputs.
   // The public distribution is executable source, but its workflow is deliberately
   // narrower than the private engineering CI.

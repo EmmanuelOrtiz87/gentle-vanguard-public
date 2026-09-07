@@ -1,8 +1,0 @@
-{
-  "name": "example-hello-world",
-  "version": "1.0.0",
-  "author": "Gentle-Vanguard",
-  "description": "Example plugin for demonstration purposes",
-  "main": "hello-world.ps1",
-  "dependencies": []
-}

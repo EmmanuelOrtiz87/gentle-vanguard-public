@@ -1,8 +1,0 @@
-# Cursor Rules for Gentle-Vanguard
-# Auto-managed by maintenance-watchtower
-
-- Run health checks before major changes
-- Maintain Engram memory for decisions
-- CodeGraph index must stay fresh
-- Dashboard WS server must be running for observability
-- Use maintenance-watchtower for full stack verification

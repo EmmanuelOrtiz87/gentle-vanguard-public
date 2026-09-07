@@ -1,7 +1,0 @@
-# Trivy ignore file
-# Format: CVE-ID or GHSA-ID, one per line
-# Add entries here when a vulnerability is a confirmed false positive
-# or has been reviewed and accepted (with justification comment)
-
-# Example:
-# CVE-2024-12345  # False positive: affects only Linux kernel, not our runtime
