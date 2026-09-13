@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <defs>
+    <linearGradient id="gvGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.2" cy="0.15" r="0.7">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.85" cy="0.9" r="0.6">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="#0F1115"/>
+  <rect width="1200" height="1600" fill="url(#glowA)"/>
+  <rect width="1200" height="1600" fill="url(#glowB)"/>
+  <!-- grid sutil -->
+  <g stroke="#1c2230" stroke-width="1" opacity="0.5">
+    <line x1="0" y1="0" x2="0" y2="1600"/>
+    <line x1="100" y1="0" x2="100" y2="1600"/>
+    <line x1="200" y1="0" x2="200" y2="1600"/>
+    <line x1="300" y1="0" x2="300" y2="1600"/>
+    <line x1="400" y1="0" x2="400" y2="1600"/>
+    <line x1="500" y1="0" x2="500" y2="1600"/>
+    <line x1="600" y1="0" x2="600" y2="1600"/>
+    <line x1="700" y1="0" x2="700" y2="1600"/>
+    <line x1="800" y1="0" x2="800" y2="1600"/>
+    <line x1="900" y1="0" x2="900" y2="1600"/>
+    <line x1="1000" y1="0" x2="1000" y2="1600"/>
+    <line x1="1100" y1="0" x2="1100" y2="1600"/>
+    <line x1="1200" y1="0" x2="1200" y2="1600"/>
+    <line x1="0" y1="0" x2="1200" y2="0"/>
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="0" y1="600" x2="1200" y2="600"/>
+    <line x1="0" y1="700" x2="1200" y2="700"/>
+    <line x1="0" y1="800" x2="1200" y2="800"/>
+    <line x1="0" y1="900" x2="1200" y2="900"/>
+    <line x1="0" y1="1000" x2="1200" y2="1000"/>
+    <line x1="0" y1="1100" x2="1200" y2="1100"/>
+    <line x1="0" y1="1200" x2="1200" y2="1200"/>
+    <line x1="0" y1="1300" x2="1200" y2="1300"/>
+    <line x1="0" y1="1400" x2="1200" y2="1400"/>
+    <line x1="0" y1="1500" x2="1200" y2="1500"/>
+    <line x1="0" y1="1600" x2="1200" y2="1600"/>
+  </g>
+  <!-- marco -->
+  <rect x="40" y="40" width="1120" height="1520" fill="none" stroke="url(#gvGrad)" stroke-width="3" rx="18"/>
+  <!-- brand -->
+  <text x="600" y="150" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="700" fill="#A78BFA" letter-spacing="8">GENTLE VANGUARD ACADEMY</text>
+  <!-- type badge -->
+  <rect x="430" y="210" width="340" height="52" rx="26" fill="#86EFAC" opacity="0.14"/>
+  <text x="600" y="244" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#86EFAC" letter-spacing="3">CURSO INICIAL</text>
+  <!-- regla gradiente -->
+  <rect x="430" y="560" width="340" height="4" rx="2" fill="url(#gvGrad)"/>
+  <!-- título -->
+  <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Git y GitHub — Control</text>
+    <text x="600" y="792" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">de Versiones</text>
+    <text x="600" y="884" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Profesional</text>
+  <!-- subtítulo -->
+  <text x="600" y="1036" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Domina Git desde cero: repositorios, staging area, commits y ramas; resuelve conflictos de merge sin miedo; colabora en GitHub con pull requests, code review y conventional commits; rescata el historial con reflog y bisect; automatiza tus tests con GitHub Actions y cierra con un proyecto guiado: tu portafolio desplegado en GitHub Pages.</text>
+  <!-- meta -->
+  <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~14 HORAS</text>
+    <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">GIT · GITHUB · CONTROL-DE-VERSIONES</text>
+</svg>
