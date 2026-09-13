@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://emmanuelortiz87.github.io/gentle-vanguard-public/sitemap.xml
