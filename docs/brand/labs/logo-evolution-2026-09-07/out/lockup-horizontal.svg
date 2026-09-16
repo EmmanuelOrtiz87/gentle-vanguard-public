@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280">
+  <defs>  <linearGradient id="vg" gradientUnits="userSpaceOnUse" x1="170" y1="150" x2="300" y2="40">
+    <stop offset="0" stop-color="#A78BFA"/>
+    <stop offset="1" stop-color="#22D3EE"/>
+  </linearGradient></defs>
+  <g transform="translate(26 20) scale(0.45)">
+      <path d="M 208.6 65.8 A 196 196 0 1 0 446.2 303.4 L 376.3 286.0 A 124 124 0 1 1 226.0 135.7 Z" fill="#E9ECF4"/>
+      <path d="M 413.7 91.2 L 281.2 121.8 L 297.4 192.0 L 369.2 142.8 L 320.0 214.6 L 390.2 230.8 L 420.8 98.3 Z" fill="url(#vg)"/>
+  </g>
+  <text x="318" y="162" font-family="'Space Grotesk', 'Segoe UI', sans-serif" font-size="94" fill="#E9ECF4" letter-spacing="-1"><tspan font-weight="400">Gentle</tspan><tspan font-weight="700">Vanguard</tspan></text>
+  <text x="322" y="202" font-family="'Space Grotesk', 'Segoe UI', sans-serif" font-weight="400" font-size="20" letter-spacing="9" fill="#E9ECF4" fill-opacity="0.5">SOFTWARE · SYSTEMS · INTELLIGENCE</text>
+</svg>

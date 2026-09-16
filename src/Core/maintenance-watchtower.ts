@@ -32,6 +32,7 @@ import {
 } from './watchtower/context';
 import { fileExists, readJson, testPort, isCodeGraphProcessRunning } from './watchtower/helpers';
 import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard';
+import { checkAppsRegistry } from './watchtower/checks-apps';
 import {
   checkCodeGraph,
   checkTimeoutDaemon,
@@ -435,6 +436,7 @@ function parseArgs() {
 async function runAllChecks() {
   const checks = [
     checkDashboardWs,
+    checkAppsRegistry,
     checkCodeGraph,
     checkGvAnalytics,
     checkTimeoutDaemon,
@@ -486,6 +488,7 @@ async function runAllChecks() {
 /** Well-known ports per component, used when a component reports FAIL/WARN. */
 const COMPONENT_PORTS: Record<string, number[]> = {
   'dashboard-ws': [8080],
+  'apps-registry': [8090],
   codegraph: [3000],
 };
 

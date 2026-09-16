@@ -32,7 +32,8 @@ import { join, resolve } from 'path';
 import { chromium } from 'playwright';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
-const PROFILE = process.env.GV_PROMPT_PROFILE_DIR ?? join(ROOT, '.runtime', 'prompt-studio', 'browser-profile');
+const PROFILE =
+  process.env.GV_PROMPT_PROFILE_DIR ?? join(ROOT, '.runtime', 'prompt-studio', 'browser-profile');
 
 function getArg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -40,7 +41,13 @@ function getArg(name: string): string | undefined {
 }
 // flags booleanos por presencia (getArg rompe si el flag es el último argumento)
 const hasFlag = (name: string) => process.argv.includes(name);
-const mode = hasFlag('--check') ? 'check' : hasFlag('--login') ? 'login' : hasFlag('--import') ? 'import' : 'check';
+const mode = hasFlag('--check')
+  ? 'check'
+  : hasFlag('--login')
+    ? 'login'
+    : hasFlag('--import')
+      ? 'import'
+      : 'check';
 const profileDir = resolve(getArg('--profile') ?? PROFILE);
 
 function out(data: unknown, code = 0): never {
@@ -52,7 +59,10 @@ const LAUNCH_ARGS = ['--disable-blink-features=AutomationControlled'];
 
 async function checkSession(context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>) {
   const page = context.pages()[0] ?? (await context.newPage());
-  await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.goto('https://gemini.google.com/app', {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
   await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
   const info = await page.evaluate(() => {
     const html = document.documentElement.outerHTML;
@@ -103,23 +113,36 @@ async function main(): Promise<void> {
 
     if (mode === 'check') {
       const info = await checkSession(context);
-      out({ ok: true, needsLogin: !info.hasToken, tokenLength: info.tokenLength, hasSignIn: info.hasSignIn });
+      out({
+        ok: true,
+        needsLogin: !info.hasToken,
+        tokenLength: info.tokenLength,
+        hasSignIn: info.hasSignIn,
+      });
     }
 
     // mode === 'import'
     const info = await checkSession(context);
     if (!info.hasToken) {
-      out({ ok: false, error: 'Sesión de Gemini no iniciada — ejecutá primero el modo --login.', needsLogin: true });
+      out({
+        ok: false,
+        error: 'Sesión de Gemini no iniciada — ejecutá primero el modo --login.',
+        needsLogin: true,
+      });
     }
 
     const page = context.pages()[0] ?? (await context.newPage());
-    await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.goto('https://gemini.google.com/app', {
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000,
+    });
     // extraer token de la página ya cargada
     const htmlNow = await page.evaluate(() => document.documentElement.outerHTML);
     const accessToken = htmlNow.match(/"SNlM0e":\s*"(.*?)"/)?.[1] ?? '';
     const sessionId = htmlNow.match(/"FdrFJe":\s*"(.*?)"/)?.[1] ?? '';
     const language = htmlNow.match(/"TuX5cc":\s*"(.*?)"/)?.[1] ?? 'en';
-    if (!accessToken) out({ ok: false, error: 'SNlM0e no disponible en la sesión.', needsLogin: true });
+    if (!accessToken)
+      out({ ok: false, error: 'SNlM0e no disponible en la sesión.', needsLogin: true });
 
     // POST batchexecute dentro del navegador (misma sesión + fingerprint). rpcids:
     //  - CNgdBe [4]=system (+hidden), [2]=custom — LISTA con prompt TRUNCADO (~100 chars)
@@ -177,7 +200,13 @@ async function main(): Promise<void> {
         const partBody = JSON.parse(payload) as unknown[];
         const list = partBody[2];
         if (!Array.isArray(list)) return [];
-        const gemsOut: Array<{ id: string; name: string; description: string; prompt: string; predefined: boolean }> = [];
+        const gemsOut: Array<{
+          id: string;
+          name: string;
+          description: string;
+          prompt: string;
+          predefined: boolean;
+        }> = [];
         for (const gem of list) {
           if (!Array.isArray(gem) || typeof gem[0] !== 'string') continue;
           const meta = Array.isArray(gem[1]) ? gem[1] : [];
@@ -196,7 +225,13 @@ async function main(): Promise<void> {
       }
     };
 
-    const gems: Array<{ id: string; name: string; description: string; prompt: string; predefined: boolean }> = [];
+    const gems: Array<{
+      id: string;
+      name: string;
+      description: string;
+      prompt: string;
+      predefined: boolean;
+    }> = [];
     if (typeof raw === 'string' && !raw.startsWith('HTTP ')) {
       for (const payload of extractPayloads(raw, 'CNgdBe')) {
         for (const g of parseGemList(payload)) gems.push(g);
@@ -223,7 +258,10 @@ async function main(): Promise<void> {
             const url = `https://gemini.google.com/_/BardChatUi/data/batchexecute?${params.toString()}`;
             const body = new URLSearchParams();
             body.set('at', token);
-            body.set('f.req', JSON.stringify([[['HcT8bb', JSON.stringify([id]), null, 'generic']]]));
+            body.set(
+              'f.req',
+              JSON.stringify([[['HcT8bb', JSON.stringify([id]), null, 'generic']]]),
+            );
             const res = await fetch(url, {
               method: 'POST',
               headers: { 'content-type': 'application/x-www-form-urlencoded;charset=utf-8' },
@@ -258,12 +296,21 @@ async function main(): Promise<void> {
     }
 
     // Solo las gemas CUSTOM se importan (las del sistema son 60+ y no se editan)
-    out({ ok: true, gems: customGems, imported: customGems.length, session: { language, sessionId } });
+    out({
+      ok: true,
+      gems: customGems,
+      imported: customGems.length,
+      session: { language, sessionId },
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (context) await context.close().catch(() => undefined);
     if (msg.includes('already running') || msg.includes('locked')) {
-      out({ ok: false, error: 'El perfil del navegador está en uso. Si el modo --login está abierto, cerrá esa ventana y reintentá.' });
+      out({
+        ok: false,
+        error:
+          'El perfil del navegador está en uso. Si el modo --login está abierto, cerrá esa ventana y reintentá.',
+      });
     }
     out({ ok: false, error: msg });
   }

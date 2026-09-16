@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" role="img" aria-label="Precision Alloy Gentle-Vanguard logo proposal">
+    <defs>
+    <linearGradient id="gv-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A78BFA"/><stop offset="1" stop-color="#22D3EE"/></linearGradient>
+    <linearGradient id="metal-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EEF3F7"/><stop offset=".18" stop-color="#7D8A9B"/><stop offset=".5" stop-color="#1D2632"/><stop offset=".72" stop-color="#22D3EE"/><stop offset="1" stop-color="#A78BFA"/></linearGradient>
+    <linearGradient id="glass-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".94"/><stop offset=".38" stop-color="#22D3EE" stop-opacity=".54"/><stop offset="1" stop-color="#A78BFA" stop-opacity=".78"/></linearGradient>
+    <linearGradient id="alloy-gradient" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#F7FAFC"/><stop offset=".24" stop-color="#8793A2"/><stop offset=".52" stop-color="#2E3947"/><stop offset=".82" stop-color="#A78BFA"/><stop offset="1" stop-color="#22D3EE"/></linearGradient>
+    <radialGradient id="spot" cx="50%" cy="25%" r="74%"><stop offset="0" stop-color="#A78BFA" stop-opacity=".32"/><stop offset=".5" stop-color="#A78BFA" stop-opacity=".08"/><stop offset="1" stop-color="#090C11" stop-opacity="0"/></radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#151A23"/><stop offset="1" stop-color="#090C11"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="190%"><feDropShadow dx="0" dy="20" stdDeviation="18" flood-color="#000000" flood-opacity=".65"/></filter>
+    <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="22"/></filter>
+    <filter id="edge-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="7"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .045"/></feComponentTransfer><feBlend in="SourceGraphic" mode="soft-light"/></filter>
+    <pattern id="micro-grid" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#A78BFA" stroke-opacity=".09" stroke-width="1"/></pattern>
+    <clipPath id="clip-scene"><rect x="95" y="145" width="1410" height="660" rx="28"/></clipPath>
+  </defs>
+    <rect width="1600" height="1100" fill="#090C11"/>
+    <rect width="1600" height="1100" fill="url(#micro-grid)" opacity=".6"/>
+    <rect width="1600" height="1100" fill="#000" opacity=".12" filter="url(#grain)"/>
+    <text x="96" y="80" fill="#A78BFA" font-family="JetBrains Mono, monospace" font-size="15" letter-spacing="3">DIRECTION 03 / PRECISION ALLOY</text>
+    <text x="1504" y="80" text-anchor="end" fill="#C4CDD8" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="2">GV / BRAND LAB</text>
+    <rect x="95" y="145" width="1410" height="660" rx="28" fill="none" stroke="#252B38" stroke-width="2"/>
+    <g clip-path="url(#clip-scene)"><rect x="95" y="145" width="1410" height="660" fill="url(#spot)"/><ellipse cx="800" cy="720" rx="520" ry="100" fill="#A78BFA" fill-opacity=".13" filter="url(#soft-glow)"/><path d="M190 710H1410L1280 815H320Z" fill="url(#floor)" stroke="#252B38" stroke-width="2" filter="url(#shadow)"/><path d="M260 744H1340M380 780H1220" stroke="#A78BFA" stroke-opacity=".18" stroke-width="2"/><g transform="translate(565 150)"><g transform="translate(12 18) scale(2.8)"><g fill="none" stroke="#05070A" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+    <path d="M128 50A62 62 0 1 0 150 116L112 116"/>
+    <path d="M196 96L228 170L292 46"/>
+    <path d="M274 50L292 46L288 66" stroke-width="10"/>
+  </g></g><g transform="translate(6 9) scale(2.8)"><g fill="none" stroke="#344150" stroke-width="21" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M128 50A62 62 0 1 0 150 116L112 116"/>
+    <path d="M196 96L228 170L292 46"/>
+    <path d="M274 50L292 46L288 66" stroke-width="10"/>
+  </g></g><g transform="scale(2.8)"><g fill="none" stroke="url(#alloy-gradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="1">
+    <path d="M128 50A62 62 0 1 0 150 116L112 116"/>
+    <path d="M196 96L228 170L292 46"/>
+    <path d="M274 50L292 46L288 66" stroke-width="10"/>
+  </g><g fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.38">
+    <path d="M128 50A62 62 0 1 0 150 116L112 116"/>
+    <path d="M196 96L228 170L292 46"/>
+    <path d="M274 50L292 46L288 66" stroke-width="10"/>
+  </g></g></g><path d="M800 170V770" stroke="#A78BFA" stroke-opacity=".14" stroke-width="2" stroke-dasharray="5 13"/><path d="M215 480H1385" stroke="#E8EEF4" stroke-opacity=".07" stroke-width="2" stroke-dasharray="4 18"/></g>
+    <line x1="96" y1="872" x2="1504" y2="872" stroke="#252B38"/>
+    <text x="96" y="948" fill="#E8EEF4" font-family="Space Grotesk, Inter, sans-serif" font-size="58" font-weight="600">Gentle<tspan fill="url(#gv-gradient)">Vanguard</tspan></text>
+    <text x="100" y="993" fill="#C4CDD8" font-family="Inter, Arial, sans-serif" font-size="18">Systems that move from idea to operation.</text>
+    <text x="1504" y="946" text-anchor="end" fill="#A78BFA" font-family="JetBrains Mono, monospace" font-size="14" letter-spacing="2">BRUSHED TITANIUM / MEASURED CONSTRUCTION / SIGNAL POINT</text>
+    <text x="1504" y="988" text-anchor="end" fill="#C4CDD8" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="2">SPACE GROTESK / INTER / MONO</text>
+    <text x="96" y="1040" fill="#C4CDD8" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="2">OFFICIAL PALETTE / G+V MONOGRAM / CONCEPT ONLY</text>
+  </svg>

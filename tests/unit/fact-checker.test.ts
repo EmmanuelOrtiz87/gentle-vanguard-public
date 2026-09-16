@@ -20,7 +20,10 @@ describe('fact-checker', () => {
 
   it('verifies text fully supported by sources', () => {
     const text = 'The Eiffel Tower is in Paris. The Louvre is also in Paris.';
-    const sources = ['The Eiffel Tower is located in Paris, France.', 'The Louvre museum is in Paris.'];
+    const sources = [
+      'The Eiffel Tower is located in Paris, France.',
+      'The Louvre museum is in Paris.',
+    ];
     const r = factCheckText(text, sources);
     assert.strictEqual(r.verdict, 'verified');
   });

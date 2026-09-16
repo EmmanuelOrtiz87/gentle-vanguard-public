@@ -97,20 +97,20 @@ gentle-vanguard-public/
 
 ## Lo que NO se sincroniza
 
-| Categoría              | Ejemplo                          | Razón                 |
-| ---------------------- | -------------------------------- | --------------------- |
-| Scripts en texto plano | `src/cli/gv.ts`                  | IP — solo encriptados |
-| Configs reales         | `config/auto-delegation.json`    | IP — solo encriptados |
-| Skills completos       | `skills/*/SKILL.md`              | IP — solo encriptados |
-| Docs internos          | `docs/sessions/`, `docs/audits/` | Información interna   |
-| Tests                  | `tests/`                         | Solo para desarrollo  |
-| Templates              | `templates/`                     | Solo para desarrollo  |
-| Rules                  | `rules/`                         | Solo para desarrollo  |
-| Adapters               | `adapters/`                      | Solo para desarrollo  |
-| Build artifacts        | `build/`, `dist/`                | Internos              |
-| Apps                   | `apps/*`                         | Local-first (ADR-0017) |
+| Categoría              | Ejemplo                          | Razón                       |
+| ---------------------- | -------------------------------- | --------------------------- |
+| Scripts en texto plano | `src/cli/gv.ts`                  | IP — solo encriptados       |
+| Configs reales         | `config/auto-delegation.json`    | IP — solo encriptados       |
+| Skills completos       | `skills/*/SKILL.md`              | IP — solo encriptados       |
+| Docs internos          | `docs/sessions/`, `docs/audits/` | Información interna         |
+| Tests                  | `tests/`                         | Solo para desarrollo        |
+| Templates              | `templates/`                     | Solo para desarrollo        |
+| Rules                  | `rules/`                         | Solo para desarrollo        |
+| Adapters               | `adapters/`                      | Solo para desarrollo        |
+| Build artifacts        | `build/`, `dist/`                | Internos                    |
+| Apps                   | `apps/*`                         | Local-first (ADR-0017)      |
 | Scripts .ps1           | `scripts/*.ps1`, `hooks/*.ps1`   | Migrados a TS (NORM-TS-001) |
-| Reports/Research       | `reports/`, `research/`          | Internos              |
+| Reports/Research       | `reports/`, `research/`          | Internos                    |
 
 ## Verificación post-homologación
 
@@ -143,9 +143,9 @@ Get-ChildItem -Directory | Select-Object Name
 #   .engram-data, .workspace, .windsurf, .event-bus
 ```
 
-> **Nota**: `sync-to-public.ts` aplica estas reglas automáticamente en cada sync — elimina
-> cualquier `.ps1`, `apps/`, directorio stale y archivo root fuera del allowlist. La verificación
-> manual es un control de regresión, no un paso manual obligatorio.
+> **Nota**: `sync-to-public.ts` aplica estas reglas automáticamente en cada sync — elimina cualquier
+> `.ps1`, `apps/`, directorio stale y archivo root fuera del allowlist. La verificación manual es un
+> control de regresión, no un paso manual obligatorio.
 
 ## Notas importantes
 

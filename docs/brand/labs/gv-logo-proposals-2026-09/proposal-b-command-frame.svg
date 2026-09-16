@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Gentle-Vanguard proposal B: Command Frame</title>
+  <desc id="desc">G plus V monogram contained by a modular frame for control and architecture.</desc>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#22D3EE"/><stop offset="1" stop-color="#A78BFA"/></linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="960" height="420" rx="28" fill="#0F1115"/>
+  <g transform="translate(68 52)">
+    <path d="M40 46H182M40 46V188M182 188H40M182 188V138" fill="none" stroke="#252B38" stroke-width="10" stroke-linecap="square"/>
+    <path d="M143 44 A74 74 0 1 0 168 125 L125 125" fill="none" stroke="url(#grad)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M185 76 L222 157 L298 7" fill="none" stroke="url(#grad)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M286 13 L298 7 L294 25" fill="none" stroke="#22D3EE" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+    <circle cx="182" cy="188" r="7" fill="#FBBF24"/>
+  </g>
+  <text x="500" y="190" fill="#E8EEF4" font-family="Space Grotesk, Arial, sans-serif" font-size="56" font-weight="600">Gentle<tspan fill="url(#grad)">Vanguard</tspan></text>
+  <text x="504" y="232" fill="#8B95A8" font-family="JetBrains Mono, monospace" font-size="15" letter-spacing="4">ARCHITECTURE / CONTROL / TRUST</text>
+  <text x="68" y="370" fill="#A78BFA" font-family="JetBrains Mono, monospace" font-size="14" letter-spacing="3">B / COMMAND FRAME</text>
+</svg>

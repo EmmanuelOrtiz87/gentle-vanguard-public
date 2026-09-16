@@ -310,20 +310,17 @@ function validateProviders(
         if (modelDef.npm && modelDef.npm !== parentNpm) {
           errors.push(
             `WARN: provider.${id}.models.${modelId}.npm = "${modelDef.npm}" differs from parent npm "${parentNpm}". ` +
-            `Mixing @ai-sdk/openai and @ai-sdk/openai-compatible in the same provider causes "Internal server error" ` +
-            `with no useful diagnostic. Remove the override or remove the model.`,
+              `Mixing @ai-sdk/openai and @ai-sdk/openai-compatible in the same provider causes "Internal server error" ` +
+              `with no useful diagnostic. Remove the override or remove the model.`,
           );
         }
 
         // Anti-pattern 2: contributor-free models on openai-compatible parents are
         // historically a smell. Not a hard rule but worth flagging.
-        if (
-          parentNpm === '@ai-sdk/openai-compatible' &&
-          /contributor-free$/.test(modelId)
-        ) {
+        if (parentNpm === '@ai-sdk/openai-compatible' && /contributor-free$/.test(modelId)) {
           errors.push(
             `INFO: provider.${id}.models.${modelId} matches "contributor-free" pattern under an openai-compatible parent. ` +
-            `If you see "Internal server error" on this model, the model is broken by config, not by upstream.`,
+              `If you see "Internal server error" on this model, the model is broken by config, not by upstream.`,
           );
         }
       }
@@ -333,14 +330,16 @@ function validateProviders(
     if (!p.options?.apiKey) {
       const headers = p.options?.headers || {};
       const hasAuthHeader = Boolean(
-        headers.Authorization || headers.authorization ||
-        headers['x-api-key'] || headers['X-Api-Key'],
+        headers.Authorization ||
+        headers.authorization ||
+        headers['x-api-key'] ||
+        headers['X-Api-Key'],
       );
       if (!hasAuthHeader) {
         // Note: we can't check auth.json here without a path; just flag if there's clearly no auth source in config.
         errors.push(
           `INFO: provider.${id} has no apiKey, no Authorization header, no x-api-key header. ` +
-          `It must have an entry in auth.json (managed by opencode auth login or oc-keyring).`,
+            `It must have an entry in auth.json (managed by opencode auth login or oc-keyring).`,
         );
       }
     }

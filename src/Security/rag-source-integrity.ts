@@ -93,15 +93,14 @@ export function verifySource(
     verified,
     computedHash,
     expectedHash,
-    reason: verified ? undefined : `content hash mismatch (computed ${computedHash.slice(0, 12)}...)`,
+    reason: verified
+      ? undefined
+      : `content hash mismatch (computed ${computedHash.slice(0, 12)}...)`,
   };
 }
 
 /** Verify a source file against an expected content hash. */
-export function verifySourceFile(
-  filePath: string,
-  expectedHash: string,
-): IntegrityResult {
+export function verifySourceFile(filePath: string, expectedHash: string): IntegrityResult {
   if (!existsSync(filePath)) {
     return {
       sourceId: filePath,
@@ -118,7 +117,9 @@ export function verifySourceFile(
     verified,
     computedHash,
     expectedHash,
-    reason: verified ? undefined : `content hash mismatch (computed ${computedHash.slice(0, 12)}...)`,
+    reason: verified
+      ? undefined
+      : `content hash mismatch (computed ${computedHash.slice(0, 12)}...)`,
   };
 }
 
@@ -160,7 +161,11 @@ export function appendProvenanceRecord(
   const chain = loadProvenanceChain(dir);
   chain.records.push(record);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, PROVENANCE_FILE), JSON.stringify({ records: chain.records }, null, 2), 'utf-8');
+  writeFileSync(
+    join(dir, PROVENANCE_FILE),
+    JSON.stringify({ records: chain.records }, null, 2),
+    'utf-8',
+  );
   return chain;
 }
 
@@ -193,7 +198,9 @@ function main(): void {
       else if (args[i] === '--expected-hash') expectedHash = args[++i] ?? '';
     }
     if (!source || !expectedHash) {
-      console.error('Usage: rag-source-integrity.ts verify --source <path> --expected-hash <sha256>');
+      console.error(
+        'Usage: rag-source-integrity.ts verify --source <path> --expected-hash <sha256>',
+      );
       process.exit(1);
     }
     const result = verifySourceFile(source, expectedHash);

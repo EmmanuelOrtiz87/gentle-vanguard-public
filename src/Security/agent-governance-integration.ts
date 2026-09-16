@@ -23,8 +23,16 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { PolicyEngine, type PolicyEvaluationRequest, type PolicyEvaluationResult } from './policy-engine/policy-engine.js';
-import { McpSecurityGateway, type ToolDefinition, type ScanResult } from '../mcp/security-gateway/mcp-security-gateway.js';
+import {
+  PolicyEngine,
+  type PolicyEvaluationRequest,
+  type PolicyEvaluationResult,
+} from './policy-engine/policy-engine.js';
+import {
+  McpSecurityGateway,
+  type ToolDefinition,
+  type ScanResult,
+} from '../mcp/security-gateway/mcp-security-gateway.js';
 import { generateReport, type OwaspReport } from './owasp/owasp-agentic-top10.js';
 
 // ---------------------------------------------------------------------------
@@ -63,8 +71,12 @@ export class AgentGovernance {
   private readonly stateDir: string;
 
   constructor(stateDir?: string) {
-    this.policyEngine = new PolicyEngine([join(resolve(process.cwd()), 'config', 'policies', 'gv-core-tool-safety.yaml')]);
-    this.securityGateway = new McpSecurityGateway(stateDir ?? join(resolve(process.cwd()), '.runtime', 'mcp-security'));
+    this.policyEngine = new PolicyEngine([
+      join(resolve(process.cwd()), 'config', 'policies', 'gv-core-tool-safety.yaml'),
+    ]);
+    this.securityGateway = new McpSecurityGateway(
+      stateDir ?? join(resolve(process.cwd()), '.runtime', 'mcp-security'),
+    );
     this.stateDir = stateDir ?? join(resolve(process.cwd()), '.runtime', 'mcp-security');
   }
 
@@ -103,7 +115,9 @@ export class AgentGovernance {
         toolScans.push(scan);
         if (!scan.safe) {
           verdict = 'deny';
-          summary.push(`TOOL UNSAFE: ${tool.name} (${scan.findings.map((f) => f.type).join(', ')})`);
+          summary.push(
+            `TOOL UNSAFE: ${tool.name} (${scan.findings.map((f) => f.type).join(', ')})`,
+          );
         }
       }
       if (toolScans.length > 0 && toolScans.every((s) => s.safe)) {
@@ -124,7 +138,15 @@ export class AgentGovernance {
     }
 
     const proceed = verdict === 'allow';
-    return { timestamp: new Date().toISOString(), verdict, proceed, policy, toolScans, owasp, summary };
+    return {
+      timestamp: new Date().toISOString(),
+      verdict,
+      proceed,
+      policy,
+      toolScans,
+      owasp,
+      summary,
+    };
   }
 
   /** Persist the last governance check to the state dir for audit. */

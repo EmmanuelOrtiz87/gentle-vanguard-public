@@ -132,7 +132,7 @@ Interactive tool for validating design changes:
 | ------------------ | ----------- | ----------------------- |
 | Dashboard          | ✅ Active   | Keep                    |
 | Analytics          | ✅ Active   | Keep                    |
-| Content CMS        | ✅ Active   | Keep                    |
+| Content Studio     | ✅ Active   | Keep                    |
 | Academy            | ✅ Active   | Implement v2            |
 | Prompt Studio      | ✅ Active   | Keep                    |
 | Archify            | ✅ Active   | Keep                    |

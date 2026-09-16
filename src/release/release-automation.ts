@@ -183,7 +183,10 @@ function updateChangelogFile(version: string, changelog: string): void {
     existing = readFileSync(changelogPath, 'utf-8');
   }
 
-  writeFileSync(changelogPath, `# Changelog\n\n${changelog}\n${existing.replace(/^# Changelog\n\n/, '')}`);
+  writeFileSync(
+    changelogPath,
+    `# Changelog\n\n${changelog}\n${existing.replace(/^# Changelog\n\n/, '')}`,
+  );
 }
 
 // =============================================================================
@@ -395,7 +398,7 @@ async function runRelease(options: ReleaseOptions): Promise<void> {
   logger.info('║   RELEASE COMPLETE ✅                            ║');
   logger.info('╠══════════════════════════════════════════════════╣');
   logger.info(`║ Version: ${newVersion.padEnd(36)} ║`);
-  logger.info(`║ Tag: ${(`v${newVersion}`).padEnd(40)} ║`);
+  logger.info(`║ Tag: ${`v${newVersion}`.padEnd(40)} ║`);
   logger.info(`║ Commit: ${commit.slice(0, 7).padEnd(37)} ║`);
   logger.info(`║ Duration: ${(duration + 's').padEnd(35)} ║`);
   logger.info(`║ Backup: ${(backupPath.split('/').pop() || '').padEnd(37)} ║`);

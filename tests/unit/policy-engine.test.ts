@@ -51,9 +51,7 @@ describe('policy-engine', () => {
           target: '/tmp/y',
         }),
       );
-      assert.ok(
-        evaluateCondition("action.type == 'a' or action.type == 'b'", { type: 'b' }),
-      );
+      assert.ok(evaluateCondition("action.type == 'a' or action.type == 'b'", { type: 'b' }));
     });
 
     it('fails closed on unsupported predicates', () => {

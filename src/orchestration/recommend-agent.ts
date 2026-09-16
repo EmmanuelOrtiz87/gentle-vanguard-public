@@ -21,6 +21,7 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runNpxTsxSync } from '../core/run-command.js';
 import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager.js';
+import { classifyRisk } from '../rdd/risk-classifier.js';
 
 const ROOT = resolve(process.cwd());
 const ROUTING_TABLE = join(ROOT, '.session', 'routing', 'routing-table.json');
@@ -330,19 +331,54 @@ function parseArgs(argv: string[]): {
   domain: string;
   topN: number;
   refresh: boolean;
+  riskAware: boolean;
 } {
-  const args = { task: '', domain: '', topN: 3, refresh: false };
+  const args = { task: '', domain: '', topN: 3, refresh: false, riskAware: false };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--task' && argv[i + 1]) args.task = argv[++i];
     else if (argv[i] === '--domain' && argv[i + 1]) args.domain = argv[++i];
     else if (argv[i] === '--topn' && argv[i + 1]) args.topN = Number(argv[++i]);
     else if (argv[i] === '--refresh') args.refresh = true;
+    else if (argv[i] === '--risk-aware') args.riskAware = true;
   }
   return args;
 }
 
+/**
+ * Risk-aware delegation (absorbido de Gentle-AI v2.7.0 "risk-aware delegation").
+ * Clasifica el riesgo del diff actual y decide cuánta verificación merece la
+ * tarea delegada:
+ *   - low      → delegación directa, sin verificación extra
+ *   - standard → 1 lens (sdd-verify)
+ *   - high     → 4R review (rdd-4r-review)
+ * Solo aplica a dominios de código (code-apply, code-review, testing).
+ */
+function riskAwareVerification(domain: string): {
+  riskTier: string;
+  riskScore: number;
+  verification: string;
+  rationale: string;
+} | null {
+  const codeDomains = ['code-apply', 'code-review', 'testing', 'general'];
+  if (!codeDomains.includes(domain)) return null;
+  try {
+    const c = classifyRisk(false);
+    const tier = c.tier;
+    const verification =
+      tier === 'high' ? 'rdd-4r-review' : tier === 'standard' ? 'sdd-verify' : 'none';
+    return {
+      riskTier: tier,
+      riskScore: c.score,
+      verification,
+      rationale: c.rationale,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function main(): void {
-  const { task, domain, topN, refresh } = parseArgs(process.argv);
+  const { task, domain, topN, refresh, riskAware } = parseArgs(process.argv);
 
   if (refresh) {
     try {
@@ -356,7 +392,13 @@ function main(): void {
     }
   }
 
-  const result = recommend(task, domain, topN);
+  const result = recommend(task, domain, topN) as Record<string, unknown>;
+  if (riskAware) {
+    const rv = riskAwareVerification(String(result.domain ?? domain));
+    if (rv) {
+      result.risk = rv;
+    }
+  }
   console.log(JSON.stringify(result, null, 2));
 }
 

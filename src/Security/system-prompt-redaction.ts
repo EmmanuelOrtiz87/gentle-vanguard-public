@@ -48,15 +48,33 @@ export interface RedactionFinding {
 
 /** Known system-prompt markers that indicate leaked prompt content. */
 const SYSTEM_PROMPT_MARKERS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /(?:you are|your role is|act as|as an? (?:ai|assistant|agent))[^\n.]{0,120}/gi, label: 'system-role-declaration' },
-  { pattern: /(?:system prompt|system message|instructions? for the (?:ai|assistant|agent))[^\n.]{0,120}/gi, label: 'system-prompt-reference' },
-  { pattern: /(?:do not|never|always|must|should) (?:reveal|disclose|share|expose|mention) (?:your|the) (?:system|instructions?|prompt)/gi, label: 'prompt-reveal-instruction' },
-  { pattern: /(?:ignore|override|disregard) (?:all )?(?:previous|prior|earlier) instructions?/gi, label: 'instruction-override' },
+  {
+    pattern: /(?:you are|your role is|act as|as an? (?:ai|assistant|agent))[^\n.]{0,120}/gi,
+    label: 'system-role-declaration',
+  },
+  {
+    pattern:
+      /(?:system prompt|system message|instructions? for the (?:ai|assistant|agent))[^\n.]{0,120}/gi,
+    label: 'system-prompt-reference',
+  },
+  {
+    pattern:
+      /(?:do not|never|always|must|should) (?:reveal|disclose|share|expose|mention) (?:your|the) (?:system|instructions?|prompt)/gi,
+    label: 'prompt-reveal-instruction',
+  },
+  {
+    pattern: /(?:ignore|override|disregard) (?:all )?(?:previous|prior|earlier) instructions?/gi,
+    label: 'instruction-override',
+  },
 ];
 
 /** Common secret patterns to redact from responses. */
 const SECRET_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /(?:api[_-]?key|secret|token|password|bearer)\s*[:=]\s*["']?[A-Za-z0-9_\-./+]{8,}["']?/gi, label: 'embedded-secret' },
+  {
+    pattern:
+      /(?:api[_-]?key|secret|token|password|bearer)\s*[:=]\s*["']?[A-Za-z0-9_\-./+]{8,}["']?/gi,
+    label: 'embedded-secret',
+  },
   { pattern: /sk-[A-Za-z0-9]{20,}/g, label: 'openai-api-key' },
   { pattern: /ghp_[A-Za-z0-9]{20,}/g, label: 'github-token' },
   { pattern: /AKIA[0-9A-Z]{16}/g, label: 'aws-access-key' },
@@ -80,7 +98,9 @@ export function redactSystemPrompt(text: string): RedactionResult {
       const matches = redacted.match(pattern);
       const count = matches ? matches.length : 0;
       if (count > 0) {
-        redacted = redacted.replace(pattern, (match) => '[REDACTED]'.repeat(match.length > 0 ? 1 : 0));
+        redacted = redacted.replace(pattern, (match) =>
+          '[REDACTED]'.repeat(match.length > 0 ? 1 : 0),
+        );
         findings.push({ type: label, label, count });
         totalRedactions += count;
       }

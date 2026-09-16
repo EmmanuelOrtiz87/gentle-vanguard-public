@@ -122,9 +122,7 @@ export function healStepScriptPaths(
   config: PipelineConfigLike,
   opts: HealOptions = {},
 ): HealResult {
-  const candidates = config.pipeline.steps.filter(
-    (s) => s.enabled === true && !!s.script,
-  );
+  const candidates = config.pipeline.steps.filter((s) => s.enabled === true && !!s.script);
   const result: HealResult = { healed: 0, persisted: 0, patches: [], stillMissing: [] };
 
   if (candidates.length === 0) return result;

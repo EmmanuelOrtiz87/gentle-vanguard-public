@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { redactSystemPrompt, scanSystemPrompt } from '../../src/security/system-prompt-redaction.js';
+import {
+  redactSystemPrompt,
+  scanSystemPrompt,
+} from '../../src/security/system-prompt-redaction.js';
 
 describe('system-prompt-redaction', () => {
   it('redacts system role declarations', () => {

@@ -54,12 +54,29 @@ const READ_ONLY_COLLECTIONS = new Set(['system', 'config', 'provenance']);
 
 /** Injection heuristics for embedding-space attacks. */
 const INJECTION_SIGNALS: Array<{ pattern: RegExp; label: string; weight: number }> = [
-  { pattern: /(?:ignore|override|disregard) (?:all )?(?:previous|prior|earlier) (?:instructions?|context)/gi, label: 'instruction-override', weight: 3 },
+  {
+    pattern:
+      /(?:ignore|override|disregard) (?:all )?(?:previous|prior|earlier) (?:instructions?|context)/gi,
+    label: 'instruction-override',
+    weight: 3,
+  },
   { pattern: /(?:you are|act as|your role is)[^\n.]{0,80}/gi, label: 'role-injection', weight: 2 },
-  { pattern: /(?:system prompt|system message|hidden instructions?)[^\n.]{0,80}/gi, label: 'prompt-reference', weight: 2 },
-  { pattern: /(?:retrieve|return|output|print) (?:the|your) (?:system|hidden|secret)/gi, label: 'secret-exfiltration', weight: 3 },
+  {
+    pattern: /(?:system prompt|system message|hidden instructions?)[^\n.]{0,80}/gi,
+    label: 'prompt-reference',
+    weight: 2,
+  },
+  {
+    pattern: /(?:retrieve|return|output|print) (?:the|your) (?:system|hidden|secret)/gi,
+    label: 'secret-exfiltration',
+    weight: 3,
+  },
   { pattern: /(?:<|\[)(?:system|user|assistant)(?:>|\])/gi, label: 'role-tag-spoofing', weight: 1 },
-  { pattern: /(?:do not|never) (?:reveal|disclose|mention) (?:your|the) (?:instructions?|prompt)/gi, label: 'reveal-instruction', weight: 2 },
+  {
+    pattern: /(?:do not|never) (?:reveal|disclose|mention) (?:your|the) (?:instructions?|prompt)/gi,
+    label: 'reveal-instruction',
+    weight: 2,
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -82,7 +99,8 @@ export function checkEmbedding(text: string): EmbeddingCheckResult {
     }
   }
 
-  const risk: 'low' | 'medium' | 'high' = riskScore >= 5 ? 'high' : riskScore >= 2 ? 'medium' : 'low';
+  const risk: 'low' | 'medium' | 'high' =
+    riskScore >= 5 ? 'high' : riskScore >= 2 ? 'medium' : 'low';
   return {
     text,
     safe: risk !== 'high',
@@ -95,10 +113,7 @@ export function checkEmbedding(text: string): EmbeddingCheckResult {
  * Gate a vector store operation against the access control policy.
  * Fail closed: unknown operations or read-only collection writes are denied.
  */
-export function gateVectorOperation(
-  operation: string,
-  collection: string,
-): VectorGateResult {
+export function gateVectorOperation(operation: string, collection: string): VectorGateResult {
   const op = operation.toLowerCase();
 
   if (!ALLOWED_OPERATIONS.has(op)) {

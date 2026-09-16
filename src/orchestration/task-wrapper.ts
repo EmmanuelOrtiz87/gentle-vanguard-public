@@ -77,12 +77,17 @@ export interface SmartTaskResult {
  */
 export async function smartTask(request: SmartTaskRequest): Promise<SmartTaskResult> {
   // Normalizar el agente (puede venir como agent o subagent_type)
-  const agentName = request.agent ||
-    (request.subagent_type === 'explore' ? 'sdd-explore' :
-      request.subagent_type === 'design' ? 'sdd-design' :
-        request.subagent_type === 'apply' ? 'sdd-apply' :
-          request.subagent_type === 'verify' ? 'sdd-verify' :
-            request.subagent_type) ||
+  const agentName =
+    request.agent ||
+    (request.subagent_type === 'explore'
+      ? 'sdd-explore'
+      : request.subagent_type === 'design'
+        ? 'sdd-design'
+        : request.subagent_type === 'apply'
+          ? 'sdd-apply'
+          : request.subagent_type === 'verify'
+            ? 'sdd-verify'
+            : request.subagent_type) ||
     'general';
 
   // Normalizar el prompt/task

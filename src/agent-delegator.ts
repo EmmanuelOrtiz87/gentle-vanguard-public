@@ -1,10 +1,10 @@
 import { pathToFileURL } from 'url';
 /**
  * Agent Delegator - Entry Point
- * 
+ *
  * Este archivo es el punto de entrada principal para el sistema de delegación
  * de agentes. Re-exporta la implementación real desde orchestration.
- * 
+ *
  * NOTA: La implementación real vive en src/orchestration/agent-delegator.ts
  * Este archivo actúa como wrapper para mantener compatibilidad con documentación
  * y scripts que esperan la ruta src/agent-delegator.ts

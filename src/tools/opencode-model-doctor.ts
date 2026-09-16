@@ -57,7 +57,19 @@ interface AuthFile {
 
 interface ModelProbeResult {
   id: string;
-  status: 'OK' | 'NOT_FOUND' | 'AUTH_FAILED' | 'RATE_LIMITED' | 'USAGE_LIMIT' | 'INSUFFICIENT_BALANCE' | 'INTERNAL_ERROR' | 'PARAM_LEAK' | 'OPT_IN_REQUIRED' | 'TIMEOUT' | 'NETWORK_ERROR' | 'UNKNOWN';
+  status:
+    | 'OK'
+    | 'NOT_FOUND'
+    | 'AUTH_FAILED'
+    | 'RATE_LIMITED'
+    | 'USAGE_LIMIT'
+    | 'INSUFFICIENT_BALANCE'
+    | 'INTERNAL_ERROR'
+    | 'PARAM_LEAK'
+    | 'OPT_IN_REQUIRED'
+    | 'TIMEOUT'
+    | 'NETWORK_ERROR'
+    | 'UNKNOWN';
   detail?: string;
 }
 
@@ -65,15 +77,20 @@ interface ProviderReport {
   id: string;
   name: string;
   baseURL: string;
-  authSource: 'auth.json' | 'options.apiKey' | 'options.headers.Authorization' | 'options.headers.x-api-key' | 'NONE';
+  authSource:
+    | 'auth.json'
+    | 'options.apiKey'
+    | 'options.headers.Authorization'
+    | 'options.headers.x-api-key'
+    | 'NONE';
   catalogEndpoint: string;
   catalogOK: boolean;
   catalogCount: number;
-  upstreamCatalog: string[];        // all model IDs from the upstream /v1/models
-  configuredCatalog: string[];       // model IDs configured in opencode.json
-  missingInUpstream: string[];       // configured but not in upstream
-  extrasInUpstream: string[];        // in upstream but not configured
-  modelProbes?: ModelProbeResult[];  // only if --probe-models
+  upstreamCatalog: string[]; // all model IDs from the upstream /v1/models
+  configuredCatalog: string[]; // model IDs configured in opencode.json
+  missingInUpstream: string[]; // configured but not in upstream
+  extrasInUpstream: string[]; // in upstream but not configured
+  modelProbes?: ModelProbeResult[]; // only if --probe-models
   errors: string[];
 }
 
@@ -142,15 +159,17 @@ function detectAuthKey(
     return { key: provider.options.apiKey, source: 'options.apiKey' };
   }
   // Priority 3: provider.options.headers.Authorization (strip "Bearer ")
-  const authHeader = provider.options?.headers?.Authorization || provider.options?.headers?.authorization;
+  const authHeader =
+    provider.options?.headers?.Authorization || provider.options?.headers?.authorization;
   if (authHeader) {
     const match = authHeader.match(/^Bearer\s+(.+)$/i);
     if (match) return { key: match[1], source: 'options.headers.Authorization' };
   }
   // Priority 4: provider.options.headers['x-api-key'] or similar custom header
-  const customHeader = provider.options?.headers?.['x-api-key']
-    || provider.options?.headers?.['X-Api-Key']
-    || provider.options?.headers?.['x-api-Key'];
+  const customHeader =
+    provider.options?.headers?.['x-api-key'] ||
+    provider.options?.headers?.['X-Api-Key'] ||
+    provider.options?.headers?.['x-api-Key'];
   if (customHeader) {
     return { key: customHeader, source: 'options.headers.x-api-key' };
   }
@@ -185,7 +204,10 @@ async function probeCatalog(
     }
     const data = (await res.json()) as { data?: Array<{ id?: string }> } | Array<{ id?: string }>;
     const items = Array.isArray(data) ? data : data.data || [];
-    return { ok: true, models: items.map((m) => m.id).filter((id): id is string => typeof id === 'string') };
+    return {
+      ok: true,
+      models: items.map((m) => m.id).filter((id): id is string => typeof id === 'string'),
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { ok: false, models: [], error: msg };
@@ -222,25 +244,39 @@ async function probeModel(
     const text = await res.text();
     const lower = text.toLowerCase();
     // Classify by body FIRST (more reliable than status code), then fall back to status
-    if (lower.includes('insufficient balance') || lower.includes('creditserror') || lower.includes('no resource package')) {
+    if (
+      lower.includes('insufficient balance') ||
+      lower.includes('creditserror') ||
+      lower.includes('no resource package')
+    ) {
       return { id: modelId, status: 'INSUFFICIENT_BALANCE', detail: text.slice(0, 200) };
     }
-    if (lower.includes('usage limit') || lower.includes('monthly limit') || lower.includes('weekly limit') || lower.includes('5-hour')) {
+    if (
+      lower.includes('usage limit') ||
+      lower.includes('monthly limit') ||
+      lower.includes('weekly limit') ||
+      lower.includes('5-hour')
+    ) {
       return { id: modelId, status: 'USAGE_LIMIT', detail: text.slice(0, 200) };
     }
     if (lower.includes('internal server error')) {
       return { id: modelId, status: 'INTERNAL_ERROR', detail: text.slice(0, 200) };
     }
-    if (lower.includes('unsupported request parameter') || (lower.includes('provider') && lower.includes('litellm_settings'))) {
+    if (
+      lower.includes('unsupported request parameter') ||
+      (lower.includes('provider') && lower.includes('litellm_settings'))
+    ) {
       return { id: modelId, status: 'PARAM_LEAK', detail: text.slice(0, 200) };
     }
     if (lower.includes('opt in') || lower.includes('explicit opt')) {
       return { id: modelId, status: 'OPT_IN_REQUIRED', detail: text.slice(0, 200) };
     }
     // Then fall back to status code
-    if (res.status === 401 || res.status === 403) return { id: modelId, status: 'AUTH_FAILED', detail: text.slice(0, 200) };
+    if (res.status === 401 || res.status === 403)
+      return { id: modelId, status: 'AUTH_FAILED', detail: text.slice(0, 200) };
     if (res.status === 404) return { id: modelId, status: 'NOT_FOUND', detail: text.slice(0, 200) };
-    if (res.status === 429) return { id: modelId, status: 'RATE_LIMITED', detail: text.slice(0, 200) };
+    if (res.status === 429)
+      return { id: modelId, status: 'RATE_LIMITED', detail: text.slice(0, 200) };
     return { id: modelId, status: 'UNKNOWN', detail: `HTTP ${res.status}: ${text.slice(0, 150)}` };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -318,7 +354,10 @@ async function main() {
 
     log(`\n${COLOR.bold}━━━ ${provider.name || id} (${id}) ━━━${COLOR.reset}`, 'reset');
     log(`  baseURL: ${baseURL}`, 'dim');
-    log(`  auth:    ${authInfo ? `${ok('OK')} (${authInfo.source})` : err('NONE — provider will reject all calls')}`, 'reset');
+    log(
+      `  auth:    ${authInfo ? `${ok('OK')} (${authInfo.source})` : err('NONE — provider will reject all calls')}`,
+      'reset',
+    );
 
     const probe = await probeCatalog(baseURL, provider, key, id);
     const catalogEndpoint = `${baseURL.replace(/\/+$/, '')}/models`;
@@ -353,11 +392,17 @@ async function main() {
     report.summary.totalUpstreamModels += upstream.length;
     report.summary.missingInUpstream += missingInUpstream.length;
 
-    log(`  catalog: ${probe.ok ? ok(`${upstream.length} models via GET /models`) : err(`FAIL: ${probe.error}`)}`, 'reset');
+    log(
+      `  catalog: ${probe.ok ? ok(`${upstream.length} models via GET /models`) : err(`FAIL: ${probe.error}`)}`,
+      'reset',
+    );
     if (configured.length > 0) {
       log(`  configured: ${configured.length} model(s)`, 'dim');
       if (missingInUpstream.length > 0) {
-        log(`  ${warn('stale config')}: ${missingInUpstream.length} model(s) in your config do NOT exist upstream:`, 'reset');
+        log(
+          `  ${warn('stale config')}: ${missingInUpstream.length} model(s) in your config do NOT exist upstream:`,
+          'reset',
+        );
         for (const m of missingInUpstream) log(`    ${err('✗')} ${m}`, 'reset');
       }
     } else {
@@ -377,18 +422,26 @@ async function main() {
       // When auto-discovery, pick models to probe. Prefer free, but always sample at least
       // a few so the user gets a real signal on paid-only providers (like opencode-go).
       const FREE_PATTERNS = ['-free', 'big-pickle', 'contributor-free'];
-      const freeSample = prov.upstreamCatalog.filter((m) => FREE_PATTERNS.some((p) => m.includes(p))).slice(0, 5);
-      const paidSample = prov.upstreamCatalog.filter((m) => !FREE_PATTERNS.some((p) => m.includes(p))).slice(0, 3);
-      const toProbe = prov.configuredCatalog.length > 0
-        ? prov.configuredCatalog
-        : [...freeSample, ...paidSample].slice(0, 5);
+      const freeSample = prov.upstreamCatalog
+        .filter((m) => FREE_PATTERNS.some((p) => m.includes(p)))
+        .slice(0, 5);
+      const paidSample = prov.upstreamCatalog
+        .filter((m) => !FREE_PATTERNS.some((p) => m.includes(p)))
+        .slice(0, 3);
+      const toProbe =
+        prov.configuredCatalog.length > 0
+          ? prov.configuredCatalog
+          : [...freeSample, ...paidSample].slice(0, 5);
       log(`\n  Probing ${toProbe.length} model(s) on ${prov.id}…`, 'dim');
       const results: ModelProbeResult[] = [];
       for (const m of toProbe) {
         const r = await probeModel(prov.baseURL, m, authInfo.key, prov.id);
         results.push(r);
         const colorFn = r.status === 'OK' ? ok : err;
-        log(`    ${colorFn(r.status === 'OK' ? '✓' : '✗')} ${m.padEnd(40)} ${r.status}${r.detail ? ' — ' + r.detail.slice(0, 80) : ''}`, 'reset');
+        log(
+          `    ${colorFn(r.status === 'OK' ? '✓' : '✗')} ${m.padEnd(40)} ${r.status}${r.detail ? ' — ' + r.detail.slice(0, 80) : ''}`,
+          'reset',
+        );
       }
       prov.modelProbes = results;
       report.summary.brokenModelProbes += results.filter((r) => r.status !== 'OK').length;
@@ -399,9 +452,18 @@ async function main() {
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
   } else {
     log(`\n${COLOR.bold}━━━ Summary ━━━${COLOR.reset}`, 'reset');
-    log(`  providers:       ${report.summary.providersWithAuth}/${report.summary.totalProviders} with auth, ${report.summary.providersReachable}/${report.summary.totalProviders} reachable`, 'reset');
-    log(`  models (cfg/up): ${report.summary.totalConfiguredModels}/${report.summary.totalUpstreamModels}`, 'reset');
-    log(`  stale cfg:       ${report.summary.missingInUpstream} model(s) in opencode.json not in upstream`, 'reset');
+    log(
+      `  providers:       ${report.summary.providersWithAuth}/${report.summary.totalProviders} with auth, ${report.summary.providersReachable}/${report.summary.totalProviders} reachable`,
+      'reset',
+    );
+    log(
+      `  models (cfg/up): ${report.summary.totalConfiguredModels}/${report.summary.totalUpstreamModels}`,
+      'reset',
+    );
+    log(
+      `  stale cfg:       ${report.summary.missingInUpstream} model(s) in opencode.json not in upstream`,
+      'reset',
+    );
     if (probeModels) {
       log(`  broken probes:   ${report.summary.brokenModelProbes}`, 'reset');
     }

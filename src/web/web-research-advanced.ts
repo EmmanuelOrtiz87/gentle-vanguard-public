@@ -129,10 +129,10 @@ function parseArgs(argv: string[]): ResearchArgs {
     else if (argv[i] === '--deep-limit' && argv[i + 1]) args.deepLimit = Number(argv[++i]);
     else if (argv[i] === '--sources' && argv[i + 1]) {
       args.sources = argv[++i].split(',') as ResearchArgs['sources'];
-    }
-    else if (argv[i] === '--batch') args.batch = true;
+    } else if (argv[i] === '--batch') args.batch = true;
     else if (argv[i] === '--no-summarize') args.summarize = false;
-    else if (argv[i] === '--format' && argv[i + 1]) args.exportFormat = argv[++i] as ResearchArgs['exportFormat'];
+    else if (argv[i] === '--format' && argv[i + 1])
+      args.exportFormat = argv[++i] as ResearchArgs['exportFormat'];
     else if (argv[i] === '--no-cache') args.cacheResults = false;
   }
 
@@ -218,23 +218,19 @@ async function searchDuckDuckGo(_query: string, _limit: number): Promise<SourceR
 // RELEVANCE GRADING
 // =============================================================================
 
-function gradeResults(
-  results: SourceResult[],
-  query: string,
-  threshold: number,
-): SourceResult[] {
+function gradeResults(results: SourceResult[], query: string, threshold: number): SourceResult[] {
   const graded = results.map((result) => {
-      const content = `${result.title} ${result.description}`;
-      const grade = gradeRetrieval(query, [content]);
+    const content = `${result.title} ${result.description}`;
+    const grade = gradeRetrieval(query, [content]);
 
-      return {
-        ...result,
-        score: grade.averageScore,
-        relevant: grade.averageScore >= threshold,
-        credibility: calculateCredibility(result),
-        freshness: calculateFreshness(result),
-      };
-    });
+    return {
+      ...result,
+      score: grade.averageScore,
+      relevant: grade.averageScore >= threshold,
+      credibility: calculateCredibility(result),
+      freshness: calculateFreshness(result),
+    };
+  });
 
   return graded.sort((a, b) => b.score - a.score);
 }
@@ -242,24 +238,29 @@ function gradeResults(
 function calculateCredibility(result: SourceResult): number {
   // Score based on domain authority, source type, etc.
   let score = 0.5;
-  
+
   // Known authoritative domains
   const authoritativeDomains = [
-    'github.com', 'stackoverflow.com', 'docs.microsoft.com',
-    'developer.mozilla.org', 'w3.org', 'ietf.org', 'arxiv.org',
+    'github.com',
+    'stackoverflow.com',
+    'docs.microsoft.com',
+    'developer.mozilla.org',
+    'w3.org',
+    'ietf.org',
+    'arxiv.org',
   ];
-  
+
   for (const domain of authoritativeDomains) {
     if (result.url.includes(domain)) {
       score += 0.3;
     }
   }
-  
+
   // HTTPS gets bonus
   if (result.url.startsWith('https://')) {
     score += 0.1;
   }
-  
+
   return Math.min(score, 1.0);
 }
 
@@ -273,19 +274,16 @@ function calculateFreshness(_result: SourceResult): number {
 // DEEP SCRAPING
 // =============================================================================
 
-async function scrapeDeep(
-  results: SourceResult[],
-  limit: number,
-): Promise<SourceResult[]> {
+async function scrapeDeep(results: SourceResult[], limit: number): Promise<SourceResult[]> {
   const crawler = createWebCrawler();
   const topResults = results.slice(0, limit);
-  
+
   const scraped = await Promise.all(
     topResults.map(async (result) => {
       try {
         const content = await crawler.scrape(result.url);
         const compressed = compressStructural(content.markdown ?? '', { mode: 'output' });
-        
+
         return {
           ...result,
           content: compressed.compressed,
@@ -298,7 +296,7 @@ async function scrapeDeep(
       }
     }),
   );
-  
+
   // Merge with original results
   return results.map((r, i) => (i < limit ? scraped[i] : r));
 }
@@ -309,15 +307,15 @@ async function scrapeDeep(
 
 async function generateSummary(results: SourceResult[]): Promise<string> {
   const relevant = results.filter((r) => r.relevant);
-  
+
   if (relevant.length === 0) {
     return 'No highly relevant results found.';
   }
-  
+
   const keyPoints = relevant.slice(0, 5).map((r) => {
     return `- ${r.title}: ${r.description.slice(0, 150)}`;
   });
-  
+
   return `Key findings from ${relevant.length} relevant sources:\n\n${keyPoints.join('\n')}`;
 }
 
@@ -329,18 +327,18 @@ function extractKnowledgeGraph(results: SourceResult[]): KnowledgeGraph {
   const entities: Entity[] = [];
   const relationships: Relationship[] = [];
   const entityMap = new Map<string, number>();
-  
+
   // Extract entities from titles and descriptions
   for (const result of results) {
     const text = `${result.title} ${result.description}`;
     const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
-    
+
     for (const word of words) {
       const count = entityMap.get(word) || 0;
       entityMap.set(word, count + 1);
     }
   }
-  
+
   // Create entities from most frequent words
   let id = 0;
   for (const [word, count] of entityMap.entries()) {
@@ -353,7 +351,7 @@ function extractKnowledgeGraph(results: SourceResult[]): KnowledgeGraph {
       });
     }
   }
-  
+
   // Simple relationship extraction (co-occurrence)
   for (let i = 0; i < Math.min(entities.length, 10); i++) {
     for (let j = i + 1; j < Math.min(entities.length, 10); j++) {
@@ -365,7 +363,7 @@ function extractKnowledgeGraph(results: SourceResult[]): KnowledgeGraph {
       });
     }
   }
-  
+
   return { entities, relationships };
 }
 
@@ -373,13 +371,10 @@ function extractKnowledgeGraph(results: SourceResult[]): KnowledgeGraph {
 // EXPORT
 // =============================================================================
 
-function exportResults(
-  output: ResearchOutput,
-  format: ResearchArgs['exportFormat'],
-): string[] {
+function exportResults(output: ResearchOutput, format: ResearchArgs['exportFormat']): string[] {
   const files: string[] = [];
   const basePath = join(OUTPUT_DIR, `research-${slugify(output.query)}`);
-  
+
   switch (format) {
     case 'json':
       files.push(exportJSON(output, basePath));
@@ -391,7 +386,7 @@ function exportResults(
       files.push(exportOrg(output, basePath));
       break;
   }
-  
+
   return files;
 }
 
@@ -432,13 +427,13 @@ function generateMarkdown(output: ResearchOutput): string {
     '| Title | URL | Score | Relevant | Credibility |',
     '|-------|-----|-------|----------|-------------|',
   ];
-  
+
   for (const result of output.results) {
     lines.push(
       `| ${result.title.slice(0, 50)} | ${result.url.slice(0, 40)} | ${result.score.toFixed(2)} | ${result.relevant ? '✓' : '✗'} | ${result.credibility.toFixed(2)} |`,
     );
   }
-  
+
   return lines.join('\n');
 }
 
@@ -454,7 +449,7 @@ function generateOrg(output: ResearchOutput): string {
     '* Results',
     '',
   ];
-  
+
   for (const result of output.results) {
     lines.push(`** ${result.title}`);
     lines.push(`   - URL: ${result.url}`);
@@ -462,7 +457,7 @@ function generateOrg(output: ResearchOutput): string {
     lines.push(`   - Relevant: ${result.relevant ? 'YES' : 'NO'}`);
     lines.push('');
   }
-  
+
   return lines.join('\n');
 }
 
@@ -486,7 +481,9 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv);
 
   if (!args.query) {
-    console.error('Usage: --query "search terms" [--limit N] [--threshold 0..1] [--deep] [--sources firecrawl,jina,bing] [--format json|markdown|org]');
+    console.error(
+      'Usage: --query "search terms" [--limit N] [--threshold 0..1] [--deep] [--sources firecrawl,jina,bing] [--format json|markdown|org]',
+    );
     process.exit(1);
   }
 
@@ -532,7 +529,8 @@ async function main(): Promise<void> {
     totalResults: finalResults.length,
     uniqueResults: finalResults.length,
     relevantResults: relevantCount,
-    averageCredibility: finalResults.reduce((sum, r) => sum + r.credibility, 0) / finalResults.length,
+    averageCredibility:
+      finalResults.reduce((sum, r) => sum + r.credibility, 0) / finalResults.length,
     results: finalResults,
     summary,
     knowledgeGraph,
@@ -550,13 +548,17 @@ async function main(): Promise<void> {
   // Report
   console.log('\n✅ Research complete!');
   console.log(`   Duration: ${duration}s`);
-  console.log(`   Total: ${output.totalResults} | Relevant: ${output.relevantResults} | Threshold: ${args.threshold}`);
+  console.log(
+    `   Total: ${output.totalResults} | Relevant: ${output.relevantResults} | Threshold: ${args.threshold}`,
+  );
   console.log(`   Avg Credibility: ${output.averageCredibility.toFixed(2)}`);
   console.log(`   Exported: ${exportFiles.join(', ')}`);
   console.log(`   Saved: ${output.persistedTo}`);
 
   if (args.deep) {
-    console.log(`   Knowledge Graph: ${knowledgeGraph.entities.length} entities, ${knowledgeGraph.relationships.length} relationships`);
+    console.log(
+      `   Knowledge Graph: ${knowledgeGraph.entities.length} entities, ${knowledgeGraph.relationships.length} relationships`,
+    );
   }
 }
 

@@ -7,14 +7,7 @@
  */
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-  mkdirSync,
-  existsSync,
-  readFileSync,
-} from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
@@ -34,7 +27,11 @@ describe('script-path auto-heal', () => {
     // Seed a real script under a domain folder (simulates the TS migration).
     mkdirSync(join(root, 'src', 'knowledge'), { recursive: true });
     writeFileSync(join(root, 'src', 'knowledge', 'engram-rag-reindex.ts'), 'export {};\n', 'utf-8');
-    writeFileSync(join(root, 'src', 'knowledge', 'knowledge-base-init.ts'), 'export {};\n', 'utf-8');
+    writeFileSync(
+      join(root, 'src', 'knowledge', 'knowledge-base-init.ts'),
+      'export {};\n',
+      'utf-8',
+    );
     writeFileSync(join(root, 'src', 'knowxy.ts'), 'export {};\n', 'utf-8'); // top-level, taken LAST
   });
 
@@ -42,7 +39,9 @@ describe('script-path auto-heal', () => {
     rmSync(sandbox, { recursive: true, force: true });
   });
 
-  function makeConfig(steps: { id: string; script: string; enabled?: boolean }[]): PipelineConfigLike {
+  function makeConfig(
+    steps: { id: string; script: string; enabled?: boolean }[],
+  ): PipelineConfigLike {
     return {
       pipeline: {
         steps: steps.map((s) => ({
@@ -85,10 +84,7 @@ describe('script-path auto-heal', () => {
 
     it('resolves a broken top-level path to the real domain file by basename', () => {
       const p = 'src/engram-rag-reindex.ts';
-      assert.strictEqual(
-        resolveScriptPath(root, p),
-        'src/knowledge/engram-rag-reindex.ts',
-      );
+      assert.strictEqual(resolveScriptPath(root, p), 'src/knowledge/engram-rag-reindex.ts');
     });
 
     it('falls back to the input when the basename is unknown', () => {
@@ -100,7 +96,9 @@ describe('script-path auto-heal', () => {
     it('patches in-memory config and persists corrections with .bak backup', () => {
       const configPath = join(root, 'config', 'session-autostart.config.json');
       mkdirSync(join(root, 'config'), { recursive: true });
-      const broken = makeConfig([{ id: 'engram-auto-reindex', script: 'src/engram-rag-reindex.ts' }]);
+      const broken = makeConfig([
+        { id: 'engram-auto-reindex', script: 'src/engram-rag-reindex.ts' },
+      ]);
       writeFileSync(configPath, JSON.stringify(broken, null, 2) + '\n', 'utf-8');
 
       // Load the config fresh (as the pipeline would) so the file is the source of truth.
@@ -111,7 +109,11 @@ describe('script-path auto-heal', () => {
       assert.strictEqual(result.persisted, 1);
       assert.strictEqual(loaded.pipeline.steps[0].script, 'src/knowledge/engram-rag-reindex.ts');
       assert.deepStrictEqual(result.patches, [
-        { id: 'engram-auto-reindex', from: 'src/engram-rag-reindex.ts', to: 'src/knowledge/engram-rag-reindex.ts' },
+        {
+          id: 'engram-auto-reindex',
+          from: 'src/engram-rag-reindex.ts',
+          to: 'src/knowledge/engram-rag-reindex.ts',
+        },
       ]);
       assert.strictEqual(result.stillMissing.length, 0);
 

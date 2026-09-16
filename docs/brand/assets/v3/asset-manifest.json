@@ -1,0 +1,37 @@
+{
+  "brand": "Gentle Vanguard",
+  "asset_family": "GV New Identity",
+  "master_format": "SVG",
+  "viewBox": "0 0 1000 1000",
+  "trace_source": "logo_crop2.png",
+  "files": [
+    "android-background.svg",
+    "android-foreground.svg",
+    "favicon.svg",
+    "gv-black.svg",
+    "gv-cyan.svg",
+    "gv-gradient.svg",
+    "gv-on-light.svg",
+    "gv-on-midnight.svg",
+    "gv-transparent.svg",
+    "gv-violet.svg",
+    "gv-white.svg",
+    "BRAND_SYSTEM.md"
+  ],
+  "colors": {
+    "midnight": "#0B1020",
+    "blue": "#1E40AF",
+    "cyan": "#06B6D4",
+    "violet": "#8B5CF6",
+    "soft_white": "#F8FAFC",
+    "black": "#050A14"
+  },
+  "gradient": ["#6E4DEB", "#7B63E8", "#06B6D4"],
+  "bbox_source_trace": {
+    "x": 45,
+    "y": 26,
+    "width": 190,
+    "height": 103
+  },
+  "notes": "All SVGs are true vector paths; no PNG/JPEG is embedded."
+}
