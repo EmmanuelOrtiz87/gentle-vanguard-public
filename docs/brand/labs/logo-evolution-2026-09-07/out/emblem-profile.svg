@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>  <linearGradient id="vg" gradientUnits="userSpaceOnUse" x1="600" y1="610" x2="858" y2="352">
+    <stop offset="0" stop-color="#A78BFA"/>
+    <stop offset="1" stop-color="#22D3EE"/>
+  </linearGradient>
+    <radialGradient id="washP" cx="0.22" cy="0.16" r="0.75">
+      <stop offset="0" stop-color="#A78BFA" stop-opacity="0.055"/>
+      <stop offset="0.6" stop-color="#A78BFA" stop-opacity="0.012"/>
+      <stop offset="1" stop-color="#A78BFA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="washC" cx="0.82" cy="0.88" r="0.8">
+      <stop offset="0" stop-color="#22D3EE" stop-opacity="0.045"/>
+      <stop offset="0.6" stop-color="#22D3EE" stop-opacity="0.01"/>
+      <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <path id="arcTop" d="M 140.0 540.0 A 400 400 0 0 1 940.0 540.0"/>
+    <path id="arcBot" d="M 104.0 540.0 A 436 436 0 0 0 976.0 540.0"/>
+  </defs>
+  <rect width="1080" height="1080" fill="#0F1115"/>
+  <rect width="1080" height="1080" fill="url(#washP)"/>
+  <rect width="1080" height="1080" fill="url(#washC)"/>
+  <circle cx="540" cy="540" r="480" fill="none" stroke="#E9ECF4" stroke-opacity="0.15" stroke-width="2"/>
+  <line x1="1010.0" y1="540.0" x2="995.0" y2="540.0" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="872.3" y1="207.7" x2="849.7" y2="230.3" stroke="#22D3EE" stroke-opacity="0.95" stroke-width="4" stroke-linecap="round"/>
+  <line x1="540.0" y1="70.0" x2="540.0" y2="85.0" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="207.7" y1="207.7" x2="218.3" y2="218.3" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="70.0" y1="540.0" x2="85.0" y2="540.0" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="207.7" y1="872.3" x2="218.3" y2="861.7" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="540.0" y1="1010.0" x2="540.0" y2="995.0" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="872.3" y1="872.3" x2="861.7" y2="861.7" stroke="#E9ECF4" stroke-opacity="0.28" stroke-width="2.5" stroke-linecap="round"/>
+  <text font-family="'Space Grotesk', 'Segoe UI', sans-serif" font-weight="500" font-size="42" letter-spacing="16" fill="#E9ECF4" fill-opacity="0.92"><textPath href="#arcTop" startOffset="50%" text-anchor="middle">GENTLE VANGUARD</textPath></text>
+  <text font-family="'Space Grotesk', 'Segoe UI', sans-serif" font-weight="400" font-size="26" letter-spacing="10" fill="#E9ECF4" fill-opacity="0.52"><textPath href="#arcBot" startOffset="50%" text-anchor="middle">SOFTWARE · SYSTEMS · INTELLIGENCE</textPath></text>
+  <g transform="translate(536 545) scale(1.2) translate(-256 -256)">
+      <path d="M 208.6 65.8 A 196 196 0 1 0 446.2 303.4 L 376.3 286.0 A 124 124 0 1 1 226.0 135.7 Z" fill="#E9ECF4"/>
+      <path d="M 413.7 91.2 L 281.2 121.8 L 297.4 192.0 L 369.2 142.8 L 320.0 214.6 L 390.2 230.8 L 420.8 98.3 Z" fill="url(#vg)"/>
+  </g>
+</svg>

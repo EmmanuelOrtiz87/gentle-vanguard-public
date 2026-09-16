@@ -188,11 +188,7 @@ async function testOwaspDocs(): Promise<boolean> {
 // Test 8: Package Scripts
 async function testPackageScripts(): Promise<boolean> {
   const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
-  const requiredScripts = [
-    'delegate:intelligent',
-    'delegate:status',
-    'route:analyze',
-  ];
+  const requiredScripts = ['delegate:intelligent', 'delegate:status', 'route:analyze'];
 
   const scripts = packageJson.scripts || {};
   const missing = requiredScripts.filter((s) => !scripts[s]);
@@ -285,8 +281,14 @@ async function main(): Promise<void> {
   log('\n╔════════════════════════════════════════════════════════════╗', 'info');
   log('║   Validation Results                                       ║', 'info');
   log('╠════════════════════════════════════════════════════════════╣', 'info');
-  log(`║   Total: ${String(results.length).padEnd(3)} | Passed: ${String(passed).padStart(2)} | Failed: ${String(failed).padEnd(3)} ║`, failed === 0 ? 'success' : 'error');
-  log(`║   Duration: ${String(duration + 's').padEnd(8)} | Critical Failures: ${String(criticalFailed).padEnd(3)} ║`, criticalFailed === 0 ? 'success' : 'error');
+  log(
+    `║   Total: ${String(results.length).padEnd(3)} | Passed: ${String(passed).padStart(2)} | Failed: ${String(failed).padEnd(3)} ║`,
+    failed === 0 ? 'success' : 'error',
+  );
+  log(
+    `║   Duration: ${String(duration + 's').padEnd(8)} | Critical Failures: ${String(criticalFailed).padEnd(3)} ║`,
+    criticalFailed === 0 ? 'success' : 'error',
+  );
   log('╚════════════════════════════════════════════════════════════╝', 'info');
 
   // Detailed Results

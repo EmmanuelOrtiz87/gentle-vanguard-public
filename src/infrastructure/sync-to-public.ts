@@ -377,6 +377,15 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // Apps are local-first products (ADR-0017): they must never cross the
   // publication boundary. Remove any legacy apps/ tree from the target.
   rmIf(path.join(targetDir, 'apps'), { recurse: true });
+  // Exception (ADR-0017.1): Academy Landing is the public marketing URL
+  // (gentlevanguard.github.io) — static, self-contained, no secrets. It is
+  // the only app that crosses the publication boundary. Deploy workflow:
+  // .github/workflows/deploy-landing.yml reads apps/academy-landing/ on main.
+  const academyLandingSrc = path.join(privateRepo, 'apps', 'academy-landing');
+  const academyLandingDst = path.join(targetDir, 'apps', 'academy-landing');
+  if (fs.existsSync(academyLandingSrc)) {
+    copyIf(academyLandingSrc, academyLandingDst, { recurse: true });
+  }
 
   const ciScripts = [
     'src/installer-doctor.ts',

@@ -27,6 +27,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
+import { classifyRisk } from '../rdd/risk-classifier.js';
 
 // =============================================================================
 // TYPES
@@ -61,6 +62,16 @@ export interface RouteAnalysis {
     estimatedFiles: number;
     complexity: 'low' | 'medium' | 'high';
     ambiguity: number;
+  };
+
+  /** Risk-aware verification (absorbido de Gentle-AI v2.7.0): qué verificación
+   *  post-apply exige el risk tier del diff actual. Solo presente cuando el
+   *  cambio toca código (no docs/config puros). */
+  verification?: {
+    tier: 'low' | 'standard' | 'high';
+    score: number;
+    action: 'none' | 'sdd-verify' | 'rdd-4r-review';
+    rationale: string;
   };
 }
 
@@ -252,6 +263,26 @@ export class SmallestRouteRouter {
       },
     };
 
+    // Risk-aware verification: clasifica el diff actual y decide la verificación
+    // post-apply (low → none, standard → sdd-verify, high → rdd-4r-review).
+    // Solo aplica a rutas que tocan código (delegated/sdd/collaborative).
+    if (analysis.route !== 'direct') {
+      try {
+        const c = classifyRisk(false);
+        if (c.tier !== 'low' || c.score > 0) {
+          analysis.verification = {
+            tier: c.tier,
+            score: c.score,
+            action:
+              c.tier === 'high' ? 'rdd-4r-review' : c.tier === 'standard' ? 'sdd-verify' : 'none',
+            rationale: c.rationale,
+          };
+        }
+      } catch {
+        // Sin diff o sin repo: no hay verificación que calcular
+      }
+    }
+
     // Log for learning
     this.logRoutingDecision(analysis, request);
 
@@ -262,18 +293,21 @@ export class SmallestRouteRouter {
    * Recommend next action based on route
    */
   recommend(route: RouteAnalysis): string {
+    const verification = route.verification
+      ? ` Verification post-apply: ${route.verification.action} (risk ${route.verification.tier}, score ${route.verification.score}).`
+      : '';
     switch (route.route) {
       case 'direct':
-        return `Execute directly: ${route.reason}. Estimated ${route.steps} steps.`;
+        return `Execute directly: ${route.reason}. Estimated ${route.steps} steps.${verification}`;
 
       case 'delegated':
-        return `Delegate to agent: ${route.reason}. Use smartTask() with appropriate agent. Estimated ${route.steps} steps.`;
+        return `Delegate to agent: ${route.reason}. Use smartTask() with appropriate agent. Estimated ${route.steps} steps.${verification}`;
 
       case 'sdd':
-        return `Use SDD workflow: ${route.reason}. Run 'npm run sdd:run' or propose SDD phases. Estimated ${route.steps} steps.`;
+        return `Use SDD workflow: ${route.reason}. Run 'npm run sdd:run' or propose SDD phases. Estimated ${route.steps} steps.${verification}`;
 
       case 'collaborative':
-        return `Collaborative approach: ${route.reason}. Multiple agents may be needed. Estimated ${route.steps} steps.`;
+        return `Collaborative approach: ${route.reason}. Multiple agents may be needed. Estimated ${route.steps} steps.${verification}`;
 
       default:
         return `Unknown route. Defaulting to delegated.`;
@@ -290,7 +324,7 @@ export class SmallestRouteRouter {
 
     // Infer from description
     const desc = request.description.toLowerCase();
-    if (desc.includes('typo') || desc.includes('fix') && !desc.includes('refactor')) return 1;
+    if (desc.includes('typo') || (desc.includes('fix') && !desc.includes('refactor'))) return 1;
     if (desc.includes('config') || desc.includes('readme')) return 1;
     if (desc.includes('multiple files') || desc.includes('across')) return 8;
     if (desc.includes('new feature') || desc.includes('implement')) return 5;
@@ -313,7 +347,9 @@ export class SmallestRouteRouter {
     return Math.min(Math.max(ambiguity, 0), 1);
   }
 
-  private determineComplexity(request: RoutingRequest): 'trivial' | 'simple' | 'moderate' | 'complex' | 'substantial' {
+  private determineComplexity(
+    request: RoutingRequest,
+  ): 'trivial' | 'simple' | 'moderate' | 'complex' | 'substantial' {
     if (request.complexity) return request.complexity;
 
     const desc = request.description.toLowerCase();
@@ -344,7 +380,10 @@ export class SmallestRouteRouter {
     return 0.8;
   }
 
-  private calculateAlternatives(signals: RouteSignal[], request: RoutingRequest): RouteAlternative[] {
+  private calculateAlternatives(
+    signals: RouteSignal[],
+    request: RoutingRequest,
+  ): RouteAlternative[] {
     const totalWeight = signals.reduce((sum, s) => sum + s.value * s.weight, 0);
 
     // Calculate scores (lower = better for "smallest route")
@@ -377,7 +416,10 @@ export class SmallestRouteRouter {
     return alternatives;
   }
 
-  private selectSmallestViable(alternatives: RouteAlternative[], request: RoutingRequest): {
+  private selectSmallestViable(
+    alternatives: RouteAlternative[],
+    request: RoutingRequest,
+  ): {
     route: RouteType;
     reason: string;
     steps: number;
@@ -397,7 +439,11 @@ export class SmallestRouteRouter {
     const fileCount = this.estimateFileCount(request);
     const confidence = request.confidence || this.inferConfidence(request);
 
-    if (fileCount <= THRESHOLDS.DIRECT_MAX_FILES && confidence >= THRESHOLDS.CONFIDENCE_DIRECT && !request.requiresResearch) {
+    if (
+      fileCount <= THRESHOLDS.DIRECT_MAX_FILES &&
+      confidence >= THRESHOLDS.CONFIDENCE_DIRECT &&
+      !request.requiresResearch
+    ) {
       return {
         route: 'direct',
         reason: `${fileCount} file(s), high confidence (${(confidence * 100).toFixed(0)}%)`,
@@ -411,9 +457,10 @@ export class SmallestRouteRouter {
       // But never force SDD just because of size
       return {
         route: 'delegated',
-        reason: fileCount >= THRESHOLDS.DELEGATED_MIN_FILES
-          ? `${fileCount} files require focused agent`
-          : 'Research phase needs dedicated agent',
+        reason:
+          fileCount >= THRESHOLDS.DELEGATED_MIN_FILES
+            ? `${fileCount} files require focused agent`
+            : 'Research phase needs dedicated agent',
         steps: 20 + fileCount * 2,
         confidence: Math.max(confidence - 0.1, 0.5),
       };
@@ -439,7 +486,10 @@ export class SmallestRouteRouter {
     };
   }
 
-  private requiresConfirmation(selected: ReturnType<SmallestRouteRouter['selectSmallestViable']>, request: RoutingRequest): boolean {
+  private requiresConfirmation(
+    selected: ReturnType<SmallestRouteRouter['selectSmallestViable']>,
+    request: RoutingRequest,
+  ): boolean {
     // Require confirmation if:
     // - High ambiguity and not using SDD
     // - Large file count with direct route
@@ -503,7 +553,12 @@ export class SmallestRouteRouter {
     averageConfidence: number;
     lastAttempt: RoutingHistoryEntry | null;
   } {
-    const byRoute: Record<RouteType, number> = { direct: 0, delegated: 0, sdd: 0, collaborative: 0 };
+    const byRoute: Record<RouteType, number> = {
+      direct: 0,
+      delegated: 0,
+      sdd: 0,
+      collaborative: 0,
+    };
 
     for (const entry of this.history) {
       byRoute[entry.selectedRoute]++;
@@ -567,7 +622,9 @@ function cli(): void {
       console.log(`Requires Confirmation: ${analysis.requiresConfirmation ? 'Yes' : 'No'}`);
       console.log('\nSignals:');
       for (const signal of analysis.signals) {
-        console.log(`  ${signal.name}: ${signal.description} (weight: ${(signal.weight * 100).toFixed(0)}%)`);
+        console.log(
+          `  ${signal.name}: ${signal.description} (weight: ${(signal.weight * 100).toFixed(0)}%)`,
+        );
       }
       console.log('\nRecommendation:');
       console.log(`  ${smallestRoute.recommend(analysis)}`);

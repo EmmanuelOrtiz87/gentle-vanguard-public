@@ -8,7 +8,10 @@
 
 > "Prompt-level safety is not a control surface" — OWASP LLM01:2025
 
-The Policy Engine provides **deterministic** enforcement of security policies **before** tool execution. Unlike reactive guardrails (that handle failures post-hoc), the Policy Engine intercepts tool calls and evaluates them against declarative policies, making certain actions **structurally impossible**.
+The Policy Engine provides **deterministic** enforcement of security policies **before** tool
+execution. Unlike reactive guardrails (that handle failures post-hoc), the Policy Engine intercepts
+tool calls and evaluates them against declarative policies, making certain actions **structurally
+impossible**.
 
 ```yaml
 # Example: policy.yaml
@@ -22,20 +25,20 @@ spec:
     - name: block-destructive
       condition: "action.type in ['drop', 'delete', 'truncate']"
       action: deny
-      description: "Destructive operations require human approval"
+      description: 'Destructive operations require human approval'
 
     - name: require-approval-for-email
       condition: "action.type == 'send_email'"
       action: require_approval
-      approvers: ["security-team"]
+      approvers: ['security-team']
 ```
 
 ## Philosophy
 
-| Approach | When Tool Executes | Policy Check | Guarantees |
-|----------|-------------------|--------------|------------|
-| **Prompt-level** | After LLM decides | "Please don't..." | None (probabilistic) |
-| **Guardrails** | After tool called | "If it fails..." | Reactive only |
+| Approach          | When Tool Executes   | Policy Check                 | Guarantees                            |
+| ----------------- | -------------------- | ---------------------------- | ------------------------------------- |
+| **Prompt-level**  | After LLM decides    | "Please don't..."            | None (probabilistic)                  |
+| **Guardrails**    | After tool called    | "If it fails..."             | Reactive only                         |
 | **Policy Engine** | **Before** execution | **Deterministic evaluation** | **Structurally impossible to bypass** |
 
 ## Architecture
@@ -56,11 +59,11 @@ Tool Request → Policy Engine → [YAML/OPA/Cedar evaluation]
 import { govern } from './policy-engine.js';
 
 // Wrap any tool function
-const safeTool = govern(myTool, policy="policy.yaml");
+const safeTool = govern(myTool, (policy = 'policy.yaml'));
 
 // Every call is checked, logged, enforced
-safeTool({ action: "read", table: "users" });     // → executes
-safeTool({ action: "drop", table: "users" });     // → raises GovernanceDenied
+safeTool({ action: 'read', table: 'users' }); // → executes
+safeTool({ action: 'drop', table: 'users' }); // → raises GovernanceDenied
 ```
 
 ## Command Reference
@@ -91,4 +94,4 @@ See: `docs/guides/POLICY-ENGINE.md`
 
 ---
 
-*"Trust what the system can derive, not what the agent says"*
+_"Trust what the system can derive, not what the agent says"_

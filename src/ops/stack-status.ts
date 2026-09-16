@@ -39,7 +39,10 @@ async function main(): Promise<void> {
     log(`   Last Working Model: ${status.lastWorkingModel || 'none'}`, 'info');
     log(`   Total Delegations: ${status.metrics.totalDelegations}`, 'info');
     log(`   Successful: ${status.metrics.successfulDelegations}`, 'success');
-    log(`   Fallbacks Used: ${status.metrics.fallbackCount}`, status.metrics.fallbackCount > 0 ? 'warn' : 'info');
+    log(
+      `   Fallbacks Used: ${status.metrics.fallbackCount}`,
+      status.metrics.fallbackCount > 0 ? 'warn' : 'info',
+    );
     log(`   Models Available: ${Object.keys(status.modelAvailability).length}`, 'info');
     log('');
   } catch {
@@ -53,7 +56,10 @@ async function main(): Promise<void> {
 
     log('🧭 Smallest Route Router', 'info');
     log(`   Historical Routings: ${stats.total}`, 'info');
-    log(`   Direct: ${stats.byRoute.direct} | Delegated: ${stats.byRoute.delegated} | SDD: ${stats.byRoute.sdd}`, 'info');
+    log(
+      `   Direct: ${stats.byRoute.direct} | Delegated: ${stats.byRoute.delegated} | SDD: ${stats.byRoute.sdd}`,
+      'info',
+    );
     log(`   Avg Confidence: ${(stats.averageConfidence * 100).toFixed(1)}%`, 'info');
     log('');
   } catch {
@@ -77,7 +83,10 @@ async function main(): Promise<void> {
     const content = readFileSync(owaspPath, 'utf-8');
     const hasFull = content.includes('10/10') || content.includes('100%');
     log('🔒 OWASP Agentic Top 10', 'success');
-    log(hasFull ? '   Coverage: 10/10 (100%)' : '   Coverage: Partial', hasFull ? 'success' : 'warn');
+    log(
+      hasFull ? '   Coverage: 10/10 (100%)' : '   Coverage: Partial',
+      hasFull ? 'success' : 'warn',
+    );
     log('');
   } else {
     log('🔒 OWASP Compliance: Docs not found', 'warn');

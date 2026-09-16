@@ -251,7 +251,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
   {
     id: 'cms-api',
-    label: 'Content CMS API server',
+    label: 'Content Studio API server',
     match: /apps[\\/]content-cms[\\/]server[\\/]server\.ts/,
     relativeMatch: /server[\\/]server\.ts/,
     pidFile: join(RUNTIME_DIR, 'app-cms-api.pid'),
@@ -261,7 +261,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
   {
     id: 'cms-vite',
-    label: 'Content CMS Vite dev server',
+    label: 'Content Studio Vite dev server',
     // Tolerates the npm bin shim path (`node_modules\.bin\..\vite\bin\vite.js`)
     // used when the dev server is started via npm script instead of the CC.
     match:
@@ -330,6 +330,25 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Design Hub static server (python http.server :8095)',
     match: /http\.server[ ]+8095\b/,
     pidFile: join(RUNTIME_DIR, 'app-design-hub-http.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'app-academy-crm-server',
+    label: 'CRM Studio — API + UI estática (:4792)',
+    match: /apps[\\/]academy-crm[\\/]server[\\/]server\.ts/,
+    relativeMatch: /server[\\/]server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'app-academy-crm-server.pid'),
+    keep: 'pidfile',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
+    id: 'app-academy-landing-http',
+    label: 'Academy Landing static server (python http.server :4174)',
+    match: /http\.server[ ]+4174\b/,
+    pidFile: join(RUNTIME_DIR, 'app-academy-landing-http.pid'),
     keep: 'pidfile',
     respawn: 'manual',
     recycleAged: false,

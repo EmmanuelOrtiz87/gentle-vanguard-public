@@ -404,7 +404,13 @@ export async function checkGitHistorySecrets() {
 
   // Ensure the native scanner exists before doing anything.
   if (!fileExists(join(ROOT, 'src', 'security', 'secret-scanner.ts'))) {
-    addResult('history-secrets', 'advisory history scan', 'WARN', 'secret-scanner module missing', 'manual');
+    addResult(
+      'history-secrets',
+      'advisory history scan',
+      'WARN',
+      'secret-scanner module missing',
+      'manual',
+    );
     return;
   }
 
@@ -419,7 +425,13 @@ export async function checkGitHistorySecrets() {
       timeout: 90000,
     });
     if (log.status !== 0) {
-      addResult('history-secrets', 'advisory history scan', 'WARN', `git log failed: ${log.stderr?.slice(0, 120)}`, 'manual');
+      addResult(
+        'history-secrets',
+        'advisory history scan',
+        'WARN',
+        `git log failed: ${log.stderr?.slice(0, 120)}`,
+        'manual',
+      );
       return;
     }
     mkdirSync(join(tmpdir()), { recursive: true });
@@ -427,7 +439,14 @@ export async function checkGitHistorySecrets() {
 
     const scan = runSync(
       'node',
-      ['--import', 'tsx', join(ROOT, 'src', 'security', 'secret-scanner-cli.ts'), '--scan', dumpPath, '--json'],
+      [
+        '--import',
+        'tsx',
+        join(ROOT, 'src', 'security', 'secret-scanner-cli.ts'),
+        '--scan',
+        dumpPath,
+        '--json',
+      ],
       { timeout: 90000, cwd: ROOT },
     );
     if (scan.status !== 0) {
@@ -440,7 +459,13 @@ export async function checkGitHistorySecrets() {
       );
       return;
     }
-    addResult('history-secrets', 'advisory history scan', 'PASS', `No secrets in last ${HISTORY_SCAN_DEPTH} commits`, 'ok');
+    addResult(
+      'history-secrets',
+      'advisory history scan',
+      'PASS',
+      `No secrets in last ${HISTORY_SCAN_DEPTH} commits`,
+      'ok',
+    );
   } catch (e: unknown) {
     addResult(
       'history-secrets',

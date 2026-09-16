@@ -92,13 +92,14 @@ const PATTERNS: Record<FileCategory, RegExp[]> = {
     /auth/i,
     /login/i,
     /logout/i,
-    /session/i,
-    /token/i,
+    /access[_-]?token/i,
+    /api[_-]?token/i,
+    /refresh[_-]?token/i,
+    /bearer/i,
+    /csrf[_-]?token/i,
     /credential/i,
     /jwt/i,
     /oauth/i,
-    /permission/i,
-    /role/i,
   ],
   security: [
     /encrypt/i,
@@ -157,14 +158,14 @@ const PATTERNS: Record<FileCategory, RegExp[]> = {
     /config/i,
     /setting/i,
     /env/i,
-    /(\u005c).env/i,
+    /\.env/i,
     /secret/i,
     /key/i,
     /credential/i,
-    /(\u005c).json$/i,
-    /(\u005c).yaml$/i,
-    /(\u005c).toml$/i,
-    /config(\u005c)./i,
+    /\.json$/i,
+    /\.yaml$/i,
+    /\.toml$/i,
+    /config\./i,
   ],
   ui: [
     /component/i,
@@ -180,14 +181,14 @@ const PATTERNS: Record<FileCategory, RegExp[]> = {
     /svelte/i,
     /react/i,
     /angular/i,
-    /(\u005c).html$/i,
-    /(\u005c).css$/i,
+    /\.html$/i,
+    /\.css$/i,
   ],
   test: [
     /test/i,
     /spec/i,
-    /(\u005c).test(\u005c)./i,
-    /(\u005c).spec(\u005c)./i,
+    /\.test\./i,
+    /\.spec\./i,
     /__tests__/i,
     /e2e/i,
     /integration.*test/i,
@@ -202,9 +203,9 @@ const PATTERNS: Record<FileCategory, RegExp[]> = {
     /doc/i,
     /readme/i,
     /changelog/i,
-    /(\u005c).md$/i,
-    /(\u005c).rst$/i,
-    /(\u005c).txt$/i,
+    /\.md$/i,
+    /\.rst$/i,
+    /\.txt$/i,
     /guide/i,
     /tutorial/i,
     /manual/i,
@@ -222,9 +223,9 @@ const PATTERNS: Record<FileCategory, RegExp[]> = {
     /makefile/i,
     /docker/i,
     /ci/i,
-    /(\u005c).github/i,
+    /\.github/i,
     /script/i,
-    /package(\u005c).json$/i,
+    /package\.json$/i,
     /tsconfig/i,
     /eslint/i,
     /prettier/i,
@@ -274,14 +275,14 @@ function _getChangedFiles(stagedOnly = false): {
     const files: string[] = [];
 
     for (const line of diff.split('\n')) {
-      const match = line.match(/^(\d+)\u005cs+(\d+)\u005cs+(.+)$/);
+      const match = line.match(/^(\d+)\s+(\d+)\s+(.+)$/);
       if (match) {
         const adds = parseInt(match[1], 10);
         const dels = parseInt(match[2], 10);
         const _file = match[3];
 
-        // Handle renamed files (format: "old\u005ctnew")
-        const actualFile = _file.includes('\u005ct') ? _file.split('\u005ct')[1] : _file;
+        // Handle renamed files (format: "old\tnew")
+        const actualFile = _file.includes('\t') ? _file.split('\t')[1] : _file;
 
         insertions += adds;
         deletions += dels;
@@ -398,10 +399,12 @@ function calculateRisk(analysis: ChangeAnalysis): RiskClassification {
   let baseScore = 0;
 
   // Factor 1: Category-based risk
+  // MAX por categoría (no suma): el riesgo se mide por la categoría más
+  // peligrosa presente, no por cuántos archivos la comparten. Un diff con
+  // 10 archivos de docs no es 10× más riesgoso que uno con 1.
   const categoryScores: Record<string, number> = {};
   for (const category of analysis.fileCategories.values()) {
-    if (!categoryScores[category]) categoryScores[category] = 0;
-    categoryScores[category] += CATEGORY_RISK[category];
+    categoryScores[category] = Math.max(categoryScores[category] ?? 0, CATEGORY_RISK[category]);
   }
 
   // Take max category risk (not sum - it's about the highest risk present)

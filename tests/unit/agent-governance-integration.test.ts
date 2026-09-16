@@ -21,7 +21,9 @@ describe('agent-governance-integration', () => {
 
   it('allows safe actions', () => {
     const gov = makeGovernance();
-    const result = gov.checkGovernance({ action: { type: 'read', target: '/project/src/index.ts' } });
+    const result = gov.checkGovernance({
+      action: { type: 'read', target: '/project/src/index.ts' },
+    });
     assert.strictEqual(result.verdict, 'allow');
     assert.strictEqual(result.proceed, true);
   });

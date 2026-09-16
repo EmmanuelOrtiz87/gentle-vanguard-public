@@ -76,11 +76,7 @@ function jaccard(a: string, b: string): number {
  * Check whether a single claim is supported by any of the provided sources.
  * Uses lexical overlap (Jaccard) with a configurable threshold.
  */
-export function checkClaim(
-  claim: string,
-  sources: string[],
-  threshold = 0.25,
-): ClaimCheckResult {
+export function checkClaim(claim: string, sources: string[], threshold = 0.25): ClaimCheckResult {
   const scores = sources.map((s) => jaccard(claim, s));
   const maxScore = Math.max(...scores, 0);
   const bestIndex = scores.indexOf(maxScore);
@@ -101,11 +97,7 @@ export function checkClaim(
  * Fact-check a generated text by extracting claims (sentences) and checking
  * each against the provided sources.
  */
-export function factCheckText(
-  text: string,
-  sources: string[],
-  threshold = 0.25,
-): FactCheckResult {
+export function factCheckText(text: string, sources: string[], threshold = 0.25): FactCheckResult {
   // Split into sentences as claims.
   const sentences = text
     .split(/(?<=[.!?])\s+/)
@@ -117,7 +109,13 @@ export function factCheckText(
   const supportRatio = claims.length > 0 ? supportedCount / claims.length : 0;
 
   const verdict: 'verified' | 'unverified' | 'mixed' =
-    claims.length === 0 ? 'unverified' : supportRatio >= 0.8 ? 'verified' : supportRatio > 0 ? 'mixed' : 'unverified';
+    claims.length === 0
+      ? 'unverified'
+      : supportRatio >= 0.8
+        ? 'verified'
+        : supportRatio > 0
+          ? 'mixed'
+          : 'unverified';
 
   return { text, verdict, claims, supportRatio };
 }
@@ -160,7 +158,9 @@ function main(): void {
       else if (args[i] === '--sources') sourcesRaw = args[++i] ?? '';
     }
     if (!text || !sourcesRaw) {
-      console.error('Usage: fact-checker.ts verify --text "<generated text>" --sources \'["...","..."]\'');
+      console.error(
+        'Usage: fact-checker.ts verify --text "<generated text>" --sources \'["...","..."]\'',
+      );
       process.exit(1);
     }
     let sources: string[];

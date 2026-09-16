@@ -29,6 +29,7 @@ import { AuthSessionRepo } from './repositories/AuthSessionRepo';
 import { TokenRepo } from './repositories/TokenRepo';
 import { PrincipalRepo } from './repositories/PrincipalRepo';
 import { SqliteContentOSRepo } from './repositories/ContentOSRepo';
+import { SqliteAcademyCRMRepo } from './repositories/AcademyCRMRepo';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -155,6 +156,7 @@ export class DatabaseManager {
   readonly tokens: TokenRepo;
   readonly principals: PrincipalRepo;
   readonly contentOS: SqliteContentOSRepo;
+  readonly crm: SqliteAcademyCRMRepo;
 
   private constructor() {
     if (!existsSync(DB_DIR)) {
@@ -182,6 +184,7 @@ export class DatabaseManager {
     this.tokens = new TokenRepo(this.db);
     this.principals = new PrincipalRepo(this.db);
     this.contentOS = new SqliteContentOSRepo(this.db);
+    this.crm = new SqliteAcademyCRMRepo(this.db);
 
     this.migrations.runMigrations();
     this.checkpointWal();

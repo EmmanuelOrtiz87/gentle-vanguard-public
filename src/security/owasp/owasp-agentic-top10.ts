@@ -75,7 +75,8 @@ export function buildOwaspMapping(): OwaspCategory[] {
     {
       id: 'LLM01:2025',
       title: 'Prompt Injection',
-      description: 'Manipulation of LLM inputs to override instructions or access unauthorized data.',
+      description:
+        'Manipulation of LLM inputs to override instructions or access unauthorized data.',
       controls: [
         'src/security/prompt-injection-guard.ts',
         'src/security/guardrails/input-moderation.ts',
@@ -194,10 +195,7 @@ export function buildOwaspMapping(): OwaspCategory[] {
       id: 'LLM08:2025',
       title: 'Vector and Embedding Weaknesses',
       description: 'Vulnerabilities in vector databases and embedding pipelines.',
-      controls: [
-        'src/retrieval/retrieval-grader.ts',
-        'src/security/embedding-guard.ts',
-      ],
+      controls: ['src/retrieval/retrieval-grader.ts', 'src/security/embedding-guard.ts'],
       coverage: 'full',
       evidence: [
         'retrieval-grader.ts — BM25 retrieval grading',
@@ -291,10 +289,13 @@ function main(): void {
   if (cmd === 'report') {
     const strict = args.strict === 'true' || args.strict === '1';
     const report = generateReport(strict);
-    const outputPath = args.output ?? join(resolve(process.cwd()), '.runtime', 'owasp-agentic-top10.json');
+    const outputPath =
+      args.output ?? join(resolve(process.cwd()), '.runtime', 'owasp-agentic-top10.json');
     writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf-8');
     console.log(`OWASP Agentic AI Top 10 report written to ${outputPath}`);
-    console.log(`  Coverage: ${report.overallCoverage}% (${report.fullCoverage} full / ${report.partialCoverage} partial / ${report.noneCoverage} none)`);
+    console.log(
+      `  Coverage: ${report.overallCoverage}% (${report.fullCoverage} full / ${report.partialCoverage} partial / ${report.noneCoverage} none)`,
+    );
     if (strict) {
       console.log(`  Strict mode: ${report.strictPass ? 'PASS' : 'FAIL'}`);
       process.exit(report.strictPass ? 0 : 1);

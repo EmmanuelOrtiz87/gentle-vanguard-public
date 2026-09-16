@@ -77,6 +77,8 @@ const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }> = [
   { dir: 'playwright-cli', root: 'opencode' },
   { dir: 'brand-design-systems', root: 'opencode' },
   { dir: 'design-engineering', root: 'opencode' },
+  // Fase 5 (2026-09-08) — autoría de cursos GV Academy (contrato nativo)
+  { dir: 'academy-course-authoring', root: 'opencode' },
 ];
 
 /**

@@ -162,14 +162,26 @@ export async function checkMissingScripts() {
 
   const reportPath = join(RUNTIME_DIR, 'autostart-missing-scripts.json');
   if (!fileExists(reportPath)) {
-    addResult('configs', 'autostart-missing-scripts (report)', 'PASS', 'No unresolved scripts', 'ok');
+    addResult(
+      'configs',
+      'autostart-missing-scripts (report)',
+      'PASS',
+      'No unresolved scripts',
+      'ok',
+    );
     return;
   }
   try {
     const report = readJson(reportPath) as { missing?: { id: string; script: string }[] };
     const missing = report?.missing ?? [];
     if (missing.length === 0) {
-      addResult('configs', 'autostart-missing-scripts (report)', 'PASS', 'Report empty — all resolved', 'ok');
+      addResult(
+        'configs',
+        'autostart-missing-scripts (report)',
+        'PASS',
+        'Report empty — all resolved',
+        'ok',
+      );
     } else {
       addResult(
         'configs',

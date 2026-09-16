@@ -371,6 +371,28 @@ function main(): void {
     } else {
       writeInfo(`Task script not found at ${wtTaskScript}. Skipping.`);
     }
+
+    writeStep('Step 4b3: Scheduled Task - Apps KeepAlive...');
+    const kaTaskName = 'Gentle-Vanguard-Apps-KeepAlive';
+    const kaTaskScript = join(root, 'src', 'ops', 'apps-keepalive.ts');
+    if (existsSync(kaTaskScript)) {
+      // 15 min: revive apps detenidas vía Command Center (complementa al
+      // autoheal, que cura daemons del stack).
+      const kaResult = registerScheduledTask(kaTaskName, kaTaskScript, root, 0.25);
+      if (kaResult === 'ok') {
+        writeSuccess(
+          `Scheduled task '${kaTaskName}' registered hidden (revives apps every 15 min).`,
+        );
+      } else if (kaResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${kaTaskName}' created hidden via wscript wrapper (revives apps every 15 min).`,
+        );
+      } else {
+        writeInfo('Could not create apps keepalive scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${kaTaskScript}. Skipping.`);
+    }
   } else {
     writeInfo('Scheduled tasks not supported on this platform. Hooks handle sync.');
   }

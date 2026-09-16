@@ -97,7 +97,10 @@ async function phase2_initDelegation(): Promise<boolean> {
     const status = getDelegatorStatus();
 
     if (status && status.metrics) {
-      step(`Phase 2: Delegation Ready (${Object.keys(status.modelAvailability).length} models)`, 'done');
+      step(
+        `Phase 2: Delegation Ready (${Object.keys(status.modelAvailability).length} models)`,
+        'done',
+      );
       return true;
     }
     step('Phase 2: Delegation Initialized', 'done');
@@ -255,15 +258,36 @@ async function main(): Promise<void> {
   log('╔════════════════════════════════════════════════════════════════╗', 'info');
   log('║   BOOTSTRAP REPORT                                             ║', 'info');
   log('╠════════════════════════════════════════════════════════════════╣', 'info');
-  log(`║   Status: ${allHealthy ? '✅ HEALTHY' : '⚠️  PARTIAL'}${' '.repeat(allHealthy ? 25 : 26)}║`, allHealthy ? 'success' : 'warn');
+  log(
+    `║   Status: ${allHealthy ? '✅ HEALTHY' : '⚠️  PARTIAL'}${' '.repeat(allHealthy ? 25 : 26)}║`,
+    allHealthy ? 'success' : 'warn',
+  );
   log(`║   Duration: ${duration}s${' '.repeat(33)}║`, 'info');
   log('╠════════════════════════════════════════════════════════════════╣', 'info');
-  log(`║   Session Manager:    ${results.session ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`, results.session ? 'success' : 'error');
-  log(`║   Intelligent Delegation: ${results.delegation ? '✅ Ready' : '❌ Failed'}${' '.repeat(21)}║`, results.delegation ? 'success' : 'error');
-  log(`║   Policy Engine:     ${results.policy ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`, results.policy ? 'success' : 'error');
-  log(`║   Route Router:      ${results.routing ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`, results.routing ? 'success' : 'error');
-  log(`║   Security Compliance: ${results.security ? '✅ Ready' : '❌ Failed'}${' '.repeat(23)}║`, results.security ? 'success' : 'error');
-  log(`║   Health Checks:     ${results.health ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`, results.health ? 'success' : 'error');
+  log(
+    `║   Session Manager:    ${results.session ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`,
+    results.session ? 'success' : 'error',
+  );
+  log(
+    `║   Intelligent Delegation: ${results.delegation ? '✅ Ready' : '❌ Failed'}${' '.repeat(21)}║`,
+    results.delegation ? 'success' : 'error',
+  );
+  log(
+    `║   Policy Engine:     ${results.policy ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`,
+    results.policy ? 'success' : 'error',
+  );
+  log(
+    `║   Route Router:      ${results.routing ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`,
+    results.routing ? 'success' : 'error',
+  );
+  log(
+    `║   Security Compliance: ${results.security ? '✅ Ready' : '❌ Failed'}${' '.repeat(23)}║`,
+    results.security ? 'success' : 'error',
+  );
+  log(
+    `║   Health Checks:     ${results.health ? '✅ Ready' : '❌ Failed'}${' '.repeat(25)}║`,
+    results.health ? 'success' : 'error',
+  );
   log('╚════════════════════════════════════════════════════════════════╝', 'info');
   log('');
 

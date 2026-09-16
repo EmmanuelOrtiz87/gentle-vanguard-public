@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "gentle-vanguard-tokens-v2",
   "title": "Gentle-Vanguard Design Tokens v2.0",
-  "description": "Official design tokens for Gentle-Vanguard Academy v2.0 - Premium Evolution",
-  "version": "2.0.0",
-  "date": "2026-09-01",
+  "description": "Official design tokens for Gentle-Vanguard — v2.0 APPLICATION FINAL (SVG Asset System v2.0)",
+  "version": "2.1.0",
+  "date": "2026-09-08",
   "meta": {
     "designRead": "Academy/educational platform for developers, dark-tech premium language",
     "variance": 7,
@@ -14,9 +14,9 @@
   "color": {
     "background": {
       "base": {
-        "$value": "#0F1115",
+        "$value": "#0B1020",
         "$type": "color",
-        "description": "Primary background — evolved from #121212"
+        "description": "Primary background — Midnight Navy (v2.0 APPLICATION FINAL)"
       },
       "elevated": {
         "$value": "#151921",
@@ -31,9 +31,9 @@
     },
     "accent": {
       "cyan": {
-        "$value": "#22d3ee",
+        "$value": "#06B6D4",
         "$type": "color",
-        "description": "Primary accent — links, focus, data"
+        "description": "Primary accent — Tech Cyan (v2.0 APPLICATION FINAL)"
       },
       "cyanDeep": {
         "$value": "#0891b2",
@@ -44,9 +44,9 @@
         "$type": "color"
       },
       "purple": {
-        "$value": "#a78bfa",
+        "$value": "#8B5CF6",
         "$type": "color",
-        "description": "Secondary accent — headings, labels"
+        "description": "Secondary accent — Vanguard Violet (v2.0 APPLICATION FINAL)"
       },
       "purpleDeep": {
         "$value": "#7c3aed",

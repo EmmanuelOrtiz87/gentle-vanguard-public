@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -70 652 652" width="512" height="512">
+<defs>  <linearGradient id="vg" gradientUnits="userSpaceOnUse" x1="300" y1="230" x2="432" y2="96">
+    <stop offset="0" stop-color="#A78BFA"/>
+    <stop offset="1" stop-color="#22D3EE"/>
+  </linearGradient></defs>
+  <path d="M 208.6 65.8 A 196 196 0 1 0 446.2 303.4 L 376.3 286.0 A 124 124 0 1 1 226.0 135.7 Z" fill="#E9ECF4" fill-opacity="0.20"/>
+  <path d="M 413.7 91.2 L 281.2 121.8 L 297.4 192.0 L 369.2 142.8 L 320.0 214.6 L 390.2 230.8 L 420.8 98.3 Z" fill="#22D3EE" fill-opacity="0.26"/>
+  <path d="M 452.0 256.0 A 196 196 0 1 1 60.0 256.0 A 196 196 0 1 1 452.0 256.0" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1.6" stroke-dasharray="6 6"/>
+  <path d="M 380.0 256.0 A 124 124 0 1 1 132.0 256.0 A 124 124 0 1 1 380.0 256.0" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1.6" stroke-dasharray="6 6"/>
+  <path d="M 484.0 256.0 A 228 228 0 1 1 28.0 256.0 A 228 228 0 1 1 484.0 256.0" fill="none" stroke="#22D3EE" stroke-opacity="0.35" stroke-width="1.6" stroke-dasharray="2 7"/>
+  <path d="M -44.0 256.0 L 576.0 256.0" fill="none" stroke="#22D3EE" stroke-opacity="0.22" stroke-width="1.6"/>
+  <path d="M 256.0 -64.0 L 256.0 556.0" fill="none" stroke="#22D3EE" stroke-opacity="0.22" stroke-width="1.6"/>
+  <path d="M 234.8 277.2 L 465.3 46.7" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1.8"/>
+  <path d="M 234.2 168.7 L 200.4 32.8" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1.6"/>
+  <path d="M 343.3 277.8 L 479.2 311.6" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1.6"/>
+  <path d="M 244.0 256.0 L 268.0 256.0" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1"/>
+  <path d="M 256.0 244.0 L 256.0 268.0" fill="none" stroke="#22D3EE" stroke-opacity="0.65" stroke-width="1"/>
+  <path d="M 132.0 256.0 L 60.0 256.0" fill="none" stroke="#A78BFA" stroke-opacity="0.65" stroke-width="1.6"/>
+  <text x="128.0" y="242.0" font-family="ui-monospace, 'Cascadia Mono', monospace" font-size="19" fill="#A78BFA" fill-opacity="0.92" text-anchor="end">72u</text>
+  <text x="475.3" y="76.7" font-family="ui-monospace, 'Cascadia Mono', monospace" font-size="19" fill="#A9C9E2" fill-opacity="0.92" text-anchor="start">45°</text>
+  <text x="460.0" y="186.0" font-family="ui-monospace, 'Cascadia Mono', monospace" font-size="19" fill="#A9C9E2" fill-opacity="0.92" text-anchor="start">R 196</text>
+  <text x="178.6" y="71.8" font-family="ui-monospace, 'Cascadia Mono', monospace" font-size="19" fill="#A9C9E2" fill-opacity="0.92" text-anchor="start">corte radial</text>
+  <text x="413.2" y="60.8" font-family="ui-monospace, 'Cascadia Mono', monospace" font-size="19" fill="#A9C9E2" fill-opacity="0.92" text-anchor="start">micro-plano 10u</text>
+</svg>

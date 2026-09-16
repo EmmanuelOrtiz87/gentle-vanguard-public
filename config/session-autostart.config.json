@@ -286,30 +286,30 @@
       },
       {
         "id": "dashboard-ws-start",
-        "enabled": true,
+        "enabled": false,
         "lazy": true,
         "script": "src/ops/dashboard-ws-autostart.ts",
         "args": "--quiet --watch",
         "required": false,
-        "description": "Start WebSocket metrics server ONLY (port 8080) with persistent watchdog auto-recovery (5s health loop, up to 10 restarts). Does NOT serve the Vite UI — see dashboard-ui-start (TS)"
+        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. WebSocket metrics server ONLY (port 8080) with persistent watchdog auto-recovery (5s health loop, up to 10 restarts). Does NOT serve the Vite UI — see dashboard-ui-start (TS)"
       },
       {
         "id": "dashboard-ui-start",
-        "enabled": true,
+        "enabled": false,
         "lazy": true,
         "script": "src/ops/dashboard-vite-watchdog.ts",
         "args": "--watch",
         "required": false,
-        "description": "Start Vite dev server (dashboard UI on port 5173) with the same auto-recovery watchdog contract as the WS server (5s health loop, 2-failure threshold, up to 10 restarts, budget reset after 5min stable). Idempotent: adopts an already-serving Vite instead of spawning a duplicate"
+        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. Vite dev server (dashboard UI on port 5173) with the same auto-recovery watchdog contract as the WS server (5s health loop, 2-failure threshold, up to 10 restarts, budget reset after 5min stable). Idempotent: adopts an already-serving Vite instead of spawning a duplicate"
       },
       {
         "id": "dashboard-operational-metrics",
-        "enabled": true,
+        "enabled": false,
         "lazy": true,
         "script": "src/core/operational-metrics-tracker.ts",
         "args": "--mode background --refresh-interval 30",
         "required": false,
-        "description": "Calculate and persist operational metrics (velocity, efficiency, productivity, quality) every 30s for dashboard (TS)"
+        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. Calculate and persist operational metrics (velocity, efficiency, productivity, quality) every 30s for dashboard (TS)"
       },
       {
         "id": "post-autostart-summary",

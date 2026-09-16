@@ -329,15 +329,11 @@ function resolveScriptPath(script: string): string {
  * and reporting any unresolved paths for watchtower monitoring.
  */
 function healStepScriptPaths(config: PipelineConfig): void {
-  const result = healScriptPathsCore(
-    ROOT,
-    config as Parameters<typeof healScriptPathsCore>[1],
-    {
-      index: getScriptPathIndex(),
-      configPath: CONFIG_PATH,
-      reportPath: join(ROOT, '.runtime', 'autostart-missing-scripts.json'),
-    },
-  );
+  const result = healScriptPathsCore(ROOT, config as Parameters<typeof healScriptPathsCore>[1], {
+    index: getScriptPathIndex(),
+    configPath: CONFIG_PATH,
+    reportPath: join(ROOT, '.runtime', 'autostart-missing-scripts.json'),
+  });
 
   for (const p of result.patches) {
     LOG.warn(`[AUTO-HEAL] Script path corrected: ${p.from} → ${p.to} (step: ${p.id})`);
@@ -354,7 +350,9 @@ function healStepScriptPaths(config: PipelineConfig): void {
         backup: `${CONFIG_PATH}.bak`,
       },
     );
-    LOG.info(`[AUTO-HEAL] Persisted ${result.persisted} script path correction(s) to ${CONFIG_PATH}`);
+    LOG.info(
+      `[AUTO-HEAL] Persisted ${result.persisted} script path correction(s) to ${CONFIG_PATH}`,
+    );
   }
   if (result.stillMissing.length > 0) {
     LOG.warn(

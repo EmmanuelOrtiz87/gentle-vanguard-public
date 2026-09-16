@@ -57,17 +57,12 @@ function encodeShell(value: string): string {
 
 function encodeHtml(value: string): string {
   // HTML text node encoding.
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function encodeHtmlAttr(value: string): string {
   // HTML attribute value encoding (also handles quotes).
-  return encodeHtml(value)
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return encodeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function encodeUrl(value: string): string {

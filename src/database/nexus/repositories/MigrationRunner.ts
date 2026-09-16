@@ -675,6 +675,112 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
         ON publish_log(variant_id, created_at DESC);
     `,
   },
+  {
+    id: '019_academy_crm',
+    sql: `
+      CREATE TABLE IF NOT EXISTS crm_contacts (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        name TEXT NOT NULL,
+        email TEXT DEFAULT '',
+        phone TEXT DEFAULT '',
+        company TEXT DEFAULT '',
+        audience TEXT DEFAULT 'personas'
+          CHECK(audience IN ('personas','estudiantes','empresas','mixed','unknown')),
+        source TEXT NOT NULL DEFAULT 'manual',
+        notes TEXT DEFAULT '',
+        lead_synced INTEGER NOT NULL DEFAULT 0,
+        lead_audience TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_deals (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        contact_id TEXT NOT NULL,
+        product_type TEXT NOT NULL
+          CHECK(product_type IN ('ebook-micro','ebook-premium','toolkit','course-base','course-mentor','program-custom','mentor-individual','other')),
+        product_id TEXT DEFAULT '',
+        product_label TEXT NOT NULL,
+        amount REAL NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'USD',
+        status TEXT NOT NULL DEFAULT 'lead'
+          CHECK(status IN ('lead','contacted','quoted','sold','delivered','paid','lost','cancelled')),
+        close_date TEXT,
+        paid_date TEXT,
+        notes TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (contact_id) REFERENCES crm_contacts(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_sessions (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        deal_id TEXT,
+        contact_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'mentor'
+          CHECK(type IN ('mentor','course-mentor','consultoria','demo','onboarding','other')),
+        duration_minutes INTEGER NOT NULL DEFAULT 60,
+        scheduled_at TEXT NOT NULL,
+        completed INTEGER NOT NULL DEFAULT 0,
+        completion_notes TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (contact_id) REFERENCES crm_contacts(id) ON DELETE CASCADE,
+        FOREIGN KEY (deal_id) REFERENCES crm_deals(id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_deal_status_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        deal_id TEXT NOT NULL,
+        from_status TEXT,
+        to_status TEXT NOT NULL,
+        reason TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (deal_id) REFERENCES crm_deals(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        kind TEXT NOT NULL,
+        contact_id TEXT,
+        deal_id TEXT,
+        payload TEXT DEFAULT '{}',
+        source TEXT DEFAULT 'academy-web',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_crm_contacts_tenant_email
+        ON crm_contacts(tenant_id, email);
+      CREATE INDEX IF NOT EXISTS idx_crm_contacts_tenant_audience
+        ON crm_contacts(tenant_id, audience);
+      CREATE INDEX IF NOT EXISTS idx_crm_deals_tenant_status
+        ON crm_deals(tenant_id, status, updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_crm_deals_contact
+        ON crm_deals(contact_id);
+      CREATE INDEX IF NOT EXISTS idx_crm_deals_close_date
+        ON crm_deals(close_date);
+      CREATE INDEX IF NOT EXISTS idx_crm_deals_paid_date
+        ON crm_deals(paid_date);
+      CREATE INDEX IF NOT EXISTS idx_crm_sessions_tenant_sched
+        ON crm_sessions(tenant_id, scheduled_at);
+      CREATE INDEX IF NOT EXISTS idx_crm_sessions_contact
+        ON crm_sessions(contact_id);
+      CREATE INDEX IF NOT EXISTS idx_crm_sessions_deal
+        ON crm_sessions(deal_id);
+      CREATE INDEX IF NOT EXISTS idx_crm_deal_status_history_deal
+        ON crm_deal_status_history(deal_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_crm_events_tenant_created
+        ON crm_events(tenant_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_crm_events_kind
+        ON crm_events(kind);
+    `,
+  },
 ];
 
 export class MigrationRunner {

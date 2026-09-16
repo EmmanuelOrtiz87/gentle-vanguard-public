@@ -1,16 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 120" width="900" height="120" role="img" aria-label="Gentle-Vanguard Documentation Banner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 120" width="900" height="120" role="img" aria-label="Gentle Vanguard Documentation Banner">
   <defs>
-    <linearGradient id="doc-logo-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#22D3EE"/>
-      <stop offset="100%" stop-color="#0055BB"/>
+    <linearGradient id="doc-gv-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6E4DEB"/>
+      <stop offset="52%" stop-color="#7B63E8"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
     </linearGradient>
     <linearGradient id="doc-bg-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#121212"/>
-      <stop offset="100%" stop-color="#1A2035"/>
+      <stop offset="0%" stop-color="#0B1020"/>
+      <stop offset="100%" stop-color="#131A30"/>
     </linearGradient>
     <filter id="doc-glow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-      <feFlood flood-color="#22D3EE" flood-opacity="0.5" result="color"/>
+      <feFlood flood-color="#6E4DEB" flood-opacity="0.4" result="color"/>
       <feComposite in="color" in2="blur" operator="in" result="shadow"/>
       <feMerge>
         <feMergeNode in="shadow"/>
@@ -21,10 +22,10 @@
     <pattern id="circuit" width="80" height="80" patternUnits="userSpaceOnUse">
       <path d="M 10 40 H 30 M 30 40 V 20 H 50 M 50 20 H 70
                M 60 60 H 40 V 50 H 20 M 70 70 V 50 H 60"
-            stroke="#1A3050" stroke-width="1" fill="none"/>
-      <circle cx="30" cy="40" r="2" fill="#1A3050"/>
-      <circle cx="50" cy="20" r="2" fill="#1A3050"/>
-      <circle cx="40" cy="60" r="2" fill="#1A3050"/>
+            stroke="#1E3A5F" stroke-width="1" fill="none"/>
+      <circle cx="30" cy="40" r="2" fill="#1E3A5F"/>
+      <circle cx="50" cy="20" r="2" fill="#1E3A5F"/>
+      <circle cx="40" cy="60" r="2" fill="#1E3A5F"/>
     </pattern>
   </defs>
   <!-- Background -->
@@ -32,23 +33,16 @@
   <rect width="900" height="120" fill="url(#circuit)" opacity="0.6"/>
   <!-- Border -->
   <rect width="900" height="120" rx="8" ry="8" fill="none" stroke="#1E3A5F" stroke-width="1.5"/>
-  <!-- GV logo mark, scaled to ~80px height -->
-  <g stroke="url(#doc-logo-grad)" stroke-width="5.5" fill="none"
-     stroke-linecap="round" stroke-linejoin="round"
-     filter="url(#doc-glow)"
-     transform="translate(20, 8) scale(0.365)">
-    <path d="M 137.6 146.8 A 63 63 0 1 1 137.6 69.2"/>
-    <line x1="88" y1="108" x2="137" y2="108"/>
-    <line x1="137" y1="108" x2="113" y2="178"/>
-    <line x1="113" y1="178" x2="197" y2="55"/>
-    <polyline points="186,51 212,38 206,64"/>
+  <!-- New centered GV monogram (v2.0), scaled to ~80px height -->
+  <g transform="translate(15, 8) scale(0.16)" filter="url(#doc-glow)">
+    <path d="M 305.75 319.81 L 274.50 322.94 L 262.00 326.06 L 233.88 335.44 L 221.38 341.69 L 202.62 351.06 L 193.25 357.31 L 180.75 366.69 L 155.75 391.69 L 146.38 404.19 L 140.12 413.56 L 133.88 426.06 L 124.50 444.81 L 121.38 454.19 L 118.25 463.56 L 115.12 476.06 L 112.00 497.94 L 112.00 526.06 L 115.12 547.94 L 118.25 560.44 L 121.38 569.81 L 127.62 585.44 L 137.00 604.19 L 143.25 613.56 L 152.62 626.06 L 183.88 657.31 L 193.25 663.56 L 202.62 669.81 L 240.12 688.56 L 249.50 691.69 L 262.00 694.81 L 274.50 697.94 L 293.25 701.06 L 412.00 701.06 L 421.38 697.94 L 427.62 694.81 L 433.88 691.69 L 443.25 685.44 L 449.50 679.19 L 449.50 672.94 L 440.12 657.31 L 418.25 622.94 L 412.00 613.56 L 405.75 604.19 L 399.50 601.06 L 305.75 601.06 L 293.25 597.94 L 274.50 588.56 L 265.12 582.31 L 246.38 563.56 L 240.12 554.19 L 233.88 538.56 L 230.75 529.19 L 230.75 491.69 L 233.88 479.19 L 243.25 460.44 L 268.25 435.44 L 293.25 422.94 L 302.62 419.81 L 493.25 419.81 L 502.62 410.44 L 512.00 397.94 L 543.25 347.94 L 552.62 338.56 L 558.88 329.19 L 562.00 322.94 L 465.12 322.94 L 455.75 322.94 Z M 768.25 319.81 L 762.00 322.94 L 758.88 326.06 L 749.50 341.69 L 730.75 369.81 L 730.75 372.94 L 665.12 469.81 L 599.50 572.94 L 593.25 585.44 L 587.00 579.19 L 577.62 560.44 L 552.62 526.06 L 533.88 491.69 L 527.62 482.31 L 521.38 472.94 L 515.12 469.81 L 352.62 476.06 L 362.00 485.44 L 380.75 519.81 L 387.00 529.19 L 393.25 538.56 L 402.62 547.94 L 446.38 551.06 L 446.38 554.19 L 452.62 560.44 L 462.00 576.06 L 474.50 594.81 L 493.25 629.19 L 518.25 663.56 L 527.62 682.31 L 537.00 697.94 L 543.25 701.06 L 652.62 701.06 L 658.88 697.94 L 665.12 688.56 L 677.62 669.81 L 702.62 632.31 L 902.62 329.19 L 908.88 322.94 Z" fill="url(#doc-gv-grad)" fill-rule="nonzero"/>
   </g>
   <!-- Brand name -->
   <text x="120" y="62" fill="#06B6D4"
-        font-family="Orbitron, 'Share Tech Mono', monospace"
-        font-size="36" font-weight="700" letter-spacing="3">GENTLE-VANGUARD</text>
+        font-family="Inter, Manrope, Arial, sans-serif"
+        font-size="36" font-weight="800" letter-spacing="3">GENTLE VANGUARD</text>
   <!-- Tagline -->
-  <text x="122" y="88" fill="#6B7280"
+  <text x="122" y="88" fill="#8B95A8"
         font-family="'Inter', 'Segoe UI', sans-serif"
-        font-size="13" font-weight="400" letter-spacing="2">ADVANCED TECHNOLOGY SOLUTIONS</text>
+        font-size="13" font-weight="400" letter-spacing="2">APRENDER · EXPERIMENTAR · CONSTRUIR · TRANSFORMAR</text>
 </svg>

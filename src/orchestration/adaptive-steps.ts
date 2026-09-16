@@ -17,12 +17,14 @@
  *   npx tsx src/orchestration/adaptive-steps.ts --resume sdd-apply --task_id ses_xxx
  *   npx tsx src/orchestration/adaptive-steps.ts --status
  *   npx tsx src/orchestration/adaptive-steps.ts --auto "task description"   # estimate + apply
+ *   npx tsx src/orchestration/adaptive-steps.ts --estimate "..." --risk-aware  # +steps según risk tier
  */
 
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { normalizeSteps } from '../security/opencode-guards.js';
+import { classifyRisk } from '../rdd/risk-classifier.js';
 
 const ROOT = resolve(process.cwd());
 const OPENCODE_JSON = join(ROOT, 'opencode.json');
@@ -75,6 +77,32 @@ function estimateSteps(task: string, base: number): number {
   if (fileMatch) extra += Math.min(Number(fileMatch[1]) / 2, 20);
   // Cap at a sane max, always round up to avoid undershooting
   return Math.min(Math.ceil(base + extra), 80);
+}
+
+/**
+ * Risk-aware step budget (absorbido de Gentle-AI v2.7.0 risk-aware delegation).
+ * Clasifica el riesgo del diff actual y agrega steps para la verificación que
+ * el tier exige:
+ *   - low      → +0  (delegación directa, sin verificación extra)
+ *   - standard → +8  (sdd-verify, 1 lens)
+ *   - high     → +16 (rdd-4r-review, 4R)
+ */
+function riskAwareStepBonus(): {
+  bonus: number;
+  tier: string;
+  score: number;
+  verification: string;
+} {
+  try {
+    const c = classifyRisk(false);
+    const tier = c.tier;
+    const bonus = tier === 'high' ? 16 : tier === 'standard' ? 8 : 0;
+    const verification =
+      tier === 'high' ? 'rdd-4r-review' : tier === 'standard' ? 'sdd-verify' : 'none';
+    return { bonus, tier, score: c.score, verification };
+  } catch {
+    return { bonus: 0, tier: 'unknown', score: 0, verification: 'none' };
+  }
 }
 
 function loadJson<T>(p: string): T | null {
@@ -188,9 +216,16 @@ function main(): void {
   if (args.estimate) {
     const base = args.agent ? (BASELINE[args.agent] ?? 20) : 24;
     const steps = estimateSteps(args.estimate, base);
+    const risk = args['risk-aware'] ? riskAwareStepBonus() : null;
+    const finalSteps = risk ? Math.min(steps + risk.bonus, 80) : steps;
     console.log(
       JSON.stringify(
-        { agent: args.agent ?? 'orchestrator', estimatedSteps: steps, task: args.estimate },
+        {
+          agent: args.agent ?? 'orchestrator',
+          estimatedSteps: finalSteps,
+          task: args.estimate,
+          ...(risk ? { risk } : {}),
+        },
         null,
         2,
       ),
@@ -209,8 +244,16 @@ function main(): void {
     const agent = args.agent ?? 'orchestrator';
     const base = BASELINE[agent] ?? 20;
     const steps = estimateSteps(args.auto, base);
-    const result = applySteps(agent, steps);
-    console.log(JSON.stringify({ ...result, estimatedSteps: steps, task: args.auto }, null, 2));
+    const risk = args['risk-aware'] ? riskAwareStepBonus() : null;
+    const finalSteps = risk ? Math.min(steps + risk.bonus, 80) : steps;
+    const result = applySteps(agent, finalSteps);
+    console.log(
+      JSON.stringify(
+        { ...result, estimatedSteps: finalSteps, task: args.auto, ...(risk ? { risk } : {}) },
+        null,
+        2,
+      ),
+    );
     return;
   }
 

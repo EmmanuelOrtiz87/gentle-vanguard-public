@@ -382,10 +382,7 @@ function evalSingleCondition(condition: string, view: Record<string, unknown>): 
  * action object. Supports `in`, `not in`, `==`, `!=`, `matches` plus `and`/`or`
  * combinators. Unknown predicates return false (fail closed).
  */
-export function evaluateCondition(
-  condition: string,
-  action: Record<string, unknown>,
-): boolean {
+export function evaluateCondition(condition: string, action: Record<string, unknown>): boolean {
   const view: Record<string, unknown> = { ...(action ?? {}) };
   const orParts = condition.split(/\s+or\s+/);
   if (orParts.length > 1) {
@@ -402,10 +399,18 @@ export function evaluateCondition(
 }
 
 /** Load the declarative default config (`config/policy-engine.json`). */
-export function loadDefaultConfig(): { policies: unknown[]; failClosed: boolean; defaultAction: string } {
+export function loadDefaultConfig(): {
+  policies: unknown[];
+  failClosed: boolean;
+  defaultAction: string;
+} {
   try {
     const raw = readFileSync(join(ROOT, 'config', 'policy-engine.json'), 'utf-8');
-    const parsed = JSON.parse(raw) as { policies?: unknown[]; failClosed?: boolean; defaultAction?: string };
+    const parsed = JSON.parse(raw) as {
+      policies?: unknown[];
+      failClosed?: boolean;
+      defaultAction?: string;
+    };
     return {
       policies: Array.isArray(parsed.policies) ? parsed.policies : [],
       failClosed: parsed.failClosed !== false,
@@ -427,7 +432,11 @@ function initializeAuditLog(path: string): void {
   }
 }
 
-function logAuditDecision(result: PolicyEvaluationResult, request: PolicyEvaluationRequest, logPath: string): void {
+function logAuditDecision(
+  result: PolicyEvaluationResult,
+  request: PolicyEvaluationRequest,
+  logPath: string,
+): void {
   const entry = {
     timestamp: new Date().toISOString(),
     decisionId: result.decisionId,
@@ -533,7 +542,12 @@ function parseYamlPolicy(content: string, path: string): Policy {
         const action = trimmed.split(':')[1].trim().toLowerCase() as PolicyAction;
         currentRule.action = action;
       } else if (trimmed.startsWith('description:')) {
-        currentRule.description = trimmed.split(':').slice(1).join(':').trim().replace(/^['"]|[\'"]$/g, '');
+        currentRule.description = trimmed
+          .split(':')
+          .slice(1)
+          .join(':')
+          .trim()
+          .replace(/^['"]|[\'"]$/g, '');
       } else if (trimmed.startsWith('priority:')) {
         currentRule.priority = parseInt(trimmed.split(':')[1].trim(), 10) || 0;
       } else if (trimmed.startsWith('approvers:')) {
@@ -577,10 +591,7 @@ export class PolicyEngine {
   private auditLogPath: string;
   private customEvaluators: Record<string, RuleEvaluator>;
 
-  constructor(
-    policyPaths?: string[],
-    options: Omit<GovernOptions, 'policyPath'> = {},
-  ) {
+  constructor(policyPaths?: string[], options: Omit<GovernOptions, 'policyPath'> = {}) {
     this.auditLogPath = options.auditLogPath || DEFAULT_AUDIT_LOG;
     this.customEvaluators = { ...BUILTIN_EVALUATORS, ...(options.customEvaluators || {}) };
 
@@ -589,9 +600,10 @@ export class PolicyEngine {
 
     // Default to the native core tool-safety policy when no paths are given
     // (backward compat: `new PolicyEngine()` keeps working).
-    const paths = policyPaths && policyPaths.length > 0
-      ? policyPaths
-      : [join(ROOT, 'config', 'policies', 'gv-core-tool-safety.yaml')];
+    const paths =
+      policyPaths && policyPaths.length > 0
+        ? policyPaths
+        : [join(ROOT, 'config', 'policies', 'gv-core-tool-safety.yaml')];
 
     // Load all policies
     for (const path of paths) {
@@ -621,9 +633,10 @@ export class PolicyEngine {
     // Default result (fail-closed: deny if no policies)
     let result: PolicyEvaluationResult = {
       action: this.policies.size === 0 ? 'allow' : 'deny',
-      reason: this.policies.size === 0
-        ? 'No policies configured - defaulting to allow'
-        : 'No policies matched - fail-closed',
+      reason:
+        this.policies.size === 0
+          ? 'No policies configured - defaulting to allow'
+          : 'No policies matched - fail-closed',
       evaluated: true,
       decisionId,
       timestamp: new Date().toISOString(),
@@ -636,20 +649,35 @@ export class PolicyEngine {
 
       // If policy denies, use that result
       if (policyResult.action === 'deny') {
-        result = { ...policyResult, decisionId, policyVersion: name, timestamp: new Date().toISOString() };
+        result = {
+          ...policyResult,
+          decisionId,
+          policyVersion: name,
+          timestamp: new Date().toISOString(),
+        };
         break;
       }
 
       // If policy requires approval
       if (policyResult.action === 'require_approval') {
-        result = { ...policyResult, decisionId, policyVersion: name, timestamp: new Date().toISOString() };
+        result = {
+          ...policyResult,
+          decisionId,
+          policyVersion: name,
+          timestamp: new Date().toISOString(),
+        };
         // Continue to check for stricter policies
         continue;
       }
 
       // Policy allows - update result (but keep checking)
       if (policyResult.action === 'allow' && result.action !== 'require_approval') {
-        result = { ...policyResult, decisionId, policyVersion: name, timestamp: new Date().toISOString() };
+        result = {
+          ...policyResult,
+          decisionId,
+          policyVersion: name,
+          timestamp: new Date().toISOString(),
+        };
       }
     }
 
@@ -664,7 +692,14 @@ export class PolicyEngine {
     return result;
   }
 
-  private evaluateAgainstPolicy(policy: Policy, request: PolicyEvaluationRequest): Omit<Partial<PolicyEvaluationResult>, 'action' | 'reason' | 'evaluated'> & { action: PolicyAction; reason: string; evaluated: boolean } {
+  private evaluateAgainstPolicy(
+    policy: Policy,
+    request: PolicyEvaluationRequest,
+  ): Omit<Partial<PolicyEvaluationResult>, 'action' | 'reason' | 'evaluated'> & {
+    action: PolicyAction;
+    reason: string;
+    evaluated: boolean;
+  } {
     // Check each rule in priority order
     for (const rule of policy.spec.rules) {
       if (this.evaluateRule(rule, request)) {
@@ -791,10 +826,7 @@ export class PolicyEngine {
  *   const safeTool = govern(myTool, { policyPath: 'policies/shell.yaml' });
  *   safeTool({ cmd: 'ls' });  // Evaluated against policy
  */
-export function govern<T extends (...args: any[]) => any>(
-  toolFn: T,
-  options: GovernOptions,
-): T {
+export function govern<T extends (...args: any[]) => any>(toolFn: T, options: GovernOptions): T {
   // Load policy
   let engine: PolicyEngine;
   if (options.policyPath) {

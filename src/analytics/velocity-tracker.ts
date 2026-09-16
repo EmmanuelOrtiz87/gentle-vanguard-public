@@ -101,11 +101,9 @@ function analyzeGitHistory(period: string): CommitMetrics {
   const since = getSinceDate(period);
 
   // Get commits
-  const commits = runSync(
-    'git',
-    ['log', '--since', since, '--format=%H|%an|%ai|%s'],
-    { cwd: ROOT },
-  ).stdout;
+  const commits = runSync('git', ['log', '--since', since, '--format=%H|%an|%ai|%s'], {
+    cwd: ROOT,
+  }).stdout;
 
   const lines = commits.split('\n').filter(Boolean);
 
@@ -151,11 +149,7 @@ function analyzeCodeChanges(period: string): CodeMetrics {
   const since = getSinceDate(period);
 
   // Get diff stats
-  const stats = runSync(
-    'git',
-    ['diff', '--shortstat', `${since}..HEAD`],
-    { cwd: ROOT },
-  ).stdout;
+  const stats = runSync('git', ['diff', '--shortstat', `${since}..HEAD`], { cwd: ROOT }).stdout;
 
   // Parse "X files changed, Y insertions(+), Z deletions(-)"
   const match = stats.match(/(\d+) files? changed, (\d+) insertions?\(\+\), (\d+) deletions?\(-\)/);
@@ -181,11 +175,7 @@ function analyzeCodeChanges(period: string): CodeMetrics {
 
 function analyzeThroughput(period: string): ThroughputMetrics {
   const since = getSinceDate(period);
-  const commits = runSync(
-    'git',
-    ['log', '--since', since, '--format=%s'],
-    { cwd: ROOT },
-  ).stdout;
+  const commits = runSync('git', ['log', '--since', since, '--format=%s'], { cwd: ROOT }).stdout;
 
   const lines = commits.split('\n');
 
@@ -365,7 +355,7 @@ function generateDashboardHtml(metrics: VelocityMetrics): string {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5),
       null,
-      2
+      2,
     )}</pre>
   </div>
 </body>
@@ -411,11 +401,15 @@ async function generateReport(period: string): Promise<VelocityMetrics> {
   logger.info('╠════════════════════════════════════════╣');
   logger.info(`║ Commits:        ${String(metrics.commits.total).padEnd(20)} ║`);
   logger.info(`║ Per Day:        ${String(metrics.commits.perDay.toFixed(1)).padEnd(20)} ║`);
-  logger.info(`║ Lines Changed:  ${String(`+${metrics.code.linesAdded}/-${metrics.code.linesDeleted}`).padEnd(20)} ║`);
+  logger.info(
+    `║ Lines Changed:  ${String(`+${metrics.code.linesAdded}/-${metrics.code.linesDeleted}`).padEnd(20)} ║`,
+  );
   logger.info(`║ Cycle Time:     ${String(`${metrics.cycleTime.avgHours}h avg`).padEnd(20)} ║`);
   logger.info(`║ Lead Time:      ${String(`${metrics.cycleTime.leadTime}h`).padEnd(20)} ║`);
   logger.info(`║ Features:       ${String(metrics.throughput.features).padEnd(20)} ║`);
-  logger.info(`║ Quality:        ${String(`${(metrics.quality.testPassRate * 100).toFixed(0)}% tests passing`).padEnd(20)} ║`);
+  logger.info(
+    `║ Quality:        ${String(`${(metrics.quality.testPassRate * 100).toFixed(0)}% tests passing`).padEnd(20)} ║`,
+  );
   logger.info('╚════════════════════════════════════════╝');
 
   logger.info(`\nReport saved: ${metricsPath}`);

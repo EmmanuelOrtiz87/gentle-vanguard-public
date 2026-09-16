@@ -21,7 +21,10 @@ const DOCS_DIR = join(ROOT, 'docs');
 
 // Colors
 const c = {
-  r: '\x1b[0m', g: '\x1b[32m', y: '\x1b[33m', b: '\x1b[36m',
+  r: '\x1b[0m',
+  g: '\x1b[32m',
+  y: '\x1b[33m',
+  b: '\x1b[36m',
 };
 
 function log(msg: string, type: 'info' | 'success' | 'warn' = 'info'): void {
@@ -84,7 +87,11 @@ function generateSyncReport(): ChangeLog {
 
   // New features from v4.0 BLACKCAT
   const newFeatures = [
-    { component: 'Intelligent Delegator v2.0', track: 'agentes', lesson: 'intelligent-delegator-v2' },
+    {
+      component: 'Intelligent Delegator v2.0',
+      track: 'agentes',
+      lesson: 'intelligent-delegator-v2',
+    },
     { component: 'SmartTask Wrapper', track: 'agentes', lesson: 'smart-task-wrapper' },
     { component: 'Policy Engine @govern', track: 'arquitectura', lesson: 'policy-engine-govern' },
     { component: 'OWASP Agentic Top 10', track: 'arquitectura', lesson: 'owasp-agentic-top10' },
@@ -121,27 +128,15 @@ function generateLessonsFromCode(): void {
 
   // Generate lesson from Policy Engine
   const policyEngineLesson = generatePolicyEngineLesson();
-  writeFileSync(
-    join(lessonsPath, 'policy-engine-lesson.md'),
-    policyEngineLesson,
-    'utf-8'
-  );
+  writeFileSync(join(lessonsPath, 'policy-engine-lesson.md'), policyEngineLesson, 'utf-8');
 
   // Generate lesson from Intelligent Delegator
   const delegatorLesson = generateDelegatorLesson();
-  writeFileSync(
-    join(lessonsPath, 'intelligent-delegator-lesson.md'),
-    delegatorLesson,
-    'utf-8'
-  );
+  writeFileSync(join(lessonsPath, 'intelligent-delegator-lesson.md'), delegatorLesson, 'utf-8');
 
   // Generate lesson from Smallest Route
   const routerLesson = generateRouterLesson();
-  writeFileSync(
-    join(lessonsPath, 'smallest-route-lesson.md'),
-    routerLesson,
-    'utf-8'
-  );
+  writeFileSync(join(lessonsPath, 'smallest-route-lesson.md'), routerLesson, 'utf-8');
 
   log(`Lessons generated: ${lessonsPath}`, 'success');
 }

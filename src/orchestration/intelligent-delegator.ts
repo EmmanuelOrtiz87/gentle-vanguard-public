@@ -188,7 +188,8 @@ function saveRuntimeState(state: RuntimeState): void {
  */
 function detectOrchestratorModel(): string {
   // 1. Variables de entorno del orquestador
-  const envModel = process.env.ORCHESTRATOR_MODEL || process.env.AGENT_MODEL || process.env.SESSION_MODEL;
+  const envModel =
+    process.env.ORCHESTRATOR_MODEL || process.env.AGENT_MODEL || process.env.SESSION_MODEL;
   if (envModel) {
     logger.info(`Using orchestrator model from env: ${envModel}`);
     return envModel;
@@ -212,7 +213,9 @@ function detectOrchestratorModel(): string {
   try {
     const opencodeConfig = JSON.parse(readFileSync(join(ROOT, 'opencode.json'), 'utf-8'));
     if (opencodeConfig.agent?.orchestrator?.model) {
-      logger.info(`Using orchestrator model from opencode.json: ${opencodeConfig.agent.orchestrator.model}`);
+      logger.info(
+        `Using orchestrator model from opencode.json: ${opencodeConfig.agent.orchestrator.model}`,
+      );
       return opencodeConfig.agent.orchestrator.model;
     }
   } catch {
@@ -240,23 +243,29 @@ function buildModelChain(
   const tried = new Set<string>();
 
   // 1. Modelo preferido especificado por el request (si existe y no está marcado como unavailable)
-  if (request.preferredModel &&
-      state.modelAvailability[request.preferredModel]?.status !== 'unavailable') {
+  if (
+    request.preferredModel &&
+    state.modelAvailability[request.preferredModel]?.status !== 'unavailable'
+  ) {
     chain.push(request.preferredModel);
     tried.add(request.preferredModel);
   }
 
   // 2. Modelo del orquestador (herencia)
-  if (!tried.has(orchestratorModel) &&
-      state.modelAvailability[orchestratorModel]?.status !== 'unavailable') {
+  if (
+    !tried.has(orchestratorModel) &&
+    state.modelAvailability[orchestratorModel]?.status !== 'unavailable'
+  ) {
     chain.push(orchestratorModel);
     tried.add(orchestratorModel);
   }
 
   // 3. Modelo que funcionó la última vez
-  if (state.lastWorkingModel &&
-      !tried.has(state.lastWorkingModel) &&
-      state.modelAvailability[state.lastWorkingModel]?.status !== 'unavailable') {
+  if (
+    state.lastWorkingModel &&
+    !tried.has(state.lastWorkingModel) &&
+    state.modelAvailability[state.lastWorkingModel]?.status !== 'unavailable'
+  ) {
     chain.push(state.lastWorkingModel);
     tried.add(state.lastWorkingModel);
   }
@@ -272,9 +281,11 @@ function buildModelChain(
   }
 
   // 5. Modelos preferidos para este agente específico (aprendido)
-  if (state.agentModelPreferences[request.agent] &&
-      !tried.has(state.agentModelPreferences[request.agent]) &&
-      state.modelAvailability[state.agentModelPreferences[request.agent]]?.status !== 'unavailable') {
+  if (
+    state.agentModelPreferences[request.agent] &&
+    !tried.has(state.agentModelPreferences[request.agent]) &&
+    state.modelAvailability[state.agentModelPreferences[request.agent]]?.status !== 'unavailable'
+  ) {
     chain.push(state.agentModelPreferences[request.agent]);
     tried.add(state.agentModelPreferences[request.agent]);
   }
@@ -322,7 +333,9 @@ async function executeWithModel(
       const compressed = compressStructural(task, { mode: 'input' });
       if (compressed.compressed.length < task.length * 0.8) {
         task = compressed.compressed;
-        logger.info(`Compressed task from ${compressed.originalChars} to ${compressed.compressedChars} chars`);
+        logger.info(
+          `Compressed task from ${compressed.originalChars} to ${compressed.compressedChars} chars`,
+        );
       }
     } catch {
       // Usar original si falla compresión
@@ -333,11 +346,7 @@ async function executeWithModel(
     // Usar el model-fallback-orchestrator existente
     const delegatorPath = join(ROOT, 'src', 'orchestration', 'agent-delegator.ts');
 
-    const args = [
-      '--agent', request.agent,
-      '--task', task,
-      '--model', model,
-    ];
+    const args = ['--agent', request.agent, '--task', task, '--model', model];
 
     if (request.context) {
       args.push('--context', request.context);
@@ -432,9 +441,7 @@ const FALLBACK_ERROR_PATTERNS = [
 
 function shouldTriggerFallback(error: string): boolean {
   const normalizedError = error.toLowerCase();
-  return FALLBACK_ERROR_PATTERNS.some((pattern) =>
-    normalizedError.includes(pattern.toLowerCase()),
-  );
+  return FALLBACK_ERROR_PATTERNS.some((pattern) => normalizedError.includes(pattern.toLowerCase()));
 }
 
 // =============================================================================
@@ -448,9 +455,7 @@ function shouldTriggerFallback(error: string): boolean {
  * NO modifica archivos de configuración estáticos.
  * Persiste el modelo funcional en runtime.
  */
-export async function intelligentDelegate(
-  request: DelegationRequest,
-): Promise<DelegationResult> {
+export async function intelligentDelegate(request: DelegationRequest): Promise<DelegationResult> {
   const startTime = Date.now();
   const state = loadRuntimeState();
   const executionLog: string[] = [];
@@ -509,9 +514,12 @@ export async function intelligentDelegate(
 
         // Actualizar métricas
         state.metrics.successfulDelegations++;
-        const avgAttempts = state.metrics.totalDelegations > 0
-          ? (state.metrics.averageAttempts * (state.metrics.totalDelegations - 1) + (attempt + 1)) / state.metrics.totalDelegations
-          : attempt + 1;
+        const avgAttempts =
+          state.metrics.totalDelegations > 0
+            ? (state.metrics.averageAttempts * (state.metrics.totalDelegations - 1) +
+                (attempt + 1)) /
+              state.metrics.totalDelegations
+            : attempt + 1;
         state.metrics.averageAttempts = avgAttempts;
 
         saveRuntimeState(state);
@@ -716,7 +724,9 @@ function cli(): void {
       console.log(`Last Working Model: ${status.lastWorkingModel || 'none'}`);
       console.log(`\nModel Availability:`);
       for (const [model, availability] of Object.entries(status.modelAvailability)) {
-        console.log(`  ${model}: ${availability.status} (${availability.consecutiveErrors} errors)`);
+        console.log(
+          `  ${model}: ${availability.status} (${availability.consecutiveErrors} errors)`,
+        );
       }
       console.log(`\nAgent Preferences:`);
       for (const [agent, model] of Object.entries(status.agentPreferences)) {

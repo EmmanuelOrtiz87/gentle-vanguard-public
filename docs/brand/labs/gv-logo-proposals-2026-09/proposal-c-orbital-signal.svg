@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Gentle-Vanguard proposal C: Orbital Signal</title>
+  <desc id="desc">G plus V monogram with an orbital signal for AI, learning and movement.</desc>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A78BFA"/><stop offset="1" stop-color="#22D3EE"/></linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="960" height="420" rx="28" fill="#0F1115"/>
+  <g transform="translate(74 60)">
+    <ellipse cx="168" cy="126" rx="144" ry="54" fill="none" stroke="#252B38" stroke-width="8" transform="rotate(-25 168 126)"/>
+    <ellipse cx="168" cy="126" rx="144" ry="54" fill="none" stroke="url(#grad)" stroke-width="3" stroke-dasharray="10 16" transform="rotate(35 168 126)"/>
+    <path d="M136 42 A88 88 0 1 0 169 133 L132 133" fill="none" stroke="url(#grad)" stroke-width="24" stroke-linecap="round"/>
+    <path d="M203 82 L241 165 L318 17" fill="none" stroke="url(#grad)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M306 23 L318 17 L314 35" fill="none" stroke="#22D3EE" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+    <circle cx="168" cy="126" r="13" fill="#FBBF24"/>
+  </g>
+  <text x="500" y="190" fill="#E8EEF4" font-family="Space Grotesk, Arial, sans-serif" font-size="56" font-weight="600">Gentle<tspan fill="url(#grad)">Vanguard</tspan></text>
+  <text x="504" y="232" fill="#8B95A8" font-family="JetBrains Mono, monospace" font-size="15" letter-spacing="4">LEARNING / SIGNAL / MOMENTUM</text>
+  <text x="74" y="370" fill="#22D3EE" font-family="JetBrains Mono, monospace" font-size="14" letter-spacing="3">C / ORBITAL SIGNAL</text>
+</svg>
