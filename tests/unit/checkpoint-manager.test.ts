@@ -7,7 +7,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { pathToFileURL } from 'url';
@@ -28,9 +28,28 @@ describe('Checkpoint Manager', () => {
       'createCheckpoint',
       'listCheckpoints',
       'verifyCheckpoint',
+      'restoreCheckpoint',
       'pruneCheckpoints',
     ]) {
       assert.equal(typeof (mod as any)[fn], 'function', `${fn} should be exported`);
+    }
+  });
+
+  it('restores interrupted session files from an intact checkpoint', async () => {
+    const mod = await import(SRC);
+    const root = makeTempRoot();
+    try {
+      const statePath = join(root, '.session', 'session-current.json');
+      writeFileSync(statePath, '{"status":"active","step":4}');
+      mod.createCheckpoint(root, { checkpointId: 'ckpt-restore-001' });
+      writeFileSync(statePath, '{"status":"corrupted"}');
+
+      const restored = mod.restoreCheckpoint(root, 'ckpt-restore-001');
+      assert.equal(restored.status, 'INTACT');
+      assert.equal(restored.restored, 1);
+      assert.equal(readFileSync(statePath, 'utf8'), '{"status":"active","step":4}');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 

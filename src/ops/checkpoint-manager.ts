@@ -5,6 +5,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  renameSync,
   writeFileSync,
   statSync,
 } from 'fs';
@@ -43,6 +44,11 @@ export interface VerificationResult {
   valid: number;
   invalid: number;
   missing: number;
+}
+
+export interface RestoreResult extends VerificationResult {
+  restored: number;
+  durationMs: number;
 }
 
 function normalizeRoot(root: string): string {
@@ -221,18 +227,24 @@ export function verifyCheckpoint(rootInput: string, checkpointId: string): Verif
   }
 
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as CheckpointManifest;
-  const sessionDir = getSessionRoot(root);
+  const storedDir = join(getCheckpointDir(root), checkpointId);
   let valid = 0;
   let invalid = 0;
   let missing = 0;
 
   for (const file of manifest.files) {
-    const currentPath = join(sessionDir, file.path);
-    if (!existsSync(currentPath)) {
+    const storedPath = resolve(storedDir, file.path);
+    if (
+      !storedPath.startsWith(`${resolve(storedDir)}${process.platform === 'win32' ? '\\' : '/'}`)
+    ) {
+      invalid += 1;
+      continue;
+    }
+    if (!existsSync(storedPath)) {
       missing += 1;
       continue;
     }
-    const hash = computeFileHash(currentPath);
+    const hash = computeFileHash(storedPath);
     // eslint-disable-next-line security/detect-possible-timing-attacks -- hash comparison is not attacker-controlled timing
     if (hash === file.sha256) valid += 1;
     else invalid += 1;
@@ -243,6 +255,45 @@ export function verifyCheckpoint(rootInput: string, checkpointId: string): Verif
   else if (missing > 0) status = 'PARTIAL';
 
   return { checkpointId, status, valid, invalid, missing };
+}
+
+export function restoreCheckpoint(rootInput: string, checkpointId: string): RestoreResult {
+  const started = performance.now();
+  const root = normalizeRoot(rootInput);
+  const verification = verifyCheckpoint(root, checkpointId);
+  if (verification.status !== 'INTACT') {
+    throw new Error(`Checkpoint ${checkpointId} is ${verification.status}; restore aborted`);
+  }
+
+  const manifest = JSON.parse(
+    readFileSync(getManifestPath(root, checkpointId), 'utf8'),
+  ) as CheckpointManifest;
+  const sessionDir = resolve(getSessionRoot(root));
+  const storedDir = resolve(getCheckpointDir(root), checkpointId);
+  let restored = 0;
+
+  for (const file of manifest.files) {
+    const source = resolve(storedDir, file.path);
+    const target = resolve(sessionDir, file.path);
+    const separator = process.platform === 'win32' ? '\\' : '/';
+    if (
+      !source.startsWith(`${storedDir}${separator}`) ||
+      !target.startsWith(`${sessionDir}${separator}`)
+    ) {
+      throw new Error(`Unsafe checkpoint path: ${file.path}`);
+    }
+    ensureDir(dirname(target));
+    const temporary = `${target}.${process.pid}.restore.tmp`;
+    writeFileSync(temporary, readFileSync(source));
+    renameSync(temporary, target);
+    restored++;
+  }
+
+  return {
+    ...verification,
+    restored,
+    durationMs: Number((performance.now() - started).toFixed(2)),
+  };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -260,6 +311,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     // to cwd — the checkpoint store lives under <root>/.session.
     const checkpointId = process.argv[3] ?? '';
     console.log(JSON.stringify(verifyCheckpoint(root, checkpointId)));
+  } else if (action === 'restore') {
+    const checkpointId = process.argv[3] ?? '';
+    console.log(JSON.stringify(restoreCheckpoint(root, checkpointId)));
   } else if (action === 'prune') {
     const keepCount = parseInt(process.argv[3] ?? '3', 10);
     console.log(JSON.stringify(pruneCheckpoints(root, keepCount)));

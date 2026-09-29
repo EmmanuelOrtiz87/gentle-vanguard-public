@@ -4,11 +4,12 @@
  * TS migration of scripts/utilities/agents/AUTO-DELEGATION/skill-embedder-incremental.ps1
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, statSync } from 'fs';
 import { join, resolve } from 'path';
 import { runNpxTsxSync } from '../core/run-command.js';
 import { createHash } from 'crypto';
 import { pathToFileURL } from 'url';
+import { buildSkillCatalog } from './skill-embedder.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -30,6 +31,24 @@ const outputPath = join(projectRoot, '.atl', 'skill-embeddings.json');
 const metaPath = join(projectRoot, '.atl', 'skill-meta.json');
 const logFile = join(projectRoot, '.session', 'skill-embeddings-log.jsonl');
 export const FULL_REBUILD_SCRIPT = 'src/skills/skill-embedder.ts';
+
+export function getEmbeddingFreshnessHours(
+  indexFile: string,
+  metadataFile: string,
+  nowMs = Date.now(),
+): number {
+  if (!existsSync(indexFile)) return -1;
+  if (existsSync(metadataFile)) {
+    try {
+      const metadata = JSON.parse(readFileSync(metadataFile, 'utf-8')) as { lastBuilt?: string };
+      const verifiedAt = metadata.lastBuilt ? Date.parse(metadata.lastBuilt) : NaN;
+      if (Number.isFinite(verifiedAt)) return Math.max(0, (nowMs - verifiedAt) / 3_600_000);
+    } catch {
+      // Fall back to the index mtime when metadata is absent or invalid.
+    }
+  }
+  return Math.max(0, (nowMs - statSync(indexFile).mtimeMs) / 3_600_000);
+}
 
 function sha16(s: string): string {
   return createHash('sha256').update(Buffer.from(s, 'utf-8')).digest('hex').slice(0, 16);
@@ -110,36 +129,15 @@ function main(): void {
     process.exit(1);
   }
 
-  const registryContent = readFileSync(registryPath, 'utf-8');
   const currentSkills: Record<string, string> = {};
-  for (const line of registryContent.split(/\r?\n/)) {
-    const m = line.match(/^\|\s*(\S+)\s*\|\s*(\S+)\s*\|/);
-    if (m) {
-      const agent = m[1].split(/[\s-]/)[0];
-      const skill = m[2];
-      if (
-        !/^[-]+$/.test(agent) &&
-        agent !== 'Agent' &&
-        !/^[-]+$/.test(skill) &&
-        skill !== 'Skill'
-      ) {
-        currentSkills[skill] = agent;
-      }
-    }
-  }
-
-  // Supplement from auto-delegation config
-  if (existsSync(delegationConfigPath)) {
-    try {
-      const config = JSON.parse(readFileSync(delegationConfigPath, 'utf-8'));
-      if (config.skillToAgentProfile) {
-        for (const [skillName, agentName] of Object.entries(config.skillToAgentProfile)) {
-          if (!currentSkills[skillName]) currentSkills[skillName] = String(agentName);
-        }
-      }
-    } catch {
-      /* */
-    }
+  const catalog = buildSkillCatalog(registryPath, delegationConfigPath, projectRoot);
+  for (const [skillName, skill] of Object.entries(catalog)) {
+    currentSkills[skillName] = JSON.stringify({
+      agent: skill.agent,
+      description: skill.description ?? '',
+      triggers: skill.triggers,
+      aliases: skill.aliases ?? [],
+    });
   }
 
   log(`Current skills: ${Object.keys(currentSkills).length}`);
@@ -182,6 +180,7 @@ function main(): void {
   );
 
   if (totalChanged === 0) {
+    writeMetadata(currentSkills, prevMeta, prevEmbeddings, { added, removed, modified }, false);
     log('No changes detected, embeddings are up to date', 'OK');
     return;
   }

@@ -9,12 +9,18 @@
  *   const imports = extractRealImports(sourceCode);
  */
 
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import * as ts from 'typescript';
 
 export interface ImportInfo {
   path: string;
   line: number;
   isDynamic: boolean; // true para import()
+}
+
+export interface BrokenImport extends ImportInfo {
+  resolvedPath: string;
 }
 
 /**
@@ -78,6 +84,43 @@ export function extractRealImports(sourceCode: string, fileName = 'file.ts'): Im
 
   visit(sourceFile);
   return imports;
+}
+
+/** Resolve real relative imports while ignoring examples embedded in strings and comments. */
+export function findBrokenRelativeImports(sourceFile: string): BrokenImport[] {
+  const imports = extractRealImports(readFileSync(sourceFile, 'utf8'), sourceFile).filter((entry) =>
+    entry.path.startsWith('.'),
+  );
+
+  return imports.flatMap((entry) => {
+    const resolvedPath = resolve(dirname(sourceFile), entry.path);
+    const extensionless = resolvedPath.replace(/\.(?:js|mjs|cjs)$/, '');
+    const candidates = [
+      resolvedPath,
+      `${resolvedPath}.ts`,
+      `${resolvedPath}.tsx`,
+      `${resolvedPath}.js`,
+      `${resolvedPath}.jsx`,
+      `${resolvedPath}.mjs`,
+      `${resolvedPath}.cjs`,
+      `${resolvedPath}.json`,
+      `${extensionless}.ts`,
+      `${extensionless}.tsx`,
+      `${extensionless}.mts`,
+      `${extensionless}.cts`,
+      `${extensionless}.d.ts`,
+      join(resolvedPath, 'index.ts'),
+      join(resolvedPath, 'index.tsx'),
+      join(resolvedPath, 'index.js'),
+      join(resolvedPath, 'index.mjs'),
+      join(extensionless, 'index.ts'),
+      join(extensionless, 'index.tsx'),
+    ];
+
+    return candidates.some((candidate) => existsSync(candidate))
+      ? []
+      : [{ ...entry, resolvedPath }];
+  });
 }
 
 /**

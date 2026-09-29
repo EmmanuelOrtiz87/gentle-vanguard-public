@@ -17,25 +17,8 @@
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function initBrand() {
-    var brands = document.querySelectorAll('.navbar-brand');
-    brands.forEach(function (brand) {
-      if (brand.querySelector('.gv-logo')) return;
-      var logo = document.createElement('img');
-      logo.className = 'gv-logo';
-      logo.src = 'assets/logo.svg';
-      logo.alt = 'Gentle-Vanguard';
-      brand.insertBefore(logo, brand.firstChild);
-      var icon = brand.querySelector('i');
-      if (icon) icon.remove();
-      if (brand.textContent.trim() === 'GV') {
-        brand.innerHTML = '';
-        brand.appendChild(logo);
-        var wordmark = document.createElement('span');
-        wordmark.className = 'gv-wordmark';
-        wordmark.innerHTML = 'Gentle<strong>Vanguard</strong> <small>Presentations</small>';
-        brand.appendChild(wordmark);
-      }
-    });
+    // El topbar canónico ya incluye .gv-brand-logo + .gv-brand-wordmark en HTML.
+    // Solo garantizamos el favicon si falta.
     if (!document.querySelector('link[rel="icon"]')) {
       var favicon = document.createElement('link');
       favicon.rel = 'icon';
@@ -44,24 +27,34 @@
     }
   }
 
-  /* --- 1. Navbar scroll state ------------------------------------------ */
-  function initNavbar() {
-    var nav = document.querySelector('.nav-blur');
-    if (!nav) return;
-    var onScroll = function () {
-      nav.classList.toggle('scrolled', window.scrollY > 24);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+  /* --- 1. Shell menu (hamburguesa canónica) ----------------------------- */
+  function initShellMenu() {
+    var menuBtn = document.querySelector('.gv-shell-menu');
+    var tabs = document.querySelector('.gv-view-tabs.gv-collapsible');
+    if (!menuBtn || !tabs) return;
+    menuBtn.addEventListener('click', function () {
+      var open = tabs.classList.toggle('is-open');
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // Cerrar al hacer clic en un link dentro del menú
+    tabs.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        tabs.classList.remove('is-open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
 
   /* --- 1b. Shared theme toggle ----------------------------------------- */
   function initThemeToggle() {
+    // theme-toggle.js se carga explícitamente en todas las páginas (migración
+    // 2026-09-23). Este guard solo evita doble carga si alguna página lo
+    // inyectaba dinámicamente en el pasado.
     if (window.GentleVanguardTheme) return;
     if (document.querySelector('script[src*="assets/js/theme-toggle.js"]')) return;
 
     var script = document.createElement('script');
-    script.src = 'assets/js/theme-toggle.js?v=1.0';
+    script.src = 'assets/js/theme-toggle.js?v=2.0';
     script.defer = true;
     document.head.appendChild(script);
   }
@@ -263,7 +256,7 @@
   /* --- 9. Active nav link highlight on scroll ------------------------------- */
   function initActiveNav() {
     var sections = document.querySelectorAll('section[id], [id].nav-target');
-    var links = document.querySelectorAll('.nav-blur a.nav-link[href^="#"]');
+    var links = document.querySelectorAll('.gv-view-tabs a[href^="#"]');
     if (!sections.length || !links.length) return;
     var io = new IntersectionObserver(
       function (entries) {
@@ -400,8 +393,8 @@
     }
 
     function open(el) {
-      var src = el.currentSrc || el.src || el.getAttribute('src');
-      var alt = el.getAttribute('alt') || '';
+      var src = el.currentSrc || el.src || el.getAttribute('src') || '';
+      var alt = el.getAttribute('alt') || el.getAttribute('aria-label') || '';
       // Resetear transform para evitar parpadeo mientras carga
       activeEl().style.transform = 'none';
       scale = 1;
@@ -414,6 +407,24 @@
       document.body.style.overflow = 'hidden';
 
       var isSvg = /\.svg(\?|#|$)/.test(src || '');
+      // SVG INLINE (migración 2026-09-23): el elemento clickeado ES el <svg>.
+      // Se clona directamente en el lightbox (sin fetch — file:// no sirve MIME).
+      var isInlineSvg = el.tagName && el.tagName.toLowerCase() === 'svg';
+      if (isInlineSvg) {
+        img.hidden = true;
+        svgBox.hidden = false;
+        svgBox.innerHTML = '';
+        var clone = el.cloneNode(true);
+        clone.removeAttribute('class');
+        clone.setAttribute('class', 'gv-lightbox-svg-inline');
+        clone.style.width = 'auto';
+        clone.style.height = 'auto';
+        clone.style.maxWidth = 'none';
+        clone.style.maxHeight = 'none';
+        svgBox.appendChild(clone);
+        fitToStage();
+        return;
+      }
       if (isSvg) {
         // Cargar inline: permite hotspots interactivos (.gv-hotspot)
         fetch(src)
@@ -639,7 +650,7 @@
   /* --- 10. Init all ---------------------------------------------------------- */
   function init() {
     initBrand();
-    initNavbar();
+    initShellMenu();
     initThemeToggle();
     initScrollProgress();
     initReveal();

@@ -120,7 +120,7 @@ Run BEFORE any action:
 
 \`\`\`bash
 # Tool detection via TypeScript
-npx tsx src/detect-tool.ts --json | jq -r '.name'  # opencode|claude-code|cline|cursor|windsurf|unknown
+npx tsx src/core/detect-tool.ts --json | jq -r '.name'  # opencode|codex|zcode|minimax|claude-code|cline|cursor|windsurf
 npx tsx src/detect-tool.ts --json | jq -r '.os.platform'  # windows|linux|macos
 npx tsx src/detect-tool.ts --json | jq -r '.os.shell'  # powershell|bash|zsh
 \`\`\`

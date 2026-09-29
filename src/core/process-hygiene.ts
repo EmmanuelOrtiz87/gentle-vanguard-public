@@ -354,6 +354,39 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: false,
   },
   {
+    id: 'gv-music-vite',
+    label: 'Gentle Music Vite server',
+    // Tolerates the pnpm-exec shim path (`node_modules\.bin\..\vite\bin\vite.js`)
+    // — the pre-fix start.sh launched it that way, and those instances must
+    // still be classified instead of falling into hung-oneshot.
+    match:
+      /apps[\\/]gv-music[\\/]node_modules[\\/](?:\.bin[\\/]\.\.[\\/])?vite[\\/]bin[\\/]vite\.js/,
+    relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    pidFile: join(RUNTIME_DIR, 'app-gv-music-ui.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'sandbox-gv-gui',
+    label: 'Sandbox GV Demo GUI (:4000)',
+    match: /apps[\\/]sandbox-gv[\\/](src|dist)[\\/]server\.(ts|js)/,
+    pidFile: join(RUNTIME_DIR, 'sandbox-gv.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'sandbox-wpp-bot',
+    label: 'Sandbox wpp-bot daemon (:3000)',
+    // npm start -> node dist/index.js; start:dev -> tsx src/index.ts.
+    match: /apps[\\/]wpp-bot[\\/](dist[\\/]index\.js|src[\\/]index\.ts)/,
+    pidFile: join(RUNTIME_DIR, 'sandbox-wpp-bot.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
     id: 'vite-server',
     label: 'Dashboard Vite dev server',
     // Dashboard-only: with one vite per app (analytics/cms/prompts have their

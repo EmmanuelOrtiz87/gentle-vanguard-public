@@ -1,5 +1,7 @@
 import Database from 'better-sqlite3';
 
+export type SkillEvidenceKind = 'production' | 'evaluation' | 'maintenance';
+
 export class SkillRepo {
   constructor(private db: Database.Database) {}
 
@@ -37,6 +39,73 @@ export class SkillRepo {
       count: number;
       tokensUsed: number;
       cost: number;
+    }>;
+  }
+
+  recordSkillOutcome(
+    tenantId: string,
+    skillId: string,
+    success: boolean,
+    options: {
+      sessionId?: string;
+      durationMs?: number;
+      tool?: string;
+      detail?: string;
+      evidenceKind?: SkillEvidenceKind;
+    } = {},
+  ): void {
+    this.db
+      .prepare(
+        `INSERT INTO skill_execution_outcomes
+           (tenant_id, skill_id, session_id, success, duration_ms, tool, detail, evidence_kind, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+      )
+      .run(
+        tenantId,
+        skillId,
+        options.sessionId ?? null,
+        success ? 1 : 0,
+        options.durationMs ?? null,
+        options.tool ?? null,
+        options.detail ?? null,
+        options.evidenceKind ?? 'production',
+      );
+  }
+
+  getSkillOutcomeSummary(
+    tenantId: string,
+    evidenceKind: SkillEvidenceKind | 'all' = 'production',
+  ): Array<{
+    skillId: string;
+    outcomes: number;
+    successes: number;
+    failures: number;
+    successRate: number;
+    avgDurationMs: number | null;
+    lastOutcomeAt: string;
+  }> {
+    return this.db
+      .prepare(
+        `SELECT skill_id AS skillId,
+                COUNT(*) AS outcomes,
+                SUM(success) AS successes,
+                COUNT(*) - SUM(success) AS failures,
+                ROUND(SUM(success) * 100.0 / COUNT(*), 2) AS successRate,
+                ROUND(AVG(duration_ms), 2) AS avgDurationMs,
+                MAX(created_at) AS lastOutcomeAt
+           FROM skill_execution_outcomes
+          WHERE tenant_id = ?${evidenceKind === 'all' ? '' : ' AND evidence_kind = ?'}
+          GROUP BY skill_id
+          ORDER BY outcomes DESC, skill_id ASC`,
+      )
+      .all(...(evidenceKind === 'all' ? [tenantId] : [tenantId, evidenceKind])) as Array<{
+      skillId: string;
+      outcomes: number;
+      successes: number;
+      failures: number;
+      successRate: number;
+      avgDurationMs: number | null;
+      lastOutcomeAt: string;
     }>;
   }
 

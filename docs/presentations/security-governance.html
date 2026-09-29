@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark" class="gv-document-page">
+<html lang="en" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -10,14 +10,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Security, Audit &amp; Governance — Gentle-Vanguard</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de security-governance.html (complementan el design system) --- */
       .text-wn {
@@ -29,137 +29,61 @@
     </style>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
+  <body>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
 
     <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ v4.0 — Governance Layer</span>
-      <h1 class="fw-bold z-1"><span class="glow">Security, Audit &amp; Governance</span></h1>
+      <h1 class="fw-bold z-1"><span class="glow"><span data-i18n="sec_h1">Security, Audit &amp; Governance</span></span></h1>
       <p
         class="lead text-secondary z-1"
         style="max-width: 700px; font-size: clamp(1rem, 2vw, 1.3rem)"
       >
         Compliance · Auditability · Enforcement —
-        <strong class="text-light">96/96 Health PASS</strong> ·
+        <strong class="text-light">154/154 Health PASS</strong> ·
         <strong class="text-light">60 Rule Files</strong> ·
         <strong class="text-light">21 Components</strong>
       </p>
@@ -248,7 +172,7 @@
       <div class="row g-4">
         <div class="col-lg-7">
           <div class="section-card">
-            <h3><i class="bi bi-journal-text text-info me-2"></i>Pipeline Commands</h3>
+            <h3><i class="bi bi-journal-text text-info me-2"></i><span data-i18n="sec_h2_pipeline">Pipeline Commands</span></h3>
             <table class="feature-table mt-2">
               <thead>
                 <tr>
@@ -349,7 +273,7 @@
         </div>
         <div class="col-lg-5">
           <div class="section-card">
-            <h3><i class="bi bi-hdd-stack text-success me-2"></i>Storage &amp; Integration</h3>
+            <h3><i class="bi bi-hdd-stack text-success me-2"></i><span data-i18n="sec_h2_storage">Storage &amp; Integration</span></h3>
             <div class="d-flex flex-column gap-3 mt-3">
               <div>
                 <div class="d-flex justify-content-between small mb-1">
@@ -388,7 +312,7 @@
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-robot text-info me-2"></i>AI Normatives</h3>
+            <h3><i class="bi bi-robot text-info me-2"></i><span data-i18n="sec_h2_norms">AI Normatives</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_18">
               Core AI behavior rules and ethical guidelines
             </p>
@@ -397,7 +321,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-diagram-3 text-info me-2"></i>Architecture</h3>
+            <h3><i class="bi bi-diagram-3 text-info me-2"></i><span data-i18n="sec_h2_arch">Architecture</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_19">
               System design constraints and architectural patterns
             </p>
@@ -406,7 +330,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-shield-check text-info me-2"></i>Security &amp; Compliance</h3>
+            <h3><i class="bi bi-shield-check text-info me-2"></i><span data-i18n="sec_h2_security">Security &amp; Compliance</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_20">
               Security policies, compliance requirements, hardening
             </p>
@@ -415,7 +339,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-code-square text-info me-2"></i>Code Quality</h3>
+            <h3><i class="bi bi-code-square text-info me-2"></i><span data-i18n="sec_h2_quality">Code Quality</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_21">
               Code standards, review gates, quality thresholds
             </p>
@@ -424,7 +348,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-arrow-repeat text-info me-2"></i>Workflow</h3>
+            <h3><i class="bi bi-arrow-repeat text-info me-2"></i><span data-i18n="sec_h2_workflow">Workflow</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_22">
               Process workflows and operational sequences
             </p>
@@ -433,7 +357,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-gear text-info me-2"></i>DevOps</h3>
+            <h3><i class="bi bi-gear text-info me-2"></i><span data-i18n="sec_h2_devops">DevOps</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_23">
               Deployment pipelines, CI/CD, infrastructure rules
             </p>
@@ -442,7 +366,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-stars text-info me-2"></i>Autonomous Evolution</h3>
+            <h3><i class="bi bi-stars text-info me-2"></i><span data-i18n="sec_h2_evolution">Autonomous Evolution</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_24">
               Self-evolution policies, norm promotion thresholds
             </p>
@@ -451,7 +375,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-clipboard-check text-info me-2"></i>Eval Quality</h3>
+            <h3><i class="bi bi-clipboard-check text-info me-2"></i><span data-i18n="sec_h3_eval">Eval Quality</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_25">
               Evaluation quality gates and assessment standards
             </p>
@@ -460,7 +384,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-people text-info me-2"></i>Multi-Tenant</h3>
+            <h3><i class="bi bi-people text-info me-2"></i><span data-i18n="sec_h3_tenant">Multi-Tenant</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_26">
               Isolation, resource limits, tenant policies
             </p>
@@ -469,7 +393,7 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-speedometer2 text-info me-2"></i>Performance</h3>
+            <h3><i class="bi bi-speedometer2 text-info me-2"></i><span data-i18n="sec_h3_perf">Performance</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_27">
               Performance budgets, SLAs, optimization standards
             </p>
@@ -506,7 +430,7 @@
       <div class="row g-3">
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-text text-info me-2"></i>Karpathy Guidelines</h3>
+            <h3><i class="bi bi-file-text text-info me-2"></i><span data-i18n="sec_h3_karpathy">Karpathy Guidelines</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_29">
               Code quality, documentation, and testing standards inspired by the Karpathy
               methodology — enforced at pipeline init
@@ -515,7 +439,7 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-cash-stack text-warning me-2"></i>Token Budget Policy</h3>
+            <h3><i class="bi bi-cash-stack text-warning me-2"></i><span data-i18n="sec_h3_tokens">Token Budget Policy</span></h3>
             <div class="mt-2">
               <div class="d-flex justify-content-between small">
                 <span>Soft Limit (70%)</span><span class="text-wn">84K / 120K</span>
@@ -534,7 +458,7 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-shield text-success me-2"></i>CI Hardening</h3>
+            <h3><i class="bi bi-shield text-success me-2"></i><span data-i18n="sec_h3_ci">CI Hardening</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_30">
               Security scanning in CI pipeline: gitleaks, secretlint, trivy
             </p>
@@ -543,7 +467,7 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-eye text-info me-2"></i>Code Review Standards</h3>
+            <h3><i class="bi bi-eye text-info me-2"></i><span data-i18n="sec_h3_review">Code Review Standards</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_31">
               Multi-axis quality review: correctness, readability, architecture, security,
               performance
@@ -553,7 +477,7 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-flask text-info me-2"></i>Testing Standards</h3>
+            <h3><i class="bi bi-flask text-info me-2"></i><span data-i18n="sec_h3_testing">Testing Standards</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_32">
               SDD-Strict-TDD enforcement: write failing test before implementation code
             </p>
@@ -562,7 +486,7 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-earmark-check text-info me-2"></i>SDD-Strict-TDD</h3>
+            <h3><i class="bi bi-file-earmark-check text-info me-2"></i><span data-i18n="sec_h3_sdd">SDD-Strict-TDD</span></h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_33">
               Spec-driven development with strict test-first methodology — all features require spec
               before code
@@ -584,7 +508,7 @@
       <div class="row g-3">
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-book text-info me-2"></i>README-GOVERNANCE.md</h3>
+            <h3><i class="bi bi-book text-info me-2"></i><span data-i18n="sec_h3_readme">README-GOVERNANCE.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_35">
               Governance overview — roles, responsibilities, escalation paths
             </p>
@@ -592,7 +516,7 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-cpu text-info me-2"></i>AI-MODEL-SELECTION.md</h3>
+            <h3><i class="bi bi-cpu text-info me-2"></i><span data-i18n="sec_h3_aimodel">AI-MODEL-SELECTION.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_36">
               Model routing governance — selection criteria, fallback policies, cost optimization
             </p>
@@ -600,7 +524,7 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-person-check text-info me-2"></i>HUMAN-IN-THE-LOOP.md</h3>
+            <h3><i class="bi bi-person-check text-info me-2"></i><span data-i18n="sec_h3_hitl">HUMAN-IN-THE-LOOP.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_37">
               Human oversight requirements, approval gates, escalation procedures
             </p>
@@ -609,7 +533,7 @@
         <div class="col-md-4">
           <div class="section-card">
             <h3>
-              <i class="bi bi-exclamation-triangle text-warning me-2"></i>INCIDENT-RESPONSE.md
+              <i class="bi bi-exclamation-triangle text-warning me-2"></i><span data-i18n="sec_h3_incident">INCIDENT-RESPONSE.md</span>
             </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_38">
               Incident classification, response playbooks, post-mortem process
@@ -618,7 +542,7 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-key text-info me-2"></i>SECRETS-MANAGEMENT.md</h3>
+            <h3><i class="bi bi-key text-info me-2"></i><span data-i18n="sec_h3_secrets">SECRETS-MANAGEMENT.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_39">
               Secrets handling, rotation policies, vault integration
             </p>
@@ -626,7 +550,7 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-currency-dollar text-info me-2"></i>COST-ATTRIBUTION.md</h3>
+            <h3><i class="bi bi-currency-dollar text-info me-2"></i><span data-i18n="sec_h3_cost">COST-ATTRIBUTION.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_40">
               Cost tracking per session, per agent, per operation
             </p>
@@ -634,7 +558,7 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-arrow-clockwise text-info me-2"></i>RECOVERY-NORMATIVA.md</h3>
+            <h3><i class="bi bi-arrow-clockwise text-info me-2"></i><span data-i18n="sec_h3_recovery">RECOVERY-NORMATIVA.md</span></h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_41">
               Disaster recovery, backup strategies, RPO/RTO definitions
             </p>
@@ -643,8 +567,7 @@
         <div class="col-md-8">
           <div class="section-card">
             <h3>
-              <i class="bi bi-shield-plus text-success me-2"></i>60 Rule Files in rules/ — All
-              Active
+              <i class="bi bi-shield-plus text-success me-2"></i><span data-i18n="sec_h3_rules">60 Rule Files in rules/ — All Active</span>
             </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_42">
               Every rule file is monitored, version-controlled, and enforced through the pipeline.
@@ -653,20 +576,24 @@
           </div>
         </div>
       </div>
-    </section>
+    
+        
+      
+        
+      </section>
 
     <section id="compliance" class="fade-in">
       <div class="section-title">
         <div class="display-4 mb-2">✅</div>
         <h2 data-i18n="sec_compliance">Compliance Checks</h2>
-        <p data-i18n="c_securitygovernance_43">96 health checks across 22 components — 100% PASS</p>
+        <p data-i18n="c_securitygovernance_43">154 health checks across 29 components — 100% PASS</p>
       </div>
       <div class="row g-3">
         <div class="col-lg-6">
           <div class="section-card">
-            <h3><i class="bi bi-heart-pulse text-success me-2"></i>Health Check Summary</h3>
+            <h3><i class="bi bi-heart-pulse text-success me-2"></i><span data-i18n="sec_h3_health">Health Check Summary</span></h3>
             <div class="d-flex flex-wrap gap-2 mt-3 mb-3">
-              <span class="badge bg-success fs-6 px-3 py-2">96/96 PASS</span>
+              <span class="badge bg-success fs-6 px-3 py-2">154/154 PASS</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 WARN</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 FAIL</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 SKIP</span>
@@ -683,7 +610,7 @@
         </div>
         <div class="col-lg-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-earmark-check text-info me-2"></i>Validation Coverage</h3>
+            <h3><i class="bi bi-file-earmark-check text-info me-2"></i><span data-i18n="sec_h3_validation">Validation Coverage</span></h3>
             <div class="d-flex flex-column gap-2 mt-2">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="small">JSON Config Validation</span
@@ -1243,13 +1170,227 @@
       <div class="row g-3">
         <div class="col-lg-6">
           <div class="section-card">
-            <h3 class="mb-3"><i class="bi bi-arrow-repeat text-info me-2"></i>Loop Ejecutivo</h3>
-            <img
-              src="diagrams/executive-loop.svg"
-              alt="Executive Autonomous Loop"
-              class="svg-diagram img-fluid w-100"
-              loading="lazy"
-            />
+            <h3 class="mb-3"><i class="bi bi-arrow-repeat text-info me-2"></i><span data-i18n="sec_h3_loop">Loop Ejecutivo</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 800 540" role="img" aria-label="Executive Autonomous Loop" >
+<title id="executive-loop-title">Executive Loop</title>
+<desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#090c11"/>
+      <stop offset="100%" stop-color="#0f1525"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
+      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="detectGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="evalGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="decideGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="execGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4bb4f"/>
+      <stop offset="100%" stop-color="#f4bb4f"/>
+    </linearGradient>
+    <linearGradient id="verifyGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ee6d75"/>
+      <stop offset="100%" stop-color="#ee6d75"/>
+    </linearGradient>
+    <linearGradient id="learnGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Autonomous Loop</text>
+  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Self-managing orchestration cycle with auto-healing and learning</text>
+
+  <!-- Orbit ring -->
+  <ellipse cx="400" cy="265" rx="200" ry="75" fill="none" stroke="#1e3a5f" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+  <ellipse cx="400" cy="265" rx="200" ry="75" fill="url(#ringGlow)"/>
+
+  <!-- Main circle glow -->
+  <circle cx="400" cy="265" r="180" fill="url(#centerGlow)"/>
+
+  <!-- ====== PHASE CIRCLES (on ellipse) ====== -->
+
+  <!-- Detection (top) - 0° -->
+  <g filter="url(#shadow)">
+    <circle cx="400" cy="155" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="400" cy="155" r="44" fill="url(#detectGrad)" fill-opacity="0.1"/>
+    <text x="400" y="160" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
+  </g>
+  <text x="400" y="183" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Detection</text>
+  <text x="400" y="145" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
+
+  <!-- Evaluation (top-right) - 60° -->
+  <g filter="url(#shadow)">
+    <circle cx="570" cy="248" r="44" fill="#151921" stroke="#a78bfa" stroke-width="2"/>
+    <circle cx="570" cy="248" r="44" fill="url(#evalGrad)" fill-opacity="0.1"/>
+    <text x="570" y="253" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
+  </g>
+  <text x="570" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Evaluation</text>
+
+  <!-- Decision (bottom-right) - 120° -->
+  <g filter="url(#shadow)">
+    <circle cx="530" cy="355" r="44" fill="#151921" stroke="#4ade80" stroke-width="2"/>
+    <circle cx="530" cy="355" r="44" fill="url(#decideGrad)" fill-opacity="0.1"/>
+    <text x="530" y="360" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
+  </g>
+  <text x="530" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Decision</text>
+
+  <!-- Execution (bottom-left) - 180° -->
+  <g filter="url(#shadow)">
+    <circle cx="400" cy="385" r="44" fill="#151921" stroke="#f4bb4f" stroke-width="2"/>
+    <circle cx="400" cy="385" r="44" fill="url(#execGrad)" fill-opacity="0.1"/>
+    <text x="400" y="390" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
+  </g>
+  <text x="400" y="413" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Execution</text>
+
+  <!-- Verification (bottom-left-more) - 240° -->
+  <g filter="url(#shadow)">
+    <circle cx="270" cy="355" r="44" fill="#151921" stroke="#ee6d75" stroke-width="2"/>
+    <circle cx="270" cy="355" r="44" fill="url(#verifyGrad)" fill-opacity="0.1"/>
+    <text x="270" y="360" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
+  </g>
+  <text x="270" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Verification</text>
+
+  <!-- Learning (top-left) - 300° -->
+  <g filter="url(#shadow)">
+    <circle cx="230" cy="248" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="230" cy="248" r="44" fill="url(#learnGrad)" fill-opacity="0.1"/>
+    <text x="230" y="253" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
+  </g>
+  <text x="230" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Learning</text>
+
+  <!-- ====== ARROWS between phases ====== -->
+  <path d="M 442 165 Q 510 195 537 238" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 566 290 Q 555 325 540 344" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 494 358 Q 460 375 442 378" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 358 378 Q 330 375 312 358" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 258 316 Q 245 295 238 285" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 272 228 Q 310 195 358 165" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ====== CENTER ====== -->
+  <g filter="url(#strongGlow)">
+    <circle cx="400" cy="265" r="50" fill="#151921" stroke="url(#centerGrad)" stroke-width="2"/>
+    <circle cx="400" cy="265" r="50" fill="url(#centerGrad)" fill-opacity="0.08"/>
+  </g>
+  <text x="400" y="258" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="700">Auto-Apply</text>
+  <text x="400" y="275" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
+
+  <!-- ====== OUTER RING MODULES ====== -->
+
+  <!-- Circuit Breaker (top-right outer) -->
+  <g filter="url(#shadow)">
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#151921" stroke="#ee6d75" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ee6d75" fill-opacity="0.05"/>
+  </g>
+  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ee6d75"/>
+  <text x="635" y="163" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
+  <line x1="595" y1="175" x2="570" y2="220" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+
+  <!-- Auto-Escalation (bottom-right outer) -->
+  <g filter="url(#shadow)">
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f4bb4f" fill-opacity="0.05"/>
+  </g>
+  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f4bb4f"/>
+  <text x="635" y="363" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
+  <line x1="610" y1="358" x2="576" y2="358" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+
+  <!-- Session Scoring (bottom-left outer) -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#22d3ee" fill-opacity="0.05"/>
+  </g>
+  <rect x="60" y="349" width="8" height="18" rx="2" fill="#22d3ee"/>
+  <text x="75" y="363" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
+  <line x1="190" y1="358" x2="225" y2="358" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+
+  <!-- Norms Learner (top-left outer) -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#151921" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#4ade80" fill-opacity="0.05"/>
+  </g>
+  <rect x="60" y="149" width="8" height="18" rx="2" fill="#4ade80"/>
+  <text x="75" y="163" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
+  <line x1="190" y1="158" x2="228" y2="220" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+
+  <!-- Legend -->
+  <g transform="translate(52, 388)">
+    <text x="0" y="0" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">FASES DEL CICLO</text>
+    <circle cx="5" cy="12" r="3.5" fill="#22d3ee"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
+    <circle cx="5" cy="24" r="3.5" fill="#a78bfa"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
+    <circle cx="5" cy="36" r="3.5" fill="#4ade80"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
+    <circle cx="5" cy="48" r="3.5" fill="#f4bb4f"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
+    <circle cx="5" cy="60" r="3.5" fill="#ee6d75"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
+    <circle cx="5" cy="72" r="3.5" fill="url(#learnGrad)"/><text x="13" y="75" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">6 Learning</text>
+    <line x1="0" y1="81" x2="120" y2="81" stroke="#1e3a5f" stroke-width="0.5"/>
+    <circle cx="5" cy="90" r="3.5" fill="#151921" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
+    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ee6d75" fill-opacity="0.3" stroke="#ee6d75" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
+    <line x1="0" y1="112" x2="30" y2="112" stroke="#4b5563" stroke-width="1"/><text x="35" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Core cycle</text>
+    <line x1="0" y1="124" x2="30" y2="124" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
+  </g>
+
+  <!-- Footer -->
+  <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
+    <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
+    <rect class="gv-hotspot" x="486" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_decision" role="button" tabindex="0" fill="transparent" aria-label="Phase 3 - Decision: chooses the winning action with confidence thresholds; escalates when uncertainty is high."/>
+    <rect class="gv-hotspot" x="356" y="341" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_execution" role="button" tabindex="0" fill="transparent" aria-label="Phase 4 - Execution: applies the selected action through the safe auto-apply gate, tracking every mutation."/>
+    <rect class="gv-hotspot" x="226" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_verification" role="button" tabindex="0" fill="transparent" aria-label="Phase 5 - Verification: runs typecheck, lint and tests; if verification fails, the action is rolled back."/>
+    <rect class="gv-hotspot" x="186" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_learning" role="button" tabindex="0" fill="transparent" aria-label="Phase 6 - Learning: records outcomes in Engram and the routing table, improving future decisions."/>
+    <rect class="gv-hotspot" x="350" y="215" width="100" height="100" rx="6" data-i18n-title="tip_hs_loop_autoapply" role="button" tabindex="0" fill="transparent" aria-label="Auto-Apply SAFE: the central verification gate - changes are only applied when they pass all safety checks."/>
+    <rect class="gv-hotspot" x="610" y="140" width="130" height="36" rx="6" data-i18n-title="tip_hs_loop_circuit_breaker" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Circuit Breaker: opens after repeated failures to stop cascading errors and halts the loop."/>
+    <rect class="gv-hotspot" x="610" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_auto_escalation" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Auto-Escalation: promotes unresolved issues to a higher authority (orchestrator or human)."/>
+    <rect class="gv-hotspot" x="50" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_session_scoring" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Session Scoring: grades each session (delegations, corrections, proactive hits) and feeds the routing table."/>
+    <rect class="gv-hotspot" x="50" y="140" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_norms_learner" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Norms Learner: learns project conventions and injects them as adaptive norms into new sessions."/>
+</svg>
             <p class="text-secondary small mt-2 mb-0">
               <i class="bi bi-info-circle me-1"></i>Detección → Evaluación → Decisión → Ejecución →
               Verificación → Aprendizaje.
@@ -1258,16 +1399,342 @@
         </div>
         <div class="col-lg-6">
           <div class="section-card">
-            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i>Arquitectura en Capas</h3>
-            <img
-              src="diagrams/architecture-layers.svg"
-              alt="Architecture Layers"
-              class="svg-diagram img-fluid w-100"
-              loading="lazy"
-            />
+            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i><span data-i18n="sec_h3_layers">Arquitectura en Capas</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 960 680" role="img" aria-label="Architecture Layers" >
+<title id="architecture-layers-title">Architecture Layers</title>
+<desc id="architecture-layers-desc">Gentle-Vanguard Architecture Layers diagram showing the main components, relationships and operational flow.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="l1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".18"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f4bb4f" stop-opacity=".18"/><stop offset="100%" stop-color="#f4bb4f" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ee6d75" stop-opacity=".18"/><stop offset="100%" stop-color="#ee6d75" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l6" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".22"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#131a2e"/><stop offset="100%" stop-color="#1a2235"/></linearGradient>
+<filter id="s"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".45"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker></defs>
+
+<rect width="960" height="680" fill="url(#bg)"/>
+<text x="480" y="34" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="21" font-weight="700" letter-spacing="1">Architecture Layers</text>
+<text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11.5">Autonomous Stack — Layered Component Architecture</text>
+
+<!-- ================= L6 EXECUTIVE ================= -->
+<g class="gv-node gv-hotspot" data-group="executive" data-i18n-title="tip_hs_executive" role="button" tabindex="0" data-tip="Executive Systems — 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors">
+<g filter="url(#s)"><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#l6)"/></g>
+<text x="60" y="96" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">EXECUTIVE</text>
+<text x="60" y="112" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">12 systems · Orchestration layer</text>
+<text x="60" y="142" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#67e8f9" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="86" width="72" height="24"/><text x="216" y="102" fill="#e2e8f0">Router</text>
+<rect x="258" y="86" width="72" height="24"/><text x="294" y="102" fill="#e2e8f0">Delegate</text>
+<rect x="336" y="86" width="72" height="24"/><text x="372" y="102" fill="#e2e8f0">Scoring</text>
+<rect x="414" y="86" width="72" height="24"/><text x="450" y="102" fill="#e2e8f0">Circuit Brk</text>
+<rect x="492" y="86" width="72" height="24"/><text x="528" y="102" fill="#e2e8f0">Escalate</text>
+<rect x="570" y="86" width="72" height="24"/><text x="606" y="102" fill="#e2e8f0">Norms</text>
+<rect x="648" y="86" width="72" height="24"/><text x="684" y="102" fill="#e2e8f0">Auto-Apply</text>
+<rect x="726" y="86" width="72" height="24"/><text x="762" y="102" fill="#e2e8f0">Rollback</text>
+<rect x="180" y="116" width="72" height="24"/><text x="216" y="132" fill="#e2e8f0">Watchtower</text>
+<rect x="258" y="116" width="72" height="24"/><text x="294" y="132" fill="#e2e8f0">Security</text>
+<rect x="336" y="116" width="72" height="24"/><text x="372" y="132" fill="#e2e8f0">Tracing</text>
+<rect x="414" y="116" width="72" height="24"/><text x="450" y="132" fill="#e2e8f0">Cloud</text>
+</g>
+<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
+</g>
+
+<line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L5 DATA ================= -->
+<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas">
+<g filter="url(#s)"><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#l5)"/></g>
+<text x="60" y="206" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">DATA</text>
+<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">16 repos · SQLite Nexus · 23 tables</text>
+<text x="60" y="252" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#ee6d75" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="196" width="62" height="24"/><text x="211" y="212" fill="#e2e8f0">Metrics</text>
+<rect x="248" y="196" width="62" height="24"/><text x="279" y="212" fill="#e2e8f0">Session</text>
+<rect x="316" y="196" width="62" height="24"/><text x="347" y="212" fill="#e2e8f0">Trace</text>
+<rect x="384" y="196" width="62" height="24"/><text x="415" y="212" fill="#e2e8f0">Event</text>
+<rect x="452" y="196" width="62" height="24"/><text x="483" y="212" fill="#e2e8f0">Cache</text>
+<rect x="520" y="196" width="62" height="24"/><text x="551" y="212" fill="#e2e8f0">Skill</text>
+<rect x="588" y="196" width="62" height="24"/><text x="619" y="212" fill="#e2e8f0">Contract</text>
+<rect x="656" y="196" width="62" height="24"/><text x="687" y="212" fill="#e2e8f0">ErrMem</text>
+<rect x="724" y="196" width="62" height="24"/><text x="755" y="212" fill="#e2e8f0">Backlog</text>
+<rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
+<rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
+</g>
+<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
+</g>
+
+<line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L4 MEMORY ================= -->
+<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (3,600+ obs), CodeGraph (10,000+ nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
+<g filter="url(#s)"><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#l4)"/></g>
+<text x="60" y="316" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">MEMORY</text>
+<text x="60" y="332" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">6 nodes · Persistent knowledge</text>
+<text x="60" y="362" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#f4bb4f" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
+<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (3,600+)</text>
+<rect x="306" y="304" width="128" height="24"/><text x="370" y="320" fill="#e2e8f0">CodeGraph</text>
+<rect x="442" y="304" width="100" height="24"/><text x="492" y="320" fill="#e2e8f0">Graphify</text>
+<rect x="550" y="304" width="112" height="24"/><text x="606" y="320" fill="#e2e8f0">ML Embeddings</text>
+<rect x="670" y="304" width="90" height="24"/><text x="715" y="320" fill="#e2e8f0">Nexus DB</text>
+<rect x="768" y="304" width="120" height="24"/><text x="828" y="320" fill="#e2e8f0">Knowledge Vault</text>
+</g>
+<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
+</g>
+
+<line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L3 PIPELINE ================= -->
+<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2">
+<g filter="url(#s)"><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#l3)"/></g>
+<text x="60" y="426" fill="#6ee7b7" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">PIPELINE</text>
+<text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">101 steps · Parallel + lazy</text>
+<text x="60" y="472" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
+<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
+<text x="442" y="433" fill="#64748b" font-size="15">→</text>
+<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 83 lazy bg</text>
+</g>
+<g fill="#1e293b" stroke="#4ade80" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
+<rect x="180" y="448" width="46" height="20"/><text x="203" y="462" fill="#e2e8f0">ToolDet</text>
+<rect x="232" y="448" width="46" height="20"/><text x="255" y="462" fill="#e2e8f0">SessMgr</text>
+<rect x="284" y="448" width="46" height="20"/><text x="307" y="462" fill="#e2e8f0">TokBud</text>
+<rect x="336" y="448" width="46" height="20"/><text x="359" y="462" fill="#e2e8f0">Karp</text>
+<rect x="388" y="448" width="46" height="20"/><text x="411" y="462" fill="#e2e8f0">CodeG</text>
+<rect x="440" y="448" width="46" height="20"/><text x="463" y="462" fill="#e2e8f0">SecOr</text>
+<rect x="492" y="448" width="46" height="20"/><text x="515" y="462" fill="#e2e8f0">DbInit</text>
+<rect x="544" y="448" width="46" height="20"/><text x="567" y="462" fill="#e2e8f0">AutoAp</text>
+<rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
+<rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
+</g>
+<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
+</g>
+
+<line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L2 AGENTS ================= -->
+<g class="gv-node gv-hotspot" data-group="agents" data-i18n-title="tip_hs_agents" role="button" tabindex="0" data-tip="Agents — 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele)">
+<g filter="url(#s)"><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#l2)"/></g>
+<text x="60" y="536" fill="#c4b5fd" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">AGENTS</text>
+<text x="60" y="552" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">21 types · Specialized subagents</text>
+<text x="60" y="582" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#a78bfa" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
+<rect x="180" y="526" width="76" height="24"/><text x="218" y="542" fill="#e2e8f0">Orchestrator</text>
+<rect x="262" y="526" width="60" height="24"/><text x="292" y="542" fill="#e2e8f0">BA-Expl</text>
+<rect x="328" y="526" width="60" height="24"/><text x="358" y="542" fill="#e2e8f0">SAD-Des</text>
+<rect x="394" y="526" width="60" height="24"/><text x="424" y="542" fill="#e2e8f0">DEV-App</text>
+<rect x="460" y="526" width="60" height="24"/><text x="490" y="542" fill="#e2e8f0">QA-Ver</text>
+<rect x="526" y="526" width="54" height="24"/><text x="553" y="542" fill="#e2e8f0">Doc</text>
+<rect x="586" y="526" width="54" height="24"/><text x="613" y="542" fill="#e2e8f0">Ops</text>
+<rect x="646" y="526" width="54" height="24"/><text x="673" y="542" fill="#e2e8f0">Gov</text>
+<rect x="706" y="526" width="54" height="24"/><text x="733" y="542" fill="#e2e8f0">Sess</text>
+<rect x="766" y="526" width="54" height="24"/><text x="793" y="542" fill="#e2e8f0">Prem</text>
+<rect x="180" y="556" width="60" height="24"/><text x="210" y="572" fill="#e2e8f0">Maint</text>
+<rect x="246" y="556" width="60" height="24"/><text x="276" y="572" fill="#e2e8f0">SelfDiag</text>
+<rect x="312" y="556" width="52" height="24"/><text x="338" y="572" fill="#e2e8f0">SIA</text>
+<rect x="370" y="556" width="60" height="24"/><text x="400" y="572" fill="#e2e8f0">GitFlow</text>
+<rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
+<rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
+</g>
+<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
+</g>
+
+<line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L1 TOOLS ================= -->
+<g class="gv-node gv-hotspot" data-group="tools" data-i18n-title="tip_hs_tools" role="button" tabindex="0" data-tip="Tools — 10 integraciones IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code">
+<g filter="url(#s)"><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#l1)"/></g>
+<text x="60" y="646" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">TOOLS</text>
+<text x="60" y="662" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">10 IDEs · Execution primitives</text>
+<g fill="#1e293b" stroke="#22d3ee" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="634" width="62" height="24"/><text x="211" y="650" fill="#e2e8f0">OpenCode</text>
+<rect x="248" y="634" width="62" height="24"/><text x="279" y="650" fill="#e2e8f0">Claude</text>
+<rect x="316" y="634" width="62" height="24"/><text x="347" y="650" fill="#e2e8f0">Cursor</text>
+<rect x="384" y="634" width="62" height="24"/><text x="415" y="650" fill="#e2e8f0">Windsurf</text>
+<rect x="452" y="634" width="62" height="24"/><text x="483" y="650" fill="#e2e8f0">Cline</text>
+<rect x="520" y="634" width="62" height="24"/><text x="551" y="650" fill="#e2e8f0">Codex</text>
+<rect x="588" y="634" width="62" height="24"/><text x="619" y="650" fill="#e2e8f0">Copilot</text>
+<rect x="656" y="634" width="62" height="24"/><text x="687" y="650" fill="#e2e8f0">Cont.dev</text>
+<rect x="724" y="634" width="62" height="24"/><text x="755" y="650" fill="#e2e8f0">Aider</text>
+<rect x="792" y="634" width="62" height="24"/><text x="823" y="650" fill="#e2e8f0">Roo Code</text>
+</g>
+<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
+</g>
+
+<text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>
+<text x="20" y="620" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,620)">BOTTOM</text>
+<line x1="40" y1="690" x2="920" y2="690" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="480" y="674" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+</svg>
             <p class="text-secondary small mt-2 mb-0">
               <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
               Data → Executive.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row g-4 mt-1">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-diagram-3 text-info me-2"></i><span data-i18n="sec_h3_gov">Gobernanza 3 Niveles</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 1000 400" role="img" aria-label="3-Tier Governance Model" >
+<title id="governance-tiers-title">Governance — 3-Tier Model</title>
+<desc id="governance-tiers-desc">Gentle-Vanguard 3-tier governance: protected canon, user-local layer with precedence, upstream contributions via PR.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect width="1000" height="400" fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Governance — 3-Tier Model</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">Canon protegido · capa local editable · contribución upstream vía PR</text>
+
+<!-- Tier 1: Canon -->
+<g filter="url(#s)"><rect x="60" y="85" width="400" height="90" rx="10" fill="#151921" stroke="#a78bfa" stroke-width="1.2"/><rect x="60" y="85" width="400" height="90" rx="10" fill="url(#p2)"/></g>
+<text x="80" y="110" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="700">1 · CANON (protegido)</text>
+<text x="80" y="130" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">rules/ · skills/ · config/ · .opencode/agents/</text>
+<text x="80" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Repo privado + branch protection</text>
+<text x="80" y="163" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Solo el owner aprueba cambios</text>
+
+<!-- Tier 2: Local -->
+<g filter="url(#s)"><rect x="540" y="85" width="400" height="90" rx="10" fill="#151921" stroke="#22d3ee" stroke-width="1.2"/><rect x="540" y="85" width="400" height="90" rx="10" fill="url(#p1)"/></g>
+<text x="560" y="110" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="12" font-weight="700">2 · LOCAL (tu PC, gitignored)</text>
+<text x="560" y="130" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">config/local/ · skills-local/ · .session/local-rules/</text>
+<text x="560" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Jamás se pisa por git pull ni autostart</text>
+<text x="560" y="163" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Skills propias · reglas propias · overrides</text>
+
+<!-- Precedence arrow -->
+<line x1="540" y1="130" x2="468" y2="130" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="504" y="122" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="9" font-weight="600">local gana</text>
+
+<!-- Tier 3: Upstream -->
+<g filter="url(#s)"><rect x="300" y="215" width="400" height="80" rx="10" fill="#151921" stroke="#4ade80" stroke-width="1.2"/><rect x="300" y="215" width="400" height="80" rx="10" fill="url(#p1)"/></g>
+<text x="320" y="240" fill="#4ade80" font-family="system-ui,sans-serif" font-size="12" font-weight="700">3 · UPSTREAM (contribución)</text>
+<text x="320" y="260" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">Pull Request al repo privado</text>
+<text x="320" y="278" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">typecheck + lint + test → revisión y aprobación del owner</text>
+
+<!-- arrows: local -> upstream, upstream -> canon -->
+<line x1="740" y1="175" x2="640" y2="213" stroke="#4ade80" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="710" y="192" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">tu cambio</text>
+<line x1="360" y1="215" x2="260" y2="177" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="290" y="196" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="9" font-weight="600">aprobado → canon</text>
+
+<!-- Runtime reading band -->
+<rect x="60" y="320" width="880" height="50" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width=".8"/>
+<text x="500" y="342" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Runtime: el stack lee primero LOCAL, luego CANON</text>
+<text x="500" y="360" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">config-loader unificado: config/local/&lt;name&gt;.json se mezcla sobre config/&lt;name&gt;.json — git pull nunca pisa tus personalizaciones</text>
+</svg>
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>Canon protegido · capa local editable
+              (precedencia local &gt; canon) · upstream vía PR.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h3 class="mb-3"><i class="bi bi-rocket-takeoff text-info me-2"></i><span data-i18n="sec_h3_setup">Flujo de Setup</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 1000 400" role="img" aria-label="One-command Setup Flow" >
+<title id="setup-flow-title">Setup Flow</title>
+<desc id="setup-flow-desc">Gentle-Vanguard one-command setup flow: npm run setup pipeline from prerequisites to verification, idempotent and re-runnable.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Setup Flow — npm run setup</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">One-command installation — idempotent, re-runnable, fail-fast per step</text>
+
+<!-- Step row: 8 steps -->
+<g filter="url(#s)"><rect x="40" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="92" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">1</text>
+<text x="92" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Prerequisites</text>
+<text x="92" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">node≥20 · pnpm · git</text>
+
+<g filter="url(#s)"><rect x="165" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="165" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="217" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">2</text>
+<text x="217" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Dependencies</text>
+<text x="217" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">pnpm frozen-lockfile</text>
+
+<g filter="url(#s)"><rect x="290" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="290" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="342" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">3</text>
+<text x="342" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Doctor</text>
+<text x="342" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">install:doctor --strict</text>
+
+<g filter="url(#s)"><rect x="415" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="415" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="467" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">4</text>
+<text x="467" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Nexus DB</text>
+<text x="467" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">SQLite WAL init</text>
+
+<g filter="url(#s)"><rect x="540" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="540" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="592" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">5</text>
+<text x="592" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Git Hooks</text>
+<text x="592" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">lefthook install</text>
+
+<g filter="url(#s)"><rect x="665" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="665" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="717" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">6</text>
+<text x="717" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Graphify</text>
+<text x="717" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">build if missing</text>
+
+<g filter="url(#s)"><rect x="790" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="790" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="842" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">7</text>
+<text x="842" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Skills Index</text>
+<text x="842" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">index generator</text>
+
+<g filter="url(#s)"><rect x="915" y="90" width="60" height="64" rx="8" fill="#4ade80" fill-opacity=".12" stroke="#4ade80" stroke-width="1"/></g>
+<text x="945" y="122" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="18" font-weight="700" filter="url(#g)">✓</text>
+<text x="945" y="140" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="8">ready</text>
+
+<!-- connectors -->
+<line x1="145" y1="122" x2="163" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="270" y1="122" x2="288" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="395" y1="122" x2="413" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="520" y1="122" x2="538" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="645" y1="122" x2="663" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="770" y1="122" x2="788" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="895" y1="122" x2="913" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- Idempotency band -->
+<rect x="40" y="180" width="935" height="30" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="41" y="181" width="460" height="28" rx="7" fill="#4ade80" fill-opacity=".1" stroke="#4ade80" stroke-width=".5"/>
+<text x="270" y="199" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Already satisfied → SKIP (re-run safe)</text>
+<text x="740" y="199" text-anchor="middle" fill="#ee6d75" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Required step fails → stop with reason, fix &amp; re-run</text>
+
+<!-- Next steps -->
+<g filter="url(#s)"><rect x="40" y="240" width="295" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="240" width="295" height="120" rx="10" fill="url(#p1)"/></g>
+<text x="187" y="265" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="12" font-weight="700">1. Start a session</text>
+<text x="187" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run session:autostart:detached</text>
+<text x="187" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">session · engram · codegraph · token budget</text>
+<text x="187" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">watchtower auto-heal · dashboard WS · nexus</text>
+<text x="187" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">110 steps (32 + 78 lazy)</text>
+
+<g filter="url(#s)"><rect x="352" y="240" width="295" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="352" y="240" width="295" height="120" rx="10" fill="url(#p2)"/></g>
+<text x="500" y="265" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="10" font-weight="700">2. Verify health</text>
+<text x="500" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run watchtower:health</text>
+<text x="500" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">154 checks · 29 components</text>
+<text x="500" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">npm run db:health — Nexus integrity</text>
+<text x="500" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">expected: PASS</text>
+
+<g filter="url(#s)"><rect x="664" y="240" width="311" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="664" y="240" width="311" height="120" rx="10" fill="url(#p1)"/></g>
+<text x="820" y="265" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10" font-weight="700">3. Optional: observability</text>
+<text x="820" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run dashboard:start</text>
+<text x="820" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">GV_DASHBOARD_TOKEN (login) o DEV_AUTH=1</text>
+<text x="820" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">npm run cc:start — apps panel :8090</text>
+<text x="820" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">fail-closed auth · loopback only</text>
+</svg>
+            <p class="text-secondary small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>npm run setup: 8 pasos idempotentes con
+              fail-fast — re-ejecutable sin romper nada.
             </p>
           </div>
         </div>
@@ -1315,7 +1782,7 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >175 Test files</span
+          >191 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
@@ -1343,7 +1810,6 @@
       </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

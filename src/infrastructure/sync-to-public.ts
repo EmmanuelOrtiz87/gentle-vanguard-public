@@ -6,6 +6,11 @@
  * (original deleted in commit 8d6ed7dd without a TS replacement — this file
  * closes that migration gap).
  *
+ * Default target repo: `gentlevanguard/gentlevanguard.github.io` (URL de marca,
+ * GitHub Pages activo). Override via --public-repo-slug or PUBLIC_REPO_SLUG
+ * env var for one-off syncs to other targets (e.g. the legacy
+ * `EmmanuelOrtiz87/gentle-vanguard-public` mirror).
+ *
  * Copies ONLY public-safe files:
  *   - Bootstrap scripts (plain text - needed for onboarding)
  *   - Public documentation (README, LICENSE, docs/, demos/)
@@ -14,10 +19,12 @@
  *   - Pre-built encrypted artifacts (build/protected/)
  *   - Public skill stubs (build/public/)
  *   - Single installer executable: Gentle-Vanguard.exe
+ *   - apps/academy-landing/ — única app que cruza la frontera (ADR-0017.1)
  *
  * Does NOT copy:
  *   - Plain-text scripts, configs, or skills (should be encrypted in protected/)
  *   - Internal documentation
+ *   - Any other app under apps/ (ADR-0017: apps are local-first)
  *
  * Usage:
  *   npx tsx src/sync-to-public.ts [--private-repo <path>] [--public-repo <path>]
@@ -33,6 +40,8 @@ interface SyncOptions {
   publicRepo: string;
   publicRepoSlug: string;
   skipPush: boolean;
+  /** Modo landing: publica solo apps/academy-landing/ en la raiz del repo de marca. */
+  landing: boolean;
 }
 
 function resolveRoot(startDir: string): string {
@@ -48,9 +57,24 @@ function resolveRoot(startDir: string): string {
 
 function parseArgs(): SyncOptions {
   const args = process.argv.slice(2);
+  /**
+   * Acepta AMBAS formas: `--flag valor` y `--flag=valor`.
+   *
+   * Antes solo aceptaba la primera. Con `--public-repo-slug=otro/repo` el flag
+   * se ignoraba en silencio y se usaba el default — o sea, en un tool de deploy
+   * se publicaba donde uno NO pidio, sin error ni warning. Para un destino, el
+   * fallo tiene que ser ruidoso, no silencioso.
+   */
   const extract = (name: string): string | undefined => {
     const idx = args.indexOf(name);
-    return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
+    if (idx !== -1 && idx + 1 < args.length) return args[idx + 1];
+    const inline = args.find((a) => a.startsWith(`${name}=`));
+    if (inline) {
+      const value = inline.slice(name.length + 1);
+      if (value.length > 0) return value;
+      console.warn(`[WARN] ${name}= sin valor; se usara el default`);
+    }
+    return undefined;
   };
 
   const resolvedRoot = resolveRoot(process.cwd());
@@ -67,10 +91,22 @@ function parseArgs(): SyncOptions {
     publicRepoSlug:
       extract('--public-repo-slug') ||
       process.env.PUBLIC_REPO_SLUG ||
+      // Default = repo de DISTRIBUCION publica del stack (docs + instalador
+      // .exe, sin apps). Es lo que este tool realmente sincroniza.
+      //
+      // La landing (gentlevanguard.github.io) es un destino DISTINTO con otro
+      // layout: sirve el sitio desde la raiz y solo debe recibir
+      // apps/academy-landing/. Por eso NO es el default: mandar el stack ahi
+      // reemplazaria el sitio de marca. Se usa con --landing, que tiene su
+      // propio modo y su propia guardia.
       'EmmanuelOrtiz87/gentle-vanguard-public',
     skipPush: args.includes('--skip-push'),
+    landing: args.includes('--landing'),
   };
 }
+
+/** La landing se publica en su propio repo y solo recibe la landing. */
+const LANDING_SLUG = 'gentlevanguard/gentlevanguard.github.io';
 
 function mkdirp(dir: string): void {
   fs.mkdirSync(dir, { recursive: true });
@@ -488,7 +524,12 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
  * Every command's exit status is validated; failures are loud.
  */
 function pushToAllBranches(opts: SyncOptions): void {
-  const { publicRepo } = opts;
+  const { publicRepo, publicRepoSlug } = opts;
+  // URL de push desde el slug declarado. Acepta "owner/repo" o una URL completa.
+  const remoteUrl = publicRepoSlug.includes(':')
+    ? publicRepoSlug
+    : `https://github.com/${publicRepoSlug}.git`;
+  console.log(`[INFO] Destino de push: ${remoteUrl}`);
   const git = (args: string[]): string => {
     const r = runSync('git', args, { cwd: publicRepo, timeout: 180000 });
     if (r.status !== 0) {
@@ -500,9 +541,9 @@ function pushToAllBranches(opts: SyncOptions): void {
   };
 
   try {
-    git(['fetch', 'origin', '--prune']);
+    git(['fetch', '--all', '--prune']);
   } catch {
-    console.log('[WARN] git fetch origin failed — continuing with current refs');
+    console.log('[WARN] git fetch --all failed — continuing with current refs');
   }
 
   let remoteBranches: string[] = [];
@@ -585,12 +626,29 @@ function pushToAllBranches(opts: SyncOptions): void {
       );
       continue;
     }
-    const pushResult = runSync('git', ['push', 'origin', branch], {
+    // El destino se resuelve desde `publicRepoSlug` y se PINEA como remote
+    // explicito. Antes se hacia `git push origin` a ciegas: el remoto del
+    // checkout podia ser el mirror de distribucion mientras el destino
+    // declarado era la landing, y el push iba al repo equivocado en silencio
+    // (publicRepoSlug se parseaba y nunca se usaba).
+    const remote = `public-${branch}`;
+    runSync('git', ['remote', 'remove', remote], { cwd: publicRepo, timeout: 30000 });
+    const addRemote = runSync('git', ['remote', 'add', remote, remoteUrl], {
+      cwd: publicRepo,
+      timeout: 30000,
+    });
+    if (addRemote.status !== 0) {
+      console.log(
+        `[FAIL] No se pudo fijar el remoto '${remote}' → ${publicRepoSlug}: ${(addRemote.stderr || addRemote.stdout).slice(0, 200)}`,
+      );
+      continue;
+    }
+    const pushResult = runSync('git', ['push', remote, branch], {
       cwd: publicRepo,
       timeout: 180000,
     });
     if (pushResult.status === 0) {
-      console.log(`[OK] Pushed to origin/${branch}`);
+      console.log(`[OK] Pushed to ${publicRepoSlug} (${branch}) via ${remote}`);
     } else {
       console.log(
         `[FAIL] Push to ${branch} → exit ${pushResult.status}: ${(pushResult.stderr || pushResult.stdout).slice(0, 300)}`,
@@ -609,9 +667,38 @@ function main(): void {
   const opts = parseArgs();
   const { privateRepo, publicRepo } = opts;
 
+  // GUARDIA DE DESTINO
+  // La landing y el repo de distribucion son destinos distintos con layouts
+  // distintos. Mandar el stack completo a la landing reemplazaria el sitio de
+  // marca, y mandar solo la landing al repo de distribucion publicaria un
+  // sitio que no se sirve ahi. Este check hace que el error sea imposible en
+  // vez de silencioso.
+  const isLandingTarget = opts.publicRepoSlug.includes(LANDING_SLUG);
+  if (isLandingTarget && !opts.landing) {
+    console.error(
+      `[ABORT] Destino = ${opts.publicRepoSlug} (landing de marca) sin --landing.\n` +
+        '        Ese repo sirve el sitio desde la raiz y solo debe recibir\n' +
+        '        apps/academy-landing/. El sync completo del stack (docs,\n' +
+        '        instalador .exe, artifacts) va a:\n' +
+        '          EmmanuelOrtiz87/gentle-vanguard-public\n' +
+        '        Para publicar SOLO la landing, usar: --landing\n' +
+        '        Para publicar el stack, quitar --landing o pasar\n' +
+        '        --public-repo-slug=EmmanuelOrtiz87/gentle-vanguard-public',
+    );
+    process.exit(2);
+  }
+  if (opts.landing && !isLandingTarget) {
+    console.error(
+      `[ABORT] --landing usado con destino ${opts.publicRepoSlug}.\n` +
+        '        --landing solo es valido con ' + LANDING_SLUG,
+    );
+    process.exit(2);
+  }
+
   console.log('=== Syncing Private -> Public Repo ===');
   console.log(`[INFO] privateRepo=${privateRepo}`);
   console.log(`[INFO] publicRepo=${publicRepo}`);
+  console.log(`[INFO] destino=${opts.publicRepoSlug}${opts.landing ? ' (MODO LANDING)' : ' (stack completo)'}`);
   console.log('');
 
   if (!fs.existsSync(path.join(privateRepo, 'config', 'orchestrator.json'))) {
@@ -640,3 +727,4 @@ function main(): void {
 }
 
 main();
+

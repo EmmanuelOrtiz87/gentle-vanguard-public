@@ -20,7 +20,7 @@ import { SessionRepo } from './repositories/SessionRepo';
 import { TraceRepo } from './repositories/TraceRepo';
 import { EventRepo } from './repositories/EventRepo';
 import { CacheRepo } from './repositories/CacheRepo';
-import { SkillRepo } from './repositories/SkillRepo';
+import { SkillRepo, type SkillEvidenceKind } from './repositories/SkillRepo';
 import { ContractRepo } from './repositories/ContractRepo';
 import { ErrorMemoryRepo } from './repositories/ErrorMemoryRepo';
 import { HousekeepingRepo } from './repositories/HousekeepingRepo';
@@ -377,6 +377,26 @@ export class DatabaseManager {
   }
   getTopSkills(limit = 10, tenantId = DEFAULT_TENANT_ID): ReturnType<SkillRepo['getTopSkills']> {
     return this.skills.getTopSkills(tenantId, limit);
+  }
+  recordSkillOutcome(
+    skillId: string,
+    success: boolean,
+    options: {
+      sessionId?: string;
+      durationMs?: number;
+      tool?: string;
+      detail?: string;
+      evidenceKind?: SkillEvidenceKind;
+    } = {},
+    tenantId = DEFAULT_TENANT_ID,
+  ): void {
+    this.skills.recordSkillOutcome(tenantId, skillId, success, options);
+  }
+  getSkillOutcomeSummary(
+    evidenceKind: SkillEvidenceKind | 'all' = 'production',
+    tenantId = DEFAULT_TENANT_ID,
+  ): ReturnType<SkillRepo['getSkillOutcomeSummary']> {
+    return this.skills.getSkillOutcomeSummary(tenantId, evidenceKind);
   }
   recordTokenUsage(
     sessionId: string,

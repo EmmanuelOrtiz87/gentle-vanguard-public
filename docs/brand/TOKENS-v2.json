@@ -117,7 +117,7 @@
   },
   "gradient": {
     "primary": {
-      "$value": "linear-gradient(135deg, #a78bfa 0%, color-mix(in srgb, #a78bfa 50%, #22d3ee) 50%, #22d3ee 100%)",
+      "$value": "linear-gradient(135deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%)",
       "$type": "gradient"
     },
     "border": {
@@ -154,7 +154,7 @@
   "typography": {
     "fontFamily": {
       "display": {
-        "$value": "'Space Grotesk', 'Orbitron', sans-serif",
+        "$value": "'Poppins', 'Inter', system-ui, sans-serif",
         "$type": "fontFamily"
       },
       "body": {

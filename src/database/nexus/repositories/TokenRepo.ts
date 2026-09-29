@@ -13,6 +13,8 @@ export interface TokenTransaction {
   messageId: string;
   sessionId: string;
   agent: string;
+  /** Nombre del subagente cuando la fuente lo expone (ej: guardian, mavis/worker, subagent:<uuid>). */
+  agentName?: string;
   model: string;
   inputTokens: number;
   outputTokens: number;
@@ -72,9 +74,9 @@ export class TokenRepo {
   ): { inserted: number; skipped: number } {
     const insert = this.db.prepare(
       `INSERT OR IGNORE INTO token_transactions
-       (message_id, session_id, agent, model, input_tokens, output_tokens, reasoning_tokens,
+       (message_id, session_id, agent, agent_name, model, input_tokens, output_tokens, reasoning_tokens,
         cache_read_tokens, cache_write_tokens, cost, created_at, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     let inserted = 0;
     let skipped = 0;
@@ -84,6 +86,7 @@ export class TokenRepo {
           transaction.messageId,
           transaction.sessionId,
           transaction.agent,
+          transaction.agentName ?? null,
           transaction.model,
           transaction.inputTokens,
           transaction.outputTokens,

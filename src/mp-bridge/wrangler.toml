@@ -1,0 +1,29 @@
+# MercadoPago Checkout Bridge — Cloudflare Worker
+# Deploy: npx wrangler deploy (desde src/mp-bridge)
+# Env vars: ver README.md — MP_ACCESS_TOKEN es obligatorio.
+
+name = "gv-mp-bridge"
+main = "worker.ts"
+compatibility_date = "2026-01-01"
+# node:crypto (HMAC de Standard Webhooks) requiere el flag de compatibilidad Node.
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[vars]
+ALLOWED_ORIGINS = "https://gentlevanguard.github.io,http://127.0.0.1:8080,http://localhost:8080,http://127.0.0.1:8099,http://localhost:8099"
+
+# Cola at-least-once de ventas aprobadas (polling del CRM local — sin túnel).
+# Crear con: npx wrangler kv namespace create SALES  → pegar el id acá.
+[[kv_namespaces]]
+binding = "SALES_KV"
+id = "26eaf48e40c546e7b491d5e9c4300634"
+
+# Secrets (nunca en este archivo — usar `npx wrangler secret put`):
+#   MP_ACCESS_TOKEN   — access token de MercadoPago
+#   MP_PUBLIC_KEY     — public key para el Wallet Brick
+#   MP_BRIDGE_SECRET  — secreto compartido opcional
+#   CRM_WEBHOOK_URL   — URL que recibe la venta confirmada (push opcional)
+#   WEBHOOK_SIGNING_SECRET — firma Standard Webhooks del push
+#   SALES_POLL_SECRET — auth del polling /api/mp/sales/* (mismo valor en el CRM)

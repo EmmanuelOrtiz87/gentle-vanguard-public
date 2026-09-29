@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-bs-theme="dark" class="gv-document-page">
+<html lang="es" class="gv-document-page">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,10 +9,10 @@
     />
     <title>Caso comparativo | Gentle-Vanguard</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       .evidence {
         border: 1px solid var(--br);
@@ -38,32 +38,38 @@
       }
     </style>
   </head>
-  <body class="grain">
-    <nav class="navbar navbar-expand-lg nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <div class="ms-auto d-flex align-items-center gap-3">
-          <a class="nav-link" href="architecture.html"
-            ><span data-i18n="nav_arch">Arquitectura</span></a
-          ><a class="nav-link" href="memory-knowledge.html"
-            ><span data-i18n="nav_knowledge">Knowledge</span></a
-          ><a class="nav-link" href="index.html"><span data-i18n="nav_home">Índice</span></a>
-          <div class="lang-seg" role="group" aria-label="Language">
-            <button type="button" data-lang="es" aria-pressed="true">ES</button
-            ><button type="button" data-lang="en" aria-pressed="false">EN</button
-            ><button type="button" data-lang="pt-BR" aria-pressed="false">PT</button>
+  <body>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="architecture.html"><span data-i18n="nav_arch">Arquitectura</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_knowledge">Knowledge</span></a>
+          <a href="index.html"><span data-i18n="nav_home">Índice</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
           </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
-    <header class="hero">
+    </header>
+    <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ Evidencia y método</span>
-      <h1 class="display-3 fw-bold"><span class="glow">Antes / después</span></h1>
+      <h1 class="display-3 fw-bold"><span class="glow"><span data-i18n="cs_h1">Antes / después</span></span></h1>
       <p class="lead text-secondary" style="max-width: 760px; margin: auto">
         Cómo construir un caso comparativo de Analytics, Dashboard, CMS o Academy sin confundir
         capacidades del stack con resultados medidos.
@@ -108,7 +114,7 @@
         </div>
       </section>
       <section class="mb-5">
-        <h2>Metodología reproducible</h2>
+        <h2><span data-i18n="cs_h2_method">Metodología reproducible</span></h2>
         <ol>
           <li>Elegir una tarea equivalente y fijar alcance.</li>
           <li>Medir baseline y repetir con el stack, conservando modelo, máquina y criterios.</li>
@@ -158,7 +164,7 @@
         </div>
       </section>
       <section class="mb-5">
-        <h2>Infografía del caso</h2>
+        <h2><span data-i18n="cs_h2_infographic">Infografía del caso</span></h2>
         <svg
           viewBox="0 0 900 190"
           role="img"
@@ -187,7 +193,7 @@
       <section class="row g-3">
         <div class="col-md-6">
           <div class="evidence">
-            <h2>Cuatro superficies</h2>
+            <h2><span data-i18n="cs_h2_surfaces">Cuatro superficies</span></h2>
             <table class="table table-sm">
               <tbody>
                 <tr>
@@ -212,7 +218,7 @@
         </div>
         <div class="col-md-6">
           <div class="evidence">
-            <h2>Límites de interpretación</h2>
+            <h2><span data-i18n="cs_h2_limits">Límites de interpretación</span></h2>
             <ul>
               <li>No atribuir causalidad a un snapshot.</li>
               <li>No presentar tiempo objetivo como tiempo observado.</li>
@@ -229,7 +235,8 @@
     </footer>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

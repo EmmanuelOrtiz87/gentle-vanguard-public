@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark" class="gv-document-page">
+<html lang="en" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -11,11 +11,11 @@
     <title>📊 LLM Observability Dashboard — Gentle-Vanguard</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
     />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
     />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
@@ -86,135 +86,58 @@
         transition: width 1s ease;
       }
     </style>
-    <script src="assets/js/carousel.js"></script>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
+  <body>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
     <div class="gv-particles" aria-hidden="true"></div>
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
     <header class="hero" id="overview">
       <div>
         <span class="hero-badge mb-3">✦ v4.0 — LLM Observability</span>
-        <h1><span class="glow">Observability Dashboard</span></h1>
+        <h1><span class="glow"><span data-i18n="dash_h1">Observability Dashboard</span></span></h1>
         <p
           class="lead text-secondary z-1"
           data-i18n="c_dashboard_2"
@@ -239,7 +162,7 @@
     </header>
     <section class="fade-in" id="command-center">
       <div class="section-card">
-        <h2><i class="bi bi-grid-3x3-gap me-2"></i>Command Center: control de apps</h2>
+        <h2><i class="bi bi-grid-3x3-gap me-2"></i><span data-i18n="dash_h2_cc">Command Center: control de apps</span></h2>
         <p class="mb-2">
           El dashboard se centra en observabilidad. El ciclo de vida de las apps se administra desde
           el Command Center standalone en <code>http://127.0.0.1:8090</code>.
@@ -285,28 +208,28 @@
           <div class="gv-carousel-slide active">
             <div class="section-card text-center py-4">
               <i class="bi bi-graph-up fs-1 text-info mb-3"></i>
-              <h4>Real-time Metrics</h4>
+              <h4><span data-i18n="dash_h2_metrics">Real-time Metrics</span></h4>
               <p class="text-muted">Live token usage, session health, and performance indicators</p>
             </div>
           </div>
           <div class="gv-carousel-slide">
             <div class="section-card text-center py-4">
               <i class="bi bi-activity fs-1 text-primary mb-3"></i>
-              <h4>Tracing Waterfall</h4>
+              <h4><span data-i18n="dash_h2_tracing">Tracing Waterfall</span></h4>
               <p class="text-muted">Distributed tracing with parent-child span relationships</p>
             </div>
           </div>
           <div class="gv-carousel-slide">
             <div class="section-card text-center py-4">
               <i class="bi bi-bell fs-1 text-warning mb-3"></i>
-              <h4>Alert System</h4>
+              <h4><span data-i18n="dash_h2_alerts">Alert System</span></h4>
               <p class="text-muted">8 configurable rules with severity-based notifications</p>
             </div>
           </div>
           <div class="gv-carousel-slide">
             <div class="section-card text-center py-4">
               <i class="bi bi-star-half fs-1 text-success mb-3"></i>
-              <h4>Session Scoring</h4>
+              <h4><span data-i18n="dash_h2_scoring">Session Scoring</span></h4>
               <p class="text-muted">Quality metrics: delegations, corrections, proactive hits</p>
             </div>
           </div>
@@ -371,7 +294,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--a)">
-            <i class="bi bi-diagram-3 me-2"></i>2. Architecture
+            <i class="bi bi-diagram-3 me-2"></i><span data-i18n="dash_h2_arch">2. Architecture</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -417,7 +340,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-grid-3x3-gap me-2"></i>3. Dashboard Sections
+            <i class="bi bi-grid-3x3-gap me-2"></i><span data-i18n="dash_h2_sections">3. Dashboard Sections</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -538,7 +461,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--pl)">
-            <i class="bi bi-arrow-left-right me-2"></i>4. Data Pipeline
+            <i class="bi bi-arrow-left-right me-2"></i><span data-i18n="dash_h2_pipeline">4. Data Pipeline</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -581,7 +504,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--a)">
-            <i class="bi bi-hdd-rack me-2"></i>5. API Endpoints
+            <i class="bi bi-hdd-rack me-2"></i><span data-i18n="dash_h2_api">5. API Endpoints</span>
           </h2>
         </div>
         <div class="col-12">
@@ -735,7 +658,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--p)">
-            <i class="bi bi-folder-tree me-2"></i>8. File Structure
+            <i class="bi bi-folder-tree me-2"></i><span data-i18n="dash_h2_filestruct">8. File Structure</span>
           </h2>
         </div>
         <div class="col-12">
@@ -810,7 +733,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--wn)">
-            <i class="bi bi-arrow-repeat me-2"></i>9. Lifecycle Commands
+            <i class="bi bi-arrow-repeat me-2"></i><span data-i18n="dash_h2_lifecycle">9. Lifecycle Commands</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -854,7 +777,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-heart-pulse me-2"></i>10. Health API
+            <i class="bi bi-heart-pulse me-2"></i><span data-i18n="dash_h2_health">10. Health API</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -901,12 +824,222 @@
       </div>
       <div class="d-flex justify-content-center">
         <div class="col-lg-10">
-          <img
-            src="diagrams/stack-dashboard.svg"
-            alt="Stack Dashboard"
-            class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
-            loading="lazy"
-          />
+          <svg class="svg-diagram svg-inline" viewBox="0 0 900 450" role="img" aria-label="Stack Dashboard" >
+<title id="stack-dashboard-title">Stack Dashboard</title>
+<desc id="stack-dashboard-desc">Gentle-Vanguard Stack Dashboard diagram showing the main components, relationships and operational flow.</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#090c11"/>
+      <stop offset="100%" stop-color="#0f1525"/>
+    </linearGradient>
+    <linearGradient id="srcGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="midGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="frontGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="fallbackGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f4bb4f" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f4bb4f" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="barBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="barPurple" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="barGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4ade80"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="450" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Dashboard Architecture</text>
+  <text x="450" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">LLM Observability — real-time WebSocket + HTTP polling fallback</text>
+
+  <!-- ===== LEFT: DATA SOURCES ===== -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="80" width="200" height="280" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
+    <rect x="30" y="80" width="200" height="280" rx="10" fill="url(#srcGrad)"/>
+  </g>
+
+  <!-- Section header -->
+  <rect x="40" y="90" width="180" height="24" rx="6" fill="#22d3ee" fill-opacity="0.1"/>
+  <text x="130" y="106" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">📁 Data Sources</text>
+
+  <!-- State file entries -->
+  <g transform="translate(45, 130)">
+    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
+    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">.session/</text>
+  </g>
+  <g transform="translate(45, 158)">
+    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
+    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">  context-log/</text>
+  </g>
+  <g transform="translate(45, 186)">
+    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
+    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">    *.state.json</text>
+  </g>
+  <g transform="translate(45, 214)">
+    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
+    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">    *.meta.json</text>
+  </g>
+
+  <!-- Labels -->
+  <g transform="translate(45, 255)">
+    <text x="0" y="0" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Real trace data</text>
+    <text x="0" y="14" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">No mock data</text>
+  </g>
+
+  <!-- File icon indicator -->
+  <g transform="translate(200, 195)">
+    <rect x="-6" y="-6" width="20" height="20" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
+    <text x="4" y="6" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10">📄</text>
+  </g>
+
+  <!-- Arrow from data sources to middle -->
+  <line x1="230" y1="220" x2="335" y2="220" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)" opacity="0.7"/>
+  <rect x="260" y="192" width="50" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="285" y="202" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7">read</text>
+
+  <!-- ===== MIDDLE: BACKEND ===== -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="80" width="220" height="280" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
+    <rect x="340" y="80" width="220" height="280" rx="10" fill="url(#midGrad)"/>
+  </g>
+
+  <rect x="350" y="90" width="200" height="24" rx="6" fill="#a78bfa" fill-opacity="0.1"/>
+  <text x="450" y="106" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">⚙ Backend Server</text>
+
+  <!-- real-data.ts box -->
+  <g filter="url(#shadow)">
+    <rect x="360" y="130" width="180" height="50" rx="6" fill="#1a2235" stroke="#a78bfa" stroke-width="0.5"/>
+    <rect x="360" y="130" width="180" height="50" rx="6" fill="url(#midGrad)"/>
+  </g>
+  <text x="370" y="148" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">real-data.ts</text>
+  <text x="370" y="163" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Reads .state.json →</text>
+  <text x="370" y="175" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">computes metrics</text>
+
+  <!-- WS Server box -->
+  <g filter="url(#shadow)">
+    <rect x="360" y="200" width="180" height="60" rx="6" fill="#1a2235" stroke="#a78bfa" stroke-width="1"/>
+    <rect x="360" y="200" width="180" height="60" rx="6" fill="#a78bfa" fill-opacity="0.08"/>
+  </g>
+  <text x="470" y="220" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600" filter="url(#glow)">WebSocket Server</text>
+  <text x="470" y="237" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">port 8080</text>
+  <text x="470" y="252" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Push every 5s</text>
+
+  <!-- Arrow connecting real-data → WS -->
+  <line x1="450" y1="180" x2="450" y2="195" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+  <!-- ===== RIGHT TOP: FRONTEND ===== -->
+  <g filter="url(#shadow)">
+    <rect x="600" y="80" width="270" height="170" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
+    <rect x="600" y="80" width="270" height="170" rx="10" fill="url(#frontGrad)"/>
+  </g>
+
+  <rect x="610" y="90" width="250" height="24" rx="6" fill="#4ade80" fill-opacity="0.1"/>
+  <text x="735" y="106" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">🖥 Frontend — React / Vite</text>
+
+  <!-- 7 section blocks -->
+  <g transform="translate(615, 128)">
+    <rect x="0" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="27" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Metrics</text>
+    <rect x="60" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="87" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Traces</text>
+    <rect x="120" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="147" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Alerts</text>
+    <rect x="180" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="207" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Feedback</text>
+  </g>
+  <g transform="translate(615, 152)">
+    <rect x="0" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="27" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Scoring</text>
+    <rect x="60" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="87" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Waterfall</text>
+    <rect x="120" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
+    <text x="147" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Info Popup</text>
+  </g>
+
+  <!-- WS push arrow -->
+  <path d="M 560 230 Q 580 160 600 160" fill="none" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <rect x="570" y="180" width="24" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="582" y="190" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">WS</text>
+
+  <!-- ===== RIGHT BOTTOM: HTTP FALLBACK ===== -->
+  <g filter="url(#shadow)">
+    <rect x="600" y="275" width="270" height="85" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
+    <rect x="600" y="275" width="270" height="85" rx="10" fill="url(#fallbackGrad)"/>
+  </g>
+
+  <rect x="610" y="285" width="250" height="24" rx="6" fill="#f4bb4f" fill-opacity="0.1"/>
+  <text x="735" y="301" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">⬇ HTTP Polling Fallback</text>
+
+  <text x="620" y="320" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">useMetrics.ts — always runs</text>
+  <text x="620" y="335" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">regardless of WS state</text>
+  <text x="620" y="350" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Resilient: WS down → HTTP takes over</text>
+
+  <!-- HTTP fallback arrow -->
+  <path d="M 560 230 Q 640 260 635 275" fill="none" stroke="#f4bb4f" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowOrange)"/>
+  <rect x="610" y="245" width="24" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="622" y="255" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="7">HTTP</text>
+
+  <!-- ===== BOTTOM: WATCHDOG ===== -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="380" width="530" height="40" rx="8" fill="#151921" stroke="#ee6d75" stroke-width="0.5" stroke-opacity="0.5"/>
+    <rect x="340" y="380" width="530" height="40" rx="8" fill="#ee6d75" fill-opacity="0.03"/>
+  </g>
+  <rect x="350" y="388" width="18" height="24" rx="4" fill="#ee6d75" fill-opacity="0.15"/>
+  <text x="359" y="404" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12">🛡</text>
+  <text x="375" y="405" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Watchdog Auto-Recovery</text>
+  <text x="495" y="405" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Monitors :8080 every 5s · 10 restart attempts · kills watchdog first</text>
+
+  <!-- Watchdog arrow to WS -->
+  <line x1="450" y1="380" x2="450" y2="265" stroke="#ee6d75" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrow)"/>
+
+  <!-- Footer -->
+  <line x1="40" y1="433" x2="860" y2="433" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="450" y="445" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="30" y="80" width="200" height="280" rx="6" data-i18n-title="tip_hs_dash_sources" role="button" tabindex="0" fill="transparent" aria-label="Data Sources: real trace data read from .session/context-log/*.state.json and *.meta.json - no mock data."/>
+    <rect class="gv-hotspot" x="340" y="80" width="220" height="280" rx="6" data-i18n-title="tip_hs_dash_backend" role="button" tabindex="0" fill="transparent" aria-label="Backend Server: real-data.ts computes metrics from state files; WebSocket Server pushes every 5s on port 8080."/>
+    <rect class="gv-hotspot" x="600" y="80" width="270" height="170" rx="6" data-i18n-title="tip_hs_dash_frontend" role="button" tabindex="0" fill="transparent" aria-label="Frontend - React/Vite: 7 sections (Metrics, Traces, Alerts, Feedback, Scoring, Waterfall, Info Popup) with i18n."/>
+    <rect class="gv-hotspot" x="600" y="275" width="270" height="85" rx="6" data-i18n-title="tip_hs_dash_fallback" role="button" tabindex="0" fill="transparent" aria-label="HTTP Polling Fallback: useMetrics.ts always polls HTTP, so data loads even if the WebSocket server is down."/>
+    <rect class="gv-hotspot" x="340" y="380" width="530" height="40" rx="6" data-i18n-title="tip_hs_dash_watchdog" role="button" tabindex="0" fill="transparent" aria-label="Watchdog Auto-Recovery: monitors :8080 every 5s, restarts up to 10 times, and kills the watchdog first to avoid loops."/>
+</svg>
         </div>
       </div>
     </section>
@@ -978,7 +1111,6 @@
         <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
       </p>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=3.0"></script>
   </body>
 </html>

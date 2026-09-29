@@ -1,8 +1,17 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
 import { join, resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { load as loadYaml } from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,6 +25,8 @@ interface SkillEmbedderArgs {
 interface SkillEntry {
   agent: string;
   triggers: string[];
+  description?: string;
+  aliases?: string[];
 }
 
 interface SkillTextInfo {
@@ -46,6 +57,24 @@ interface VocabResult {
 interface VectorResult {
   vectors: Record<string, VectorEntry>;
   charNgrams: Record<string, CharNgramEntry>;
+}
+
+function writeJsonAtomic(path: string, value: unknown): void {
+  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  try {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        renameSync(temporary, path);
+        return;
+      } catch (error) {
+        if (attempt === 5) throw error;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50 * (attempt + 1));
+      }
+    }
+  } finally {
+    if (existsSync(temporary)) unlinkSync(temporary);
+  }
 }
 
 const stopWords = [
@@ -193,7 +222,7 @@ function extractArg(args: string[], name: string): string | undefined {
   return undefined;
 }
 
-function parseSkillRegistry(path: string): Record<string, SkillEntry> {
+export function parseSkillRegistry(path: string): Record<string, SkillEntry> {
   if (!existsSync(path)) {
     console.error(`Skill registry not found: ${path}`);
     return {};
@@ -246,6 +275,73 @@ function parseSkillRegistry(path: string): Record<string, SkillEntry> {
   }
 
   return skills;
+}
+
+interface SkillFrontmatter {
+  name?: unknown;
+  description?: unknown;
+  triggers?: unknown;
+  aliases?: unknown;
+  metadata?: { trigger?: unknown };
+}
+
+function stringList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
+  if (typeof value !== 'string') return [];
+  return value
+    .split(',')
+    .map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
+    .filter(Boolean);
+}
+
+export function parseSkillDocument(content: string, fallbackName: string): {
+  name: string;
+  description: string;
+  triggers: string[];
+  aliases: string[];
+} {
+  const block = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/i)?.[1];
+  if (!block) return { name: fallbackName, description: '', triggers: [], aliases: [] };
+  let metadata: SkillFrontmatter = {};
+  try {
+    metadata = (loadYaml(block) as SkillFrontmatter | null) ?? {};
+  } catch {
+    return { name: fallbackName, description: '', triggers: [], aliases: [] };
+  }
+  const triggers = [
+    ...stringList(metadata.triggers),
+    ...stringList(metadata.metadata?.trigger),
+  ];
+  return {
+    name: typeof metadata.name === 'string' && metadata.name.trim() ? metadata.name.trim() : fallbackName,
+    description: typeof metadata.description === 'string' ? metadata.description.trim() : '',
+    triggers: [...new Set(triggers)],
+    aliases: [...new Set(stringList(metadata.aliases))],
+  };
+}
+
+export function discoverSkills(
+  roots: string[],
+  agentMappings: Record<string, string>,
+): Record<string, SkillEntry> {
+  const discovered: Record<string, SkillEntry> = {};
+  for (const root of roots) {
+    if (!existsSync(root)) continue;
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const skillPath = join(root, entry.name, 'SKILL.md');
+      if (!existsSync(skillPath)) continue;
+      const parsed = parseSkillDocument(readFileSync(skillPath, 'utf8'), entry.name);
+      const previous = discovered[parsed.name];
+      discovered[parsed.name] = {
+        agent: agentMappings[parsed.name] ?? agentMappings[entry.name] ?? previous?.agent ?? 'KNOWLEDGE',
+        description: parsed.description || previous?.description || '',
+        triggers: [...new Set([...(previous?.triggers ?? []), ...parsed.triggers])],
+        aliases: [...new Set([...(previous?.aliases ?? []), ...parsed.aliases, entry.name])],
+      };
+    }
+  }
+  return discovered;
 }
 
 function getAgentKeywords(path: string): Record<string, string[]> {
@@ -305,9 +401,45 @@ function addSkillsFromConfig(
   return result;
 }
 
+function getSkillAgentMappings(delegationConfigPath: string): Record<string, string> {
+  if (!existsSync(delegationConfigPath)) return {};
+  const config = JSON.parse(readFileSync(delegationConfigPath, 'utf8')) as {
+    skillToAgentProfile?: Record<string, string>;
+  };
+  return config.skillToAgentProfile ?? {};
+}
+
+export function buildSkillCatalog(
+  registryPath: string,
+  delegationConfigPath: string,
+  projectRoot = findRepoRoot(dirname(registryPath)),
+): Record<string, SkillEntry> {
+  const registry = addSkillsFromConfig(parseSkillRegistry(registryPath), delegationConfigPath);
+  const mappings = getSkillAgentMappings(delegationConfigPath);
+  const discovered = discoverSkills(
+    [
+      join(projectRoot, '.opencode', 'skills'),
+      join(projectRoot, '.agents', 'skills'),
+      join(projectRoot, 'skills'),
+    ],
+    mappings,
+  );
+  const result = { ...registry };
+  for (const [name, skill] of Object.entries(discovered)) {
+    const current = result[name];
+    result[name] = {
+      agent: mappings[name] ?? current?.agent ?? skill.agent,
+      description: skill.description || current?.description || '',
+      triggers: [...new Set([...(current?.triggers ?? []), ...skill.triggers])],
+      aliases: [...new Set([...(current?.aliases ?? []), ...(skill.aliases ?? [])])],
+    };
+  }
+  return result;
+}
+
 function buildSkillText(
   skills: Record<string, SkillEntry>,
-  agentKeywords: Record<string, string[]>,
+  _agentKeywords: Record<string, string[]>,
 ): Record<string, SkillTextInfo> {
   const result: Record<string, SkillTextInfo> = {};
 
@@ -316,15 +448,20 @@ function buildSkillText(
     const baseParts: string[] = [nameTokens];
     const fullParts: string[] = [nameTokens];
 
+    if (skill.description) {
+      baseParts.push(skill.description);
+      fullParts.push(skill.description);
+    }
+    for (const alias of skill.aliases ?? []) {
+      baseParts.push(alias);
+      fullParts.push(alias);
+    }
+
     for (const t of skill.triggers) {
       if (t) {
         baseParts.push(t);
         fullParts.push(t);
       }
-    }
-
-    if (agentKeywords[skill.agent]) {
-      for (const kw of agentKeywords[skill.agent]) fullParts.push(kw);
     }
 
     result[skillName] = {
@@ -449,38 +586,41 @@ function saveEmbeddings(
     skills: skillsOut,
   };
 
-  writeFileSync(outputPath, JSON.stringify(embeddings, null, 2), 'utf8');
+  writeJsonAtomic(outputPath, embeddings);
 
   // Per-skill embedding cache in .atl/ml-embeddings/ — one file per skill so
   // lookups can load a single vector without parsing the full index. The
   // watchtower ml-embeddings component checks this directory is present.
   const perSkillDir = join(dirname(outputPath), 'ml-embeddings');
   mkdirSync(perSkillDir, { recursive: true });
+  const expectedFiles = new Set<string>();
   for (const skill of skillsOut) {
     const slug = skill.name.replace(/[^a-zA-Z0-9_-]+/g, '_');
-    writeFileSync(
-      join(perSkillDir, `${slug}.json`),
-      JSON.stringify(
-        {
-          version: '1.0',
-          generated: embeddings.generated,
-          name: skill.name,
-          agent: skill.agent,
-          triggers: skill.triggers,
-          vector: skill.vector,
-          charNgrams: skill.charNgrams,
-        },
-        null,
-        2,
-      ),
-      'utf8',
-    );
+    const fileName = `${slug}.json`;
+    expectedFiles.add(fileName);
+    writeJsonAtomic(join(perSkillDir, fileName), {
+      version: '1.0',
+      generated: embeddings.generated,
+      name: skill.name,
+      agent: skill.agent,
+      triggers: skill.triggers,
+      vector: skill.vector,
+      charNgrams: skill.charNgrams,
+    });
+  }
+  let staleRemoved = 0;
+  for (const fileName of readdirSync(perSkillDir)) {
+    if (fileName.endsWith('.json') && !expectedFiles.has(fileName)) {
+      unlinkSync(join(perSkillDir, fileName));
+      staleRemoved++;
+    }
   }
 
   console.log(
     `Embeddings saved to ${outputPath} (${skillsOut.length} skills, ${vocabList.length} vocabulary terms)`,
   );
   console.log(`Per-skill cache written to ${perSkillDir} (${skillsOut.length} files)`);
+  if (staleRemoved > 0) console.log(`Removed ${staleRemoved} stale per-skill cache file(s)`);
 }
 
 function main(): void {
@@ -493,13 +633,9 @@ function main(): void {
     process.exit(1);
   }
 
-  console.log(`Parsing skill registry: ${args.registryPath}`);
-  const skills = parseSkillRegistry(args.registryPath);
-  console.log(`Found ${Object.keys(skills).length} skills from registry`);
-
-  console.log('Supplementing missing skills from auto-delegation config...');
-  const supplemented = addSkillsFromConfig(skills, args.delegationConfigPath);
-  console.log(`Total skills after supplement: ${Object.keys(supplemented).length}`);
+  console.log(`Building skill catalog from registry, config, and SKILL.md roots...`);
+  const supplemented = buildSkillCatalog(args.registryPath, args.delegationConfigPath);
+  console.log(`Total discovered skills: ${Object.keys(supplemented).length}`);
 
   console.log(`Loading agent keywords from: ${args.delegationConfigPath}`);
   const agentKeywords = getAgentKeywords(args.delegationConfigPath);
@@ -527,4 +663,6 @@ function main(): void {
   console.log('Done');
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main();
+}

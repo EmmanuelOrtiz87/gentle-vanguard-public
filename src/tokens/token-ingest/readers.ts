@@ -80,6 +80,69 @@ export function readOpencodeSessions(dbPath: string, sinceTimeUpdated = 0): Sess
 
 // ─── Fuente ZCode (~/.zcode/cli/rollout/model-io-*.jsonl) ──────────────────────
 
+/**
+ * Atribucion de agente para ZCode (patron upstream gentle-ai e26faee).
+ * El JSONL real trae querySource ('main_turn' | 'subagent') y sessionId con
+ * prefijo 'sess_subagent_agent_<uuid>' para subagentes. El NOMBRE humano del
+ * subagente NO esta en el rollout (solo uuid de instancia) -> usamos
+ * subagent:<uuid-8> como etiqueta estable. Fallback legacy: model.role.
+ */
+export function classifyZcodeAgent(r: {
+  sessionId?: string;
+  querySource?: string;
+  model?: { role?: string };
+}): { agent: 'orchestrator' | 'subagent'; agentName?: string } {
+  const isSub =
+    r.querySource === 'subagent' ||
+    (r.sessionId?.startsWith('sess_subagent_') ?? false) ||
+    (r.model?.role ? r.model.role !== 'main' : false);
+  if (!isSub) return { agent: 'orchestrator' };
+  const m = r.sessionId?.match(/^sess_subagent_agent_([0-9a-f-]+)/i);
+  return { agent: 'subagent', agentName: m ? `subagent:${m[1].slice(0, 8)}` : 'subagent:unknown' };
+}
+
+/**
+ * Parsea la linea session_meta del rollout de Codex (primera linea del JSONL).
+ * Trae thread_source ('user' | 'subagent' | 'guardian_review') y, para
+ * subagentes, el NOMBRE real en payload.source.subagent.other (ej: 'guardian').
+ */
+export function parseCodexSessionMeta(line: string | undefined): {
+  threadSource?: string;
+  subagentName?: string;
+} {
+  if (!line || !line.includes('session_meta')) return {};
+  try {
+    const evt = JSON.parse(line) as {
+      payload?: { thread_source?: string; source?: { subagent?: { other?: string } } };
+    };
+    return {
+      threadSource: evt.payload?.thread_source,
+      subagentName: evt.payload?.source?.subagent?.other,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export function classifyCodexAgent(meta: {
+  threadSource?: string;
+  subagentName?: string;
+}): { agent: 'orchestrator' | 'subagent'; agentName?: string } {
+  if (!meta.threadSource || meta.threadSource === 'user') return { agent: 'orchestrator' };
+  return { agent: 'subagent', agentName: meta.subagentName || `subagent:${meta.threadSource}` };
+}
+
+/**
+ * messageId DETERMINISTA para codex: el viejo `codex:${sessionId}:${ts}:${txns.length}`
+ * usaba un indice relativo a la ventana filtrada del run (txns.length) -> un mismo
+ * evento producia IDs distintos entre corridas y duplicaba filas. El ordinal del
+ * evento DENTRO del archivo es estable (los rollouts son append-only) y el
+ * basename ancla el orden si aparecen archivos nuevos.
+ */
+export function codexMessageId(sessionId: string, fileBase: string, evtIdx: number): string {
+  return `codex:${sessionId}:${fileBase}:${evtIdx}`;
+}
+
 export function zcodeRolloutDir(): string | null {
   const candidates = [
     join(process.env.USERPROFILE || process.env.HOME || '', '.zcode', 'cli', 'rollout'),
@@ -93,6 +156,8 @@ export interface ZcodeRolloutRecord {
   sessionId?: string;
   startedAt?: string;
   completedAt?: string;
+  /** 'main_turn' | 'subagent' — campo real del JSONL de rollout (model.role NO existe). */
+  querySource?: string;
   model?: { modelId?: string; providerId?: string; role?: string };
   response?: {
     usage?: {
@@ -142,13 +207,13 @@ export function readZcodeRollout(sinceCompletedMs = 0): {
       if (!u || ((u.inputTokens ?? 0) === 0 && (u.outputTokens ?? 0) === 0)) continue;
       const sessionId = r.sessionId || file.replace(/^model-io-|\.jsonl$/g, '') || 'zcode-unknown';
       const model = r.model?.modelId || 'unknown';
-      const agent: 'orchestrator' | 'subagent' =
-        r.model?.role && r.model.role !== 'main' ? 'subagent' : 'orchestrator';
+      const { agent, agentName } = classifyZcodeAgent(r);
       txns.push({
         sessionId,
         messageId: `zcode:${r.requestId}`,
         role: 'assistant',
         agent,
+        agentName,
         model,
         input: u.inputTokens ?? 0,
         output: u.outputTokens ?? 0,
@@ -225,6 +290,10 @@ export function readCodexRollout(sinceMs = 0): {
       continue;
     }
     const sessionId = file.match(/rollout-[\dT-]*-([0-9a-f-]{36})\.jsonl$/)?.[1] ?? 'codex-unknown';
+    const fileBase = file.split(/[\/]/).pop() ?? file;
+    const meta = parseCodexSessionMeta(lines.find((l) => l.includes('session_meta')));
+    const { agent, agentName } = classifyCodexAgent(meta);
+    let evtIdx = 0;
     for (const line of lines) {
       if (!line.includes('token_count')) continue;
       let evt: {
@@ -251,11 +320,13 @@ export function readCodexRollout(sinceMs = 0): {
       if (!u || ((u.input_tokens ?? 0) === 0 && (u.output_tokens ?? 0) === 0)) continue;
       const ts = evt.timestamp ? Date.parse(evt.timestamp) : 0;
       if (!Number.isFinite(ts) || ts < sinceMs) continue;
+      evtIdx++;
       txns.push({
         sessionId,
-        messageId: `codex:${sessionId}:${ts}:${txns.length}`,
+        messageId: codexMessageId(sessionId, fileBase, evtIdx),
         role: 'assistant',
-        agent: 'orchestrator',
+        agent,
+        agentName,
         model: 'codex',
         input: u.input_tokens ?? 0,
         output: u.output_tokens ?? 0,
@@ -365,6 +436,7 @@ export function readMinimaxUsage(sinceMs = 0): {
         messageId: `minimax:${r.id}`,
         role: 'assistant',
         agent,
+        agentName: r.agent_name || undefined,
         model: r.model || 'MiniMax-M3',
         input: r.input_tokens,
         output: r.output_tokens,
@@ -387,6 +459,8 @@ export interface TransactionUsage {
   messageId: string;
   role: string;
   agent: 'orchestrator' | 'subagent';
+  /** Nombre real del subagente cuando la fuente lo expone (codex/minimax) o etiqueta estable (zcode). */
+  agentName?: string;
   model: string;
   input: number;
   output: number;

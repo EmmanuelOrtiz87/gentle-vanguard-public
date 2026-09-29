@@ -220,6 +220,23 @@ function cosineSimilarity(
   return dot;
 }
 
+/** Hybrid lexical signal: exact capability names and declared trigger phrases beat broad prose. */
+export function lexicalBoost(queryTokens: string[], skillName: string, triggers: string[]): number {
+  const querySet = new Set(queryTokens);
+  const nameTokens = [...new Set(tokenize(skillName))];
+  let boost =
+    nameTokens.length > 0 && nameTokens.every((token) => querySet.has(token)) ? 0.2 : 0;
+
+  for (const trigger of triggers) {
+    const triggerTokens = [...new Set(tokenize(trigger))];
+    if (triggerTokens.length === 0) continue;
+    if (triggerTokens.every((token) => querySet.has(token))) {
+      boost = Math.max(boost, triggerTokens.length >= 2 ? 0.12 : 0.04);
+    }
+  }
+  return boost;
+}
+
 // ---- Fallback: fuzzy keyword matching ----
 
 const FUZZY_KEYWORDS: Record<string, string[]> = {
@@ -281,7 +298,10 @@ function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
   // Score all skills
   const scored: MatchResult[] = [];
   for (const skill of emb.skills) {
-    const sim = cosineSimilarity(queryVec, skill.vector);
+    const sim = Math.min(
+      1,
+      cosineSimilarity(queryVec, skill.vector) + lexicalBoost(tokens, skill.name, skill.triggers),
+    );
     if (sim > 0) {
       scored.push({
         skill: skill.name,

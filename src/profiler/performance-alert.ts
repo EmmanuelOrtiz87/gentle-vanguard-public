@@ -137,7 +137,7 @@ export function checkPerformance(): PerformanceAlert[] {
 
   if (!baseline || !current) {
     console.log('❌ No baseline or current results found');
-    console.log('   Run: npm run perf:baseline && npm run perf:run');
+    console.log('   Run: npm run profiler:baseline && npm run perf:run');
     return [];
   }
 

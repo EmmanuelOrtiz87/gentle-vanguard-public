@@ -35,14 +35,22 @@
  *   web         Web research (search|scrape|crawl) via native crawler
  *   eval        Continuous evaluation over real Nexus traces (F3.1; --gate)
  *   skill       Skill plugins: list|install|enable|disable|deprecate|remove|verify
+ *   landing     Unified CLI for gentlevanguard.github.io (setup|sync|verify|route|cleanup-mirror|show-pubkey)
+ *   webhook     Standard Webhooks 2026 tooling (generate|validate|pair|sign|verify|smoke|test)
+ *   mp          MercadoPago activate companion (doctor|status|webhook-url|test-webhook|...)
+ *   tenant      Multi-tenant index audit (gv tenant audit [--db <path>])
  *   help        Show this help
  */
 
 import { run, runSync, runNpxTsxSync, runSyncShell } from '../../adapters/command-runner.js';
+import { findPortOwner } from '../core/platform-utils.js';
 import { existsSync, readdirSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { pathToFileURL } from 'url';
+import { spawnSync } from 'node:child_process';
+
 import { printBanner } from './banner.js';
+import { StandardWebhooks, generateSecret } from '../webhooks/standard-webhooks.js';
 
 const ROOT = resolve(process.cwd());
 const SKILLS_DIR = join(ROOT, 'skills');
@@ -107,6 +115,10 @@ COMMANDS:
   eval        Continuous evaluation over real Nexus traces (--gate to fail on regression)
   skill       Skill plugins (list|install|enable|disable|deprecate|remove|verify)
   telemetry   Unified correlation timeline session/trace/tokens (--session <id>)
+  landing     gentlevanguard.github.io (setup|sync|verify|route|cleanup-mirror|show-pubkey)
+  webhook     Standard Webhooks 2026 (generate|validate|pair|sign|verify|smoke|test)
+  mp          MP activate companion (doctor|status|webhook-url|test-webhook|rotate-secret)
+  tenant      Multi-tenant index audit (gv tenant audit [--db <path>])
   help        Show this help
 
 EXAMPLES:
@@ -294,6 +306,254 @@ function cmdCleanup(_args: string[]): CommandResult {
   return { success: true, message: `Cleaned: ${killed} processes, ${cleaned} files` };
 }
 
+/**
+ * cmdLanding — CLI unificado para la landing oficial (gentlevanguard.github.io).
+ * Unifica los 3 scripts creados en Fases 4-6 en comandos simples:
+ *
+ *   gv landing setup            # SSH deploy key one-time setup
+ *   gv landing verify           # verifica conectividad SSH
+ *   gv landing show-pubkey      # muestra la publica para agregar al repo
+ *   gv landing sync             # sync apps/academy-landing/ → gentlevanguard
+ *   gv landing sync --dry-run   # diff sin pushear
+ *   gv landing cleanup-mirror   # borra apps/academy-landing/ del legacy mirror
+ *
+ * Detras de escena delega a src/ops/{setup-landing-deploy-key,sync-landing-
+ * gentlevanguard,cleanup-emmanuel-public}.ts
+ */
+function cmdLanding(args: string[]): CommandResult {
+  const sub = args[0] || 'help';
+  const rest = args.slice(1);
+  const forward = (script: string, label: string, extraArgs: string[] = []): CommandResult => {
+    // Spawn child with explicit argv array — avoids Windows shell quote quirks
+    // that merge arguments into single module paths. process.execPath is the
+    // absolute path to the current node binary (works in PATH-lookup-less envs).
+    const scriptAbs = resolve(ROOT, script);
+    // Flags explícitos por caso; si no hay, passthrough de lo que venga tras
+    // el subcomando (gv landing sync --force → --force llega al script).
+    const argv: string[] = [
+      '--import',
+      'tsx',
+      scriptAbs,
+      ...(extraArgs.length > 0 ? extraArgs : rest),
+    ];
+    const r = spawnSync(process.execPath, argv, {
+      cwd: ROOT,
+      stdio: 'inherit',
+      windowsHide: true,
+      encoding: 'utf8',
+    });
+    const status = r.status ?? 1;
+    return { success: status === 0, message: `${label} ${status === 0 ? 'OK' : `FAIL (${status})`}` };
+  };
+  switch (sub) {
+    case 'setup':
+      return forward('src/ops/setup-landing-deploy-key.ts', 'Setup SSH deploy key');
+    case 'verify':
+      return forward('src/ops/setup-landing-deploy-key.ts', 'Verify SSH', ['--verify']);
+    case 'show-pubkey':
+      return forward('src/ops/setup-landing-deploy-key.ts', 'Show pubkey', ['--show-pubkey']);
+    case 'sync':
+      return forward('src/ops/sync-landing-gentlevanguard.ts', 'Landing sync → gentlevanguard');
+    case 'cleanup-mirror':
+      return forward('src/ops/cleanup-emmanuel-public.ts', 'Cleanup legacy mirror');
+    case 'route':
+      return forward('src/ops/route-change.ts', 'Auto-route changes');
+    case 'help':
+    default:
+      console.log(`gv landing — unified CLI para gentlevanguard.github.io (URL de marca)
+
+Subcomandos:
+  setup              SSH deploy key one-time setup
+  verify             verifica conectividad SSH contra gentlevanguard
+  show-pubkey        imprime la clave publica (para agregar al repo)
+  sync               push de apps/academy-landing/ al ROOT del repo oficial
+  sync --dry-run     diff sin pushear
+  cleanup-mirror     borra apps/academy-landing/ del legacy mirror emmanuel-public
+  route [--staged|--ref <sha>]
+                     detecta el destino (stack/landing/public/violation) de un cambio
+
+Aliases: ninguno — el nombre "landing" es canonico porque la URL publica es la
+que el publico ve (gentlevanguard.github.io).
+`);
+      return { success: true, message: 'help shown' };
+  }
+}
+
+/**
+ * gv webhook — Standard Webhooks 2026 (sign + verify + secret tooling).
+ *
+ * Wraps `src/webhooks/secret-cli.ts` y agrega:
+ *   - `sign <body>`: firma un payload con un secret para testing/debugging
+ *   - `verify <id> <ts> <sig>`: verifica una firma contra un body (stdin)
+ *   - `smoke`: roundtrip end-to-end con secret efímero (exit 0 = OK)
+ */
+function cmdWebhook(args: string[]): CommandResult {
+  const sub = args[0] || 'help';
+  const rest = args.slice(1);
+  const forward = (extra: string[] = []): CommandResult => {
+    const scriptAbs = resolve(ROOT, 'src/webhooks/secret-cli.ts');
+    const argv: string[] = ['--import', 'tsx', scriptAbs, ...extra];
+    const r = spawnSync(process.execPath, argv, {
+      cwd: ROOT,
+      stdio: 'inherit',
+      windowsHide: true,
+      encoding: 'utf8',
+    });
+    return {
+      success: (r.status ?? 1) === 0,
+      message: `secret-cli ${extra.join(' ')} ${r.status === 0 ? 'OK' : `FAIL (${r.status})`}`,
+    };
+  };
+
+  switch (sub) {
+    case 'generate':
+      return forward(['generate']);
+    case 'validate':
+      return forward(['validate', ...rest]);
+    case 'pair':
+      return forward(['pair']);
+
+    case 'sign': {
+      // gv webhook sign --secret <whsec_...> [--id msg_xxx] [--ts <unix>] < body.json
+      // → imprime los 3 headers (webhook-id / webhook-timestamp / webhook-signature) en formato
+      // `Header: value` para copy-paste o usar en curl.
+      const secretIdx = rest.indexOf('--secret');
+      const secret = secretIdx >= 0 ? rest[secretIdx + 1] : process.env.WEBHOOK_SIGNING_SECRET;
+      if (!secret) {
+        return { success: false, message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET' };
+      }
+      const idIdx = rest.indexOf('--id');
+      const tsIdx = rest.indexOf('--ts');
+      const id = idIdx >= 0 ? rest[idIdx + 1] : `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const ts = tsIdx >= 0 ? Number(rest[tsIdx + 1]) : Math.floor(Date.now() / 1000);
+      const chunks: Buffer[] = [];
+      try {
+        const stdin = readFileSync(0); // synchronous stdin read (works for piped input)
+        chunks.push(stdin);
+      } catch {
+        return { success: false, message: 'stdin requerido: pasá el body por pipe (echo \'...\' | gv webhook sign ...)' };
+      }
+      const body = Buffer.concat(chunks).toString('utf8') || '{}';
+      const sw = new StandardWebhooks(secret);
+      const sig = sw.sign(id, ts, body);
+      console.log(`webhook-id: ${id}`);
+      console.log(`webhook-timestamp: ${ts}`);
+      console.log(`webhook-signature: ${sig}`);
+      return { success: true, message: `signed ${body.length} bytes` };
+    }
+
+    case 'verify': {
+      // gv webhook verify --secret <whsec_...> --id msg_xxx --ts <unix> --sig 'v1,...' < body.json
+      // → exit 0 si la firma es válida y dentro de la tolerancia, 1 si falla (con reason).
+      const get = (flag: string): string | undefined => {
+        const i = rest.indexOf(flag);
+        return i >= 0 ? rest[i + 1] : undefined;
+      };
+      const secret = get('--secret') || process.env.WEBHOOK_SIGNING_SECRET;
+      if (!secret) {
+        return { success: false, message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET' };
+      }
+      const id = get('--id');
+      const tsRaw = get('--ts');
+      const sig = get('--sig');
+      if (!id || !tsRaw || !sig) {
+        return { success: false, message: 'faltan --id / --ts / --sig' };
+      }
+      const chunks: Buffer[] = [];
+      try {
+        chunks.push(readFileSync(0));
+      } catch {
+        return { success: false, message: 'stdin requerido' };
+      }
+      const body = Buffer.concat(chunks).toString('utf8') || '{}';
+      const sw = new StandardWebhooks(secret);
+      const result = sw.verify(
+        { id, timestamp: tsRaw, signature: sig },
+        body,
+        { now: Math.floor(Date.now() / 1000) },
+      );
+      if (result.ok) {
+        console.log('OK — signature valid');
+        return { success: true, message: 'verify OK' };
+      }
+      console.log(`FAIL — ${result.reason}`);
+      return { success: false, message: `verify FAIL: ${result.reason}` };
+    }
+
+    case 'smoke': {
+      // Roundtrip end-to-end con secret efímero (no toca la DB, no toca la red).
+      // Útil para CI/local sanity check de que el módulo sigue sano.
+      const sw = new StandardWebhooks(generateSecret());
+      const id = 'msg_smoke';
+      const ts = Math.floor(Date.now() / 1000);
+      const body = '{"event":"smoke","ts":' + ts + '}';
+      const sig = sw.sign(id, ts, body);
+      const result = sw.verify(
+        { id, timestamp: ts.toString(), signature: sig },
+        body,
+        { now: ts },
+      );
+      if (result.ok) {
+        console.log(`OK — signed ${body.length} bytes and verified in-process`);
+        return { success: true, message: 'smoke OK' };
+      }
+      console.log(`FAIL — ${result.reason}`);
+      return { success: false, message: `smoke FAIL: ${result.reason}` };
+    }
+
+    case 'test': {
+      // Corre la suite unit de standard-webhooks (13 casos). Útil en CI / pre-commit.
+      const testAbs = resolve(ROOT, 'tests/unit/webhooks/standard-webhooks.test.ts');
+      const argv: string[] = ['--import', 'tsx', '--test', testAbs];
+      const r = spawnSync(process.execPath, argv, {
+        cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+      });
+      return {
+        success: (r.status ?? 1) === 0,
+        message: `standard-webhooks tests ${r.status === 0 ? 'OK' : `FAIL (${r.status})`}`,
+      };
+    }
+
+    case 'help':
+    default:
+      console.log(`gv webhook — Standard Webhooks 2026 (sign + verify + secret tooling)
+
+Subcomandos:
+  generate                                Genera un whsec_<base64> nuevo (32 bytes por defecto)
+  validate <whsec_...>                     Valida formato de un secret (exit 0/1)
+  pair                                    Genera secret + imprime wiring de env vars
+                                          para mp-bridge (sender) y academy-crm (receiver)
+  sign [--secret <whsec_...>] [--id <id>] [--ts <unix>]
+                                         Firma body desde STDIN. Imprime headers
+                                         webhook-id / -timestamp / -signature listos
+                                         para curl. Default secret: $WEBHOOK_SIGNING_SECRET.
+                                         Default id: msg_<ts>_<rand>. Default ts: now.
+  verify [--secret <whsec_...>] --ts <unix> --sig 'v1,...'
+                                         --id <id>
+                                         Verifica firma de body desde STDIN.
+                                         exit 0 = válido, exit 1 = inválido (con reason).
+  smoke                                   Roundtrip end-to-end in-process con secret
+                                         efímero. Útil para CI sanity check.
+
+Ejemplos:
+  # Generar y copiar al .env
+  gv webhook generate
+  gv webhook pair
+
+  # Firmar un payload y mandarlo por curl
+  echo '{"event":"test"}' | gv webhook sign --secret whsec_xxx \\
+    | awk '/^webhook-/{h=h " -H \"" $0 "\""}' \\
+    | xargs -I {} curl -X POST https://crm.example/api/webhooks/mp-sale {} -d @-
+
+  # Verificar la firma que recibiste en una request
+  cat body.json | gv webhook verify \\
+    --secret whsec_xxx \\
+    --id msg_abc --ts 1700000000 \\
+    --sig 'v1,AABBCC...'`);
+      return { success: true, message: 'help shown' };
+  }
+}
+
 function cmdSession(args: string[]): CommandResult {
   const subcmd = args[0] || 'status';
   switch (subcmd) {
@@ -467,16 +727,7 @@ function cmdCc(args: string[]): CommandResult {
         }
         if (!pid && isCcRunning()) {
           // Pidfile lost (e.g. kill/start race) — find the listener on the CC port.
-          const r = runSync(
-            'powershell',
-            [
-              '-NoProfile',
-              '-Command',
-              `@(Get-NetTCPConnection -LocalPort ${ccPort()} -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1).OwningProcess`,
-            ],
-            { timeout: 5000, stdio: 'pipe' },
-          );
-          pid = Number((r.stdout ?? '').trim());
+          pid = findPortOwner(ccPort()) ?? 0;
         }
         if (!pid || !pidFileExistsAlive(pid)) {
           if (existsSync(pidFile)) unlinkSync(pidFile);
@@ -502,6 +753,98 @@ function cmdCc(args: string[]): CommandResult {
         message: running
           ? `Command Center running: http://127.0.0.1:${ccPort()}/`
           : 'Command Center not running',
+      };
+    }
+  }
+}
+
+function cmdDemo(args: string[]): CommandResult {
+  const subcmd = args[0] || 'status';
+  const demoPort = Number(process.env.SANDBOX_GV_PORT ?? 4000);
+  const demoUrl = `http://127.0.0.1:${demoPort}`;
+
+  const isDemoRunning = (): boolean => {
+    const r = runSync('curl', ['-s', `${demoUrl}/api/health`], { timeout: 2000, stdio: 'pipe' });
+    return r.status === 0;
+  };
+
+  switch (subcmd) {
+    case 'start': {
+      if (isDemoRunning()) {
+        return { success: true, message: `Demo Console already running: ${demoUrl}/` };
+      }
+      try {
+        const child = run(process.execPath, ['--import', 'tsx', 'apps/sandbox-gv/start.ts'], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true,
+          cwd: ROOT,
+        });
+        child.unref();
+        return { success: true, message: `Demo Console starting: ${demoUrl}/` };
+      } catch (e) {
+        return { success: false, message: `Failed: ${e}` };
+      }
+    }
+    case 'stop': {
+      try {
+        const pidFile = join(RUNTIME_DIR, 'sandbox-gv.pid');
+        let pid = 0;
+        if (existsSync(pidFile)) {
+          pid = Number(readFileSync(pidFile, 'utf-8').trim());
+          if (!pid || Number.isNaN(pid)) pid = 0;
+        }
+        if (!pid && isDemoRunning()) {
+          pid = findPortOwner(demoPort) ?? 0;
+        }
+        if (!pid || !pidFileExistsAlive(pid)) {
+          if (existsSync(pidFile)) unlinkSync(pidFile);
+          return { success: false, message: 'Demo Console not running' };
+        }
+        if (process.platform === 'win32')
+          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], { timeout: 8000, stdio: 'ignore' });
+        else process.kill(pid, 'SIGTERM');
+        if (existsSync(pidFile)) unlinkSync(pidFile);
+
+        // Detener tambien las apps del sandbox (wpp-bot, etc.) — cierre completo
+        const stopApps = runSync(
+          process.execPath,
+          ['--import', 'tsx', 'apps/sandbox-gv/src/cli.ts', 'stop-all'],
+          { cwd: ROOT, timeout: 30000, stdio: 'pipe' },
+        );
+        const appsOut = ((stopApps.stdout ?? '') + (stopApps.stderr ?? '')).trim();
+
+        return {
+          success: true,
+          message: `Demo Console stopped (PID ${pid})${appsOut ? `\n${appsOut}` : ''}`,
+        };
+      } catch (e) {
+        return { success: false, message: `Failed: ${e}` };
+      }
+    }
+    case 'list':
+    case 'run': {
+      // Delegar al CLI de sandbox-gv (list / run <app> <action>)
+      const cliArgs = ['--import', 'tsx', 'apps/sandbox-gv/src/cli.ts', ...args];
+      const r = runSync(process.execPath, cliArgs, { cwd: ROOT, timeout: 120000, stdio: 'pipe' });
+      const out = ((r.stdout ?? '') + (r.stderr ?? '')).trim();
+      return { success: r.status === 0, message: out || `sandbox-gv ${subcmd} done` };
+    }
+    case 'doctor': {
+      // Diagnostico + auto-reparacion del pipeline de demos
+      const cliArgs = ['--import', 'tsx', 'apps/sandbox-gv/src/doctor.ts', ...args.slice(1)];
+      const r = runSync(process.execPath, cliArgs, { cwd: ROOT, timeout: 180000, stdio: 'pipe' });
+      const out = ((r.stdout ?? '') + (r.stderr ?? '')).trim();
+      return { success: r.status === 0, message: out || 'sandbox-gv doctor done' };
+    }
+    case 'status':
+    default: {
+      const running = isDemoRunning();
+      return {
+        success: running,
+        message: running
+          ? `Demo Console running: ${demoUrl}/`
+          : 'Demo Console not running (use: gv demo start)',
       };
     }
   }
@@ -1005,6 +1348,13 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'demo': {
+      const r = cmdDemo(args.slice(1));
+      if (r.message) console.log(r.message);
+      process.exit(r.success ? 0 : 1);
+      break;
+    }
+
     case 'proposals': {
       const r = cmdProposals(args.slice(1));
       if (r.message) console.log(r.message);
@@ -1016,6 +1366,54 @@ async function main(): Promise<void> {
       const r = cmdCleanup(args.slice(1));
       console.log(r.message);
       process.exit(r.success ? 0 : 1);
+      break;
+    }
+
+    case 'landing': {
+      const r = cmdLanding(args.slice(1));
+      if (r.message) console.log(r.message);
+      process.exit(r.success ? 0 : 1);
+      break;
+    }
+
+    case 'webhook': {
+      const r = cmdWebhook(args.slice(1));
+      if (r.message) console.log(r.message);
+      process.exit(r.success ? 0 : 1);
+      break;
+    }
+
+    case 'tenant': {
+      const subcmd = args[1] || 'help';
+      if (subcmd === 'audit') {
+        const extra = args.slice(2);
+        const scriptAbs = resolve(ROOT, 'src/ops/tenant-audit.ts');
+        const argv: string[] = ['--import', 'tsx', scriptAbs, ...extra];
+        const r = spawnSync(process.execPath, argv, {
+          cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+        });
+        process.exit(r.status === 0 || r.status === 1 ? (r.status ?? 1) : 1);
+      }
+      console.log(`gv tenant — multi-tenant index audit
+
+Uso:
+  gv tenant audit [--db <path>] [--allow-exceptions]
+                  Audita que todos los índices compuestos tengan tenant_id LEADING.
+                  Default DB: apps/academy-crm/.runtime/crm.db
+                  --allow-exceptions → output JSON + exit 0/1 (para CI)
+                  Exit codes: 0 = OK, 1 = violations, 2 = DB no existe
+`);
+      break;
+    }
+
+    case 'mp': {
+      // Forward to src/cli/gv-mp.ts (companion CLI específico para MP activate).
+      const scriptAbs = resolve(ROOT, 'src/cli/gv-mp.ts');
+      const argv: string[] = ['--import', 'tsx', scriptAbs, ...args.slice(1)];
+      const r = spawnSync(process.execPath, argv, {
+        cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+      });
+      process.exit(r.status ?? 1);
       break;
     }
 

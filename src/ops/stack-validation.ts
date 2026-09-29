@@ -18,7 +18,7 @@
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { runSync } from '../core/run-command.js';
+import { runSync, runNpxTsxSync } from '../core/run-command.js';
 
 const ROOT = resolve(process.cwd());
 const VALIDATION_LOG = join(ROOT, '.runtime', 'validation-report.json');
@@ -188,7 +188,17 @@ async function testOwaspDocs(): Promise<boolean> {
 // Test 8: Package Scripts
 async function testPackageScripts(): Promise<boolean> {
   const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
-  const requiredScripts = ['delegate:intelligent', 'delegate:status', 'route:analyze'];
+  const requiredScripts = [
+    'delegate:intelligent',
+    'delegate:status',
+    'route:analyze',
+    'stack:facts:check',
+    'perf:gate',
+    'skills:quality:gate',
+    'skills:e2e:check',
+    'db:recovery:drill',
+    'session:recovery:drill',
+  ];
 
   const scripts = packageJson.scripts || {};
   const missing = requiredScripts.filter((s) => !scripts[s]);
@@ -198,6 +208,23 @@ async function testPackageScripts(): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+function runGate(script: string, timeout = 60000): boolean {
+  const result = runSync('npm', ['run', script], { cwd: ROOT, timeout });
+  return result.status === 0;
+}
+
+async function testStackFacts(): Promise<boolean> {
+  return runGate('stack:facts:check');
+}
+
+async function testPerformanceGate(): Promise<boolean> {
+  return runGate('perf:gate');
+}
+
+async function testSkillQualityGate(): Promise<boolean> {
+  return runGate('skills:quality:gate');
 }
 
 // Test 9: Runtime Directories
@@ -235,6 +262,22 @@ async function testWatchtower(): Promise<boolean> {
   }
 }
 
+// Test 11: Docs Consistency (documentación de clientes coherente entre sí)
+// Valida hitos (suma 100%), montos USD, opción de PI (+40%) y ausencia de
+// "open source" en contratos — previene contradicciones entre propuesta,
+// contrato, pitch y kickoff (bug histórico 30/40/30 vs 50/40/10).
+async function testDocsConsistency(): Promise<boolean> {
+  try {
+    const result = runNpxTsxSync('src/ops/docs-consistency.ts', ['--all'], {
+      cwd: ROOT,
+      timeout: 60000,
+    });
+    return result.status === 0;
+  } catch {
+    return false;
+  }
+}
+
 // =============================================================================
 // MAIN
 // =============================================================================
@@ -264,7 +307,11 @@ async function main(): Promise<void> {
   // Infrastructure Tests
   log('\nRunning infrastructure tests...', 'info');
   await runTest('Package Scripts', testPackageScripts, false);
+  await runTest('Generated Stack Facts', testStackFacts, true);
+  await runTest('Performance Regression Gate', testPerformanceGate, true);
+  await runTest('Skill Quality Gate', testSkillQualityGate, true);
   await runTest('Lint Check', testLint, false);
+  await runTest('Docs Consistency', testDocsConsistency, true);
 
   if (!quickMode) {
     await runTest('Watchtower Health', testWatchtower, false);

@@ -155,6 +155,7 @@ interface CacheEntry {
   mtimeMs: number;
   loadedAt: number;
   path: string;
+  localMtimeMs?: number;
 }
 
 const cache = new Map<string, CacheEntry>();
@@ -177,6 +178,8 @@ export interface LoadOptions<T extends object> {
   noCache?: boolean;
   /** Custom directory (default: <root>/config). */
   dir?: string;
+  /** Skip the user-local layer (config/local/<name>.json). Default: false — local wins. */
+  noLocal?: boolean;
 }
 
 /**
@@ -189,13 +192,28 @@ export function loadConfigFile<T extends object>(
 ): LoadedConfig<T> {
   const dir = options.dir ?? CONFIG_DIR;
   const filePath = join(dir, `${name}.json`);
+  const localPath = join(dir, 'local', `${name}.json`);
   const warnings: string[] = [];
+
+  // Local layer (3-tier governance, docs/GOVERNANCE-USERS.md): config/local/<name>.json
+  // overrides canon. Precedence: local wins. Cache key includes both mtimes.
+  let localData: unknown;
+  let localMtime = 0;
+  if (!options.noLocal && existsSync(localPath)) {
+    try {
+      localMtime = statSync(localPath).mtimeMs;
+      localData = JSON.parse(readFileSync(localPath, 'utf-8'));
+    } catch (e) {
+      warnings.push(`local override parse error in ${localPath}: ${(e as Error).message}`);
+      localData = undefined;
+    }
+  }
 
   let entry = cache.get(filePath);
   if (entry && !options.noCache) {
     try {
       const mtime = statSync(filePath).mtimeMs;
-      if (mtime === entry.mtimeMs) {
+      if (mtime === entry.mtimeMs && localMtime === (entry.localMtimeMs ?? 0)) {
         stats.hits++;
         return { data: entry.data as T, source: entry.path, warnings };
       }
@@ -238,8 +256,12 @@ export function loadConfigFile<T extends object>(
 
   if (data === undefined) data = {};
 
-  const merged = options.defaults ? deepMerge(options.defaults, data) : (data as T);
-  if (entry) cache.set(filePath, entry);
+  // Apply local layer AFTER defaults merge: local wins over everything.
+  let merged = options.defaults ? deepMerge(options.defaults, data) : (data as T);
+  if (localData !== undefined && localData !== null) {
+    merged = deepMerge(merged as object, localData) as T;
+  }
+  if (entry) cache.set(filePath, { ...entry, localMtimeMs: localMtime });
   return { data: merged as T, source: entry?.path ?? '', warnings };
 }
 

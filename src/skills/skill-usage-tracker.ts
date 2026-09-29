@@ -7,17 +7,21 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { createRequire } from 'module';
+import { DatabaseManager } from '../database/nexus/manager.js';
+import type { SkillEvidenceKind } from '../database/nexus/repositories/SkillRepo.js';
+import { parseSkillRegistry } from './skill-registry-parser.js';
 
-const _require = createRequire(import.meta.url);
-
-// Lazy db import for SQLite dual-write
-// Minimal shape of the DatabaseManager used here (full manager lives in apps/web-dashboard)
+// Minimal shape of the DatabaseManager used for lazy SQLite dual-write.
 interface SkillUsageDbManager {
   recordSkillUsage: (
     skillName: string,
     sessionId: string | undefined,
     tokenCount: number,
+  ) => unknown;
+  recordSkillOutcome: (
+    skillName: string,
+    success: boolean,
+    options?: { detail?: string; evidenceKind?: SkillEvidenceKind },
   ) => unknown;
 }
 
@@ -25,8 +29,7 @@ let _db: SkillUsageDbManager | null = null;
 function getDb(): SkillUsageDbManager | null {
   if (!_db) {
     try {
-      const mod = _require('../database/nexus//manager');
-      _db = mod.DatabaseManager.getInstance();
+      _db = DatabaseManager.getInstance();
     } catch {
       // SQLite not available — skip dual-write
     }
@@ -98,15 +101,7 @@ function getInitialMetric(name: string): SkillMetric {
 function getSkillList(): string[] {
   const registry = join(repoRoot, '.atl', 'skill-registry.md');
   if (!existsSync(registry)) return [];
-  const content = readFileSync(registry, 'utf-8');
-  const skills: string[] = [];
-  const re = /(?<=\|\s)[a-z][a-z0-9_-]+(?=\s+\|)/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(content)) !== null) {
-    const s = m[0].trim();
-    if (s && s.length > 2 && s !== 'Name' && s !== 'Skill' && s !== 'Agent') skills.push(s);
-  }
-  return [...new Set(skills)].sort();
+  return parseSkillRegistry(readFileSync(registry, 'utf-8'));
 }
 
 function readMetric(name: string): SkillMetric | null {
@@ -125,7 +120,38 @@ function saveMetric(name: string, metric: SkillMetric): void {
   writeFileSync(join(usageDir, `${name}.json`), JSON.stringify(metric, null, 2), 'utf-8');
 }
 
-function increment(name: string, outcome: string | null, tokenCount: number): void {
+export function parseExplicitOutcome(outcome: string | null): boolean | null {
+  if (!outcome) return null;
+  const normalized = outcome.trim().toLowerCase();
+  if (['success', 'succeeded', 'completed', 'pass', 'passed'].includes(normalized)) return true;
+  if (['failure', 'failed', 'error', 'fail'].includes(normalized)) return false;
+  return null;
+}
+
+function writeOutcome(
+  name: string,
+  outcome: string | null,
+  detail?: string,
+  evidenceKind: SkillEvidenceKind = 'production',
+): void {
+  const success = parseExplicitOutcome(outcome);
+  if (success === null) return;
+  try {
+    getDb()?.recordSkillOutcome(name, success, {
+      detail: detail ?? outcome ?? undefined,
+      evidenceKind,
+    });
+  } catch {
+    /* Nexus outcome recording is best-effort; file metrics remain available. */
+  }
+}
+
+function increment(
+  name: string,
+  outcome: string | null,
+  tokenCount: number,
+  evidenceKind: SkillEvidenceKind,
+): void {
   const metric = readMetric(name) || getInitialMetric(name);
   metric.useCount++;
   metric.lastUsedAt = new Date().toISOString();
@@ -144,9 +170,15 @@ function increment(name: string, outcome: string | null, tokenCount: number): vo
   } catch {
     /* */
   }
+  writeOutcome(name, outcome, undefined, evidenceKind);
 }
 
-function recordFailure(name: string, errorType: string, description: string): void {
+function recordFailure(
+  name: string,
+  errorType: string,
+  description: string,
+  evidenceKind: SkillEvidenceKind,
+): void {
   const metric = readMetric(name) || getInitialMetric(name);
   metric.useCount++;
   metric.failureCount++;
@@ -175,9 +207,15 @@ function recordFailure(name: string, errorType: string, description: string): vo
   } catch {
     /* */
   }
+  writeOutcome(name, 'failure', `${errorType}: ${description}`, evidenceKind);
 }
 
-function record(name: string, outcome: string | null, tokenCount: number): void {
+function record(
+  name: string,
+  outcome: string | null,
+  tokenCount: number,
+  evidenceKind: SkillEvidenceKind,
+): void {
   const metric = readMetric(name) || getInitialMetric(name);
   metric.lastUsedAt = new Date().toISOString();
   if (outcome) metric.lastOutcome = outcome;
@@ -197,6 +235,7 @@ function record(name: string, outcome: string | null, tokenCount: number): void 
   } catch {
     /* */
   }
+  writeOutcome(name, outcome, undefined, evidenceKind);
 }
 
 function scan(): void {
@@ -272,6 +311,13 @@ function main(): void {
   );
   const errorType = args.includes('--error-type') ? args[args.indexOf('--error-type') + 1] : '';
   const description = args.includes('--description') ? args[args.indexOf('--description') + 1] : '';
+  const requestedEvidenceKind = args.includes('--evidence-kind')
+    ? args[args.indexOf('--evidence-kind') + 1]
+    : 'production';
+  if (!['production', 'evaluation', 'maintenance'].includes(requestedEvidenceKind)) {
+    throw new Error(`Invalid --evidence-kind: ${requestedEvidenceKind}`);
+  }
+  const evidenceKind = requestedEvidenceKind as SkillEvidenceKind;
   const report = args.includes('--report');
 
   ensureDir(usageDir);
@@ -289,13 +335,13 @@ function main(): void {
 
   switch (action) {
     case 'increment':
-      increment(skillName, outcome, tokenCount);
+      increment(skillName, outcome, tokenCount, evidenceKind);
       break;
     case 'fail':
-      recordFailure(skillName, errorType, description);
+      recordFailure(skillName, errorType, description, evidenceKind);
       break;
     case 'record':
-      record(skillName, outcome, tokenCount);
+      record(skillName, outcome, tokenCount, evidenceKind);
       break;
     default: {
       const metric = readMetric(skillName);

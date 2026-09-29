@@ -1,22 +1,23 @@
 /* ==========================================================================
    Gentle-Vanguard — Unified Design System (v2.0 — Official Brand v2 Premium)
    --------------------------------------------------------------------------
-   Shared stylesheet for ALL presentations. Aligned with the canonical
-   design system (packages/gv-design-system/src/tokens/tokens.json v2.0.0-alpha.1)
-   and the official brand decision (docs/brand/BRAND-DECISION-2026-09-01.md):
-   - Palette: #a78bfa (purple) / #22d3ee (cyan) / #0F1115 (bg) — BRAND-DECISION-2026-09-01.md (v2 Premium)
+   HOMOLOGADO con el shell canónico del stack
+   (packages/gv-design-system/src/shell/shell.css + tokens v2.0.0, ADR-0026)
+   y la decisión de marca oficial (docs/brand/BRAND-DECISION-2026-09-01.md):
+   - Palette: #a78bfa (purple) / #22d3ee (cyan) / #0F1115 (bg) — v2 Premium
    - Dark-first, WCAG 2.2 AA, Anti-AI-Slop, Premium Commercial Grade
-   - Aurora / mesh gradients + grain noise (fondo premium estilo Linear/Vercel)
-   - Glassmorphism refinado (blur sutil en navbar y sticky headers)
-   - Hover spotlight cards (luz que sigue al cursor)
-   - Scroll progress bar (CSS scroll-driven con fallback JS)
-   - Glowing borders animados (@property + conic-gradient)
-   - Fluid typography, text-wrap balance, prefers-reduced-motion
+   - Shell canónico: .gv-topbar / .gv-brand / .gv-view-tabs / .gv-icon-btn /
+     .gv-lang-dropdown / .gv-theme-toggle / .gv-panel / .gv-btn / .gv-footer
+   - Atmósfera canónica: .gv-grid-bg + .gv-glow-a/b (sin CDN, local-first)
+   - Tema claro vía :root[data-theme='light'] + key gv-cc-theme
+   - Idioma vía .gv-lang-dropdown + key gv-cc-lang
+   - Transiciones canónicas: 180ms ease-out (--gv-duration-fast / --gv-ease-out)
    ========================================================================== */
 
 /* --- 1. Design Tokens (Official v2 palette — source of truth) ---------- */
 :root {
   color-scheme: dark;
+  /* Shell canónico (packages/gv-design-system/src/tokens/tokens.json) */
   --gv-purple: #a78bfa;
   --gv-purple-deep: #7c3aed;
   --gv-purple-soft: #c4b5fd;
@@ -28,8 +29,8 @@
   --gv-surface: #1a1f2a;
   --gv-surface-raised: #252b38;
   --gv-text: #e8eef4;
-  --gv-muted: #c4cdd8;
-  --gv-glass: rgba(26, 31, 42, 0.6);
+  --gv-muted: #8b95a8;
+  --gv-glass: rgba(26, 31, 42, 0.72);
   --gv-glass-border: rgba(167, 139, 250, 0.24);
   --gv-gradient: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
   --gv-gradient-subtle: linear-gradient(
@@ -42,44 +43,48 @@
   --gv-red: #ee6d75;
   --gv-green: #4ade80;
   --gv-info: #22d3ee;
-  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
-  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  /* Radii / elevación / duración canónicos */
+  --gv-radius-sm: 8px;
+  --gv-radius-md: 12px;
+  --gv-radius-lg: 18px;
+  --gv-radius-pill: 999px;
+  --gv-elev-md: 0 8px 24px rgba(0, 0, 0, 0.24);
+  --gv-duration-fast: 180ms;
+  --gv-ease-out: ease-out;
+  --gv-content-max-width: 1180px;
+  --gv-z-sticky: 50;
+  /* Tipografía oficial */
+  --gv-font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --gv-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --gv-font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  /* Alias de contenido (compatibilidad con componentes de página) */
+  --font: var(--gv-font-body);
+  --mono: var(--gv-font-mono);
+  --display: var(--gv-font-display);
   --header-h: 62px;
-  /* Acentos funcionales (oficiales v2.0) */
-  --p: #22d3ee; /* cyan primario oficial */
-  --pl: #67e8f9; /* cyan claro */
-  --a: #a78bfa; /* purple acento oficial */
-  --ok: #4ade80; /* verde éxito */
-  --wn: #f4bb4f; /* amber warning */
-  --er: #ee6d75; /* rojo error */
-
-  /* Superficies oscuras (escala oficial v2.0) */
-  --bg: oklch(0.17 0.02 262); /* fondo base #0F1115 */
-  --bg2: oklch(0.19 0.02 262); /* fondo secundario */
-  --card: oklch(0.22 0.025 262); /* card base */
-  --card2: oklch(0.25 0.025 262); /* card elevada / hover */
-  --card3: oklch(0.28 0.025 262); /* popover / modal */
-  --br: oklch(0.3 0.02 262); /* borde base */
-  --br-soft: color-mix(in oklab, white 8%, transparent); /* borde sutil premium */
-
-  /* Texto */
+  --p: #22d3ee;
+  --pl: #67e8f9;
+  --a: #a78bfa;
+  --ok: #4ade80;
+  --wn: #f4bb4f;
+  --er: #ee6d75;
+  --bg: oklch(0.17 0.02 262);
+  --bg2: oklch(0.19 0.02 262);
+  --card: oklch(0.22 0.025 262);
+  --card2: oklch(0.25 0.025 262);
+  --card3: oklch(0.28 0.025 262);
+  --br: oklch(0.3 0.02 262);
+  --br-soft: color-mix(in oklab, white 8%, transparent);
   --text: #e8eef4;
   --text-dim: #c4cdd8;
   --text-faint: #8b95a8;
-
-  /* Radii y sombras */
   --r-lg: 18px;
   --r-md: 12px;
   --r-sm: 8px;
   --glow-cyan: 0 0 24px oklch(0.8 0.15 210 / 0.18);
   --glow-purple: 0 0 24px oklch(0.7 0.18 290 / 0.16);
-
-  /* Tipografía fluida */
   --fs-hero: clamp(2.4rem, 6vw, 4.8rem);
   --fs-h2: clamp(1.5rem, 3vw, 2.2rem);
-
-  /* Ángulo para bordes glow animados */
   --angle: 0deg;
 }
 
@@ -88,12 +93,20 @@
   scroll-behavior: smooth;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  font-family: var(--font);
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--gv-font-body);
   background: var(--gv-bg);
   color: var(--gv-text);
   overflow-x: hidden;
@@ -104,19 +117,7 @@ body {
 
 code,
 .mono {
-  font-family: var(--mono);
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -3;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(167, 139, 250, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
-  background-size: 48px 48px;
+  font-family: var(--gv-font-mono);
 }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
@@ -156,136 +157,388 @@ p {
   text-wrap: pretty;
 }
 
-/* --- 3. Aurora + Grain background -------------------------------------- */
-.aurora {
+/* --- 3. Atmósfera canónica: grid bg + glows (reemplaza aurora/grain) ---- */
+.gv-grid-bg {
+  /* impeccable-disable codex-grid-background: official GV atmosphere for navigation shells. */
   position: fixed;
   inset: 0;
   z-index: -2;
-  overflow: hidden;
   pointer-events: none;
-}
-.aurora span {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px) saturate(1.25);
-  mix-blend-mode: screen;
-  opacity: 0.55;
-  animation: aurora-drift 26s ease-in-out infinite alternate;
-}
-.aurora span:nth-child(1) {
-  width: 55vmax;
-  height: 55vmax;
-  background: oklch(0.55 0.18 250 / 0.5);
-  top: -18%;
-  left: -12%;
-}
-.aurora span:nth-child(2) {
-  width: 45vmax;
-  height: 45vmax;
-  background: oklch(0.6 0.15 200 / 0.42);
-  bottom: -25%;
-  right: -8%;
-  animation-delay: -9s;
-}
-.aurora span:nth-child(3) {
-  width: 40vmax;
-  height: 40vmax;
-  background: oklch(0.55 0.2 310 / 0.36);
-  top: 35%;
-  left: 55%;
-  animation-delay: -17s;
-}
-@keyframes aurora-drift {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(8%, 6%) scale(1.15);
-  }
-  100% {
-    transform: translate(-6%, -8%) scale(0.88);
-  }
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--gv-purple, #a78bfa) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--gv-cyan, #22d3ee) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 85% 80% at 50% 35%, black 35%, transparent 100%);
 }
 
-/* Grain / noise (elimina banding de gradients — el secreto de los fondos premium) */
-.grain::after {
-  content: '';
+.gv-glow-a,
+.gv-glow-b {
   position: fixed;
-  inset: 0;
   z-index: -1;
+  width: 42rem;
+  height: 42rem;
+  border-radius: 50%;
   pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  filter: blur(48px);
 }
 
-/* --- 4. Glass Navbar ---------------------------------------------------- */
-.nav-blur {
-  background: oklch(0.17 0.03 262 / 0.72);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  backdrop-filter: blur(16px) saturate(1.4);
-  border-bottom: 1px solid var(--br-soft);
-  z-index: 1050;
-  transition:
-    box-shadow 0.3s ease,
-    background 0.3s ease;
+.gv-glow-a {
+  top: -20rem;
+  right: -14rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gv-purple, #a78bfa) 18%, transparent),
+    transparent 68%
+  );
 }
-.nav-blur.scrolled {
-  box-shadow: 0 4px 30px oklch(0.1 0.02 262 / 0.5);
-  background: oklch(0.16 0.03 262 / 0.85);
+
+.gv-glow-b {
+  bottom: -20rem;
+  left: -14rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gv-cyan, #22d3ee) 15%, transparent),
+    transparent 68%
+  );
 }
-.nav-blur .nav-link {
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  font-weight: 500;
-  padding: 0.5rem 0.7rem;
-  transition:
-    color 0.25s ease,
-    background 0.25s ease;
-  white-space: nowrap;
-  border-radius: 8px;
+
+/* --- 4. Topbar canónico (packages/gv-design-system/src/shell/shell.css) - */
+.gv-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--gv-z-sticky, 50);
+  background: color-mix(in srgb, var(--gv-bg, #0f1115) 88%, transparent);
+  border-bottom: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
+  backdrop-filter: blur(14px) saturate(140%);
+  /* NOTA: solo propiedad estándar. lightningcss (vite 8) mergea la dupla
+     estándar+-webkit- y emite SOLO el prefijo, que Chromium moderno rechaza
+     (computed=none). Declarar solo la estándar sobrevive a todos los builds. */
 }
-.nav-blur .nav-link:hover,
-.nav-blur .nav-link.active {
-  color: var(--p);
-  background: oklch(0.8 0.14 210 / 0.08);
+
+.gv-topbar-inner,
+.gv-topbar .header-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(100% - 40px, var(--gv-content-max-width, 1180px));
+  min-height: 62px;
+  margin: 0 auto;
+  padding: 10px 0;
 }
-.nav-blur .navbar-brand {
+
+.gv-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--p), var(--a));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  gap: 10px;
+  flex: 0 0 auto;
+  color: var(--gv-text, #e8eef4);
+  font: 800 17px/1 var(--gv-font-display, 'Space Grotesk', sans-serif);
+  text-decoration: none;
+  white-space: nowrap;
 }
-.nav-blur .navbar-brand img.gv-logo {
-  width: auto;
+
+.gv-brand-logo {
+  display: block;
+  width: 32px;
   height: 32px;
   object-fit: contain;
 }
-.nav-blur .navbar-brand .gv-wordmark {
-  font-size: 0.9rem;
-  color: var(--gv-text);
+
+/* impeccable-disable gradient-text: official Gentle-Vanguard wordmark treatment. */
+.gv-brand-wordmark,
+.gv-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--gv-text, #e8eef4);
+  font: 800 17px/1 var(--gv-font-display, 'Space Grotesk', sans-serif);
+  letter-spacing: 0;
+  white-space: nowrap;
 }
-/* Brand wordmark uses the official GV display font (docs/brand/TOKENS-v2.json → typography.displayFont) */
-.nav-blur .navbar-brand .gv-wordmark,
-.nav-blur .navbar-brand .gv-wordmark strong {
-  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  letter-spacing: 0.02em;
+/* Wordmark homologado (NORM-APP-001, fix 2026-09-15):
+   "Gentle" SIEMPRE blanco/neutral; SOLO "Vanguard" lleva el gradiente. */
+.gv-brand-wordmark,
+.gv-shell .gv-brand-wordmark,
+.gv-brand-wordmark a,
+.gv-shell .gv-brand-wordmark a {
+  color: var(--gv-text, #e9eef4) !important;
+  background: none !important;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  color: var(--gv-text, #eef2f7) !important;
 }
-.nav-blur .navbar-brand .gv-wordmark strong {
-  background: var(--gv-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.gv-brand-wordmark span,
+.gv-shell .gv-brand-wordmark span,
+.gv-brand-wordmark a span,
+.gv-shell .gv-brand-wordmark a span {
+  background: var(--gv-gradient, linear-gradient(135deg, #a78bfa, #22d3ee)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
 }
-.navbar-toggler {
-  border: 1px solid var(--gv-glass-border) !important;
-  border-radius: 10px;
+/* Botón de idioma: fuente homologada (13px) para que el icono no sobresalga
+   ni se vea distinto entre apps (fix 2026-09-15). */
+.gv-lang-dropdown-toggle,
+.gv-shell .gv-lang-dropdown .gv-icon-btn,
+.gv-shell .gv-lang-dropdown-toggle,
+.gv-lang-dropdown .gv-icon-btn {
+  font-size: 13px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
 }
 
-/* --- 5. Hero ------------------------------------------------------------- */
+.gv-shell-context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 28%, transparent);
+}
+.gv-shell-context small {
+  color: var(--gv-muted, #8b95a8);
+  font: 600 10px/1 var(--gv-font-body, Inter, sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gv-shell-context strong {
+  overflow: hidden;
+  color: var(--gv-text, #e8eef4);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 5. View tabs + shell menu ------------------------------------------ */
+.gv-view-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.gv-view-tabs a,
+.gv-view-tabs button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: var(--gv-radius-md, 8px);
+  color: var(--gv-muted, #8b95a8);
+  background: transparent;
+  font: 600 13px/1 var(--gv-font-body, Inter, sans-serif);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    background var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    border-color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
+}
+.gv-view-tabs a:hover,
+.gv-view-tabs a:focus-visible,
+.gv-view-tabs button:hover,
+.gv-view-tabs button:focus-visible,
+.gv-view-tabs .active,
+.gv-view-tabs [aria-current='page'] {
+  color: var(--gv-text, #e8eef4);
+  border-color: color-mix(in srgb, var(--gv-purple, #a78bfa) 45%, transparent);
+  background: color-mix(in srgb, var(--gv-purple, #a78bfa) 14%, transparent);
+}
+
+.gv-shell-menu {
+  display: none;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 35%, transparent);
+  border-radius: var(--gv-radius-md, 8px);
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  cursor: pointer;
+}
+.gv-shell-menu span,
+.gv-shell-menu span::before,
+.gv-shell-menu span::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0 auto;
+  border-radius: 2px;
+  background: currentColor;
+  content: '';
+}
+.gv-shell-menu span::before {
+  transform: translateY(-6px);
+}
+.gv-shell-menu span::after {
+  transform: translateY(4px);
+}
+
+/* --- 6. Controles: icon-btn, lang dropdown, theme toggle ---------------- */
+.gv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 35%, transparent);
+  border-radius: 9px;
+  color: var(--gv-muted, #8b95a8);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    border-color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
+}
+.gv-icon-btn:hover:not(:disabled) {
+  color: var(--gv-text, #e8eef4);
+  background: color-mix(in srgb, var(--gv-purple, #a78bfa) 14%, transparent);
+}
+.gv-icon-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--gv-cyan, #22d3ee) 60%, transparent);
+  outline-offset: 2px;
+}
+.gv-icon-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.gv-lang-dropdown {
+  position: relative;
+}
+.gv-lang-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 168px;
+  padding: 4px;
+  border: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
+  border-radius: 10px;
+  background: var(--gv-surface, #1a1f2a);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.gv-lang-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  font: 600 13px/1 var(--gv-font-body, Inter, sans-serif);
+  text-align: left;
+  cursor: pointer;
+}
+.gv-lang-dropdown-menu button:hover,
+.gv-lang-dropdown-menu button[aria-current='true'] {
+  background: color-mix(in srgb, var(--gv-cyan, #22d3ee) 12%, transparent);
+}
+.gv-lang-dropdown-menu button .gv-lang-check {
+  margin-left: auto;
+  color: var(--gv-cyan, #22d3ee);
+}
+
+.gv-theme-toggle {
+  flex-shrink: 0;
+}
+
+.gv-shell-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  flex: 0 0 auto;
+}
+
+.gv-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+/* --- 7. Panel + Botones canónicos --------------------------------------- */
+.gv-panel {
+  border: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
+  border-radius: var(--gv-radius-lg, 12px);
+  background: var(--gv-glass, rgba(26, 31, 42, 0.72));
+  backdrop-filter: blur(10px);
+}
+.gv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--gv-radius-pill, 999px);
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  font: 700 13px/1 var(--gv-font-body, Inter, sans-serif);
+  cursor: pointer;
+  transition:
+    transform var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    box-shadow var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
+}
+.gv-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--gv-elev-md, 0 8px 24px rgba(0, 0, 0, 0.24));
+}
+.gv-btn-primary {
+  color: #0f1115;
+  background: var(--gv-gradient, linear-gradient(135deg, #a78bfa, #22d3ee));
+}
+.gv-btn-ghost {
+  border-color: color-mix(in srgb, var(--gv-cyan, #22d3ee) 42%, transparent);
+}
+.gv-btn:focus-visible,
+.gv-view-tabs a:focus-visible,
+.gv-view-tabs button:focus-visible,
+.gv-shell-menu:focus-visible {
+  outline: 3px solid var(--gv-cyan-soft, #67e8f9);
+  outline-offset: 2px;
+}
+
+/* --- 8. Footer canónico -------------------------------------------------- */
+.gv-footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding: 18px 20px;
+  border-top: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
+  color: var(--gv-muted, #8b95a8);
+  font: 12px/1.5 var(--gv-font-body, Inter, sans-serif);
+}
+.gv-footer a {
+  color: var(--gv-purple-soft, #c4b5fd);
+  text-decoration: none;
+}
+.gv-footer a:hover,
+.gv-footer a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- 9. Hero ------------------------------------------------------------- */
 .hero {
   min-height: 72vh;
   display: flex;
@@ -306,7 +559,7 @@ p {
   pointer-events: none;
 }
 .hero h1 {
-  font-family: var(--display);
+  font-family: var(--gv-font-display);
   font-size: var(--fs-hero);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -369,7 +622,7 @@ p {
   }
 }
 
-/* --- 6. Scroll progress bar (CSS scroll-driven + fallback JS) ----------- */
+/* --- 10. Scroll progress bar (CSS scroll-driven + fallback JS) ----------- */
 .scroll-progress {
   position: fixed;
   top: 0;
@@ -395,7 +648,7 @@ p {
   }
 }
 
-/* --- 7. Section cards con hover spotlight -------------------------------- */
+/* --- 11. Section cards con hover spotlight -------------------------------- */
 .section-card {
   background: var(--card);
   border: 1px solid var(--br-soft);
@@ -476,7 +729,7 @@ p {
   margin-bottom: 0.5rem;
 }
 
-/* --- 8. Stats con count-up ----------------------------------------------- */
+/* --- 12. Stats con count-up ----------------------------------------------- */
 .stat-n {
   font-size: clamp(2rem, 4vw, 2.6rem);
   font-weight: 800;
@@ -497,7 +750,7 @@ p {
   margin-top: 0.25rem;
 }
 
-/* --- 9. Badges ------------------------------------------------------------ */
+/* --- 13. Badges ------------------------------------------------------------ */
 .badge-gv {
   font-size: 0.7rem;
   font-weight: 600;
@@ -558,71 +811,50 @@ p {
   animation: shimmer 2.6s ease-in-out infinite;
 }
 
-/* --- 10. Botones (glow + micro-interacción magnética sutil) -------------- */
-.btn-gv {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.55rem 1.4rem;
-  border-radius: 999px;
-  border: 1px solid oklch(0.8 0.14 210 / 0.35);
-  color: var(--p);
-  background: oklch(0.8 0.14 210 / 0.07);
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  text-decoration: none;
-  overflow: hidden;
-}
-.btn-gv::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -70%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.14), transparent);
-  transform: skewX(-20deg);
-  transition: left 0.5s ease;
-}
-.btn-gv:hover {
-  color: #04121c;
-  background: linear-gradient(135deg, var(--p), var(--pl));
-  border-color: transparent;
-  box-shadow: var(--glow-cyan);
-  transform: translateY(-2px);
-}
-.btn-gv:hover::before {
-  left: 130%;
-}
-.btn-gv:active {
-  transform: translateY(0) scale(0.97);
-}
-
+/* --- 14. Botones de contenido (btn-gv → canon gv-btn) --------------------- */
+.btn-gv,
 .btn-gv-alt {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  min-height: 40px;
   padding: 0.55rem 1.4rem;
   border-radius: 999px;
-  overflow: hidden;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-decoration: none;
-  border-color: oklch(0.7 0.18 290 / 0.4);
-  color: var(--a);
-  background: oklch(0.7 0.18 290 / 0.07);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    box-shadow var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    background var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
 }
+.btn-gv {
+  color: var(--gv-text, #e8eef4);
+  background: var(--gv-gradient, linear-gradient(135deg, #a78bfa, #22d3ee));
+  color: #0f1115;
+}
+.btn-gv-alt {
+  border-color: color-mix(in srgb, var(--gv-cyan, #22d3ee) 42%, transparent);
+  color: var(--gv-cyan, #22d3ee);
+  background: transparent;
+}
+.btn-gv:hover,
 .btn-gv-alt:hover {
-  color: #140a24;
-  background: linear-gradient(135deg, var(--a), var(--p));
-  border-color: transparent;
-  box-shadow: var(--glow-purple);
+  transform: translateY(-1px);
+  box-shadow: var(--gv-elev-md, 0 8px 24px rgba(0, 0, 0, 0.24));
+}
+.btn-gv:active,
+.btn-gv-alt:active {
+  transform: translateY(0) scale(0.97);
 }
 
-/* --- 11. Secciones --------------------------------------------------------- */
+/* --- 15. Secciones --------------------------------------------------------- */
 section {
   padding: 4.5rem 1rem;
   max-width: 1440px;
@@ -656,7 +888,7 @@ section {
   margin: 1rem auto 0;
 }
 
-/* --- 12. Fade-in reveal (IntersectionObserver + fallback scroll-driven) --- */
+/* --- 16. Fade-in reveal (IntersectionObserver + fallback scroll-driven) --- */
 .fade-in {
   opacity: 0;
   transform: translateY(26px);
@@ -678,7 +910,7 @@ section {
   transition-delay: 0.3s;
 }
 
-/* --- 13. Sticky glass section headers -------------------------------------- */
+/* --- 17. Sticky glass section headers -------------------------------------- */
 .sticky-head {
   position: sticky;
   top: 0;
@@ -693,7 +925,7 @@ section {
   letter-spacing: 0.02em;
 }
 
-/* --- 14. Feature table premium ---------------------------------------------- */
+/* --- 18. Feature table premium ---------------------------------------------- */
 .feature-table {
   width: 100%;
   border-collapse: collapse;
@@ -727,7 +959,7 @@ section {
   background: oklch(0.8 0.14 210 / 0.05);
 }
 
-/* --- 15. Info trigger ------------------------------------------------------- */
+/* --- 19. Info trigger ------------------------------------------------------- */
 .info-trigger {
   display: inline-flex;
   align-items: center;
@@ -752,7 +984,7 @@ section {
   box-shadow: var(--glow-cyan);
 }
 
-/* --- 16. Arch layers --------------------------------------------------------- */
+/* --- 20. Arch layers --------------------------------------------------------- */
 .arch-layer {
   background: var(--card);
   border: 1px solid var(--br-soft);
@@ -816,7 +1048,7 @@ section {
   color: var(--a);
 }
 
-/* --- 17. Progress bars ------------------------------------------------------ */
+/* --- 21. Progress bars ------------------------------------------------------ */
 .progress-bar-custom {
   height: 22px;
   background: oklch(0.28 0.02 262);
@@ -843,7 +1075,7 @@ section {
   animation: shimmer 2.4s ease-in-out infinite;
 }
 
-/* --- 18. Glowing gradient border (cards premium) ---------------------------- */
+/* --- 22. Glowing gradient border (cards premium) ---------------------------- */
 @property --angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -864,13 +1096,13 @@ section {
   }
 }
 
-/* --- 19. Terminal / cmd blocks ---------------------------------------------- */
+/* --- 23. Terminal / cmd blocks ---------------------------------------------- */
 .cmd-block {
   background: oklch(0.14 0.02 262);
   border: 1px solid var(--br-soft);
   border-radius: var(--r-md);
   padding: 1.1rem 1.3rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--gv-font-mono);
   font-size: 0.82rem;
   position: relative;
   overflow: hidden;
@@ -899,7 +1131,7 @@ section {
   color: var(--ok);
 }
 
-/* --- 20. Flow / pipeline steps ---------------------------------------------- */
+/* --- 24. Flow / pipeline steps ---------------------------------------------- */
 .flow-step {
   background: var(--card);
   border: 1px solid var(--br-soft);
@@ -936,7 +1168,7 @@ section {
   }
 }
 
-/* --- 21. Diagramas SVG interactivos ------------------------------------------ */
+/* --- 25. Diagramas SVG interactivos ------------------------------------------ */
 .svg-diagram {
   border-radius: var(--r-lg);
   border: 1px solid var(--br-soft);
@@ -945,6 +1177,11 @@ section {
     var(--glow-cyan),
     0 10px 40px oklch(0.1 0.02 262 / 0.4);
   transition: border-color 0.3s ease;
+  /* Los SVG sin width/height intrínsecos colapsan con height:auto (img-fluid).
+     aspect-ratio basado en viewBox (1000:400 = 2.5:1) garantiza altura correcta. */
+  aspect-ratio: 2.5 / 1;
+  height: auto;
+  object-fit: contain;
 }
 .svg-diagram:hover {
   border-color: oklch(0.8 0.14 210 / 0.35);
@@ -961,7 +1198,7 @@ section {
   opacity: 0.25;
 }
 .svg-diagram text {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--gv-font-body);
 }
 .svg-diagram .gv-link {
   transition:
@@ -1002,7 +1239,7 @@ section {
   transform: translateY(0);
 }
 
-/* --- 22. Tilt 3D cards -------------------------------------------------------- */
+/* --- 26. Tilt 3D cards -------------------------------------------------------- */
 .tilt {
   transform-style: preserve-3d;
   will-change: transform;
@@ -1012,7 +1249,7 @@ section {
   transform: translateZ(24px);
 }
 
-/* --- 23. Timeline --------------------------------------------------------------- */
+/* --- 27. Timeline --------------------------------------------------------------- */
 .gv-timeline {
   position: relative;
   padding-left: 2rem;
@@ -1047,7 +1284,7 @@ section {
   background: var(--p);
 }
 
-/* --- 24. Bento grid ---------------------------------------------------------------- */
+/* --- 28. Bento grid ---------------------------------------------------------------- */
 .bento {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1064,7 +1301,7 @@ section {
   grid-row: span 2;
 }
 
-/* --- 25. Scroll snap (opcional en galerías de diagramas) --------------------------- */
+/* --- 29. Scroll snap (opcional en galerías de diagramas) --------------------------- */
 .snap-scroll {
   scroll-snap-type: x proximity;
   overflow-x: auto;
@@ -1073,7 +1310,7 @@ section {
   scroll-snap-align: center;
 }
 
-/* --- 26. Marquee -------------------------------------------------------------------- */
+/* --- 30. Marquee -------------------------------------------------------------------- */
 .marquee {
   overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
@@ -1095,85 +1332,46 @@ section {
   }
 }
 
-/* --- 27. Accessibility: prefers-reduced-motion --------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .fade-in {
-    opacity: 1;
-    transform: none;
-  }
-  .scroll-progress {
-    animation: none;
-    transform: scaleX(0);
-  }
-  .marquee-track {
-    animation: none;
-  }
-  .card-glow {
-    animation: none;
-  }
+/* --- 31. Carousel static mode (2026-09-22): carousels converted to
+   always-visible stacked sections. carousel.js removed from all pages. ---- */
+.gv-carousel-track {
+  display: block;
+  transition: none;
+}
+.gv-carousel-slide {
+  min-width: 0;
+  opacity: 1;
+  display: block;
+  transition: none;
+}
+.gv-carousel-slide + .gv-carousel-slide {
+  margin-top: 1.25rem;
+}
+.gv-carousel-nav,
+.carousel-dots {
+  display: none !important;
+}
+#dashboard-carousel .gv-carousel-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+#dashboard-carousel .gv-carousel-slide + .gv-carousel-slide {
+  margin-top: 0;
+}
+.gv-subgroup-title {
+  font-family: var(--gv-font-display);
+  font-size: 1.05rem;
+  color: var(--a);
+  margin: 1.5rem 0 0.75rem;
+  letter-spacing: 0.02em;
+}
+.gv-carousel-slide:first-of-type .gv-subgroup-title,
+.gv-subgroup-title:first-child {
+  margin-top: 0;
 }
 
-/* --- 28. Responsive ---------------------------------------------------------------- */
-@media (max-width: 991.98px) {
-  .nav-blur .nav-link {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.5rem;
-  }
-  .hero {
-    min-height: 55vh;
-    padding: 6rem 1rem 3rem;
-  }
-  .stat-n {
-    font-size: 1.8rem;
-  }
-  .bento .span-2,
-  .bento .span-3 {
-    grid-column: span 1;
-  }
-}
-
-@media (max-width: 575.98px) {
-  section {
-    padding: 3rem 0.75rem;
-  }
-  .hero h1 {
-    font-size: 2rem;
-  }
-}
-
-/* --- 29. Utilidades ------------------------------------------------------------------- */
-.text-gv {
-  color: var(--p);
-}
-.text-gv-dim {
-  color: var(--text-dim);
-}
-.bg-card {
-  background: var(--card);
-}
-.border-soft {
-  border: 1px solid var(--br-soft);
-}
-.radius-lg {
-  border-radius: var(--r-lg);
-}
-.shadow-glow {
-  box-shadow: var(--glow-cyan);
-}
-.mono-tab {
-  font-variant-numeric: tabular-nums;
-}
-
-/* --- 30. Diagram modal (click en diagrama → imagen ampliada) ------------------------- */
-/* --- 30a. Diagram lightbox with pan/zoom (Google-Photos style) ------------------- */
+/* --- 32. Diagram lightbox with pan/zoom (Google-Photos style) ------------------- */
 .gv-lightbox {
   position: fixed;
   inset: 0;
@@ -1242,7 +1440,6 @@ section {
 .gv-lightbox-img.no-anim {
   transition: none;
 }
-/* Contenedor del SVG inline (hotspots interactivos) */
 .gv-lightbox-svg {
   position: relative;
   width: auto;
@@ -1260,12 +1457,23 @@ section {
   max-height: none;
   overflow: visible;
 }
+/* SVG inline clonado en el lightbox (migración 2026-09-23) */
+.gv-lightbox-svg-inline {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  border-radius: var(--r-md);
+  background: oklch(0.14 0.02 262);
+  box-shadow: 0 0 60px oklch(0.1 0.02 262 / 0.8);
+}
 .gv-lightbox-svg svg text,
 .gv-lightbox-svg svg tspan {
   user-select: none;
   -webkit-user-select: none;
 }
-/* Hotspots: zonas clicables dentro del diagrama */
 .gv-hotspot {
   cursor: pointer;
   transition:
@@ -1369,16 +1577,8 @@ section {
   white-space: nowrap;
   opacity: 0.85;
 }
-@media (prefers-reduced-motion: reduce) {
-  .gv-lightbox-img {
-    transition: none;
-  }
-  .gv-lightbox.open .gv-lightbox-stage {
-    animation: none;
-  }
-}
 
-/* --- 30b. Info modal (click en la "i" → detalle ampliado) -------------------------- */
+/* --- 33. Info modal (click en la "i" → detalle ampliado) -------------------------- */
 .gv-info-modal {
   position: fixed;
   inset: 0;
@@ -1523,102 +1723,258 @@ section {
   color: #fff;
   transform: rotate(90deg);
 }
-@media (prefers-reduced-motion: reduce) {
-  .gv-info-box {
-    animation: none;
+
+/* --- 34. Utilidades ------------------------------------------------------------------- */
+.text-gv {
+  color: var(--p);
+}
+.text-gv-dim {
+  color: var(--text-dim);
+}
+.bg-card {
+  background: var(--card);
+}
+.border-soft {
+  border: 1px solid var(--br-soft);
+}
+.radius-lg {
+  border-radius: var(--r-lg);
+}
+.shadow-glow {
+  box-shadow: var(--glow-cyan);
+}
+.mono-tab {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 35. Light theme (homologado 2026-09-15) — shared key gv-cc-theme ---------------- */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --gv-bg: #f5f7fb;
+  --gv-bg-deep: #e9edf4;
+  --gv-surface: #ffffff;
+  --gv-surface-raised: #f2f4f9;
+  --gv-text: #1a2230;
+  --gv-muted: #4a5568;
+  --gv-glass: rgba(255, 255, 255, 0.72);
+  --gv-glass-border: rgba(124, 58, 237, 0.18);
+  --gv-purple: #7c3aed;
+  --gv-cyan: #0891b2;
+  --gv-purple-soft: #6d28d9;
+  --bg: oklch(0.97 0.01 262);
+  --bg2: oklch(0.94 0.01 262);
+  --card: oklch(1 0 0);
+  --card2: oklch(0.98 0.005 262);
+  --card3: oklch(0.96 0.005 262);
+  --text: #1a2230;
+  --text-dim: #4a5568;
+  --text-faint: #64748b;
+  --br: oklch(0.85 0.01 262);
+  --br-soft: color-mix(in oklab, #7c3aed 10%, transparent);
+}
+:root[data-theme='light'] body {
+  background: var(--gv-bg);
+  color: var(--gv-text);
+}
+:root[data-theme='light'] .gv-topbar {
+  background: var(--gv-glass);
+  border-bottom-color: var(--gv-glass-border);
+}
+:root[data-theme='light'] .section-card,
+:root[data-theme='light'] .card-dao,
+:root[data-theme='light'] .bento > div {
+  background: var(--card);
+  border-color: var(--br-soft);
+}
+:root[data-theme='light'] .text-light,
+:root[data-theme='light'] .text-white {
+  color: var(--gv-text) !important;
+}
+:root[data-theme='light'] .text-secondary,
+:root[data-theme='light'] .text-muted {
+  color: var(--gv-muted) !important;
+}
+:root[data-theme='light'] .table-dark {
+  --bs-table-bg: var(--card);
+  --bs-table-color: var(--gv-text);
+}
+:root[data-theme='light'] .table-dark table,
+:root[data-theme='light'] .table-dark th,
+:root[data-theme='light'] .table-dark td {
+  color: var(--gv-text);
+}
+:root[data-theme='light'] .cmd-block,
+:root[data-theme='light'] code {
+  background: var(--gv-surface-raised);
+  color: var(--gv-text);
+}
+:root[data-theme='light'] .hero {
+  background: transparent;
+}
+:root[data-theme='light'] .gv-glow-a,
+:root[data-theme='light'] .gv-glow-b {
+  opacity: 0.35;
+}
+
+/* --- 36. Responsive ---------------------------------------------------------------- */
+@media (max-width: 1199.98px) {
+  .gv-shell-menu {
+    display: block;
+  }
+  .gv-view-tabs.gv-collapsible {
+    display: none;
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--gv-surface);
+    border: 1px solid var(--gv-glass-border);
+    border-radius: 14px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .gv-view-tabs.gv-collapsible.is-open {
+    display: flex;
+  }
+  .gv-view-tabs.gv-collapsible a {
+    display: inline-flex;
+    width: auto;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+  }
+  .gv-topbar-inner {
+    flex-wrap: wrap;
   }
 }
 
-/* --- 31. Language selector: segmented flags (visible, sin menú) --------------------- */
+@media (max-width: 991.98px) {
+  .hero {
+    min-height: 55vh;
+    padding: 6rem 1rem 3rem;
+  }
+  .stat-n {
+    font-size: 1.8rem;
+  }
+  .bento .span-2,
+  .bento .span-3 {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 639px) {
+  .gv-topbar-inner,
+  .gv-topbar .header-inner {
+    width: min(100% - 24px, var(--gv-content-max-width, 1180px));
+    gap: 10px;
+  }
+  .gv-brand-wordmark {
+    display: none;
+  }
+  section {
+    padding: 3rem 0.75rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+  }
+}
+
+/* --- 37. Accessibility: prefers-reduced-motion --------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+  .scroll-progress {
+    animation: none;
+    transform: scaleX(0);
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .card-glow {
+    animation: none;
+  }
+  .gv-lightbox-img,
+  .gv-lightbox-svg {
+    transition: none;
+  }
+  .gv-lightbox.open .gv-lightbox-stage {
+    animation: none;
+  }
+  .gv-info-box {
+    animation: none;
+  }
+  .gv-view-tabs a,
+  .gv-view-tabs button,
+  .gv-btn,
+  .gv-icon-btn {
+    transition: none;
+  }
+}
+/* --- Selector de idioma segmentado (.lang-seg) -------------------------- */
+/* Reemplaza al dropdown gv-lang-dropdown (guard de validate-presentations).
+   El estado activo lo maneja i18n.js via aria-current en [data-lang]. */
 .lang-seg {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: oklch(0.24 0.02 262 / 0.7);
-  border: 1px solid var(--br-soft);
-  border-radius: 999px;
   padding: 3px;
-}
-.lang-seg button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  min-width: 40px;
-  height: 28px;
-  border: none;
+  border: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
   border-radius: 999px;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  padding: 0 0.65rem;
-  position: relative;
+  background: var(--gv-glass, rgba(15, 17, 21, 0.55));
 }
-.lang-seg button .lang-flag {
-  font-size: 1.05rem;
+.lang-seg-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--gv-muted, #94a3b8);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1;
-}
-.lang-seg button .lang-code {
-  font-size: 0.68rem;
-  letter-spacing: 0.03em;
-}
-.lang-seg button:hover {
-  color: var(--text);
-  background: oklch(1 0 0 / 0.05);
-}
-.lang-seg button.active {
-  color: #04121c;
-  background: linear-gradient(135deg, var(--p), var(--pl));
-  box-shadow: 0 0 12px oklch(0.8 0.14 210 / 0.4);
-}
-.lang-seg button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--p);
-  opacity: 0;
-}
-.lang-seg button.active .lang-code {
-  color: #04121c;
-}
-
-/* Carousel Styles */
-.gv-carousel {
-  position: relative;
-  overflow: hidden;
-}
-.gv-carousel-track {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-.gv-carousel-slide {
-  min-width: 100%;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  display: none;
-}
-.gv-carousel-slide.active {
-  opacity: 1;
-  display: block;
-}
-.carousel-dots .dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--br);
-  margin: 0 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    background-color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
 }
-.carousel-dots .dot.active {
-  background: var(--p);
+.lang-seg-btn:hover {
+  color: var(--gv-text, #e2e8f0);
+}
+.lang-seg-btn[aria-current='true'] {
+  color: #fff;
+  background: linear-gradient(135deg, var(--gv-purple-deep, #7c3aed), var(--gv-cyan-deep, #0891b2));
+  box-shadow: 0 1px 6px rgba(124, 58, 237, 0.35);
+}
+.lang-seg-btn:focus-visible {
+  outline: 2px solid var(--gv-purple-soft, #c4b5fd);
+  outline-offset: 1px;
+}
+:root[data-theme='light'] .lang-seg {
+  background: rgba(255, 255, 255, 0.72);
+}
+:root[data-theme='light'] .lang-seg-btn {
+  color: #475569;
+}
+:root[data-theme='light'] .lang-seg-btn:hover {
+  color: #0f1115;
+}
+:root[data-theme='light'] .lang-seg-btn[aria-current='true'] {
+  color: #fff;
+}
+@media (max-width: 640px) {
+  .lang-seg-btn {
+    padding: 4px 7px;
+    font-size: 11px;
+  }
 }

@@ -15,6 +15,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } fr
 import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { totalmem } from 'node:os';
 
 const ROOT = resolve(process.cwd());
 const METRICS_DIR = join(ROOT, '.runtime', 'performance-metrics');
@@ -43,25 +44,29 @@ interface LatencyMetrics {
   p95: number;
   p99: number;
   p999: number;
+  samples: number;
+  source: 'trace-files' | 'unavailable';
 }
 
 interface ThroughputMetrics {
   requestsPerSecond: number;
   tokensPerSecond: number;
   operationsPerSecond: number;
+  samples: number;
 }
 
 interface ErrorMetrics {
   rate: number;
   count: number;
   byCategory: Record<string, number>;
+  samples: number;
 }
 
 interface ResourceMetrics {
-  cpu: number;
+  cpu: number | null;
   memory: number; // MB
   memoryPercent: number;
-  disk: number; // GB free
+  disk: number | null; // GB free
 }
 
 interface TokenMetrics {
@@ -70,6 +75,8 @@ interface TokenMetrics {
   output: number;
   cacheHitRate: number;
   efficiency: number; // output/total
+  samples: number;
+  source: 'nexus' | 'unavailable';
 }
 
 interface PerformanceMetrics {
@@ -81,8 +88,12 @@ interface PerformanceMetrics {
   resources: ResourceMetrics;
   tokens: TokenMetrics;
   health: {
-    score: number; // 0-100
+    score: number | null; // 0-100 when enough dimensions are observed
     components: Record<string, number>;
+    status: 'measured' | 'insufficient';
+  };
+  dataQuality: {
+    unavailable: string[];
   };
 }
 
@@ -115,12 +126,11 @@ async function collectLatencyMetrics(): Promise<LatencyMetrics> {
       });
     }
   } catch {
-    // Fallback: usar valores estimados
-    return { p50: 100, p95: 500, p99: 2000, p999: 5000 };
+    // No trace files: report absence rather than estimated latency.
   }
 
   if (traces.length === 0) {
-    return { p50: 100, p95: 500, p99: 2000, p999: 5000 };
+    return { p50: 0, p95: 0, p99: 0, p999: 0, samples: 0, source: 'unavailable' };
   }
 
   const sorted = traces.sort((a, b) => a - b);
@@ -134,6 +144,8 @@ async function collectLatencyMetrics(): Promise<LatencyMetrics> {
     p95: percentile(95),
     p99: percentile(99),
     p999: percentile(99.9),
+    samples: traces.length,
+    source: 'trace-files',
   };
 }
 
@@ -150,7 +162,7 @@ async function collectThroughputMetrics(): Promise<ThroughputMetrics> {
       SELECT COUNT(*) as count, 
              SUM(input_tokens + output_tokens + COALESCE(reasoning_tokens, 0)) as tokens
       FROM token_transactions
-      WHERE timestamp > datetime('now', '-5 minutes')
+      WHERE tenant_id = 'gentle-vanguard' AND created_at > datetime('now', '-5 minutes')
     `,
       )
       .get() as { count?: number | null; tokens?: number | null };
@@ -164,76 +176,123 @@ async function collectThroughputMetrics(): Promise<ThroughputMetrics> {
       requestsPerSecond,
       tokensPerSecond,
       operationsPerSecond: requestsPerSecond,
+      samples: result?.count || 0,
     };
   } catch {
-    return { requestsPerSecond: 0, tokensPerSecond: 0, operationsPerSecond: 0 };
+    return { requestsPerSecond: 0, tokensPerSecond: 0, operationsPerSecond: 0, samples: 0 };
   }
 }
 
 async function collectResourceMetrics(): Promise<ResourceMetrics> {
   const memUsage = process.memoryUsage();
-  const totalMem = require('os').totalmem();
+  const totalMem = totalmem();
 
   return {
-    cpu: 0, // Requiere sampling
+    cpu: null,
     memory: Math.round(memUsage.heapUsed / 1024 / 1024),
     memoryPercent: Math.round((memUsage.heapUsed / totalMem) * 100),
-    disk: 0, // Requiere llamada al sistema
+    disk: null,
   };
 }
 
 async function collectTokenMetrics(): Promise<TokenMetrics> {
+  let db: import('better-sqlite3').Database | null = null;
   try {
-    // Intentar obtener de fuentes disponibles
-    const sources = [
-      join(ROOT, 'reports', 'stack-live-observability-latest.json'),
-      join(ROOT, '.session', 'token-usage.json'),
-    ];
-
-    for (const source of sources) {
-      if (existsSync(source)) {
-        const data = JSON.parse(readFileSync(source, 'utf-8'));
-        const tokens = data.tokenMetrics || data.tokens || data;
-        const total = (tokens.input || 0) + (tokens.output || 0);
-
-        return {
-          total,
-          input: tokens.input || 0,
-          output: tokens.output || 0,
-          cacheHitRate: tokens.cacheHitRate || 0,
-          efficiency: total > 0 ? (tokens.output || 0) / total : 0,
-        };
-      }
-    }
-  } catch {}
-
-  return { total: 0, input: 0, output: 0, cacheHitRate: 0, efficiency: 0 };
+    const { default: Database } = await import('better-sqlite3');
+    db = new Database(join(ROOT, '.runtime', 'gentle-vanguard.db'), { readonly: true });
+    const row = db
+      .prepare(
+        `SELECT COUNT(*) samples, COALESCE(SUM(input_tokens), 0) input,
+                COALESCE(SUM(output_tokens), 0) output,
+                COALESCE(SUM(cache_read_tokens), 0) cache_read
+         FROM token_transactions
+         WHERE tenant_id = 'gentle-vanguard' AND created_at > datetime('now', '-5 minutes')`,
+      )
+      .get() as { samples: number; input: number; output: number; cache_read: number };
+    const total = row.input + row.output;
+    const cacheDenominator = total + row.cache_read;
+    return {
+      total,
+      input: row.input,
+      output: row.output,
+      cacheHitRate: cacheDenominator > 0 ? (row.cache_read / cacheDenominator) * 100 : 0,
+      efficiency: total > 0 ? row.output / total : 0,
+      samples: row.samples,
+      source: 'nexus',
+    };
+  } catch {
+    return {
+      total: 0,
+      input: 0,
+      output: 0,
+      cacheHitRate: 0,
+      efficiency: 0,
+      samples: 0,
+      source: 'unavailable',
+    };
+  } finally {
+    db?.close();
+  }
 }
 
-async function calculateHealthScore(
-  metrics: PerformanceMetrics,
-): Promise<{ score: number; components: Record<string, number> }> {
-  const components: Record<string, number> = {
-    latency: Math.max(0, 100 - metrics.latency.p95 / 100),
-    throughput: Math.min(100, metrics.throughput.requestsPerSecond * 10),
-    errors: Math.max(0, 100 - metrics.errors.rate * 100),
-    resources: Math.max(0, 100 - metrics.resources.memoryPercent),
-    tokens: Math.max(0, 100 - metrics.tokens.total / 100000),
-  };
+async function collectErrorMetrics(): Promise<ErrorMetrics> {
+  let db: import('better-sqlite3').Database | null = null;
+  try {
+    const { default: Database } = await import('better-sqlite3');
+    db = new Database(join(ROOT, '.runtime', 'gentle-vanguard.db'), { readonly: true });
+    const cutoff = Date.now() - 5 * 60_000;
+    const rows = db
+      .prepare(
+        `SELECT status, COUNT(*) count FROM traces
+         WHERE tenant_id = 'gentle-vanguard' AND start_time >= ? GROUP BY status`,
+      )
+      .all(cutoff) as Array<{ status: string; count: number }>;
+    const samples = rows.reduce((sum, row) => sum + row.count, 0);
+    const byCategory = Object.fromEntries(rows.map((row) => [row.status || 'unknown', row.count]));
+    const count = rows
+      .filter((row) => !['completed', 'running'].includes(row.status))
+      .reduce((sum, row) => sum + row.count, 0);
+    return { rate: samples > 0 ? count / samples : 0, count, byCategory, samples };
+  } catch {
+    return { rate: 0, count: 0, byCategory: {}, samples: 0 };
+  } finally {
+    db?.close();
+  }
+}
 
+async function calculateHealthScore(metrics: PerformanceMetrics): Promise<{
+  score: number | null;
+  components: Record<string, number>;
+  status: 'measured' | 'insufficient';
+}> {
+  const components: Record<string, number> = {
+    resources: Math.max(0, 100 - (metrics.resources.memory / 512) * 100),
+  };
+  if (metrics.latency.samples > 0)
+    components.latency = Math.max(0, 100 - metrics.latency.p95 / 100);
+  if (metrics.errors.samples > 0) components.errors = Math.max(0, 100 - metrics.errors.rate * 100);
+  if (metrics.tokens.samples > 0) {
+    const averageTokens = metrics.tokens.total / metrics.tokens.samples;
+    components.tokens = Math.max(0, 100 - averageTokens / 1000);
+  }
+
+  if (Object.keys(components).length < 2) {
+    return { score: null, components, status: 'insufficient' };
+  }
   const score =
     Object.values(components).reduce((a, b) => a + b, 0) / Object.keys(components).length;
 
-  return { score: Math.round(score), components };
+  return { score: Math.round(score), components, status: 'measured' };
 }
 
 // ─── Main Collection ─────────────────────────────────────────────────────────────
 async function collectAllMetrics(): Promise<PerformanceMetrics> {
-  const [latency, throughput, resources, tokens] = await Promise.all([
+  const [latency, throughput, resources, tokens, errors] = await Promise.all([
     collectLatencyMetrics(),
     collectThroughputMetrics(),
     collectResourceMetrics(),
     collectTokenMetrics(),
+    collectErrorMetrics(),
   ]);
 
   const metrics: PerformanceMetrics = {
@@ -241,10 +300,19 @@ async function collectAllMetrics(): Promise<PerformanceMetrics> {
     sessionId: process.env.SESSION_ID || 'unknown',
     latency,
     throughput,
-    errors: { rate: 0, count: 0, byCategory: {} },
+    errors,
     resources,
     tokens,
-    health: { score: 0, components: {} },
+    health: { score: null, components: {}, status: 'insufficient' },
+    dataQuality: {
+      unavailable: [
+        ...(latency.samples === 0 ? ['latency'] : []),
+        ...(tokens.samples === 0 ? ['tokens'] : []),
+        ...(errors.samples === 0 ? ['errors'] : []),
+        'cpu',
+        'disk',
+      ],
+    },
   };
 
   metrics.health = await calculateHealthScore(metrics);
@@ -307,8 +375,8 @@ function startServer(): void {
         res.end(
           JSON.stringify(
             {
-              status: metrics ? 'ok' : 'degraded',
-              score: metrics?.health.score || 0,
+              status: metrics?.health.status === 'measured' ? 'ok' : 'degraded',
+              score: metrics?.health.score ?? null,
               timestamp: Date.now(),
             },
             null,
@@ -356,7 +424,7 @@ async function runCollectionLoop(): Promise<void> {
       const metrics = await collectAllMetrics();
       saveMetrics(metrics);
 
-      if (metrics.health.score < 50) {
+      if (metrics.health.score !== null && metrics.health.score < 50) {
         log('WARN', `Health score low: ${metrics.health.score}`, metrics.health.components);
       }
     } catch (err) {

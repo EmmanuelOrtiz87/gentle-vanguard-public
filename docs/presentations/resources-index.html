@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" class="gv-document-page" data-bs-theme="dark">
+<html lang="es" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -10,14 +10,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gentle-Vanguard Content Studio (CMS) y Prompt Studio</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* ===== PANEL DE CONTROL PRINCIPAL ===== */
       .control-panel {
@@ -439,127 +439,51 @@
     </style>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+  <body>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
 
     <div class="control-panel">
       <!-- Sidebar -->
@@ -567,13 +491,13 @@
         <div class="sidebar-logo">
           <div class="icon">⚡</div>
           <div>
-            <h1>Gentle-Vanguard</h1>
+            <h1><span data-i18n="ri_h1">Gentle-Vanguard</span></h1>
             <span>Content Studio (CMS)</span>
           </div>
         </div>
 
         <div class="nav-section">
-          <h3>Principal</h3>
+          <h3><span data-i18n="ri_h2_home">Principal</span></h3>
           <div class="nav-item active" data-section="dashboard">
             <i class="bi bi-speedometer2"></i>
             <span>Dashboard</span>
@@ -585,7 +509,7 @@
         </div>
 
         <div class="nav-section">
-          <h3>Generar Contenido</h3>
+          <h3><span data-i18n="ri_h2_content">Generar Contenido</span></h3>
           <div class="nav-item" data-section="images">
             <i class="bi bi-image"></i>
             <span>Imágenes</span>
@@ -601,7 +525,7 @@
         </div>
 
         <div class="nav-section">
-          <h3>Gestión</h3>
+          <h3><span data-i18n="ri_h2_manage">Gestión</span></h3>
           <div class="nav-item" data-section="downloads">
             <i class="bi bi-download"></i>
             <span>Descargas</span>
@@ -621,7 +545,7 @@
         </div>
 
         <div class="nav-section" style="margin-top: auto">
-          <h3>Sistema</h3>
+          <h3><span data-i18n="ri_h2_system">Sistema</span></h3>
           <div class="nav-item" data-section="settings">
             <i class="bi bi-gear"></i>
             <span>Configuración</span>
@@ -637,7 +561,7 @@
       <main class="main-content">
         <!-- Dashboard Section -->
         <section class="content-section active" id="dashboard">
-          <h2><i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i>Dashboard</h2>
+          <h2><i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_dash">Dashboard</span></h2>
           <p class="text-secondary mb-4">
             Content Studio (CMS) para crear y gestionar contenido. Prompt Studio es una app
             independiente para prompts.
@@ -664,24 +588,24 @@
 
           <div class="quick-actions">
             <div class="action-card" onclick="navigateTo('images')">
-              <h4><i class="bi bi-image me-2"></i>Generar Imagen</h4>
+              <h4><i class="bi bi-image me-2"></i><span data-i18n="ri_h2_image">Generar Imagen</span></h4>
               <p>Crear banners, thumbnails, carousels para redes sociales</p>
             </div>
             <div class="action-card" onclick="navigateTo('videos')">
-              <h4><i class="bi bi-film me-2"></i>Generar Video</h4>
+              <h4><i class="bi bi-film me-2"></i><span data-i18n="ri_h2_video">Generar Video</span></h4>
               <p>Crear demos, tutoriales y visualizaciones de arquitectura</p>
             </div>
             <div class="action-card" onclick="navigateTo('social')">
-              <h4><i class="bi bi-share me-2"></i>Crear Post</h4>
+              <h4><i class="bi bi-share me-2"></i><span data-i18n="ri_h2_post">Crear Post</span></h4>
               <p>Generar contenido para LinkedIn, Twitter, Instagram</p>
             </div>
             <div class="action-card" onclick="navigateTo('agent')">
-              <h4><i class="bi bi-robot me-2"></i>Pedir Ayuda</h4>
+              <h4><i class="bi bi-robot me-2"></i><span data-i18n="ri_h2_help">Pedir Ayuda</span></h4>
               <p>Consultar con el asistente de marketing</p>
             </div>
           </div>
 
-          <h4 class="mb-3">Proceso de Trabajo</h4>
+          <h4 class="mb-3"><span data-i18n="ri_h2_workflow">Proceso de Trabajo</span></h4>
           <div class="process-steps">
             <div class="step active">
               <div class="step-number">1</div>
@@ -718,7 +642,7 @@
 
         <!-- AI Agent Section -->
         <section class="content-section" id="agent">
-          <h2><i class="bi bi-robot me-2" style="color: var(--p)"></i>Asistente de Marketing</h2>
+          <h2><i class="bi bi-robot me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_mkt">Asistente de Marketing</span></h2>
           <p class="text-secondary mb-4">
             Agente nativo que ayuda con estrategia, contenido y planificación.
           </p>
@@ -777,7 +701,7 @@
           </div>
 
           <div class="mt-4">
-            <h4>Acciones Rápidas</h4>
+            <h4><span data-i18n="ri_h2_quick">Acciones Rápidas</span></h4>
             <div class="d-flex flex-wrap gap-2 mt-2">
               <button class="btn-gv-alt" onclick="quickAsk('Crear post de lanzamiento')">
                 <i class="bi bi-rocket me-1"></i>Post de lanzamiento
@@ -797,7 +721,7 @@
 
         <!-- Images Section - Image Studio -->
         <section class="content-section" id="images">
-          <h2><i class="bi bi-image me-2" style="color: var(--p)"></i>Image Studio</h2>
+          <h2><i class="bi bi-image me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_imgstudio">Image Studio</span></h2>
           <p class="text-secondary mb-4">
             Generador de imágenes 100% nativo - Alternativa local a herramientas cloud como
             nano-banana.
@@ -997,7 +921,7 @@
 
         <!-- Videos Section - Video Studio -->
         <section class="content-section" id="videos">
-          <h2><i class="bi bi-film me-2" style="color: var(--p)"></i>Video Studio</h2>
+          <h2><i class="bi bi-film me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_vidstudio">Video Studio</span></h2>
           <p class="text-secondary mb-4">
             Generador de video 100% nativo - Animaciones procedurales sin APIs externas.
           </p>
@@ -1223,7 +1147,7 @@
 
         <!-- Social Section - Social Post Generator -->
         <section class="content-section" id="social">
-          <h2><i class="bi bi-share me-2" style="color: var(--p)"></i>Social Post Generator</h2>
+          <h2><i class="bi bi-share me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_social">Social Post Generator</span></h2>
           <p class="text-secondary mb-4">
             Generador de contenido social nativo con templates, editor WYSIWYG y preview
             multiplataforma.
@@ -1454,7 +1378,7 @@
 
         <!-- Content Operations Section (COE Integration) -->
         <section class="content-section" id="content-ops">
-          <h2><i class="bi bi-kanban me-2" style="color: var(--p)"></i>Content Operations</h2>
+          <h2><i class="bi bi-kanban me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_contentops">Content Operations</span></h2>
           <p class="text-secondary mb-4">
             Motor de operaciones de contenido: calendario real de la campaña
             <code class="text-info">GROWTH-EXPERIMENT-001</code> gestionado por el COE (<code
@@ -1473,7 +1397,7 @@
 
         <!-- Downloads Section -->
         <section class="content-section" id="downloads">
-          <h2><i class="bi bi-download me-2" style="color: var(--p)"></i>Descargas</h2>
+          <h2><i class="bi bi-download me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_downloads">Descargas</span></h2>
           <p class="text-secondary mb-4">Archivos generados disponibles para descarga local.</p>
 
           <div class="downloads-list" id="downloads-list">
@@ -1504,14 +1428,14 @@
 
         <!-- Products Section -->
         <section class="content-section" id="products">
-          <h2><i class="bi bi-box me-2" style="color: var(--p)"></i>Product Pages</h2>
+          <h2><i class="bi bi-box me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_products">Product Pages</span></h2>
           <p class="text-secondary mb-4">Landing pages profesionales para productos comerciales.</p>
 
           <div class="row g-4">
             <div class="col-md-6">
               <div class="resource-card" style="border: 1px solid var(--bg2)">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                  <h4><i class="bi bi-cpu me-2"></i>Gentle-AI Core</h4>
+                  <h4><i class="bi bi-cpu me-2"></i><span data-i18n="ri_h2_core">Gentle-AI Core</span></h4>
                   <span
                     style="
                       background: var(--bg2);
@@ -1537,7 +1461,7 @@
           </div>
 
           <div class="mt-4">
-            <h4>¿Cómo Crear un Producto?</h4>
+            <h4><span data-i18n="ri_h2_product">¿Cómo Crear un Producto?</span></h4>
             <ol style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.8">
               <li>
                 <strong>Especificar:</strong> Crear carpeta en <code>apps/producto/</code> con
@@ -1556,7 +1480,7 @@
         <!-- Contracts Section - Contract Viewer -->
         <section class="content-section" id="contracts">
           <h2>
-            <i class="bi bi-file-earmark-text me-2" style="color: var(--p)"></i>Contract Viewer
+            <i class="bi bi-file-earmark-text me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_contract">Contract Viewer</span>
           </h2>
           <p class="text-secondary mb-4">
             Gestión de contratos nativa: visualización, estados, firmas y export.
@@ -1622,7 +1546,7 @@
           <div class="row g-4">
             <div class="col-md-6">
               <div class="resource-card">
-                <h4><i class="bi bi-briefcase me-2"></i>Servicios Profesionales</h4>
+                <h4><i class="bi bi-briefcase me-2"></i><span data-i18n="ri_h2_services">Servicios Profesionales</span></h4>
                 <p class="text-secondary small mb-3">
                   Contrato de consultoría: Setup, Migration, Training, Support.
                 </p>
@@ -1647,10 +1571,10 @@
 
         <!-- Settings Section -->
         <section class="content-section" id="settings">
-          <h2><i class="bi bi-gear me-2" style="color: var(--p)"></i>Configuración del Sistema</h2>
+          <h2><i class="bi bi-gear me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_config">Configuración del Sistema</span></h2>
 
           <div class="gen-form">
-            <h4 class="mb-4">Información del Stack</h4>
+            <h4 class="mb-4"><span data-i18n="ri_h2_stackinfo">Información del Stack</span></h4>
 
             <div class="row g-3">
               <div class="col-md-6">
@@ -1680,7 +1604,7 @@
             </div>
 
             <div class="mt-4">
-              <h4>Modo de Operación</h4>
+              <h4><span data-i18n="ri_h2_mode">Modo de Operación</span></h4>
               <div
                 class="alert"
                 style="
@@ -1700,7 +1624,6 @@
       </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
     <script>
       // Navigation
@@ -1740,7 +1663,8 @@
           dashboard: 'npm run dashboard:dev',
         },
         products: {
-          'gentle-music': { status: 'planned', price: '$4.99/mes' },
+          // gentle-music (planned, $4.99/mes) fue suplantada por gv-music (local-first, shipped)
+          'gv-music': { status: 'shipped', model: 'local-first' },
           'stock-vanguard': { status: 'planned', price: '$29/mes', region: 'AR' },
         },
         services: {
@@ -2625,7 +2549,7 @@ The native stack keeps growing. Today we add ${topic} to the ecosystem.
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >175 Test files</span
+          >191 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
