@@ -1,0 +1,16 @@
+{
+  "name": "@gentle-vanguard/shared",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared primitives for the Gentle-Vanguard stack — single BM25 implementation, CLI arg parsing, fs/json helpers, Result type. Kills the parseArgs x29 / bm25 x2 duplication (STACK-EVOLUTION-PLAN F2.1).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.1"
+  }
+}

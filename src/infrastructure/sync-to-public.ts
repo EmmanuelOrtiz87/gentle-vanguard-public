@@ -423,6 +423,25 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     { recurse: true },
   );
 
+  // 10a-fix. The historical public .gitignore inherited unanchored rules
+  // from an old private layout (`session/`, `packages/`) that match ANY
+  // directory with that name at any depth. They silently dropped
+  // src/session/ and packages/shared from `git add .`, leaving the mirror
+  // unable to typecheck — the chronic Public Distribution Smoke failure
+  // (TS2307). Anchor session to the root (runtime junk) and drop the
+  // packages rule (the shared package is part of the distribution now).
+  const gitignorePath = path.join(targetDir, '.gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    const original = fs.readFileSync(gitignorePath, 'utf-8');
+    const fixed = original
+      .replace(/^session\/\s*$/m, '/session/')
+      .replace(/^packages\/\s*$\n?/m, '');
+    if (fixed !== original) {
+      fs.writeFileSync(gitignorePath, fixed, 'utf-8');
+      console.log('[FIX] Normalized overreaching .gitignore rules (session/, packages/)');
+    }
+  }
+
   // Apps are local-first products (ADR-0017): they must never cross the
   // publication boundary. Remove any legacy apps/ tree from the target.
   rmIf(path.join(targetDir, 'apps'), { recurse: true });
