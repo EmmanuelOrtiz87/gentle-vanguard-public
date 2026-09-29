@@ -490,6 +490,30 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     path.join(privateRepo, 'config', 'installer-manifest.json'),
     path.join(targetDir, 'config', 'installer-manifest.json'),
   );
+  // The public tree deliberately excludes opencode.json (private agent
+  // runtime config) while the installer product ships it. Patch the manifest
+  // COPY so install:doctor --strict validates exactly what the public
+  // distribution contains instead of failing on a file that never crosses.
+  const publicManifestPath = path.join(targetDir, 'config', 'installer-manifest.json');
+  if (fs.existsSync(publicManifestPath)) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(publicManifestPath, 'utf-8')) as {
+        runtime?: { configuration?: string[] };
+      };
+      if (Array.isArray(manifest.runtime?.configuration)) {
+        manifest.runtime.configuration = manifest.runtime.configuration.filter(
+          (file) => file !== 'opencode.json',
+        );
+        fs.writeFileSync(
+          publicManifestPath,
+          JSON.stringify(manifest, null, 2) + '\n',
+          'utf-8',
+        );
+      }
+    } catch {
+      // Manifest copy unreadable — leave as-is; the doctor will surface it.
+    }
+  }
   for (const runtimeConfig of [
     'config/session-autostart.config.json',
     'config/model-router.json',
