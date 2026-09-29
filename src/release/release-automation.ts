@@ -109,6 +109,30 @@ async function runPreReleaseValidation(skipTests: boolean): Promise<boolean> {
       logger.error('❌ Delivery gate failed');
       return false;
     }
+
+    // Verify the public download chain BEFORE tagging. The delivery gate can
+    // pass while the installer is unreachable for anyone without a session:
+    // on 2026-09-29 the manifest pointed at the PRIVATE repo, so every public
+    // install 404'd, and nothing in typecheck/lint/tests noticed.
+    //
+    // Skipped when offline: a release must not be blocked by network absence.
+    if (process.env.SKIP_DIST_CHECK !== '1') {
+      try {
+        runSync('npm', ['run', 'release:verify-dist'], { cwd: ROOT, timeout: 120000 });
+        logger.info('✅ Distribution chain verified (public URL + asset + sha256)');
+      } catch {
+        logger.error(
+          '❌ Distribution chain broken — the installer is not publicly reachable.\n' +
+            '   Fix releases/latest-version.json (download_url must point at the PUBLIC\n' +
+            '   repo) and confirm the asset name matches. Run\n' +
+            '   `npm run release:verify-dist` for details.\n' +
+            '   Set SKIP_DIST_CHECK=1 only if you truly cannot reach the network.',
+        );
+        return false;
+      }
+    } else {
+      logger.info('[WARN] SKIP_DIST_CHECK=1 — distribution chain NOT verified');
+    }
   }
 
   // Check clean working tree

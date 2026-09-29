@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GentleVanguard — Software empresarial</title>
+<link rel="stylesheet" href="flyer.css">
+</head>
+<body>
+<div class="stage">
+
+  <!-- ======== ESCENA: code editor + dashboard + skyline ======== -->
+  <svg class="scene" viewBox="0 0 1080 1350" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0B1020"/><stop offset=".55" stop-color="#0d1329"/><stop offset="1" stop-color="#090C11"/>
+      </linearGradient>
+      <radialGradient id="gc" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#22d3ee" stop-opacity=".30"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gv2" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#8B5CF6" stop-opacity=".28"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="bar" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#67e8f9"/>
+      </linearGradient>
+      <linearGradient id="don" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#8B5CF6"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient>
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M72 0H0V72" fill="none" stroke="#67e8f9" stroke-opacity=".05"/>
+      </pattern>
+      <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3"/></filter>
+    </defs>
+
+    <rect width="1080" height="1350" fill="url(#bg)"/>
+    <rect width="1080" height="1350" fill="url(#grid)"/>
+    <ellipse cx="850" cy="430" rx="470" ry="340" fill="url(#gc)"/>
+    <ellipse cx="160" cy="720" rx="430" ry="330" fill="url(#gv2)"/>
+
+    <!-- skyline -->
+    <g fill="#0e1626">
+      <rect x="0" y="500" width="110" height="260"/><rect x="120" y="440" width="90" height="320"/>
+      <rect x="225" y="520" width="130" height="240"/><rect x="370" y="400" width="80" height="360"/>
+      <rect x="465" y="480" width="120" height="280"/><rect x="600" y="430" width="95" height="330"/>
+      <rect x="710" y="510" width="140" height="250"/><rect x="865" y="390" width="85" height="370"/>
+      <rect x="960" y="470" width="120" height="290"/>
+    </g>
+    <g fill="#121c31">
+      <rect x="60" y="560" width="140" height="200"/><rect x="270" y="600" width="150" height="160"/>
+      <rect x="520" y="575" width="130" height="185"/><rect x="760" y="590" width="170" height="170"/>
+      <rect x="950" y="555" width="130" height="205"/>
+    </g>
+    <g fill="#22d3ee">
+      <rect x="84" y="584" width="7" height="10" opacity=".30"/><rect x="112" y="620" width="7" height="10" opacity=".16"/>
+      <rect x="140" y="596" width="7" height="10" opacity=".24"/><rect x="98" y="660" width="7" height="10" opacity=".14"/>
+      <rect x="298" y="624" width="7" height="10" opacity=".26"/><rect x="330" y="668" width="7" height="10" opacity=".14"/>
+      <rect x="380" y="428" width="7" height="10" opacity=".30"/><rect x="404" y="470" width="7" height="10" opacity=".18"/>
+      <rect x="548" y="600" width="7" height="10" opacity=".24"/><rect x="590" y="640" width="7" height="10" opacity=".16"/>
+      <rect x="626" y="456" width="7" height="10" opacity=".28"/><rect x="648" y="500" width="7" height="10" opacity=".14"/>
+      <rect x="790" y="614" width="7" height="10" opacity=".22"/><rect x="850" y="656" width="7" height="10" opacity=".14"/>
+      <rect x="888" y="416" width="7" height="10" opacity=".30"/><rect x="912" y="470" width="7" height="10" opacity=".18"/>
+      <rect x="978" y="580" width="7" height="10" opacity=".24"/><rect x="1010" y="630" width="7" height="10" opacity=".14"/>
+    </g>
+    <g fill="#a78bfa" opacity=".85">
+      <rect x="126" y="560" width="7" height="10" opacity=".5"/><rect x="392" y="500" width="7" height="10" opacity=".45"/>
+      <rect x="614" y="474" width="7" height="10" opacity=".5"/><rect x="899" y="440" width="7" height="10" opacity=".45"/>
+      <rect x="340" y="640" width="7" height="10" opacity=".4"/><rect x="820" y="630" width="7" height="10" opacity=".35"/>
+    </g>
+    <g fill="#fbbf24">
+      <rect x="155" y="640" width="7" height="10" opacity=".35"/><rect x="620" y="520" width="7" height="10" opacity=".3"/>
+      <rect x="906" y="530" width="7" height="10" opacity=".3"/>
+    </g>
+    <g stroke="#1c2a45" stroke-width="2"><line x1="410" y1="400" x2="410" y2="368"/><line x1="905" y1="390" x2="905" y2="352"/></g>
+    <ellipse cx="540" cy="748" rx="640" ry="110" fill="#22d3ee" opacity=".07"/>
+
+    <!-- code editor panel -->
+    <g transform="translate(120 560) rotate(-1.2)">
+      <rect width="600" height="312" rx="16" fill="rgba(13,18,32,.84)" stroke="rgba(167,139,250,.30)"/>
+      <circle cx="26" cy="24" r="6" fill="#22d3ee" opacity=".85"/><circle cx="48" cy="24" r="6" fill="#8B5CF6" opacity=".8"/><circle cx="70" cy="24" r="6" fill="#fbbf24" opacity=".7"/>
+      <text x="94" y="29" font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#8b95a8">gv-core — app.ts</text>
+      <line x1="0" y1="44" x2="600" y2="44" stroke="rgba(167,139,250,.18)"/>
+      <g font-family="Cascadia Mono, Consolas, monospace" font-size="17">
+        <text x="28" y="84"><tspan fill="#c4b5fd">const</tspan><tspan fill="#e8eef4"> app = </tspan><tspan fill="#67e8f9">createApp</tspan><tspan fill="#8b95a8">({</tspan></text>
+        <text x="28" y="118"><tspan fill="#8b95a8">  </tspan><tspan fill="#67e8f9">domain</tspan><tspan fill="#8b95a8">: </tspan><tspan fill="#c4b5fd">'tu-negocio'</tspan><tspan fill="#8b95a8">,</tspan></text>
+        <text x="28" y="152"><tspan fill="#8b95a8">  </tspan><tspan fill="#67e8f9">integrations</tspan><tspan fill="#8b95a8">: [erp, crm, api],</tspan></text>
+        <text x="28" y="186"><tspan fill="#8b95a8">  </tspan><tspan fill="#67e8f9">security</tspan><tspan fill="#8b95a8">: </tspan><tspan fill="#c4b5fd">'byDesign'</tspan><tspan fill="#8b95a8">,</tspan></text>
+        <text x="28" y="220"><tspan fill="#8b95a8">  </tspan><tspan fill="#67e8f9">scale</tspan><tspan fill="#8b95a8">: </tspan><tspan fill="#c4b5fd">'infinite'</tspan><tspan fill="#8b95a8">,</tspan></text>
+        <text x="28" y="254" fill="#8b95a8">});</text>
+        <rect x="64" y="240" width="3" height="18" fill="#22d3ee"/>
+      </g>
+      <line x1="0" y1="278" x2="600" y2="278" stroke="rgba(167,139,250,.15)"/>
+      <text x="28" y="300" font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#4ade80">✓ build  ✓ tests  ✓ deploy</text>
+    </g>
+
+    <!-- dashboard card -->
+    <g transform="translate(736 566) rotate(1.4)">
+      <rect width="272" height="234" rx="16" fill="rgba(13,18,32,.84)" stroke="rgba(34,211,238,.28)"/>
+      <rect x="24" y="86" width="24" height="52" rx="4" fill="url(#bar)" opacity=".75"/>
+      <rect x="58" y="66" width="24" height="72" rx="4" fill="url(#bar)" opacity=".85"/>
+      <rect x="92" y="96" width="24" height="42" rx="4" fill="url(#bar)" opacity=".7"/>
+      <rect x="126" y="52" width="24" height="86" rx="4" fill="url(#bar)"/>
+      <line x1="20" y1="140" x2="160" y2="140" stroke="rgba(103,232,249,.25)"/>
+      <circle cx="210" cy="92" r="34" fill="none" stroke="rgba(232,238,244,.10)" stroke-width="9"/>
+      <circle cx="210" cy="92" r="34" fill="none" stroke="url(#don)" stroke-width="9" stroke-linecap="round" stroke-dasharray="150 214" transform="rotate(-90 210 92)"/>
+      <text x="210" y="98" text-anchor="middle" font-family="Cascadia Mono, Consolas, monospace" font-size="16" fill="#e8eef4" font-weight="bold">42%</text>
+      <text x="210" y="146" text-anchor="middle" font-family="Cascadia Mono, Consolas, monospace" font-size="10.5" fill="#8b95a8">eficiencia</text>
+      <text x="24" y="182" font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#67e8f9">+24h recuperadas / sem</text>
+      <text x="24" y="208" font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#8b95a8">uptime 99.9%</text>
+    </g>
+
+    <!-- floating particles -->
+    <g fill="#67e8f9">
+      <circle cx="720" cy="250" r="3" opacity=".5"/><circle cx="950" cy="300" r="2.4" opacity=".4"/>
+      <circle cx="640" cy="120" r="2.2" opacity=".3"/><circle cx="1000" cy="620" r="2.6" opacity=".35"/>
+      <circle cx="80" cy="380" r="2.4" opacity=".3"/>
+    </g>
+    <g fill="#a78bfa">
+      <circle cx="680" cy="200" r="2.6" opacity=".4"/><circle cx="120" cy="330" r="2.2" opacity=".35"/>
+      <circle cx="960" cy="180" r="2.4" opacity=".3"/>
+    </g>
+  </svg>
+
+  <div class="shade"></div>
+
+  <!-- ======== HEADER ======== -->
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="assets/logo.svg" alt="GentleVanguard">
+      <div>
+        <div class="wordmark">Gentle<span class="grad">Vanguard</span></div>
+        <div class="tagline">ARQUITECTURA DIGITAL · IA · AUTOMATIZACIÓN</div>
+      </div>
+    </div>
+    <div class="motto">
+      <div>IDEAS</div><div>SISTEMAS</div><div>OPERACIONES</div><div>RESULTADOS</div>
+      <div class="motto-bar"></div>
+    </div>
+  </header>
+
+  <!-- ======== CONTENIDO ======== -->
+  <main class="main">
+    <div class="eyebrow-row">
+      <span class="eyebrow">SERVICIO 01 <span class="sep">·</span> DESARROLLO A MEDIDA</span>
+      <span class="series">01 / 06</span>
+    </div>
+    <h1>Software a la medida<br><span class="grad">de tu operación.</span></h1>
+    <p class="sub">Aplicaciones y plataformas a medida, seguras y escalables.</p>
+    <div class="quote"><span class="quote-bar"></span><p>Tu negocio no se adapta al software: el software se adapta a tu negocio.</p></div>
+  </main>
+
+  <!-- ======== VALORES ======== -->
+  <section class="cards">
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 6 3 12l5 6M16 6l5 6-5 6M13 4l-2.5 16"/></svg>
+      <h3>A medida</h3>
+      <p>Diseñadas sobre tus procesos reales y reglas de negocio.</p>
+    </div>
+    <div class="card v-alt">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3zM9.2 12l2 2 3.6-4"/></svg>
+      <h3>Seguras</h3>
+      <p>Buenas prácticas y controles desde el día cero.</p>
+    </div>
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg>
+      <h3>Escalables</h3>
+      <p>Arquitecturas listas para crecer sin reescribir.</p>
+    </div>
+  </section>
+
+  <!-- ======== CTA + CONTACTOS ======== -->
+  <footer class="cta">
+    <div class="cta-top">
+      <div class="cta-left">
+        <div class="cta-kicker">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/></svg>
+          CONVERSEMOS SOBRE TU PRÓXIMO DESAFÍO TECNOLÓGICO.
+        </div>
+        <div class="cta-btn">Coordinar reunión
+          <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </div>
+        <div class="cta-sub">Respuesta en el día · Sin compromiso</div>
+      </div>
+      <div class="qr-box">
+        <div class="qr-card"><img src="assets/qr/qr-01-software.svg" alt="QR WhatsApp"></div>
+        <div class="qr-cap">Escanear y escribirnos</div>
+      </div>
+    </div>
+    <div class="contacts">
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+        +54 9 264 5452221
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="#67e8f9" stroke="none"/></svg>
+        @gentlevanguard.sj
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+        gentlevanguard@gmail.com
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

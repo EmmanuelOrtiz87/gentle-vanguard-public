@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GentleVanguard — IA aplicada</title>
+<link rel="stylesheet" href="flyer.css">
+</head>
+<body>
+<div class="stage">
+
+  <!-- ======== ESCENA: red neuronal + data streams ======== -->
+  <svg class="scene" viewBox="0 0 1080 1350" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0B1020"/><stop offset=".55" stop-color="#0d1329"/><stop offset="1" stop-color="#090C11"/>
+      </linearGradient>
+      <radialGradient id="core" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#8B5CF6" stop-opacity=".38"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="core2" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#22d3ee" stop-opacity=".28"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="wire" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M72 0H0V72" fill="none" stroke="#67e8f9" stroke-opacity=".05"/>
+      </pattern>
+      <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4"/></filter>
+    </defs>
+
+    <rect width="1080" height="1350" fill="url(#bg)"/>
+    <rect width="1080" height="1350" fill="url(#grid)"/>
+    <circle cx="560" cy="570" r="330" fill="url(#core)"/>
+    <circle cx="330" cy="570" r="230" fill="url(#core2)"/>
+
+    <!-- skyline tenue -->
+    <g fill="#0e1626" opacity=".55">
+      <rect x="0" y="480" width="130" height="290"/><rect x="150" y="420" width="95" height="350"/>
+      <rect x="260" y="510" width="120" height="260"/><rect x="395" y="390" width="85" height="380"/>
+      <rect x="495" y="470" width="115" height="300"/><rect x="625" y="420" width="95" height="350"/>
+      <rect x="735" y="500" width="130" height="270"/><rect x="880" y="380" width="90" height="390"/>
+      <rect x="980" y="460" width="100" height="310"/>
+    </g>
+    <ellipse cx="540" cy="755" rx="640" ry="95" fill="#8B5CF6" opacity=".08"/>
+
+    <!-- links de la red -->
+    <g transform="translate(0 150)">
+    <g stroke="rgba(103,232,249,.20)" stroke-width="1.5">
+      <line x1="190" y1="470" x2="390" y2="440"/><line x1="190" y1="470" x2="390" y2="505"/><line x1="190" y1="470" x2="390" y2="570"/>
+      <line x1="190" y1="530" x2="390" y2="440"/><line x1="190" y1="530" x2="390" y2="505"/><line x1="190" y1="530" x2="390" y2="570"/>
+      <line x1="190" y1="590" x2="390" y2="505"/><line x1="190" y1="590" x2="390" y2="570"/><line x1="190" y1="590" x2="390" y2="635"/>
+      <line x1="190" y1="650" x2="390" y2="570"/><line x1="190" y1="650" x2="390" y2="635"/><line x1="190" y1="650" x2="390" y2="700"/>
+    </g>
+    <g stroke="rgba(196,181,253,.20)" stroke-width="1.5">
+      <line x1="390" y1="440" x2="590" y2="440"/><line x1="390" y1="440" x2="590" y2="505"/><line x1="390" y1="440" x2="590" y2="570"/>
+      <line x1="390" y1="505" x2="590" y2="440"/><line x1="390" y1="505" x2="590" y2="505"/><line x1="390" y1="505" x2="590" y2="570"/>
+      <line x1="390" y1="570" x2="590" y2="505"/><line x1="390" y1="570" x2="590" y2="570"/><line x1="390" y1="570" x2="590" y2="635"/>
+      <line x1="390" y1="635" x2="590" y2="570"/><line x1="390" y1="635" x2="590" y2="635"/><line x1="390" y1="635" x2="590" y2="700"/>
+      <line x1="390" y1="700" x2="590" y2="635"/><line x1="390" y1="700" x2="590" y2="700"/>
+    </g>
+    <g stroke="rgba(103,232,249,.22)" stroke-width="1.5">
+      <line x1="590" y1="440" x2="790" y2="490"/><line x1="590" y1="440" x2="790" y2="570"/>
+      <line x1="590" y1="505" x2="790" y2="490"/><line x1="590" y1="505" x2="790" y2="570"/>
+      <line x1="590" y1="570" x2="790" y2="490"/><line x1="590" y1="570" x2="790" y2="570"/><line x1="590" y1="570" x2="790" y2="650"/>
+      <line x1="590" y1="635" x2="790" y2="570"/><line x1="590" y1="635" x2="790" y2="650"/>
+      <line x1="590" y1="700" x2="790" y2="650"/>
+    </g>
+    <polyline points="190,530 390,570 590,570 790,570" fill="none" stroke="url(#wire)" stroke-width="2.5" opacity=".85"/>
+
+    <!-- nodos -->
+    <g fill="#0d1329" stroke="#22d3ee" stroke-width="2.5">
+      <circle cx="190" cy="470" r="11"/><circle cx="190" cy="530" r="11"/><circle cx="190" cy="590" r="11"/><circle cx="190" cy="650" r="11"/>
+    </g>
+    <g fill="#0d1329" stroke="#8B5CF6" stroke-width="2.2">
+      <circle cx="390" cy="440" r="9"/><circle cx="390" cy="505" r="9"/><circle cx="390" cy="570" r="9"/><circle cx="390" cy="635" r="9"/><circle cx="390" cy="700" r="9"/>
+      <circle cx="590" cy="440" r="9"/><circle cx="590" cy="505" r="9"/><circle cx="590" cy="570" r="9"/><circle cx="590" cy="635" r="9"/><circle cx="590" cy="700" r="9"/>
+    </g>
+    <g fill="#0d1329" stroke="#67e8f9" stroke-width="2.5">
+      <circle cx="790" cy="490" r="11"/><circle cx="790" cy="570" r="11"/><circle cx="790" cy="650" r="11"/>
+    </g>
+    <circle cx="790" cy="570" r="19" fill="#67e8f9" opacity=".3" filter="url(#soft)"/>
+    <circle cx="790" cy="570" r="4" fill="#67e8f9"/>
+    <circle cx="190" cy="530" r="4" fill="#67e8f9" opacity=".9"/>
+    </g>
+
+    <!-- chips -->
+    <g transform="translate(852 606)">
+      <rect width="112" height="40" rx="20" fill="rgba(13,18,32,.85)" stroke="rgba(34,211,238,.35)"/>
+      <text x="56" y="26" text-anchor="middle" font-family="Cascadia Mono, Consolas, monospace" font-size="12.5" fill="#67e8f9">análisis</text>
+    </g>
+    <g transform="translate(838 666)">
+      <rect width="140" height="40" rx="20" fill="rgba(13,18,32,.85)" stroke="rgba(167,139,250,.35)"/>
+      <text x="70" y="26" text-anchor="middle" font-family="Cascadia Mono, Consolas, monospace" font-size="12.5" fill="#c4b5fd">asistencia</text>
+    </g>
+    <g transform="translate(844 726)">
+      <rect width="146" height="40" rx="20" fill="rgba(13,18,32,.85)" stroke="rgba(34,211,238,.35)"/>
+      <text x="73" y="26" text-anchor="middle" font-family="Cascadia Mono, Consolas, monospace" font-size="12.5" fill="#67e8f9">decisiones</text>
+    </g>
+
+    <!-- data streams -->
+    <g transform="translate(0 48)">
+      <rect x="120" y="762" width="14" height="18" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="156" y="748" width="14" height="32" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="192" y="754" width="14" height="26" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="228" y="736" width="14" height="44" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="264" y="742" width="14" height="38" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="300" y="724" width="14" height="56" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="336" y="750" width="14" height="30" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="372" y="732" width="14" height="48" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="408" y="716" width="14" height="64" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="444" y="740" width="14" height="40" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="480" y="728" width="14" height="52" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="516" y="752" width="14" height="28" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="552" y="720" width="14" height="60" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="588" y="744" width="14" height="36" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="624" y="734" width="14" height="46" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="660" y="756" width="14" height="24" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="696" y="722" width="14" height="58" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="732" y="746" width="14" height="34" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="768" y="738" width="14" height="42" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="804" y="730" width="14" height="50" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="840" y="754" width="14" height="26" rx="2" fill="#8B5CF6" opacity=".2"/>
+      <rect x="876" y="742" width="14" height="38" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="912" y="760" width="14" height="20" rx="2" fill="#22d3ee" opacity=".22"/>
+      <rect x="948" y="750" width="14" height="30" rx="2" fill="#8B5CF6" opacity=".2"/>
+    </g>
+    <line x1="100" y1="830" x2="980" y2="830" stroke="rgba(103,232,249,.25)" stroke-width="1.5"/>
+
+    <g fill="#67e8f9">
+      <circle cx="720" cy="250" r="2.6" opacity=".4"/><circle cx="960" cy="330" r="2.2" opacity=".35"/><circle cx="90" cy="400" r="2.4" opacity=".3"/>
+    </g>
+    <g fill="#a78bfa">
+      <circle cx="800" cy="190" r="2.4" opacity=".4"/><circle cx="140" cy="300" r="2.2" opacity=".3"/><circle cx="1010" cy="520" r="2.6" opacity=".35"/>
+    </g>
+  </svg>
+
+  <div class="shade"></div>
+
+  <!-- ======== HEADER ======== -->
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="assets/logo.svg" alt="GentleVanguard">
+      <div>
+        <div class="wordmark">Gentle<span class="grad">Vanguard</span></div>
+        <div class="tagline">ARQUITECTURA DIGITAL · IA · AUTOMATIZACIÓN</div>
+      </div>
+    </div>
+    <div class="motto">
+      <div>IDEAS</div><div>SISTEMAS</div><div>OPERACIONES</div><div>RESULTADOS</div>
+      <div class="motto-bar"></div>
+    </div>
+  </header>
+
+  <!-- ======== CONTENIDO ======== -->
+  <main class="main">
+    <div class="eyebrow-row">
+      <span class="eyebrow">SERVICIO 03 <span class="sep">·</span> INTELIGENCIA ARTIFICIAL</span>
+      <span class="series">03 / 06</span>
+    </div>
+    <h1>IA que resuelve,<br><span class="grad">no que promete.</span></h1>
+    <p class="sub">Modelos y soluciones prácticas para análisis, asistencia y toma de decisiones.</p>
+    <div class="quote"><span class="quote-bar"></span><p>De la intuición a la evidencia: decisiones respaldadas por datos.</p></div>
+  </main>
+
+  <!-- ======== VALORES ======== -->
+  <section class="cards">
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9 2.5v3.5M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/><circle cx="12" cy="12" r="2"/></svg>
+      <h3>Análisis de datos</h3>
+      <p>Información compleja convertida en respuestas.</p>
+    </div>
+    <div class="card v-alt">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.6 0-3.1-.4-4.4-1.2L3 20l1.2-5.1A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/></svg>
+      <h3>Asistentes con IA</h3>
+      <p>Soporte y atención integrados a tus sistemas.</p>
+    </div>
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="#22d3ee" stroke="none"/></svg>
+      <h3>Decisiones con datos</h3>
+      <p>Modelos al servicio del negocio, no del hype.</p>
+    </div>
+  </section>
+
+  <!-- ======== CTA + CONTACTOS ======== -->
+  <footer class="cta">
+    <div class="cta-top">
+      <div class="cta-left">
+        <div class="cta-kicker">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/></svg>
+          CONVERSEMOS SOBRE TU PRÓXIMO DESAFÍO TECNOLÓGICO.
+        </div>
+        <div class="cta-btn">Coordinar reunión
+          <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </div>
+        <div class="cta-sub">Respuesta en el día · Sin compromiso</div>
+      </div>
+      <div class="qr-box">
+        <div class="qr-card"><img src="assets/qr/qr-03-ia.svg" alt="QR WhatsApp"></div>
+        <div class="qr-cap">Escanear y escribirnos</div>
+      </div>
+    </div>
+    <div class="contacts">
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+        +54 9 264 5452221
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="#67e8f9" stroke="none"/></svg>
+        @gentlevanguard.sj
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+        gentlevanguard@gmail.com
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

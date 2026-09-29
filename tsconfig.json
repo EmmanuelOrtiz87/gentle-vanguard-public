@@ -21,6 +21,8 @@
     "sourceMap": false,
     "outDir": "./dist",
     "rootDir": ".",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "types": ["node"]
   },
   "include": [
@@ -36,7 +38,19 @@
     "scripts/utilities/MODEL-ROUTER/**/*.ts",
     "scripts/validation/**/*.ts",
     "src/**/*.ts",
-    "scripts/apps/**/*.ts"
+    "scripts/apps/**/*.ts",
+    "apps/*/server/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "build", "coverage", "templates", "src/convergence"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "templates",
+    "src/convergence",
+    "apps/*/public",
+    "apps/*/dist",
+    "apps/*/build",
+    "apps/*/node_modules"
+  ]
 }

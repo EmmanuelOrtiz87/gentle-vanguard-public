@@ -243,6 +243,12 @@ section { padding: 60px 20px; }
 .gracias-upsell { max-width: 760px; margin: 0 auto 20px; }
 .gracias-upsell h3 { font-size: 14px; color: var(--text-2); margin-bottom: 12px; }
 .gracias-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.gracias-card-price { font-size: 13px; font-weight: 700; color: var(--cyan); margin: 2px 0 8px; }
+.gracias-card-skip {
+  background: none; border: none; cursor: pointer; padding: 6px 0 0;
+  color: var(--muted); font: inherit; font-size: 12px; text-decoration: underline;
+}
+.gracias-card-skip:hover { color: var(--text); }
 .gracias-card {
   padding: 14px 16px; border-radius: var(--radius-sm); text-align: left;
   background: var(--glass); border: 1px solid var(--border);
@@ -1277,6 +1283,7 @@ footer a { color: var(--cyan); }
   <p style="margin-top:8px; opacity:.6">100% local-first · Sin dependencias · Datos en tu máquina</p>
 </footer>
 
+<script src="data/catalog-reco.js"></script>
 <script>
 // ─── Config de contacto (inyectada por build-landing.mjs) ───
 // whatsappPhone (número internacional sin +) activa prefill directo en wa.me/<phone>?text=.
@@ -1441,9 +1448,16 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
 var BUMP_OFFERS = {"course-base":{"tier":"ebook-micro","label":"Micro eBook a elección","why":"La guía rápida del tema, para consolidar lo que vas a aprender en el curso."},"course-mentor":{"tier":"mentor-individual","label":"Mentoría individual extra","why":"Una sesión 1 a 1 adicional de refuerzo cuando la necesites."},"toolkit":{"tier":"ebook-micro","label":"Micro eBook a elección","why":"Lectura complementaria del foco del toolkit."},"ebook-premium":{"tier":"ebook-micro","label":"Micro eBook a elección","why":"Un segundo tema en formato corto: 40 páginas para dominarlo en una tarde."},"mentor-individual":{"tier":"ebook-micro","label":"Micro eBook a elección","why":"Material de base para aprovechar mejor la sesión."}};
 var MPAGO_JS = {"ebook-micro":"https://mpago.la/219F2HK","ebook-premium":"https://mpago.la/2LPNVrj","toolkit":"https://mpago.la/16Zk1U1","course-base":"https://mpago.la/2fVzHJ7","course-mentor":"https://mpago.la/2Y91TZ5","mentor-individual":"https://mpago.la/2EE2AX2"};
 var PRICE_LABELS = {"ebook-micro":"USD 20","ebook-premium":"USD 40","toolkit":"USD 80","course-base":"USD 50","course-mentor":"USD 100","program-custom":"USD 250","mentor-individual":"USD 20"};
-var UPSELLS = [
-  { tier: 'toolkit', label: 'Toolkit de IA para tu rubro', why: 'Prompts + plantillas + emails + automatizaciones con casos reales.' },
-  { tier: 'course-mentor', label: 'Curso + Acompañamiento', why: 'Un curso a elección con 5 sesiones personalizadas 1 a 1.' },
+/* Fallback: si data/catalog-reco.js no cargo (404, cache viejo) se usan estas
+   dos. Es peor que las del catalogo, pero mejor que una pagina de gracias rota
+   en el momento en que el cliente ya pago.
+
+   SIN slug a proposito: un slug inventado atribuiria el producto equivocado al
+   comprador. Sin slug, la compra del complemento queda "para revision" en el
+   Portal, que es el comportamiento honesto. */
+var UPSELLS_FALLBACK = [
+  { tier: 'toolkit', label: 'Toolkit de IA para tu rubro', why: 'Prompts + plantillas + emails + automatizaciones con casos reales.', slug: '', priceLabel: '' },
+  { tier: 'course-mentor', label: 'Curso + Acompañamiento', why: 'Un curso + leccion con 5 sesiones personalizadas 1 a 1.', slug: '', priceLabel: '' },
 ];
 // Bridge MercadoPago (P0-#2): si MP_BRIDGE_URL está definido, el pago se crea
 // server-side (preferencia Checkout Pro) y se embebe el Wallet Brick (o se
@@ -1689,6 +1703,112 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   showGracias(checkoutCtx, bump && bumpTaken ? bump : null);
 });
 
+// ── Recomendaciones de upsell (derivadas del catálogo) ─────────────────
+//
+// La fuente es window.GV_RECO, GENERADO por scripts/build-catalog.ts desde
+// recommend.ts (el motor con tests). Si el motor cambia, este archivo cambia
+// con el: no hay dos implementaciones que puedan divergir.
+//
+// Fallo degradado: si el archivo no cargo (404, cache viejo), se cae al
+// comportamiento anterior — sin upsells en vez de romper la pagina de
+// gracias, que es el momento donde el cliente ya pagó.
+var TOUCH_KEY = 'gv-offer-touches';
+var MAX_TOUCHES = 2;
+
+/** Lee los conteos de toques. Tolera null, vacio y JSON roto. */
+function readOfferTouches(boughtSlug) {
+  var out = {};
+  try {
+    var raw = localStorage.getItem(TOUCH_KEY);
+    if (!raw) return out;
+    var parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      parsed.forEach(function (item) {
+        // Formato legacy [[boughtSlug, offeredSlug, count], ...]
+        if (Array.isArray(item) && item.length === 3) {
+          out[item[0] + '|' + item[1]] = item[2];
+        } else if (typeof item === 'string') {
+          out[item] = 1;
+        }
+      });
+    }
+  } catch (e) { /* best-effort */ }
+  return out;
+}
+
+/** Registra que se ofrecio X para Y y no fue aceptado. */
+function recordOfferTouch(boughtSlug, offeredSlug) {
+  try {
+    var all = readOfferTouches();
+    var key = boughtSlug + '|' + offeredSlug;
+    all[key] = (all[key] || 0) + 1;
+    var pairs = Object.keys(all).map(function (k) {
+      var p = k.split('|');
+      return [p[0], p[1], all[k]];
+    });
+    localStorage.setItem(TOUCH_KEY, JSON.stringify(pairs));
+  } catch (e) { /* best-effort */ }
+}
+
+/** Que es lo que YA se ofrecio, para no reintentar al cargar. */
+function bumpTouchesFor(boughtSlug) {
+  var all = readOfferTouches();
+  var out = {};
+  Object.keys(all).forEach(function (k) {
+    var p = k.split('|');
+    if (p[0] === boughtSlug) out[p[1]] = all[k];
+  });
+  return out;
+}
+
+/**
+ * Recomendaciones para lo que se compro.
+ *
+ * Si no hay slug (boton sin data-slug), no inventa: devuelve la lista vacia
+ * antes que un upsell irrelevante. Un upsell sin relacion es peor que
+ * ninguno — es la razon por la que el motor exige evidencia.
+ */
+function recommendationsFor(boughtSlug, boughtTier) {
+  var RECO = window.GV_RECO;
+  var hasCatalog = Boolean(RECO && RECO.recos);
+
+  // SIN slug comprado no hay con que recomendar: es el unico dato que define
+  // QUE compro la persona. Un upsell generico aqui es peor que ninguno, y un
+  // slug inventado atribuiria el producto equivocado. No se ofrece nada.
+  if (!boughtSlug) return [];
+
+  // Degradado: el catalogo no cargo (404, cache viejo). Las dos de siempre,
+  // marcadas como fallback y SIN slug, para no inventar atribucion. Es peor
+  // que las del catalogo pero mejor que una pagina de gracias rota en el
+  // momento en que el cliente ya pago.
+  if (!hasCatalog) {
+    return UPSELLS_FALLBACK.filter(function (r) {
+      return r.tier !== boughtTier && Boolean(MPAGO_JS[r.tier]);
+    }).map(function (r) {
+      return {
+        slug: r.slug, tier: r.tier, title: r.label, why: r.why,
+        priceLabel: r.priceLabel || PRICE_LABELS[r.tier] || '', reason: 'fallback',
+      };
+    });
+  }
+
+  var recos = RECO.recos[boughtSlug];
+  if (!recos || !recos.length) return [];
+
+  var touches = bumpTouchesFor(boughtSlug);
+  return recos
+    // Nunca el mismo producto.
+    .filter(function (r) { return r.slug !== boughtSlug; })
+    // El MISMO tier si es valido: el mejor complemento de un curso suele ser
+    // otro curso del mismo nivel, y el motor ya decidio que hay relacion
+    // declarada. Filtrar por tier dejaba la lista vacia para los 20 cursos.
+    // Lo que no se ofrece es el producto ya comprado, que se cubre arriba.
+    // No insistir a quien ya rechazo dos veces.
+    .filter(function (r) { return (touches[r.slug] || 0) < MAX_TOUCHES; })
+    // Solo lo que se puede comprar de verdad (tier con link de pago).
+    .filter(function (r) { return Boolean(MPAGO_JS[r.tier]); });
+}
+
 function showGracias(ctx, pendingBump) {
   var sec = document.getElementById('gracias');
   var bumpBox = document.getElementById('gracias-bump');
@@ -1719,24 +1839,64 @@ function showGracias(ctx, pendingBump) {
   } else {
     bumpBox.style.display = 'none';
   }
+  // ── Upsells: derivados del catálogo real, no tarjetas fijas ──────────
+  //
+  // Antes eran UPSELLS[].forEach: las MISMAS 2 ofertas para cualquiera. Y
+  // sus botones NO llevaban data-slug, así que una compra de complemento
+  // llegaba al CRM y al Portal sin producto atribuible (caía en
+  // "producto por asignar"). Ahora salen de window.GV_RECO, generado por
+  // scripts/build-catalog.ts desde el MISMO motor que recommend.test.ts
+  // prueba, y cada botón lleva data-slug.
   var cards = document.getElementById('gracias-cards');
   cards.innerHTML = '';
-  UPSELLS.forEach(function(u) {
-    if (u.tier === ctx.tier || !MPAGO_JS[u.tier]) return;
+  var slug = ctx.slug || '';
+  var offered = recommendationsFor(slug, ctx.tier);
+  offered.forEach(function (u) {
     var card = document.createElement('div');
     card.className = 'gracias-card';
-    var strong = document.createElement('strong'); strong.textContent = u.label;
-    var span = document.createElement('span'); span.textContent = u.why;
+    card.setAttribute('data-reason', u.reason);
+
+    var strong = document.createElement('strong');
+    strong.textContent = u.title;
+    var span = document.createElement('span');
+    span.textContent = u.why;
+    var price = document.createElement('span');
+    price.className = 'gracias-card-price';
+    price.textContent = u.priceLabel;
+
     var a = document.createElement('a');
     a.className = 'btn btn-ghost btn-checkout';
-    a.target = '_blank'; a.rel = 'noopener';
-    a.href = MPAGO_JS[u.tier];
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.href = MPAGO_JS[u.tier] || '#';
     a.setAttribute('data-tier', u.tier);
-    a.setAttribute('data-product', u.label);
-    a.setAttribute('data-price', PRICE_LABELS[u.tier] || '');
+    // data-slug: sin esto la venta del complemento no se puede atribuir.
+    a.setAttribute('data-slug', u.slug);
+    a.setAttribute('data-product', u.title);
+    a.setAttribute('data-price', u.priceLabel);
     a.textContent = '💳 Ver más';
-    a.addEventListener('click', function() { track('upsell_click', { upsell: u.label, from: ctx.product }); });
-    card.appendChild(strong); card.appendChild(span); card.appendChild(a);
+    a.addEventListener('click', function () {
+      track('upsell_click', { upsell: u.slug, reason: u.reason, from: ctx.product });
+    });
+
+    // Descartar: registra el toque para no volver a ofrecerlo (regla de los
+    // 3 toques). No es metrica de conversión: es no molestar a quien ya dijo
+    // que no dos veces.
+    var skip = document.createElement('button');
+    skip.type = 'button';
+    skip.className = 'gracias-card-skip';
+    skip.textContent = 'Ahora no';
+    skip.addEventListener('click', function () {
+      recordOfferTouch(slug, u.slug);
+      card.remove();
+      track('upsell_dismissed', { upsell: u.slug, reason: u.reason });
+    });
+
+    card.appendChild(strong);
+    card.appendChild(span);
+    card.appendChild(price);
+    card.appendChild(a);
+    card.appendChild(skip);
     cards.appendChild(card);
   });
   var wa = document.getElementById('gracias-wa');
@@ -1751,3 +1911,5 @@ function showGracias(ctx, pendingBump) {
 </script>
 </body>
 </html>
+
+
