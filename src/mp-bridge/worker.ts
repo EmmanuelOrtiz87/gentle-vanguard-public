@@ -38,8 +38,9 @@
 import { StandardWebhooks } from '../webhooks/standard-webhooks.js';
 import { pathToFileURL } from 'url';
 
-/** KV mínimo (evita depender de @cloudflare/workers-types). */
-interface KVNamespace {
+/** KV mínimo (evita depender de @cloudflare/workers-types). Exportado para
+ *  que los tests puedan tipar el fake correctamente. */
+export interface KVNamespace {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
   delete(key: string): Promise<void>;
@@ -267,6 +268,126 @@ function pollAuthorized(req: Request, env: Env): boolean {
   return req.headers.get('x-poll-secret') === env.SALES_POLL_SECRET;
 }
 
+/**
+ * Prefijo de los certificados reflejados en KV por el Portal de Cliente.
+ *
+ * Separate de la cola de ventas (`sale:` / `consumer:portal:`) a proposito:
+ * los certificados no se consumen, se consultan, y mezclarlos haria que un
+ * barrido de la cola los borrara.
+ */
+const CERT_PREFIX = 'cert:';
+
+/**
+ * Espejo de certificados — lo escribe el Portal de Cliente.
+ *
+ * El Portal corre en loopback (ADR-0017) asi que su SQLite no es alcanzable
+ * desde internet: un tercero no podria verificar un certificado emitido en una
+ * maquina. Al emitir, el Portal refleja aqui una COPIA minima (lo minimo
+ * para verificar) y este endpoint lo sirve sin sesion.
+ *
+ * Lo que NO se copia: email, id del estudiante, score. El nombre va enmascarado
+ * aca tambien — un store publico con el nombre completo de una persona es un
+ * problema de privacidad, no un atajo.
+ */
+interface MirroredCertificate {
+  code: string;
+  courseTitle: string;
+  /** Ya enmascarado ("Ana M. L."). */
+  studentName: string;
+  issuedAt: string;
+  /** 1 = revocado. Un certificado revocado se marca, no se borra: borrar lo
+   *  haria que un codigo revocado volviera "no existe" en vez de "revocado". */
+  revoked: boolean;
+  verified: number;
+}
+
+async function handleCertMirror(req: Request, env: Env): Promise<Response> {
+  if (!env.SALES_KV) return error('SALES_KV no configurado', 503);
+  // Reusa la auth de la cola: mismo secreto, misma razon (es el Portal).
+  if (!pollAuthorized(req, env)) return error('no autorizado', 401);
+
+  let body: Partial<MirroredCertificate>;
+  try {
+    body = (await req.json()) as Partial<MirroredCertificate>;
+  } catch {
+    return error('JSON invalido', 400);
+  }
+
+  const code = typeof body.code === 'string' ? body.code.replace(/[^0-9A-Z]/gi, '').toUpperCase() : '';
+  if (code.length !== 24) return error('code requerido (24 caracteres normalizados)', 400);
+  if (typeof body.courseTitle !== 'string' || !body.courseTitle.trim()) {
+    return error('courseTitle requerido', 400);
+  }
+  if (typeof body.studentName !== 'string' || !body.studentName.trim()) {
+    return error('studentName requerido', 400);
+  }
+
+  const record: MirroredCertificate = {
+    code,
+    courseTitle: body.courseTitle.trim().slice(0, 200),
+    studentName: body.studentName.trim().slice(0, 120),
+    issuedAt: typeof body.issuedAt === 'string' ? body.issuedAt : new Date().toISOString(),
+    revoked: body.revoked === true,
+    verified: 0,
+  };
+
+  try {
+    // TTL de 2 años: pasado eso el certificado deja de poder verificarse, que
+    // es preferible a servir un registro eterno de datos personales.
+    await env.SALES_KV.put(`${CERT_PREFIX}${code}`, JSON.stringify(record), {
+      expirationTtl: 60 * 60 * 24 * 730,
+    });
+  } catch (err) {
+    return error(`KV put fallo: ${err instanceof Error ? err.message : 'error'}`, 500);
+  }
+  return json({ ok: true, code: record.code, revoked: record.revoked });
+}
+
+/**
+ * Verificacion PUBLICA de un certificado, sin sesion.
+ *
+ * Devuelve lo MINIMO: curso, nombre YA enmascarado, fecha, validez. Sin
+ * email, sin score, sin id: un endpoint publico es un oraculo y cuanto menos
+ * devuelve, menos se puede enumerar.
+ */
+async function handleCertVerify(req: Request, env: Env, rawCode: string): Promise<Response> {
+  if (!env.SALES_KV) return error('SALES_KV no configurado', 503);
+  const code = String(rawCode ?? '')
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, '')
+    // Corrige los confundibles que la gente escribe al transcribir a mano.
+    .split('')
+    .map((ch) => ({ I: '1', L: '1', O: '0', U: 'V' })[ch] ?? ch)
+    .join('');
+  if (code.length !== 24) return json({ valid: false, error: 'codigo invalido' }, 400);
+
+  const raw = await env.SALES_KV.get(`${CERT_PREFIX}${code}`);
+  if (!raw) return json({ valid: false, error: 'no existe un certificado con ese codigo' }, 404);
+
+  let rec: MirroredCertificate;
+  try {
+    rec = JSON.parse(raw) as MirroredCertificate;
+  } catch {
+    return json({ valid: false, error: 'registro corrupto' }, 500);
+  }
+
+  // Contador de verificaciones. Best-effort: no se le niega el dato al
+  // usuario si falla la escritura. Sirve para detectar un codigo filtrado.
+  const verified = (rec.verified ?? 0) + 1;
+  env.SALES_KV.put(`${CERT_PREFIX}${code}`, JSON.stringify({ ...rec, verified })).catch(() => {});
+
+  if (rec.revoked) {
+    return json({ valid: false, revoked: true, code, error: 'el certificado fue revocado' });
+  }
+  return json({
+    valid: true,
+    code,
+    courseTitle: rec.courseTitle,
+    studentName: rec.studentName,
+    issuedAt: rec.issuedAt,
+  });
+}
+
 /** Prefijos de cola por consumidor. `crm` mantiene su prefijo histórico. */
 const QUEUE_PREFIXES = { crm: 'sale:', portal: 'consumer:portal:' } as const;
 type QueueConsumer = keyof typeof QUEUE_PREFIXES;
@@ -463,6 +584,18 @@ export default {
       }
       if (url.pathname === '/api/mp/sales/ack' && req.method === 'POST') {
         return handleSalesAck(req, env);
+      }
+      // Certificados (espejo del Portal de Cliente). La verificacion es
+      // PUBLICA y sin sesion: es lo que hace que el certificado valga para un
+      // tercero. El espejo SI exige el secreto de la cola.
+      if (url.pathname === '/api/mp/cert/mirror' && req.method === 'POST') {
+        return handleCertMirror(req, env);
+      }
+      // Importante: `mirror` esta reservado para el POST. Si cae aca con GET,
+      // responderiamos "codigo invalido" para un codigo de 6 letras que NO es
+      // un certificado. Mejor 404 explicito: la URL no existe para GET.
+      if (url.pathname.startsWith('/api/mp/cert/') && url.pathname !== '/api/mp/cert/mirror' && req.method === 'GET') {
+        return handleCertVerify(req, env, decodeURIComponent(url.pathname.slice('/api/mp/cert/'.length)));
       }
       return error('not found', 404, cors);
     } catch (err) {

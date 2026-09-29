@@ -1,0 +1,6 @@
+qr-01-software|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Me%20interesa%20el%20servicio%20de%20Software%20empresarial%20(apps%20y%20plataformas%20a%20medida).
+qr-02-automatizacion|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Me%20interesa%20el%20servicio%20de%20Automatizacion%20de%20procesos.
+qr-03-ia|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Me%20interesa%20el%20servicio%20de%20IA%20aplicada.
+qr-04-arquitectura|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Me%20interesa%20el%20servicio%20de%20Arquitectura%20%26%20Consultoria.
+qr-05-academia|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Me%20interesan%20los%20cursos%20y%20capacitaciones%20de%20la%20Academia%20de%20Conocimiento.
+qr-06-soporte|https://wa.me/5492645452221?text=Hola%20GentleVanguard!%20Necesito%20soporte%20para%20los%20sistemas%20de%20mi%20empresa.

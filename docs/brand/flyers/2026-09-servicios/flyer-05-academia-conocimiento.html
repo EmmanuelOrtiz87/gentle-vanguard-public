@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GentleVanguard — Academia de Conocimiento</title>
+<link rel="stylesheet" href="flyer.css">
+</head>
+<body>
+<div class="stage">
+
+  <!-- ======== ESCENA: pasos de aprendizaje + terminal + birrete ======== -->
+  <svg class="scene" viewBox="0 0 1080 1350" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0B1020"/><stop offset=".55" stop-color="#0d1329"/><stop offset="1" stop-color="#090C11"/>
+      </linearGradient>
+      <radialGradient id="gc" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#22d3ee" stop-opacity=".26"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gv2" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#8B5CF6" stop-opacity=".28"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <linearGradient id="wire" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M72 0H0V72" fill="none" stroke="#67e8f9" stroke-opacity=".05"/>
+      </pattern>
+      <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3"/></filter>
+    </defs>
+
+    <rect width="1080" height="1350" fill="url(#bg)"/>
+    <rect width="1080" height="1350" fill="url(#grid)"/>
+    <ellipse cx="760" cy="420" rx="450" ry="330" fill="url(#gc)"/>
+    <ellipse cx="200" cy="600" rx="420" ry="320" fill="url(#gv2)"/>
+
+    <!-- skyline tenue -->
+    <g fill="#0e1626" opacity=".5">
+      <rect x="0" y="470" width="130" height="300"/><rect x="150" y="410" width="95" height="360"/>
+      <rect x="260" y="500" width="120" height="270"/><rect x="395" y="380" width="85" height="390"/>
+      <rect x="495" y="460" width="115" height="310"/><rect x="625" y="410" width="95" height="360"/>
+      <rect x="735" y="490" width="130" height="280"/><rect x="880" y="370" width="90" height="400"/>
+      <rect x="980" y="450" width="100" height="320"/>
+    </g>
+    <ellipse cx="540" cy="758" rx="640" ry="90" fill="#22d3ee" opacity=".06"/>
+
+    <!-- birrete -->
+    <g transform="translate(580 620)" stroke="#67e8f9" stroke-width="2.6" fill="rgba(34,211,238,.08)" stroke-linejoin="round">
+      <path d="M-64 0 0 -26 64 0 0 26 Z"/>
+      <path d="M-36 12v20a36 15 0 0 0 72 0v-20" fill="none"/>
+      <path d="M64 0v30" fill="none"/>
+      <circle cx="64" cy="36" r="3.5" fill="#fbbf24" stroke="none"/>
+    </g>
+
+    <!-- terminal de progreso -->
+    <g transform="translate(100 585)">
+      <rect width="320" height="200" rx="16" fill="rgba(13,18,32,.85)" stroke="rgba(167,139,250,.3)"/>
+      <circle cx="26" cy="24" r="5.5" fill="#22d3ee" opacity=".85"/><circle cx="46" cy="24" r="5.5" fill="#8B5CF6" opacity=".8"/><circle cx="66" cy="24" r="5.5" fill="#fbbf24" opacity=".7"/>
+      <line x1="0" y1="44" x2="320" y2="44" stroke="rgba(167,139,250,.18)"/>
+      <text x="26" y="96" font-family="Cascadia Mono, Consolas, monospace" font-size="14.5"><tspan fill="#67e8f9">$</tspan><tspan fill="#e8eef4"> gv aprender --track ia</tspan></text>
+      <rect x="26" y="116" width="268" height="10" rx="5" fill="rgba(232,238,244,.10)"/>
+      <rect x="26" y="116" width="193" height="10" rx="5" fill="url(#bar)"/>
+      <text x="26" y="156" font-family="Cascadia Mono, Consolas, monospace" font-size="12.5" fill="#8b95a8">módulo 7/10 · 72%</text>
+      <text x="26" y="182" font-family="Cascadia Mono, Consolas, monospace" font-size="12.5" fill="#4ade80">✓ práctica con casos reales</text>
+    </g>
+
+    <!-- pasos ascendentes -->
+    <g>
+      <rect x="300" y="790" width="160" height="80" rx="10" fill="rgba(21,27,40,.7)" stroke="rgba(167,139,250,.3)"/>
+      <rect x="300" y="790" width="160" height="12" rx="6" fill="rgba(103,232,249,.20)"/>
+      <rect x="470" y="740" width="160" height="130" rx="10" fill="rgba(21,27,40,.7)" stroke="rgba(167,139,250,.3)"/>
+      <rect x="470" y="740" width="160" height="12" rx="6" fill="rgba(103,232,249,.24)"/>
+      <rect x="640" y="685" width="160" height="185" rx="10" fill="rgba(21,27,40,.7)" stroke="rgba(167,139,250,.3)"/>
+      <rect x="640" y="685" width="160" height="12" rx="6" fill="rgba(103,232,249,.28)"/>
+      <rect x="810" y="600" width="180" height="270" rx="10" fill="rgba(21,27,40,.7)" stroke="rgba(167,139,250,.34)"/>
+      <rect x="810" y="600" width="180" height="12" rx="6" fill="rgba(103,232,249,.34)"/>
+    </g>
+    <path d="M300 780 C430 740 540 715 640 682 C740 648 820 600 900 500" fill="none" stroke="#67e8f9" stroke-width="2" stroke-dasharray="7 9" opacity=".5"/>
+
+    <!-- bandera -->
+    <line x1="900" y1="600" x2="900" y2="490" stroke="#e8eef4" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="900,488 992,514 900,540" fill="url(#wire)"/>
+
+    <g fill="#67e8f9">
+      <circle cx="720" cy="250" r="2.6" opacity=".4"/><circle cx="950" cy="300" r="2.2" opacity=".35"/><circle cx="90" cy="380" r="2.4" opacity=".3"/>
+    </g>
+    <g fill="#a78bfa">
+      <circle cx="790" cy="180" r="2.4" opacity=".4"/><circle cx="150" cy="290" r="2.2" opacity=".3"/><circle cx="1010" cy="500" r="2.6" opacity=".35"/>
+    </g>
+  </svg>
+
+  <div class="shade"></div>
+
+  <!-- ======== HEADER ======== -->
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="assets/logo.svg" alt="GentleVanguard">
+      <div>
+        <div class="wordmark">Gentle<span class="grad">Vanguard</span></div>
+        <div class="tagline">ARQUITECTURA DIGITAL · IA · AUTOMATIZACIÓN</div>
+      </div>
+    </div>
+    <div class="motto">
+      <div>IDEAS</div><div>SISTEMAS</div><div>OPERACIONES</div><div>RESULTADOS</div>
+      <div class="motto-bar"></div>
+    </div>
+  </header>
+
+  <!-- ======== CONTENIDO ======== -->
+  <main class="main">
+    <div class="eyebrow-row">
+      <span class="eyebrow">SERVICIO 05 <span class="sep">·</span> FORMACIÓN Y MENTORÍA</span>
+      <span class="series">05 / 06</span>
+    </div>
+    <h1>Equipos que aprenden, <span class="grad">empresas que escalan.</span></h1>
+    <p class="sub">Cursos, asesoría, mentoría y capacitaciones en tecnología e inteligencia artificial.</p>
+    <div class="quote"><span class="quote-bar"></span><p>La tecnología cambia rápido. Un equipo que aprende, se adapta siempre.</p></div>
+  </main>
+
+  <!-- ======== VALORES ======== -->
+  <section class="cards">
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m2 9 10-4.5L22 9l-10 4.5L2 9z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M22 9v6"/></svg>
+      <h3>Cursos y talleres</h3>
+      <p>Formación práctica con casos reales de tu industria.</p>
+    </div>
+    <div class="card v-alt">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5h5M16 8.5h5M16 12.5h3"/></svg>
+      <h3>Mentoría 1:1</h3>
+      <p>Acompañamiento individual para perfiles técnicos.</p>
+    </div>
+    <div class="card">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M7 19h6a4 4 0 0 0 4-4V7"/></svg>
+      <h3>Programas in-company</h3>
+      <p>Rutas de aprendizaje diseñadas para tu equipo.</p>
+    </div>
+  </section>
+
+  <!-- ======== CTA + CONTACTOS ======== -->
+  <footer class="cta">
+    <div class="cta-top">
+      <div class="cta-left">
+        <div class="cta-kicker">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/></svg>
+          CONVERSEMOS SOBRE TU PRÓXIMO DESAFÍO TECNOLÓGICO.
+        </div>
+        <div class="cta-btn">Coordinar reunión
+          <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </div>
+        <div class="cta-sub">Respuesta en el día · Sin compromiso</div>
+      </div>
+      <div class="qr-box">
+        <div class="qr-card"><img src="assets/qr/qr-05-academia.svg" alt="QR WhatsApp"></div>
+        <div class="qr-cap">Escanear y escribirnos</div>
+      </div>
+    </div>
+    <div class="contacts">
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+        +54 9 264 5452221
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="#67e8f9" stroke="none"/></svg>
+        @gentlevanguard.sj
+      </div>
+      <div class="contact">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+        gentlevanguard@gmail.com
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

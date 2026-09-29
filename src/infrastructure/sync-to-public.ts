@@ -410,6 +410,19 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   rmIf(path.join(targetDir, '.session'), { recurse: true });
   rmIf(path.join(targetDir, '.telemetry'), { recurse: true });
 
+  // 10a. Workspace package @gentle-vanguard/shared. The root package.json
+  // depends on it as workspace:* and src/compression + src/retrieval import
+  // it; without the package the public smoke's `pnpm tsc` fails with TS2307
+  // (missing module). Pure shared primitives — public-safe by design. Only
+  // this member crosses; the rest of packages/ (design system, brand) stays
+  // private until its distribution strategy is explicit.
+  rmIf(path.join(targetDir, 'packages'), { recurse: true });
+  copyIf(
+    path.join(privateRepo, 'packages', 'shared'),
+    path.join(targetDir, 'packages', 'shared'),
+    { recurse: true },
+  );
+
   // Apps are local-first products (ADR-0017): they must never cross the
   // publication boundary. Remove any legacy apps/ tree from the target.
   rmIf(path.join(targetDir, 'apps'), { recurse: true });

@@ -454,6 +454,8 @@
     "presentations:verify:cdp:hotspots": "node .opencode/skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.cjs",
     "kilocode:bedrock:fix": "npx tsx src/cli/fix-kilocode-bedrock.ts",
     "version:check": "npx tsx src/tools/version-sync.ts",
+    "release:verify-dist": "npx tsx src/release/verify-distribution.ts",
+    "release:verify-dist:offline": "npx tsx src/release/verify-distribution.ts --offline",
     "skills:index": "npx tsx src/knowledge/skills-index-generator.ts",
     "skills:quality:audit": "node --import tsx src/skills/skill-quality-audit.ts --write",
     "skills:quality:gate": "node --import tsx src/skills/skill-quality-audit.ts --gate",
