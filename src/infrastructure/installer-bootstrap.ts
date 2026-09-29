@@ -49,7 +49,11 @@ function main(): void {
   if (!command('pnpm', ['install', '--frozen-lockfile'], 'Install locked project dependencies'))
     process.exit(1);
   if (
-    !command('npx', ['tsx', 'src/installer-doctor.ts', '--strict'], 'Verify installed dependencies')
+    !command(
+      'npx',
+      ['tsx', 'src/infrastructure/installer-doctor.ts', '--strict'],
+      'Verify installed dependencies',
+    )
   )
     process.exit(1);
   if (!command('npx', ['tsx', 'src/database/db-init.ts', '--quiet'], 'Initialize Nexus database'))
@@ -59,7 +63,7 @@ function main(): void {
     full &&
     !command(
       'npx',
-      ['tsx', 'src/maintenance-watchtower.ts', '--Action', 'health', '--Quiet'],
+      ['tsx', 'src/core/maintenance-watchtower.ts', '--action', 'health'],
       'Run full stack health check',
     )
   )

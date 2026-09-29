@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gentle Vanguard - Servicios Digitales e IA</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: rgba(13, 17, 23, 0.76);
+      --surface-strong: rgba(21, 25, 33, 0.9);
+      --cyan: #06b6d4;
+      --cyan-hot: #67e8f9;
+      --azure: #00bfff;
+      --violet: #8b5cf6;
+      --purple: #a855f7;
+      --text: #e8eef4;
+      --muted: #aab5c7;
+      --line: rgba(103, 232, 249, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #05070d;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+    }
+
+    .flyer {
+      position: relative;
+      width: 1080px;
+      height: 1350px;
+      overflow: hidden;
+      background: var(--bg);
+      isolation: isolate;
+    }
+
+    .bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -4;
+    }
+
+    .shade {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      background:
+        radial-gradient(circle at 77% 14%, rgba(139, 92, 246, 0.38), transparent 25%),
+        radial-gradient(circle at 18% 70%, rgba(6, 182, 212, 0.32), transparent 32%),
+        linear-gradient(90deg, rgba(5, 8, 16, 0.96) 0%, rgba(7, 11, 20, 0.86) 38%, rgba(7, 11, 20, 0.38) 74%, rgba(7, 11, 20, 0.22) 100%),
+        linear-gradient(180deg, rgba(5, 8, 16, 0.18), rgba(5, 8, 16, 0.92));
+    }
+
+    .grid {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      opacity: 0.3;
+      background-image:
+        linear-gradient(rgba(103, 232, 249, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(103, 232, 249, 0.08) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: linear-gradient(90deg, black, transparent 82%);
+    }
+
+    .content {
+      height: 100%;
+      padding: 62px 70px 68px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .logo {
+      width: 316px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 16px 34px rgba(0, 0, 0, 0.46));
+    }
+
+    .badge {
+      padding: 13px 18px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--cyan-hot);
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0;
+      white-space: nowrap;
+      box-shadow: 0 0 42px rgba(6, 182, 212, 0.16);
+    }
+
+    .hero {
+      width: 720px;
+      margin-top: 92px;
+    }
+
+    .kicker {
+      margin: 0 0 22px;
+      color: var(--cyan-hot);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Space Grotesk", "Poppins", "Segoe UI", Arial, sans-serif;
+      font-size: 69px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 850;
+      color: #fff;
+      text-wrap: balance;
+      text-shadow: 0 20px 58px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 span {
+      color: var(--cyan-hot);
+    }
+
+    .lead {
+      width: 650px;
+      margin: 30px 0 0;
+      color: var(--muted);
+      font-size: 28px;
+      line-height: 1.28;
+      font-weight: 500;
+    }
+
+    .services {
+      width: 650px;
+      margin-top: 44px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .service {
+      min-height: 98px;
+      padding: 19px 22px 18px;
+      border: 1px solid rgba(103, 232, 249, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(13, 17, 23, 0.84), rgba(26, 32, 53, 0.58));
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
+    }
+
+    .service strong {
+      display: block;
+      color: #fff;
+      font-size: 24px;
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .service small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.22;
+      font-weight: 500;
+    }
+
+    .stripe {
+      margin-top: auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .cta,
+    .contact {
+      border: 1px solid rgba(103, 232, 249, 0.28);
+      border-radius: 8px;
+      background: var(--surface-strong);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(18px);
+    }
+
+    .cta {
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .cta .label {
+      color: var(--cyan-hot);
+      font-size: 21px;
+      line-height: 1;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .cta .value {
+      margin-top: 12px;
+      color: #fff;
+      font-size: 31px;
+      line-height: 1.08;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .contact {
+      padding: 23px 26px;
+      display: grid;
+      gap: 12px;
+      align-content: center;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      flex: 0 0 11px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan-hot), var(--purple));
+      box-shadow: 0 0 22px rgba(103, 232, 249, 0.6);
+    }
+
+    .footer-line {
+      position: absolute;
+      left: 70px;
+      right: 70px;
+      bottom: 34px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.88), rgba(168, 85, 247, 0.74), transparent);
+      opacity: 0.78;
+    }
+  </style>
+</head>
+<body>
+  <main class="flyer" aria-label="Flyer Gentle Vanguard servicios digitales e inteligencia artificial">
+    <img class="bg" src="gv-services-flyer-bg.png" alt="" />
+    <div class="shade"></div>
+    <div class="grid"></div>
+
+    <section class="content">
+      <header class="top">
+        <img class="logo" src="../../../packages/brand/dist/png/logo-horizontal@3x.png" alt="Gentle Vanguard" />
+        <div class="badge">IA + Software</div>
+      </header>
+
+      <section class="hero">
+        <p class="kicker">Asesoría · Mentoría · Desarrollo</p>
+        <h1>Sistemas inteligentes para hacer crecer tu <span>negocio</span></h1>
+        <p class="lead">Diseñamos soluciones digitales claras, escalables y listas para operar: desde la idea hasta la implementación.</p>
+      </section>
+
+      <section class="services" aria-label="Servicios">
+        <div class="service">
+          <strong>Aplicaciones</strong>
+          <small>Web, móviles y paneles internos.</small>
+        </div>
+        <div class="service">
+          <strong>Automatizaciones</strong>
+          <small>Procesos, reportes y flujos de trabajo.</small>
+        </div>
+        <div class="service">
+          <strong>Chatbots IA</strong>
+          <small>Atención, ventas y soporte automatizado.</small>
+        </div>
+        <div class="service">
+          <strong>Mentoría</strong>
+          <small>Estrategia, diagnóstico y acompañamiento.</small>
+        </div>
+      </section>
+
+      <section class="stripe">
+        <div class="cta">
+          <div class="label">Agenda tu diagnóstico</div>
+          <div class="value">Transformemos tu operación en una ventaja digital.</div>
+        </div>
+
+        <div class="contact" aria-label="Contacto">
+          <div class="contact-row"><span class="dot"></span><span>+54 9 264 5452221</span></div>
+          <div class="contact-row"><span class="dot"></span><span>@gentlevanguard.sj</span></div>
+          <div class="contact-row"><span class="dot"></span><span>gentlevanguard@gmail.com</span></div>
+        </div>
+      </section>
+    </section>
+    <div class="footer-line"></div>
+  </main>
+</body>
+</html>

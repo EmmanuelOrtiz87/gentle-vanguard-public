@@ -5,6 +5,18 @@
   "pipeline": {
     "steps": [
       {
+        "id": "untracked-snapshot",
+        "enabled": true,
+        "lazy": false,
+        "script": "src/ops/untracked-snapshot.ts",
+        "args": "",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 120000,
+        "description": "GUARDRAIL anti-pérdida (post-incidente 2026-09-19): snapshot de archivos untracked + parches de cambios sin commit a .session/snapshots/untracked/. Lo irrecuperable de git queda respaldado en cada inicio de sesión."
+      },
+      {
         "id": "legacy-registration-cleanup",
         "enabled": true,
         "script": "src/core/legacy-registration-cleanup.ts",
@@ -260,12 +272,12 @@
       },
       {
         "id": "codegraph-mcp-server-start",
-        "enabled": true,
+        "enabled": false,
         "lazy": true,
         "script": "src/integrations/codegraph-mcp-server-start.ts",
         "args": "",
         "required": false,
-        "description": "Start CodeGraph MCP server in background â€” makes codegraph tools available to OpenCode immediately (v8.0.2)"
+        "description": "Legacy warm daemon disabled: CodeGraph is a client-owned stdio MCP that starts on demand"
       },
       {
         "id": "codegraph-sync",
@@ -1067,6 +1079,14 @@
         "args": "--no-browser",
         "required": false,
         "description": "Command Center standalone (puerto 8090): lifecycle on-demand de las apps construidas (dashboard/analytics/cms/academy). Idempotente — si ya esta vivo no re-ejecuta; --no-browser evita poppear tab en cada sesion"
+      },
+      {
+        "id": "auto-update-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/auto-update-check.ts",
+        "required": false,
+        "description": "Detecta actualizaciones en los 3 repos y notifica al inicio de sesion: (1) commits nuevos en origin/develop (repo privado emmanuel), (2) nuevo tag/release en public (emmanuel-public, .exe del stack), (3) commits nuevos en gentlevanguard/gentlevanguard.github.io (landing oficial URL de marca). State persistente en .runtime/auto-update-state.json — idempotente, no spamea. Best-effort: silencioso si esta offline."
       }
     ],
     "onStepFailure": "continue",

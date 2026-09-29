@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" role="img" aria-labelledby="architecture-layers-title architecture-layers-desc" focusable="false">
 <title id="architecture-layers-title">Architecture Layers</title>
 <desc id="architecture-layers-desc">Gentle-Vanguard Architecture Layers diagram showing the main components, relationships and operational flow.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e17"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
 <linearGradient id="l1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".18"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
 <linearGradient id="l2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".03"/></linearGradient>
 <linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".03"/></linearGradient>
@@ -36,7 +36,7 @@
 <rect x="336" y="116" width="72" height="24"/><text x="372" y="132" fill="#e2e8f0">Tracing</text>
 <rect x="414" y="116" width="72" height="24"/><text x="450" y="132" fill="#e2e8f0">Cloud</text>
 </g>
-<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
+<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
 </g>
 
 <line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -60,7 +60,7 @@
 <rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
 <rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
 </g>
-<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
+<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
 </g>
 
 <line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -79,7 +79,7 @@
 <rect x="670" y="304" width="90" height="24"/><text x="715" y="320" fill="#e2e8f0">Nexus DB</text>
 <rect x="768" y="304" width="120" height="24"/><text x="828" y="320" fill="#e2e8f0">Knowledge Vault</text>
 </g>
-<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
+<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
 </g>
 
 <line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -107,7 +107,7 @@
 <rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
 <rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
 </g>
-<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
+<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
 </g>
 
 <line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -136,7 +136,7 @@
 <rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
 <rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
 </g>
-<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
+<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
 </g>
 
 <line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -158,7 +158,7 @@
 <rect x="724" y="634" width="62" height="24"/><text x="755" y="650" fill="#e2e8f0">Aider</text>
 <rect x="792" y="634" width="62" height="24"/><text x="823" y="650" fill="#e2e8f0">Roo Code</text>
 </g>
-<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
+<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
 </g>
 
 <text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>

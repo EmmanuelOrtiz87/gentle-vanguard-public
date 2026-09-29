@@ -30,12 +30,16 @@ const SECRET_PATH_PATTERNS: RegExp[] = [
   /(^|[/\\])\.telemetry([/\\]|$)/i,
   /(^|[/\\])node_modules([/\\]|$)/i,
   /(^|[/\\])dist([/\\]|$)/i,
+  // Repo strategy 2026-09-20: apps/ are private local-first products — they
+  // never cross into the public distribution, including the installer .exe
+  // (same boundary as sync-to-public.ts, which strips apps/ except the
+  // academy-landing marketing site, and that one does NOT ship in the .exe).
+  /^apps([/\\]|$)/i,
 ];
 
 /** Top-level entries copied into the payload (mirrors the public distribution contract). */
 export const PAYLOAD_ENTRIES: Array<{ path: string; required: boolean }> = [
   { path: 'src', required: true },
-  { path: 'apps/web-dashboard', required: true },
   { path: 'config', required: true },
   { path: 'docs', required: true },
   { path: 'tests/smoke', required: true },

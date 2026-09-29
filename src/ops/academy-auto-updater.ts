@@ -14,9 +14,11 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { runSync } from '../core/run-command.js';
 
 const ROOT = process.cwd();
-const ACADEMY_DIR = join(ROOT, 'apps', 'academy-web', 'data');
+const ACADEMY_ROOT = join(ROOT, 'apps', 'academy-web');
+const ACADEMY_DIR = join(ACADEMY_ROOT, 'data');
 const DOCS_DIR = join(ROOT, 'docs');
 
 // Colors
@@ -215,37 +217,19 @@ smallestRoute.analyze({ description: '...', estimatedFiles: 1 });
 // =============================================================================
 
 function validateAcademy(): boolean {
-  const requiredTracks = [
-    'fundamentos',
-    'agentes',
-    'arquitectura',
-    'optimizacion',
-    'automatizaciones',
-    'negocio',
-    'laboratorio',
-    'knowledge_base',
-    'casos_reales',
-  ];
-
-  let valid = true;
-
-  for (const track of requiredTracks) {
-    const file = join(ACADEMY_DIR, `content-${track.replace('_', '-')}.js`);
-    if (!existsSync(file)) {
-      log(`❌ Missing: ${file}`, 'warn');
-      valid = false;
-    } else {
-      try {
-        const content = readFileSync(file, 'utf-8');
-        const lessonCount = (content.match(/id:\s*['"]/g) || []).length;
-        log(`✅ ${track}: ${lessonCount} lecciones`, 'success');
-      } catch {
-        log(`⚠️ Error reading: ${file}`, 'warn');
-      }
-    }
+  const validator = join(ACADEMY_ROOT, 'scripts', 'validate-multi-course.mjs');
+  if (!existsSync(validator)) {
+    log(`Missing canonical validator: ${validator}`, 'warn');
+    return false;
   }
-
-  return valid;
+  const result = runSync(process.execPath, [validator], {
+    cwd: ACADEMY_ROOT,
+    timeout: 120000,
+    maxBuffer: 8 * 1024 * 1024,
+  });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  return result.status === 0;
 }
 
 // =============================================================================

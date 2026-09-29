@@ -263,7 +263,7 @@ if (process.argv[1]?.includes('performance-profiler.ts')) {
           console.log('Version:', baseline.version);
           console.log('Benchmarks:', Object.keys(baseline.benchmarks).length);
         } else {
-          console.log('No baseline found. Run: npm run perf:baseline');
+          console.log('No profiler baseline found. Run: npm run profiler:baseline');
         }
         break;
       }

@@ -180,6 +180,27 @@ function tailLogFile(filePath: string, maxBytes = 2 * 1024 * 1024): string {
   }
 }
 
+export function extractLogTimestamp(line: string, fallbackMs = Date.now()): string {
+  const raw = line.match(/(?:^|\s)timestamp=([^\s]+)/)?.[1];
+  const parsed = raw ? Date.parse(raw) : NaN;
+  return new Date(Number.isFinite(parsed) ? parsed : fallbackMs).toISOString();
+}
+
+export function isNewHealthEvent(eventAt: string, lastDetectedAt: string): boolean {
+  const eventMs = Date.parse(eventAt);
+  const previousMs = Date.parse(lastDetectedAt);
+  if (!Number.isFinite(eventMs)) return true;
+  if (!Number.isFinite(previousMs)) return true;
+  return eventMs > previousMs;
+}
+
+export function findLatestModelErrorLine(lines: string[], pattern: RegExp): string | undefined {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (pattern.test(lines[i]) && /model(?:ID)?=[^\s,]+/.test(lines[i])) return lines[i];
+  }
+  return undefined;
+}
+
 function scanLogs(config: HealthConfig): Array<{
   signatureId: string;
   pattern: string;
@@ -216,7 +237,7 @@ function scanLogs(config: HealthConfig): Array<{
     if (errorLines.length === 0) continue;
     for (const sig of config.signatures) {
       const re = new RegExp(sig.pattern, 'i');
-      const line = errorLines.find((l) => re.test(l));
+      const line = findLatestModelErrorLine(errorLines, re);
       if (!line) continue;
       const match = line.match(re);
       const idx = match?.index ?? 0;
@@ -235,7 +256,7 @@ function scanLogs(config: HealthConfig): Array<{
         model: modelMatch?.[1] ?? null,
         provider: providerMatch?.[1] ?? null,
         snippet,
-        at: new Date().toISOString(),
+        at: extractLogTimestamp(line),
       });
     }
   }
@@ -341,6 +362,17 @@ function heal(quiet: boolean): {
       autoSwitched: false,
     };
     const reason = hit.snippet.slice(0, 200);
+    const cooldownMs = config.cooldownMinutes * 60000;
+    if (!isNewHealthEvent(hit.at, entry.lastDetectedAt)) {
+      const eventMs = Date.parse(hit.at);
+      if (Number.isFinite(eventMs) && eventMs + cooldownMs <= Date.now()) {
+        entry.status = 'healthy';
+        entry.cooldownUntil = new Date(eventMs + cooldownMs).toISOString();
+        entry.autoSwitched = false;
+      }
+      state.models[model] = entry;
+      continue;
+    }
     const sameCooldownHit =
       entry.status === 'unhealthy' &&
       entry.signatureId === hit.signatureId &&
@@ -359,7 +391,6 @@ function heal(quiet: boolean): {
       continue;
     }
 
-    const cooldownMs = config.cooldownMinutes * 60000;
     const inCooldown = entry.cooldownUntil && new Date(entry.cooldownUntil).getTime() > Date.now();
     const maxed = entry.detections >= config.maxDetectionsPerModel;
 

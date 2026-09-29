@@ -781,6 +781,49 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
         ON crm_events(kind);
     `,
   },
+  {
+    id: '020_skill_execution_outcomes',
+    sql: `
+      CREATE TABLE IF NOT EXISTS skill_execution_outcomes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        skill_id TEXT NOT NULL,
+        session_id TEXT,
+        success INTEGER NOT NULL CHECK(success IN (0, 1)),
+        duration_ms REAL,
+        tool TEXT,
+        detail TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_skill_outcomes_tenant_skill_created
+        ON skill_execution_outcomes(tenant_id, skill_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_skill_outcomes_tenant_created
+        ON skill_execution_outcomes(tenant_id, created_at DESC);
+    `,
+  },
+  {
+    id: '021_skill_outcome_provenance',
+    sql: `
+      ALTER TABLE skill_execution_outcomes
+        ADD COLUMN evidence_kind TEXT NOT NULL DEFAULT 'production'
+        CHECK(evidence_kind IN ('production', 'evaluation', 'maintenance'));
+
+      CREATE INDEX IF NOT EXISTS idx_skill_outcomes_tenant_kind_skill_created
+        ON skill_execution_outcomes(tenant_id, evidence_kind, skill_id, created_at DESC);
+    `,
+  },
+  {
+    // Atribucion por subagente nombrado (patron upstream gentle-ai e26faee):
+    // agent_name complementa el binario agent='orchestrator'|'subagent'.
+    // Nullable: filas previas y fuentes sin nombre quedan NULL.
+    id: '022_token_txn_agent_name',
+    sql: `
+      ALTER TABLE token_transactions ADD COLUMN agent_name TEXT;
+      CREATE INDEX IF NOT EXISTS idx_token_txn_tenant_agent_name
+        ON token_transactions(tenant_id, agent_name);
+    `,
+  },
 ];
 
 export class MigrationRunner {

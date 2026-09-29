@@ -52,7 +52,7 @@ function doPost(e) {
       d.interest || '',
       d.product || '',
       d.category || '',
-      (e.postData && navigatorUA()) || '',
+      navigatorUA(),
       d.site || '',
     ]);
     return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(

@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <defs>
+    <linearGradient id="gvGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="gvGrad2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.2" cy="0.15" r="0.7">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.85" cy="0.9" r="0.6">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0%" stop-color="#F472B6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#F472B6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="1600" fill="#0F1115"/>
+  <rect width="1200" height="1600" fill="url(#glowA)"/>
+  <rect width="1200" height="1600" fill="url(#glowB)"/>
+  <rect width="1200" height="1600" fill="url(#glowC)"/>
+
+  <!-- grid sutil -->
+  <g stroke="#1c2230" stroke-width="1" opacity="0.5">
+    <line x1="0" y1="0" x2="0" y2="1600"/>
+    <line x1="100" y1="0" x2="100" y2="1600"/>
+    <line x1="200" y1="0" x2="200" y2="1600"/>
+    <line x1="300" y1="0" x2="300" y2="1600"/>
+    <line x1="400" y1="0" x2="400" y2="1600"/>
+    <line x1="500" y1="0" x2="500" y2="1600"/>
+    <line x1="600" y1="0" x2="600" y2="1600"/>
+    <line x1="700" y1="0" x2="700" y2="1600"/>
+    <line x1="800" y1="0" x2="800" y2="1600"/>
+    <line x1="900" y1="0" x2="900" y2="1600"/>
+    <line x1="1000" y1="0" x2="1000" y2="1600"/>
+    <line x1="1100" y1="0" x2="1100" y2="1600"/>
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="0" y1="600" x2="1200" y2="600"/>
+    <line x1="0" y1="700" x2="1200" y2="700"/>
+    <line x1="0" y1="800" x2="1200" y2="800"/>
+    <line x1="0" y1="900" x2="1200" y2="900"/>
+    <line x1="0" y1="1000" x2="1200" y2="1000"/>
+    <line x1="0" y1="1100" x2="1200" y2="1100"/>
+    <line x1="0" y1="1200" x2="1200" y2="1200"/>
+    <line x1="0" y1="1300" x2="1200" y2="1300"/>
+    <line x1="0" y1="1400" x2="1200" y2="1400"/>
+    <line x1="0" y1="1500" x2="1200" y2="1500"/>
+  </g>
+
+  <!-- Logo superior izquierdo -->
+  <g transform="translate(80,80)">
+    <rect x="0" y="0" width="56" height="56" rx="14" fill="url(#gvGrad2)" opacity="0.95"/>
+    <path d="M16 38 L28 18 L40 38 Z" fill="#0F1115" opacity="0.85"/>
+    <text x="76" y="28" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="800" fill="#E7ECF3" letter-spacing="2">GENTLE VANGUARD</text>
+    <text x="76" y="50" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#8B95A8" letter-spacing="3">ACADEMY · Charla 1</text>
+  </g>
+
+  <!-- Badge GRATUITO -->
+  <g transform="translate(900,80)">
+    <rect x="0" y="0" width="220" height="68" rx="34" fill="none" stroke="url(#gvGrad)" stroke-width="2.5"/>
+    <text x="110" y="44" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="800" fill="url(#gvGrad2)" text-anchor="middle" letter-spacing="4">GRATIS</text>
+  </g>
+
+  <!-- Decoración: orbes / chips temáticos -->
+  <g transform="translate(140,260)">
+    <circle cx="0" cy="0" r="46" fill="#A78BFA" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">📱</text>
+  </g>
+  <g transform="translate(280,260)">
+    <circle cx="0" cy="0" r="46" fill="#22D3EE" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">📚</text>
+  </g>
+  <g transform="translate(420,260)">
+    <circle cx="0" cy="0" r="46" fill="#F472B6" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">💼</text>
+  </g>
+  <g transform="translate(560,260)">
+    <circle cx="0" cy="0" r="46" fill="#22D3EE" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">🚀</text>
+  </g>
+  <g transform="translate(700,260)">
+    <circle cx="0" cy="0" r="46" fill="#A78BFA" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">🎨</text>
+  </g>
+  <g transform="translate(840,260)">
+    <circle cx="0" cy="0" r="46" fill="#F472B6" opacity="0.10"/>
+    <text x="0" y="8" font-family="Inter, system-ui, sans-serif" font-size="42" text-anchor="middle">🛡️</text>
+  </g>
+
+  <!-- Título principal -->
+  <g transform="translate(80,420)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="34" fill="#A78BFA" font-weight="700" letter-spacing="6">GUÍA PRÁCTICA</text>
+    <text x="0" y="170" font-family="Inter, system-ui, sans-serif" font-size="116" font-weight="900" fill="#E7ECF3">IA en tu</text>
+    <text x="0" y="290" font-family="Inter, system-ui, sans-serif" font-size="116" font-weight="900" fill="url(#gvGrad)">día a día</text>
+  </g>
+
+  <!-- Subtítulo -->
+  <g transform="translate(80,790)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="500" fill="#E7ECF3">Aprendé, experimentá y empezá a usar</text>
+    <text x="0" y="46" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="500" fill="#E7ECF3">inteligencia artificial con criterio.</text>
+  </g>
+
+  <!-- Bloque de highlights en card -->
+  <g transform="translate(80,940)">
+    <rect x="0" y="0" width="1040" height="320" rx="22" fill="#161B22" stroke="#272F3F" stroke-width="1"/>
+    <text x="40" y="60" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="800" fill="#A78BFA" letter-spacing="4">QUÉ ENCONTRARÁS</text>
+
+    <!-- bullets -->
+    <g font-family="Inter, system-ui, sans-serif" font-size="22" fill="#E7ECF3">
+      <circle cx="50" cy="115" r="6" fill="#22D3EE"/>
+      <text x="76" y="122">9 capítulos cortos, del celular al emprendimiento</text>
+
+      <circle cx="50" cy="160" r="6" fill="#A78BFA"/>
+      <text x="76" y="167">Prompts listos para copiar y pegar</text>
+
+      <circle cx="50" cy="205" r="6" fill="#F472B6"/>
+      <text x="76" y="212">Plan de 7 días con checklist imprimible</text>
+
+      <circle cx="50" cy="250" r="6" fill="#22D3EE"/>
+      <text x="76" y="257">Reglas de seguridad, privacidad y límites</text>
+    </g>
+  </g>
+
+  <!-- Footer con CTA -->
+  <g transform="translate(80,1320)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#8B95A8">Material de regalo · Charla gratuita · TikTok live</text>
+    <text x="0" y="60" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800" fill="url(#gvGrad)">Gentle Vanguard</text>
+    <text x="0" y="110" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#8B95A8">gentlevanguard.github.io</text>
+  </g>
+
+  <!-- Decoración inferior derecha -->
+  <g transform="translate(1050,1500)" opacity="0.85">
+    <circle cx="0" cy="0" r="80" fill="none" stroke="url(#gvGrad)" stroke-width="2"/>
+    <circle cx="0" cy="0" r="50" fill="none" stroke="url(#gvGrad)" stroke-width="2"/>
+    <circle cx="0" cy="0" r="20" fill="url(#gvGrad)"/>
+  </g>
+</svg>

@@ -272,3 +272,44 @@ test('relative vite.js with pidfile maps to its app class (analytics)', () => {
   assert.ok(keptHealthy.some((k) => k.classId === 'gv-analytics-vite' && k.pid === 37532));
   assert.ok(!findings.some((f) => f.pid === 37532), 'kept healthy, no findings');
 });
+
+test('Gentle Music server is protected as an app daemon', () => {
+  const music = proc(
+    16180,
+    892,
+    `"node.exe" ${REPO}\\apps\\gv-music\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 1420`,
+    2,
+  );
+  const s = snap([music], [16180], { '.runtime\\app-gv-music-ui.pid': '16180' });
+
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'gv-music-vite' && k.pid === 16180),
+    'Gentle Music Vite server is classified and kept healthy',
+  );
+  assert.ok(!findings.some((f) => f.pid === 16180), 'Gentle Music server has no hygiene findings');
+});
+
+test('Gentle Music started via pnpm-exec shim path is still classified', () => {
+  // Real cmdline shape produced by `pnpm exec vite` (pre-fix start.sh):
+  // node "...apps\gv-music\node_modules\.bin\..\vite\bin\vite.js" --host ...
+  const music = proc(
+    32692,
+    6472,
+    `"node.exe" ${REPO}\\apps\\gv-music\\node_modules\\.bin\\\\..\\vite\\bin\\vite.js --host 127.0.0.1 --port 1420`,
+    2,
+  );
+  const s = snap([music], [32692], { '.runtime\\app-gv-music-ui.pid': '32692' });
+
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'gv-music-vite' && k.pid === 32692),
+    'pnpm-shim cmdline is classified as gv-music-vite',
+  );
+  assert.ok(
+    !findings.some((f) => f.pid === 32692),
+    'pnpm-shim instance gets no hung-oneshot finding',
+  );
+});

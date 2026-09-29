@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" role="img" aria-labelledby="setup-flow-title setup-flow-desc" focusable="false">
+<title id="setup-flow-title">Setup Flow</title>
+<desc id="setup-flow-desc">Gentle-Vanguard one-command setup flow: npm run setup pipeline from prerequisites to verification, idempotent and re-runnable.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Setup Flow — npm run setup</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">One-command installation — idempotent, re-runnable, fail-fast per step</text>
+
+<!-- Step row: 8 steps -->
+<g filter="url(#s)"><rect x="40" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="92" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">1</text>
+<text x="92" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Prerequisites</text>
+<text x="92" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">node≥20 · pnpm · git</text>
+
+<g filter="url(#s)"><rect x="165" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="165" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="217" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">2</text>
+<text x="217" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Dependencies</text>
+<text x="217" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">pnpm frozen-lockfile</text>
+
+<g filter="url(#s)"><rect x="290" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="290" y="90" width="105" height="64" rx="8" fill="url(#p1)"/></g>
+<text x="342" y="115" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="16">3</text>
+<text x="342" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Doctor</text>
+<text x="342" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">install:doctor --strict</text>
+
+<g filter="url(#s)"><rect x="415" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="415" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="467" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">4</text>
+<text x="467" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Nexus DB</text>
+<text x="467" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">SQLite WAL init</text>
+
+<g filter="url(#s)"><rect x="540" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="540" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="592" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">5</text>
+<text x="592" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Git Hooks</text>
+<text x="592" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">lefthook install</text>
+
+<g filter="url(#s)"><rect x="665" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="665" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="717" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">6</text>
+<text x="717" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Graphify</text>
+<text x="717" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">build if missing</text>
+
+<g filter="url(#s)"><rect x="790" y="90" width="105" height="64" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="790" y="90" width="105" height="64" rx="8" fill="url(#p2)"/></g>
+<text x="842" y="115" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="16">7</text>
+<text x="842" y="133" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Skills Index</text>
+<text x="842" y="146" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">index generator</text>
+
+<g filter="url(#s)"><rect x="915" y="90" width="60" height="64" rx="8" fill="#4ade80" fill-opacity=".12" stroke="#4ade80" stroke-width="1"/></g>
+<text x="945" y="122" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="18" font-weight="700" filter="url(#g)">✓</text>
+<text x="945" y="140" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="8">ready</text>
+
+<!-- connectors -->
+<line x1="145" y1="122" x2="163" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="270" y1="122" x2="288" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="395" y1="122" x2="413" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="520" y1="122" x2="538" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="645" y1="122" x2="663" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="770" y1="122" x2="788" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+<line x1="895" y1="122" x2="913" y2="122" stroke="#4b5563" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- Idempotency band -->
+<rect x="40" y="180" width="935" height="30" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="41" y="181" width="460" height="28" rx="7" fill="#4ade80" fill-opacity=".1" stroke="#4ade80" stroke-width=".5"/>
+<text x="270" y="199" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Already satisfied → SKIP (re-run safe)</text>
+<text x="740" y="199" text-anchor="middle" fill="#ee6d75" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Required step fails → stop with reason, fix &amp; re-run</text>
+
+<!-- Next steps -->
+<g filter="url(#s)"><rect x="40" y="240" width="295" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="240" width="295" height="120" rx="10" fill="url(#p1)"/></g>
+<text x="187" y="265" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="12" font-weight="700">1. Start a session</text>
+<text x="187" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run session:autostart:detached</text>
+<text x="187" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">session · engram · codegraph · token budget</text>
+<text x="187" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">watchtower auto-heal · dashboard WS · nexus</text>
+<text x="187" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">110 steps (32 + 78 lazy)</text>
+
+<g filter="url(#s)"><rect x="352" y="240" width="295" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="352" y="240" width="295" height="120" rx="10" fill="url(#p2)"/></g>
+<text x="500" y="265" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="10" font-weight="700">2. Verify health</text>
+<text x="500" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run watchtower:health</text>
+<text x="500" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">154 checks · 29 components</text>
+<text x="500" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">npm run db:health — Nexus integrity</text>
+<text x="500" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">expected: PASS</text>
+
+<g filter="url(#s)"><rect x="664" y="240" width="311" height="120" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="664" y="240" width="311" height="120" rx="10" fill="url(#p1)"/></g>
+<text x="820" y="265" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10" font-weight="700">3. Optional: observability</text>
+<text x="820" y="285" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-family="monospace">npm run dashboard:start</text>
+<text x="820" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">GV_DASHBOARD_TOKEN (login) o DEV_AUTH=1</text>
+<text x="820" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">npm run cc:start — apps panel :8090</text>
+<text x="820" y="342" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">fail-closed auth · loopback only</text>
+</svg>

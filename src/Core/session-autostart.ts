@@ -566,6 +566,21 @@ function writeProgress(patch: Partial<AutostartProgress>): void {
 async function main() {
   const sessionStartTime = new Date().toISOString();
 
+  // ─── Clear stale closing marker (2026-09-16 — ventanas fantasma fix) ──
+  // session-close orchestrator writes .session/.closing in phasePreClose to
+  // signal apps-keepalive to bail. If a previous session ended abnormally
+  // (kill, BSOD, power loss) the marker can survive. Remove it here so the
+  // fresh session can spawn daemons normally.
+  try {
+    const closingMarker = join(ROOT, '.session', '.closing');
+    if (existsSync(closingMarker)) {
+      unlinkSync(closingMarker);
+      LOG.info('[CLOSING-MARKER] Stale .session/.closing removed — fresh session starting');
+    }
+  } catch (err) {
+    LOG.warn(`[CLOSING-MARKER] Could not clear stale marker: ${err}`);
+  }
+
   // Loop-guard soft check (ADR-0022): runs before lock so every turn gets a signal,
   // but never blocks the pipeline — soft WARN only.
   await checkLoopGuardSoft();

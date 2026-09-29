@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-bs-theme="dark" class="gv-document-page">
+<html lang="es" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -10,14 +10,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Architecture — Gentle-Vanguard</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de architecture.html (complementan el design system) --- */
       .sh {
@@ -47,130 +47,53 @@
         box-shadow: 0 0 30px rgba(0, 191, 255, 0.08);
       }
     </style>
-    <script src="assets/js/carousel.js"></script>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
+  <body>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
 
     <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ v4.0 — Architecture Layer</span>
@@ -178,7 +101,7 @@
         class="display-1 fw-bold z-1"
         style="font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.02em; line-height: 1.05"
       >
-        <span class="glow">System Architecture</span>
+        <span class="glow"><span data-i18n="arch_h1">System Architecture</span></span>
       </h1>
       <p
         class="lead text-secondary z-1"
@@ -293,6 +216,8 @@
             ><span>Norms Learner</span><span>Watchtower 96/96</span>
           </div>
         </div>
+      
+        
       </section>
 
       <section class="fade-in" id="daos">
@@ -472,6 +397,10 @@
           <span class="flow-arrow">→</span>
           <span class="badge bg-success bg-opacity-10 text-success p-2">✅ 100% Operational</span>
         </div>
+      
+        
+      
+        
       </section>
 
       <section class="fade-in" id="performance">
@@ -550,13 +479,175 @@
       <div class="row g-3">
         <div class="col-lg-6">
           <div class="section-card">
-            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i>Arquitectura en Capas</h3>
-            <img
-              src="diagrams/architecture-layers.svg"
-              alt="Architecture Layers Diagram"
-              class="svg-diagram img-fluid w-100"
-              loading="lazy"
-            />
+            <h3 class="mb-3"><i class="bi bi-stack text-info me-2"></i><span data-i18n="arch_h2_layers">Arquitectura en Capas</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 960 680" role="img" aria-label="Architecture Layers Diagram" >
+<title id="architecture-layers-title">Architecture Layers</title>
+<desc id="architecture-layers-desc">Gentle-Vanguard Architecture Layers diagram showing the main components, relationships and operational flow.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="l1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".18"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f4bb4f" stop-opacity=".18"/><stop offset="100%" stop-color="#f4bb4f" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ee6d75" stop-opacity=".18"/><stop offset="100%" stop-color="#ee6d75" stop-opacity=".03"/></linearGradient>
+<linearGradient id="l6" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".22"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#131a2e"/><stop offset="100%" stop-color="#1a2235"/></linearGradient>
+<filter id="s"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".45"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker></defs>
+
+<rect width="960" height="680" fill="url(#bg)"/>
+<text x="480" y="34" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="21" font-weight="700" letter-spacing="1">Architecture Layers</text>
+<text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11.5">Autonomous Stack — Layered Component Architecture</text>
+
+<!-- ================= L6 EXECUTIVE ================= -->
+<g class="gv-node gv-hotspot" data-group="executive" data-i18n-title="tip_hs_executive" role="button" tabindex="0" data-tip="Executive Systems — 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors">
+<g filter="url(#s)"><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#l6)"/></g>
+<text x="60" y="96" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">EXECUTIVE</text>
+<text x="60" y="112" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">12 systems · Orchestration layer</text>
+<text x="60" y="142" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#67e8f9" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="86" width="72" height="24"/><text x="216" y="102" fill="#e2e8f0">Router</text>
+<rect x="258" y="86" width="72" height="24"/><text x="294" y="102" fill="#e2e8f0">Delegate</text>
+<rect x="336" y="86" width="72" height="24"/><text x="372" y="102" fill="#e2e8f0">Scoring</text>
+<rect x="414" y="86" width="72" height="24"/><text x="450" y="102" fill="#e2e8f0">Circuit Brk</text>
+<rect x="492" y="86" width="72" height="24"/><text x="528" y="102" fill="#e2e8f0">Escalate</text>
+<rect x="570" y="86" width="72" height="24"/><text x="606" y="102" fill="#e2e8f0">Norms</text>
+<rect x="648" y="86" width="72" height="24"/><text x="684" y="102" fill="#e2e8f0">Auto-Apply</text>
+<rect x="726" y="86" width="72" height="24"/><text x="762" y="102" fill="#e2e8f0">Rollback</text>
+<rect x="180" y="116" width="72" height="24"/><text x="216" y="132" fill="#e2e8f0">Watchtower</text>
+<rect x="258" y="116" width="72" height="24"/><text x="294" y="132" fill="#e2e8f0">Security</text>
+<rect x="336" y="116" width="72" height="24"/><text x="372" y="132" fill="#e2e8f0">Tracing</text>
+<rect x="414" y="116" width="72" height="24"/><text x="450" y="132" fill="#e2e8f0">Cloud</text>
+</g>
+<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
+</g>
+
+<line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L5 DATA ================= -->
+<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas">
+<g filter="url(#s)"><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#l5)"/></g>
+<text x="60" y="206" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">DATA</text>
+<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">16 repos · SQLite Nexus · 23 tables</text>
+<text x="60" y="252" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#ee6d75" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="196" width="62" height="24"/><text x="211" y="212" fill="#e2e8f0">Metrics</text>
+<rect x="248" y="196" width="62" height="24"/><text x="279" y="212" fill="#e2e8f0">Session</text>
+<rect x="316" y="196" width="62" height="24"/><text x="347" y="212" fill="#e2e8f0">Trace</text>
+<rect x="384" y="196" width="62" height="24"/><text x="415" y="212" fill="#e2e8f0">Event</text>
+<rect x="452" y="196" width="62" height="24"/><text x="483" y="212" fill="#e2e8f0">Cache</text>
+<rect x="520" y="196" width="62" height="24"/><text x="551" y="212" fill="#e2e8f0">Skill</text>
+<rect x="588" y="196" width="62" height="24"/><text x="619" y="212" fill="#e2e8f0">Contract</text>
+<rect x="656" y="196" width="62" height="24"/><text x="687" y="212" fill="#e2e8f0">ErrMem</text>
+<rect x="724" y="196" width="62" height="24"/><text x="755" y="212" fill="#e2e8f0">Backlog</text>
+<rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
+<rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
+</g>
+<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
+</g>
+
+<line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L4 MEMORY ================= -->
+<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (3,600+ obs), CodeGraph (10,000+ nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
+<g filter="url(#s)"><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#l4)"/></g>
+<text x="60" y="316" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">MEMORY</text>
+<text x="60" y="332" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">6 nodes · Persistent knowledge</text>
+<text x="60" y="362" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#f4bb4f" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
+<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (3,600+)</text>
+<rect x="306" y="304" width="128" height="24"/><text x="370" y="320" fill="#e2e8f0">CodeGraph</text>
+<rect x="442" y="304" width="100" height="24"/><text x="492" y="320" fill="#e2e8f0">Graphify</text>
+<rect x="550" y="304" width="112" height="24"/><text x="606" y="320" fill="#e2e8f0">ML Embeddings</text>
+<rect x="670" y="304" width="90" height="24"/><text x="715" y="320" fill="#e2e8f0">Nexus DB</text>
+<rect x="768" y="304" width="120" height="24"/><text x="828" y="320" fill="#e2e8f0">Knowledge Vault</text>
+</g>
+<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
+</g>
+
+<line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L3 PIPELINE ================= -->
+<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2">
+<g filter="url(#s)"><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#l3)"/></g>
+<text x="60" y="426" fill="#6ee7b7" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">PIPELINE</text>
+<text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">101 steps · Parallel + lazy</text>
+<text x="60" y="472" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
+<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
+<text x="442" y="433" fill="#64748b" font-size="15">→</text>
+<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 83 lazy bg</text>
+</g>
+<g fill="#1e293b" stroke="#4ade80" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
+<rect x="180" y="448" width="46" height="20"/><text x="203" y="462" fill="#e2e8f0">ToolDet</text>
+<rect x="232" y="448" width="46" height="20"/><text x="255" y="462" fill="#e2e8f0">SessMgr</text>
+<rect x="284" y="448" width="46" height="20"/><text x="307" y="462" fill="#e2e8f0">TokBud</text>
+<rect x="336" y="448" width="46" height="20"/><text x="359" y="462" fill="#e2e8f0">Karp</text>
+<rect x="388" y="448" width="46" height="20"/><text x="411" y="462" fill="#e2e8f0">CodeG</text>
+<rect x="440" y="448" width="46" height="20"/><text x="463" y="462" fill="#e2e8f0">SecOr</text>
+<rect x="492" y="448" width="46" height="20"/><text x="515" y="462" fill="#e2e8f0">DbInit</text>
+<rect x="544" y="448" width="46" height="20"/><text x="567" y="462" fill="#e2e8f0">AutoAp</text>
+<rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
+<rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
+</g>
+<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
+</g>
+
+<line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L2 AGENTS ================= -->
+<g class="gv-node gv-hotspot" data-group="agents" data-i18n-title="tip_hs_agents" role="button" tabindex="0" data-tip="Agents — 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele)">
+<g filter="url(#s)"><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#l2)"/></g>
+<text x="60" y="536" fill="#c4b5fd" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">AGENTS</text>
+<text x="60" y="552" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">21 types · Specialized subagents</text>
+<text x="60" y="582" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
+<g fill="#1e293b" stroke="#a78bfa" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
+<rect x="180" y="526" width="76" height="24"/><text x="218" y="542" fill="#e2e8f0">Orchestrator</text>
+<rect x="262" y="526" width="60" height="24"/><text x="292" y="542" fill="#e2e8f0">BA-Expl</text>
+<rect x="328" y="526" width="60" height="24"/><text x="358" y="542" fill="#e2e8f0">SAD-Des</text>
+<rect x="394" y="526" width="60" height="24"/><text x="424" y="542" fill="#e2e8f0">DEV-App</text>
+<rect x="460" y="526" width="60" height="24"/><text x="490" y="542" fill="#e2e8f0">QA-Ver</text>
+<rect x="526" y="526" width="54" height="24"/><text x="553" y="542" fill="#e2e8f0">Doc</text>
+<rect x="586" y="526" width="54" height="24"/><text x="613" y="542" fill="#e2e8f0">Ops</text>
+<rect x="646" y="526" width="54" height="24"/><text x="673" y="542" fill="#e2e8f0">Gov</text>
+<rect x="706" y="526" width="54" height="24"/><text x="733" y="542" fill="#e2e8f0">Sess</text>
+<rect x="766" y="526" width="54" height="24"/><text x="793" y="542" fill="#e2e8f0">Prem</text>
+<rect x="180" y="556" width="60" height="24"/><text x="210" y="572" fill="#e2e8f0">Maint</text>
+<rect x="246" y="556" width="60" height="24"/><text x="276" y="572" fill="#e2e8f0">SelfDiag</text>
+<rect x="312" y="556" width="52" height="24"/><text x="338" y="572" fill="#e2e8f0">SIA</text>
+<rect x="370" y="556" width="60" height="24"/><text x="400" y="572" fill="#e2e8f0">GitFlow</text>
+<rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
+<rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
+</g>
+<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
+</g>
+
+<line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+<!-- ================= L1 TOOLS ================= -->
+<g class="gv-node gv-hotspot" data-group="tools" data-i18n-title="tip_hs_tools" role="button" tabindex="0" data-tip="Tools — 10 integraciones IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code">
+<g filter="url(#s)"><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#l1)"/></g>
+<text x="60" y="646" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">TOOLS</text>
+<text x="60" y="662" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">10 IDEs · Execution primitives</text>
+<g fill="#1e293b" stroke="#22d3ee" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
+<rect x="180" y="634" width="62" height="24"/><text x="211" y="650" fill="#e2e8f0">OpenCode</text>
+<rect x="248" y="634" width="62" height="24"/><text x="279" y="650" fill="#e2e8f0">Claude</text>
+<rect x="316" y="634" width="62" height="24"/><text x="347" y="650" fill="#e2e8f0">Cursor</text>
+<rect x="384" y="634" width="62" height="24"/><text x="415" y="650" fill="#e2e8f0">Windsurf</text>
+<rect x="452" y="634" width="62" height="24"/><text x="483" y="650" fill="#e2e8f0">Cline</text>
+<rect x="520" y="634" width="62" height="24"/><text x="551" y="650" fill="#e2e8f0">Codex</text>
+<rect x="588" y="634" width="62" height="24"/><text x="619" y="650" fill="#e2e8f0">Copilot</text>
+<rect x="656" y="634" width="62" height="24"/><text x="687" y="650" fill="#e2e8f0">Cont.dev</text>
+<rect x="724" y="634" width="62" height="24"/><text x="755" y="650" fill="#e2e8f0">Aider</text>
+<rect x="792" y="634" width="62" height="24"/><text x="823" y="650" fill="#e2e8f0">Roo Code</text>
+</g>
+<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
+</g>
+
+<text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>
+<text x="20" y="620" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,620)">BOTTOM</text>
+<line x1="40" y1="690" x2="920" y2="690" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="480" y="674" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+</svg>
             <p class="text-secondary small mt-2 mb-0">
               <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
               Data → Executive. <strong class="text-info">Hover en las capas</strong> para ver
@@ -566,13 +657,105 @@
         </div>
         <div class="col-lg-6">
           <div class="section-card">
-            <h3 class="mb-3"><i class="bi bi-diagram-2 text-info me-2"></i>Pipeline de Sesión</h3>
-            <img
-              src="diagrams/pipeline-flow.svg"
-              alt="Session Pipeline Flow"
-              class="svg-diagram img-fluid w-100"
-              loading="lazy"
-            />
+            <h3 class="mb-3"><i class="bi bi-diagram-2 text-info me-2"></i><span data-i18n="arch_h2_pipeline">Pipeline de Sesión</span></h3>
+            <svg class="svg-diagram svg-inline" viewBox="0 0 1000 400" role="img" aria-label="Session Pipeline Flow" >
+<title id="pipeline-flow-title">Pipeline Flow</title>
+<desc id="pipeline-flow-desc">Gentle-Vanguard Pipeline Flow diagram showing the main components, relationships and operational flow.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect width="1000" height="400" fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Pipeline Flow</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">101-step autonomous session pipeline — parallel + lazy execution</text>
+
+<rect x="60" y="65" width="880" height="24" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="61" y="66" width="350" height="22" rx="7" fill="#22d3ee" fill-opacity=".15" stroke="#22d3ee" stroke-width=".5"/>
+<text x="236" y="81" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 1 — 31 parallel steps</text>
+<text x="420" y="81" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="16">→</text>
+<rect x="435" y="66" width="370" height="22" rx="7" fill="#a78bfa" fill-opacity=".15" stroke="#a78bfa" stroke-width=".5"/>
+<text x="620" y="81" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 2 — 83 lazy background steps</text>
+<rect x="820" y="62" width="32" height="30" rx="8" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width="1"/>
+<text x="836" y="82" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="16" font-weight="700" filter="url(#g)">✓</text>
+<text x="411" y="64" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="8">32</text>
+<text x="805" y="64" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="8">65</text>
+
+<!-- Tool Detection -->
+<g filter="url(#s)"><rect x="60" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="68" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🔧</text>
+<text x="95" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Tool Detection</text>
+<text x="68" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Bash · Read · Write · Edit</text>
+<text x="68" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Grep · Glob · Task · Skill</text>
+<rect x="160" y="113" width="50" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="185" y="123" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">8 tools</text>
+
+<!-- Session Manager -->
+<g filter="url(#s)"><rect x="250" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="258" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">⚡</text>
+<text x="285" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Session Manager</text>
+<text x="258" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Session ID · Engram sync</text>
+<text x="258" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Lifecycle tracking</text>
+<rect x="357" y="113" width="50" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="382" y="123" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 ops</text>
+
+<!-- Token Budget -->
+<g filter="url(#s)"><rect x="60" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="68" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">💰</text>
+<text x="95" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Token Budget</text>
+<text x="68" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Budget allocation · Track</text>
+<text x="68" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Guard thresholds</text>
+<rect x="145" y="203" width="65" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="177" y="213" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 phases</text>
+
+<!-- Karpathy -->
+<g filter="url(#s)"><rect x="250" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
+<rect x="258" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🧠</text>
+<text x="285" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Karpathy Guidelines</text>
+<text x="258" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Quality rubrics · Self-critique</text>
+<text x="258" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Doubt-driven dev</text>
+<rect x="355" y="203" width="52" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="381" y="213" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 rules</text>
+
+<!-- Lazy Batch -->
+<g filter="url(#s)"><rect x="470" y="135" width="470" height="110" rx="10" fill="#151921" stroke="#a78bfa" stroke-width="1" stroke-opacity=".5"/><rect x="470" y="135" width="470" height="110" rx="10" fill="url(#p2)"/></g>
+<text x="705" y="155" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="11" font-weight="700">Lazy Batch — 5 background workers</text>
+
+<g font-family="system-ui,sans-serif" font-size="8"><rect x="490" y="168" width="200" height="14" rx="4" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width=".5"/><text x="590" y="178" text-anchor="middle" fill="#4ade80">Tracing Init</text><text x="700" y="178" fill="#94a3b8">lazy</text>
+<rect x="490" y="188" width="220" height="14" rx="4" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width=".5"/><text x="600" y="198" text-anchor="middle" fill="#4ade80">Cloud Connectors</text><text x="720" y="198" fill="#94a3b8">lazy</text>
+<rect x="490" y="208" width="190" height="14" rx="4" fill="#a78bfa" fill-opacity=".15" stroke="#a78bfa" stroke-width=".5"/><text x="585" y="218" text-anchor="middle" fill="#a78bfa">Event Sourcing</text><text x="690" y="218" fill="#94a3b8">lazy</text>
+<rect x="490" y="228" width="180" height="14" rx="4" fill="#f4bb4f" fill-opacity=".15" stroke="#f4bb4f" stroke-width=".5"/><text x="580" y="238" text-anchor="middle" fill="#f4bb4f">Audit Pipeline</text><text x="680" y="238" fill="#94a3b8">lazy</text>
+<rect x="490" y="248" width="210" height="14" rx="4" fill="#22d3ee" fill-opacity=".15" stroke="#22d3ee" stroke-width=".5"/><text x="595" y="258" text-anchor="middle" fill="#22d3ee">Dashboard WS</text><text x="710" y="258" fill="#94a3b8">lazy</text></g>
+
+<text x="500" y="280" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">+ 68 more lazy steps (watchtower, checkpoint, DB init, scoring, ...)</text>
+
+<!-- Process bar -->
+<rect x="60" y="305" width="880" height="18" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
+<rect x="62" y="307" width="340" height="14" rx="5" fill="url(#b1)" opacity=".6"/><text x="232" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">PARALLEL (31)</text>
+<rect x="403" y="307" width="5" height="14" rx="2" fill="#4b5563"/>
+<rect x="410" y="307" width="470" height="14" rx="5" fill="url(#b2)" opacity=".6"/><text x="645" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">LAZY BACKGROUND (70)</text>
+<rect x="882" y="307" width="56" height="14" rx="5" fill="#4ade80" opacity=".8"/><text x="910" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="600">DONE</text>
+
+<g transform="translate(60,340)"><rect x="0" y="0" width="400" height="36" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="10" y="15" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Phase 1 steps:</text>
+<g fill="#22d3ee" fill-opacity=".2" rx="3"><rect x="90" y="6" width="16" height="12"/><rect x="112" y="6" width="16" height="12"/><rect x="134" y="6" width="16" height="12"/><rect x="156" y="6" width="16" height="12"/><rect x="178" y="6" width="16" height="12"/><rect x="200" y="6" width="16" height="12"/><rect x="222" y="6" width="16" height="12"/><rect x="244" y="6" width="16" height="12"/><rect x="266" y="6" width="16" height="12"/><rect x="288" y="6" width="16" height="12"/><rect x="310" y="6" width="16" height="12"/><rect x="332" y="6" width="50" height="12"/></g>
+<g fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7" text-anchor="middle"><text x="98" y="15">S</text><text x="120" y="15">T</text><text x="142" y="15">B</text><text x="164" y="15">K</text><text x="186" y="15">W</text><text x="208" y="15">D</text><text x="230" y="15">H</text><text x="252" y="15">C</text><text x="274" y="15">M</text><text x="296" y="15">R</text><text x="318" y="15">A</text><text x="357" y="14">+20 more</text></g>
+<text x="10" y="30" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">S=Session T=Tool B=Budget K=Karpathy W=Watchtower D=DB H=Health C=Cloud M=MCP R=Router A=Audit</text></g>
+
+<line x1="60" y1="390" x2="940" y2="390" stroke="#1e3a5f" stroke-width=".5"/>
+<text x="500" y="396" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="61" y="66" width="350" height="22" rx="6" data-i18n-title="tip_hs_flow_phase1" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure."/>
+    <rect class="gv-hotspot" x="435" y="66" width="370" height="22" rx="6" data-i18n-title="tip_hs_flow_phase2" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - 83 lazy background steps: deferred heavy work executed in batches of 2 workers after session start."/>
+    <rect class="gv-hotspot" x="60" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_tool_detection" role="button" tabindex="0" fill="transparent" aria-label="Tool Detection: maps the 8 available tools (Bash, Read, Write, Edit, Grep, Glob, Task, Skill)."/>
+    <rect class="gv-hotspot" x="250" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_session_manager" role="button" tabindex="0" fill="transparent" aria-label="Session Manager: generates the session ID, syncs Engram and tracks the session lifecycle."/>
+    <rect class="gv-hotspot" x="60" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_token_budget" role="button" tabindex="0" fill="transparent" aria-label="Token Budget: allocates the 5M daily / 3M per-session budget and enforces guard thresholds."/>
+    <rect class="gv-hotspot" x="250" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_karpathy" role="button" tabindex="0" fill="transparent" aria-label="Karpathy Guidelines: 3 rules (Think First, Simplicity, Surgical Changes) with quality rubrics and self-critique."/>
+    <rect class="gv-hotspot" x="470" y="135" width="470" height="110" rx="6" data-i18n-title="tip_hs_flow_lazy_batch" role="button" tabindex="0" fill="transparent" aria-label="Lazy Batch - 5 background workers: runs deferred steps like Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline and Dashboard WS."/>
+    <rect class="gv-hotspot" x="60" y="305" width="880" height="18" rx="6" data-i18n-title="tip_hs_flow_process_bar" role="button" tabindex="0" fill="transparent" aria-label="Process bar: parallel steps (31) then lazy background (70) then DONE - the full 101-step session pipeline."/>
+</svg>
             <p class="text-secondary small mt-2 mb-0">
               <i class="bi bi-info-circle me-1"></i>117 pasos habilitados: 31 Phase 1 paralelos + 83
               lazy background en batches.
@@ -651,7 +834,6 @@
       </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

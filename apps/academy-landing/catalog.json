@@ -1,28 +1,40 @@
 {
-  "generated": "2026-09-15T00:49:06.775Z",
+  "generated": "2026-09-21T23:02:50.900Z",
   "counts": {
     "courses": 20,
-    "ebooks": 20,
+    "ebooks": 21,
     "ebooksPremium": 10,
     "toolkits": 12,
-    "products": 52
+    "products": 53
   },
   "pricing": {
     "ebook-micro": {
-      "usd": 29,
-      "includes": "1 micro-ebook + export PDF"
+      "usd": 20,
+      "includes": "20-40 páginas para dominar un tema en una tarde"
     },
     "ebook-premium": {
-      "usd": 49,
-      "includes": "1 manual premium (80-150 pág) + export PDF"
+      "usd": 40,
+      "includes": "80-150 páginas con conceptos, herramientas, prompts, casos, ejercicios, plantillas y workflows"
     },
     "toolkit": {
-      "usd": 49,
-      "includes": "Toolkit completo (prompts + plantillas + emails + automatizaciones + casos) + ebook"
+      "usd": 80,
+      "includes": "Curso + ebook + 50 prompts + plantillas + emails + automatizaciones + casos"
     },
     "course-base": {
-      "usd": 40,
-      "includes": "1 curso completo con lecciones y glosario"
+      "usd": 50,
+      "includes": "Acceso completo al curso (todos los tracks y lecciones)"
+    },
+    "course-mentor": {
+      "usd": 100,
+      "includes": "Curso completo + 5 sesiones personalizadas de 1-2 horas"
+    },
+    "program-custom": {
+      "usd": 250,
+      "includes": "Formación a medida para tu empresa o equipo (hasta 5 personas): diagnóstico + diseño del programa, material completo para cada integrante, 4 sesiones en vivo y 30 días de seguimiento por WhatsApp"
+    },
+    "mentor-individual": {
+      "usd": 20,
+      "includes": "Sesión 1 a 1 de 1 hora"
     }
   },
   "products": {
@@ -254,6 +266,15 @@
         "audience": "Administrativos, asistentes y oficinas",
         "featured": false,
         "priceTier": "ebook-micro"
+      },
+      {
+        "id": "ia-en-tu-dia-a-dia",
+        "title": "IA en tu día a día",
+        "type": "free",
+        "pages": 26,
+        "audience": "Personas que quieren empezar a usar IA en su vida cotidiana",
+        "featured": true,
+        "priceTier": "ebook-free"
       },
       {
         "id": "ia-estudiantes",

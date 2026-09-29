@@ -17,6 +17,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { parseSkillRegistry } from './skill-registry-parser.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -79,10 +80,12 @@ interface EvoOutput {
     totalSkills: number;
     activeSkills: number;
     staleSkills: number;
+    unobservedSkills: number;
+    evidenceSkills: number;
     gapsFound: number;
     refinementsSuggested: number;
     deprecationsSuggested: number;
-    overallHealth: 'excellent' | 'good' | 'fair' | 'poor';
+    overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'insufficient';
   };
 }
 
@@ -94,7 +97,7 @@ const SKILL_USAGE_DIR = join(SESSION_DIR, 'skill-usage');
 const AUDIT_DIR = join(SESSION_DIR, 'audit', 'logs');
 const EVO_DIR = join(SESSION_DIR, 'evolution');
 const EVO_CONFIG = join(ROOT, 'config', 'skill-evolution-engine.json');
-const ROUTER_SRC = join(ROOT, 'src', 'skill-router.ts');
+const SKILL_REGISTRY = join(ROOT, '.atl', 'skill-registry.md');
 
 const DEFAULT_CONFIG = {
   usageAnalysis: {
@@ -177,6 +180,7 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
       if (!data || Object.keys(data).length === 0) continue;
 
       const name = (data.skillName as string) || f.replace(/\.json$/, '');
+      if (!/^[a-z][a-z0-9_-]+$/.test(name)) continue;
       const useCount = (data.useCount as number) || (data.totalCalls as number) || 0;
       const failCount = (data.failureCount as number) || 0;
       const successRate =
@@ -216,7 +220,13 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
 
 function inferDomain(skillName: string): string {
   const n = skillName.toLowerCase();
-  if (n.includes('angular') || n.includes('react') || n.includes('vue') || n.includes('svelte'))
+  if (
+    n.includes('frontend') ||
+    n.includes('angular') ||
+    n.includes('react') ||
+    n.includes('vue') ||
+    n.includes('svelte')
+  )
     return 'frontend';
   if (n.includes('api') || n.includes('backend') || n.includes('server') || n.includes('node'))
     return 'backend';
@@ -236,21 +246,8 @@ function inferDomain(skillName: string): string {
 }
 
 function getRouterSkills(): string[] {
-  if (!existsSync(ROUTER_SRC)) return [];
-  const content = readFileSync(ROUTER_SRC, 'utf-8');
-  const skills = new Set<string>();
-  const re = /['"]([a-z][a-z0-9_-]+)['"]/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(content)) !== null) {
-    const s = m[1];
-    if (
-      s.length > 2 &&
-      !['query', 'project', 'status', 'routed', 'skills', 'querylower'].includes(s)
-    ) {
-      skills.add(s);
-    }
-  }
-  return [...skills];
+  if (!existsSync(SKILL_REGISTRY)) return [];
+  return parseSkillRegistry(readFileSync(SKILL_REGISTRY, 'utf-8'));
 }
 
 function collectRecentTasks(log: LogFn): string[] {
@@ -281,16 +278,16 @@ function collectRecentTasks(log: LogFn): string[] {
 function analyzeSkillUsage(
   skills: SkillInfo[],
   config: typeof DEFAULT_CONFIG,
-): { active: SkillInfo[]; stale: SkillInfo[] } {
+): { active: SkillInfo[]; stale: SkillInfo[]; unobserved: SkillInfo[] } {
   const ua = config.usageAnalysis;
   const active: SkillInfo[] = [];
   const stale: SkillInfo[] = [];
+  const unobserved: SkillInfo[] = [];
 
   for (const s of skills) {
-    if (
-      s.useCount >= ua.minDataPoints &&
-      (s.daysSinceUse === null || s.daysSinceUse <= ua.staleDays)
-    ) {
+    if (s.useCount < ua.minDataPoints) {
+      unobserved.push(s);
+    } else if (s.daysSinceUse === null || s.daysSinceUse <= ua.staleDays) {
       active.push(s);
     } else {
       stale.push(s);
@@ -301,7 +298,7 @@ function analyzeSkillUsage(
   active.sort((a, b) => b.useCount - a.useCount);
   stale.sort((a, b) => (b.daysSinceUse || 999) - (a.daysSinceUse || 999));
 
-  return { active, stale };
+  return { active, stale, unobserved };
 }
 
 // ─── Gap Detection ────────────────────────────────────────────────────
@@ -334,7 +331,10 @@ function detectSkillGaps(
   }
 
   // Gap 2: Low-usage skills in router
-  const lowUsageRouterSkills = skills.filter(
+  const observedSkills = skills.filter(
+    (skill) => skill.useCount >= config.usageAnalysis.minDataPoints,
+  );
+  const lowUsageRouterSkills = observedSkills.filter(
     (s) =>
       routerSkills.some((rs) => s.name.toLowerCase().includes(rs)) &&
       s.useCount < config.gapDetection.minFrequency,
@@ -451,7 +451,7 @@ function suggestRefinements(skills: SkillInfo[], config: typeof DEFAULT_CONFIG):
 
 // ─── Deprecation Detection ─────────────────────────────────────────────
 
-function detectDeprecations(
+export function detectDeprecations(
   skills: SkillInfo[],
   config: typeof DEFAULT_CONFIG,
 ): DeprecationCandidate[] {
@@ -461,18 +461,7 @@ function detectDeprecations(
 
   for (const s of skills) {
     if (s.daysSinceUse === null || s.useCount === 0) {
-      // Never used or no usage data
-      if (s.useCount === 0) {
-        candidates.push({
-          skillName: s.name,
-          useCount: 0,
-          daysSinceUse: 0,
-          successRate: s.successRate,
-          reason: 'Skill exists but has never been invoked',
-          suggestedAction: 'review',
-          priority: 'low',
-        });
-      }
+      // Absence of evidence is not evidence for a lifecycle decision.
       continue;
     }
 
@@ -482,9 +471,9 @@ function detectDeprecations(
         useCount: s.useCount,
         daysSinceUse: s.daysSinceUse,
         successRate: s.successRate,
-        reason: `Not used in ${s.daysSinceUse} days (> ${ua.archiveDays} day archive threshold)`,
-        suggestedAction: 'archive',
-        priority: 'low',
+        reason: `Not used in ${s.daysSinceUse} days; explicit execution outcomes are required before archive or deprecation`,
+        suggestedAction: 'review',
+        priority: 'medium',
       });
     } else if (s.daysSinceUse > ua.deprecateDays) {
       candidates.push({
@@ -492,8 +481,8 @@ function detectDeprecations(
         useCount: s.useCount,
         daysSinceUse: s.daysSinceUse,
         successRate: s.successRate,
-        reason: `Not used in ${s.daysSinceUse} days (> ${ua.deprecateDays} day deprecate threshold)`,
-        suggestedAction: 'deprecate',
+        reason: `Not used in ${s.daysSinceUse} days; explicit execution outcomes are required before deprecation`,
+        suggestedAction: 'review',
         priority: 'medium',
       });
     } else if (s.daysSinceUse > ua.staleDays) {
@@ -567,6 +556,10 @@ function autoArchiveDeprecations(deprecations: DeprecationCandidate[]): number {
   return archived;
 }
 
+export function canAutoArchive(config: typeof DEFAULT_CONFIG): boolean {
+  return config.deprecation.autoDeprecate && !config.deprecation.requireConfirmation;
+}
+
 function main(): void {
   const args = parseArgs(process.argv);
   const log = getLogger(args.quiet);
@@ -587,12 +580,16 @@ function main(): void {
   // 2. Analyze usage
   let activeSkills: SkillInfo[] = [];
   let staleSkills: SkillInfo[] = [];
+  let unobservedSkills: SkillInfo[] = [];
   if (args.mode === 'all' || args.mode === 'analyze') {
     log('Analyzing skill usage...');
     const analysis = analyzeSkillUsage(allSkills, config);
     activeSkills = analysis.active;
     staleSkills = analysis.stale;
-    log(`  Active: ${activeSkills.length}, Stale: ${staleSkills.length}`);
+    unobservedSkills = analysis.unobserved;
+    log(
+      `  Active: ${activeSkills.length}, Stale: ${staleSkills.length}, Unobserved: ${unobservedSkills.length}`,
+    );
     for (const s of activeSkills.slice(0, 5)) {
       log(`    [ACTIVE] ${s.name}: ${s.useCount}x, ${(s.successRate * 100).toFixed(0)}% success`);
     }
@@ -632,7 +629,7 @@ function main(): void {
   if (args.mode === 'all' || args.mode === 'deprecate') {
     log('Detecting deprecations...');
     deprecations = detectDeprecations(allSkills, config);
-    log(`  Deprecations: ${deprecations.length}`);
+    log(`  Lifecycle reviews: ${deprecations.length}`);
     for (const d of deprecations.slice(0, 3)) {
       log(`    [${d.suggestedAction}] ${d.skillName}: ${d.reason}`);
     }
@@ -641,16 +638,22 @@ function main(): void {
   // 6. Compute health
   const staleCount = staleSkills.length;
   const total = allSkills.length;
-  let health: 'excellent' | 'good' | 'fair' | 'poor';
-  const staleRatio = total > 0 ? staleCount / total : 0;
-  if (staleRatio < 0.1 && deprecations.length < 5) health = 'excellent';
+  let health: 'excellent' | 'good' | 'fair' | 'poor' | 'insufficient';
+  const evidenceSkills = allSkills.filter(
+    (skill) => skill.useCount >= config.usageAnalysis.minDataPoints,
+  ).length;
+  const staleRatio = evidenceSkills > 0 ? staleCount / evidenceSkills : 0;
+  if (evidenceSkills === 0) health = 'insufficient';
+  else if (staleRatio < 0.1 && deprecations.length < 5) health = 'excellent';
   else if (staleRatio < 0.25 && deprecations.length < 10) health = 'good';
   else if (staleRatio < 0.4) health = 'fair';
   else health = 'poor';
 
   // 6.5 Auto-archive if enabled
   let archivedCount = 0;
-  if (args.autoArchive && deprecations.length > 0) {
+  if (args.autoArchive && !canAutoArchive(config)) {
+    log('  Auto-archive blocked by policy (autoDeprecate=false or confirmation required)');
+  } else if (args.autoArchive && deprecations.length > 0) {
     archivedCount = autoArchiveDeprecations(deprecations);
     log(`  Auto-archive triggered for ${archivedCount} skills`);
   }
@@ -667,6 +670,8 @@ function main(): void {
       totalSkills: total,
       activeSkills: activeSkills.length,
       staleSkills: staleSkills.length,
+      unobservedSkills: unobservedSkills.length,
+      evidenceSkills,
       gapsFound: gaps.length,
       refinementsSuggested: refinements.length,
       deprecationsSuggested: deprecations.length,
@@ -686,9 +691,10 @@ function main(): void {
         total: output.summary.totalSkills,
         active: output.summary.activeSkills,
         stale: output.summary.staleSkills,
+        unobserved: output.summary.unobservedSkills,
         gaps: output.summary.gapsFound,
         refinements: output.summary.refinementsSuggested,
-        deprecations: output.summary.deprecationsSuggested,
+        reviews: output.summary.deprecationsSuggested,
         health: output.summary.overallHealth,
       }),
     );

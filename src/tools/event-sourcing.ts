@@ -108,9 +108,17 @@ interface StoredEvent {
   version: number;
   timestamp: string;
   sessionId?: string;
-  /** SHA-256 of the previous event in the chain (hash-chained audit trail). */
+  /**
+   * SHA-256 of the previous event in the chain (hash-chained audit trail).
+   * GARANTÍA (re-etiquetada 2026-09-26, aprendizaje upstream gentle-ai):
+   * detecta MUTACIÓN ACCIDENTAL o edición inconsistente del log (verify
+   * encuentra saltos de cadena y mismatches). NO autentica contra un actor
+   * malicioso LOCAL con acceso de escritura: quien pueda editar el archivo
+   * puede recalcular la cadena entera. Para no-repudio real haría falta
+   * firma externa (clave fuera de la máquina) — out of scope local-first.
+   */
   prevHash?: string;
-  /** SHA-256 of this event's canonical content (tamper-evident). */
+  /** SHA-256 of this event's canonical content (tamper-evident, see above). */
   hash?: string;
 }
 

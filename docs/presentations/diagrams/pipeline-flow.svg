@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" role="img" aria-labelledby="pipeline-flow-title pipeline-flow-desc" focusable="false">
 <title id="pipeline-flow-title">Pipeline Flow</title>
 <desc id="pipeline-flow-desc">Gentle-Vanguard Pipeline Flow diagram showing the main components, relationships and operational flow.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e17"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
 <linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
 <linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
 <linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
@@ -27,7 +27,7 @@
 
 <!-- Tool Detection -->
 <g filter="url(#s)"><rect x="60" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="68" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🔧</text>
+<rect x="68" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">T</text>
 <text x="95" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Tool Detection</text>
 <text x="68" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Bash · Read · Write · Edit</text>
 <text x="68" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Grep · Glob · Task · Skill</text>
@@ -35,7 +35,7 @@
 
 <!-- Session Manager -->
 <g filter="url(#s)"><rect x="250" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="258" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">⚡</text>
+<rect x="258" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">></text>
 <text x="285" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Session Manager</text>
 <text x="258" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Session ID · Engram sync</text>
 <text x="258" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Lifecycle tracking</text>
@@ -43,7 +43,7 @@
 
 <!-- Token Budget -->
 <g filter="url(#s)"><rect x="60" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="68" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">💰</text>
+<rect x="68" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">M</text>
 <text x="95" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Token Budget</text>
 <text x="68" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Budget allocation · Track</text>
 <text x="68" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Guard thresholds</text>
@@ -51,7 +51,7 @@
 
 <!-- Karpathy -->
 <g filter="url(#s)"><rect x="250" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="258" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🧠</text>
+<rect x="258" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">B</text>
 <text x="285" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Karpathy Guidelines</text>
 <text x="258" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Quality rubrics · Self-critique</text>
 <text x="258" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Doubt-driven dev</text>
@@ -71,10 +71,10 @@
 
 <!-- Process bar -->
 <rect x="60" y="305" width="880" height="18" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
-<rect x="62" y="307" width="340" height="14" rx="5" fill="url(#b1)" opacity=".6"/><text x="232" y="318" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="9" font-weight="600">PARALLEL (31)</text>
+<rect x="62" y="307" width="340" height="14" rx="5" fill="url(#b1)" opacity=".6"/><text x="232" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">PARALLEL (31)</text>
 <rect x="403" y="307" width="5" height="14" rx="2" fill="#4b5563"/>
-<rect x="410" y="307" width="470" height="14" rx="5" fill="url(#b2)" opacity=".6"/><text x="645" y="318" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="9" font-weight="600">LAZY BACKGROUND (70)</text>
-<rect x="882" y="307" width="56" height="14" rx="5" fill="#4ade80" opacity=".8"/><text x="910" y="318" text-anchor="middle" fill="#0a0e17" font-family="system-ui,sans-serif" font-size="8" font-weight="600">DONE</text>
+<rect x="410" y="307" width="470" height="14" rx="5" fill="url(#b2)" opacity=".6"/><text x="645" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">LAZY BACKGROUND (70)</text>
+<rect x="882" y="307" width="56" height="14" rx="5" fill="#4ade80" opacity=".8"/><text x="910" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="600">DONE</text>
 
 <g transform="translate(60,340)"><rect x="0" y="0" width="400" height="36" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
 <text x="10" y="15" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Phase 1 steps:</text>

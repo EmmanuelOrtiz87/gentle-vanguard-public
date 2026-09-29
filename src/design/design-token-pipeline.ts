@@ -21,7 +21,7 @@ interface BrandConfig {
   displayName: string;
   tagline: string;
   colors: Record<string, string>;
-  gradients: Record<string, { from: string; to: string; direction: string }>;
+  gradients: Record<string, { from: string; mid?: string; to: string; direction: string }>;
   typography: {
     displayFont: string;
     bodyFont: string;
@@ -115,7 +115,12 @@ function generateCSS(brand: BrandConfig): string {
         : value.direction === 'diagonal'
           ? '135deg'
           : 'to right';
-    css += `  --gv-gradient-${varName}: linear-gradient(${direction}, ${value.from}, ${value.to});\n`;
+    // `mid` es opcional: si está, emite el gradiente oficial de 3 paradas
+    // (coincide con assets/logo.svg y con el wordmark de gv-shell.css).
+    const stops = value.mid
+      ? `${value.from} 0%, ${value.mid} 52%, ${value.to} 100%`
+      : `${value.from}, ${value.to}`;
+    css += `  --gv-gradient-${varName}: linear-gradient(${direction}, ${stops});\n`;
   }
 
   // Brand info

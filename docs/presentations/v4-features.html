@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-bs-theme="dark" class="gv-document-page">
+<html lang="es" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -10,14 +10,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>What's New in v4.0 — Gentle-Vanguard</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       .feature-card {
         background: var(--card);
@@ -156,128 +156,52 @@
     </style>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
+  <body>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
 
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
 
     <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ August 2026 Release</span>
@@ -285,7 +209,7 @@
         class="display-1 fw-bold z-1"
         style="font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -0.02em; line-height: 1.05"
       >
-        What's New in <span class="glow">v4.0</span>
+        <span data-i18n="v4_h1">What's New in</span> <span class="glow">v4.0</span>
       </h1>
       <p
         class="lead text-secondary z-1"
@@ -326,7 +250,7 @@
     <section class="fade-in" id="features">
       <div class="section-title">
         <div class="display-4 mb-2">✨</div>
-        <h2>Major New Features</h2>
+        <h2><span data-i18n="v4_h2_major">Major New Features</span></h2>
         <p>Native TypeScript implementations that replace external dependencies</p>
       </div>
 
@@ -334,7 +258,7 @@
         <div class="col-md-6 col-lg-3">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🎛️</div>
-            <h4>Command Center</h4>
+            <h4><span data-i18n="v4_h3_cc">Command Center</span></h4>
             <p>
               Panel standalone para operar dashboard, analytics, Content Studio, Academy y Prompt
               Studio con start/stop idempotente.
@@ -345,7 +269,7 @@
         <div class="col-md-6 col-lg-3">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🎨</div>
-            <h4>Design System GV</h4>
+            <h4><span data-i18n="v4_h3_ds">Design System GV</span></h4>
             <p>
               Las apps comparten tokens y componentes desde
               <code>assets/gv-design-system.css</code>.
@@ -356,7 +280,7 @@
         <div class="col-md-6 col-lg-3">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🌐</div>
-            <h4>i18n y temas</h4>
+            <h4><span data-i18n="v4_h3_i18n">i18n y temas</span></h4>
             <p>Español por defecto, selector es/en y tema claro/oscuro en todas las apps.</p>
             <span class="tag">Local-first</span>
           </div>
@@ -364,7 +288,7 @@
         <div class="col-md-6 col-lg-3">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">⚙️</div>
-            <h4>Apps on-demand</h4>
+            <h4><span data-i18n="v4_h3_apps">Apps on-demand</span></h4>
             <p>
               Las apps sanas persisten entre sesiones; <code>DAEMON_CLASSES</code> las protege del
               reaper.
@@ -378,7 +302,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">⚡</div>
-            <h4>Adaptive Steps System</h4>
+            <h4><span data-i18n="v4_h3_adaptive">Adaptive Steps System</span></h4>
             <p>
               Auto-scales step budgets for orchestrator and subagents based on task complexity.
               Assigns 24-80 steps dynamically.
@@ -394,7 +318,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">📊</div>
-            <h4>Real Token Tracking</h4>
+            <h4><span data-i18n="v4_h3_tokens">Real Token Tracking</span></h4>
             <p>
               Agnostic token measurement that reads session data from disk. No plugin
               dependencies—works with OpenCode, Claude, Cursor.
@@ -410,7 +334,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🌐</div>
-            <h4>Web Crawler Dual-Provider</h4>
+            <h4><span data-i18n="v4_h3_crawler">Web Crawler Dual-Provider</span></h4>
             <p>
               Firecrawl primary with Jina Reader + DuckDuckGo fallback. Zero-config web scraping and
               search.
@@ -426,7 +350,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">📈</div>
-            <h4>Research Trends</h4>
+            <h4><span data-i18n="v4_h3_trends">Research Trends</span></h4>
             <p>
               Aggregates Last30Days trends from GitHub, Hacker News, Stack Overflow, Dev.to, and
               Reddit.
@@ -442,7 +366,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🔐</div>
-            <h4>Hash-Chained Audit</h4>
+            <h4><span data-i18n="v4_h3_hash">Hash-Chained Audit</span></h4>
             <p>
               SHA-256 hash chain for tamper-proof event sourcing. Each event stores prevHash + hash.
             </p>
@@ -457,7 +381,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🎯</div>
-            <h4>Retrieval Grader (CRAG)</h4>
+            <h4><span data-i18n="v4_h3_crag">Retrieval Grader (CRAG)</span></h4>
             <p>
               Corrective RAG pattern grading retrieved chunks with BM25 lexical scoring. Keyword
               fallback on poor retrieval.
@@ -473,7 +397,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🗜️</div>
-            <h4>Structural Compression</h4>
+            <h4><span data-i18n="v4_h3_compression">Structural Compression</span></h4>
             <p>
               SmartCrusher, Tabular Compaction, LogCompressor, TextCrusher+BM25, CrossCompression—5
               strategies in native TS.
@@ -489,7 +413,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🎭</div>
-            <h4>Humanizer</h4>
+            <h4><span data-i18n="v4_h3_humanizer">Humanizer</span></h4>
             <p>
               Transforms technical/AI text into human prose with readability analysis and scoring.
             </p>
@@ -504,7 +428,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🎨</div>
-            <h4>Design Tokens</h4>
+            <h4><span data-i18n="v4_h3_designtokens">Design Tokens</span></h4>
             <p>
               System of design tokens (colors, typography, spacing) with CSS/JSON generation and
               validation.
@@ -520,7 +444,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">📝</div>
-            <h4>Planning Templates</h4>
+            <h4><span data-i18n="v4_h3_planning">Planning Templates</span></h4>
             <p>
               Pre-write planning templates for session plans, task breakdown, ADRs with structure
               validation.
@@ -536,7 +460,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🗺️</div>
-            <h4>Multi-Profile SDD</h4>
+            <h4><span data-i18n="v4_h3_sdd">Multi-Profile SDD</span></h4>
             <p>
               Cheap/Balanced/Premium profiles per SDD phase with temperature + hallucinationGuard
               settings.
@@ -552,7 +476,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="feature-card new-feature">
             <div class="icon-wrapper">🔧</div>
-            <h4>Witr Wrapper</h4>
+            <h4><span data-i18n="v4_h3_witr">Witr Wrapper</span></h4>
             <p>
               "Why Is This Running?" process/port/file/container tracing with auto-install and
               secrets redaction.
@@ -570,14 +494,14 @@
     <section class="fade-in" id="migration">
       <div class="section-title">
         <div class="display-4 mb-2">🔄</div>
-        <h2>TypeScript Migration</h2>
+        <h2><span data-i18n="v4_h3_ts">TypeScript Migration</span></h2>
         <p>24 waves completed. All core systems now in native TypeScript.</p>
       </div>
 
       <div class="row g-4">
         <div class="col-lg-6">
           <div class="section-card h-100">
-            <h4 class="mb-4"><i class="bi bi-code-slash text-info me-2"></i>Migration Summary</h4>
+            <h4 class="mb-4"><i class="bi bi-code-slash text-info me-2"></i><span data-i18n="v4_h3_migration">Migration Summary</span></h4>
             <div class="timeline-v4">
               <div class="timeline-item completed">
                 <h6 class="fw-bold">PowerShell → TypeScript</h6>
@@ -612,7 +536,7 @@
 
         <div class="col-lg-6">
           <div class="section-card h-100">
-            <h4 class="mb-4"><i class="bi bi-terminal text-info me-2"></i>Migration Commands</h4>
+            <h4 class="mb-4"><i class="bi bi-terminal text-info me-2"></i><span data-i18n="v4_h3_migrate">Migration Commands</span></h4>
             <div class="code-preview mb-3">
               <div><span class="comment"># Health check (now TypeScript)</span></div>
               <div><span class="cmd">npm</span> <span class="arg">run health:check</span></div>
@@ -642,14 +566,14 @@
     <section class="fade-in" id="enhancements">
       <div class="section-title">
         <div class="display-4 mb-2">⚡</div>
-        <h2>Performance & Infrastructure</h2>
+        <h2><span data-i18n="v4_h3_perf">Performance & Infrastructure</span></h2>
         <p>From 73% to 100% autonomy with enterprise-grade reliability</p>
       </div>
 
       <div class="row g-4">
         <div class="col-md-6">
           <div class="section-card">
-            <h4><i class="bi bi-lightning-charge text-warning me-2"></i>Parallel Execution</h4>
+            <h4><i class="bi bi-lightning-charge text-warning me-2"></i><span data-i18n="v4_h3_parallel">Parallel Execution</span></h4>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <span class="text-secondary">Watchtower Health Checks</span>
               <span class="badge-tag ok">Promise.allSettled</span>
@@ -665,7 +589,7 @@
 
         <div class="col-md-6">
           <div class="section-card">
-            <h4><i class="bi bi-speedometer2 text-info me-2"></i>Lazy Batch Optimization</h4>
+            <h4><i class="bi bi-speedometer2 text-info me-2"></i><span data-i18n="v4_h3_lazy">Lazy Batch Optimization</span></h4>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <span class="text-secondary">Batch Delay</span>
               <span class="text-info">500ms → 100ms</span>
@@ -681,7 +605,7 @@
 
         <div class="col-md-6">
           <div class="section-card">
-            <h4><i class="bi bi-database text-success me-2"></i>Nexus DB</h4>
+            <h4><i class="bi bi-database text-success me-2"></i><span data-i18n="v4_h3_nexus">Nexus DB</span></h4>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <span class="text-secondary">Operational Database</span>
               <span class="badge-tag ok">SQLite WAL</span>
@@ -705,7 +629,7 @@
 
         <div class="col-md-6">
           <div class="section-card">
-            <h4><i class="bi bi-code-square text-primary me-2"></i>Code Refactoring</h4>
+            <h4><i class="bi bi-code-square text-primary me-2"></i><span data-i18n="v4_h3_refactor">Code Refactoring</span></h4>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <span class="text-secondary">DatabaseManager</span>
               <span class="text-info">1066 → 250 lines</span>
@@ -724,7 +648,7 @@
     <section class="fade-in" id="comparison">
       <div class="section-title">
         <div class="display-4 mb-2">📊</div>
-        <h2>v3.5 vs v4.0 Comparison</h2>
+        <h2><span data-i18n="v4_h3_compare">v3.5 vs v4.0 Comparison</span></h2>
         <p>See the evolution from 73% to 100% autonomous operation</p>
       </div>
 
@@ -813,7 +737,7 @@
     <section class="fade-in" id="commands">
       <div class="section-title">
         <div class="display-4 mb-2">⌨️</div>
-        <h2>New CLI Commands</h2>
+        <h2><span data-i18n="v4_h3_cli">New CLI Commands</span></h2>
         <p>Native TypeScript commands for all major operations</p>
       </div>
 
@@ -888,7 +812,7 @@
     <section class="fade-in">
       <div class="section-title">
         <div class="display-4 mb-2">🚀</div>
-        <h2>Ready to Upgrade?</h2>
+        <h2><span data-i18n="v4_h3_ready">Ready to Upgrade?</span></h2>
         <p>Get started with Gentle-Vanguard v4.0 today</p>
       </div>
 
@@ -949,7 +873,7 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >175 Test files</span
+          >191 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
@@ -977,7 +901,6 @@
       </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

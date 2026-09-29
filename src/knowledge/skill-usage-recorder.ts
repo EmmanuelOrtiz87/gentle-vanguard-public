@@ -18,10 +18,8 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { createRequire } from 'module';
 import type { Database } from 'better-sqlite3';
-
-const _require = createRequire(import.meta.url);
+import { DatabaseManager } from '../database/nexus/manager.js';
 
 /** Minimal shape of the DatabaseManager used to obtain the shared connection. */
 interface DbProvider {
@@ -33,10 +31,7 @@ let _provider: DbProvider | null | undefined;
 function resolveDb(): Database | null {
   if (_provider !== undefined) return _provider ? _provider.getDb() : null;
   try {
-    const mod = _require('../database/nexus//manager') as {
-      DatabaseManager: { getInstance: () => DbProvider };
-    };
-    _provider = mod.DatabaseManager.getInstance();
+    _provider = DatabaseManager.getInstance();
   } catch {
     _provider = null; // SQLite/manager unavailable — recording disabled
   }
@@ -178,10 +173,7 @@ skill-loader match/serve point; never throws.`);
   const statsPath = join(process.cwd(), '.atl', 'skill-stats.json');
   let db: Database;
   try {
-    const mod = _require('../database/nexus//manager') as {
-      DatabaseManager: { getInstance: () => DbProvider };
-    };
-    db = mod.DatabaseManager.getInstance().getDb();
+    db = DatabaseManager.getInstance().getDb();
   } catch (e) {
     console.error(`[ERROR] Cannot open Nexus DB: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);

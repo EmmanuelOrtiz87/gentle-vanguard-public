@@ -29,6 +29,10 @@ interface OpenCodeConfig {
   [key: string]: unknown;
 }
 
+interface AgentRegistry {
+  agents?: Record<string, { maxSteps?: number }>;
+}
+
 function getRepoRoot(): string {
   let dir = path.resolve(process.cwd());
   while (dir && dir !== path.dirname(dir)) {
@@ -43,6 +47,7 @@ const SESSION_DIR = path.join(ROOT, '.session');
 const STATE_PATH = path.join(SESSION_DIR, 'adaptive-opencode-state.json');
 const BASELINE_PATH = path.join(SESSION_DIR, 'opencode-baseline.json');
 const OPENCODE_PATH = path.join(ROOT, 'opencode.json');
+const AGENTS_CONFIG_PATH = path.join(ROOT, 'config', 'agents.json');
 const BUDGET_PATH = path.join(ROOT, '.session', 'token-budget.json');
 
 function ensureDir(p: string): void {
@@ -92,6 +97,18 @@ function getAdaptiveReason(peak: boolean, pressure: boolean): string {
   if (peak) return 'peak-hours';
   if (pressure) return 'token-pressure';
   return 'normal';
+}
+
+function getStepFloor(agentName: string, currentSteps: unknown): number {
+  const registry = readJson<AgentRegistry>(AGENTS_CONFIG_PATH);
+  const configured = registry?.agents?.[agentName]?.maxSteps;
+  if (typeof configured === 'number' && Number.isFinite(configured)) {
+    return configured;
+  }
+  if (agentName === 'orchestrator') {
+    return 24;
+  }
+  return typeof currentSteps === 'number' && Number.isFinite(currentSteps) ? currentSteps : 20;
 }
 
 function getDefaultState(): AdaptiveState {
@@ -166,15 +183,14 @@ function applyOptimizedOverlay(config: OpenCodeConfig): void {
       if (agent.permission && 'codesearch' in agent.permission) {
         delete agent.permission.codesearch;
       }
+      const stepFloor = getStepFloor(agentName, agent.steps);
       if (agentName === 'orchestrator') {
         if (!agent.permission) agent.permission = {};
         agent.permission.websearch = 'deny';
         agent.permission.webfetch = 'deny';
         agent.permission.task = { '*': 'allow' };
-        agent.steps = 12;
-      } else {
-        agent.steps = 6;
       }
+      agent.steps = Math.max(agent.steps ?? 0, stepFloor);
     }
   }
 }

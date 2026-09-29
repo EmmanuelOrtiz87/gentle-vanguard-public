@@ -219,6 +219,7 @@ export function writeTransactionsToNexus(txns: TransactionUsage[]): {
           messageId: t.messageId,
           sessionId: t.sessionId,
           agent: t.agent,
+          agentName: t.agentName,
           model: t.model,
           inputTokens: t.input,
           outputTokens: t.output,

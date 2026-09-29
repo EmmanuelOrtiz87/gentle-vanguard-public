@@ -55,6 +55,9 @@ test('isExcludedPath refuses keys, key material, env files and runtime state', (
     '.telemetry/spans/x.json',
     'node_modules/left-pad/index.js',
     'dist/bundle.js',
+    // Repo strategy 2026-09-20: apps never ship in the installer .exe
+    'apps/web-dashboard/index.html',
+    'apps\\gv-music\\src\\main.ts',
   ]) {
     assert.equal(isExcludedPath(p), true, `expected exclusion for ${p}`);
   }
@@ -74,7 +77,12 @@ test('stagePayload copies required entries and never copies secret paths', () =>
     assert.ok(result.copiedEntries.includes('src'));
     assert.ok(existsSync(join(stage, 'src', 'core', 'demo.ts')));
     assert.ok(existsSync(join(stage, 'package.json')));
-    assert.ok(existsSync(join(stage, 'apps', 'web-dashboard', 'index.html')));
+    // Apps are private local-first products: never staged into the .exe
+    assert.equal(
+      existsSync(join(stage, 'apps')),
+      false,
+      'apps/ must not be staged (repo strategy 2026-09-20)',
+    );
     // Secret/state exclusions
     assert.equal(existsSync(join(stage, 'keys')), false, 'keys/ must not be staged');
     assert.equal(existsSync(join(stage, '.runtime')), false, '.runtime must not be staged');

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark" class="gv-document-page">
+<html lang="en" class="gv-document-page">
   <head>
     <meta name="theme-color" content="#0F1115" />
     <meta
@@ -11,13 +11,13 @@
     <title>🤖 Autonomous Systems — Gentle-Vanguard</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      href="assets/vendor/bootstrap.min.css"
     />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      href="assets/vendor/bootstrap-icons.min.css"
     />
-    <link rel="stylesheet" href="assets/css/gv.css?v=2.1" />
+    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de autonomy.html (complementan el design system) --- */
       .flow-row {
@@ -42,158 +42,82 @@
     </style>
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
-    <script src="assets/js/i18n.js?v=2.1"></script>
+    <script src="assets/js/i18n.js?v=3.0"></script>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
   </head>
-  <body class="grain">
+  <body>
     <div class="scroll-progress"></div>
-    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
-    <nav class="navbar navbar-expand-xl nav-blur fixed-top">
-      <div class="container-fluid px-3">
-        <a class="navbar-brand text-light fw-bold mono" href="index.html" style="font-size: 0.85rem"
-          ><img src="assets/logo.svg" alt="Gentle-Vanguard" class="gv-logo" /><span
-            class="gv-wordmark"
-            >Gentle<strong>Vanguard</strong></span
-          ></a
-        >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navMain"
-        >
-          <i class="bi bi-list" style="color: var(--p)"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto" style="max-height: 85vh; overflow-y: auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="index.html"
-                ><i class="bi bi-house me-1"></i><span data-i18n="nav_home">Home</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="architecture.html"
-                ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="nav_arch">Arch</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="autonomy.html"
-                ><i class="bi bi-robot me-1"></i><span data-i18n="nav_autonomy">Autonomy</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.html"
-                ><i class="bi bi-speedometer2 me-1"></i
-                ><span data-i18n="nav_dashboard">Dashboard</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="quickstart.html"
-                ><i class="bi bi-rocket-takeoff me-1"></i
-                ><span data-i18n="nav_quickstart">Quickstart</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="memory-knowledge.html"
-                ><i class="bi bi-sd-card me-1"></i><span data-i18n="nav_memory">Memory</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="security-governance.html"
-                ><i class="bi bi-shield-check me-1"></i
-                ><span data-i18n="nav_security">Security</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="agents-pipeline.html"
-                ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="nav_agents">Agents</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="operations-cloud.html"
-                ><i class="bi bi-cloud me-1"></i><span data-i18n="nav_cloud">Cloud</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="patterns-conventions.html"
-                ><i class="bi bi-file-code me-1"></i
-                ><span data-i18n="nav_patterns">Patterns</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="health.html"
-                ><i class="bi bi-heart-pulse me-1"></i><span data-i18n="nav_health">Health</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="commands.html"
-                ><i class="bi bi-terminal me-1"></i
-                ><span data-i18n="nav_commands">Commands</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="glossary.html"
-                ><i class="bi bi-journal-bookmark me-1"></i
-                ><span data-i18n="nav_glossary">Glossary</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="study-material.html"
-                ><i class="bi bi-mortarboard me-1"></i><span data-i18n="nav_study">Study</span></a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="index.html#diagrams"
-                ><i class="bi bi-images me-1"></i><span data-i18n="nav_diagrams">Diagrams</span></a
-              >
-            </li>
-            <li class="nav-item ms-2">
-              <div class="lang-seg" role="group" aria-label="Language">
-                <button type="button" data-lang="en" aria-pressed="false">
-                  <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
-                </button>
-                <button type="button" data-lang="es" aria-pressed="false">
-                  <span class="lang-flag">🇪🇸</span><span class="lang-code">ES</span>
-                </button>
-                <button type="button" data-lang="pt-BR" aria-pressed="false">
-                  <span class="lang-flag">🇧🇷</span><span class="lang-code">PT</span>
-                </button>
-              </div>
-            </li>
-          </ul>
+    <div class="gv-grid-bg"></div>
+    <div class="gv-glow-a"></div>
+    <div class="gv-glow-b"></div>
+    <header class="gv-topbar">
+      <div class="gv-topbar-inner">
+        <a class="gv-brand" href="index.html">
+          <img class="gv-brand-logo" src="assets/logo.svg" alt="Gentle-Vanguard" />
+          <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
+        </a>
+        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
+          <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
+          <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
+          <a href="autonomy.html"><span data-i18n="nav_autonomy">Autonomy</span></a>
+          <a href="dashboard.html"><span data-i18n="nav_dashboard">Dashboard</span></a>
+          <a href="quickstart.html"><span data-i18n="nav_quickstart">Quickstart</span></a>
+          <a href="memory-knowledge.html"><span data-i18n="nav_memory">Memory</span></a>
+          <a href="security-governance.html"><span data-i18n="nav_security">Security</span></a>
+          <a href="agents-pipeline.html"><span data-i18n="nav_agents">Agents</span></a>
+          <a href="operations-cloud.html"><span data-i18n="nav_cloud">Cloud</span></a>
+          <a href="patterns-conventions.html"><span data-i18n="nav_patterns">Patterns</span></a>
+          <a href="health.html"><span data-i18n="nav_health">Health</span></a>
+          <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
+          <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
+          <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+        </nav>
+        <div class="gv-shell-controls">
+          <div class="lang-seg" role="group" aria-label="Idioma">
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+          </div>
+          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
 
     <header class="hero" id="overview">
       <div>
-        <span class="hero-badge mb-3">✦ v4.0 — Autonomous Executive Layer</span>
-        <h1><span class="glow">Autonomous Systems</span></h1>
-        <p class="lead">
+        <span class="hero-badge mb-3"><span data-i18n="aut_badge">✦ v4.0 — Autonomous Executive Layer</span></span>
+        <h1><span class="glow" data-i18n="aut_title">Autonomous Systems</span></h1>
+        <p class="lead" data-i18n="aut_lead">
           The Autonomous Executive Layer coordinates 12 interconnected executive systems operating
           in a continuous Detection → Evaluation → Decision → Execution → Verification → Learning
           cycle — enabling 100% autonomous operation with human oversight at critical decision
           points.
         </p>
         <div class="flow-row mt-4">
-          <span class="flow-step"><i class="bi bi-radar me-1"></i>Detection</span>
+          <span class="flow-step"><i class="bi bi-radar me-1"></i><span data-i18n="aut_step_detect">Detection</span></span>
           <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
-          <span class="flow-step"><i class="bi bi-graph-up me-1"></i>Evaluation</span>
+          <span class="flow-step"><i class="bi bi-graph-up me-1"></i><span data-i18n="aut_step_eval">Evaluation</span></span>
           <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
-          <span class="flow-step"><i class="bi bi-diagram-2 me-1"></i>Decision</span>
+          <span class="flow-step"><i class="bi bi-diagram-2 me-1"></i><span data-i18n="aut_step_decision">Decision</span></span>
           <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
-          <span class="flow-step"><i class="bi bi-play-circle me-1"></i>Execution</span>
+          <span class="flow-step"><i class="bi bi-play-circle me-1"></i><span data-i18n="aut_step_exec">Execution</span></span>
           <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
-          <span class="flow-step"><i class="bi bi-check2-circle me-1"></i>Verification</span>
+          <span class="flow-step"><i class="bi bi-check2-circle me-1"></i><span data-i18n="aut_step_verify">Verification</span></span>
           <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
-          <span class="flow-step"><i class="bi bi-mortarboard me-1"></i>Learning</span>
+          <span class="flow-step"><i class="bi bi-mortarboard me-1"></i><span data-i18n="aut_step_learn">Learning</span></span>
         </div>
         <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center">
-          <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>Overview</a>
+          <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i><span data-i18n="aut_btn_overview">Overview</span></a>
           <a href="architecture.html" class="btn-gv-alt"
-            ><i class="bi bi-diagram-3 me-1"></i>Architecture</a
+            ><i class="bi bi-diagram-3 me-1"></i><span data-i18n="aut_btn_arch">Architecture</span></a
           >
           <a href="agents-pipeline.html" class="btn-gv-alt"
-            ><i class="bi bi-diagram-2 me-1"></i>Agents</a
+            ><i class="bi bi-diagram-2 me-1"></i><span data-i18n="aut_btn_agents">Agents</span></a
           >
         </div>
       </div>
@@ -205,25 +129,25 @@
         <div class="col-md-3 col-6">
           <div class="section-card text-center">
             <div class="stat-n" data-count="12">12</div>
-            <div class="stat-l">Executive Systems</div>
+            <div class="stat-l"><span data-i18n="aut_stat_exec">Executive Systems</span></div>
           </div>
         </div>
         <div class="col-md-3 col-6">
           <div class="section-card text-center">
             <div class="stat-n" data-count="113">113</div>
-            <div class="stat-l">Health Checks</div>
+            <div class="stat-l"><span data-i18n="aut_stat_health">Health Checks</span></div>
           </div>
         </div>
         <div class="col-md-3 col-6">
           <div class="section-card text-center">
             <div class="stat-n" data-count="21">21</div>
-            <div class="stat-l">Monitored Components</div>
+            <div class="stat-l"><span data-i18n="aut_stat_monitored">Monitored Components</span></div>
           </div>
         </div>
         <div class="col-md-3 col-6">
           <div class="section-card text-center">
             <div class="stat-n"><span data-count="113">113</span>/113</div>
-            <div class="stat-l">Watchtower Score</div>
+            <div class="stat-l"><span data-i18n="aut_stat_watch">Watchtower Score</span></div>
           </div>
         </div>
       </div>
@@ -232,7 +156,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--p)">
-            <i class="bi bi-eye me-2"></i>1. Executive Overview
+            <i class="bi bi-eye me-2"></i><span data-i18n="aut_h2_overview">1. Executive Overview</span>
           </h2>
         </div>
         <div class="col-12">
@@ -345,7 +269,7 @@
                   "
                 >
                   <small class="stat-l d-block mb-1">Watchtower</small
-                  ><span class="badge badge-er">96/96</span>
+                  ><span class="badge badge-er">154/154</span>
                 </div>
               </div>
               <div class="col-md-3 col-6">
@@ -409,7 +333,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--p)">
-            <i class="bi bi-shield-plus me-2"></i>2. Auto-Apply Safe
+            <i class="bi bi-shield-plus me-2"></i><span data-i18n="aut_h2_autoapply">2. Auto-Apply Safe</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -516,7 +440,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--a)">
-            <i class="bi bi-shield-exclamation me-2"></i>3. Circuit Breaker API
+            <i class="bi bi-shield-exclamation me-2"></i><span data-i18n="aut_h2_circuit">3. Circuit Breaker API</span>
           </h2>
         </div>
         <div class="col-lg-4">
@@ -592,7 +516,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--wn)">
-            <i class="bi bi-exclamation-triangle me-2"></i>4. Auto-Escalation System
+            <i class="bi bi-exclamation-triangle me-2"></i><span data-i18n="aut_h2_escalation">4. Auto-Escalation System</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -633,7 +557,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-diagram-3 me-2"></i>5. Dynamic Dependency Graph
+            <i class="bi bi-diagram-3 me-2"></i><span data-i18n="aut_h2_depgraph">5. Dynamic Dependency Graph</span>
           </h2>
         </div>
         <div class="col-md-6">
@@ -665,7 +589,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--a)">
-            <i class="bi bi-bar-chart-line me-2"></i>6. AB Testing Framework
+            <i class="bi bi-bar-chart-line me-2"></i><span data-i18n="aut_h2_abtesting">6. AB Testing Framework</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -710,7 +634,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--pl)">
-            <i class="bi bi-trophy me-2"></i>7. Session Scoring Auto-Compare
+            <i class="bi bi-trophy me-2"></i><span data-i18n="aut_h2_scoring">7. Session Scoring Auto-Compare</span>
           </h2>
         </div>
         <div class="col-md-3 col-6">
@@ -747,7 +671,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-mortarboard me-2"></i>8. Norms Learner
+            <i class="bi bi-mortarboard me-2"></i><span data-i18n="aut_h2_norms">8. Norms Learner</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -777,16 +701,16 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--er)">
-            <i class="bi bi-eye-fill me-2"></i>9. Watchtower
+            <i class="bi bi-eye-fill me-2"></i><span data-i18n="aut_h2_watchtower">9. Watchtower</span>
             <span class="badge badge-ok" style="font-size: 0.6rem; vertical-align: middle"
-              >96/96</span
+              >154/154</span
             >
           </h2>
         </div>
         <div class="col-lg-8">
           <div class="section-card h-100">
             <p class="card-text" data-i18n="c_autonomy_15">
-              96 health checks across 22 components with 6 operational modes. Scored 96/96 — all
+              154 health checks across 29 components with 6 operational modes. Scored 154/154 — all
               systems operational.
             </p>
             <div class="d-flex flex-wrap gap-2 mt-3">
@@ -819,7 +743,7 @@
             <hr style="border-color: var(--br)" />
             <div><span class="stat-l">Score</span></div>
             <div class="progress-gv mt-2"><div class="progress-bar" style="width: 100%"></div></div>
-            <small class="d-block mt-1 text-end" style="color: var(--ok)">96/96 — 100%</small>
+            <small class="d-block mt-1 text-end" style="color: var(--ok)">154/154 — 100%</small>
           </div>
         </div>
       </div>
@@ -828,7 +752,7 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--pl)">
-            <i class="bi bi-lightning-charge me-2"></i>10. Performance Optimizations
+            <i class="bi bi-lightning-charge me-2"></i><span data-i18n="aut_h2_perf">10. Performance Optimizations</span>
           </h2>
         </div>
         <div class="col-md-3">
@@ -879,12 +803,226 @@
         </p>
       </div>
       <div class="container" style="max-width: 1000px">
-        <img
-          src="diagrams/executive-loop.svg"
-          alt="Executive Autonomous Loop"
-          class="svg-diagram img-fluid w-100 border-soft radius-lg shadow-glow"
-          loading="lazy"
-        />
+        <svg class="svg-diagram svg-inline" viewBox="0 0 800 540" role="img" aria-label="Executive Autonomous Loop" >
+<title id="executive-loop-title">Executive Loop</title>
+<desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#090c11"/>
+      <stop offset="100%" stop-color="#0f1525"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
+      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="detectGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="evalGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="decideGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="execGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4bb4f"/>
+      <stop offset="100%" stop-color="#f4bb4f"/>
+    </linearGradient>
+    <linearGradient id="verifyGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ee6d75"/>
+      <stop offset="100%" stop-color="#ee6d75"/>
+    </linearGradient>
+    <linearGradient id="learnGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Autonomous Loop</text>
+  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Self-managing orchestration cycle with auto-healing and learning</text>
+
+  <!-- Orbit ring -->
+  <ellipse cx="400" cy="265" rx="200" ry="75" fill="none" stroke="#1e3a5f" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+  <ellipse cx="400" cy="265" rx="200" ry="75" fill="url(#ringGlow)"/>
+
+  <!-- Main circle glow -->
+  <circle cx="400" cy="265" r="180" fill="url(#centerGlow)"/>
+
+  <!-- ====== PHASE CIRCLES (on ellipse) ====== -->
+
+  <!-- Detection (top) - 0° -->
+  <g filter="url(#shadow)">
+    <circle cx="400" cy="155" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="400" cy="155" r="44" fill="url(#detectGrad)" fill-opacity="0.1"/>
+    <text x="400" y="160" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
+  </g>
+  <text x="400" y="183" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Detection</text>
+  <text x="400" y="145" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
+
+  <!-- Evaluation (top-right) - 60° -->
+  <g filter="url(#shadow)">
+    <circle cx="570" cy="248" r="44" fill="#151921" stroke="#a78bfa" stroke-width="2"/>
+    <circle cx="570" cy="248" r="44" fill="url(#evalGrad)" fill-opacity="0.1"/>
+    <text x="570" y="253" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
+  </g>
+  <text x="570" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Evaluation</text>
+
+  <!-- Decision (bottom-right) - 120° -->
+  <g filter="url(#shadow)">
+    <circle cx="530" cy="355" r="44" fill="#151921" stroke="#4ade80" stroke-width="2"/>
+    <circle cx="530" cy="355" r="44" fill="url(#decideGrad)" fill-opacity="0.1"/>
+    <text x="530" y="360" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
+  </g>
+  <text x="530" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Decision</text>
+
+  <!-- Execution (bottom-left) - 180° -->
+  <g filter="url(#shadow)">
+    <circle cx="400" cy="385" r="44" fill="#151921" stroke="#f4bb4f" stroke-width="2"/>
+    <circle cx="400" cy="385" r="44" fill="url(#execGrad)" fill-opacity="0.1"/>
+    <text x="400" y="390" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
+  </g>
+  <text x="400" y="413" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Execution</text>
+
+  <!-- Verification (bottom-left-more) - 240° -->
+  <g filter="url(#shadow)">
+    <circle cx="270" cy="355" r="44" fill="#151921" stroke="#ee6d75" stroke-width="2"/>
+    <circle cx="270" cy="355" r="44" fill="url(#verifyGrad)" fill-opacity="0.1"/>
+    <text x="270" y="360" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
+  </g>
+  <text x="270" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Verification</text>
+
+  <!-- Learning (top-left) - 300° -->
+  <g filter="url(#shadow)">
+    <circle cx="230" cy="248" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="230" cy="248" r="44" fill="url(#learnGrad)" fill-opacity="0.1"/>
+    <text x="230" y="253" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
+  </g>
+  <text x="230" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Learning</text>
+
+  <!-- ====== ARROWS between phases ====== -->
+  <path d="M 442 165 Q 510 195 537 238" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 566 290 Q 555 325 540 344" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 494 358 Q 460 375 442 378" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 358 378 Q 330 375 312 358" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 258 316 Q 245 295 238 285" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 272 228 Q 310 195 358 165" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ====== CENTER ====== -->
+  <g filter="url(#strongGlow)">
+    <circle cx="400" cy="265" r="50" fill="#151921" stroke="url(#centerGrad)" stroke-width="2"/>
+    <circle cx="400" cy="265" r="50" fill="url(#centerGrad)" fill-opacity="0.08"/>
+  </g>
+  <text x="400" y="258" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="700">Auto-Apply</text>
+  <text x="400" y="275" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
+
+  <!-- ====== OUTER RING MODULES ====== -->
+
+  <!-- Circuit Breaker (top-right outer) -->
+  <g filter="url(#shadow)">
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#151921" stroke="#ee6d75" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ee6d75" fill-opacity="0.05"/>
+  </g>
+  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ee6d75"/>
+  <text x="635" y="163" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
+  <line x1="595" y1="175" x2="570" y2="220" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+
+  <!-- Auto-Escalation (bottom-right outer) -->
+  <g filter="url(#shadow)">
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f4bb4f" fill-opacity="0.05"/>
+  </g>
+  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f4bb4f"/>
+  <text x="635" y="363" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
+  <line x1="610" y1="358" x2="576" y2="358" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
+
+  <!-- Session Scoring (bottom-left outer) -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="340" width="140" height="36" rx="6" fill="#22d3ee" fill-opacity="0.05"/>
+  </g>
+  <rect x="60" y="349" width="8" height="18" rx="2" fill="#22d3ee"/>
+  <text x="75" y="363" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
+  <line x1="190" y1="358" x2="225" y2="358" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+
+  <!-- Norms Learner (top-left outer) -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#151921" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
+    <rect x="50" y="140" width="140" height="36" rx="6" fill="#4ade80" fill-opacity="0.05"/>
+  </g>
+  <rect x="60" y="149" width="8" height="18" rx="2" fill="#4ade80"/>
+  <text x="75" y="163" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
+  <line x1="190" y1="158" x2="228" y2="220" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+
+  <!-- Legend -->
+  <g transform="translate(52, 388)">
+    <text x="0" y="0" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">FASES DEL CICLO</text>
+    <circle cx="5" cy="12" r="3.5" fill="#22d3ee"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
+    <circle cx="5" cy="24" r="3.5" fill="#a78bfa"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
+    <circle cx="5" cy="36" r="3.5" fill="#4ade80"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
+    <circle cx="5" cy="48" r="3.5" fill="#f4bb4f"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
+    <circle cx="5" cy="60" r="3.5" fill="#ee6d75"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
+    <circle cx="5" cy="72" r="3.5" fill="url(#learnGrad)"/><text x="13" y="75" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">6 Learning</text>
+    <line x1="0" y1="81" x2="120" y2="81" stroke="#1e3a5f" stroke-width="0.5"/>
+    <circle cx="5" cy="90" r="3.5" fill="#151921" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
+    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ee6d75" fill-opacity="0.3" stroke="#ee6d75" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
+    <line x1="0" y1="112" x2="30" y2="112" stroke="#4b5563" stroke-width="1"/><text x="35" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Core cycle</text>
+    <line x1="0" y1="124" x2="30" y2="124" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
+  </g>
+
+  <!-- Footer -->
+  <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
+  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+
+  
+  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
+    <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
+    <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
+    <rect class="gv-hotspot" x="486" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_decision" role="button" tabindex="0" fill="transparent" aria-label="Phase 3 - Decision: chooses the winning action with confidence thresholds; escalates when uncertainty is high."/>
+    <rect class="gv-hotspot" x="356" y="341" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_execution" role="button" tabindex="0" fill="transparent" aria-label="Phase 4 - Execution: applies the selected action through the safe auto-apply gate, tracking every mutation."/>
+    <rect class="gv-hotspot" x="226" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_verification" role="button" tabindex="0" fill="transparent" aria-label="Phase 5 - Verification: runs typecheck, lint and tests; if verification fails, the action is rolled back."/>
+    <rect class="gv-hotspot" x="186" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_learning" role="button" tabindex="0" fill="transparent" aria-label="Phase 6 - Learning: records outcomes in Engram and the routing table, improving future decisions."/>
+    <rect class="gv-hotspot" x="350" y="215" width="100" height="100" rx="6" data-i18n-title="tip_hs_loop_autoapply" role="button" tabindex="0" fill="transparent" aria-label="Auto-Apply SAFE: the central verification gate - changes are only applied when they pass all safety checks."/>
+    <rect class="gv-hotspot" x="610" y="140" width="130" height="36" rx="6" data-i18n-title="tip_hs_loop_circuit_breaker" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Circuit Breaker: opens after repeated failures to stop cascading errors and halts the loop."/>
+    <rect class="gv-hotspot" x="610" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_auto_escalation" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Auto-Escalation: promotes unresolved issues to a higher authority (orchestrator or human)."/>
+    <rect class="gv-hotspot" x="50" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_session_scoring" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Session Scoring: grades each session (delegations, corrections, proactive hits) and feeds the routing table."/>
+    <rect class="gv-hotspot" x="50" y="140" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_norms_learner" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Norms Learner: learns project conventions and injects them as adaptive norms into new sessions."/>
+</svg>
         <p class="text-secondary small mt-2 text-center">
           <i class="bi bi-arrow-repeat me-1"></i>Executive loop con los 12 sistemas del Layer 6
           coordinados vía event bus y Nexus DB.
@@ -933,7 +1071,7 @@
         <span
           class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
           style="font-size: 0.6rem"
-          >175 Test files</span
+          >191 Test files</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
@@ -961,7 +1099,6 @@
       </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/gv.js?v=2.1"></script>
   </body>
 </html>

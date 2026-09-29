@@ -243,6 +243,13 @@ export async function checkGentleVanguardDb() {
 
 // ─── Component: Model Provider Health ────────────────────────────────────────
 
+export function evaluateProviderAlertStatus(
+  modelName: string,
+  activeModel: string,
+): CheckResult['status'] {
+  return modelName === activeModel ? 'WARN' : 'PASS';
+}
+
 export async function checkModelHealth() {
   if (!quiet) logger.info('  [model-provider-health] Checking...');
 
@@ -293,12 +300,13 @@ export async function checkModelHealth() {
 
     if (unhealthy.length > 0) {
       for (const [name, m] of unhealthy) {
+        const isActive = name === activeModel;
         addResult(
           'model-provider-health',
           `model ${name}`,
-          'WARN',
-          `unhealthy (${m.reason?.slice(0, 60) ?? 'unknown reason'})`,
-          'switch-to-fallback',
+          evaluateProviderAlertStatus(name, activeModel),
+          `${isActive ? 'active unhealthy' : 'inactive quarantined'} (${m.reason?.slice(0, 60) ?? 'unknown reason'})`,
+          isActive ? 'switch-to-fallback' : 'cooldown-observe',
         );
       }
     }

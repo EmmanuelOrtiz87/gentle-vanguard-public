@@ -3,7 +3,7 @@
 <desc id="data-architecture-desc">Gentle-Vanguard Data Architecture diagram showing the main components, relationships and operational flow.</desc>
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0e17"/>
+      <stop offset="0%" stop-color="#090c11"/>
       <stop offset="100%" stop-color="#0f1525"/>
     </linearGradient>
     <radialGradient id="nexusGlow" cx="50%" cy="50%" r="50%">
@@ -190,7 +190,7 @@
   <g>
     <!-- State.json → Dashboard WS -->
     <path d="M 160 140 Q 80 170 80 250 Q 80 330 160 370" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowBlue)"/>
-    <rect x="38" y="240" width="22" height="14" rx="4" fill="#0a0e17" stroke="#1e3a5f" stroke-width="0.5"/>
+    <rect x="38" y="240" width="22" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
     <text x="49" y="250" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="6">Z</text>
 
     <!-- Session → Checkpoints -->

@@ -9,8 +9,8 @@
  *   npx tsx src/knowledge/engram-auto-update.ts [--check-only] [--force]
  */
 
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { basename, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runSync } from '../core/run-command.js';
 import { getExternalApiTimeouts } from '../core/timeout-config';
@@ -62,6 +62,37 @@ function compareVersions(current: string, latest: string): number {
     if (c[i] !== l[i]) return c[i] - l[i];
   }
   return 0;
+}
+
+export function getEngramInstallModule(version: string): string {
+  const major = Number(version.split('.')[0]);
+  if (!Number.isInteger(major) || major < 1) {
+    throw new Error(`Invalid Engram version: ${version}`);
+  }
+  const moduleSuffix = major >= 2 ? `/v${major}` : '';
+  return `github.com/Gentleman-Programming/engram${moduleSuffix}/cmd/engram@v${version}`;
+}
+
+export function isEngramDoctorHealthy(output: string, status: number | null): boolean {
+  if (status !== 0) return false;
+  const jsonStart = output.indexOf('{');
+  if (jsonStart < 0) return false;
+  try {
+    const doctor = JSON.parse(output.slice(jsonStart)) as {
+      healthy?: boolean;
+      status?: string;
+      summary?: { warnings?: number; blocked?: number; errors?: number };
+    };
+    if (doctor.healthy === true) return true;
+    return (
+      doctor.status === 'ok' &&
+      (doctor.summary?.warnings ?? 0) === 0 &&
+      (doctor.summary?.blocked ?? 0) === 0 &&
+      (doctor.summary?.errors ?? 0) === 0
+    );
+  } catch {
+    return false;
+  }
 }
 
 // ─── GitHub API ───────────────────────────────────────────────────────────────
@@ -165,13 +196,60 @@ function getCurrentVersion(): string | null {
   }
 }
 
-function installEngram(): boolean {
+function getGoBinPath(): string {
+  return join(
+    process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'),
+    'bin',
+  );
+}
+
+function synchronizeInstalledBinary(): boolean {
+  const binaryName = process.platform === 'win32' ? 'engram.exe' : 'engram';
+  const source = join(getGoBinPath(), binaryName);
+  if (!existsSync(source)) {
+    log(`Installed binary not found: ${source}`, 'ERROR');
+    return false;
+  }
+
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  const targets = [join(home, 'bin', binaryName), join(ROOT, 'tools', binaryName)];
+  const backupDir = join(
+    ROOT,
+    '.runtime',
+    'backups',
+    'engram-auto-update',
+    new Date().toISOString().replace(/[:.]/g, '-'),
+  );
+  mkdirSync(backupDir, { recursive: true });
+
   try {
-    log('Installing engram@latest...', 'INFO');
-    runSync('go', ['install', 'github.com/Gentleman-Programming/engram/cmd/engram@latest'], {
+    for (const target of targets) {
+      mkdirSync(resolve(target, '..'), { recursive: true });
+      if (existsSync(target)) copyFileSync(target, join(backupDir, basename(target)));
+      copyFileSync(source, target);
+    }
+    return true;
+  } catch (err) {
+    log(
+      `Installed Engram but could not activate every binary copy: ${err instanceof Error ? err.message : String(err)}`,
+      'ERROR',
+    );
+    return false;
+  }
+}
+
+function installEngram(version: string): boolean {
+  try {
+    const module = getEngramInstallModule(version);
+    log(`Installing ${module}...`, 'INFO');
+    const result = runSync('go', ['install', module], {
       stdio: 'pipe',
     });
-    return true;
+    if (result.status !== 0) {
+      log(result.stderr.trim() || `go install exited ${result.status}`, 'ERROR');
+      return false;
+    }
+    return synchronizeInstalledBinary();
   } catch (err) {
     log(`Installation failed: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
     return false;
@@ -187,17 +265,18 @@ function validateEngram(): boolean {
     }
 
     // Include Go bin path for validation
-    const goBinPath = join(
-      process.env.GOPATH || join(process.env.HOME || process.env.USERPROFILE || '', 'go'),
-      'bin',
-    );
+    const goBinPath = getGoBinPath();
     const enhancedPath = `${goBinPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH || ''}`;
 
-    // Try a simple engram command to verify it works
-    runSync('engram', ['doctor', '--json'], {
+    const doctor = runSync('engram', ['doctor', '--json', '--project', basename(ROOT)], {
       stdio: 'pipe',
       env: { ...process.env, PATH: enhancedPath },
     });
+    const output = `${doctor.stdout}\n${doctor.stderr}`;
+    if (!isEngramDoctorHealthy(output, doctor.status)) {
+      log(output.trim() || 'Engram doctor returned an unhealthy result', 'ERROR');
+      return false;
+    }
     log(`Validation passed: engram ${version} is working`, 'SUCCESS');
     return true;
   } catch (err) {
@@ -278,7 +357,7 @@ async function runUpdate(checkOnly = false, force = false): Promise<UpdateResult
 
   // Install update
   log(`Updating engram: ${current} -> ${latest}`, 'INFO');
-  const installed = installEngram();
+  const installed = installEngram(latest);
 
   if (!installed) {
     result.errors.push('Installation failed');
@@ -317,17 +396,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const result = await runUpdate(checkOnly, force);
       console.log(JSON.stringify(result, null, 2));
 
-      // Exit code: 0 = success, 1 = update available but not done, 2 = error
+      // Exit code: 0 = success, 1 = update available but not done, 2 = error.
+      // Do not call process.exit(): undici/esbuild can still own Windows libuv handles.
       if (result.errors.length > 0) {
-        process.exit(2);
+        process.exitCode = 2;
+      } else if (result.updateAvailable && !result.updated) {
+        process.exitCode = 1;
       }
-      if (result.updateAvailable && !result.updated) {
-        process.exit(1);
-      }
-      process.exit(0);
     } catch (err) {
       log(`Fatal error: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
-      process.exit(2);
+      process.exitCode = 2;
     }
   })();
 }

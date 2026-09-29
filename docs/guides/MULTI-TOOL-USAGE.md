@@ -1,7 +1,12 @@
 # Guía de Uso Multi-Herramienta
 
-Esta guía explica cómo usar Gentle-Vanguard con diferentes herramientas (OpenCode, Cursor, VS Code,
-Antigravity, Codex, Windsurf, Cline).
+Esta guía explica cómo usar Gentle-Vanguard con OpenCode, Codex, ZCode, MiniMax Code, Cursor, VS
+Code, Antigravity, Windsurf y Cline.
+
+Codex es el cliente operativo primario. OpenCode, ZCode, MiniMax Code, GitHub Copilot y Antigravity
+mantienen contratos independientes: no son dependencias de Codex, no tienen que permanecer abiertos
+y no requieren control cruzado de sus interfaces. La matriz automatizada valida las seis rutas sin
+simular launchers ni resultados.
 
 ---
 
@@ -30,7 +35,7 @@ correspondiente.
 
 ```bash
 # OpenCode ya detecta automáticamente
-openCode
+opencode
 # Gentle-Vanguard carga: tool-opencode.json + skills
 ```
 
@@ -38,6 +43,11 @@ openCode
 
 - `OPENCODE_CHAT_MODE` (detectada)
 - `OPENCODE_CLIENT`, `OPENCODE_SERVER_*`
+
+Engram v2 se instala con `engram setup opencode`. La verificación real es `opencode mcp list`, que
+debe mostrar `engram connected`; wrappers demo o simulados son rechazados por `tools:audit`. El
+auditor consulta además `opencode --version`: V1 estable usa el contrato vigente; V2, prereleases o
+versiones ambiguas quedan bloqueadas hasta disponer de un perfil nativo validado para esa variante.
 
 ---
 
@@ -59,11 +69,11 @@ cursor .
 
 ---
 
-### 3. VS Code / Cline ✅
+### 3. VS Code / GitHub Copilot / Cline ✅
 
 **Configuración**: `config/tool-vscode.json`, `config/tool-cline.json`  
 **Adaptador**: MCP Bridge  
-**Capacidades**: MCP, File Ops, Terminal, Git
+**Capacidades**: MCP, File Ops, Terminal, Git, 25 skills críticas y memoria Engram v2
 
 **Uso**:
 
@@ -74,6 +84,9 @@ code .
 # Gentle-Vanguard carga: tool-vscode.json o tool-cline.json
 ```
 
+`engram setup vscode-copilot` registra el MCP y el Memory Protocol en el perfil de usuario. El
+workspace aporta `.vscode/mcp.json`, `.github/copilot-instructions.md` y `.github/skills/`.
+
 **Variables de entorno**: `VSCODE_GIT_IPC_HANDLE`
 
 ---
@@ -82,7 +95,7 @@ code .
 
 **Configuración**: `config/tool-antigravity.json`  
 **Adaptador**: Format Adapter (`adapters/format-adapters/antigravity-adapter/`)  
-**Capacidades**: Mission Control, Multi-Agent, AgentKit 2.0
+**Capacidades**: Mission Control, MCP, skills de workspace y memoria Engram v2
 
 **Uso**:
 
@@ -90,40 +103,35 @@ code .
 # Antigravity detecta automáticamente
 antigravity agent --mission-control
 # Gentle-Vanguard carga: tool-antigravity.json
-# Convierte skills a formato Mission Control
+# Carga .antigravity/skills/ y AGENTS.md
 ```
 
 **Variables de entorno**: `ANTIGRAVITY_SESSION`
 
-**Comandos del adaptador**:
-
-```bash
-cd adapters/format-adapters/antigravity-adapter
-node adapter.js convert-skill skills/react-19-skill/SKILL.md output.json
-node adapter.js generate-agents-md skills/ AGENTS.md
-node adapter.js generate-mission '[{"name":"dev"}]' mission.yaml
-```
+`engram setup antigravity-cli` registra el MCP compartido en `~/.gemini/config/mcp_config.json` y el
+Memory Protocol en `~/.gemini/GEMINI.md`. El adaptador legado se conserva para formatos antiguos,
+pero no es la ruta principal.
 
 ---
 
 ### 5. Codex ✅
 
-**Configuración**: `config/tool-codex.json`  
-**Adaptador**: Format Adapter (`adapters/format-adapters/codex-adapter/`)  
-**Capacidades**: Function Calling, OpenAI API
+**Configuración**: `config/tool-codex.json` **Adaptador**: Format Adapter
+(`adapters/format-adapters/codex-adapter/`) **Capacidades**: MCP, skills nativas, subagentes,
+multi-agent, function calling, terminal y plugins
 
 **Uso**:
 
 ```bash
 # Codex detecta automáticamente
 codex
-# Gentle-Vanguard carga: tool-codex.json
-# Convierte skills a OpenAI function format
+# Codex carga AGENTS.md y las skills desde ~/.codex/skills/
+# Gentle-Vanguard aporta: tool-codex.json + autostart + Engram/Nexus
 ```
 
-**Variables de entorno**: `CODEX_SESSION`
+**Variables de entorno detectadas**: `CODEX_SESSION_ID`, `CODEX_THREAD_ID`, `CODEX_VERSION`
 
-**Comandos del adaptador**:
+El adaptador se conserva para integraciones antiguas, pero no es la ruta principal de skills:
 
 ```bash
 cd adapters/format-adapters/codex-adapter
@@ -134,7 +142,38 @@ node adapter.js generate-proxy proxy.js  # Inicia proxy en puerto 3000
 
 ---
 
-### 6. Windsurf ✅
+### 6. ZCode ✅
+
+**Configuración**: `config/tool-zcode.json`, `.zcode/config.json`, `~/.zcode/cli/config.json`
+**Capacidades**: MCP, 21 agentes, 25 skills críticas, hooks, plugins y token tracking
+
+```bash
+npx tsx src/integrations/zcode-sync.ts --sync --tools zcode
+```
+
+ZCode es un runtime desktop: una CLI global en `PATH` es opcional. Los hooks instalados ejecutan
+`node --import tsx` directamente y no crean procesos nietos visibles en Windows. Los cambios
+requieren una nueva sesión.
+
+### 7. MiniMax Code ✅
+
+**Configuración**: `config/tool-minimax.json`, `~/.minimax/config.yaml` **Capacidades**: pi-agent,
+subagentes, razonamiento, tool calling, 25 skills y token tracking
+
+```bash
+npx tsx src/integrations/zcode-sync.ts --sync --tools minimax
+```
+
+El orquestador `mavis` carga las skills desde `~/.minimax/agents/mavis/skills/`.
+`~/.minimax/bin/gv-stack.cmd` es un helper para ejecutar la CLI de Gentle-Vanguard desde el entorno
+MiniMax; no debe interpretarse como launcher del runtime MiniMax Code.
+
+MiniMax expone MCP desde `/mcp` dentro de su TUI, pero esa UI no tiene un contrato externo estable
+para mutarla desde Codex. Mientras no se confirme allí, `engram-memory` usa el CLI real como
+fallback (`engram search/save/doctor --project gentle-vanguard`). Esto mantiene memoria operativa
+sin afirmar una integración MCP que no fue observada.
+
+### 8. Windsurf ✅
 
 **Configuración**: `config/tool-windsurf.json`  
 **Adaptador**: Format Adapter (`adapters/format-adapters/windsurf-adapter/`)  
@@ -165,15 +204,21 @@ node adapter.js generate-config skills/ .windsurf/windsurf.json
 
 **Estructura base**: ✅ SÍ
 
-- Misma detección (`enhanced-detect.ps1`)
-- Mismo pre-procesamiento (`pre-process-input.ps1`)
+- Misma detección (`src/core/detect-tool.ts`)
+- Mismo pre-procesamiento (`src/tools/pre-process-input.ts`)
 - Misma carga de configuración (`tool-{herramienta}.json`)
 
-**Capacidades**: ⚠️ VARÍAN | Herramienta | MCP | Skills | Multi-Agent | Format Adapter |
-|-------------|-----|--------|------------|----------------| | OpenCode | ✅ | ✅ | ✅ | - | |
-Cursor | ✅ | ✅ | ⚠️ Limitado | - | | VS Code | ✅ | ✅ | ⚠️ Limitado | - | | Cline | ✅ | ✅ | ⚠️
-Limitado | - | | Antigravity | - | ⚠️ Via converter | ✅ Completo | ✅ | | Codex | - | ⚠️ Via
-converter | ⚠️ | ✅ | | Windsurf | - | ⚠️ Via converter | ⚠️ | ✅ |
+**Capacidades**: varían por runtime.
+
+| Herramienta           | Engram                | Skills           | Multi-agent | Integración principal             |
+| --------------------- | --------------------- | ---------------- | ----------: | --------------------------------- |
+| OpenCode              | MCP + plugin          | Nativas          |          Sí | CLI real + config global          |
+| Codex                 | MCP + plugin          | Sincronizadas    |          Sí | `AGENTS.md` + plugin              |
+| ZCode                 | MCP genérico          | Sincronizadas    |          Sí | Runtime desktop + hooks           |
+| MiniMax Code          | CLI fallback / MCP UI | pi-agent         |          Sí | `mavis` + `engram-memory`         |
+| GitHub Copilot        | MCP                   | `.github/skills` |    Limitado | VS Code Agent Mode                |
+| Antigravity           | MCP compartido        | Workspace        |          Sí | `.gemini` + `.antigravity/skills` |
+| Cursor/Cline/Windsurf | MCP bridge            | Según cliente    |    Limitado | Perfil compatible                 |
 
 ---
 
@@ -195,24 +240,34 @@ gentle-vanguard/
 │   ├── tool-cline.json               # ✅ Config Cline
 │   ├── tool-antigravity.json         # ✅ Config Antigravity
 │   ├── tool-codex.json              # ✅ Config Codex
+│   ├── tool-zcode.json              # ✅ Config ZCode
+│   ├── tool-minimax.json            # ✅ Config MiniMax Code
 │   └── tool-windsurf.json           # ✅ Config Windsurf
 ├── scripts/utilities/
 │   ├── pre-process-input.ps1        # ✅ Pre-procesamiento (integrado)
 │   └── session-autostart.cmd        # ✅ Inicio de sesión
-└── orchestrator.json                # ✅ Config orquestador (8 herramientas)
+└── config/orchestrator.json         # ✅ Perfiles del orquestador
 ```
 
 ---
 
-## Pendientes
+## Verificación
 
-1. ⏳ **MCP Bridge server**: Implementar servidor MCP completo
-2. ⏳ **Pruebas end-to-end**: Con cada herramienta real
-3. ⏳ **Documentación detallada**: Guías por herramienta
-4. ⏳ **Optimización**: Mejorar rendimiento en detección
+```bash
+npm run tools:audit
+npm run tools:audit:write
+npm run engram:mcp:smoke
+npx tsx src/integrations/zcode-sync.ts --status
+```
+
+`tools:audit` distingue CLI real, variante de runtime, perfiles, skills, agentes, hooks,
+instrucciones y Engram. Para las cinco superficies sincronizadas también compara el árbol recursivo
+y SHA-256 de cada skill crítica; un asset modificado, ausente o inesperado bloquea el gate.
+`engram:mcp:smoke` realiza handshake stdio, exige las herramientas críticas y ejecuta
+`mem_list_projects` en modo lectura. Una UI desktop puede no tener CLI global; esa ausencia no falla
+si su contrato nativo está completo. Los cambios requieren una nueva sesión del cliente.
 
 ---
 
-**Versión**: 1.0.0  
-**Estado**: Adaptadores completos, integración lista para pruebas  
-**Compatibilidad**: 8 herramientas soportadas
+**Versión**: 2.0.0 **Estado**: interoperabilidad auditable y perfiles sincronizados
+**Compatibilidad**: 10 perfiles soportados

@@ -10,7 +10,9 @@
  *   npx tsx src/monitor/performance-slo-monitor.ts --service agent_dispatch --ci-gate
  */
 
-import { runSync, runSyncShell } from '../core/run-command.js';
+import { runSync } from '../core/run-command.js';
+import Database from 'better-sqlite3';
+import { DatabaseManager } from '../database/nexus/manager.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -22,7 +24,7 @@ interface SLODefinition {
   current: number;
   threshold: number;
   unit: string;
-  status: 'PASS' | 'WARN' | 'FAIL';
+  status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP';
   message: string;
 }
 
@@ -35,12 +37,13 @@ export interface SLOReport {
     passed: number;
     warned: number;
     failed: number;
+    skipped: number;
   };
 }
 
 interface MetricSnapshot {
   timestamp: string;
-  latency_p95_ms: number;
+  latency_p95_ms: number | null;
   memory_mb: number;
   disk_percent: number;
 }
@@ -48,33 +51,25 @@ interface MetricSnapshot {
 const METRICS_DIR = '.runtime/metrics';
 
 // Optional Nexus DB persistence — graceful if unavailable
-function tryNexusInsert(snapshot: { latency_p95_ms: number; disk_percent: number }): void {
+function tryNexusInsert(snapshot: { latency_p95_ms: number | null; disk_percent: number }): void {
+  if (snapshot.latency_p95_ms === null) return;
   try {
-    const managerPath = resolve(process.cwd(), 'apps/web-dashboard/server/database/manager.ts');
-    if (existsSync(managerPath)) {
-      // Dynamic import — Nexus is optional
-      const mod = require(managerPath) as {
-        DatabaseManager: {
-          getInstance: () => { insertMetricSnapshot: (d: Record<string, unknown>) => void };
-        };
-      };
-      const db = mod.DatabaseManager.getInstance();
-      db.insertMetricSnapshot({
-        tokens_used: 0,
-        tokens_limit: 120000,
-        cost: 0,
-        sessions_total: 0,
-        sessions_active: 0,
-        sessions_today: 0,
-        latency_avg: snapshot.latency_p95_ms || 0,
-        latency_p50: snapshot.latency_p95_ms || 0,
-        latency_p95: snapshot.latency_p95_ms || 0,
-        commits: 0,
-        mcp_calls: 0,
-        mcp_skills: 0,
-        health_status: snapshot.disk_percent >= 80 ? 'degraded' : 'ok',
-      });
-    }
+    const db = DatabaseManager.getInstance();
+    db.insertMetricSnapshot({
+      tokens_used: 0,
+      tokens_limit: 120000,
+      cost: 0,
+      sessions_total: 0,
+      sessions_active: 0,
+      sessions_today: 0,
+      latency_avg: snapshot.latency_p95_ms,
+      latency_p50: snapshot.latency_p95_ms,
+      latency_p95: snapshot.latency_p95_ms,
+      commits: 0,
+      mcp_calls: 0,
+      mcp_skills: 0,
+      health_status: snapshot.disk_percent >= 80 ? 'degraded' : 'ok',
+    });
   } catch {
     // Nexus DB not available — skip (non-fatal)
   }
@@ -107,7 +102,12 @@ function extractArg(args: string[], name: string): string | undefined {
   return undefined;
 }
 
-function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number } {
+function measureDiskUsage(): {
+  percent: number;
+  freeGb: number;
+  totalGb: number;
+  available: boolean;
+} {
   try {
     const cwd = process.cwd();
     if (process.platform === 'win32') {
@@ -126,7 +126,7 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
         const lines = output
           .trim()
           .split('\n')
-          .filter((l: string) => l.trim() && !l.includes('Used') && !l.includes('"'));
+          .filter((l: string) => l.trim() && !l.includes('Used'));
         for (const line of lines) {
           const parts = line.split(',').map((p: string) => p.replace(/"/g, '').trim());
           if (parts.length >= 2) {
@@ -138,6 +138,7 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
                 percent: Math.round((used / total) * 10000) / 100,
                 freeGb: Math.round((free / (1024 * 1024 * 1024)) * 100) / 100,
                 totalGb: Math.round((total / (1024 * 1024 * 1024)) * 100) / 100,
+                available: true,
               };
             }
           }
@@ -145,13 +146,13 @@ function measureDiskUsage(): { percent: number; freeGb: number; totalGb: number 
       } catch {
         // PowerShell fallback failed, try Node.js os.freemem
         // os module not available for disk, return estimate
-        return { percent: 0, freeGb: 0, totalGb: 0 };
+        return { percent: 0, freeGb: 0, totalGb: 0, available: false };
       }
     }
     // Fallback
-    return { percent: 0, freeGb: 0, totalGb: 0 };
+    return { percent: 0, freeGb: 0, totalGb: 0, available: false };
   } catch {
-    return { percent: 0, freeGb: 0, totalGb: 0 };
+    return { percent: 0, freeGb: 0, totalGb: 0, available: false };
   }
 }
 
@@ -164,51 +165,34 @@ function measureMemoryUsage(): { processMb: number; heapMb: number; heapPercent:
   };
 }
 
-function getRecentMetrics(): { avgLatency: number | null } {
+function getRecentMetrics(): { p95Latency: number | null; samples: number } {
+  let db: Database.Database | null = null;
   try {
-    // Try to get latency from Nexus DB or metrics snapshots
     const dbPath = resolve(process.cwd(), '.runtime', 'gentle-vanguard.db');
-    if (existsSync(dbPath)) {
-      try {
-        const output = runSyncShell(
-          `npx tsx -e "
-            const { DatabaseManager } = require('./apps/web-dashboard/server/database/manager');
-            const dm = DatabaseManager.getInstance();
-            const db = dm.getDb();
-            const rows = db.prepare('SELECT value FROM metric_snapshots WHERE name = ? ORDER BY timestamp DESC LIMIT 10').all('latency_p95');
-            const vals = rows.map((r) => r.value).filter(Boolean);
-            console.log(JSON.stringify(vals.length > 0 ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : null));
-          " 2>nul || echo null`,
-          { maxBuffer: 1024 * 1024, timeout: 10000 },
-        ).stdout;
-        const avg = JSON.parse(output.trim());
-        if (avg !== null) return { avgLatency: avg as number };
-      } catch {
-        /* ignore */
-      }
-    }
+    if (!existsSync(dbPath)) return { p95Latency: null, samples: 0 };
+    db = new Database(dbPath, { readonly: true });
+    const rows = db
+      .prepare(
+        `SELECT duration FROM traces
+         WHERE tenant_id = 'gentle-vanguard' AND status = 'completed'
+           AND duration > 0 AND duration <= 600000
+         ORDER BY start_time DESC LIMIT 200`,
+      )
+      .all() as Array<{ duration: number }>;
+    if (rows.length === 0) return { p95Latency: null, samples: 0 };
+    const values = rows.map((row) => row.duration).sort((a, b) => a - b);
+    const index = Math.min(values.length - 1, Math.ceil(values.length * 0.95) - 1);
+    return { p95Latency: values[index], samples: values.length };
   } catch {
-    /* ignore */
+    return { p95Latency: null, samples: 0 };
+  } finally {
+    db?.close();
   }
-  return { avgLatency: null };
 }
 
-function measureLatency(): number {
-  // Try real metrics, fallback to benchmark
-  const { avgLatency } = getRecentMetrics();
-  if (avgLatency !== null) return avgLatency;
-
-  // Simple latency benchmark: measure TypeScript compilation time or module load time
-  try {
-    const start = Date.now();
-    runSyncShell('npx tsx -e "Promise.resolve().then(() => process.exit(0))" 2>nul', {
-      timeout: 30000,
-      maxBuffer: 1024,
-    });
-    return Date.now() - start;
-  } catch {
-    return 0;
-  }
+function measureLatency(): { value: number | null; samples: number } {
+  const { p95Latency, samples } = getRecentMetrics();
+  return { value: p95Latency, samples };
 }
 
 function saveMetricsSnapshot(snapshot: MetricSnapshot): void {
@@ -239,7 +223,7 @@ export function runSloChecks(
   // Save snapshot to JSON
   const snapshot: MetricSnapshot = {
     timestamp: new Date().toISOString(),
-    latency_p95_ms: Math.round(latency * 100) / 100,
+    latency_p95_ms: latency.value === null ? null : Math.round(latency.value * 100) / 100,
     memory_mb: mem.processMb,
     disk_percent: disk.percent,
   };
@@ -255,13 +239,16 @@ export function runSloChecks(
     current: disk.percent,
     threshold: diskThreshold,
     unit: '%',
-    status:
-      disk.percent >= diskThreshold
+    status: !disk.available
+      ? 'SKIP'
+      : disk.percent >= diskThreshold
         ? 'FAIL'
         : disk.percent >= diskThreshold * 0.85
           ? 'WARN'
           : 'PASS',
-    message: `Disk: ${disk.percent}% used (${disk.freeGb}GB free / ${disk.totalGb}GB total)`,
+    message: disk.available
+      ? `Disk: ${disk.percent}% used (${disk.freeGb}GB free / ${disk.totalGb}GB total)`
+      : 'Disk: sensor unavailable',
   });
 
   // 2. Memory SLO: <512MB
@@ -286,26 +273,32 @@ export function runSloChecks(
   checks.push({
     name: 'latency_p95',
     target: `<${latencyThreshold}ms`,
-    current: Math.round(latency * 100) / 100,
+    current: latency.value === null ? 0 : Math.round(latency.value * 100) / 100,
     threshold: latencyThreshold,
     unit: 'ms',
-    status: latency === 0 ? 'WARN' : latency >= latencyThreshold ? 'WARN' : 'PASS',
+    status:
+      latency.samples < 20
+        ? 'SKIP'
+        : latency.value !== null && latency.value >= latencyThreshold
+          ? 'WARN'
+          : 'PASS',
     message:
-      latency === 0
-        ? 'Latency: unable to measure (no recent metrics)'
-        : `Latency: ${Math.round(latency)}ms P95`,
+      latency.samples < 20
+        ? `Latency: insufficient evidence (${latency.samples}/20 real traces)`
+        : `Latency: ${Math.round(latency.value ?? 0)}ms P95 from ${latency.samples} traces`,
   });
 
   // Compile report
   const passed = checks.filter((c) => c.status === 'PASS').length;
   const warned = checks.filter((c) => c.status === 'WARN').length;
   const failed = checks.filter((c) => c.status === 'FAIL').length;
+  const skipped = checks.filter((c) => c.status === 'SKIP').length;
 
   const report: SLOReport = {
     timestamp: new Date().toISOString(),
     passed: failed === 0,
     checks,
-    overall: { total: checks.length, passed, warned, failed },
+    overall: { total: checks.length, passed, warned, failed, skipped },
   };
 
   // CI Gate
@@ -328,7 +321,14 @@ export function runSloChecks(
   console.log(`║ ${new Date().toLocaleString()}`);
   console.log(`║`);
   for (const check of checks) {
-    const icon = check.status === 'PASS' ? '✅' : check.status === 'WARN' ? '⚠️' : '❌';
+    const icon =
+      check.status === 'PASS'
+        ? '✅'
+        : check.status === 'WARN'
+          ? '⚠️'
+          : check.status === 'SKIP'
+            ? '○'
+            : '❌';
     console.log(
       `║ ${icon} ${check.name.padEnd(16)} ${check.current}${check.unit} (target ${check.target})`,
     );
@@ -336,7 +336,7 @@ export function runSloChecks(
   }
   console.log(`║`);
   console.log(
-    `║ Overall: ${passed}/${checks.length} passed, ${warned} warnings, ${failed} failures`,
+    `║ Overall: ${passed}/${checks.length} passed, ${warned} warnings, ${failed} failures, ${skipped} skipped`,
   );
   console.log(`╚${'═'.repeat(40)}`);
 

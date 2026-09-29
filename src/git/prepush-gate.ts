@@ -154,6 +154,39 @@ function computeTreeHash(): string {
     .slice(0, 16);
 }
 
+// ─── Tree fence (2026-09-16) ─────────────────────────────────────────────────
+// Detecta mutaciones fuera de banda: archivos que estaban limpios antes de
+// correr los checks y aparecen modificados después. Los checks del gate son
+// todos de solo-lectura sobre el árbol fuente, así que cualquier cambio nuevo
+// proviene de un agente concurrente (otra sesión/editor) — se reporta con la
+// hora para poder correlacionar contra token-ingest (zcode/codex/minimax).
+// Advisory: no bloquea el push.
+
+function treeFence(before: string): string[] {
+  const beforeFiles = new Set(before.split('\n').filter(Boolean));
+  const after = runGit(['status', '--porcelain']);
+  const newMutations = after
+    .split('\n')
+    .filter(Boolean)
+    .filter((line) => {
+      const path = line.slice(3).trim();
+      return !beforeFiles.has(line) && !beforeFiles.has(` M ${path}`) && !beforeFiles.has(`?? ${path}`);
+    });
+  return newMutations;
+}
+
+function printFence(mutations: string[]): void {
+  if (mutations.length === 0) return;
+  console.log('');
+  console.log('🚧 TREE-FENCE: el árbol se modificó DURANTE el gate (fuera de banda):');
+  for (const m of mutations.slice(0, 10)) console.log(`   ${m}`);
+  console.log(
+    `   Los checks del gate no editan código fuente — un agente concurrente` +
+      ` (otra sesión zcode/codex/minimax) está editando el repo AHORA.` +
+      ` Correlacionar con: node -e (token-ingest timestamps) o witr process.`,
+  );
+}
+
 // ─── Cache ───────────────────────────────────────────────────────────────────
 
 interface GateCache {
@@ -279,9 +312,11 @@ async function main(): Promise<void> {
     }
   }
 
+  const before = runGit(['status', '--porcelain']);
   const results = await runChecks(CHECKS);
   const totalMs = Date.now() - start;
   const allPass = results.every((r) => r.status === 'pass');
+  const fence = treeFence(before);
 
   if (allPass) {
     const cache = loadCache();
@@ -293,9 +328,10 @@ async function main(): Promise<void> {
   }
 
   if (json) {
-    console.log(JSON.stringify({ warmCache: false, treeHash, totalMs, allPass, results }));
+    console.log(JSON.stringify({ warmCache: false, treeHash, totalMs, allPass, results, fence }));
   } else {
     printSummary(results, totalMs);
+    printFence(fence);
   }
 
   process.exit(allPass ? 0 : 1);

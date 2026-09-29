@@ -64,6 +64,8 @@ interface FallbackState {
   activeModel: string;
   exhaustedModels: string[];
   agentModelOverrides: Record<string, string>;
+  globalFallbackCount?: number;
+  agentStates?: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -128,10 +130,31 @@ function log(level: 'info' | 'warn' | 'error', message: string): void {
   }
 }
 
+export function normalizeFallbackState(raw: unknown): FallbackState {
+  const value = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  return {
+    ...value,
+    version: typeof value.version === 'string' ? value.version : '1.0.0',
+    lastUpdated:
+      typeof value.lastUpdated === 'string' ? value.lastUpdated : new Date().toISOString(),
+    activeModel:
+      typeof value.activeModel === 'string'
+        ? value.activeModel
+        : 'opencode/deepseek-v4-flash-free',
+    exhaustedModels: Array.isArray(value.exhaustedModels)
+      ? value.exhaustedModels.filter((item): item is string => typeof item === 'string')
+      : [],
+    agentModelOverrides:
+      value.agentModelOverrides && typeof value.agentModelOverrides === 'object'
+        ? (value.agentModelOverrides as Record<string, string>)
+        : {},
+  };
+}
+
 function loadFallbackState(): FallbackState {
   try {
     if (existsSync(STATE_FILE)) {
-      return JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+      return normalizeFallbackState(JSON.parse(readFileSync(STATE_FILE, 'utf-8')));
     }
   } catch {
     log('warn', 'Could not load fallback state, using defaults');

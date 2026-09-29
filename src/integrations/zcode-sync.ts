@@ -18,14 +18,7 @@
  *
  * Nota ZCode: los cambios de agentes requieren una nueva sesión (no hot-reload).
  */
-import {
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-  existsSync,
-  copyFileSync,
-} from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -41,15 +34,17 @@ interface OpenCodeFrontmatter {
 
 const STACK_AGENTS_DIR = join(process.cwd(), '.opencode', 'agents');
 const ZCODE_AGENTS_DIR = join(homedir(), '.zcode', 'agents');
+const ZCODE_CONFIG_PATH = join(homedir(), '.zcode', 'cli', 'config.json');
 
 /**
  * Skills críticas para uso diario en ZCode. Se copian a ~/.zcode/skills/.
  * NO copiar todas (~120): ZCode tiene un presupuesto fijo de metadata compartida
  * (excerpt de 250 chars por skill) — excederlo degrada el auto-trigger de TODAS.
  */
-const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }> = [
+export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }> = [
   { dir: 'sdd-lifecycle', root: 'stack' },
   { dir: 'nexus-database', root: 'stack' },
+  { dir: 'engram-memory', root: 'stack' },
   { dir: 'karpathy-guidelines', root: 'stack' },
   { dir: 'token-budget-tracking-skill', root: 'stack' },
   // Las siguientes existen en .opencode/skills solo como stubs DEPRECATED
@@ -79,23 +74,35 @@ const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }> = [
   { dir: 'design-engineering', root: 'opencode' },
   // Fase 5 (2026-09-08) — autoría de cursos GV Academy (contrato nativo)
   { dir: 'academy-course-authoring', root: 'opencode' },
+  // Fase 6 (2026-09-26) — triage sistémico (upstream gentle-ai, Apache-2.0).
+  { dir: 'systemic-issue-triage', root: 'stack' },
 ];
 
 /**
  * Destinos de skills por herramienta. ZCode y Codex usan SKILL.md estándar en su
  * dir de usuario; MiniMax Code (framework pi-agent) usa skills por agente (mavis = orquestador).
+ * Copilot y Antigravity consumen skills versionadas en el workspace.
  */
 const SKILL_TARGETS: Record<string, string> = {
   zcode: join(homedir(), '.zcode', 'skills'),
   codex: join(homedir(), '.codex', 'skills'),
   minimax: join(homedir(), '.minimax', 'agents', 'mavis', 'skills'),
+  copilot: join(process.cwd(), '.github', 'skills'),
+  antigravity: join(process.cwd(), '.antigravity', 'skills'),
 };
 
-function syncSkills(dry: boolean, tools: string[]): void {
+export function copySkillTree(source: string, target: string): void {
+  mkdirSync(target, { recursive: true });
+  cpSync(source, target, { recursive: true, force: true });
+}
+
+function syncSkills(dry: boolean, tools: string[]): boolean {
+  let ok = true;
   for (const tool of tools) {
     const target = SKILL_TARGETS[tool];
     if (!target) {
       console.error(`  ✗ herramienta desconocida: ${tool}`);
+      ok = false;
       continue;
     }
     if (!dry) mkdirSync(target, { recursive: true });
@@ -108,6 +115,7 @@ function syncSkills(dry: boolean, tools: string[]): void {
       );
       if (!existsSync(join(src, 'SKILL.md'))) {
         console.error(`  ✗ skill sin SKILL.md: ${src}`);
+        ok = false;
         continue;
       }
       if (dry) {
@@ -115,27 +123,165 @@ function syncSkills(dry: boolean, tools: string[]): void {
         continue;
       }
       const dst = join(target, s.dir);
-      mkdirSync(dst, { recursive: true });
-      let content = readFileSync(join(src, 'SKILL.md'), 'utf8');
-      // ZCode/Codex requieren name+description en frontmatter; description ≤1024 chars.
-      if (!/^---[\s\S]*?\nname:/.test(content)) {
-        content = `---\nname: ${s.dir}\ndescription: ${s.dir} skill (Gentle-Vanguard stack)\n---\n${content}`;
-      } else {
-        content = content.replace(
-          /^(description:\s*)([\s\S]*?)$/m,
-          (_, p1: string, p2: string) => `${p1}${p2.length > 1000 ? p2.slice(0, 1000) : p2}`,
-        );
-      }
-      writeFileSync(join(dst, 'SKILL.md'), content, 'utf8');
-      // Archivos de soporte de la skill (plantillas, ejemplos)
-      for (const f of readdirSync(src, { withFileTypes: true })) {
-        if (f.isFile() && f.name !== 'SKILL.md' && !f.name.startsWith('.')) {
-          copyFileSync(join(src, f.name), join(dst, f.name));
+      try {
+        copySkillTree(src, dst);
+        let content = readFileSync(join(src, 'SKILL.md'), 'utf8');
+        // ZCode/Codex requieren name+description en frontmatter; description ≤1024 chars.
+        if (!/^---[\s\S]*?\nname:/.test(content)) {
+          content = `---\nname: ${s.dir}\ndescription: ${s.dir} skill (Gentle-Vanguard stack)\n---\n${content}`;
+        } else {
+          content = content.replace(
+            /^(description:\s*)([\s\S]*?)$/m,
+            (_, p1: string, p2: string) => `${p1}${p2.length > 1000 ? p2.slice(0, 1000) : p2}`,
+          );
         }
+        writeFileAtomic(join(dst, 'SKILL.md'), content);
+        console.log(`  ✓ skill ${s.dir}`);
+      } catch (err) {
+        // Un skill lockeado (EPERM transitorio de Windows) no tumba el sync entero.
+        console.error(
+          `  ✗ skill ${s.dir} (${tool}): ${err instanceof Error ? err.message : err}`,
+        );
+        ok = false;
       }
-      console.log(`  ✓ skill ${s.dir}`);
     }
   }
+  return ok;
+}
+
+type JsonObject = Record<string, unknown>;
+
+/**
+ * Detector de comentarios JSONC (// y /* *​/), string-aware para no confundir
+ * "https://..." con un comentario. Fail-closed: un falso positivo solo
+ * detiene el sync; un falso negativo destruiría comentarios del usuario.
+ * Patrón upstream gentle-ai 96bed1c: nunca re-encodear un JSONC que perdería
+ * comentarios — se niega con mensaje accionable.
+ */
+export function containsJsonComments(text: string): boolean {
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escape) escape = false;
+      else if (ch === '\\') escape = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) return true;
+  }
+  return false;
+}
+
+/**
+ * Escritura atómica: tmp en el mismo volumen + rename (reemplaza el destino).
+ * Patrón upstream gentle-ai befd337: un kill a mitad de writeFileSync deja el
+ * config truncado (ZCode CLI roto); el rename es atomico en el mismo volumen.
+ * Windows: el rename-replace falla con EPERM/EACCES/EBUSY si el destino tiene
+ * un handle abierto (antivirus/indexer/editor escaneando el archivo recién
+ * copiado) — es transitorio, se reintenta con backoff corto.
+ */
+export function writeFileAtomic(path: string, data: string): void {
+  const tmp = `${path}.tmp-${process.pid}`;
+  writeFileSync(tmp, data, 'utf8');
+  const maxAttempts = 4;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      renameSync(tmp, path);
+      return;
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      const transient = code === 'EPERM' || code === 'EACCES' || code === 'EBUSY';
+      if (!transient || attempt === maxAttempts) {
+        try {
+          unlinkSync(tmp);
+        } catch {
+          /* el tmp residual es menos grave que el error original */
+        }
+        throw err;
+      }
+      // Sleep sincrónico (Atomics.wait) para el backoff sin async.
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100 * attempt);
+    }
+  }
+}
+
+export function buildZCodeHookConfig(current: JsonObject, repoRoot: string): JsonObject {
+  const script = (relativePath: string) => join(repoRoot, relativePath).replace(/\\/g, '/');
+  return {
+    ...current,
+    hooks: {
+      enabled: true,
+      events: {
+        SessionStart: [
+          {
+            matcher: 'startup|resume',
+            hooks: [
+              {
+                type: 'process',
+                command: process.execPath.replace(/\\/g, '/'),
+                args: ['--import', 'tsx', script('src/zcode-hooks/session-start.ts')],
+                timeoutMs: 30000,
+                statusMessage: 'Gentle-Vanguard: session autostart',
+              },
+            ],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              {
+                type: 'process',
+                command: process.execPath.replace(/\\/g, '/'),
+                args: ['--import', 'tsx', script('src/zcode-hooks/post-edit-graphify.ts')],
+                timeoutMs: 150000,
+                statusMessage: 'Gentle-Vanguard: graphify update',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  };
+}
+
+function syncZCodeHooks(dry: boolean): boolean {
+  let current: JsonObject = {};
+  if (existsSync(ZCODE_CONFIG_PATH)) {
+    const raw = readFileSync(ZCODE_CONFIG_PATH, 'utf8');
+    if (containsJsonComments(raw)) {
+      console.error(`  ✗ ${ZCODE_CONFIG_PATH} contiene comentarios (JSONC) — NO se reescribe para no perderlos.`);
+      console.error('    Accion: mergea el bloque hooks a mano, o quitá los comentarios y re-corré --sync.');
+      return false;
+    }
+    try {
+      current = JSON.parse(raw) as JsonObject;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`  ✗ ${ZCODE_CONFIG_PATH} es JSON inválido (${msg}). NO se sobreescribe.`);
+      console.error(`    Si tenés un backup en ${ZCODE_CONFIG_PATH}.bak, restauralo y revisá el archivo.`);
+      return false;
+    }
+  }
+  const next = buildZCodeHookConfig(current, process.cwd());
+  if (dry) {
+    console.log(`(dry) hooks ZCode -> ${ZCODE_CONFIG_PATH} (node --import tsx)`);
+    return true;
+  }
+  mkdirSync(join(homedir(), '.zcode', 'cli'), { recursive: true });
+  // Backup del config previo antes de reescribir (recuperable ante un bug nuestro).
+  if (existsSync(ZCODE_CONFIG_PATH)) {
+    copyFileSync(ZCODE_CONFIG_PATH, `${ZCODE_CONFIG_PATH}.bak`);
+  }
+  writeFileAtomic(ZCODE_CONFIG_PATH, `${JSON.stringify(next, null, 2)}\n`);
+  console.log(`✓ hooks ZCode sincronizados en ${ZCODE_CONFIG_PATH}`);
+  return true;
 }
 
 /** Parsea frontmatter YAML simple (clave: valor, anidación de 1 nivel con guiones no soportada). */
@@ -211,6 +357,11 @@ function main(): void {
   const args = process.argv.slice(2);
   const dry = args.includes('--dry') || args.includes('--dry-run');
   const status = args.includes('--status');
+  const toolsIdx = args.indexOf('--tools');
+  const tools =
+    toolsIdx >= 0 && args[toolsIdx + 1]
+      ? args[toolsIdx + 1].split(',').map((t) => t.trim())
+      : Object.keys(SKILL_TARGETS);
 
   if (!existsSync(STACK_AGENTS_DIR)) {
     console.error(`No existe ${STACK_AGENTS_DIR}`);
@@ -232,29 +383,41 @@ function main(): void {
 
   if (!dry) mkdirSync(ZCODE_AGENTS_DIR, { recursive: true });
   let count = 0;
+  let failures = 0;
   for (const f of files) {
     const name = f.replace(/\.md$/, '');
-    const converted = convertAgent(name, readFileSync(join(STACK_AGENTS_DIR, f), 'utf8'));
+    let converted: string;
+    try {
+      converted = convertAgent(name, readFileSync(join(STACK_AGENTS_DIR, f), 'utf8'));
+    } catch (err) {
+      console.error(`  ✗ agente ${name}: ${err instanceof Error ? err.message : err}`);
+      failures++;
+      continue;
+    }
     if (dry) {
       console.log(`--- ${name} (dry run) ---`);
       console.log(converted.split('\n').slice(0, 14).join('\n'));
     } else {
-      writeFileSync(join(ZCODE_AGENTS_DIR, f), converted, 'utf8');
+      // Escritura atomica por agente (un kill a mitad no deja el .md truncado).
+      writeFileAtomic(join(ZCODE_AGENTS_DIR, f), converted);
       count++;
     }
   }
   if (!dry) {
     console.log(`✓ ${count} agentes sincronizados a ${ZCODE_AGENTS_DIR}`);
-    const toolsIdx = args.indexOf('--tools');
-    const tools =
-      toolsIdx >= 0 && args[toolsIdx + 1]
-        ? args[toolsIdx + 1].split(',').map((t) => t.trim())
-        : Object.keys(SKILL_TARGETS);
-    console.log(`Sincronizando skills críticas a: ${tools.join(', ')}`);
-    syncSkills(dry, tools);
+  }
+  console.log(`Sincronizando skills críticas a: ${tools.join(', ')}`);
+  if (!syncSkills(dry, tools)) failures++;
+  if (tools.includes('zcode') && !syncZCodeHooks(dry)) failures++;
+  if (!dry) {
     console.log(
       'Nota: abre una nueva sesión en cada herramienta para que carguen (no hot-reload).',
     );
+    if (failures > 0) {
+      // Patrón upstream befd337: el sync parcial es VISIBLE y falla el exit code.
+      console.error(`✗ ${failures} fase(s) con error — sync PARCIAL (revisar ✗ arriba).`);
+      process.exit(1);
+    }
   }
 }
 

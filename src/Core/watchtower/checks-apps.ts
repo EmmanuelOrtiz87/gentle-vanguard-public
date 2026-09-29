@@ -1,5 +1,5 @@
 // Command Center apps registry check (apps-registry component).
-// Vigila las 9 apps del stack a través de CC: presencia en el registro,
+// Vigila las 10 apps del stack a través de CC: presencia en el registro,
 // contratos de ciclo de vida (start.sh/stop.sh) y coherencia de estado
 // (proceso vivo sin pid = proceso adoptado/zombie — ver
 // docs/apps/APPS-INDEPENDENCE-AUDIT-2026-09-12.md).
@@ -23,6 +23,7 @@ const EXPECTED_APPS: Array<{ id: string; uiPort: number }> = [
   { id: 'design-hub', uiPort: 8095 },
   { id: 'academy-crm', uiPort: 4791 },
   { id: 'academy-landing', uiPort: 4174 },
+  { id: 'gv-music', uiPort: 1420 },
 ];
 
 /** Directorio de la app para ids cuyo directorio no coincide con el id de CC. */
@@ -30,6 +31,8 @@ function appDir(id: string): string {
   const dir =
     id === 'dashboard'
       ? 'web-dashboard'
+      : id === 'gv-music'
+        ? 'gv-music'
       : id === 'academy'
         ? 'academy-web'
         : id === 'prompts'
@@ -65,14 +68,22 @@ export async function checkAppsRegistry() {
   if (!quiet) logger.info('  [Apps Registry] Checking via Command Center...');
 
   const port = await ccPort();
+  // Retry idempotente (patrón upstream gentle-ai): dentro del run largo el
+  // fetch a CC puede colgar (pool de undici + event loop bloqueado por checks
+  // sync previos) o fallar instantáneo — 3 intentos cortos lo absorben.
   let apps: CcApp[] | null = null;
-  try {
-    const res = await fetch(`http://127.0.0.1:${port}/api/apps`, {
-      signal: AbortSignal.timeout(5000),
-    });
-    if (res.ok) apps = (await res.json()) as CcApp[];
-  } catch {
-    apps = null;
+  for (let attempt = 1; attempt <= 3 && !apps; attempt++) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/api/apps`, {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) apps = (await res.json()) as CcApp[];
+    } catch {
+      apps = null;
+    }
+    if (!apps && attempt < 3) {
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
   }
 
   if (!apps) {
@@ -80,7 +91,7 @@ export async function checkAppsRegistry() {
       'apps-registry',
       `command-center API (:${port})`,
       'FAIL',
-      'No responde — CC es daemon persistente, arrancar con apps/command-center/start.sh',
+      'No responde — CC es daemon persistente: npm run cc:start (PowerShell) o apps/command-center/start.sh (Git Bash)',
       'restart',
     );
     return;

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" role="img" aria-labelledby="governance-tiers-title governance-tiers-desc" focusable="false">
+<title id="governance-tiers-title">Governance — 3-Tier Model</title>
+<desc id="governance-tiers-desc">Gentle-Vanguard 3-tier governance: protected canon, user-local layer with precedence, upstream contributions via PR.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
+<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
+<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
+
+<rect width="1000" height="400" fill="url(#bg)"/>
+<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Governance — 3-Tier Model</text>
+<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">Canon protegido · capa local editable · contribución upstream vía PR</text>
+
+<!-- Tier 1: Canon -->
+<g filter="url(#s)"><rect x="60" y="85" width="400" height="90" rx="10" fill="#151921" stroke="#a78bfa" stroke-width="1.2"/><rect x="60" y="85" width="400" height="90" rx="10" fill="url(#p2)"/></g>
+<text x="80" y="110" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="700">1 · CANON (protegido)</text>
+<text x="80" y="130" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">rules/ · skills/ · config/ · .opencode/agents/</text>
+<text x="80" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Repo privado + branch protection</text>
+<text x="80" y="163" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Solo el owner aprueba cambios</text>
+
+<!-- Tier 2: Local -->
+<g filter="url(#s)"><rect x="540" y="85" width="400" height="90" rx="10" fill="#151921" stroke="#22d3ee" stroke-width="1.2"/><rect x="540" y="85" width="400" height="90" rx="10" fill="url(#p1)"/></g>
+<text x="560" y="110" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="12" font-weight="700">2 · LOCAL (tu PC, gitignored)</text>
+<text x="560" y="130" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">config/local/ · skills-local/ · .session/local-rules/</text>
+<text x="560" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Jamás se pisa por git pull ni autostart</text>
+<text x="560" y="163" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Skills propias · reglas propias · overrides</text>
+
+<!-- Precedence arrow -->
+<line x1="540" y1="130" x2="468" y2="130" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="504" y="122" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="9" font-weight="600">local gana</text>
+
+<!-- Tier 3: Upstream -->
+<g filter="url(#s)"><rect x="300" y="215" width="400" height="80" rx="10" fill="#151921" stroke="#4ade80" stroke-width="1.2"/><rect x="300" y="215" width="400" height="80" rx="10" fill="url(#p1)"/></g>
+<text x="320" y="240" fill="#4ade80" font-family="system-ui,sans-serif" font-size="12" font-weight="700">3 · UPSTREAM (contribución)</text>
+<text x="320" y="260" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10">Pull Request al repo privado</text>
+<text x="320" y="278" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">typecheck + lint + test → revisión y aprobación del owner</text>
+
+<!-- arrows: local -> upstream, upstream -> canon -->
+<line x1="740" y1="175" x2="640" y2="213" stroke="#4ade80" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="710" y="192" fill="#4ade80" font-family="system-ui,sans-serif" font-size="9">tu cambio</text>
+<line x1="360" y1="215" x2="260" y2="177" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="290" y="196" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="9" font-weight="600">aprobado → canon</text>
+
+<!-- Runtime reading band -->
+<rect x="60" y="320" width="880" height="50" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width=".8"/>
+<text x="500" y="342" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Runtime: el stack lee primero LOCAL, luego CANON</text>
+<text x="500" y="360" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">config-loader unificado: config/local/&lt;name&gt;.json se mezcla sobre config/&lt;name&gt;.json — git pull nunca pisa tus personalizaciones</text>
+</svg>

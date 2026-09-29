@@ -22,6 +22,9 @@ export interface DetectedTool {
   isContinueDev: boolean;
   isCopilot: boolean;
   isAntigravity: boolean;
+  isCodex: boolean;
+  isZCode: boolean;
+  isMiniMax: boolean;
   confidence: number;
   os: {
     platform: string;
@@ -80,11 +83,47 @@ export function getDetectedTool(): DetectedTool {
     isContinueDev: false,
     isCopilot: false,
     isAntigravity: false,
+    isCodex: false,
+    isZCode: false,
+    isMiniMax: false,
     confidence: 0,
     os: { ...OS_INFO },
   };
 
-  // 1. Check OPENCODE env vars (most reliable for opencode)
+  // Explicit runtime signals must win over repository markers. This repository
+  // intentionally contains .opencode even when another supported client owns
+  // the current session.
+  if (process.env.CODEX_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_VERSION) {
+    tool.name = 'codex';
+    tool.source = process.env.CODEX_SESSION_ID ? 'env:CODEX_SESSION_ID' : 'env:CODEX_RUNTIME';
+    tool.isCodex = true;
+    tool.confidence = 100;
+    tool.configFile = '.codex/config.toml';
+    tool.promptFile = 'AGENTS.md';
+    return tool;
+  }
+
+  if (process.env.ZCODE_SESSION_ID || process.env.ZCODE_HOME) {
+    tool.name = 'zcode';
+    tool.source = process.env.ZCODE_SESSION_ID ? 'env:ZCODE_SESSION_ID' : 'env:ZCODE_HOME';
+    tool.isZCode = true;
+    tool.confidence = 100;
+    tool.configFile = '.zcode/config.json';
+    tool.promptFile = 'AGENTS.md';
+    return tool;
+  }
+
+  if (process.env.MINIMAX_SESSION_ID || process.env.MINIMAX_HOME) {
+    tool.name = 'minimax';
+    tool.source = process.env.MINIMAX_SESSION_ID ? 'env:MINIMAX_SESSION_ID' : 'env:MINIMAX_HOME';
+    tool.isMiniMax = true;
+    tool.confidence = 100;
+    tool.configFile = '~/.minimax/config.yaml';
+    tool.promptFile = 'AGENTS.md';
+    return tool;
+  }
+
+  // Check OPENCODE env vars (most reliable for opencode)
   if (process.env.OPENCODE_SERVER_USERNAME) {
     tool.name = 'opencode';
     tool.source = 'env:OPENCODE_SERVER_USERNAME';

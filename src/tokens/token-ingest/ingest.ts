@@ -279,19 +279,29 @@ export function generateTraceabilityReport(): string {
     // Subagentes individuales (iteraciones de agentes hijos).
     const subagents = db
       .prepare(
-        `SELECT session_id, agent, COUNT(*) txns,
+        `SELECT session_id, agent, COALESCE(agent_name, '') agent_name, COUNT(*) txns,
                 SUM(input_tokens) i, SUM(output_tokens) o, SUM(cost) cost
          FROM token_transactions WHERE agent = 'subagent'
-         GROUP BY session_id ORDER BY o DESC LIMIT 10`,
+         GROUP BY session_id, COALESCE(agent_name, '') ORDER BY o DESC LIMIT 10`,
       )
       .all() as Array<{
       session_id: string;
       agent: string;
+      agent_name: string;
       txns: number;
       i: number;
       o: number;
       cost: number;
     }>;
+
+    const byAgentName = db
+      .prepare(
+        `SELECT COALESCE(agent_name, agent) agent_label, COUNT(*) n,
+                SUM(input_tokens) i, SUM(output_tokens) o
+         FROM token_transactions
+         WHERE created_at >= datetime(?) GROUP BY agent_label ORDER BY o DESC LIMIT 12`,
+      )
+      .all(dayStr) as Array<{ agent_label: string; n: number; i: number; o: number }>;
 
     const L = (n: number): string => (n ?? 0).toLocaleString();
     let out = `════════ TRACEABILITY REPORT ════════\n`;
@@ -312,7 +322,14 @@ export function generateTraceabilityReport(): string {
     if (subagents.length > 0) {
       out += `\nSubagentes (iteraciones individuales):\n`;
       for (const a of subagents) {
-        out += `  ${a.session_id?.slice(0, 18)} txns=${a.txns} in=${L(a.i)} out=${L(a.o)} cost=$${(a.cost ?? 0).toFixed(4)}\n`;
+        const label = a.agent_name ? `${a.agent_name} @ ${a.session_id?.slice(0, 14)}` : a.session_id?.slice(0, 18);
+        out += `  ${label} txns=${a.txns} in=${L(a.i)} out=${L(a.o)} cost=$${(a.cost ?? 0).toFixed(4)}\n`;
+      }
+    }
+    if (byAgentName.length > 0) {
+      out += `\nPor agente (hoy):\n`;
+      for (const a of byAgentName) {
+        out += `  ${a.agent_label} txns=${a.n} in=${L(a.i)} out=${L(a.o)}\n`;
       }
     }
     return out;

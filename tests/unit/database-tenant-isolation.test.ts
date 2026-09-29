@@ -12,6 +12,7 @@ import { SkillRepo } from '../../src/database/nexus//repositories/SkillRepo';
 import { CacheRepo } from '../../src/database/nexus//repositories/CacheRepo';
 import { BacklogRepo } from '../../src/database/nexus//repositories/BacklogRepo';
 import { TokenRepo } from '../../src/database/nexus//repositories/TokenRepo';
+import { USER_TABLES_SQL } from '../../src/database/db-init';
 
 function createDatabase(): Database.Database {
   const db = new Database(':memory:');
@@ -51,6 +52,13 @@ test('tenant migration creates ownership tables and default tenant columns', () 
       db.prepare(`SELECT 1 FROM pragma_table_info('${table}') WHERE name = 'tenant_id'`).get(),
     );
   }
+  assert.ok(
+    db
+      .prepare(
+        "SELECT 1 FROM pragma_table_info('skill_execution_outcomes') WHERE name = 'evidence_kind'",
+      )
+      .get(),
+  );
   for (const index of [
     'idx_backlog_items_tenant_created',
     'idx_skill_usage_tenant_skill',
@@ -81,6 +89,20 @@ test('tenant migration creates ownership tables and default tenant columns', () 
     (db.prepare('SELECT tenant_id FROM events').get() as { tenant_id: string }).tenant_id,
     'gentle-vanguard',
   );
+  db.close();
+});
+
+test('db-init table inventory excludes only migration and SQLite internal tables', () => {
+  const db = createDatabase();
+  const names = (db.prepare(USER_TABLES_SQL).all() as Array<{ name: string }>).map(
+    (row) => row.name,
+  );
+
+  assert.ok(names.includes('skill_execution_outcomes'));
+  assert.ok(names.includes('events'));
+  assert.ok(!names.includes('_migrations'));
+  assert.ok(!names.includes('sqlite_sequence'));
+  assert.ok(names.length > 30);
   db.close();
 });
 
@@ -206,6 +228,24 @@ test('backlog, skill usage, and routing rules are isolated by tenant', () => {
   skills.recordSkillUsage('other-tenant', 'shared-skill', 'shared-session', 20, 2);
   assert.equal(skills.getTopSkills('gentle-vanguard')[0].tokensUsed, 10);
   assert.equal(skills.getTopSkills('other-tenant')[0].tokensUsed, 20);
+
+  skills.recordSkillOutcome('gentle-vanguard', 'shared-skill', true, { durationMs: 10 });
+  skills.recordSkillOutcome('gentle-vanguard', 'shared-skill', false, {
+    durationMs: 30,
+    evidenceKind: 'evaluation',
+  });
+  skills.recordSkillOutcome('other-tenant', 'shared-skill', false, { durationMs: 20 });
+  const defaultOutcomes = skills.getSkillOutcomeSummary('gentle-vanguard');
+  const evaluationOutcomes = skills.getSkillOutcomeSummary('gentle-vanguard', 'evaluation');
+  const otherOutcomes = skills.getSkillOutcomeSummary('other-tenant');
+  assert.equal(defaultOutcomes[0].outcomes, 1);
+  assert.equal(defaultOutcomes[0].successRate, 100);
+  assert.equal(defaultOutcomes[0].avgDurationMs, 10);
+  assert.equal(evaluationOutcomes[0].outcomes, 1);
+  assert.equal(evaluationOutcomes[0].successRate, 0);
+  assert.equal(evaluationOutcomes[0].avgDurationMs, 30);
+  assert.equal(otherOutcomes[0].outcomes, 1);
+  assert.equal(otherOutcomes[0].successRate, 0);
 
   skills.upsertRoutingRule('gentle-vanguard', 'shared-pattern', 'default');
   skills.upsertRoutingRule('other-tenant', 'shared-pattern', 'other');

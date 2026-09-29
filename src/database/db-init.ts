@@ -34,6 +34,12 @@ export interface DbInitResult {
   migrations?: number;
 }
 
+export const USER_TABLES_SQL = `SELECT name FROM sqlite_master
+  WHERE type = 'table'
+    AND name <> '_migrations'
+    AND name NOT LIKE 'sqlite_%'
+  ORDER BY name`;
+
 function log(quiet: boolean, msg: string): void {
   if (!quiet) console.log(`[db-init] ${msg}`);
 }
@@ -64,11 +70,7 @@ export async function initDb(options: DbInitOptions = {}): Promise<DbInitResult>
 
   // Collect table stats
   const raw = db.getDb();
-  const tables = raw
-    .prepare(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE '_%' ORDER BY name`,
-    )
-    .all() as { name: string }[];
+  const tables = raw.prepare(USER_TABLES_SQL).all() as { name: string }[];
 
   const totalRows = tables.reduce((sum, t) => {
     const row = raw.prepare(`SELECT COUNT(*) as cnt FROM [${t.name}]`).get() as { cnt: number };
