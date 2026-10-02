@@ -10,4 +10,6 @@ export * from './checks-config';
 export * from './checks-security';
 export * from './checks-data';
 export * from './checks-apps';
+export * from './checks-bg-tasks';
+export * from './checks-design-canon';
 export * from './rebuild';

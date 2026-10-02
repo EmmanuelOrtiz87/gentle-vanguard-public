@@ -32,7 +32,9 @@ import {
 } from './watchtower/context';
 import { fileExists, readJson, testPort, isCodeGraphProcessRunning } from './watchtower/helpers';
 import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard';
-import { checkAppsRegistry } from './watchtower/checks-apps';
+import { checkAppsRegistry, checkAppsAudit } from './watchtower/checks-apps';
+import { checkBgTasks } from './watchtower/checks-bg-tasks';
+import { checkDesignCanon, checkRepoOrganization } from './watchtower/checks-design-canon';
 import {
   checkCodeGraph,
   checkTimeoutDaemon,
@@ -437,6 +439,10 @@ async function runAllChecks() {
   const checks = [
     checkDashboardWs,
     checkAppsRegistry,
+    checkAppsAudit,
+    checkBgTasks,
+    checkDesignCanon,
+    checkRepoOrganization,
     checkCodeGraph,
     checkGvAnalytics,
     checkTimeoutDaemon,

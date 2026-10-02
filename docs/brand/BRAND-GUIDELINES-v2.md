@@ -1,5 +1,9 @@
 # Gentle-Vanguard Academy — Brand Guidelines v2.0
 
+> **🗄 SUPERSEDED (2026-10-01):** esta guía documenta la identidad v2 Premium (bg `#0F1115`,
+> Space Grotesk, gradiente 2-stop), reemplazada por **v2.0 APPLICATION FINAL** (ADR-0033).
+> Canon vigente: `docs/brand/BRAND-KIT.md`. Registro: `DESIGN-DECISIONS-LOG.md` §2.
+
 > **Design Evolution: From AI-Generic to Human-Crafted Premium**  
 > Version: 2.0.0  
 > Date: 2026-09-01  

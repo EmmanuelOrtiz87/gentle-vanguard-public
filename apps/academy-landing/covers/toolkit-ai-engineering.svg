@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <defs>
+    <linearGradient id="gvGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6E4DEB"/><stop offset="52%" stop-color="#7B63E8"/><stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.2" cy="0.15" r="0.7">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.22"/><stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.85" cy="0.9" r="0.6">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.16"/><stop offset="100%" stop-color="#06B6D4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="#0B1020"/>
+  <rect width="1200" height="1600" fill="url(#glowA)"/>
+  <rect width="1200" height="1600" fill="url(#glowB)"/>
+  <g stroke="#1c2230" stroke-width="1" opacity="0.5">
+    <path d="M0 200H1200M0 400H1200M0 600H1200M0 800H1200M0 1000H1200M0 1200H1200M0 1400H1200"/>
+    <path d="M200 0V1600M400 0V1600M600 0V1600M800 0V1600M1000 0V1600"/>
+  </g>
+  <text x="80" y="180" font-family="Poppins,Arial,sans-serif" font-size="34" font-weight="700" fill="#e8eef4">Gentle<tspan fill="url(#gvGrad)">Vanguard</tspan></text>
+  <text x="80" y="760" font-family="Poppins,Arial,sans-serif" font-size="30" font-weight="600" letter-spacing="14" fill="#06B6D4">TOOLKIT</text>
+  <text x="80" y="880" font-family="Poppins,Arial,sans-serif" font-size="96" font-weight="700" fill="#e8eef4">AI Eng.</text>
+  <text x="80" y="1000" font-family="Poppins,Arial,sans-serif" font-size="96" font-weight="700" fill="url(#gvGrad)">Toolkit</text>
+  <text x="80" y="1120" font-family="Inter,Arial,sans-serif" font-size="36" fill="#c4cdd8">Checklists + plantillas + prompts listos.</text>
+  <text x="80" y="1460" font-family="Poppins,Arial,sans-serif" font-size="26" font-weight="600" letter-spacing="8" fill="#8b95a8">OPERÁ COMO PRODUCCIÓN</text>
+  <rect x="80" y="1500" width="220" height="8" rx="4" fill="url(#gvGrad)"/>
+</svg>

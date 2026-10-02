@@ -19,8 +19,8 @@
   --text-2: #c4cdd8;
   --muted: #8b95a8;
   --grad-logo: linear-gradient(90deg, #7B63E8 0%, #06B6D4 100%);
-  --grad-cta: linear-gradient(92deg, #22d3ee 0%, #7B63E8 100%);
-  --grad-text: linear-gradient(92deg, #22d3ee 5%, #67e8f9 45%, #a78bfa 100%);
+  --grad-cta: linear-gradient(92deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%);
+  --grad-text: linear-gradient(92deg, #06B6D4 5%, #67e8f9 45%, #8B5CF6 100%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

@@ -1,5 +1,8 @@
 # Gentle-Vanguard Brand Guidelines
 
+> **🗄 SUPERSEDED:** guía v1 (2026-05-18, fuente `config/brand.json`) — NO usar. Canon vigente:
+> `docs/brand/BRAND-KIT.md` (v2.0 APPLICATION FINAL). Registro: `DESIGN-DECISIONS-LOG.md` §2.
+
 > Source of truth: `config/brand.json` | Version 1.0.0 | 2026-05-18
 
 ---

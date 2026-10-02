@@ -240,17 +240,21 @@ export interface IndexCheckResult {
 export function checkTenantIndexes(
   db: Database.Database,
   table: string,
-  options: { tenantColumn?: string } = {},
+  options: { tenantColumn?: string; includeAutoIndexes?: boolean } = {},
 ): IndexCheckResult[] {
   const tenantCol = options.tenantColumn || 'tenant_id';
-  // SQLite expone índices via sqlite_master + pragma
-  const indexes = db
-    .prepare(
-      `SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = ? AND sql IS NOT NULL`,
-    )
-    .all(table) as Array<{ name: string }>;
+  const includeAuto = options.includeAutoIndexes ?? true;
+  // PRAGMA index_list incluye TAMBIÉN los autoíndices (origin 'pk' | 'u')
+  // que SQLite crea para PRIMARY KEY compuesto y UNIQUE constraints — esos
+  // índices existen y sirven queries, así que ignorarlos daría falsos
+  // "sin índice tenant-leading" para tablas con UNIQUE(tenant_id, ...).
+  const indexes = db.prepare(`PRAGMA index_list(${table})`).all() as Array<{
+    name: string;
+    origin: 'c' | 'pk' | 'u' | string;
+  }>;
   const results: IndexCheckResult[] = [];
-  for (const { name } of indexes) {
+  for (const { name, origin } of indexes) {
+    if (!includeAuto && origin !== 'c') continue;
     const cols = db.prepare(`PRAGMA index_info(${name})`).all() as Array<{ name: string }>;
     const first = cols[0]?.name;
     if (!first) continue;

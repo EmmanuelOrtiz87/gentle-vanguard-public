@@ -2,17 +2,19 @@
 /**
  * stack-verify.ts — Comprehensive Stack Verification Orchestrator
  *
- * Validates the ENTIRE Gentle-Vanguard stack in 4 layers:
+ * Validates the ENTIRE Gentle-Vanguard stack in 5 layers:
  *   Layer 1: Machine Dependencies (via dependency-validator.ts)
  *   Layer 2: Stack Platform Components (Nexus, Graphify, Obsidian, MCP, etc.)
  *   Layer 3: Running Services (WS server, Vite, Presentations)
  *   Layer 4: Integrity Checks (Engram doctor, Nexus DB)
+ *   Layer 5: Apps audit (typecheck + test de cada apps/* — Layer nueva 2026-09-30)
  *
  * Usage:
  *   npx tsx src/stack-verify.ts              # full verification
  *   npx tsx src/stack-verify.ts --quick      # skip service checks
  *   npx tsx src/stack-verify.ts --json       # machine-readable output
  *   npx tsx src/stack-verify.ts --fix        # attempt to fix failures
+ *   npx tsx src/stack-verify.ts --skip-apps  # skip Layer 5 (auditoria por app)
  */
 
 import { runSync } from '../core/run-command.js';
@@ -23,7 +25,7 @@ import { join, resolve } from 'node:path';
 
 interface CheckResult {
   name: string;
-  layer: 'deps' | 'platform' | 'services' | 'integrity';
+  layer: 'deps' | 'platform' | 'services' | 'integrity' | 'apps';
   status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP';
   message: string;
   fixCmd?: string;
@@ -518,6 +520,40 @@ async function autoFix(results: CheckResult[]): Promise<number> {
   return fixable.length - fixed;
 }
 
+// ─── Layer 5: Apps Audit ──────────────────────────────────────────────
+
+async function checkApps(results: CheckResult[]): Promise<void> {
+  // Lazy import para no acoplar el modulo al startup del orquestador.
+  const { auditApps } = await import('./stack-audit-apps.js');
+  const audits = await auditApps({ only: ['typecheck', 'test'] });
+
+  const passed = audits.filter((a) => a.status === 'PASS').length;
+  const warned = audits.filter((a) => a.status === 'WARN').length;
+  const failed = audits.filter((a) => a.status === 'FAIL').length;
+
+  results.push({
+    name: 'Apps audit',
+    layer: 'apps',
+    status: failed > 0 ? 'FAIL' : warned > 0 ? 'WARN' : 'PASS',
+    message: `${audits.length} apps, ${passed} PASS / ${warned} WARN / ${failed} FAIL`,
+  });
+
+  for (const a of audits) {
+    if (a.status === 'PASS') continue; // Solo reportamos WARN/FAIL para no inflar el output
+    const failDetail = a.checks
+      .filter((c) => c.status === 'FAIL')
+      .map((c) => `${c.kind}: ${c.message.slice(0, 80)}`)
+      .join(' | ');
+    results.push({
+      name: `app:${a.app}`,
+      layer: 'apps',
+      status: a.status,
+      message: failDetail || a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
+      fixCmd: a.status === 'FAIL' ? `cd apps/${a.app} && npm run typecheck` : undefined,
+    });
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -525,6 +561,7 @@ async function main(): Promise<void> {
   const quick = args.includes('--quick') || args.includes('-q');
   const json = args.includes('--json') || args.includes('-j');
   const fix = args.includes('--fix') || args.includes('-f');
+  const skipApps = args.includes('--skip-apps');
 
   const results: CheckResult[] = [];
 
@@ -543,6 +580,11 @@ async function main(): Promise<void> {
 
   // Layer 4: Integrity Checks
   await checkIntegrity(results);
+
+  // Layer 5: Apps audit (skip con --skip-apps)
+  if (!skipApps) {
+    await checkApps(results);
+  }
 
   // Report
   const report = printReport(results, json);

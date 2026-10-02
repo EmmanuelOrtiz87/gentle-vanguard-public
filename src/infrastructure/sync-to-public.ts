@@ -157,6 +157,31 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 
   console.log(`  ── populating ${targetDir} ──`);
 
+  // MODO LANDING: gentlevanguard.github.io sirve desde la RAIZ (repo de marca,
+  // GitHub Pages toma ./index.html). La fuente es apps/academy-landing/ del
+  // privado, publicada tal cual en la raiz del target. Antes este modo copiaba
+  // a apps/academy-landing/ del target (referenciado por un workflow
+  // deploy-landing.yml que nunca existio) mientras la raiz seguia sirviendo el
+  // index viejo parcheado a mano: el sitio publico nunca se actualizaba.
+  // README.md se excluye: el repo conserva su README propio.
+  if (opts.landing) {
+    const landingSrc = path.join(privateRepo, 'apps', 'academy-landing');
+    if (!fs.existsSync(landingSrc)) {
+      throw new Error(`modo landing: no existe ${landingSrc}`);
+    }
+    rmIf(path.join(targetDir, 'apps'), { recurse: true });
+    const skipRoot = new Set(['README.md']);
+    for (const entry of fs.readdirSync(landingSrc, { withFileTypes: true })) {
+      if (skipRoot.has(entry.name)) continue;
+      copyIf(
+        path.join(landingSrc, entry.name),
+        path.join(targetDir, entry.name),
+        { recurse: entry.isDirectory() },
+      );
+    }
+    return;
+  }
+
   // 0. Bootstrap scripts (TS versions after PS1→TS migration)
   const bootstrapDir = path.join(targetDir, 'scripts', 'gentle-vanguard');
   mkdirp(bootstrapDir);

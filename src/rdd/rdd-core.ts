@@ -38,10 +38,18 @@ export interface RDDWorkflow {
     score: number;
     reviewLenses: number;
   } | null;
+  candidate: {
+    diffHash: string;
+    filesChanged: number;
+    insertions: number;
+    deletions: number;
+    frozenAt: string;
+  } | null;
   receipt: {
     id: string;
     candidateSha: string;
     approved: boolean;
+    candidateDiffHash?: string;
   } | null;
   gates: {
     'post-apply': boolean;
@@ -122,6 +130,7 @@ export function startWorkflow(): RDDWorkflow {
     workflowId: generateWorkflowId(),
     status: 'started',
     classification: null,
+    candidate: null,
     receipt: null,
     gates: {
       'post-apply': false,
@@ -241,6 +250,82 @@ export function pruneWorkflows(retentionDays = 30, dir: string = RDD_DIR): Prune
 
 // ─── Workflow Steps ────────────────────────────────────────────────────────────
 
+// ─── Frozen Candidate (patrón upstream gentle-ai v4) ─────────────────────────
+//
+// El review no puede derivar: el estado del worktree se congela ANTES de que
+// cualquier lente lo lea, y la evidencia (receipt) queda ligada a ESE hash.
+// Si el worktree cambia después de congelar, review/receipt se niegan con
+// una refusal tipada — la evidencia pertenece a la versión exacta congelada,
+// no a "como quedó el worktree un momento después".
+
+function computeWorktreeState(): {
+  diffHash: string;
+  filesChanged: number;
+  insertions: number;
+  deletions: number;
+} {
+  const diff = runSync('git', ['diff', 'HEAD'], { cwd: ROOT });
+  const status = runSync('git', ['status', '--porcelain'], { cwd: ROOT });
+  // numstat en vez de --shortstat + regex: "ins\tdel\tpath" por archivo,
+  // parseo por columnas sin expresiones regulares anidadas (lint security).
+  const numstat = runSync('git', ['diff', 'HEAD', '--numstat'], { cwd: ROOT });
+  const hash = createHash('sha256').update(diff.stdout + '\0' + status.stdout).digest('hex');
+  let filesChanged = 0;
+  let insertions = 0;
+  let deletions = 0;
+  for (const line of numstat.stdout.split(/\r?\n/)) {
+    const [ins, del] = line.split('\t');
+    if (ins === undefined || del === undefined) continue;
+    if (ins !== '-' && del !== '-') {
+      filesChanged++;
+      insertions += Number(ins) || 0;
+      deletions += Number(del) || 0;
+    }
+  }
+  return {
+    diffHash: hash.slice(0, 16),
+    filesChanged,
+    insertions,
+    deletions,
+  };
+}
+
+function freezeCandidate(workflow: RDDWorkflow): RDDWorkflow {
+  const state = computeWorktreeState();
+  workflow.candidate = { ...state, frozenAt: new Date().toISOString() };
+  log(`Candidate frozen: ${state.diffHash} (${state.filesChanged} files, +${state.insertions}/-${state.deletions})`, 'SUCCESS');
+  return workflow;
+}
+
+/**
+ * Verifica que el worktree siga siendo EXACTAMENTE el candidato congelado.
+ * Un workflow sin candidato (iniciado antes de esta capacidad) se adopta en
+ * el primer chequeo — los nuevos nacen congelado en classify.
+ */
+function verifyCandidate(workflow: RDDWorkflow): TypedRefusal | null {
+  const current = computeWorktreeState();
+  if (!workflow.candidate) {
+    workflow.candidate = { ...current, frozenAt: new Date().toISOString() };
+    saveWorkflow(workflow);
+    return null;
+  }
+  if (workflow.candidate.diffHash !== current.diffHash) {
+    return refusal(
+      'authority',
+      'rdd.candidate-drift',
+      `worktree drifted after freeze (${workflow.candidate.diffHash} → ${current.diffHash}) — la evidencia pertenece a la versión congelada, no a esta`,
+      {
+        nothingStarted: true,
+        remediation: {
+          command: `npx tsx src/rdd/rdd-core.ts status --workflow=${workflow.workflowId}`,
+          description: 'revertí los cambios posteriores al freeze o abortá y arrancá un workflow nuevo',
+        },
+      },
+    );
+  }
+  return null;
+}
+
 async function stepClassify(workflow: RDDWorkflow): Promise<RDDWorkflow> {
   log('Running risk classification...', 'INFO');
 
@@ -255,6 +340,10 @@ async function stepClassify(workflow: RDDWorkflow): Promise<RDDWorkflow> {
       reviewLenses: classification.reviewLenses,
     };
     workflow.status = 'risk-classified';
+
+    // Congelar ANTES de que cualquier lente lea el worktree (review de grado
+    // alto todavía no corrió): la evidencia nace aquí, no en el review.
+    freezeCandidate(workflow);
 
     log(
       `Classified as ${classification.tier.toUpperCase()} risk (${classification.reviewLenses} lens(es))`,
@@ -278,6 +367,12 @@ async function stepReview(workflow: RDDWorkflow): Promise<RDDWorkflow> {
   if (!workflow.classification) {
     log('Must classify risk first', 'ERROR');
     workflow.status = 'failed';
+    return workflow;
+  }
+
+  const drift = verifyCandidate(workflow);
+  if (drift) {
+    log(describeRefusal(drift), 'WARN');
     return workflow;
   }
 
@@ -306,6 +401,12 @@ async function stepReview(workflow: RDDWorkflow): Promise<RDDWorkflow> {
 async function stepReceipt(workflow: RDDWorkflow): Promise<RDDWorkflow> {
   log('Issuing receipt...', 'INFO');
 
+  const drift = verifyCandidate(workflow);
+  if (drift) {
+    log(describeRefusal(drift), 'WARN');
+    return workflow;
+  }
+
   try {
     // Run receipt manager
     runNpxTsxSync('scripts/utilities/ops/REVIEW/receipt-manager.ts', ['create', '--approved'], {
@@ -326,6 +427,8 @@ async function stepReceipt(workflow: RDDWorkflow): Promise<RDDWorkflow> {
           id: newest.id,
           candidateSha: newest.candidateHash,
           approved: newest.approved,
+          // Evidencia ligada a la versión exacta congelada, no solo al HEAD.
+          candidateDiffHash: workflow.candidate?.diffHash,
         };
       }
     }
@@ -591,6 +694,12 @@ export function formatStatus(workflow: RDDWorkflow): string {
 
   if (workflow.completedAt) {
     lines.push(`Completed: ${new Date(workflow.completedAt).toLocaleString()}`);
+  }
+
+  if (workflow.candidate) {
+    lines.push(`Candidate: ${workflow.candidate.diffHash} (${workflow.candidate.filesChanged} files, +${workflow.candidate.insertions}/-${workflow.candidate.deletions}, frozen ${workflow.candidate.frozenAt})`);
+  } else {
+    lines.push('Candidate: (no congelado — pre-frozen-candidate workflow)');
   }
 
   lines.push('');

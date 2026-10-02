@@ -243,6 +243,48 @@ const COMMANDS: Command[] = [
     },
   },
   {
+    name: 'apps',
+    description: 'Per-app audit (Layer 5 of stack-verify)',
+    aliases: ['app', 'audit'],
+    usage: 'stack apps [audit] [--only typecheck,test,lint] [--json] [--affected <ref>]',
+    handler: (args) => {
+      const action = args[0] || 'audit';
+      const rest = args.slice(1);
+      switch (action) {
+        case 'audit':
+        case 'a': {
+          const cliArgs: string[] = [];
+          if (rest.includes('--json') || rest.includes('-j')) cliArgs.push('--json');
+          if (rest.includes('--plan')) cliArgs.push('--plan');
+          // acepta --only typecheck,test o --check typecheck,test (alias)
+          const onlyIdx = rest.indexOf('--only');
+          const checkIdx = rest.indexOf('--check');
+          const pickIdx = onlyIdx >= 0 ? onlyIdx : checkIdx;
+          if (pickIdx >= 0 && rest[pickIdx + 1] && !rest[pickIdx + 1].startsWith('--')) {
+            cliArgs.push('--check', rest[pickIdx + 1]);
+          }
+          const affIdx = rest.indexOf('--affected');
+          if (affIdx >= 0 && rest[affIdx + 1]) cliArgs.push('--affected', rest[affIdx + 1]);
+          const flags = cliArgs.length ? ' ' + cliArgs.map((c) => (c.includes(' ') ? `"${c}"` : c)).join(' ') : '';
+          printInfo(`Running per-app audit (Layer 5)${flags}...`);
+          // usa el helper runNpxTsx local que hereda stdio
+          runNpxTsx('src/ops/stack-audit-apps.ts', cliArgs);
+          break;
+        }
+        case 'list':
+        case 'ls': {
+          // lista rapida de las apps detectadas, sin ejecutar nada
+          runNpxTsx('src/ops/stack-audit-apps.ts', ['--check', 'none']);
+          break;
+        }
+        default:
+          printError(`Unknown action: stack apps ${action}`);
+          printInfo('Uso: stack apps [audit|list] [--only typecheck,test] [--json]');
+          process.exit(1);
+      }
+    },
+  },
+  {
     name: 'tools',
     description: 'List and execute available tools',
     aliases: ['t', 'tool'],
