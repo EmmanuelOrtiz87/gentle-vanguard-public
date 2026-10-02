@@ -41,9 +41,10 @@ async function main(): Promise<void> {
 
   // Fire-and-forget: equivalente a `npm run session:autostart:detached`, invocando node
   // directamente (spawn de npm.cmd sin shell falla con EINVAL en Node >= 18).
+  // El archivo vive en src/session/ desde el F2.2; antes estaba en src/ raíz.
   const child = spawn(
     process.execPath,
-    ['--import', 'tsx', resolve(REPO_ROOT, 'src', 'session-autostart-detached.ts')],
+    ['--import', 'tsx', resolve(REPO_ROOT, 'src', 'session', 'session-autostart-detached.ts')],
     { cwd: REPO_ROOT, detached: true, stdio: 'ignore', windowsHide: true },
   );
   child.on('error', () => {

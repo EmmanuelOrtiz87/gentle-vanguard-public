@@ -56,7 +56,7 @@ el generador (`apps/academy-web/scripts/build-landing.mjs`, variables `whatsappU
 
 ## Catálogo JSON (`catalog.json`)
 
-Export machine-readable del catálogo completo: counts, pricing por tier, y los 52 productos con
+Export machine-readable del catálogo completo: counts, pricing por tier, y los 78 productos con
 metadata (id, título, tipo, páginas, audiencia, links, priceTier). Consumible por integraciones
 externas (CRM, checkout, agregadores). Se regenera con el script.
 

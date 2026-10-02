@@ -8,12 +8,19 @@
  * green run, the gate skips everything (<5s warm). Cold runs target <60s.
  *
  * Usage:
- *   npx tsx src/git/prepush-gate.ts            # run gate (cache-aware)
- *   npx tsx src/git/prepush-gate.ts --force    # bypass cache
- *   npx tsx src/git/prepush-gate.ts --json     # machine-readable output
- *   npx tsx src/git/prepush-gate.ts --list     # list checks and exit
+ *   npx tsx src/git/prepush-gate.ts                # run gate (cache-aware)
+ *   npx tsx src/git/prepush-gate.ts --force        # bypass cache
+ *   npx tsx src/git/prepush-gate.ts --json         # machine-readable output
+ *   npx tsx src/git/prepush-gate.ts --list         # list checks and exit
+ *   npx tsx src/git/prepush-gate.ts --skip-apps    # hotfixes: skip Layer 5 stack-audit-apps
+ *                                                  #   (saves 3-6 min, BOTH warm cache and check)
  *
  * Exit codes: 0 = all checks passed (or warm cache hit), 1 = any check failed.
+ *
+ * NOTE: --skip-apps is for HOTFIXES ONLY (security patch, typo, ci-only). It bypasses
+ * the Layer 5 per-app audit (typecheck+test on all 14 apps) which costs 3-6 min. The
+ * tree hash for the cache is intentionally NOT stored under --skip-apps, so the next
+ * full push still validates the apps. Use sparingly.
  */
 import { createHash } from 'crypto';
 import { spawnSync } from 'child_process';
@@ -73,11 +80,25 @@ const CHECKS: GateCheck[] = [
     description: 'npm audit (moderate+)',
   },
   {
+    name: 'deadcode-ratchet',
+    command: 'npx',
+    args: ['tsx', 'src/ops/deadcode-ratchet.ts'],
+    timeoutMs: 180_000,
+    description: 'Deadcode ratchet (knip) — bloquea si crece vs .deadcode-baseline.txt',
+  },
+  {
     name: 'shell-quoting',
     command: 'npm',
     args: ['run', 'audit:shell-quoting'],
     timeoutMs: 60_000,
     description: 'Static shell-quoting audit',
+  },
+  {
+    name: 'design-canon-conformance',
+    command: 'npm',
+    args: ['run', 'conformance', '--prefix', 'packages/gv-design-system', '--silent'],
+    timeoutMs: 120_000,
+    description: 'Canon visual: shell + marca byte-identica + paleta + fuentes (NORM-DESIGN-SYSTEM rev2)',
   },
   {
     name: 'perf-baseline',
@@ -99,6 +120,13 @@ const CHECKS: GateCheck[] = [
     args: ['tsx', 'src/security/generate-sbom.ts', '--output', 'sbom.json', '--format', 'json'],
     timeoutMs: 120_000,
     description: 'Regenerate SBOM',
+  },
+  {
+    name: 'stack-audit-apps',
+    command: 'npx',
+    args: ['tsx', 'src/ops/stack-audit-apps.ts'],
+    timeoutMs: 360_000, // 6 min — corre typecheck+test en cada una de las 14 apps
+    description: 'Layer 5 stack-verify: typecheck + test en apps/* (14 apps)',
   },
   {
     name: 'container-scan',
@@ -285,16 +313,32 @@ async function main(): Promise<void> {
   const force = args.includes('--force');
   const json = args.includes('--json');
   const list = args.includes('--list');
+  const skipApps = args.includes('--skip-apps');
+
+  // Effective checks = base CHECKS minus any skipped by flag
+  const checks = skipApps
+    ? CHECKS.filter((c) => c.name !== 'stack-audit-apps')
+    : CHECKS;
 
   if (list) {
-    for (const c of CHECKS) console.log(`${c.name}\t${c.description}`);
+    for (const c of checks) console.log(`${c.name}\t${c.description}`);
     return;
+  }
+
+  if (skipApps && !json) {
+    console.log(
+      '[prepush-gate] ⚠ --skip-apps: skipping stack-audit-apps (Layer 5, 3-6 min). ' +
+        'For HOTFIXES only. Next full push will re-validate apps.',
+    );
+    console.log('');
   }
 
   const start = Date.now();
   const treeHash = computeTreeHash();
 
-  if (!force) {
+  // --skip-apps implies --force for cache purposes (skip partial-result cache hits).
+  // We never STORE to cache under --skip-apps because the gate is intentionally incomplete.
+  if (!force && !skipApps) {
     const cache = loadCache();
     const hit = cache.entries[treeHash];
     if (hit) {
@@ -313,12 +357,12 @@ async function main(): Promise<void> {
   }
 
   const before = runGit(['status', '--porcelain']);
-  const results = await runChecks(CHECKS);
+  const results = await runChecks(checks);
   const totalMs = Date.now() - start;
   const allPass = results.every((r) => r.status === 'pass');
   const fence = treeFence(before);
 
-  if (allPass) {
+  if (allPass && !skipApps) {
     const cache = loadCache();
     cache.entries[treeHash] = {
       timestamp: new Date().toISOString(),
@@ -328,7 +372,17 @@ async function main(): Promise<void> {
   }
 
   if (json) {
-    console.log(JSON.stringify({ warmCache: false, treeHash, totalMs, allPass, results, fence }));
+    console.log(
+      JSON.stringify({
+        warmCache: false,
+        treeHash,
+        totalMs,
+        allPass,
+        skipped: skipApps ? ['stack-audit-apps'] : [],
+        results,
+        fence,
+      }),
+    );
   } else {
     printSummary(results, totalMs);
     printFence(fence);

@@ -14,8 +14,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { mkdtempSync, readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   containsJsonComments,
   writeFileAtomic,
@@ -89,4 +90,45 @@ test('buildZCodeHookConfig: re-corrida es idempotente (merge sobre su propia sal
   const first = buildZCodeHookConfig({}, '/repo');
   const second = buildZCodeHookConfig(first, '/repo');
   assert.deepEqual(second, first);
+});
+
+test('zcode-hooks: los paths que invocan los hooks existen (no drift por refactor)', () => {
+  // Regression 2026-09-30: session-start.ts referenciaba src/session-autostart-detached.ts
+  // pero el archivo vive en src/session/ desde el F2.2. El hook se rompía silenciosamente.
+  const repoRoot = join(fileURLToPath(import.meta.url), '..', '..', '..');
+  const targets = [
+    join(repoRoot, 'src', 'zcode-hooks', 'session-start.ts'),
+    join(repoRoot, 'src', 'zcode-hooks', 'post-edit-graphify.ts'),
+    join(repoRoot, 'src', 'session', 'session-autostart-detached.ts'),
+    join(repoRoot, 'src', 'cli', 'graphify.ts'),
+  ];
+  for (const f of targets) {
+    assert.ok(existsSync(f), `falta archivo al que un hook zcode apunta: ${f}`);
+  }
+
+  // Validar que los hooks NO apuntan a rutas que ya no existen (post-F2.2):
+  // session-autostart-detached.ts en la RAIZ sería un drift silencioso.
+  const wrongPath = join(repoRoot, 'src', 'session-autostart-detached.ts');
+  assert.equal(existsSync(wrongPath), false, `drift detectado: hook apunta a ${wrongPath} que ya no existe`);
+});
+
+test('zcode-hooks: el config vivo referencia scripts que existen (ZCode puede arrancarlos)', () => {
+  // El config sincronizado en ~/.zcode/cli/config.json NO debe apuntar a scripts inexistentes.
+  const cfgPath = join(homedir(), '.zcode', 'cli', 'config.json');
+  if (!existsSync(cfgPath)) return; // el sync aún no corrió en esta máquina — no fallar
+  const cfg = JSON.parse(readFileSync(cfgPath, 'utf8')) as {
+    hooks?: { events?: Record<string, Array<{ hooks?: Array<{ args?: string[] }> }>> };
+  };
+  for (const [, matchers] of Object.entries(cfg.hooks?.events ?? {})) {
+    for (const m of matchers ?? []) {
+      for (const h of m.hooks ?? []) {
+        const tsArg = (h.args ?? []).find((a) => a.endsWith('.ts') && a.includes('zcode-hooks'));
+        if (!tsArg) continue;
+        assert.ok(
+          existsSync(tsArg),
+          `~/.zcode/cli/config.json apunta a script inexistente: ${tsArg}`,
+        );
+      }
+    }
+  }
 });

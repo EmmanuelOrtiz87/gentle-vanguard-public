@@ -174,6 +174,9 @@
     "test:integration": "node --test tests/integration/api-health.test.js tests/integration/gv-analytics-api.test.ts tests/integration/phase-13-2-3/phase-integration.test.ts",
     "test:phase-integration": "npx tsx --test tests/integration/phase-13-2-3/phase-integration.test.ts",
     "test:smoke": "npx tsx --test tests/smoke/*.test.ts",
+    "stack:audit": "npx tsx src/ops/stack-audit-apps.ts",
+    "stack:audit:json": "npx tsx src/ops/stack-audit-apps.ts --json",
+    "mcp:stack": "npx tsx src/mcp/stack-mcp-server.ts",
     "test:scripts-smoke": "npx tsx --test tests/unit/scripts/*.test.ts",
     "test:config": "node --test tests/config/*.test.ts",
     "test:research": "cd research/rlhf-dataset-search && python -m pytest ../../tests/research/test_search_datasets.py -v",
@@ -484,7 +487,10 @@
     "educacion:preview": "node --import tsx src/education/preview-study-guide.ts --guide tecnologia-1-secundaria/guia-estudio && node --import tsx src/education/preview-study-guide.ts --guide tecnologia-1-secundaria/cuaderno-practicas",
     "educacion:qa": "node --import tsx src/tools/qa-print-html.ts --dir docs/educacion/tecnologia-1-secundaria/guia-estudio --label guia-estudio && node --import tsx src/tools/qa-print-html.ts --file docs/educacion/tecnologia-1-secundaria/cuaderno-practicas/cuaderno-practicas.html --label cuaderno-practicas",
     "educacion:check": "npm run educacion:pdf && npm run educacion:preview && npm run educacion:qa",
-    "qa:print": "node --import tsx src/tools/qa-print-html.ts"
+    "qa:print": "node --import tsx src/tools/qa-print-html.ts",
+    "deadcode:check": "npx tsx src/ops/deadcode-ratchet.ts",
+    "deadcode:update": "npx tsx src/ops/deadcode-ratchet.ts --update-baseline",
+    "bench": "npx tsx bench/run-bench.ts"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "0.8.0",
@@ -501,8 +507,10 @@
     "esbuild": "^0.28.1",
     "eslint": "^10.8.1",
     "eslint-plugin-security": "^4.0.1",
+    "fast-check": "^4.10.2",
     "impeccable": "^3.6.0",
     "js-yaml": "^5.3.0",
+    "knip": "6.38.0",
     "lefthook": "^2.1.8",
     "playwright": "^1.62.1",
     "postject": "1.0.0-alpha.6",

@@ -64,8 +64,9 @@ function verifyDeployKey(): boolean {
     log('!', `Deploy key no encontrada en ${keyPath}. Corré setup-landing-deploy-key.ts primero.`);
     return false;
   }
-  // 2. Remote: SSH funciona (la publica debe estar agregada al repo gentlevanguard)
-  const r = run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', HOST_ALIAS, 'git-upload-pack gentlevanguard/gentlevanguard.github.io.git']);
+  // 2. Remote: SSH funciona CON ESCRITURA (git-receive-pack; una key read-only pasa
+  //    git-upload-pack y el push explota después — fix 2026-10-01)
+  const r = run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', HOST_ALIAS, 'git-receive-pack gentlevanguard/gentlevanguard.github.io.git']);
   if (r.status === 0) return true;
   // 3. Fallback HTTPS: si gh está autenticado con acceso al repo, usamos HTTPS.
   log('!', `SSH fallo: ${r.stderr.slice(0, 200)}`);

@@ -969,6 +969,46 @@ export async function phaseCleanup(
         : 'Retention: no cleanup needed',
   });
 
+  // 5.7 Background-task drain safety net ("ventanas fantasma" — 2026-10-01).
+  // Calls scripts/utilities/background-tasks.ts to:
+  //   1. read the runtime state file (.runtime/bg-tasks.json)
+  //   2. reap any OS-level long-running tsx processes (auto-promoted leaks)
+  // Best-effort: never FAIL the close if it errors — it's a safety net, not a gate.
+  try {
+    const bgDrain = runNpxTsxSync(
+      resolve(ROOT, 'scripts/utilities/background-tasks.ts'),
+      ['--list'],
+      { timeout: 20_000 },
+    );
+    const hasPending =
+      bgDrain.stdout.includes('PENDING') ||
+      (bgDrain.status === 0 && Boolean(bgDrain.stdout.match(/\d+ bg task\(s\)/)?.[0]));
+    results.push({
+      phase: 'bg-tasks-drain',
+      status: 'PASS',
+      detail: hasPending
+        ? `bg tasks listed — agent must drain via task_output/task_stop next turn (output: ${bgDrain.stdout.slice(0, 120).replace(/\n/g, ' ')})`
+        : 'No lingering bg tasks in state file (runtime reminders drained separately by agent)',
+    });
+    // Also reap OS leaks (best-effort)
+    const reap = runNpxTsxSync(
+      resolve(ROOT, 'scripts/utilities/background-tasks.ts'),
+      ['--reap-os', '--apply'],
+      { timeout: 20_000 },
+    );
+    results.push({
+      phase: 'bg-tasks-reap-os',
+      status: 'PASS',
+      detail: `OS reap exit=${reap.status} (output: ${reap.stdout.slice(0, 80).replace(/\n/g, ' ')})`,
+    });
+  } catch (e) {
+    results.push({
+      phase: 'bg-tasks-drain',
+      status: 'SKIP',
+      detail: e instanceof Error ? e.message : 'bg drain not available',
+    });
+  }
+
   return results;
 }
 

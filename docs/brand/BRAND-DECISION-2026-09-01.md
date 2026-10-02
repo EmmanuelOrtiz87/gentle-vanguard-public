@@ -1,5 +1,11 @@
 # BRAND DECISION — 2026-09-01
 
+> **🗄 SUPERSEDED (2026-09-08):** esta decisión fue reemplazada por la identidad
+> **v2.0 APPLICATION FINAL** — ver `docs/adr/ADR-0033-nueva-identidad-marca-v3.md` (accepted) y
+> `docs/brand/BRAND-KIT.md` (canon vigente). Los valores de este documento (bg `#0F1115`,
+> `#a78bfa`, `#22d3ee`, Space Grotesk, gradiente 2-stop) NO deben usarse. Se conserva solo como
+> historia. Registro: `docs/brand/DESIGN-DECISIONS-LOG.md` §2.
+
 ## Decisión oficial del propietario de marca
 
 | Aspecto            | Decisión         | Detalle                                                                                                                                 |

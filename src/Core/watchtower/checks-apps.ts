@@ -6,6 +6,7 @@
 
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { runNpxTsxSync } from '../run-command';
 import { RUNTIME_DIR, ROOT, addResult, quiet } from './context';
 import { fileExists, readJson } from './helpers';
 import { log } from '../../utils/logger.js';
@@ -147,5 +148,121 @@ export async function checkAppsRegistry() {
         );
       }
     }
+  }
+}
+
+/**
+ * Vigila la salud de las 14 apps via el per-app audit (Layer 5 stack-verify).
+ *
+ * Corre `npx tsx src/ops/stack-audit-apps.ts --json --plan` (NO ejecuta npm run
+ * typecheck/test — eso dura ~3min y el watchtower ya tiene un check 'typecheck'
+ * global). El audit en modo plan reporta que apps existen + que scripts
+ * tienen, suficiente para detectar:
+ *  - app removida o renombrada (desaparecio del discoverApps)
+ *  - app nueva sin scripts typecheck/test (deberia ser PASS con scripts)
+ *  - app existente que perdio sus scripts (regresion)
+ *
+ * Si el audit falla o retorna apps sin scripts (WARN), lo refleja en el
+ * resultado del watchtower para que el operador lo vea en `npm run
+ * watchtower:health`.
+ *
+ * Timeout 30s (solo discovery + lectura de package.json, no npm run).
+ */
+export async function checkAppsAudit() {
+  if (!quiet) logger.info('  [Apps Audit] Layer 5 (plan mode)...');
+
+  let stdout = '';
+  try {
+    const r = runNpxTsxSync('src/ops/stack-audit-apps.ts', ['--json', '--plan'], {
+      cwd: ROOT,
+      timeout: 30_000,
+    });
+    if (r.status !== 0) {
+      addResult(
+        'apps-audit',
+        'stack-audit-apps --json --plan',
+        'FAIL',
+        `exit=${r.status}: ${(r.stderr || r.stdout || '').slice(0, 200)}`,
+        'verify',
+      );
+      return;
+    }
+    stdout = r.stdout || '';
+  } catch (err) {
+    addResult(
+      'apps-audit',
+      'stack-audit-apps --json --plan',
+      'FAIL',
+      `excepcion: ${(err as Error).message.slice(0, 200)}`,
+      'verify',
+    );
+    return;
+  }
+
+  let parsed: { audits: Array<{ app: string; status: string; checks: Array<{ kind: string; status: string }> }> };
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    addResult(
+      'apps-audit',
+      'JSON parse',
+      'FAIL',
+      `stdout no es JSON: ${stdout.slice(0, 200)}`,
+      'verify',
+    );
+    return;
+  }
+
+  const apps = parsed.audits || [];
+  const pass = apps.filter((a) => a.status === 'PASS').length;
+  const warn = apps.filter((a) => a.status === 'WARN').length;
+  const fail = apps.filter((a) => a.status === 'FAIL').length;
+
+  // En plan mode (--plan) el audit NO ejecuta npm run, todos los checks son
+  // SKIP. Solo emitimos el resumen (cantidad de apps descubiertas). Las
+  // advertencias de 'apps sin scripts' solo se emiten cuando el audit REAL
+  // ejecuto y detecto que la app no tiene scripts definidos.
+  const executed = apps.some((a) => a.checks.some((c) => c.status !== 'SKIP'));
+
+  if (executed) {
+    const orphans = apps.filter(
+      (a) => a.checks.length === 0 || a.checks.every((c) => c.status === 'SKIP'),
+    );
+    for (const a of orphans) {
+      addResult(
+        'apps-audit',
+        `audit:${a.app}`,
+        'WARN',
+        'app sin scripts typecheck/test/lint — no auditable; agregar scripts o documentar exclusion',
+        'verify',
+      );
+    }
+  }
+
+  // Resumen agregado.
+  if (fail > 0) {
+    addResult(
+      'apps-audit',
+      'resumen',
+      'FAIL',
+      `${apps.length} apps: ${pass} PASS / ${warn} WARN / ${fail} FAIL`,
+      'rebuild',
+    );
+  } else if (warn > 0) {
+    addResult(
+      'apps-audit',
+      'resumen',
+      'WARN',
+      `${apps.length} apps: ${pass} PASS / ${warn} WARN${executed ? ' (apps sin scripts auditables)' : ' (plan mode)'}`,
+      'ok',
+    );
+  } else {
+    addResult(
+      'apps-audit',
+      'resumen',
+      'PASS',
+      `${apps.length} apps con scripts auditables`,
+      'ok',
+    );
   }
 }

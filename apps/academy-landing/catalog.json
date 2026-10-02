@@ -1,11 +1,11 @@
 {
-  "generated": "2026-09-21T23:02:50.900Z",
+  "generated": "2026-09-30T23:42:17.121Z",
   "counts": {
-    "courses": 20,
-    "ebooks": 21,
-    "ebooksPremium": 10,
-    "toolkits": 12,
-    "products": 53
+    "courses": 25,
+    "ebooks": 31,
+    "ebooksPremium": 15,
+    "toolkits": 22,
+    "products": 78
   },
   "pricing": {
     "ebook-micro": {
@@ -32,6 +32,10 @@
       "usd": 250,
       "includes": "Formación a medida para tu empresa o equipo (hasta 5 personas): diagnóstico + diseño del programa, material completo para cada integrante, 4 sesiones en vivo y 30 días de seguimiento por WhatsApp"
     },
+    "pack-agencia": {
+      "usd": 390,
+      "includes": "Los 5 perfiles creativos completos (Community Manager, Social Media, Diseño, Creador de Contenido y Copywriter): 5 cursos + 5 ebooks + 5 toolkits con prompts, plantillas y automatizaciones. Valor individual USD 750 — ahorro del 48%"
+    },
     "mentor-individual": {
       "usd": 20,
       "includes": "Sesión 1 a 1 de 1 hora"
@@ -57,6 +61,46 @@
         "categories": [
           "negocios-productividad",
           "infraestructura-redes-ciberseguridad"
+        ]
+      },
+      {
+        "id": "community-manager-ia",
+        "title": "Community Manager con IA",
+        "level": "de 0 a 100",
+        "hours": 9,
+        "categories": [
+          "creatividad-contenido-diseno",
+          "ia-aplicada"
+        ]
+      },
+      {
+        "id": "copywriter-ia",
+        "title": "Copywriter con IA",
+        "level": "de 0 a 100",
+        "hours": 9,
+        "categories": [
+          "creatividad-contenido-diseno",
+          "ia-aplicada"
+        ]
+      },
+      {
+        "id": "creador-contenido-ia",
+        "title": "Creador de Contenido y Edición de Video con IA",
+        "level": "de 0 a 100",
+        "hours": 9,
+        "categories": [
+          "creatividad-contenido-diseno",
+          "ia-aplicada"
+        ]
+      },
+      {
+        "id": "diseno-grafico-ia",
+        "title": "Diseño Gráfico y Digital con IA",
+        "level": "de 0 a 100",
+        "hours": 9,
+        "categories": [
+          "creatividad-contenido-diseno",
+          "ia-aplicada"
         ]
       },
       {
@@ -193,6 +237,16 @@
         ]
       },
       {
+        "id": "social-media-ia",
+        "title": "Social Media Manager con IA",
+        "level": "de 0 a 100",
+        "hours": 9,
+        "categories": [
+          "creatividad-contenido-diseno",
+          "ia-aplicada"
+        ]
+      },
+      {
         "id": "sql",
         "title": "SQL — Domina las Bases de Datos Relacionales",
         "level": "de 0 a 100",
@@ -268,6 +322,42 @@
         "priceTier": "ebook-micro"
       },
       {
+        "id": "ia-community-manager",
+        "title": "IA para Community Managers",
+        "type": "micro",
+        "pages": 36,
+        "audience": "Community managers, freelancers y equipos de redes sociales",
+        "featured": false,
+        "priceTier": "ebook-micro"
+      },
+      {
+        "id": "ia-copywriter",
+        "title": "IA para Copywriters",
+        "type": "micro",
+        "pages": 36,
+        "audience": "Copywriters, redactores creativos y marketers de contenido",
+        "featured": false,
+        "priceTier": "ebook-micro"
+      },
+      {
+        "id": "ia-creador-contenido",
+        "title": "IA para Creadores de Contenido",
+        "type": "micro",
+        "pages": 36,
+        "audience": "Creadores de contenido, editores de video y marcas con canal propio",
+        "featured": false,
+        "priceTier": "ebook-micro"
+      },
+      {
+        "id": "ia-diseno-grafico",
+        "title": "IA para Diseñadores Gráficos",
+        "type": "micro",
+        "pages": 36,
+        "audience": "Diseñadores gráficos y digitales, freelancers y equipos de diseño",
+        "featured": false,
+        "priceTier": "ebook-micro"
+      },
+      {
         "id": "ia-en-tu-dia-a-dia",
         "title": "IA en tu día a día",
         "type": "free",
@@ -313,6 +403,15 @@
         "priceTier": "ebook-micro"
       },
       {
+        "id": "ia-social-media-manager",
+        "title": "IA para Social Media Managers",
+        "type": "micro",
+        "pages": 36,
+        "audience": "Social media managers, marketers y creadores de contenido de marcas",
+        "featured": false,
+        "priceTier": "ebook-micro"
+      },
+      {
         "id": "ia-ventas",
         "title": "IA para Ventas",
         "type": "micro",
@@ -327,6 +426,42 @@
         "type": "premium",
         "pages": 120,
         "audience": "Administrativos, asistentes, office managers, gestores",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
+        "id": "manual-ia-community-manager",
+        "title": "Manual Práctico de IA para Community Managers",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Community managers, freelancers y equipos de redes sociales",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
+        "id": "manual-ia-copywriter",
+        "title": "Manual Práctico de IA para Copywriters",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Copywriters senior, redactores creativos y consultores de conversión",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
+        "id": "manual-ia-creador-contenido",
+        "title": "Manual Práctico de IA para Creadores de Contenido",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Creadores de contenido, editores de video y canales de marca",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
+        "id": "manual-ia-diseno-grafico",
+        "title": "Manual Práctico de IA para Diseñadores Gráficos",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Diseñadores gráficos y digitales, directores de arte y estudios de diseño",
         "featured": true,
         "priceTier": "ebook-premium"
       },
@@ -403,6 +538,15 @@
         "priceTier": "ebook-premium"
       },
       {
+        "id": "manual-ia-social-media-manager",
+        "title": "Manual Práctico de IA para Social Media Managers",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Social media managers, marketers y equipos de contenido de marca",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
         "id": "manual-ia-ventas",
         "title": "Manual Práctico de IA para Ventas",
         "type": "premium",
@@ -438,6 +582,166 @@
         "links": {
           "course": "ia-fundamentos",
           "ebook": "manual-ia-administracion"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-community-manager",
+        "title": "IA para Community Managers",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Community managers, freelancers y equipos de redes sociales",
+        "links": {
+          "course": "community-manager-ia",
+          "ebook": "ia-community-manager"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-community-manager-pro",
+        "title": "IA para Community Managers Pro",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Community managers con experiencia, freelancers senior y equipos multi-marca",
+        "links": {
+          "course": "community-manager-ia",
+          "ebook": "manual-ia-community-manager"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-copywriter",
+        "title": "IA para Copywriters",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Copywriters, redactores creativos y marketers de contenido",
+        "links": {
+          "course": "copywriter-ia",
+          "ebook": "ia-copywriter"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-copywriter-pro",
+        "title": "IA para Copywriters Pro",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Copywriters senior, redactores creativos y consultores de conversión",
+        "links": {
+          "course": "copywriter-ia",
+          "ebook": "manual-ia-copywriter"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-creador-contenido",
+        "title": "IA para Creadores de Contenido",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Creadores de contenido, editores de video y marcas con canal propio",
+        "links": {
+          "course": "creador-contenido-ia",
+          "ebook": "ia-creador-contenido"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-creador-contenido-pro",
+        "title": "IA para Creadores de Contenido Pro",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Creadores full-time, editores profesionales y canales de marca",
+        "links": {
+          "course": "creador-contenido-ia",
+          "ebook": "manual-ia-creador-contenido"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-diseno-grafico",
+        "title": "IA para Diseñadores Gráficos",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Diseñadores gráficos y digitales, freelancers y equipos de diseño",
+        "links": {
+          "course": "diseno-grafico-ia",
+          "ebook": "ia-diseno-grafico"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-diseno-grafico-pro",
+        "title": "IA para Diseñadores Gráficos Pro",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Diseñadores senior, directores de arte y estudios de diseño",
+        "links": {
+          "course": "diseno-grafico-ia",
+          "ebook": "manual-ia-diseno-grafico"
         },
         "featured": true,
         "priceTier": "toolkit"
@@ -638,6 +942,46 @@
         "links": {
           "course": "ia-fundamentos",
           "ebook": "manual-ia-rrhh"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-social-media-manager",
+        "title": "IA para Social Media Managers",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Social media managers, marketers y equipos de contenido",
+        "links": {
+          "course": "social-media-ia",
+          "ebook": "ia-social-media-manager"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-social-media-manager-pro",
+        "title": "IA para Social Media Managers Pro",
+        "includes": [
+          "curso",
+          "ebook",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos"
+        ],
+        "audience": "Social media managers senior, marketers de marca y agencias chicas",
+        "links": {
+          "course": "social-media-ia",
+          "ebook": "manual-ia-social-media-manager"
         },
         "featured": true,
         "priceTier": "toolkit"

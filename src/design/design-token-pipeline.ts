@@ -75,7 +75,7 @@ function kebabToCamel(key: string): string {
 function generateCSS(brand: BrandConfig): string {
   let css = `/* Gentle-Vanguard Design Tokens */
 /* Auto-generated from ${'config/brand.json'} — DO NOT EDIT DIRECTLY */
-/* Generated: ${new Date().toISOString()} */
+/* Byte-idempotente: sin timestamp (O-7) — la trazabilidad vive en git */
 
 :root {\n`;
 
