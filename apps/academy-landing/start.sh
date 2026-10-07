@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# academy-landing — start nativo (estático, python http.server :4174). Idempotente.
+# academy-landing — start nativo (estático, node serve-static :4174). Idempotente.
+#
+# Sirve con el servidor estático zero-dep del stack (tools/serve-static.mjs);
+# reemplazó a `python -m http.server` (moría con WinError 10054 ante los port
+# probes del command-center). Bind loopback fijo, sin directory listing.
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -23,7 +27,7 @@ fi
 
 (
   cd "$APP" || exit 1
-  nohup python -m http.server 4174 --bind 127.0.0.1 -d . >>"$RUN/app-academy-landing-http.log" 2>&1 &
+  nohup node "$ROOT/tools/serve-static.mjs" 4174 "$APP" >>"$RUN/app-academy-landing-http.log" 2>&1 &
   mpid=$!
   wpid=$(cat "/proc/$mpid/winpid" 2>/dev/null || echo "$mpid")
   printf '%s\n' "$wpid" > "$PIDFILE"

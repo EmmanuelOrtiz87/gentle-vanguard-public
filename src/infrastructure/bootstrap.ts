@@ -36,16 +36,18 @@ function registerScheduledTask(
   intervalHours: number,
 ): 'ok' | 'fallback' | 'error' {
   const nativeCommand = `${quoteWindowsArg(process.execPath)} --import tsx ${quoteWindowsArg(taskScript)}`;
+  // Intervalos >= 24h usan /SC DAILY — /SC MINUTE rechaza /MO 1440+.
+  const scheduleArgs =
+    intervalHours >= 24
+      ? ['/SC', 'DAILY']
+      : ['/SC', 'MINUTE', '/MO', String(Math.max(1, Math.round(intervalHours * 60)))];
   const nativeResult = runCmd('schtasks.exe', [
     '/Create',
     '/TN',
     taskName,
     '/TR',
     nativeCommand,
-    '/SC',
-    'MINUTE',
-    '/MO',
-    String(Math.max(1, Math.round(intervalHours * 60))),
+    ...scheduleArgs,
     '/F',
   ]);
   if (nativeResult.status === 0) return 'ok';
@@ -63,10 +65,7 @@ function registerScheduledTask(
     taskName,
     '/TR',
     `${quoteWindowsArg('wscript.exe')} ${quoteWindowsArg(vbsPath)}`,
-    '/SC',
-    'MINUTE',
-    '/MO',
-    String(Math.max(1, Math.round(intervalHours * 60))),
+    ...scheduleArgs,
     '/F',
   ]);
   if (wrapperResult.status === 0) return 'fallback';
@@ -392,6 +391,47 @@ function main(): void {
       }
     } else {
       writeInfo(`Task script not found at ${kaTaskScript}. Skipping.`);
+    }
+
+    writeStep('Step 4b4: Scheduled Task - Nexus Backup (daily)...');
+    const bkTaskName = 'Gentle-Vanguard-Nexus-Backup';
+    const bkTaskScript = join(root, 'src', 'ops', 'nexus-backup-scheduled.ts');
+    if (existsSync(bkTaskScript)) {
+      // Diario: backup de .runtime/gentle-vanguard.db + prune keep 14.
+      const bkResult = registerScheduledTask(bkTaskName, bkTaskScript, root, 24);
+      if (bkResult === 'ok') {
+        writeSuccess(`Scheduled task '${bkTaskName}' registered hidden (daily DB backup).`);
+      } else if (bkResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${bkTaskName}' created hidden via wscript wrapper (daily DB backup).`,
+        );
+      } else {
+        writeInfo('Could not create Nexus backup scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${bkTaskScript}. Skipping.`);
+    }
+
+    writeStep('Step 4b5: Scheduled Task - Posting Dispatch (15 min)...');
+    const pdTaskName = 'Gentle-Vanguard-Posting-Dispatch';
+    const pdTaskScript = join(root, 'src', 'ops', 'posting-dispatch-scheduled.ts');
+    if (existsSync(pdTaskScript)) {
+      // 15 min: drena un round de post_queue del ContentOS. Fail-safe con
+      // registry vacío ({claimed:0}); drena solo cuando haya providers.
+      const pdResult = registerScheduledTask(pdTaskName, pdTaskScript, root, 0.25);
+      if (pdResult === 'ok') {
+        writeSuccess(
+          `Scheduled task '${pdTaskName}' registered hidden (drains post queue every 15 min).`,
+        );
+      } else if (pdResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${pdTaskName}' created hidden via wscript wrapper (drains post queue every 15 min).`,
+        );
+      } else {
+        writeInfo('Could not create posting dispatch scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${pdTaskScript}. Skipping.`);
     }
   } else {
     writeInfo('Scheduled tasks not supported on this platform. Hooks handle sync.');

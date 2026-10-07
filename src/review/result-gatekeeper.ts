@@ -23,6 +23,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { homedir } from 'os';
 import { join, resolve } from 'path';
 import { runSync } from '../core/run-command.js';
 import { pathToFileURL } from 'url';
@@ -155,7 +156,7 @@ const PHASE_CONTRACTS: PhaseContract[] = [
         id: 'engram-db-exists',
         description: 'Engram database exists',
         check: 'file_exists',
-        target: '.engram/engram.db',
+        target: '~/.engram/engram.db',
       },
       {
         id: 'engram-config-exists',
@@ -195,7 +196,7 @@ const PHASE_CONTRACTS: PhaseContract[] = [
         id: 'skill-dir-exists',
         description: 'Skills directory exists',
         check: 'dir_exists',
-        target: '.opencode/skills',
+        target: 'skills',
       },
       {
         id: 'opencode-config-valid',
@@ -261,7 +262,11 @@ function loadConfig(): GatekeeperConfig {
 }
 
 function checkValidation(validation: Validation): { status: ContractStatus; detail: string } {
-  const targetPath = join(ROOT, validation.target);
+  // Targets con prefijo ~/ se resuelven contra el home del usuario (p. ej.
+  // la DB de Engram vive en ~/.engram/engram.db, NO dentro del repo).
+  const targetPath = validation.target.startsWith('~/')
+    ? join(homedir(), validation.target.slice(2))
+    : join(ROOT, validation.target);
 
   switch (validation.check) {
     case 'file_exists':
@@ -393,7 +398,13 @@ export function verifyContract(phase: string): ContractResult {
         phase,
         status,
         process.env.SESSION_ID,
-        JSON.stringify({ summary: result.summary, validations: validationResults.length }),
+        JSON.stringify({
+          summary: result.summary,
+          validations: validationResults.length,
+          // Detalle por validación — sin esto el triage de fallos exige
+          // reproducir el contrato (lección de los 293 'fail' de engram-policy).
+          validationResults,
+        }),
       );
     }
   } catch {

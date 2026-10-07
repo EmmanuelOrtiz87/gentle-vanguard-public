@@ -278,6 +278,22 @@ async function testDocsConsistency(): Promise<boolean> {
   }
 }
 
+// Test 12: Ubicación y fuente de los entregables de cliente (NORM-CLIENTES-002 / 011).
+// Detecta artefactos de cliente fuera de docs/clientes/<slug>/ y entregables binarios
+// (DOCX/XLSX/PPTX) sin fuente .md/.json versionada — la causa raíz del drift entre un
+// documento corregido y su render (presupuesto con montos de una versión anterior).
+async function testClientesUbicacion(): Promise<boolean> {
+  try {
+    const result = runNpxTsxSync('src/ops/auditoria-clientes.ts', [], {
+      cwd: ROOT,
+      timeout: 60000,
+    });
+    return result.status === 0;
+  } catch {
+    return false;
+  }
+}
+
 // =============================================================================
 // MAIN
 // =============================================================================
@@ -312,6 +328,7 @@ async function main(): Promise<void> {
   await runTest('Skill Quality Gate', testSkillQualityGate, true);
   await runTest('Lint Check', testLint, false);
   await runTest('Docs Consistency', testDocsConsistency, true);
+  await runTest('Clientes: ubicacion y fuente', testClientesUbicacion, true);
 
   if (!quickMode) {
     await runTest('Watchtower Health', testWatchtower, false);

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet">
+  <!-- Manual Practico de Ciberseguridad · cover v1 · canon v2.0 (ADR-0033) -->
+  <defs>
+    <linearGradient id="gv-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1020"/>
+      <stop offset="50%" stop-color="#151921"/>
+      <stop offset="100%" stop-color="#090C11"/>
+    </linearGradient>
+    <linearGradient id="gv-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6E4DEB"/>
+      <stop offset="52%" stop-color="#7B63E8"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gv-book" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#gv-bg)"/>
+  <!-- book shape -->
+  <g transform="translate(400,340)">
+    <rect x="-140" y="-180" width="280" height="360" rx="6" fill="none" stroke="url(#gv-book)" stroke-width="4"/>
+    <line x1="-140" y1="-130" x2="140" y2="-130" stroke="url(#gv-book)" stroke-width="2" opacity="0.6"/>
+    <line x1="-140" y1="-100" x2="140" y2="-100" stroke="url(#gv-book)" stroke-width="2" opacity="0.4"/>
+    <line x1="-140" y1="-70" x2="120" y2="-70" stroke="url(#gv-book)" stroke-width="2" opacity="0.3"/>
+    <line x1="-140" y1="100" x2="120" y2="100" stroke="url(#gv-book)" stroke-width="2" opacity="0.5"/>
+    <!-- spine -->
+    <line x1="0" y1="-180" x2="0" y2="180" stroke="url(#gv-book)" stroke-width="3"/>
+    <!-- book icon center -->
+    <circle cx="0" cy="20" r="28" fill="none" stroke="url(#gv-accent)" stroke-width="3"/>
+    <text x="0" y="28" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="28" fill="url(#gv-accent)">$</text>
+  </g>
+  <!-- title -->
+  <text x="400" y="640" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="44" font-weight="700" fill="#e8eef4">Manual Practico de</text>
+  <text x="400" y="690" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="44" font-weight="700" fill="#e8eef4">Ciberseguridad</text>
+  <text x="400" y="730" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="20" font-weight="500" fill="url(#gv-accent)">De persona a empresa</text>
+  <!-- subtitle -->
+  <text x="400" y="790" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="400" fill="#c4cdd8">Sistema completo de defensa</text>
+  <!-- meta -->
+  <g font-family="Inter, system-ui, sans-serif" font-size="14" fill="#8b95a8" text-anchor="middle">
+    <text x="400" y="880">10 capitulos · 120 paginas · formato premium</text>
+    <text x="400" y="905">Caso de estudio: stack de Gentle Vanguard</text>
+    <text x="400" y="945" font-family="Poppins, system-ui, sans-serif" font-size="14" font-weight="700" fill="#8B5CF6">GentleVanguard Academy · eBook</text>
+  </g>
+</svg>

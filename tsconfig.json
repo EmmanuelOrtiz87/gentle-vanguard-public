@@ -28,6 +28,7 @@
   "include": [
     "adapters/**/*.ts",
     "packages/shared/src/**/*.ts",
+    "packages/gv-shorts-core/src/**/*.ts",
     "scripts/*.ts",
     "scripts/mcp/**/*.ts",
     "scripts/debug/**/*.ts",

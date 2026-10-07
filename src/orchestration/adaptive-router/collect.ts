@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { createRequire } from 'node:module';
 import type { SkillMetric, DelegationRecord, CorrectionEntry } from './types.js';
 import {
   SKILL_USAGE_DIR,
@@ -16,7 +17,152 @@ import {
 
 // ─── Data Collection ──────────────────────────────────────────────────
 
+/**
+ * Reads real usage from Nexus, which is where `src/knowledge/skill-usage-recorder.ts`
+ * actually writes. Nexus held 39 `skill_usage` rows and 36 `skill_execution_outcomes`
+ * rows while the router reported "0 agents scored": the evidence existed and the
+ * collector was reading a different place entirely. Nexus is authoritative; the
+ * filesystem JSON is only a fallback.
+ */
+function collectFromNexus(log: Logger): SkillMetric[] {
+  const dbPath = join(ROOT, '.runtime', 'gentle-vanguard.db');
+  if (!existsSync(dbPath)) return [];
+  let db: import('better-sqlite3').Database | undefined;
+  try {
+    // Required lazily through createRequire so this file stays loadable when the
+    // native module is unavailable; a static import would not.
+    const require_ = createRequire(import.meta.url);
+    const Database = require_('better-sqlite3') as typeof import('better-sqlite3');
+    db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const rows = db
+      .prepare(
+        `SELECT skill_id AS skillId,
+                SUM(count)       AS useCount,
+                SUM(cost)        AS cost,
+                SUM(tokens_used) AS tokens,
+                MAX(last_used)   AS lastUsed
+           FROM skill_usage
+          GROUP BY skill_id`,
+      )
+      .all() as Array<Record<string, unknown>>;
+
+    // Outcomes, when present, are the success signal. Absent outcomes mean unknown,
+    // never perfect.
+    const outcomes = new Map<string, { total: number; failures: number }>();
+    try {
+      const outcomeRows = db
+        .prepare(
+          `SELECT skill_id AS skillId, success AS success
+             FROM skill_execution_outcomes`,
+        )
+        .all() as Array<{ skillId: string; success: number | null }>;
+      for (const row of outcomeRows) {
+        const entry = outcomes.get(row.skillId) ?? { total: 0, failures: 0 };
+        entry.total++;
+        if (row.success === 0) entry.failures++;
+        outcomes.set(row.skillId, entry);
+      }
+    } catch {
+      log('  Nexus: skill_execution_outcomes unavailable, using usage counts only');
+    }
+
+    const metrics: SkillMetric[] = [];
+    for (const row of rows) {
+      const useCount = Number(row.useCount) || 0;
+      if (useCount <= 0) continue;
+      const outcome = outcomes.get(String(row.skillId));
+      const failureCount = outcome ? outcome.failures : 0;
+      const successRate = outcome && outcome.total > 0 ? (outcome.total - outcome.failures) / outcome.total : 0;
+      metrics.push({
+        skillName: String(row.skillId),
+        useCount,
+        failureCount,
+        successRate,
+        avgTokensUsed: useCount > 0 ? Math.round((Number(row.tokens) || 0) / useCount) : 0,
+        lastOutcome: (row.lastUsed as string) ?? null,
+        outcomeCount: outcome?.total ?? 0,
+      });
+    }
+    log(`  Nexus skill_usage: ${metrics.length} skill(s) with real observations`);
+
+    // routing_rules is where src/orchestration/route-and-delegate.ts actually records
+    // delegation outcomes (recordRoutingOutcome). It was the one live sink the collector
+    // did not read: skill_usage records that a skill was used, and nothing recorded the
+    // result of a delegation. hit_count is the attempt count and success_count the wins,
+    // so this is genuine outcome evidence by the same definition used elsewhere.
+    try {
+      const rules = db
+        .prepare(
+          `SELECT target, pattern, hit_count, success_count, success_rate
+             FROM routing_rules
+            WHERE enabled = 1 AND hit_count > 0`,
+        )
+        .all() as Array<{
+        target: string;
+        pattern: string;
+        hit_count: number;
+        success_count: number;
+        success_rate: number;
+      }>;
+      for (const rule of rules) {
+        const attempts = Number(rule.hit_count) || 0;
+        if (attempts <= 0) continue;
+        const successes = Number(rule.success_count) || 0;
+        const ruleRate = successes / attempts;
+        const existing = metrics.find((m) => m.skillName === rule.target);
+        if (!existing) {
+          // The two sources use different namespaces on purpose: skill_usage.skill_id
+          // holds SKILL names, routing_rules.target holds AGENT names. They are not
+          // merged, and pretending otherwise was a silent no-op: the strict-equality
+          // lookup below never matched, so this branch always ran and every agent
+          // outcome became a separate metric with no relation to its skills. Logged
+          // because a routing rule whose target matches no skill is worth seeing.
+          log(
+            `  routing_rules target '${rule.target}' (${rule.pattern}) is an agent name, ` +
+              `not a skill: recorded as its own metric, not merged into a skill`,
+          );
+          metrics.push({
+            skillName: rule.target,
+            useCount: attempts,
+            failureCount: Math.max(0, attempts - successes),
+            successRate: ruleRate,
+            avgTokensUsed: 0,
+            lastOutcome: null,
+            outcomeCount: attempts,
+          });
+          continue;
+        }
+        // A skill that also has an agent-name routing rule: pool the two streams.
+        // Reached only when a target genuinely is a skill name.
+        const priorOutcomes = existing.outcomeCount;
+        const priorSuccesses = existing.successRate * priorOutcomes;
+        const totalOutcomes = priorOutcomes + attempts;
+        existing.outcomeCount = totalOutcomes;
+        existing.successRate = (priorSuccesses + successes) / totalOutcomes;
+        existing.useCount += attempts;
+        existing.failureCount = Math.max(0, totalOutcomes - Math.round(existing.successRate * totalOutcomes));
+      }
+      if (rules.length > 0) {
+        log(`  Nexus routing_rules: ${rules.length} rule(s) with recorded delegation outcomes`);
+      }
+    } catch (error) {
+      log(`  Nexus routing_rules unreadable, continuing: ${(error as Error).message}`);
+    }
+
+    return metrics;
+  } catch (error) {
+    log(`  Nexus read failed, falling back to filesystem: ${(error as Error).message}`);
+    return [];
+  } finally {
+    // `db` is only assigned inside the try, so close only on the success path.
+    db?.close();
+  }
+}
+
 export function collectSkillUsage(log: Logger): SkillMetric[] {
+  const fromNexus = collectFromNexus(log);
+  if (fromNexus.length > 0) return fromNexus;
+
   if (!existsSync(SKILL_USAGE_DIR)) {
     log('  Skill usage dir not found');
     return [];
@@ -69,6 +215,8 @@ export function collectSkillUsage(log: Logger): SkillMetric[] {
           successRate: e.useCount > 0 ? (e.useCount - e.criticalFlags) / e.useCount : 0,
           avgTokensUsed: 0,
           lastOutcome: e.lastOutcome,
+          // Critical flags ARE recorded outcomes, so they count as evidence.
+          outcomeCount: e.useCount,
         });
       }
       continue;
@@ -78,13 +226,31 @@ export function collectSkillUsage(log: Logger): SkillMetric[] {
     const obj = raw as Partial<SkillMetric>;
     const skillName = obj.skillName || f.replace('.json', '');
     if (!skillName) continue;
+    // A record with no observations is not evidence of anything. The seed files in
+    // .session/skill-usage/ were written as { useCount: 0, successRate: 1 }, and the
+    // previous `obj.useCount || 1` / `obj.successRate ?? 1` turned those into one
+    // successful delegation per agent. That produced 45 agents at 100% success with
+    // avgDuration 0 and lastEvent null, which then scored a domain confidence of 0.95
+    // and created an override routing every request to a single agent. Absence of data
+    // is unknown, not perfect.
+    const useCount = Number.isFinite(obj.useCount) ? Number(obj.useCount) : 0;
+    if (useCount <= 0) {
+      log(`  Skipping '${skillName}': no observations recorded (successRate is not evidence)`);
+      continue;
+    }
+    const failureCount = Number.isFinite(obj.failureCount) ? Number(obj.failureCount) : 0;
+    const recorded = Number.isFinite(obj.successRate) ? Number(obj.successRate) : undefined;
+    const successRate = recorded ?? (useCount - failureCount) / useCount;
     metrics.push({
       skillName,
-      useCount: obj.useCount || 1,
-      failureCount: obj.failureCount || 0,
-      successRate: obj.successRate ?? 1,
+      useCount,
+      failureCount,
+      successRate,
       avgTokensUsed: obj.avgTokensUsed || 0,
       lastOutcome: obj.lastOutcome || null,
+      // Format B carries no separate outcome stream: a lastOutcome means at least one
+      // result was recorded, its absence means none was.
+      outcomeCount: obj.lastOutcome ? 1 : 0,
     });
   }
   log(`  Skill usage records: ${metrics.length}`);

@@ -4,6 +4,7 @@ packages:
   - 'apps/web-dashboard'
   - 'apps/content-cms'
   - 'apps/gv-music'
+  - 'apps/voice-studio'
   - 'packages/*'
   - 'src/core'
 
@@ -30,3 +31,12 @@ overrides:
   vite: '8.2.2'
   esbuild: '0.25.12'
   '@typescript-eslint/typescript-estree>minimatch': '9.0.7'
+  # Audit 2026-10-06 (GHSA-68fv-2mgg-jv7q high, GHSA-jqcg-44mw-7w3h critical)
+  source-map-js: '>=1.2.2'
+  proxy-addr: '>=2.0.8'
+  # Audit 2026-10-06 tarde: GHSA-pqg4-j6r4-53mv critical (shell-quote vía
+  # concurrently). braces/GHSA-vfj7-8cjw-p6xm: el advisory anuncia "patched
+  # >=3.0.4" pero 3.0.4 NO está publicada en npm aún (latest 3.0.3) — queda
+  # allowlisteada en npm-audit-pre-push.ts hasta que exista la versión.
+  shell-quote: '>=1.11.0'
+  postcss-selector-parser: '>=7.1.6'

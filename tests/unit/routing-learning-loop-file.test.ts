@@ -22,15 +22,27 @@ const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 // Ruta absoluta al loader de tsx (file:// URL) para que funcione con cwd temporal
 const TSX_LOADER = pathToFileURL(join(REPO_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs')).href;
 
-function runTsx(script: string, args: string[], cwd: string): { status: number; stdout: string } {
+function runTsx(script: string, args: string[], cwd: string, dbDir?: string): { status: number; stdout: string } {
   const res = spawnSync(process.execPath, ['--import', TSX_LOADER, script, ...args], {
     cwd,
     encoding: 'utf-8',
     timeout: 60000,
     windowsHide: true,
-    // Tenant de test: el path Nexus devuelve 0 reglas → el loop file-based
-    // (routing-table.json) es el único camino activo.
-    env: { ...process.env, GENTLE_VANGUARD_TENANT_ID: 'test-e2e-tenant-xyz' },
+    // Dos capas de aislamiento (fix 2026-10-06 — el --build hace dual-write a
+    // Nexus y DOS VECES sobrescribió la fila real 'general' de producción vía
+    // ON CONFLICT(pattern, tenant_id), destruyendo general→
+    // debugging-and-error-recovery):
+    //   1. GENTLE_VANGUARD_DB_DIR/DB_FILE → BD Nexus TEMPORAL, la producción
+    //      ni siquiera se abre.
+    //   2. Tenant de test → 0 reglas del path real → el loop file-based es el
+    //      único camino activo.
+    env: {
+      ...process.env,
+      GENTLE_VANGUARD_TENANT_ID: 'test-e2e-tenant-xyz',
+      ...(dbDir
+        ? { GENTLE_VANGUARD_DB_DIR: dbDir, GENTLE_VANGUARD_DB_FILE: 'routing-test.db' }
+        : {}),
+    },
   });
   return { status: res.status ?? -1, stdout: res.stdout || '' };
 }
@@ -81,6 +93,7 @@ describe('routing learning loop (file-based E2E)', () => {
         join(REPO_ROOT, 'src', 'orchestration', 'adaptive-router.ts'),
         ['--build', '--quiet'],
         dir,
+        dir,
       );
       assert.equal(build.status, 0, `adaptive-router build failed: ${build.stdout}`);
 
@@ -103,12 +116,16 @@ describe('routing learning loop (file-based E2E)', () => {
         join(REPO_ROOT, 'src', 'orchestration', 'recommend-agent.ts'),
         ['--task', 'general purpose task', '--domain', 'general', '--topn', '3'],
         dir,
+        dir,
       );
       assert.equal(rec.status, 0, `recommend-agent failed: ${rec.stdout}`);
       const result = parseJsonOutput(rec.stdout);
       assert.equal(result.recommended, 'test-agent-e2e');
+      // Con la BD temporal inyectada, el dual-write del --build deja la regla
+      // aprendida en Nexus (source 'nexus'); sin BD inyectada caería al archivo
+      // ('routing-table'). Ambos prueban que el dato aprendido se usa.
       assert.ok(
-        ['routing-table', 'override'].includes(result.source),
+        ['routing-table', 'override', 'nexus'].includes(result.source),
         `source inesperado: ${result.source}`,
       );
     } finally {
@@ -154,6 +171,7 @@ describe('routing learning loop (file-based E2E)', () => {
         join(REPO_ROOT, 'src', 'orchestration', 'adaptive-router.ts'),
         ['--build', '--quiet'],
         dir,
+        dir,
       );
       assert.equal(build.status, 0, `adaptive-router build failed: ${build.stdout}`);
 
@@ -172,6 +190,7 @@ describe('routing learning loop (file-based E2E)', () => {
       const rec = runTsx(
         join(REPO_ROOT, 'src', 'orchestration', 'recommend-agent.ts'),
         ['--task', 'general purpose task', '--domain', 'general', '--topn', '3'],
+        dir,
         dir,
       );
       assert.equal(rec.status, 0, `recommend-agent failed: ${rec.stdout}`);

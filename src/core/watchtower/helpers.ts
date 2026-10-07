@@ -52,6 +52,7 @@ export async function getPidByPort(port: number): Promise<number | null> {
       const out = execFileSync('lsof', ['-ti', `:${port}`], {
         encoding: 'utf-8',
         timeout: 5000,
+        windowsHide: true,
       });
       const pid = parseInt(out.trim().split('\n')[0], 10);
       if (!isNaN(pid)) return pid;

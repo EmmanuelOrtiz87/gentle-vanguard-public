@@ -47,6 +47,7 @@ function run(cmd: string, args: string[], opts: { cwd?: string } = {}): { status
     cwd: opts.cwd ?? ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
     encoding: 'utf8',
+    windowsHide: true,
   });
   return { status: r.status ?? 0, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
 }

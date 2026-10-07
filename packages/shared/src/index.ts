@@ -8,3 +8,4 @@ export { tokenize, bm25Score, type Bm25Options, BM25_DEFAULTS } from './bm25.js'
 export { parseArgs, hasFlag, flagValue, type ParsedArgs } from './parse-args.js';
 export { ensureDir, readJson, writeJson, fileExists } from './fs-json.js';
 export { ok, err, isOk, isErr, type Result } from './result.js';
+export { readProcessMetrics, readProcessMetricsHistory, type ProcessMetrics, type ProcessMetricPoint } from './process-metrics.js';

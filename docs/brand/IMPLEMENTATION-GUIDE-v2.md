@@ -42,8 +42,11 @@ Replace the logo:
 <!-- OLD -->
 <img src="assets/logo.svg" alt="Gentle-Vanguard" />
 
-<!-- Keep the same path, we've replaced the file -->
-<img src="assets/logo.svg" alt="Gentle-Vanguard" />
+<!-- NEW visible brand asset -->
+<img
+  src="assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png"
+  alt="Gentle-Vanguard"
+/>
 ```
 
 ### Step 4: Add v2 Atmosphere Classes

@@ -24,11 +24,6 @@
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "model": "gpt-4o"
     },
-    "anthropic": {
-      "envVar": "ANTHROPIC_API_KEY",
-      "endpoint": "https://api.anthropic.com/v1/messages",
-      "model": "claude-3-5-sonnet-20241022"
-    },
     "gemini": {
       "envVar": "GEMINI_API_KEY",
       "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",

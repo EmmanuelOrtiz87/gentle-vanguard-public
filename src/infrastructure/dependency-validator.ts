@@ -66,7 +66,7 @@ function mac(): boolean {
 
 function cmdExists(cmd: string): boolean {
   const which = win() ? 'where' : 'which';
-  const r = runSync(which, [cmd], { stdio: 'pipe' });
+  const r = runSync(which, [cmd], { stdio: 'pipe', timeout: 3000 });
   return r.status === 0;
 }
 
@@ -74,7 +74,7 @@ function run(
   cmd: string,
   args: string[],
 ): { stdout: string; stderr: string; status: number | null } {
-  const r = runSync(cmd, args, { stdio: 'pipe' });
+  const r = runSync(cmd, args, { stdio: 'pipe', timeout: 5000 });
   return { stdout: r.stdout.trim(), stderr: r.stderr.trim(), status: r.status };
 }
 

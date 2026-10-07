@@ -186,7 +186,13 @@ const stopWordsSet = new Set(stopWords);
 
 function tokenize(text: string): string[] {
   if (!text) return [];
-  const cleaned = text.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
+  // Unicode-aware: agent keywords are ES/EN/PT, so accented letters must survive
+  // ("auditoria" and "auditoría" have to land on the same term).
+  const cleaned = text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ');
   const parts = cleaned.split(/[\s-]+/).filter((t) => t.length >= 2 && t.length <= 40);
   return parts.filter((t) => !stopWordsSet.has(t));
 }
@@ -409,21 +415,56 @@ function getSkillAgentMappings(delegationConfigPath: string): Record<string, str
   return config.skillToAgentProfile ?? {};
 }
 
+/** Canonical skill roots, in precedence order (later roots win on name collision). */
+export function skillRoots(projectRoot: string): string[] {
+  return [
+    join(projectRoot, '.opencode', 'skills'),
+    join(projectRoot, '.agents', 'skills'),
+    join(projectRoot, 'skills'),
+  ];
+}
+
+/**
+ * Names that can actually be loaded by an agent: every directory that contains a
+ * SKILL.md, plus the frontmatter `name` it declares (which may differ from the
+ * directory name and is the key the router indexes under).
+ *
+ * Used to drop phantom routing targets — see buildSkillCatalog.
+ */
+export function collectInvokableNames(roots: string[]): Set<string> {
+  const names = new Set<string>();
+  for (const root of roots) {
+    if (!existsSync(root)) continue;
+    let entries: ReturnType<typeof readdirSync>;
+    try {
+      entries = readdirSync(root, { withFileTypes: true }) as never;
+    } catch {
+      continue;
+    }
+    for (const entry of entries as unknown as Array<{ name: string; isDirectory(): boolean }>) {
+      if (!entry.isDirectory()) continue;
+      const skillPath = join(root, entry.name, 'SKILL.md');
+      if (!existsSync(skillPath)) continue;
+      names.add(entry.name);
+      try {
+        names.add(parseSkillDocument(readFileSync(skillPath, 'utf8'), entry.name).name);
+      } catch {
+        // Unreadable frontmatter: the directory name alone still resolves.
+      }
+    }
+  }
+  return names;
+}
+
 export function buildSkillCatalog(
   registryPath: string,
   delegationConfigPath: string,
   projectRoot = findRepoRoot(dirname(registryPath)),
 ): Record<string, SkillEntry> {
+  const roots = skillRoots(projectRoot);
   const registry = addSkillsFromConfig(parseSkillRegistry(registryPath), delegationConfigPath);
   const mappings = getSkillAgentMappings(delegationConfigPath);
-  const discovered = discoverSkills(
-    [
-      join(projectRoot, '.opencode', 'skills'),
-      join(projectRoot, '.agents', 'skills'),
-      join(projectRoot, 'skills'),
-    ],
-    mappings,
-  );
+  const discovered = discoverSkills(roots, mappings);
   const result = { ...registry };
   for (const [name, skill] of Object.entries(discovered)) {
     const current = result[name];
@@ -434,12 +475,55 @@ export function buildSkillCatalog(
       aliases: [...new Set([...(current?.aliases ?? []), ...(skill.aliases ?? [])])],
     };
   }
-  return result;
+
+  // A catalog entry is only useful if an agent can load it. Merging the registry
+  // and skillToAgentProfile pulled in hundreds of names with no SKILL.md on disk;
+  // those scored 0.14-0.21 and outranked real skills on generic queries, then
+  // failed to load. Verified 2026-10-02: 276 of 512 indexed entries were phantoms.
+  const invokable = collectInvokableNames(roots);
+  const catalog: Record<string, SkillEntry> = {};
+  const phantoms: string[] = [];
+  for (const [name, skill] of Object.entries(result)) {
+    if (invokable.has(name)) catalog[name] = skill;
+    else phantoms.push(name);
+  }
+  if (phantoms.length > 0) {
+    console.log(
+      `  Dropped ${phantoms.length} catalog entries with no SKILL.md on disk (phantom routing targets)`,
+    );
+  }
+  return catalog;
+}
+
+/**
+ * Upper bound on agent keywords injected per skill. Agent keywords are shared by
+ * every skill an agent owns, so they discriminate across agents but not within
+ * one. Injecting ~57 per skill would let them dominate the L2 normalization and
+ * shrink the name/description terms that actually break intra-agent ties, so the
+ * list is capped. See AGENT_KEYWORD_CAP consumers for the measured effect.
+ */
+const AGENT_KEYWORD_CAP = 15;
+
+/**
+ * Agent keywords (`config/auto-delegation.json#keywordMappings`) are ES/EN/PT
+ * routing phrases. Before this was wired they were discarded (`_agentKeywords`),
+ * which is why every Spanish query scored ~0: the vocabulary was English-only.
+ *
+ * A skill inherits the keywords of the agent that owns it (skillToAgentProfile via
+ * the `agent` field), capped at AGENT_KEYWORD_CAP. Terms shared across the agent
+ * raise all of its skills equally and route the query to the right agent;
+ * `lexicalBoost` on name/triggers then breaks the tie inside the agent.
+ */
+function agentKeywordsForSkill(
+  agent: string,
+  agentKeywords: Record<string, string[]>,
+): string[] {
+  return (agentKeywords[agent] ?? []).slice(0, AGENT_KEYWORD_CAP);
 }
 
 function buildSkillText(
   skills: Record<string, SkillEntry>,
-  _agentKeywords: Record<string, string[]>,
+  agentKeywords: Record<string, string[]> = {},
 ): Record<string, SkillTextInfo> {
   const result: Record<string, SkillTextInfo> = {};
 
@@ -462,6 +546,11 @@ function buildSkillText(
         baseParts.push(t);
         fullParts.push(t);
       }
+    }
+
+    for (const keyword of agentKeywordsForSkill(skill.agent, agentKeywords)) {
+      baseParts.push(keyword);
+      fullParts.push(keyword);
     }
 
     result[skillName] = {

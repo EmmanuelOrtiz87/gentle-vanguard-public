@@ -219,6 +219,17 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: false,
   },
   {
+    id: 'stack-mcp-server',
+    label: 'Stack MCP server',
+    // Older sessions may still expose an npx/tsx parent chain. Classify the
+    // chain as one managed service so hygiene does not mislabel it as an
+    // unknown leak while the launcher migration is completed.
+    match: /stack-mcp-server\.ts/,
+    keep: 'newest',
+    respawn: 'client',
+    recycleAged: false,
+  },
+  {
     id: 'gv-analytics-api',
     label: 'Gentle-Vanguard Analytics API',
     match: /apps[\\/]gv-analytics[\\/]server[\\/]index\.ts/,
@@ -316,10 +327,12 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
   {
     id: 'app-academy-http',
-    label: 'Academy static server (python http.server :4173)',
-    // Port is part of the cmdline in both spawn shapes (start.sh `-d .` and
-    // CC `--directory apps/academy-web`), so the port disambiguates.
-    match: /http\.server[ ]+4173\b/,
+    label: 'Academy static server (node serve-static :4173)',
+    // Port is part of the cmdline in every spawn shape, so the port
+    // disambiguates. Node shape: `node ...\tools\serve-static.mjs 4173 <root>`
+    // (start.sh + CC desde 2026-10). La forma legacy python se mantiene para
+    // clasificar procesos previos a la migración.
+    match: /(?:serve-static\.mjs|http\.server)[ ]+4173\b/,
     pidFile: join(RUNTIME_DIR, 'app-academy-http.pid'),
     keep: 'pidfile',
     respawn: 'manual',
@@ -327,8 +340,8 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
   {
     id: 'app-design-hub-http',
-    label: 'Design Hub static server (python http.server :8095)',
-    match: /http\.server[ ]+8095\b/,
+    label: 'Design Hub static server (node serve-static :8095)',
+    match: /(?:serve-static\.mjs|http\.server)[ ]+8095\b/,
     pidFile: join(RUNTIME_DIR, 'app-design-hub-http.pid'),
     keep: 'pidfile',
     respawn: 'manual',
@@ -346,9 +359,36 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
   {
     id: 'app-academy-landing-http',
-    label: 'Academy Landing static server (python http.server :4174)',
-    match: /http\.server[ ]+4174\b/,
+    label: 'Academy Landing static server (node serve-static :4174)',
+    match: /(?:serve-static\.mjs|http\.server)[ ]+4174\b/,
     pidFile: join(RUNTIME_DIR, 'app-academy-landing-http.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'sandbox-genesis-landing',
+    label: 'Sandbox Genesis Landing daemon (:4181)',
+    match: /apps[\\/]genesis-landing[\\/]server\.mjs/,
+    pidFile: join(RUNTIME_DIR, 'sandbox-genesis-landing.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'kairos-agenda',
+    label: 'Kairós Agenda daemon (:4195, app de cliente)',
+    match: /apps[\\/]kairos-agenda[\\/]server[\\/]server\.mjs/,
+    pidFile: join(RUNTIME_DIR, 'kairos-agenda.pid'),
+    keep: 'pidfile',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'gv-agenda',
+    label: 'GV Agenda daemon (:4196, app nativa)',
+    match: /apps[\\/]gv-agenda[\\/]server[\\/]server\.mjs/,
+    pidFile: join(RUNTIME_DIR, 'gv-agenda.pid'),
     keep: 'pidfile',
     respawn: 'manual',
     recycleAged: false,
@@ -370,7 +410,8 @@ const DAEMON_CLASSES: DaemonClass[] = [
   {
     id: 'sandbox-gv-gui',
     label: 'Sandbox GV Demo GUI (:4000)',
-    match: /apps[\\/]sandbox-gv[\\/](src|dist)[\\/]server\.(ts|js)/,
+    match: /apps[\\/]sandbox-gv[\\/]/,
+    relativeMatch: /sandbox-gv[\\/]/,
     pidFile: join(RUNTIME_DIR, 'sandbox-gv.pid'),
     keep: 'pidfile',
     respawn: 'manual',
@@ -469,8 +510,10 @@ function scanProcesses(pidFiles: Map<string, string>): {
   const livePids = new Set<number>();
   try {
     if (process.platform === 'win32') {
-      // python.exe = static app servers (academy/design-hub http.server);
-      // nohup.exe = msys wrapper whose winpid is what start.sh pidfiles record.
+      // python.exe = legacy static app servers (http.server pre-migración a
+      // node serve-static, 2026-10) + scripts python del repo (regen covers,
+      // docs tools); nohup.exe = msys wrapper whose winpid is what start.sh
+      // pidfiles record.
       const psCmd =
         `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='chrome.exe' OR Name='cmd.exe' OR Name='conhost.exe' OR Name='python.exe' OR Name='py.exe' OR Name='nohup.exe'" | ` +
         `ForEach-Object { "$($_.ProcessId)\`t$($_.ParentProcessId)\`t$($_.Name)\`t$($_.CreationDate.ToString('o'))\`t$($_.CommandLine)" }`;
@@ -489,9 +532,10 @@ function scanProcesses(pidFiles: Map<string, string>): {
         const admitted =
           parts[2] === 'node.exe' || parts[2] === 'chrome.exe' || parts[2] === 'python.exe';
         if (!admitted) continue;
-        // Static app servers are spawned with relative paths (`-d .`,
-        // `--directory apps/...`) so isRepoScoped can miss them — a process
-        // matching a registered daemon class belongs to the repo by definition.
+        // Legacy python static app servers were spawned with RELATIVE paths
+        // (`-d .`, `--directory apps/...`) so isRepoScoped can miss them — a
+        // process matching a registered daemon class belongs to the repo by
+        // definition.
         if (isRepoScoped(cmdline) || classifyDaemon(cmdline, pid, pidFiles)) {
           repoProcesses.push({
             pid,

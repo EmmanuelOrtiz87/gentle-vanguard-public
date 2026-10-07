@@ -54,6 +54,7 @@ test('el catalogo generado esta SINCRONIZADO con el motor', () => {
   const out = execFileSync('node', ['--import', 'tsx', 'apps/academy-landing/scripts/build-catalog.ts'], {
     cwd: ROOT,
     encoding: 'utf8',
+    windowsHide: true,
   });
   assert.match(out, /sin cambios/, `build-catalog.ts regenero el archivo (esta desincronizado):\n${out}`);
 });

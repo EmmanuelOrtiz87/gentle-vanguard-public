@@ -143,11 +143,18 @@ const STOP_WORDS = new Set([
   'son',
 ]);
 
-// ---- Tokenizer (identical to skill-embedder.ts) ----
+// ---- Tokenizer (must stay identical to skill-embedder.ts) ----
+// Unicode-aware on purpose: the vocabulary is built from ES/EN/PT agent keywords,
+// so an accented query has to land on the same term the index stored. Verified
+// 2026-10-02: an ASCII-only query tokenizer made every Spanish query score ~0.
 
 function tokenize(text: string): string[] {
   if (!text) return [];
-  const cleaned = text.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
+  const cleaned = text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ');
   const parts = cleaned.split(/[\s-]+/).filter((t) => t.length >= 2 && t.length <= 40);
   return parts.filter((t) => !STOP_WORDS.has(t));
 }
@@ -281,16 +288,17 @@ function fuzzyFallback(query: string): string[] {
 function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
   const emb = getEmbeddings();
   const tokens = tokenize(query);
+  // Agent and triggers live in the index; the fuzzy path used to invent
+  // agent:'unknown', which then failed the quality gate's handoffValid check.
+  const metaFor = (name: string): { agent: string; triggers: string[] } => {
+    const hit = emb.skills.find((s) => s.name === name);
+    return hit ? { agent: hit.agent, triggers: hit.triggers } : { agent: 'unknown', triggers: [] };
+  };
 
   if (tokens.length === 0) {
     // No meaningful tokens — try fuzzy fallback
     const fuzzy = fuzzyFallback(query);
-    return fuzzy.map((s) => ({
-      skill: s,
-      agent: 'unknown',
-      confidence: 0.1,
-      triggers: [],
-    }));
+    return fuzzy.map((s) => ({ skill: s, ...metaFor(s), confidence: 0.1 }));
   }
 
   const queryVec = computeQueryVector(tokens, emb.vocabulary, emb.idf);
@@ -323,7 +331,7 @@ function findRelevantSkills(query: string, topK: number = 5): MatchResult[] {
     const known = new Set(topResults.map((r) => r.skill));
     for (const f of fuzzy) {
       if (!known.has(f)) {
-        topResults.push({ skill: f, agent: 'unknown', confidence: 0.05, triggers: [] });
+        topResults.push({ skill: f, ...metaFor(f), confidence: 0.05 });
       }
     }
   }

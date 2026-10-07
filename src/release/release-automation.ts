@@ -166,7 +166,7 @@ function createBlockbuster(version: string): string {
   // Backup .runtime state
   const runtimeBackup = join(backupPath, '.runtime-backup');
   if (existsSync(join(ROOT, '.runtime'))) {
-    runSyncShell(`robocopy .runtime "${runtimeBackup}" /E /NFL /NDL`, { cwd: ROOT });
+    runSync('robocopy', ['.runtime', runtimeBackup, '/E', '/NFL', '/NDL'], { cwd: ROOT });
   }
 
   logger.info(`✅ Blockbuster created: ${backupPath}.tar.gz`);

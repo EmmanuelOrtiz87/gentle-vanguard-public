@@ -51,6 +51,7 @@ export async function checkDesignCanon(): Promise<void> {
     encoding: 'utf8',
     timeout: 120_000,
     shell: process.platform === 'win32',
+    windowsHide: true,
   });
   const out = `${r.stdout ?? ''}${r.stderr ?? ''}`;
   const fails = out.split('\n').filter((l) => l.startsWith('FAIL'));
@@ -94,7 +95,7 @@ export async function checkRepoOrganization(): Promise<void> {
   }
 
   // b) Forbidden tracked paths (runtime/build artifacts, duplicated skills).
-  const git = spawnSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const git = spawnSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true });
   if (git.status === 0) {
     const tracked = git.stdout.split('\n');
     for (const line of tracked) {

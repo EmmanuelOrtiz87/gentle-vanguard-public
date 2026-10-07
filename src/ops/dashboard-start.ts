@@ -156,9 +156,9 @@ function openBrowser(vitePort: number): void {
         stdio: 'ignore',
       }).unref();
     } else if (process.platform === 'darwin') {
-      spawn('open', [url], { detached: true, stdio: 'ignore' }).unref();
+    spawn('open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
     } else {
-      spawn('xdg-open', [url], { detached: true, stdio: 'ignore' }).unref();
+    spawn('xdg-open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
     }
   } catch {
     if (!opts.quiet) console.warn(`[DASHBOARD] Could not open browser`);

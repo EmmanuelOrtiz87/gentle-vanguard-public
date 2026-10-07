@@ -77,10 +77,13 @@ async function checkMcp(): Promise<void> {
   await checkFileBatch(checks);
 
   // Compile check in parallel
-  const r = runSync('npx.cmd', ['tsx', '--noEmit', 'scripts/mcp/skill-server.ts'], {
+  const tscBin = process.platform === 'win32'
+    ? path.resolve(ROOT, 'node_modules', '.bin', 'tsc.cmd')
+    : path.resolve(ROOT, 'node_modules', '.bin', 'tsc');
+  const r = runSync(tscBin, ['--noEmit', '-p', 'tsconfig.json'], {
     cwd: ROOT,
     stdio: 'pipe',
-    timeout: 10000,
+    timeout: 30000,
   });
   writeCheck('MCP TS compiles clean', r.status === 0);
 }
@@ -107,10 +110,10 @@ async function checkCore(): Promise<void> {
   header('Core');
   const checks = [
     { name: 'Team Orchestrator (TS)', path: ['src', 'orchestration', 'team-orchestrator.ts'] },
-    { name: 'Session Ref (TS)', path: ['src', 'session-reference-system.ts'] },
+    { name: 'Session Ref (TS)', path: ['src', 'session', 'session-reference-system.ts'] },
     { name: 'Skill Factory (TS)', path: ['src', 'skills', 'skill-factory.ts'] },
     { name: 'Skill registry exists', path: ['.atl', 'skill-registry.md'] },
-    { name: 'SDD Pipeline (TS)', path: ['src', 'sdd-validation.ts'] },
+    { name: 'SDD Pipeline (TS)', path: ['src', 'sdd', 'sdd-pipeline.ts'] },
   ];
   await checkFileBatch(checks);
 }
@@ -120,7 +123,7 @@ async function checkSecurity(): Promise<void> {
   const checks = [
     { name: 'GateGuard (TS)', path: ['src', 'trust-layer', 'result-gatekeeper.ts'] },
     { name: 'Cost Tracking', path: ['src', 'monitor', 'cost-tracker.ts'] },
-    { name: 'pnpm security normativa', path: ['rules', 'SECURITY.md'] },
+    { name: 'pnpm security normativa', path: ['rules', 'NORMATIVA-PNPM-SECURITY.md'] },
   ];
   await checkFileBatch(checks);
 }
@@ -131,7 +134,7 @@ async function checkMlEmbeddings(): Promise<void> {
     { name: 'ml-index.json exists', path: ['.atl', 'ml-index.json'] },
     { name: 'skill-embeddings.json exists', path: ['.atl', 'skill-embeddings.json'] },
     { name: 'skill-embedder.ts exists', path: ['src', 'skills', 'skill-embedder.ts'] },
-    { name: 'ml-router.ts exists', path: ['src', 'skills', 'ml-router.ts'] },
+    { name: 'ml-router.ts exists', path: ['src', 'ml', 'ml-router.ts'] },
   ];
   await checkFileBatch(checks);
 
@@ -166,7 +169,7 @@ async function checkPnpm(): Promise<void> {
   header('pnpm');
   const checks = [
     { name: 'pnpm-lock.yaml exists', path: ['pnpm-lock.yaml'] },
-    { name: 'pnpm installed', path: ['node_modules', '.pnpm-lock.yaml'] },
+    { name: 'pnpm installed', path: ['node_modules', '.pnpm', 'lock.yaml'] },
   ];
   await checkFileBatch(checks);
 }
