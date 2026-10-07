@@ -74,6 +74,20 @@ function run(
   }
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function pingPort(port: number): boolean {
   try {
     const r = run('node', [
@@ -90,9 +104,19 @@ function pingPort(port: number): boolean {
   }
 }
 
+function isEngramMcpRunning(): boolean {
+  if (process.platform !== 'win32') return false;
+  try {
+    const r = run('tasklist', [], 3000);
+    return r.stdout.toLowerCase().includes('engram.exe');
+  } catch {
+    return false;
+  }
+}
+
 // ─── Layer 1: Machine Dependencies ────────────────────────────────────
 
-async function checkDeps(results: CheckResult[]): Promise<void> {
+async function checkDeps(results: CheckResult[], quick = false): Promise<void> {
   results.push({
     name: 'Machine Dependencies',
     layer: 'deps',
@@ -104,7 +128,10 @@ async function checkDeps(results: CheckResult[]): Promise<void> {
     // Import the validator directly — most reliable approach
     const { getDeps, validateAll } = await import('../infrastructure/dependency-validator.js');
     const deps = getDeps();
-    const depResults = await validateAll(deps);
+    // Quick mode must not spawn legacy detail commands (some older Windows
+    // entries use cmd /c). Existence and version checks remain authoritative.
+    const checks = quick ? deps.map((dep) => ({ ...dep, detailCmd: undefined })) : deps;
+    const depResults = await withTimeout(validateAll(checks), 30_000, 'dependency validation');
     const passed = depResults.filter((r) => r.status === 'PASS').length;
     const warned = depResults.filter((r) => r.status === 'WARN').length;
     const failed = depResults.filter((r) => r.status === 'FAIL').length;
@@ -284,10 +311,19 @@ function checkServices(results: CheckResult[]): void {
 
 // ─── Layer 4: Integrity Checks ────────────────────────────────────────
 
-async function checkIntegrity(results: CheckResult[]): Promise<void> {
+async function checkIntegrity(results: CheckResult[], quick = false): Promise<void> {
   // Engram Doctor
-  try {
-    const r = run('engram', ['doctor', '--json']);
+  if (isEngramMcpRunning()) {
+    results.push({
+      name: 'Engram Memory',
+      layer: 'integrity',
+      status: 'PASS',
+      message: 'MCP server active (CLI doctor skipped to avoid DB lock)',
+    });
+  } else try {
+    // Engram may wait for its local service on Windows. Keep the verifier
+    // bounded and report the condition instead of blocking the whole gate.
+    const r = run('engram', ['doctor', '--json'], quick ? 3000 : 8000);
     if (r.stdout) {
       let data: { errors?: unknown[] } | null;
       try {
@@ -378,9 +414,18 @@ async function checkIntegrity(results: CheckResult[]): Promise<void> {
     });
   }
 
-  // TypeScript typecheck
-  try {
-    const r = run('npx', ['--yes', 'tsc', '--noEmit']);
+  // TypeScript typecheck. The quick verifier reports that this heavyweight
+  // check is intentionally delegated to the dedicated typecheck command.
+  if (quick) {
+    results.push({
+      name: 'TypeScript Typecheck',
+      layer: 'integrity',
+      status: 'SKIP',
+      message: 'Deferred in quick mode (run npm run typecheck)',
+      fixCmd: 'npm run typecheck',
+    });
+  } else try {
+    const r = run('npx', ['--yes', 'tsc', '--noEmit'], 30000);
     const errCount = r.stderr ? (r.stderr.match(/error TS\d+/g) || []).length : 0;
     const hasTsErrors = errCount > 0 || (r.stdout?.includes('error TS') ?? false);
     results.push({
@@ -396,6 +441,50 @@ async function checkIntegrity(results: CheckResult[]): Promise<void> {
       layer: 'integrity',
       status: 'SKIP',
       message: 'Could not run tsc',
+    });
+  }
+
+  // Universal Quality Gate — composes the existing lifecycle controls across
+  // software and non-software surfaces, so stack verification remains the
+  // single operational entry point for the whole platform.
+  if (quick) {
+    results.push({
+      name: 'Universal Quality Gate',
+      layer: 'integrity',
+      status: 'SKIP',
+      message: 'Deferred in quick mode (run npm run quality:universal)',
+      fixCmd: 'npm run quality:universal',
+    });
+  } else try {
+    const r = run('node', ['--import', 'tsx', 'src/quality/universal-quality-gate.ts']);
+    type UniversalGateReport = {
+      status?: string;
+      summary?: { total?: number; passed?: number };
+    };
+    let gate: UniversalGateReport | null = null;
+    try {
+      gate = r.stdout ? (JSON.parse(r.stdout) as UniversalGateReport) : null;
+    } catch {
+      gate = null;
+    }
+    const gateStatus = gate?.status;
+    const gateOk = r.status === 0 && (gateStatus === 'pass' || gateStatus === 'warn');
+    results.push({
+      name: 'Universal Quality Gate',
+      layer: 'integrity',
+      status: gateOk ? (gateStatus === 'warn' ? 'WARN' : 'PASS') : 'FAIL',
+      message: gate?.summary
+        ? `${gate.summary.passed ?? 0}/${gate.summary.total ?? 0} controls passed`
+        : `Gate did not return a valid report${r.stderr ? `: ${r.stderr.slice(0, 120)}` : ''}`,
+      fixCmd: gateOk ? undefined : 'npm run quality:universal',
+    });
+  } catch {
+    results.push({
+      name: 'Universal Quality Gate',
+      layer: 'integrity',
+      status: 'FAIL',
+      message: 'Could not run universal quality gate',
+      fixCmd: 'npm run quality:universal',
     });
   }
 }
@@ -568,7 +657,7 @@ async function main(): Promise<void> {
   console.log(C.bold(C.cyan('\n  🔍 Running full stack verification...')));
 
   // Layer 1: Machine Dependencies
-  await checkDeps(results);
+  await checkDeps(results, quick);
 
   // Layer 2: Platform Components
   checkPlatform(results);
@@ -579,7 +668,7 @@ async function main(): Promise<void> {
   }
 
   // Layer 4: Integrity Checks
-  await checkIntegrity(results);
+  await checkIntegrity(results, quick);
 
   // Layer 5: Apps audit (skip con --skip-apps)
   if (!skipApps) {

@@ -22,7 +22,7 @@
     if (!document.querySelector('link[rel="icon"]')) {
       var favicon = document.createElement('link');
       favicon.rel = 'icon';
-      favicon.href = 'assets/logo.svg';
+      favicon.href = 'assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png';
       document.head.appendChild(favicon);
     }
   }

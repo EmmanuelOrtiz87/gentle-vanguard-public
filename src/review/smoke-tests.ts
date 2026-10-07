@@ -191,7 +191,7 @@ const smokeTests: SmokeTest[] = [
   {
     name: 'npx-spawn-windows',
     description:
-      'Verifica que spawnSync(npx) funciona en Windows (con timeout extendido por posible instalación)',
+      'Verifica que la ejecucion de npx funciona en Windows (con timeout extendido por posible instalacion)',
     critical: true,
     timeout: 20000,
     run: () => {

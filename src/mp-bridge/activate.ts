@@ -36,7 +36,7 @@ function wrangler(args: string[], opts: { inherit?: boolean; input?: string } = 
   const result = spawnSync('npx', ['-y', 'wrangler@4', ...args], {
     cwd: BRIDGE_DIR,
     encoding: 'utf8',
-    windowsHide: false, // CLI interactivo del dueño: su propia terminal
+    windowsHide: true,
     shell: process.platform === 'win32',
     stdio: opts.inherit ? 'inherit' : ['pipe', 'pipe', 'pipe'],
     input: opts.input,
@@ -207,6 +207,7 @@ async function main(): Promise<void> {
         cwd: dirname(LANDING_BUILD),
         env: { ...process.env, MP_BRIDGE_URL: bridgeUrl },
         stdio: 'inherit',
+        windowsHide: true,
       });
       console.log(build.status === 0 ? '  ✔ Landing regenerada (publicala con tu flujo de sync normal)' : '  ✖ Falló la regeneración');
     } else {

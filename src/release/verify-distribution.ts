@@ -34,7 +34,7 @@
  *   --offline       saltea los checks de red (solo los locales)
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 interface Manifest {
@@ -184,7 +184,11 @@ if (offline) {
 
 // ── 5. el .sha256 local coincide ───────────────────────────────────────
 
-const localShaPath = resolve(ROOT, 'dist', 'gentle-vanguard-4.1.0.exe.sha256');
+const distPath = resolve(ROOT, 'dist');
+const localShaName = existsSync(distPath)
+  ? readdirSync(distPath).find((name) => name.includes(version) && name.endsWith('.exe.sha256'))
+  : undefined;
+const localShaPath = localShaName ? resolve(distPath, localShaName) : '';
 if (existsSync(localShaPath)) {
   const declared = readFileSync(localShaPath, 'utf8').trim().split(/\s+/)[0] ?? '';
   checks.push({

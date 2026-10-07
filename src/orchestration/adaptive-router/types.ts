@@ -17,6 +17,16 @@ export interface AgentPerformance {
   successRate: number;
   lastEvent: string | null;
   confidence: number; // 0..1
+  /**
+   * How many times an OUTCOME was actually recorded, as opposed to how many times the
+   * skill was merely loaded. A skill invocation is not a delegation, and a delegation
+   * with no recorded outcome is not a success or a failure: it is unknown. Overrides
+   * require outcome evidence, not usage volume, otherwise "loaded 3 times, nobody
+   * recorded a result" reaches 0.9 confidence.
+   */
+  outcomeCount: number;
+  /** True when successRate is derived from real outcomes rather than inferred. */
+  outcomeKnown: boolean;
 }
 
 export interface DomainEntry {
@@ -59,6 +69,11 @@ export interface SkillMetric {
   successRate: number;
   avgTokensUsed: number;
   lastOutcome: string | null;
+  /**
+   * Outcomes actually recorded for this skill. Distinct from useCount: a skill can be
+   * loaded many times with no result ever recorded, and that is unknown, not success.
+   */
+  outcomeCount: number;
 }
 
 export interface DelegationRecord {

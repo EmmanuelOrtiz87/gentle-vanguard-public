@@ -7,7 +7,7 @@ micro-ebooks, pricing por tiers y formulario de captura de leads.
 ## Servir
 
 ```bash
-./start.sh   # idempotente: python http.server :4174 bind 127.0.0.1, pidfile .runtime/app-academy-landing-http.pid
+./start.sh   # idempotente: node tools/serve-static.mjs :4174 bind 127.0.0.1, pidfile .runtime/app-academy-landing-http.pid
 ./stop.sh    # pidfile + fallback por puerto
 # Abrir http://127.0.0.1:4174/
 ```
@@ -19,7 +19,7 @@ Alternativas manuales:
 
 ```bash
 # Desde la raíz del repo (sirve la app directamente):
-python -m http.server 4174 --bind 127.0.0.1 --directory apps/academy-landing
+node tools/serve-static.mjs 4174 apps/academy-landing
 ```
 
 También funciona con `file://` abriendo `index.html` directamente (los covers son rutas relativas).

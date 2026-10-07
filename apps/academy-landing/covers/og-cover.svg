@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#6E4DEB"/><stop offset="52%" stop-color="#7B63E8"/><stop offset="100%" stop-color="#06B6D4"/>
+      <stop offset="0%" stop-color="#06B6D4"/><stop offset="100%" stop-color="#8B5CF6"/>
     </linearGradient>
     <radialGradient id="ga" cx="0.2" cy="0.2" r="0.7">
       <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.2"/><stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
@@ -14,5 +14,5 @@
   <rect x="440" y="240" width="320" height="4" rx="2" fill="url(#g)"/>
   <text x="600" y="300" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="52" font-weight="800" fill="#ffffff">Aprendé IA con material</text>
   <text x="600" y="360" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="52" font-weight="800" fill="#ffffff">listo para entregar</text>
-  <text x="600" y="430" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="20" fill="#8b95a8">25 cursos · 31 ebooks · 22 toolkits · Todo exportable a PDF</text>
+  <text x="600" y="430" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="20" fill="#8b95a8">28 cursos · 34 ebooks · 25 toolkits · Todo exportable a PDF</text>
 </svg>

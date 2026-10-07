@@ -49,6 +49,7 @@ function run(cmd: string, args: string[], opts: { cwd?: string; input?: string }
     input: opts.input,
     stdio: ['ignore', 'pipe', 'pipe'],
     encoding: 'utf8',
+    windowsHide: true,
   });
   return {
     status: r.status ?? 0,

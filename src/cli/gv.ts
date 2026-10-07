@@ -16,9 +16,11 @@
  *   backup      Backup Nexus DB
  *   optimize    Optimize Nexus DB (WAL + VACUUM)
  *   new         Create new project (scaffolding info)
- *   update      Update stack via git pull
- *   update-all  Full stack update
- *   sync        Alias for update
+ *   upgrade     Stack upgrade seguro: snapshot + fetch + pull --ff-only + post-upgrade
+ *               (--check para solo reportar; --branch <name> para otro branch)
+ *   update      Alias de upgrade
+ *   update-all  Upgrade + optimización de Nexus DB
+ *   sync        Alias de upgrade
  *   tools       Show optional tools status
  *   secret      Secret management (stub — use engram/vault instead)
  *   cache       Cache management (stub — use Nexus DB instead)
@@ -95,9 +97,10 @@ COMMANDS:
   backup      Backup Nexus DB
   optimize    Optimize Nexus DB (WAL + VACUUM)
   new         Create new project scaffolding
-  update      Update stack via git pull
-  update-all  Full stack update (git pull + npm update)
-  sync        Alias for update
+  upgrade     Stack upgrade seguro (--check para solo reportar)
+  update      Alias de upgrade (pull --ff-only + snapshot + post-upgrade)
+  update-all  Upgrade + optimización de Nexus DB
+  sync        Alias de upgrade
   tools       Show optional tools status
   secret      Secret management (engram-vault)
   cache       Cache management (Nexus DB)
@@ -807,9 +810,10 @@ function cmdDemo(args: string[]): CommandResult {
         if (existsSync(pidFile)) unlinkSync(pidFile);
 
         // Detener tambien las apps del sandbox (wpp-bot, etc.) — cierre completo
+        // ('stop' es el comando real del CLI de sandbox-gv; 'stop-all' no existe)
         const stopApps = runSync(
           process.execPath,
-          ['--import', 'tsx', 'apps/sandbox-gv/src/cli.ts', 'stop-all'],
+          ['--import', 'tsx', 'apps/sandbox-gv/src/cli.ts', 'stop'],
           { cwd: ROOT, timeout: 30000, stdio: 'pipe' },
         );
         const appsOut = ((stopApps.stdout ?? '') + (stopApps.stderr ?? '')).trim();
@@ -1002,6 +1006,7 @@ export const COMMANDS = [
   'backup',
   'optimize',
   'new',
+  'upgrade',
   'update',
   'update-all',
   'sync',
@@ -1264,20 +1269,19 @@ async function main(): Promise<void> {
 
     case 'update':
     case 'sync':
+    case 'upgrade':
       header();
-      console.log('Updating stack...\n');
-      runCommand('git', ['pull', 'origin', 'develop'], 'GIT');
-      runCommand('npm', ['update'], 'NPM');
-      footer();
+      runNpxTsxSync('src/ops/stack-upgrade.ts', args.filter((a) => a !== 'update' && a !== 'sync' && a !== 'upgrade'), {
+        cwd: ROOT, stdio: 'inherit',
+      });
       break;
 
     case 'update-all':
       header();
-      console.log('Full stack update...\n');
-      runCommand('git', ['pull', 'origin', 'develop'], 'GIT');
-      runCommand('npm', ['update'], 'NPM');
+      runNpxTsxSync('src/ops/stack-upgrade.ts', args.filter((a) => a !== 'update-all'), {
+        cwd: ROOT, stdio: 'inherit',
+      });
       runCommand('npm', ['run', 'db:optimize'], 'NEXUS');
-      footer();
       break;
 
     case 'tools': {

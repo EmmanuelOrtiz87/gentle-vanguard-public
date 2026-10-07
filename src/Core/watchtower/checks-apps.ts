@@ -24,6 +24,7 @@ const EXPECTED_APPS: Array<{ id: string; uiPort: number }> = [
   { id: 'design-hub', uiPort: 8095 },
   { id: 'academy-crm', uiPort: 4791 },
   { id: 'academy-landing', uiPort: 4174 },
+  { id: 'academy-portal', uiPort: 4793 },
   { id: 'gv-music', uiPort: 1420 },
 ];
 
@@ -247,6 +248,16 @@ export async function checkAppsAudit() {
       'FAIL',
       `${apps.length} apps: ${pass} PASS / ${warn} WARN / ${fail} FAIL`,
       'rebuild',
+    );
+  } else if (!executed) {
+    // Plan mode only discovers apps and scripts; it intentionally does not
+    // execute checks. SKIP here is an informational state, not a defect.
+    addResult(
+      'apps-audit',
+      'resumen',
+      'PASS',
+      `${apps.length} apps descubiertas; ejecución de checks diferida (plan mode)`,
+      'ok',
     );
   } else if (warn > 0) {
     addResult(

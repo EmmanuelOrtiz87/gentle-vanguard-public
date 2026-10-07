@@ -53,11 +53,18 @@ export function computeAgentPerformance(
       successRate: 0,
       lastEvent: null,
       confidence: 0,
+      outcomeCount: 0,
+      outcomeKnown: false,
     };
 
+    // Skill usage is NOT a delegation outcome. Counting "the skill was loaded" as
+    // "the agent succeeded" is what produced 45 agents at 100% with avgDuration 0.
+    // Usage still counts as activity (so a used agent is not treated as unused), but
+    // only recorded outcomes move `successes`.
     existing.totalDelegations += sm.useCount || 0;
-    existing.successes += Math.round((sm.successRate || 0) * (sm.useCount || 0));
+    existing.successes += Math.round((sm.successRate || 0) * (sm.outcomeCount || 0));
     existing.failures += sm.failureCount || 0;
+    existing.outcomeCount += sm.outcomeCount || 0;
     existing.avgDuration = (existing.avgDuration + (sm.avgTokensUsed || 0)) / 2;
     existing.lastEvent = existing.lastEvent || sm.lastOutcome || null;
     agentMap.set(agentId, existing);
@@ -76,6 +83,8 @@ export function computeAgentPerformance(
       successRate: 0,
       lastEvent: null,
       confidence: 0,
+      outcomeCount: 0,
+      outcomeKnown: false,
     };
 
     // A delegation with a specific domain upgrades the agent's domain,
@@ -84,7 +93,12 @@ export function computeAgentPerformance(
       existing.domain = d.domain;
     }
 
-    existing.totalDelegations++;
+existing.totalDelegations++;
+    // A delegation record is itself a recorded outcome: the metrics report states how
+    // many succeeded and how many failed. Not counting it left every agent built from
+    // metrics.agents with outcomeCount 0, which then reported successRate 0 regardless
+    // of a 5/5 record and broke the routing learning loop.
+    existing.outcomeCount++;
     if (d.success) existing.successes++;
     else existing.failures++;
     existing.avgDuration =
@@ -117,11 +131,18 @@ export function computeAgentPerformance(
     const total = agent.totalDelegations;
     if (total < config.minDataPoints) continue;
 
-    agent.successRate = total > 0 ? agent.successes / total : 0;
-    // Confidence: based on data volume and recency
+// The rate must be computed over OUTCOMES. totalDelegations counts usage while
+    // successes counts recorded outcomes, so dividing one by the other produced rates
+    // like 4.0. When no outcome was recorded the rate is unknown, reported as 0.
+    agent.successRate = agent.outcomeCount > 0 ? agent.successes / agent.outcomeCount : 0;
+    // Volume and recency say the data is fresh and plentiful. They say nothing about
+    // whether the agent succeeded. Cap confidence by whether outcomes exist at all, so
+    // "loaded 3 times, nobody recorded a result" cannot reach override territory.
+    agent.outcomeKnown = agent.outcomeCount > 0;
     const volumeFactor = Math.min(total / 10, 1);
     const recencyFactor = agent.lastEvent && agent.lastEvent >= decayThreshold ? 0.3 : 0;
-    agent.confidence = Math.min(0.5 + volumeFactor * 0.4 + recencyFactor, 0.95);
+    const evidenceCeiling = agent.outcomeKnown ? 0.95 : 0.4;
+    agent.confidence = Math.min(0.5 + volumeFactor * 0.4 + recencyFactor, evidenceCeiling);
     agents.push(agent);
   }
 
@@ -154,15 +175,33 @@ export function computeAgentPerformance(
     if (info.agents.length === 0) continue;
     info.agents.sort((a, b) => b.successRate - a.successRate);
     const best = info.agents[0];
-    const avgRate = info.agents.reduce((s, a) => s + a.successRate, 0) / info.agents.length;
+    const bestPerf = agents.find((a) => a.agentId === best.agentId);
+    // Confidence must describe the evidence for the agent this domain will route
+    // to. It previously used `0.3 + totalAttempts * 0.05`, which summed attempts
+    // across every agent in the domain: 45 agents with one attempt each produced the
+    // maximum 0.95 and an override that routed everything to one of them. More
+    // unvalidated agents raised confidence, which is the inverse of the truth.
+    // Confidence here is therefore the best agent's own volume-backed confidence.
+    const confidence = bestPerf?.confidence ?? 0.3;
+    // An average over agents with wildly different sample sizes is not a rate. Weight
+    // it by attempts so a single n=1 agent cannot dilute or inflate a validated one.
+    const totalAttempts = info.totalAttempts;
+    const avgRate =
+      totalAttempts > 0
+        ? info.agents.reduce((sum, a) => {
+            const weight =
+              agents.find((p) => p.agentId === a.agentId)?.totalDelegations ?? 1;
+            return sum + a.successRate * weight;
+          }, 0) / totalAttempts
+        : 0;
 
     domainEntries.push({
       domain,
       bestAgent: best.agentId,
       alternatives: info.agents.slice(1, 3),
-      totalAttempts: info.totalAttempts,
+      totalAttempts,
       avgSuccessRate: avgRate,
-      confidence: Math.min(0.3 + info.totalAttempts * 0.05, 0.95),
+      confidence,
       lastRouted: null,
     });
   }
@@ -181,37 +220,100 @@ export function buildOverrides(
   domainEntries: DomainEntry[],
   existingOverrides: RoutingOverride[],
   config: typeof DEFAULT_CONFIG,
+  agentPerformance: AgentPerformance[] = [],
+  log: Logger = () => {},
 ): RoutingOverride[] {
   const overrides: RoutingOverride[] = [...existingOverrides];
   const now_ = now();
   const threshold = config.minConfidenceForOverride;
   const maxOverrides = config.maxOverrides;
 
-  // Remove expired overrides
-  const validExisting = overrides.filter((o) => !o.expiresAt || o.expiresAt > now_);
+  // Recompute an existing override's confidence from current evidence rather than
+  // trusting the stored number. A stored confidence is a snapshot: it never falls on
+  // its own, so an override created from an inflated figure keeps routing every
+  // request in that domain until its own expiry date. Here the stored 0.95 was
+  // earned by summing 45 unvalidated agents, while the target agent's own evidence
+  // (1 delegation, no recorded event) supports 0.54.
+  const validExisting = overrides
+    .filter((o) => !o.expiresAt || o.expiresAt > now_)
+.map((o) => {
+      const target = agentPerformance.find((a) => a.agentId === o.targetAgent);
+      if (!target) return o;
+      const revised: RoutingOverride = { ...o };
+      let changed = false;
+      if (target.confidence < o.confidence) {
+        revised.confidence = target.confidence;
+        changed = true;
+      }
+      // The reason is part of the same claim. A stored sentence describing a number the
+      // table no longer contains is still false, so regenerate it whenever the target's
+      // evidence is available.
+      if (target.outcomeCount > 0 && o.reason?.startsWith('Dynamic routing')) {
+        revised.reason =
+          `Dynamic routing: ${target.agentId} has ${(target.successRate * 100).toFixed(0)}% success rate over ` +
+          `${target.outcomeCount} recorded outcome(s) in '${o.domainPattern}'` +
+          (target.totalDelegations !== target.outcomeCount
+            ? ` (loaded ${target.totalDelegations} time(s), which is not outcome evidence)`
+            : '');
+        if (revised.reason !== o.reason) changed = true;
+      }
+      if (changed) {
+        log(
+          `  Revising override '${o.domainPattern}' -> ${o.targetAgent}: ${o.confidence} -> ${revised.confidence} ` +
+            `(${target.outcomeCount} recorded outcome(s))`,
+        );
+      }
+      return revised;
+    });
+
+  const justified = validExisting.filter((o) => o.confidence >= threshold);
+  for (const dropped of validExisting.filter((o) => o.confidence < threshold)) {
+    log(
+      `  Dropping override '${dropped.domainPattern}' -> ${dropped.targetAgent}: confidence ${dropped.confidence} is below the ${threshold} threshold`,
+    );
+  }
 
   // Generate new overrides from high-confidence domain entries
   for (const entry of domainEntries) {
-    if (validExisting.length >= maxOverrides) break;
+    if (justified.length >= maxOverrides) break;
     if (entry.confidence < threshold) continue;
 
+// The target must itself have real, recorded outcomes. Volume of usage is not
+    // evidence: a skill loaded three times with no result recorded is unknown, and
+    // routing a domain to it on that basis is a guess presented as a measurement.
+    const target = agentPerformance.find((a) => a.agentId === entry.bestAgent);
+    if (target && (target.totalDelegations < config.minDataPoints || !target.outcomeKnown)) {
+      continue;
+    }
+
     // Check if an override already exists for this domain
-    const alreadyExists = validExisting.some(
+    const alreadyExists = justified.some(
       (o) => o.domainPattern.toLowerCase() === entry.domain.toLowerCase(),
     );
     if (alreadyExists) continue;
 
-    validExisting.push({
+justified.push({
       domainPattern: entry.domain,
       targetAgent: entry.bestAgent,
-      reason: `Dynamic routing: ${entry.bestAgent} has ${(entry.avgSuccessRate * 100).toFixed(0)}% success rate in '${entry.domain}' (${entry.totalAttempts} attempts)`,
+      // Quote the target's OUTCOMES, not its usage volume. The previous wording said
+      // "14 attempts" while totalDelegations counted skill loads and the rate came from
+      // a different denominator, so the sentence described a number the table did not
+      // contain. A correct metric with a stale description is still a false claim.
+      reason:
+        `Dynamic routing: ${entry.bestAgent} has ${(entry.avgSuccessRate * 100).toFixed(0)}% success rate over ` +
+        `${target?.outcomeCount ?? 0} recorded outcome(s) in '${entry.domain}'` +
+        (target && target.totalDelegations !== target.outcomeCount
+          ? ` (loaded ${target.totalDelegations} time(s), which is not outcome evidence)`
+          : ''),
       confidence: entry.confidence,
       appliedAt: now_,
       expiresAt: new Date(Date.now() + config.decayDays * 86400000).toISOString(),
     });
   }
 
-  return validExisting;
+  // Returns the justified set, not the raw input. Returning `validExisting` here
+  // silently re-admitted every override the block above had just dropped.
+  return justified;
 }
 
 // ─── Routing Table ────────────────────────────────────────────────────
@@ -255,7 +357,9 @@ export function buildRoutingTable(config: typeof DEFAULT_CONFIG, log: Logger): R
 
   // 4. Build overrides (append learned ones on top of seed baseline)
   log('Building routing overrides...');
-  const overrides = buildOverrides(domainEntries, seededOverrides, config);
+  // Pass agentPerformance so an override can only be created for an agent that has
+  // its own sample, and the logger so unjustified overrides can be reported.
+  const overrides = buildOverrides(domainEntries, seededOverrides, config, agentPerformance, log);
   log(`  Overrides: ${overrides.length} (max: ${config.maxOverrides})`);
 
   // 5. Assemble table

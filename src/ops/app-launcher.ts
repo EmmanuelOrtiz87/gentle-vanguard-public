@@ -71,6 +71,7 @@ export function openBrowser(url: string): void {
       spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], {
         detached: true,
         stdio: 'ignore',
+        windowsHide: true,
       }).unref();
     }
   } catch {

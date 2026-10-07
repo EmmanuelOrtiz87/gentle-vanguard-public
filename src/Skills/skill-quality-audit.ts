@@ -10,14 +10,28 @@ import { CRITICAL_SKILLS } from '../integrations/zcode-sync.js';
 interface RoutingCase {
   id: string;
   query: string;
-  expected: string;
+  expected?: string;
+  expectAny?: string[];
 }
 
 interface RoutingDataset {
   version: string;
   topK: number;
+  minPassRate?: number;
   cases: RoutingCase[];
 }
+
+/**
+ * Routing suites, in evaluation order. Each declares its own minPassRate so a
+ * newly added suite can be introduced with a realistic bar instead of an
+ * aspirational one. skill-routing-cases-es.json exists because the ES/EN/PT
+ * keywords in auto-delegation.json only reach the index via skill-embedder.ts,
+ * and the English suite alone cannot see a regression in Spanish routing.
+ */
+const ROUTING_SUITES: Array<{ file: string; minPassRate: number }> = [
+  { file: 'skill-routing-cases.json', minPassRate: 0.8 },
+  { file: 'skill-routing-cases-es.json', minPassRate: 0.7 },
+];
 
 type EvidenceKind = 'production' | 'evaluation' | 'maintenance';
 type OutcomeSummary = {
@@ -84,9 +98,18 @@ export interface SkillQualityReport {
     passed: number;
     passRate: number;
     minimumPassRate: number;
+    suites: Array<{
+      file: string;
+      cases: number;
+      passed: number;
+      passRate: number;
+      minimumPassRate: number;
+      pass: boolean;
+    }>;
     results: Array<{
       id: string;
-      expected: string;
+      suite: string;
+      expected: string[];
       actual: string[];
       passed: boolean;
       handoffValid: boolean;
@@ -152,21 +175,48 @@ function parseFrontmatter(content: string): { name?: string; description?: strin
 }
 
 export function auditSkillQuality(root = process.cwd()): SkillQualityReport {
-  const dataset = JSON.parse(
-    readFileSync(join(root, 'tests', 'eval', 'skill-routing-cases.json'), 'utf8'),
-  ) as RoutingDataset;
-  const routingResults = dataset.cases.map((testCase) => {
-    const matches = findRelevantSkills(testCase.query, dataset.topK);
-    return {
-      id: testCase.id,
-      expected: testCase.expected,
-      actual: matches.map((match) => match.skill),
-      passed: matches.some((match) => match.skill === testCase.expected),
-      handoffValid: matches.every((match) => Boolean(match.agent && match.agent !== 'unknown')),
-    };
-  });
+  const routingResults: SkillQualityReport['routing']['results'] = [];
+  const suites: SkillQualityReport['routing']['suites'] = [];
+
+  for (const suite of ROUTING_SUITES) {
+    const suitePath = join(root, 'tests', 'eval', suite.file);
+    if (!existsSync(suitePath)) {
+      // A suite that is absent must not silently vanish from the gate; report it
+      // as failing rather than reducing the evaluated surface.
+      suites.push({ file: suite.file, cases: 0, passed: 0, passRate: 0, minimumPassRate: suite.minPassRate, pass: false });
+      continue;
+    }
+    const dataset = JSON.parse(readFileSync(suitePath, 'utf8')) as RoutingDataset;
+    const minPassRate = dataset.minPassRate ?? suite.minPassRate;
+    const suiteResults = dataset.cases.map((testCase) => {
+      const matches = findRelevantSkills(testCase.query, dataset.topK);
+      // A case asserts intent: either one exact skill or any of a set, so a
+      // skill rename does not invalidate the suite.
+      const accepted = testCase.expectAny ?? (testCase.expected ? [testCase.expected] : []);
+      return {
+        id: testCase.id,
+        suite: suite.file,
+        expected: accepted,
+        actual: matches.map((match) => match.skill),
+        passed: accepted.length > 0 && matches.some((match) => accepted.includes(match.skill)),
+        handoffValid: matches.every((match) => Boolean(match.agent && match.agent !== 'unknown')),
+      };
+    });
+    const suitePassed = suiteResults.filter((result) => result.passed).length;
+    suites.push({
+      file: suite.file,
+      cases: suiteResults.length,
+      passed: suitePassed,
+      passRate: suiteResults.length ? suitePassed / suiteResults.length : 0,
+      minimumPassRate: minPassRate,
+      pass: suiteResults.length > 0 && suitePassed / suiteResults.length >= minPassRate,
+    });
+    routingResults.push(...suiteResults);
+  }
+
   const routingPassed = routingResults.filter((result) => result.passed).length;
-  const minimumPassRate = 0.8;
+  const minimumPassRate = ROUTING_SUITES[0]?.minPassRate ?? 0.8;
+  const routingPassRate = routingResults.length ? routingPassed / routingResults.length : 0;
 
   const missing: string[] = [];
   const invalid: string[] = [];
@@ -268,15 +318,15 @@ export function auditSkillQuality(root = process.cwd()): SkillQualityReport {
     // Missing evidence is represented explicitly below.
   }
 
-  const passRate = dataset.cases.length > 0 ? routingPassed / dataset.cases.length : 0;
   const metadataValid = CRITICAL_SKILLS.length - missing.length - invalid.length;
   return {
     generatedAt: new Date().toISOString(),
     routing: {
-      cases: dataset.cases.length,
+      cases: routingResults.length,
       passed: routingPassed,
-      passRate: Number(passRate.toFixed(4)),
+      passRate: Number(routingPassRate.toFixed(4)),
       minimumPassRate,
+      suites,
       results: routingResults,
     },
     metadata: {
@@ -313,8 +363,10 @@ export function auditSkillQuality(root = process.cwd()): SkillQualityReport {
       autoDeprecationEnabled: false,
     },
     embeddings: { skills: embeddingSkills, verifiedAt, ageHours },
+    // Each suite is judged against its own bar, not the pooled rate: a pooled
+    // rate can hide a failing language behind a passing one.
     status:
-      passRate >= minimumPassRate &&
+      suites.every((suite) => suite.pass) &&
       missing.length === 0 &&
       invalid.length === 0 &&
       duplicateNames.length === 0 &&

@@ -213,17 +213,18 @@ test('vite dev server matches vite-server class, not skill-server', () => {
   );
 });
 
-test('static app servers (python http.server) are protected classes, not hung one-shots', () => {
-  // academy: start.sh shape — relative `-d .`, pidfile records the msys nohup
-  // wrapper pid (alive, but not a class instance itself).
+test('static app servers (node serve-static) are protected classes, not hung one-shots', () => {
+  // academy: start.sh shape (node serve-static, post-migración 2026-10) —
+  // pidfile records the msys nohup wrapper pid (alive, but not a class
+  // instance itself).
   const academy = proc(
     33728,
     17396,
-    'C:\\Python314\\python.exe -m http.server 4173 --bind 127.0.0.1 -d .',
+    `"node.exe" ${REPO}\\tools\\serve-static.mjs 4173 ${REPO}\\apps\\academy-web --no-store`,
     2,
-    'python.exe',
   );
-  // design-hub: node-spawned shape — absolute --directory, dead parent, old.
+  // design-hub: legacy python shape — still classified during the transition
+  // (pre-migration process adopted by a hygiene sweep).
   const hub = proc(
     888,
     7,
@@ -231,18 +232,27 @@ test('static app servers (python http.server) are protected classes, not hung on
     26,
     'python.exe',
   );
-  const s = snap([academy, hub], [33728, 17396, 888], {
+  // academy-landing: CC shape (node serve-static, absolute paths, dead parent).
+  const landing = proc(
+    40404,
+    7,
+    `"node.exe" ${REPO}\\tools\\serve-static.mjs 4174 ${REPO}\\apps\\academy-landing`,
+    26,
+  );
+  const s = snap([academy, hub, landing], [33728, 17396, 888, 40404], {
     '.runtime\\app-academy-http.pid': '17396',
     '.runtime\\app-design-hub-http.pid': '888',
+    '.runtime\\app-academy-landing-http.pid': '40404',
   });
   const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
   assert.ok(
-    !findings.some((f) => f.pid === 33728 || f.pid === 888),
+    !findings.some((f) => f.pid === 33728 || f.pid === 888 || f.pid === 40404),
     'static app servers never flagged (regression: session-close reaper killed academy)',
   );
   assert.ok(!findings.some((f) => f.kind === 'stale-pidfile'), 'pidfiles point at live pids');
   assert.ok(keptHealthy.some((k) => k.classId === 'app-academy-http' && k.pid === 33728));
   assert.ok(keptHealthy.some((k) => k.classId === 'app-design-hub-http' && k.pid === 888));
+  assert.ok(keptHealthy.some((k) => k.classId === 'app-academy-landing-http' && k.pid === 40404));
 });
 
 test('relative server/server.ts instances are disambiguated by pidfile (cms vs archify)', () => {

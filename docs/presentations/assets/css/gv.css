@@ -1978,3 +1978,42 @@ section {
     font-size: 11px;
   }
 }
+
+/* ── Static mode (2026-09-22): carousels converted to always-visible stacked
+   sections. carousel.js removed from all pages; nav hidden via CSS. ── */
+.gv-carousel-track {
+  display: block;
+  transition: none;
+}
+.gv-carousel-slide {
+  min-width: 0;
+  opacity: 1;
+  display: block;
+  transition: none;
+}
+.gv-carousel-slide + .gv-carousel-slide {
+  margin-top: 1.25rem;
+}
+.gv-carousel-nav,
+.carousel-dots {
+  display: none !important;
+}
+#dashboard-carousel .gv-carousel-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+#dashboard-carousel .gv-carousel-slide + .gv-carousel-slide {
+  margin-top: 0;
+}
+.gv-subgroup-title {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--a);
+  margin: 1.5rem 0 0.75rem;
+  letter-spacing: 0.02em;
+}
+.gv-carousel-slide:first-of-type .gv-subgroup-title,
+.gv-subgroup-title:first-child {
+  margin-top: 0;
+}

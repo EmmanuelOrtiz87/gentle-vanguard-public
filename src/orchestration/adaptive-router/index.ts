@@ -108,18 +108,30 @@ export function main(): void {
         `[OK] Routing table saved: ${table.summary.totalAgents} agents, ${table.summary.totalDomains} domains, ${table.summary.totalOverrides} overrides`,
       );
 
-      // SQLite dual-write: upsert each domain entry as a routing rule
+      // SQLite dual-write: upsert each domain entry as a routing rule.
+      // El tenant se resuelve del MISMO env que recommend-agent
+      // (GENTLE_VANGUARD_TENANT_ID): sin esto, el --build de un test
+      // sobrescribía la fila real 'general' de producción vía
+      // ON CONFLICT(pattern, tenant_id) — dos veces confirmado (2026-10-06).
+      // Para aislar la BD completa, un test debe además inyectar
+      // GENTLE_VANGUARD_DB_DIR/DB_FILE (ver routing-learning-loop-file.test.ts).
       try {
         const mgr = getDb();
         if (mgr) {
+          // Mismo default que manager.ts (se obtiene del require perezoso para
+          // no romper el import type-only de arriba).
+          const fallbackTenant = 'gentle-vanguard';
+          const tenantId =
+            process.env.GENTLE_VANGUARD_TENANT_ID ?? fallbackTenant;
           for (const entry of table.domainEntries) {
             mgr.upsertRoutingRule(
               entry.domain,
               entry.bestAgent,
               Math.round(entry.confidence * 100),
+              tenantId,
             );
           }
-          log(`[OK] Synced ${table.domainEntries.length} routing rules to SQLite`);
+          log(`[OK] Synced ${table.domainEntries.length} routing rules to SQLite (tenant: ${tenantId})`);
         }
       } catch {
         // Dual-write failure is non-critical

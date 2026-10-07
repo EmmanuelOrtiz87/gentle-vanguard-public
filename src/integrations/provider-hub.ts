@@ -52,7 +52,6 @@ export function listProviderStatuses(input: ProviderHubInput = {}): ProviderStat
   const openaiKey = process.env.CONTENT_LLM_API_KEY || input.openaiApiKey;
   const openaiBase = process.env.CONTENT_LLM_BASE_URL || input.openaiBaseUrl;
   const geminiKey = process.env.GEMINI_API_KEY || input.geminiApiKey;
-  const anthropic = present(process.env.ANTHROPIC_API_KEY);
   const minimax = present(process.env.MINIMAX_API_KEY);
   const zai = present(process.env.ZAI_API_KEY, process.env.GLM_API_KEY);
   const copilot = cliAvailable('gh');
@@ -100,15 +99,6 @@ export function listProviderStatuses(input: ProviderHubInput = {}): ProviderStat
       source: openaiKey && openaiBase ? 'base URL + key local/env' : 'falta base URL o key',
       model: input.openaiModel,
       note: 'Requiere endpoint y credencial compatibles con la API seleccionada.',
-    },
-    {
-      id: 'anthropic',
-      label: 'Claude / Anthropic',
-      connection: 'api',
-      state: anthropic ? 'ready' : 'needs-credential',
-      configured: anthropic,
-      source: anthropic ? 'ANTHROPIC_API_KEY' : 'sin API key',
-      note: 'Disponible mediante API oficial; login de Claude no se reutiliza.',
     },
     {
       id: 'minimax',

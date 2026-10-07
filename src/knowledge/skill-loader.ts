@@ -10,7 +10,7 @@
  *   npx tsx src/skill-loader.ts --load code-review-skill
  */
 
-import { readdirSync, readFileSync, existsSync } from 'fs';
+import { readdirSync, readFileSync, existsSync, statSync } from 'fs';
 import { join } from 'path';
 import { log } from '../utils/logger.js';
 import { recordSkillUsage, readCurrentSessionId } from './skill-usage-recorder.js';
@@ -130,10 +130,36 @@ function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; bod
 }
 
 /**
- * Load all skills from /skills/ directory
+ * Cache de loadSkills (GAP 9): leer 239 SKILL.md en cada llamada era el
+ * coste dominante en procesos long-running. Invalidación doble: mtime del
+ * directorio (alta/baja de skills) + TTL de 30s (edición de contenido de
+ * un SKILL.md existente no cambia el mtime del dir). clearSkillsCache()
+ * queda para tests y operaciones que exigen frescura inmediata.
+ */
+const SKILLS_CACHE_TTL_MS = 30_000;
+let skillsCache: { skills: Skill[]; dirMtimeMs: number; at: number } | null = null;
+
+export function clearSkillsCache(): void {
+  skillsCache = null;
+}
+
+/**
+ * Load all skills from /skills/ directory (cached — ver GAP 9 arriba)
  */
 export function loadSkills(): Skill[] {
-  if (!existsSync(SKILLS_DIR)) {
+  if (existsSync(SKILLS_DIR)) {
+    let dirMtimeMs = 0;
+    try {
+      dirMtimeMs = statSync(SKILLS_DIR).mtimeMs;
+    } catch {
+      dirMtimeMs = 0;
+    }
+    const fresh =
+      skillsCache &&
+      skillsCache.dirMtimeMs === dirMtimeMs &&
+      Date.now() - skillsCache.at < SKILLS_CACHE_TTL_MS;
+    if (fresh && skillsCache) return skillsCache.skills;
+  } else {
     logger.error(`Skills directory not found: ${SKILLS_DIR}`);
     return [];
   }
@@ -166,6 +192,13 @@ export function loadSkills(): Skill[] {
     }
   }
 
+  let dirMtimeMs = 0;
+  try {
+    dirMtimeMs = statSync(SKILLS_DIR).mtimeMs;
+  } catch {
+    dirMtimeMs = 0;
+  }
+  skillsCache = { skills, dirMtimeMs, at: Date.now() };
   return skills;
 }
 

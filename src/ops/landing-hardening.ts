@@ -73,6 +73,7 @@ function clone(): boolean {
   const r = spawnSync('git', ['clone', '--depth=1', '--branch', BRANCH, REMOTE_URL, WORK_DIR], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,
   });
   if (r.status !== 0) {
     log('!', `Clone fallo: ${r.stderr.slice(0, 300)}`);
@@ -139,16 +140,16 @@ function applyChanges(): { changed: boolean; details: string[] } {
 }
 
 function commitAndPush(): boolean {
-  spawnSync('git', ['config', 'user.name', 'gv-bot-landing'], { cwd: WORK_DIR });
-  spawnSync('git', ['config', 'user.email', 'bot@gentle-vanguard'], { cwd: WORK_DIR });
-  spawnSync('git', ['add', '-A'], { cwd: WORK_DIR });
+  spawnSync('git', ['config', 'user.name', 'gv-bot-landing'], { cwd: WORK_DIR, windowsHide: true });
+  spawnSync('git', ['config', 'user.email', 'bot@gentle-vanguard'], { cwd: WORK_DIR, windowsHide: true });
+  spawnSync('git', ['add', '-A'], { cwd: WORK_DIR, windowsHide: true });
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  const r = spawnSync('git', ['commit', '-m', `chore(landing): hardening minimo — .gitignore + README footer (${ts})`], { cwd: WORK_DIR, encoding: 'utf8' });
+  const r = spawnSync('git', ['commit', '-m', `chore(landing): hardening minimo — .gitignore + README footer (${ts})`], { cwd: WORK_DIR, encoding: 'utf8', windowsHide: true });
   if (r.status !== 0) {
     log('!', `Commit fallo: ${r.stderr.slice(0, 300)}`);
     return false;
   }
-  const push = spawnSync('git', ['push', 'origin', BRANCH], { cwd: WORK_DIR, encoding: 'utf8' });
+  const push = spawnSync('git', ['push', 'origin', BRANCH], { cwd: WORK_DIR, encoding: 'utf8', windowsHide: true });
   if (push.status !== 0) {
     log('!', `Push fallo: ${push.stderr.slice(0, 300)}`);
     return false;

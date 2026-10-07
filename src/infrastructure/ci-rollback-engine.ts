@@ -251,9 +251,15 @@ function doLog(repoRoot: string): RollbackRecord[] {
 
 function main() {
   const args = process.argv.slice(2);
-  const action = args.find((a) => a.startsWith('--action='))?.split('=')[1] ?? 'rollback';
-  const jobName = args.find((a) => a.startsWith('--jobName='))?.split('=')[1] ?? 'unknown';
-  const reason = args.find((a) => a.startsWith('--reason='))?.split('=')[1] ?? 'No reason provided';
+  const readFlag = (name: string, fallback: string): string => {
+    const inline = args.find((a) => a.startsWith(`${name}=`));
+    if (inline) return inline.slice(name.length + 1);
+    const index = args.indexOf(name);
+    return index >= 0 && args[index + 1] ? args[index + 1] : fallback;
+  };
+  const action = readFlag('--action', 'rollback');
+  const jobName = readFlag('--jobName', 'unknown');
+  const reason = readFlag('--reason', 'No reason provided');
   const dryRun = args.includes('--dryRun');
 
   const repoRoot = getRepoRoot();
@@ -279,6 +285,9 @@ function main() {
       console.error(`\x1b[31mUnknown action: ${action}\x1b[0m`);
       process.exit(1);
   }
+  // This module is a CLI one-shot. Explicitly close any inherited handles so
+  // status/log checks cannot become background processes on Windows.
+  process.exit(0);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

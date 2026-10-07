@@ -67,6 +67,14 @@ try {
   assert.equal(widget.status, 200);
   assert.match(widget.headers['content-type'], /^text\/javascript; charset=utf-8$/);
   assert.match(widget.body, /data-app/);
+  // Brand assets del UI: el logo del topbar vive en public/assets/ y antes de
+  // tener handler /assets/ volvía 404 (se veía el topbar sin logo). El escape
+  // de directorio debe seguir en 404.
+  const logo = await get('/assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png');
+  assert.equal(logo.status, 200);
+  assert.match(logo.headers['content-type'], /^image\/png/);
+  const traversal = await get('/assets/..%2F..%2Fserver.ts');
+  assert.equal(traversal.status, 404);
   const options = await get('/api/apps', 'OPTIONS', { Origin: 'http://127.0.0.1:5173' });
   assert.equal(options.status, 204);
   assert.equal(options.headers['access-control-allow-origin'], 'http://127.0.0.1:5173');

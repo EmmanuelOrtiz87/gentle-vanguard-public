@@ -1,7 +1,7 @@
-# Gentle-Vanguard — BRAND KIT (v2.0 APPLICATION FINAL · OFICIAL ÚNICA)
+# GentleVanguard — BRAND KIT (v2.0 APPLICATION FINAL · OFICIAL ÚNICA)
 
 > **Única referencia operacional de la marca del stack.** Punto de entrada para aplicar la
-> identidad oficial de Gentle-Vanguard en cualquier formato y desde cualquier herramienta (agente,
+> identidad oficial de GentleVanguard en cualquier formato y desde cualquier herramienta (agente,
 > IA, modelo, app, documento, presentación).
 >
 > Last verified: 2026-10-01 · Canonical source: `docs/adr/ADR-0033-nueva-identidad-marca-v3.md`
@@ -92,6 +92,8 @@ easing outExpo).
 | Mono dark | `assets/logo-mono-dark.svg` |
 | Favicon canónico | `assets/brand/gentle-vanguard/v2/svg/icons/favicon.svg` |
 | Logo horizontal / vertical | `assets/brand/gentle-vanguard/v2/svg/logos/logo-{horizontal,vertical}.svg` |
+| Wordmark bitmap oficial | `assets/brand/gentle-vanguard/v2/raster/official/gv-wordmark-official.png` |
+| Icono bitmap oficial | `assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png` |
 | App icons (dark/light/gradient/maskable) | `assets/brand/gentle-vanguard/v2/svg/icons/app-icon-*.svg` |
 | currentColor (CSS) | `assets/brand/gentle-vanguard/v2/svg/icons/gv-currentColor.svg` |
 | Manifest + tokens del set | `assets/brand/gentle-vanguard/v2/asset-manifest.json` |
@@ -104,12 +106,17 @@ Vanguard Violet `#8B5CF6`, Soft White `#F8FAFC`, Black `#050A14`.
 
 **Reglas de uso:**
 
+- En superficies finales donde la marca se ve como imagen (headers de app, portadas, README,
+  documentación, PDFs, decks, material exportado), preferir los bitmaps oficiales
+  `raster/official/*` para preservar el look aprobado por el owner.
 - Toda copia debe ser **byte-idéntica** al canon (DD-20261001-02). Propagar solo con
   `apps/design-hub/tools/propagate.js` o copia directa del canon; jamás regenerar a mano.
 - Uso navbar/topbar: `<img class="gv-brand-logo">` a **32px**. Favicon: **16px** legible.
 - Wordmark: "Gentle**Vanguard**" en **Poppins 700** — "Gentle" blanco (`--gv-text`), "Vanguard"
-  con gradiente. Versión primaria en dark; `mono-dark` sobre superficies claras, `mono-light`
-  sobre oscuras.
+  con gradiente. **SIN espacio entre las dos palabras** (DD-20261005-01): el nombre de marca es
+  una sola palabra compuesta, igual que el bitmap oficial. Markup canónico en UI:
+  `Gentle<span>Vanguard</span>`. Versión primaria en dark; `mono-dark` sobre superficies claras,
+  `mono-light` sobre oscuras.
 - Footer: `.gv-footer-brand` — "Gentle" blanco + "Vanguard" gradiente (misma mecánica del
   wordmark), luego tagline — versión — año.
 
@@ -128,7 +135,11 @@ Vanguard Violet `#8B5CF6`, Soft White `#F8FAFC`, Black `#050A14`.
 ### HTML / Web (materiales)
 
 - Copiar los tokens CSS del punto 2 o `docs/presentations/assets/css/gv.css` (verificar alineación
-  antes de reutilizar). Logo: `<img src="assets/logo.svg" class="gv-brand-logo" style="width:32px">`.
+  antes de reutilizar). Marca visible:
+  `<img src="assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png" class="gv-brand-logo" style="width:32px">`
+  o
+  `<img src="assets/brand/gentle-vanguard/v2/raster/official/gv-wordmark-official.png" alt="GentleVanguard">`.
+  Favicon: mantener `svg/icons/favicon.svg` salvo requerimiento de plataforma.
 
 ### PDF / Impresión
 
@@ -138,14 +149,15 @@ Vanguard Violet `#8B5CF6`, Soft White `#F8FAFC`, Black `#050A14`.
 ### PowerPoint (PPTX / .potx)
 
 - Fondo de diapositiva `#0B1020`. Títulos Poppins 700; cuerpo Inter; código JetBrains Mono.
-- Logo esquina superior: `assets/logo-icon.svg`. Acento de portada: gradiente 3-stop
+- Logo esquina superior: `raster/official/gv-icon-official.png`. Portada/contratapa:
+  `raster/official/gv-wordmark-official.png`. Acento de portada: gradiente 3-stop
   `#6E4DEB → #7B63E8 → #06B6D4`.
 
 ### Word / Documento
 
 - Fondo `#ffffff` en impresión; acentos y wordmark de marca `#0B1020`/`#06B6D4`/`#8B5CF6`.
-- Títulos Poppins 700; cuerpo Inter. Logo de cabecera: `logo-horizontal.svg` (variante mono-dark
-  en claro).
+- Títulos Poppins 700; cuerpo Inter. Logo de cabecera: `raster/official/gv-wordmark-official.png`
+  sobre portada oscura o `logo-horizontal-dark-text.svg` cuando el documento sea blanco/impreso.
 
 ---
 

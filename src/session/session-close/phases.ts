@@ -969,6 +969,36 @@ export async function phaseCleanup(
         : 'Retention: no cleanup needed',
   });
 
+  // 5.8 Rebuild the adaptive routing table so the session's recorded outcomes become
+  // learning rather than raw rows. Found 2026-10-02: the loop was honest but starved.
+  // `routing_rules` held exactly one row, created by a manual run seven weeks earlier,
+  // because route-and-delegate.ts (the only caller of recordRoutingOutcome) has zero
+  // callers itself. The build step that consumes those rows is already scheduled lazily
+  // at session start, but rebuilding at close means the next session starts from the
+  // previous session's evidence instead of the state it left behind.
+  // Best-effort: never FAIL the close if it errors.
+  try {
+    const routingBuild = runNpxTsxSync(
+      resolve(ROOT, 'src/orchestration/adaptive-router.ts'),
+      ['--build', '--quiet'],
+      { timeout: 60_000 },
+    );
+    results.push({
+      phase: 'adaptive-router-rebuild',
+      status: routingBuild.status === 0 ? 'PASS' : 'SKIP',
+      detail:
+        routingBuild.status === 0
+          ? 'Routing table rebuilt from recorded outcomes'
+          : `Routing rebuild exited ${routingBuild.status} (best-effort)`,
+    });
+  } catch (err) {
+    results.push({
+      phase: 'adaptive-router-rebuild',
+      status: 'SKIP',
+      detail: `Routing rebuild failed (best-effort): ${err}`,
+    });
+  }
+
   // 5.7 Background-task drain safety net ("ventanas fantasma" — 2026-10-01).
   // Calls scripts/utilities/background-tasks.ts to:
   //   1. read the runtime state file (.runtime/bg-tasks.json)

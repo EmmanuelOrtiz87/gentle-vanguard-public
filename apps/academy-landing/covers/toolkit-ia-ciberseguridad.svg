@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet">
+  <!-- Toolkit de IA aplicada a Ciberseguridad · cover v1 · canon v2.0 (ADR-0033) -->
+  <defs>
+    <linearGradient id="gv-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1020"/>
+      <stop offset="50%" stop-color="#151921"/>
+      <stop offset="100%" stop-color="#090C11"/>
+    </linearGradient>
+    <linearGradient id="gv-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6E4DEB"/>
+      <stop offset="52%" stop-color="#7B63E8"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gv-shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#gv-bg)"/>
+  <!-- subtle grid -->
+  <g opacity="0.06" stroke="#06B6D4" stroke-width="1">
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="500" x2="800" y2="500"/>
+    <line x1="0" y1="700" x2="800" y2="700"/>
+    <line x1="0" y1="900" x2="800" y2="900"/>
+    <line x1="200" y1="0" x2="200" y2="1000"/>
+    <line x1="400" y1="0" x2="400" y2="1000"/>
+    <line x1="600" y1="0" x2="600" y2="1000"/>
+  </g>
+  <!-- shield + AI emblem -->
+  <g transform="translate(400,330)">
+    <path d="M0,-140 L105,-87 L105,35 C105,123 52,184 0,210 C-52,184 -105,123 -105,35 L-105,-87 Z" fill="none" stroke="url(#gv-shield)" stroke-width="7"/>
+    <!-- neural network nodes -->
+    <g fill="#06B6D4" opacity="0.9">
+      <circle cx="0" cy="-25" r="4"/>
+      <circle cx="-35" cy="0" r="4"/>
+      <circle cx="35" cy="0" r="4"/>
+      <circle cx="-22" cy="35" r="4"/>
+      <circle cx="22" cy="35" r="4"/>
+      <circle cx="0" cy="70" r="4"/>
+    </g>
+    <g stroke="#8B5CF6" stroke-width="1" opacity="0.7">
+      <line x1="0" y1="-25" x2="-35" y2="0"/>
+      <line x1="0" y1="-25" x2="35" y2="0"/>
+      <line x1="-35" y1="0" x2="-22" y2="35"/>
+      <line x1="35" y1="0" x2="22" y2="35"/>
+      <line x1="-35" y1="0" x2="22" y2="35"/>
+      <line x1="35" y1="0" x2="-22" y2="35"/>
+      <line x1="-22" y1="35" x2="0" y2="70"/>
+      <line x1="22" y1="35" x2="0" y2="70"/>
+    </g>
+    <!-- central AI core -->
+    <circle cx="0" cy="18" r="13" fill="url(#gv-accent)"/>
+    <circle cx="0" cy="18" r="5" fill="#0B1020"/>
+  </g>
+  <!-- title -->
+  <text x="400" y="650" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="46" font-weight="700" fill="#e8eef4">Toolkit</text>
+  <text x="400" y="695" text-anchor="middle" font-family="Poppins, system-ui, sans-serif" font-size="40" font-weight="700" fill="url(#gv-accent)">IA aplicada a Ciberseguridad</text>
+  <!-- subtitle -->
+  <text x="400" y="750" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="400" fill="#c4cdd8">Curso + manual + checklists + plantillas + emails + casos</text>
+  <!-- meta -->
+  <g font-family="Inter, system-ui, sans-serif" font-size="14" fill="#8b95a8" text-anchor="middle">
+    <text x="400" y="830">6 secciones · 25 items aplicables desde el primer dia</text>
+    <text x="400" y="858">OWASP agentic, NIST AI RMF, EU AI Act, ISO 42001</text>
+    <text x="400" y="886">Caso de estudio: stack de Gentle Vanguard</text>
+    <text x="400" y="945" font-family="Poppins, system-ui, sans-serif" font-size="14" font-weight="700" fill="#06B6D4">GentleVanguard Academy</text>
+  </g>
+</svg>

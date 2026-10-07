@@ -438,6 +438,19 @@
         "description": "Valida tool configs (.windsurf, .continue, .clinerules) contra schemas oficiales (TS)"
       },
       {
+        "id": "tool-interoperability-sync",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/integrations/zcode-sync.ts",
+        "args": "--sync",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 120000,
+        "retries": 1,
+        "retryDelay": 1500,
+        "description": "Sincroniza agentes, skills críticas y hooks entre OpenCode, Codex, ZCode, MiniMax, Copilot y Antigravity. Repara drift al iniciar sesión sin bloquear el arranque."
+      },
+      {
         "id": "maintenance-watchtower",
         "enabled": true,
         "lazy": true,

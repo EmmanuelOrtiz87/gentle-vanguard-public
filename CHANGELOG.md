@@ -2,6 +2,60 @@
 
 ## [Unreleased]
 
+## [4.2.0] — 2026-10-07 — Release operativo, bots de cliente y distribución pública
+
+### Nuevas capacidades
+
+- **Bots WhatsApp de cliente**: `apps/wpp-bot` incorpora adaptador WhatsApp Cloud API de Meta como
+  par del adaptador Twilio, con firma `X-Hub-Signature-256`, handshake GET, dedupe de redeliveries
+  y clasificación de errores reintentables vs fatales. La demo de viandas valida 5 flujos de
+  familia, comandos internos del comedor y handoff por área.
+- **GV Agenda/Kairós**: modo local-first, recurrencia, PWA/Android, auto-recarga controlada en
+  `controllerchange`, topbar canónica y operación sin emprendimientos.
+- **Content CMS + gv-shorts**: pipeline de shorts con Whisper, subtítulos quemados, TTS con
+  failover, providers de publicación, OAuth/credenciales y cola multi-plataforma.
+- **Voice Studio**: app nativa para storage, integración con shorts y sidecar HTTP.
+- **Stack MCP server**: 6 herramientas nativas para operar el stack desde MCP.
+- **Academy/Portal**: cursos y productos nuevos, certificados verificables server-side,
+  recuperación de contraseña local-first y mejoras de visibilidad en Academy.
+
+### Cambios operativos
+
+- **Release público**: READMEs privado/público actualizados con marco explícito de información,
+  frontera de publicación y benchmark contra Gentle-AI y Agent Kit.
+- **Sync público**: `sync-to-public` endurecido con destino explícito, guardias de repo de marca vs
+  repo de distribución, normalización de `.gitignore`, `packages/shared` y limpieza de artefactos
+  internos.
+- **Installer**: distribución Windows regenerable con `Gentle-Vanguard-Setup-4.2.0.exe` y SHA-256
+  recalculado.
+- **Upgrade nativo**: `npm run upgrade` agrega snapshot del árbol sucio, `pull --ff-only` y
+  post-upgrade con gates.
+
+### Seguridad y calidad
+
+- Parches y overrides para advisories transitivos (`js-yaml`, `fast-uri`, `source-map-js`,
+  `proxy-addr`, MCP SDK/sharp según árbol instalado).
+- Prepush/quality gates con auditoría por app, ratchets de deadcode, property-based tests,
+  frozen-candidate RDD y verificación de distribución pública.
+- Homologación visual GV v2.1.0 propagada a apps, assets, PWA manifests y brand kit con tests
+  anti-regresión.
+
+### Benchmark 2026-10-07
+
+- **Gentle-AI**: superior como producto público/configurador de agentes y comunidad; Gentle-Vanguard
+  supera en operación completa, apps internas, observabilidad, tokens, delivery y control local.
+- **basdonax-ai-agentkit**: excelente referencia de WhatsApp/Chatwoot, handoff humano, buffers,
+  memoria, selector de modelos y manejo de costos Meta. Compatible como benchmark funcional; no se
+  absorbe como dependencia porque la estrategia GV es stack propio, TypeScript-first y
+  determinista.
+
+### Verificación
+
+- `npm run gv:installer` generó `dist/Gentle-Vanguard-Setup-4.2.0.exe`.
+- SHA-256: `770c8d82021daf960866ed2eb3a7f49b28d8a5f5e4b17930934e8c8f92943426`.
+- `npm run release:verify-dist:offline`: 3 ok · 0 fallidos · 2 omitidos por modo offline.
+- `npm run validate:stack:quick`: 14/14 PASS.
+
 ## [4.1.0] — 2026-09-29 — Portal de Cliente, fan-out de ventas y canon de marca
 
 ### Nuevas capacidades

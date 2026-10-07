@@ -53,7 +53,7 @@ function getChangedFiles(): string[] {
     // Default: HEAD vs HEAD~1
     cmd = ['diff', '--name-only', 'HEAD~1', 'HEAD'];
   }
-  const r = spawnSync('git', cmd, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const r = spawnSync('git', cmd, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true });
   if (r.status !== 0) return [];
   return (r.stdout ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
 }

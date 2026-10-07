@@ -55,7 +55,7 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
   { dir: 'planning-and-task-breakdown', root: 'stack' },
   { dir: 'context-engineering', root: 'stack' },
   { dir: 'web-research', root: 'stack' },
-  { dir: 'diagram-design', root: 'opencode' }, // única con contenido real en .opencode
+  { dir: 'diagram-design', root: 'stack' },
   { dir: 'security-and-hardening', root: 'stack' },
   // Fase 1 adopción externa (2026-08-27) — demanda diseño/docs/marketing.
   // Ver docs/reference/SKILL-UPGRADE-SHORTLIST-2026-08.md para el plan completo.
@@ -68,14 +68,19 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
   { dir: 'ui-taste', root: 'stack' },
   { dir: 'brand-guidelines-gv', root: 'stack' },
   // Fase 4 adopción (2026-09-01) — design skills from GitHub + getdesign.md + ui-skills.com
-  { dir: 'impeccable', root: 'opencode' },
-  { dir: 'playwright-cli', root: 'opencode' },
-  { dir: 'brand-design-systems', root: 'opencode' },
-  { dir: 'design-engineering', root: 'opencode' },
+  { dir: 'impeccable', root: 'stack' },
+  { dir: 'playwright-cli', root: 'stack' },
+  { dir: 'brand-design-systems', root: 'stack' },
+  { dir: 'design-engineering', root: 'stack' },
   // Fase 5 (2026-09-08) — autoría de cursos GV Academy (contrato nativo)
-  { dir: 'academy-course-authoring', root: 'opencode' },
+  { dir: 'academy-course-authoring', root: 'stack' },
   // Fase 6 (2026-09-26) — triage sistémico (upstream gentle-ai, Apache-2.0).
   { dir: 'systemic-issue-triage', root: 'stack' },
+  // Fase 7 (2026-10-03) — short-form video generation (gv-shorts-core + content-cms shorts/).
+  { dir: 'gv-shorts-skill', root: 'stack' },
+  // Fase 8 (2026-10-06) — documentación comercial de clientes: modelo comercial vigente
+  // (NORM-CLIENTES-004/009/011), proceso de verificación y gates antes de presentar.
+  { dir: 'documentacion-comercial-clientes', root: 'opencode' },
 ];
 
 /**

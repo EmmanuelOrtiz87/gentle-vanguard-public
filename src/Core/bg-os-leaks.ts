@@ -40,7 +40,7 @@ const MANAGED_PATTERNS: RegExp[] = [
   /command-center[\\/]server\.ts/,
   /web-dashboard[\\/](server|src[\\/]server)/,
   /dashboard-ws-autostart\.ts/,
-  /sandbox-gv[\\/](server|src[\\/]server|start\.ts)/,
+  /apps[\\/]sandbox-gv[\\/]/,
   /apps[\\/]academy(-|web|crm|landing|portal)?[\\/].*(server|http)/,
   /design-hub[\\/].*(server|start)/,
   /gv-analytics[\\/].*server/,
@@ -82,6 +82,9 @@ export function isManagedDaemon(cmd: string, pid: number, managedPids?: Set<numb
 export function listOsLeakCandidates(): OsCandidate[] {
   const ps = [
     'Get-CimInstance Win32_Process -Filter "Name like \'node%\'"',
+    // This detector belongs to GV background tasks. Codex/CUA runtimes and
+    // unrelated user processes must never become reap candidates.
+    `  | Where-Object { $_.CommandLine -and $_.CommandLine -notmatch 'cua_node' -and $_.CommandLine -match '${ROOT.replace(/\\/g, '\\\\').replace(/[.*+?^${}()|[\]]/g, '\\$&')}' }`,
     "  | Where-Object { $_.CreationDate -lt (Get-Date).AddSeconds(-60) }",
     '  | ForEach-Object {',
     '      $age = ((Get-Date) - $_.CreationDate).TotalSeconds;',
@@ -98,6 +101,7 @@ export function listOsLeakCandidates(): OsCandidate[] {
   const result = spawnSync('powershell', ['-NoProfile', '-Command', ps], {
     encoding: 'utf-8',
     timeout: 20_000,
+    windowsHide: true,
   });
   if (result.status !== 0 || !result.stdout) return [];
   let all: Array<{ pid: number; ppid: number; cmd: string; ageSec: number }> = [];

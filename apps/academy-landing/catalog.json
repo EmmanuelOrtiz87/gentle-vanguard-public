@@ -1,11 +1,11 @@
 {
-  "generated": "2026-09-30T23:42:17.121Z",
+  "generated": "2026-10-07T00:10:06.465Z",
   "counts": {
-    "courses": 25,
-    "ebooks": 31,
-    "ebooksPremium": 15,
-    "toolkits": 22,
-    "products": 78
+    "courses": 28,
+    "ebooks": 34,
+    "ebooksPremium": 18,
+    "toolkits": 25,
+    "products": 87
   },
   "pricing": {
     "ebook-micro": {
@@ -47,10 +47,20 @@
         "id": "agentes-ia",
         "title": "Agentes de IA en tu día a día",
         "level": "de 0 a 100",
-        "hours": 9,
+        "hours": 12,
         "categories": [
           "ia-aplicada",
           "negocios-productividad"
+        ]
+      },
+      {
+        "id": "ai-engineering",
+        "title": "AI Engineering — Sistemas de IA de producción",
+        "level": "developer",
+        "hours": 24,
+        "categories": [
+          "ia-aplicada",
+          "infraestructura-redes-ciberseguridad"
         ]
       },
       {
@@ -61,6 +71,16 @@
         "categories": [
           "negocios-productividad",
           "infraestructura-redes-ciberseguridad"
+        ]
+      },
+      {
+        "id": "ciberseguridad",
+        "title": "Ciberseguridad — De persona a empresa",
+        "level": "de 0 a 100",
+        "hours": 12,
+        "categories": [
+          "infraestructura-redes-ciberseguridad",
+          "negocios-productividad"
         ]
       },
       {
@@ -140,6 +160,16 @@
         "categories": [
           "software-programacion",
           "ia-aplicada"
+        ]
+      },
+      {
+        "id": "ia-ciberseguridad",
+        "title": "IA aplicada a Ciberseguridad — Defender y operar con IA",
+        "level": "intermedio",
+        "hours": 14,
+        "categories": [
+          "ia-aplicada",
+          "infraestructura-redes-ciberseguridad"
         ]
       },
       {
@@ -295,6 +325,15 @@
         "priceTier": "ebook-micro"
       },
       {
+        "id": "ai-engineering",
+        "title": "AI Engineering — Patrones de producción",
+        "type": "premium",
+        "pages": 90,
+        "audience": "Developers, tech leads, founders técnicos",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
         "id": "chatgpt-docentes",
         "title": "ChatGPT para Docentes",
         "type": "micro",
@@ -421,11 +460,29 @@
         "priceTier": "ebook-micro"
       },
       {
+        "id": "manual-ciberseguridad",
+        "title": "Manual Práctico de Ciberseguridad — De persona a empresa",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Personas, profesionales de cualquier área, dueños de PyMEs, equipos de IT, managers y líderes que necesitan entender la defensa moderna",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
         "id": "manual-ia-administracion",
         "title": "Manual Práctico de IA para Administración",
         "type": "premium",
         "pages": 120,
         "audience": "Administrativos, asistentes, office managers, gestores",
+        "featured": true,
+        "priceTier": "ebook-premium"
+      },
+      {
+        "id": "manual-ia-ciberseguridad",
+        "title": "Manual Práctico de IA aplicada a Ciberseguridad — Defender y operar con IA",
+        "type": "premium",
+        "pages": 120,
+        "audience": "Profesionales de seguridad, developers de AI/ML, equipos de SOC, IR leads, threat hunters, red teamers, CISOs, CTOs, y líderes que deben implementar AI defendiendo al mismo tiempo",
         "featured": true,
         "priceTier": "ebook-premium"
       },
@@ -567,6 +624,46 @@
     ],
     "toolkits": [
       {
+        "id": "ai-engineering-toolkit",
+        "title": "AI Engineering Toolkit",
+        "includes": [
+          "curso",
+          "ebook",
+          "recursos",
+          "plantillas",
+          "casos",
+          "prompts"
+        ],
+        "audience": "Developers, tech leads, founders tecnicos, ingenieros de ML, SREs",
+        "links": {
+          "course": "ai-engineering",
+          "ebook": "ai-engineering"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ciberseguridad-toolkit",
+        "title": "Toolkit de Ciberseguridad",
+        "includes": [
+          "curso",
+          "ebook",
+          "checklists",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos",
+          "recursos"
+        ],
+        "audience": "Personas, profesionales de cualquier área, dueños de PyMEs, equipos de IT, managers y líderes",
+        "links": {
+          "course": "ciberseguridad",
+          "ebook": "manual-ciberseguridad"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
         "id": "ia-administracion-pro",
         "title": "IA para Administración Pro",
         "includes": [
@@ -582,6 +679,26 @@
         "links": {
           "course": "ia-fundamentos",
           "ebook": "manual-ia-administracion"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "ia-ciberseguridad-toolkit",
+        "title": "Toolkit de IA aplicada a Ciberseguridad",
+        "includes": [
+          "curso",
+          "ebook",
+          "checklists",
+          "plantillas",
+          "emails",
+          "casos",
+          "recursos"
+        ],
+        "audience": "Profesionales de seguridad, developers de AI/ML, equipos de SOC, IR leads, threat hunters, red teamers, CISOs, CTOs, y líderes que deben implementar AI defendiendo al mismo tiempo",
+        "links": {
+          "course": "ia-ciberseguridad",
+          "ebook": "manual-ia-ciberseguridad"
         },
         "featured": true,
         "priceTier": "toolkit"

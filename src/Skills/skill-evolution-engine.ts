@@ -171,6 +171,13 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
   const files = readdirSync(SKILL_USAGE_DIR)
     .filter((f) => f.endsWith('.json'))
     .sort();
+  // The MCP skill server keeps real historical counters separately. Merge
+  // them as usage evidence while preserving local outcome/error metrics.
+  const stats = loadJson<{
+    callsBySkill?: Record<string, number>;
+    lastCall?: string | null;
+  }>(join(ROOT, '.atl', 'skill-stats.json'), {});
+  const historicalCalls = stats.callsBySkill ?? {};
   const skills: SkillInfo[] = [];
   const now_ = Date.now();
 
@@ -181,11 +188,15 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
 
       const name = (data.skillName as string) || f.replace(/\.json$/, '');
       if (!/^[a-z][a-z0-9_-]+$/.test(name)) continue;
-      const useCount = (data.useCount as number) || (data.totalCalls as number) || 0;
+      const localUseCount = (data.useCount as number) || (data.totalCalls as number) || 0;
+      const useCount = Math.max(localUseCount, Number(historicalCalls[name] ?? 0));
       const failCount = (data.failureCount as number) || 0;
       const successRate =
         (data.successRate as number) ?? (useCount > 0 ? (useCount - failCount) / useCount : 1);
-      const lastUsed = (data.lastUsedAt as string) || (data.lastUsed as string) || null;
+      const lastUsed =
+        (data.lastUsedAt as string) ||
+        (data.lastUsed as string) ||
+        (useCount > 0 ? stats.lastCall ?? null : null);
       const lastOutcome = (data.lastOutcome as string) || null;
       const avgTokens = (data.avgTokensUsed as number) || 0;
 
@@ -253,7 +264,7 @@ function getRouterSkills(): string[] {
 function collectRecentTasks(log: LogFn): string[] {
   if (!existsSync(AUDIT_DIR)) return [];
   const files = readdirSync(AUDIT_DIR)
-    .filter((f) => f.endsWith('.jsonl'))
+    .filter((f) => f.startsWith('audit-') && f.endsWith('.jsonl'))
     .sort()
     .reverse()
     .slice(0, 5);

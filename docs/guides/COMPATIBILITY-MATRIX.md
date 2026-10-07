@@ -4,6 +4,22 @@ This document tracks feature parity across all supported AI tools in gentle-vang
 
 ## Core Features Matrix
 
+La matriz funcional se complementa con el auditor operativo
+`npm run tools:audit`, que verifica perfiles, runtimes, launchers, skills,
+hooks, MCP y frescura de assets por herramienta. El reporte reproducible queda
+en `reports/audits/tool-interoperability-YYYY-MM-DD.{json,md}`.
+
+Un `WARN` del auditor significa compatibilidad parcial o runtime externo no
+instalado; no se convierte en `PASS` por la sola existencia de una
+configuración. OpenCode es el baseline nativo. Codex, Copilot, ZCode,
+MiniMax y Antigravity comparten contratos, pero pueden requerir sincronización
+de assets, MCP o launcher propio.
+
+La sincronización operativa de agentes y skills críticos se ejecuta con
+`node --import tsx src/integrations/zcode-sync.ts --sync`. El auditor del
+2026-10-07 confirmó `PASS` en OpenCode, Codex, ZCode, MiniMax Code, GitHub
+Copilot y Antigravity, con assets frescos y 28 skills críticas homologadas.
+
 | Feature                        | OpenCode  | Cline     | Cursor    | Windsurf  | Continue.dev | Claude      | Copilot     | Antigravity |
 | ------------------------------ | --------- | --------- | --------- | --------- | ------------ | ----------- | ----------- | ----------- |
 | **Pre-processing**             | ✅ Native | ✅ Script | ✅ Script | ✅ Script | ✅ Script    | ❌\*        | ❌\*        | ✅ Script   |
@@ -124,7 +140,7 @@ Features that CANNOT be implemented in certain tools due to architectural limita
 
 ## versión Tracking
 
-- **Last Updated**: 2026-05-08
-- **Matrix versión**: 1.1.0
+- **Last Updated**: 2026-10-07
+- **Matrix versión**: 1.2.0
 - **Tools Supported**: 8
 - **Features Tracked**: 12 core features

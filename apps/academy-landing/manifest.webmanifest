@@ -1,0 +1,24 @@
+{
+  "name": "Gentle-Vanguard Academy",
+  "short_name": "Gentle-Vanguard Academy",
+  "description": "Cursos de IA con material listo para entregar",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0B1020",
+  "theme_color": "#0B1020",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": [
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

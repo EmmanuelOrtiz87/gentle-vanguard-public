@@ -52,8 +52,8 @@ function runScan(type: string): ScanResult {
         const checks = [
           'config/security-policy.json',
           'config/owner-auth.json.enc',
-          'src/privacy-gateway.ts',
-          'src/security-orchestrator.ts',
+          'src/security/privacy-gateway.ts',
+          'src/security/security-orchestrator.ts',
           '.github/CODEOWNERS',
           '.github/dependabot.yml',
         ];

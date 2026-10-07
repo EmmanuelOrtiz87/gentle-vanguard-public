@@ -120,4 +120,22 @@ export class CIRollbackEngine extends EventEmitter {
   }
 }
 
-export const ciRollbackEngine = new CIRollbackEngine();
+const isCliInvocation = Boolean(
+  process.argv[1] && import.meta.url === new URL(`file://${process.argv[1].replace(/\\/g, '/')}`).href,
+);
+
+// The status check is a one-shot autostart step. It must not create the
+// background health timer that belongs to long-lived engine consumers.
+export const ciRollbackEngine = new CIRollbackEngine({ autoRollback: !isCliInvocation });
+
+if (isCliInvocation) {
+  const actionIndex = process.argv.indexOf('--action');
+  const action = actionIndex >= 0 ? process.argv[actionIndex + 1] : undefined;
+  if (action === 'status' || !action) {
+    console.log(JSON.stringify(ciRollbackEngine.getStats()));
+  } else {
+    console.error(`Unknown action: ${action}`);
+    process.exitCode = 1;
+  }
+  ciRollbackEngine.stop();
+}

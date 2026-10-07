@@ -95,9 +95,9 @@ export function openBrowser(url: string): void {
   if (isWindows()) {
     spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore", windowsHide: true }).unref();
   } else if (isMac()) {
-    spawn("open", [url], { detached: true, stdio: "ignore" }).unref();
+    spawn("open", [url], { detached: true, stdio: "ignore", windowsHide: true }).unref();
   } else {
-    spawn("xdg-open", [url], { detached: true, stdio: "ignore" }).unref();
+    spawn("xdg-open", [url], { detached: true, stdio: "ignore", windowsHide: true }).unref();
   }
 }
 

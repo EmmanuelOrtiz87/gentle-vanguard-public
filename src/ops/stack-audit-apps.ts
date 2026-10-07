@@ -235,7 +235,7 @@ export function filterAffectedApps(allApps: string[], ref: string): string[] {
     const out = execFileSync(
       'git',
       ['diff', '--name-only', `${ref}...HEAD`],
-      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true },
     );
     const changed = out.split('\n').filter(Boolean);
     if (changed.length === 0) return []; // sin cambios -> audit vacio (cache hit)

@@ -99,7 +99,11 @@
   <!-- File icon indicator -->
   <g transform="translate(200, 195)">
     <rect x="-6" y="-6" width="20" height="20" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
+<<<<<<< Updated upstream
     <text x="4" y="6" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10">F</text>
+=======
+    <text x="4" y="6" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10">📄</text>
+>>>>>>> Stashed changes
   </g>
 
   <!-- Arrow from data sources to middle -->

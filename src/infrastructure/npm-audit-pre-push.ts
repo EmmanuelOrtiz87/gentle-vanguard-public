@@ -35,7 +35,12 @@ const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
   low: ['critical', 'high', 'moderate', 'low'],
 };
 
-const ALLOWLISTED_ADVISORIES = new Set<string>();
+// Advisories verificados sin fix publicable en el registry — el gate no bloquea cuando
+// TODOS los advisories bloqueantes están allowlisteados (ver lógica más abajo).
+// - GHSA-vfj7-8cjw-p6xm (braces, stack-exhaustion DoS): el advisory declara patched >=3.0.4
+//   pero 3.0.4 NO existe en el registry (latest 3.0.3, 2024-05). Transitive de secretlint/
+//   tailwindcss/typescript-eslint (dev-only). Revisar cuando publique la versión parcheada.
+const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-vfj7-8cjw-p6xm']);
 
 function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   const args = process.argv.slice(2);

@@ -428,8 +428,8 @@ class GentleVideoAgent implements VideoAgent {
           outputPath,
         ],
         {
-          stdio: ['ignore', 'pipe', 'pipe'],
           windowsHide: true,
+          stdio: ['ignore', 'pipe', 'pipe'],
         },
       );
 

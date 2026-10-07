@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-4.0.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
+  <img src="https://img.shields.io/badge/Version-4.2.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
   <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
-  <img src="https://img.shields.io/badge/Skills-263-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
+  <img src="https://img.shields.io/badge/Skills-252-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
 </p>
 
 > **Your AI writes code. Gentle-Vanguard makes sure it's done right.** An orchestration layer that
@@ -27,6 +27,18 @@ AI-assisted coding is fast — until it isn't:
 | 🌊 One giant prompt tries to do everything    | 🎯 Work routes to specialized agents (design, code, QA, security) |
 | 💸 Costs are invisible until the bill arrives | 📊 A local dashboard shows tokens, traces and health in real time |
 | 🔓 Secrets and risky changes slip through     | 🛡️ Quality gates, secret scanning and audit trails by default     |
+
+## Publication Frame
+
+This public README is the curated product surface. It publishes only the information needed to
+evaluate, install and understand Gentle-Vanguard:
+
+- **Promise:** local-first orchestration, memory, quality gates and observable delivery.
+- **Proof:** release version, installer, source setup, architecture links and changelog.
+- **Boundary:** no client documents, private apps, runtime databases, secrets, internal costs or
+  unreleased operational notes.
+- **Source of truth:** this file is authored privately as `README-PUBLIC.md` and becomes
+  `README.md` in the public distribution repository.
 
 ## How It Works
 
@@ -49,7 +61,7 @@ mandatory cloud service.
 
 ### Option A — One-click launcher (Windows)
 
-Download `Gentle-Vanguard-Setup-4.0.0.exe` from the
+Download `Gentle-Vanguard-Setup-4.2.0.exe` from the
 [releases page](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest) and run
 it. No Node.js, no dependencies — a single self-contained binary that guides you through setup.
 
@@ -72,7 +84,7 @@ everything.
 
 - **🤖 21 specialized agents** — requirements, architecture, implementation, QA, operations,
   security and docs, each with its own focus.
-- **📚 263 on-demand skills** — loaded only when a task needs them, from development to compliance.
+- **📚 252 indexed skills** — loaded only when a task needs them, from development to compliance.
 - **🧠 Engram memory** — decisions, bugs and conventions survive across sessions and compactions.
 - **📊 Local dashboard** — real-time metrics, tracing waterfall, alerts and feedback. No mock data.
 - **🛡️ Security built-in** — secret scanning, SBOM, provenance and quality gates in the delivery
@@ -86,10 +98,19 @@ everything.
 flowchart TB
   T[CLI / IDE / Dashboard] --> O[Orchestration]
   O --> A[21 agents]
-  A --> K[263 skills]
+  A --> K[252 skills]
   A --> E[Persistent memory]
   O --> D[Local dashboard]
 ```
+
+## Why It Stands Apart
+
+Gentle-Vanguard is deliberately different from agent configurators and chatbot starter kits. Tools
+like Gentle-AI focus on configuring the AI coding agents you already use; Gentle-Vanguard uses that
+same local-first discipline but extends it into an operating stack: release gates, observability,
+client apps, content pipelines, dashboards and distribution. Chatbot kits such as Agent Kit are
+excellent references for WhatsApp handoff, message buffers and production details; Gentle-Vanguard
+keeps those lessons inside a deterministic, auditable TypeScript delivery model.
 
 ## Explore Further
 

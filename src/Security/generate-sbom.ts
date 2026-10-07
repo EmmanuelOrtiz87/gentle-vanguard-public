@@ -5,13 +5,73 @@
  */
 
 import { runSync } from '../core/run-command.js';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 
 interface SBOMOptions {
   output: string;
   format: 'json' | 'xml';
   validate: boolean;
+}
+
+interface SbomComponent {
+  type: string;
+  name: string;
+  version?: string;
+  scope?: string;
+  purl?: string;
+  'bom-ref'?: string;
+}
+
+interface SbomDocument {
+  components?: SbomComponent[];
+  metadata?: { timestamp?: string };
+  [key: string]: unknown;
+}
+
+function enrichWorkspaceComponents(sbom: SbomDocument): void {
+  const packageJson = JSON.parse(readFileSync(resolve('package.json'), 'utf8')) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+  const declared = {
+    ...(packageJson.dependencies ?? {}),
+    ...(packageJson.devDependencies ?? {}),
+  };
+  const components = sbom.components ?? (sbom.components = []);
+  const names = new Set(components.map((component) => component.name));
+  const workspaceRoots = [resolve('packages'), resolve('src')];
+
+  for (const [name, specifier] of Object.entries(declared)) {
+    if (!specifier.startsWith('workspace:') || names.has(name)) continue;
+    let manifest: { name?: string; version?: string } | null = null;
+    for (const workspaceRoot of workspaceRoots) {
+      if (!existsSync(workspaceRoot)) continue;
+      const candidates = readdirSync(workspaceRoot, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => resolve(workspaceRoot, entry.name, 'package.json'));
+      for (const candidate of candidates) {
+        if (!existsSync(candidate)) continue;
+        const parsed = JSON.parse(readFileSync(candidate, 'utf8')) as { name?: string; version?: string };
+        if (parsed.name === name) {
+          manifest = parsed;
+          break;
+        }
+      }
+      if (manifest) break;
+    }
+    if (!manifest) continue;
+    const version = manifest.version ?? '0.0.0';
+    components.push({
+      type: 'library',
+      name,
+      version,
+      scope: 'required',
+      purl: `pkg:npm/${name}@${version}`,
+      'bom-ref': `pkg:npm/${name}@${version}`,
+    });
+    names.add(name);
+  }
 }
 
 function parseArgs(): SBOMOptions {
@@ -68,7 +128,9 @@ function generateSBOM(options: SBOMOptions): boolean {
 
     // Read and display summary
     try {
-      const sbom = JSON.parse(readFileSync(options.output, 'utf-8'));
+      const sbom = JSON.parse(readFileSync(options.output, 'utf-8')) as SbomDocument;
+      enrichWorkspaceComponents(sbom);
+      writeFileSync(options.output, JSON.stringify(sbom, null, 2) + '\n', 'utf8');
       if (sbom.components) {
         console.log(`📦 Total components: ${sbom.components.length}`);
       }

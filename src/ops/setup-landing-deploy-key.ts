@@ -50,7 +50,7 @@ function log(level: 'INFO' | 'OK' | 'WARN' | 'ERR', msg: string): void {
 function ensureSshDir(): void {
   if (!existsSync(KEY_DIR)) {
     log('INFO', `Creando ${KEY_DIR}`);
-    spawnSync('mkdir', ['-p', KEY_DIR], { stdio: 'ignore' });
+    spawnSync('mkdir', ['-p', KEY_DIR], { stdio: 'ignore', windowsHide: true });
     chmodSync(KEY_DIR, 0o700);
   }
 }
@@ -74,7 +74,7 @@ function generateKey(): void {
       '-N', '', // sin passphrase — bots non-interactive
       '-q',
     ],
-    { stdio: 'inherit' },
+    { stdio: 'inherit', windowsHide: true },
   );
   if (r.status !== 0) {
     log('ERR', `ssh-keygen fallo (exit ${r.status})`);
@@ -109,7 +109,7 @@ function verifyConnectivity(): boolean {
   const r = spawnSync(
     'ssh',
     ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', HOST_ALIAS, 'git-upload-pack gentlevanguard/gentlevanguard.github.io.git'],
-    { stdio: 'pipe', encoding: 'utf8' },
+    { stdio: 'pipe', encoding: 'utf8', windowsHide: true },
   );
   if (r.status === 0) {
     log('OK', 'Conectividad SSH OK al repo gentlevanguard');

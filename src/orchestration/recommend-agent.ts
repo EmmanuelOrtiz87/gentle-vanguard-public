@@ -111,6 +111,13 @@ function matchDomain(task: string, domainHint: string): string {
   // "analyze conversion metrics" hits 'analy'→requirements before
   // 'metric'→business-telemetry.
   const pairs: Array<[string, string]> = [
+    // ── Tech compounds (van PRIMEROS: 'pipeline' solo es ventas, pero
+    // 'ci/cd pipeline' es infraestructura — sin este bloque, "configurar
+    // CI/CD pipeline" caía en sales por precedencia de orden) ──────────────
+    ['ci/cd', 'ops'],
+    ['deployment pipeline', 'ops'],
+    ['pipeline de despliegue', 'ops'],
+    ['pipeline de ci', 'ops'],
     // ── Business domains (native agents, highest specificity) ──────────────
     // marketing
     ['campaign', 'marketing'],
@@ -218,19 +225,28 @@ function matchDomain(task: string, domainHint: string): string {
     ['review', 'code-review'],
     ['refactor', 'code-apply'],
     ['implement', 'code-apply'],
-    ['feature', 'code-apply'],
+    // Requirements ANTES de 'feature': "explorar requisitos de un feature"
+    // es BA, no dev (el orden es la precedencia — bug real del routing).
     ['requirement', 'requirements'],
+    ['requisito', 'requirements'],
+    ['explora', 'requirements'],
     ['analy', 'requirements'],
     ['architect', 'architecture'],
+    ['arquitectur', 'architecture'],
     ['design', 'architecture'],
+    ['diseñ', 'architecture'],
     ['test', 'testing'],
+    ['prueba', 'testing'],
+    ['feature', 'code-apply'],
     ['document', 'docs'],
     ['docs', 'docs'],
     ['readme', 'docs'],
     ['deploy', 'ops'],
+    ['despleg', 'ops'],
     ['docker', 'ops'],
     ['infra', 'ops'],
     ['secur', 'security'],
+    ['seguridad', 'security'],
     ['audit', 'governance'],
     ['session', 'session'],
     ['roadmap', 'requirements'],
