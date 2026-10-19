@@ -14,11 +14,11 @@
  *   npx tsx src/cli/create-installer.ts --dry-run    # Stage + generate NSI only
  */
 
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { runSync } from '../core/run-command.js';
 import { stagePayload } from '../installer/payload.js';
+import { finalizeInstaller } from '../installer/finalize.js';
 
 const ROOT = resolve(process.cwd());
 const BUILD_DIR = join(ROOT, 'build');
@@ -58,10 +58,6 @@ function findMakensis(): string | null {
     }
   }
   return null;
-}
-
-function sha256(filePath: string): string {
-  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
 interface SignOutcome {
@@ -298,30 +294,19 @@ function main(): void {
     process.exit(1);
   }
 
-  // Phase 5: Verify + checksum
+  // Phase 5: Verify output exists
   const installerPath = join(DIST_DIR, `Gentle-Vanguard-Setup-${version}.exe`);
   if (!existsSync(installerPath)) {
     console.error(`  [ERROR] Expected installer not found: ${installerPath}`);
     process.exit(1);
   }
-  const checksum = sha256(installerPath);
-  writeFileSync(
-    `${installerPath}.sha256`,
-    `${checksum}  ${`Gentle-Vanguard-Setup-${version}.exe`}\n`,
-    'utf8',
-  );
-  ok(`Installer: ${installerPath}`);
-  ok(`SHA256: ${checksum}`);
-
   // Phase 6: Optional Authenticode signing (honest skip when unconfigured)
   step('Phase 6: Code signing');
-  const sign = trySignInstaller(installerPath);
+  const { signing: sign, checksum } = finalizeInstaller(installerPath, () => trySignInstaller(installerPath));
   if (sign.status === 'signed') ok(`Signed: ${sign.detail}`);
   else if (sign.status === 'skipped') console.log(`  [SKIP] ${sign.detail}`);
-  else {
-    console.error(`  [ERROR] Signing failed: ${sign.detail}`);
-    process.exit(1);
-  }
+  ok(`Installer: ${installerPath}`);
+  ok(`SHA256: ${checksum}`);
 
   step('Build complete');
 }
