@@ -189,7 +189,9 @@ function main(): void {
             continue;
           }
           scanForSecrets(full);
-        } else if (/\.(key|pem)$|master\.key|^\.env(?:\..+)?$/i.test(entry.name) && !/^\.env\.example$/i.test(entry.name)) {
+        } else if ((/\.(key|pem)$|master\.key/i.test(entry.name) ||
+          entry.name.toLowerCase() === '.env' || entry.name.toLowerCase().startsWith('.env.')) &&
+          entry.name.toLowerCase() !== '.env.example') {
           secretHits.push(full);
         }
       }
