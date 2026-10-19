@@ -35,7 +35,7 @@ Dependencies and optional providers may require network access. Credentials are 
 
 ## Verification
 
-Release evidence records the source revision, installer checksum and local commands. GitHub Actions currently cannot start because of an account billing/spending restriction; local checks are not represented as remote CI passes.
+Release evidence records the source revision, installer checksum and local commands. [Public Distribution Smoke passed for 4.3.0](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/actions/runs/39318256892): frozen install, TypeScript and strict doctor. Private-repository CI jobs could not start because of an account billing/spending restriction; public CI does not certify the private app fleet.
 
 The website has its own export/browser/identity gate. Public-core tests do not certify all private apps, client deployments, physical devices or payment/fulfilment flows.
 
