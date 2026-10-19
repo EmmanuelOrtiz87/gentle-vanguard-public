@@ -116,7 +116,7 @@ git config --global core.hooksPath "$env:USERPROFILE\.git-hooks"
 
 1. Download from [opencode.ai](https://opencode.ai)
 2. Install and configure your API key
-3. Select model (big-pickle, claude-3.5-sonnet, etc.)
+3. Select model (opencode-zen-C/big-pickle, claude-3.5-sonnet, etc.)
 
 ### Other AI Agents
 

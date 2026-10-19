@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="es" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0F1115" />
+    <meta name="theme-color" content="#0B1020" />
     <meta
       name="description"
-      content="Gentle-Vanguard Content Studio (CMS) y Prompt Studio — Gentle-Vanguard documentation"
+      content="GentleVanguard Content Studio (CMS) y Prompt Studio — GentleVanguard documentation"
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gentle-Vanguard Content Studio (CMS) y Prompt Studio</title>
+    <title>GentleVanguard Content Studio (CMS) y Prompt Studio</title>
     <link
       href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
@@ -22,7 +22,7 @@
       /* ===== PANEL DE CONTROL PRINCIPAL ===== */
       .control-panel {
         display: grid;
-        grid-template-columns: 280px 1fr;
+        grid-template-columns: 280px minmax(0, 1fr);
         min-height: 100vh;
         gap: 0;
       }
@@ -104,6 +104,7 @@
 
       /* Main Content */
       .main-content {
+        min-width: 0;
         padding: 2rem;
         max-width: 1200px;
       }
@@ -351,7 +352,7 @@
       /* Stats Dashboard */
       .stats-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
       }
@@ -428,6 +429,11 @@
         color: var(--text-dim);
       }
 
+      @media (max-width: 640px) {
+        .main-content { padding: 1rem; }
+        .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .chat-input input { min-width: 0; }
+      }
       @media (max-width: 1024px) {
         .control-panel {
           grid-template-columns: 1fr;
@@ -440,13 +446,13 @@
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
     <script src="assets/js/i18n.js?v=3.0"></script>
-    <script src="assets/js/theme-toggle.js?v=2.0"></script>
-  </head>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script><link rel="icon" href="assets/canon/icon.svg">
+<link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
   <body>
     <header class="gv-topbar">
       <div class="gv-topbar-inner">
         <a class="gv-brand" href="index.html">
-          <img class="gv-brand-logo" src="assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png" alt="Gentle-Vanguard" />
+          <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
         <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
@@ -560,6 +566,10 @@
       <!-- Main Content -->
       <main class="main-content">
         <!-- Dashboard Section -->
+<!-- GV-PRESENCE:START -->
+<section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-10-18</a></section>
+<!-- GV-PRESENCE:END -->
+
         <section class="content-section active" id="dashboard">
           <h2><i class="bi bi-speedometer2 me-2" style="color: var(--p)"></i><span data-i18n="ri_h2_dash">Dashboard</span></h2>
           <p class="text-secondary mb-4">
@@ -2508,73 +2518,6 @@ The native stack keeps growing. Today we add ${topic} to the ecosystem.
     <!-- Content Operations Engine Integration -->
     <script src="assets/js/coe-manifest.js"></script>
     <script src="assets/js/coe-cms.js"></script>
-    <footer>
-      <p class="mb-2">
-        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
-        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
-      </p>
-      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
-        <a
-          href="resources-index.html"
-          style="
-            background: linear-gradient(135deg, var(--p), var(--s));
-            color: var(--bg2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-weight: 600;
-          "
-          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
-        >
-        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
-        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
-        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
-        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
-        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
-        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
-        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
-        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
-        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
-        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
-        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
-        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
-          ><i class="bi bi-github me-1"></i>GitHub</a
-        >
-      </p>
-      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
-        <span
-          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >328 TS Files</span
-        >
-        <span
-          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >191 Test files</span
-        >
-        <span
-          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >113/113 Health</span
-        >
-        <span
-          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >16 Repos</span
-        >
-        <span
-          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >92 Skills</span
-        >
-        <span
-          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >60 Normatives</span
-        >
-      </div>
-      <p class="mt-2 mb-0">
-        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
-      </p>
-    </footer>
-  </body>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.3.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+  <script src="assets/js/presentation-shell.js?v=1"></script></body>
 </html>

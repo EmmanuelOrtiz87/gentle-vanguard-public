@@ -3,9 +3,7 @@
 /* eslint-disable security/detect-unsafe-regex */
 /* These regex patterns are intentionally complex for injection detection - not user-input parsing */
 
-import { runNpxTsxSync } from '../core/run-command.js';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { evaluateAction } from './security-orchestrator.js';
 import { pathToFileURL } from 'url';
 
 interface InjectionPattern {
@@ -22,7 +20,7 @@ interface InjectionResult {
 }
 
 interface BlockedResponse {
-  status: string;
+  status: 'BLOCKED';
   category: string;
   severity: string;
   matched: string;
@@ -30,13 +28,15 @@ interface BlockedResponse {
 }
 
 interface SuccessResponse {
-  status: string;
+  status: 'OK';
   method: string;
   original: string;
   sanitized: string;
   target: string;
   injectionChecked: boolean;
 }
+
+export type PrivacyGatewayResult = BlockedResponse | SuccessResponse;
 
 const VALID_TARGETS = ['ai-api', 'mcp', 'log', 'error', 'prompt'] as const;
 type Target = (typeof VALID_TARGETS)[number];
@@ -167,69 +167,57 @@ function parseArgs(): { text: string; target: Target; asJson: boolean } {
   return { text, target, asJson };
 }
 
-function tryOrchestrator(text: string): string | null {
-  const orchestratorTs = resolve('src/security-orchestrator.ts');
-  if (!existsSync(orchestratorTs)) return null;
-
-  try {
-    const result = runNpxTsxSync(orchestratorTs, ['sanitize', text, 'prompt'], {
-      stdio: 'pipe',
-      timeout: 10000,
-    });
-    if (result.status !== 0 || !result.stdout?.trim()) return null;
-
-    const parsed = JSON.parse(result.stdout.trim());
-    if (parsed.status === 'BLOCKED') return null;
-    return typeof parsed.sanitized === 'string' ? parsed.sanitized : result.stdout.trim();
-  } catch {
-    return null;
-  }
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const { text, target, asJson } = parseArgs();
-
+export function processPrivacyInput(text: string, target: Target = 'prompt'): PrivacyGatewayResult {
   const injectionCheck = testInjectionAttempt(text);
 
   if (injectionCheck.detected) {
-    const blocked: BlockedResponse = {
+    return {
       status: 'BLOCKED',
       category: injectionCheck.category!,
       severity: injectionCheck.severity!,
       matched: injectionCheck.matched!,
       message: `Prompt security violation detected: ${injectionCheck.category} [severity: ${injectionCheck.severity}]`,
     };
+  }
+
+  const orchestratorResult = evaluateAction('sanitize', text, 'prompt');
+  if (orchestratorResult.status === 'BLOCKED') {
+    return {
+      status: 'BLOCKED',
+      category: 'security-orchestrator',
+      severity: 'CRITICAL',
+      matched: orchestratorResult.pattern ?? 'critical-pattern',
+      message: orchestratorResult.message ?? 'Security policy blocked the input',
+    };
+  }
+
+  return {
+    status: 'OK',
+    method: orchestratorResult.sanitized ? 'orchestrator' : 'fallback',
+    original: text,
+    sanitized: orchestratorResult.sanitized ?? fallbackSanitize(text),
+    target,
+    injectionChecked: true,
+  };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const { text, target, asJson } = parseArgs();
+
+  const response = processPrivacyInput(text, target);
+
+  if (response.status === 'BLOCKED') {
     if (asJson) {
-      console.log(JSON.stringify(blocked));
+      console.log(JSON.stringify(response));
     } else {
-      console.error(`[BLOCKED] ${blocked.message}`);
+      console.error(`[BLOCKED] ${response.message}`);
     }
     process.exit(1);
   }
 
-  const orchestratorResult = tryOrchestrator(text);
-  let sanitized: string;
-  let method: string;
-
-  if (orchestratorResult !== null) {
-    sanitized = orchestratorResult;
-    method = 'orchestrator';
-  } else {
-    sanitized = fallbackSanitize(text);
-    method = 'fallback';
-  }
-
   if (asJson) {
-    const response: SuccessResponse = {
-      status: 'OK',
-      method,
-      original: text,
-      sanitized,
-      target,
-      injectionChecked: true,
-    };
     console.log(JSON.stringify(response));
   } else {
-    console.log(sanitized);
+    console.log(response.sanitized);
   }
 }

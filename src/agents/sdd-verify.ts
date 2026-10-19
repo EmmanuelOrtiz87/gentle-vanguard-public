@@ -28,7 +28,7 @@ interface VerifyTask {
 const AGENT_CONFIG = {
   name: 'sdd-verify',
   description: 'QA verification agent — testing and validation',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.1,
   maxTokens: 4000,
   version: '1.0.0',

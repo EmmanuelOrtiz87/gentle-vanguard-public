@@ -21,15 +21,15 @@ test('findLatestInstaller returns null when no installer present', () => {
   }
 });
 
-test('findLatestInstaller picks the highest-sorted version and pairs sha256 file', () => {
+test('findLatestInstaller compares numeric versions and pairs sha256 file', () => {
   const dir = mkdtempSync(join(tmpdir(), 'gv-verify-test-pick-'));
   try {
-    for (const name of ['Gentle-Vanguard-Setup-3.8.1.exe', 'Gentle-Vanguard-Setup-3.9.0.exe']) {
+    for (const name of ['Gentle-Vanguard-Setup-3.10.0.exe', 'Gentle-Vanguard-Setup-3.9.0.exe']) {
       writeFileSync(join(dir, name), 'fake');
     }
     const found = findLatestInstaller(dir);
     assert.ok(found);
-    assert.equal(found.exe, join(dir, 'Gentle-Vanguard-Setup-3.9.0.exe'));
+    assert.equal(found.exe, join(dir, 'Gentle-Vanguard-Setup-3.10.0.exe'));
     assert.equal(found.sha256File, `${found.exe}.sha256`);
   } finally {
     rmSync(dir, { recursive: true, force: true });

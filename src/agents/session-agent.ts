@@ -17,7 +17,7 @@ interface SessionTask {
 const AGENT_CONFIG = {
   name: 'session-agent',
   description: 'Session management agent — state tracking and lifecycle',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.3,
   maxTokens: 3000,
   version: '1.0.0',

@@ -5,6 +5,8 @@ import { gitStatus } from '../delivery/git-adapter.js';
 import { classifyDiff } from '../delivery/diff-classifier.js';
 import { openNexus, runContinuousEval } from '../eval/continuous-eval.js';
 import { registryPath, verifyIndex } from '../plugins/skill-registry.js';
+import { auditCapabilitySources, listContracts } from '../core/capabilities.js';
+import { auditTools, evaluateToolAudit } from '../integrations/tool-interoperability-audit.js';
 
 type Result = { id: string; status: 'pass' | 'warn' | 'fail'; detail: string };
 type RiskProfile = ReturnType<typeof classifyDiff> & {
@@ -89,6 +91,16 @@ function run(): {
   const unmappedCapabilities = (config.capabilities ?? []).filter((capability: string) => !stageIds.has(capabilityStages[capability]));
   results.push(check('coverage:disciplines', uncoveredDisciplines.length === 0, uncoveredDisciplines.length ? `sin fuente: ${uncoveredDisciplines.join(', ')}` : 'todas las disciplinas tienen fuente'));
   results.push(check('coverage:capabilities', unmappedCapabilities.length === 0, unmappedCapabilities.length ? `sin etapa: ${unmappedCapabilities.join(', ')}` : 'todas las capacidades tienen etapa'));
+  const registeredContracts = new Set(listContracts().map((contract) => contract.contract));
+  const requiredContracts = [
+    'gentle-vanguard.agent/v1',
+    'gentle-vanguard.skill/v1',
+    'gentle-vanguard.app-lifecycle/v1',
+    'gentle-vanguard.external-capability/v1',
+  ];
+  const missingContracts = requiredContracts.filter((contract) => !registeredContracts.has(contract));
+  results.push(check('coverage:versioned-contracts', missingContracts.length === 0, missingContracts.length ? `faltan contratos: ${missingContracts.join(', ')}` : 'contratos versionados base registrados'));
+  results.push(...auditCapabilitySources({ root }));
   results.push(check('existing-gates', existsSync(join(root, 'config', 'quality-gates.json')), 'compone config/quality-gates.json sin duplicarlo'));
   results.push(check('checkpoint', existsSync(join(root, '.session', 'checkpoints')), 'checkpoint manager disponible', true));
   results.push(check('nexus', existsSync(join(root, '.runtime', 'gentle-vanguard.db')), 'Nexus operacional disponible'));
@@ -112,6 +124,13 @@ function run(): {
     results.push(check('live:plugin-integrity', integrity.ok, integrity.ok ? 'registro íntegro' : 'integridad del registro no coincide'));
   } else {
     results.push(check('live:plugin-integrity', true, 'sin plugins instalados; control preparado'));
+  }
+
+  try {
+    const audit = evaluateToolAudit(auditTools(root));
+    results.push(check('live:tool-interoperability', audit.passed, audit.detail));
+  } catch (error) {
+    results.push(check('live:tool-interoperability', false, `auditoría multi-tool no disponible: ${String(error)}`));
   }
 
   const failed = results.filter((result) => result.status === 'fail').length;

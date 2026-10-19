@@ -15,7 +15,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { runSync } from '../core/run-command.js';
 import { stagePayload } from '../installer/payload.js';
@@ -133,7 +133,7 @@ function repairCmd(): string {
     'echo [1/2] Re-verifying environment (doctor)...',
     'call npm run install:doctor || (echo [!] Doctor reported issues - continuing with bootstrap)',
     'echo [2/2] Re-running bootstrap (repairs dependencies and runtime state)...',
-    'call npm run install:bootstrap -- --full',
+    'call npm run install:bootstrap || (echo [X] Repair failed & pause & exit /b 1)',
     'echo.',
     'echo Repair finished. You can close this window.',
     'pause',
@@ -149,12 +149,10 @@ function bootstrapCmd(): string {
     'echo ==============================================',
     'echo  Gentle-Vanguard Bootstrap',
     'echo ==============================================',
-    'where node >nul 2>nul || (echo [X] Node.js not found. Install Node 20+ from https://nodejs.org & pause & exit /b 1)',
-    'where pnpm >nul 2>nul || (echo [!] pnpm not found - installing... & call npm install -g pnpm@11 || (echo [X] Failed to install pnpm & pause & exit /b 1))',
-    'echo [1/2] Installing dependencies (pnpm install --frozen-lockfile)...',
-    'call pnpm install --frozen-lockfile || (echo [X] Dependency installation failed & pause & exit /b 1)',
-    'echo [2/2] Verifying environment and initializing runtime...',
-    'call npm run install:bootstrap -- --full',
+    'where node >nul 2>nul || (echo [X] Node.js not found. Install Node 22.18+ from https://nodejs.org & pause & exit /b 1)',
+    'where pnpm >nul 2>nul || (echo [X] Install pnpm 11+ before continuing: npm install -g pnpm@11 & pause & exit /b 1)',
+    'echo Installing locked dependencies, verifying environment and initializing runtime...',
+    'call npm run install:bootstrap || (echo [X] Bootstrap failed & pause & exit /b 1)',
     'echo.',
     'echo Bootstrap finished. You can close this window.',
     'pause',
@@ -191,6 +189,7 @@ InstallDir "$LOCALAPPDATA\\Programs\\\${PRODUCT_NAME}"
 ; nsExec plugin is called directly (no header shipped with NSIS 3)
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\\bootstrap.cmd"
+!define MUI_FINISHPAGE_RUN_NOTCHECKED
 !define MUI_FINISHPAGE_RUN_TEXT "Run bootstrap now (installs dependencies and verifies the environment)"
 
 !insertmacro MUI_PAGE_WELCOME
@@ -208,7 +207,7 @@ Function CheckPrerequisites
   nsExec::ExecToStack 'cmd /c node --version'
   Pop $0
   \${If} $0 != 0
-    MessageBox MB_YESNO|MB_ICONQUESTION "Node.js was not detected on this machine.$\\n$\\nGentle-Vanguard needs Node.js 20+ and pnpm 11+.$\\nOpen https://nodejs.org to download Node.js now?" IDYES openNode IDNO continueInstall
+    MessageBox MB_YESNO|MB_ICONQUESTION "Node.js was not detected on this machine.$\\n$\\nGentle-Vanguard needs Node.js 22.18+ and pnpm 11+.$\\nOpen https://nodejs.org to download Node.js now?" IDYES openNode IDNO continueInstall
     openNode:
       ExecShell "open" "https://nodejs.org"
       MessageBox MB_OK|MB_ICONINFORMATION "After installing Node.js, run:$\\n  npm install -g pnpm@11$\\nand then launch $INSTDIR\\bootstrap.cmd"
@@ -252,6 +251,7 @@ SectionEnd
 function main(): void {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as PkgJson;
   const version = pkg.version;
+  mkdirSync(DIST_DIR, {recursive: true});
 
   console.log('');
   console.log('========================================');

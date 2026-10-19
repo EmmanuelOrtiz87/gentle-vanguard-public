@@ -34,7 +34,7 @@ export async function smartTask(
     const active = JSON.parse(readFileSync(ACTIVE_MODEL, 'utf-8'));
     currentModel = active.model;
   } catch {
-    currentModel = 'opencode/deepseek-v4-flash-free'; // Default
+    currentModel = 'opencode-zen-C/big-pickle'; // Default
   }
 
   logger.info(`[smartTask] Executing ${options.subagent_type} with model: ${currentModel}`);
@@ -66,7 +66,7 @@ export async function smartTask(
       );
 
       const currentEntry = registry.models[currentModel];
-      const fallback = currentEntry?.fallbackChain?.[0] || 'opencode/deepseek-v4-flash-free';
+      const fallback = currentEntry?.fallbackChain?.[0] || 'opencode-zen-C/big-pickle';
 
       return {
         success: false,

@@ -17,7 +17,7 @@ interface GovTask {
 const AGENT_CONFIG = {
   name: 'gov-agent',
   description: 'Governance agent — compliance, security, audit',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.1,
   maxTokens: 4000,
   version: '1.0.0',

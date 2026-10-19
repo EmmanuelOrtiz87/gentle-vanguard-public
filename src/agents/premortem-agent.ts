@@ -17,7 +17,7 @@ interface PremortemTask {
 const AGENT_CONFIG = {
   name: 'premortem-agent',
   description: 'Premortem analysis agent — risk identification and stress testing',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.2,
   maxTokens: 4000,
   version: '1.0.0',

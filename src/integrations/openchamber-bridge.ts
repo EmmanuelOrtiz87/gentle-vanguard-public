@@ -161,7 +161,7 @@ export async function orchestrate(
         tokensUsed: Math.floor(response.length / 4),
         tokensSaved,
         fromCache,
-        model: 'opencode/deepseek-v4-flash-free',
+        model: 'opencode-zen-C/big-pickle',
         timestamp: new Date().toISOString(),
       };
     }
@@ -185,7 +185,7 @@ export async function orchestrate(
     tokensUsed,
     tokensSaved,
     fromCache,
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     timestamp: new Date().toISOString(),
   };
 }

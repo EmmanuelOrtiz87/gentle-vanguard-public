@@ -12,13 +12,10 @@ import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { ResponseCache } from '../resilience/response-cache';
 import { runNpxTsxSync } from '../core/run-command.js';
-
-interface PrivacyGatewayResponse {
-  status: string;
-  sanitized?: string;
-}
+import { processPrivacyInput } from '../security/privacy-gateway.js';
 
 const cache = new ResponseCache();
+const CACHE_NAMESPACE = 'pre-process-v2';
 
 function parseArgs(): { input: string; workspaceRoot: string; useCache: boolean } {
   const args = process.argv.slice(2);
@@ -49,7 +46,12 @@ function parseArgs(): { input: string; workspaceRoot: string; useCache: boolean 
 }
 
 function applyPrivacyGateway(input: string, workspaceRoot: string): string | null {
-  const gatewayPath = resolve(workspaceRoot, 'src/privacy-gateway.ts');
+  if (resolve(workspaceRoot) === resolve(process.cwd())) {
+    const directResult = processPrivacyInput(input, 'prompt');
+    return directResult.status === 'OK' ? directResult.sanitized : null;
+  }
+
+  const gatewayPath = resolve(workspaceRoot, 'src/security/privacy-gateway.ts');
   try {
     const result = runNpxTsxSync(gatewayPath, ['--text', input, '--as-json'], {
       cwd: workspaceRoot,
@@ -58,7 +60,7 @@ function applyPrivacyGateway(input: string, workspaceRoot: string): string | nul
 
     if (result.status !== 0 || !result.stdout?.trim()) return null;
 
-    const parsed: PrivacyGatewayResponse = JSON.parse(result.stdout.trim());
+    const parsed: { status: string; sanitized?: string } = JSON.parse(result.stdout.trim());
     if (parsed.status !== 'OK') return null;
     return parsed.sanitized ?? null;
   } catch {
@@ -71,7 +73,7 @@ function main(): void {
 
   // Check cache first
   if (useCache) {
-    const cached = cache.get(input, 'pre-process');
+    const cached = cache.get(input, CACHE_NAMESPACE);
     if (cached) {
       console.log(cached.response);
       return;
@@ -85,7 +87,7 @@ function main(): void {
   // Cache the result
   if (useCache) {
     const estimatedTokens = Math.ceil(result.length / 4);
-    cache.set(input, result, estimatedTokens, 'pre-process');
+    cache.set(input, result, estimatedTokens, CACHE_NAMESPACE);
   }
 
   console.log(result);

@@ -62,7 +62,10 @@
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Agentes de IA en tu</text>
     <text x="600" y="792" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">día a día</text>
   <!-- subtítulo -->
-  <text x="600" y="944" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico para personas que no saben lo que tienen a su alcance: conocé los 6 agentes de IA más importantes (ChatGPT, Gemini, Claude, Copilot, Grok y Meta AI), descubrí las funciones ocultas que ya vienen con tus cuentas (GPTs, Gems, Projects, Copilot Studio), armá tu caja de herramientas con NotebookLM, Perplexity, Notion y las suites de Office y Google, y aprendé con ejemplos reales para tu vida: casa y trámites, tienda y ventas, oficina o estudio</text>
+    <text x="600" y="944" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico para personas que no saben lo que tienen a su</text>
+<text x="600" y="978" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">alcance: conocé los 6 agentes de IA más importantes (ChatGPT,</text>
+<text x="600" y="1012" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Gemini, Claude, Copilot, Grok y Meta AI), descubrí las funciones</text>
+<text x="600" y="1046" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">ocultas que ya vienen con tus cuentas (GPTs, Gems, Projects,</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~12 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">AGENTES · CHATGPT · GEMINI</text>

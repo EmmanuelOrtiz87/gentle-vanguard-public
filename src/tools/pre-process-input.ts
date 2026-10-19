@@ -17,10 +17,13 @@
  *   npx tsx src/tools/pre-process-input.ts --input "..." --auto-optimize
  */
 
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { compressPrompt } from '../compression/prompt-compression.js';
 import { runNpxTsxSync } from '../core/run-command.js';
+import { processPrivacyInput } from '../security/privacy-gateway.js';
 // getOutputConfig imported for future use in budget-aware optimization
 import { enforceChatLevel, ChatLevel } from '../orchestration/chat-level-enforcer.js';
 
@@ -43,17 +46,17 @@ interface PIResponse {
   suggestionList: ProactiveSuggestion[];
 }
 
-interface PrivacyGatewayResponse {
-  status: string;
-  sanitized?: string;
-}
-
 interface ParsedArgs {
   input: string;
   workspaceRoot: string;
   skill: string;
   skipCompression: boolean;
   json: boolean;
+}
+
+interface ProactiveCacheEntry {
+  createdAt: number;
+  response: PIResponse;
 }
 
 function parseArgs(): ParsedArgs {
@@ -93,7 +96,12 @@ function parseArgs(): ParsedArgs {
 }
 
 function applyPrivacyGateway(input: string, workspaceRoot: string): string | null {
-  const gatewayPath = resolve(workspaceRoot, 'src/privacy-gateway.ts');
+  if (resolve(workspaceRoot) === resolve(process.cwd())) {
+    const directResult = processPrivacyInput(input, 'prompt');
+    return directResult.status === 'OK' ? directResult.sanitized : null;
+  }
+
+  const gatewayPath = resolve(workspaceRoot, 'src/security/privacy-gateway.ts');
   try {
     const result = runNpxTsxSync(gatewayPath, ['--text', input, '--as-json'], {
       cwd: workspaceRoot,
@@ -102,7 +110,7 @@ function applyPrivacyGateway(input: string, workspaceRoot: string): string | nul
 
     if (result.status !== 0 || !result.stdout?.trim()) return null;
 
-    const parsed: PrivacyGatewayResponse = JSON.parse(result.stdout.trim());
+    const parsed: { status: string; sanitized?: string } = JSON.parse(result.stdout.trim());
     if (parsed.status !== 'OK') return null;
     return parsed.sanitized ?? null;
   } catch {
@@ -130,6 +138,24 @@ function applyPromptCompression(input: string, skill: string): string {
 }
 
 function getProactiveSuggestions(workspaceRoot: string): PIResponse | null {
+  const ttlMs = Number(process.env.GV_PREPROCESS_PROACTIVE_TTL_MS ?? 60_000);
+  if (ttlMs <= 0) return null;
+
+  const cacheDir = resolve(workspaceRoot, '.runtime', 'pre-process');
+  const cachePath = resolve(
+    cacheDir,
+    `proactive-${createHash('sha256').update(resolve(workspaceRoot)).digest('hex').slice(0, 16)}.json`,
+  );
+
+  try {
+    if (existsSync(cachePath)) {
+      const cached = JSON.parse(readFileSync(cachePath, 'utf8')) as ProactiveCacheEntry;
+      if (Date.now() - cached.createdAt < ttlMs && cached.response) return cached.response;
+    }
+  } catch {
+    // A corrupt or stale cache must never block the current interaction.
+  }
+
   try {
     const piePath = resolve(workspaceRoot, 'src/ml/proactive-intelligence-engine.ts');
     const result = runNpxTsxSync(piePath, ['--suggest', '--quiet'], {
@@ -140,13 +166,22 @@ function getProactiveSuggestions(workspaceRoot: string): PIResponse | null {
     if (result.status !== 0 || !result.stdout?.trim()) return null;
 
     const parsed = JSON.parse(result.stdout.trim());
-    return {
+    const response: PIResponse = {
       patterns: parsed.patterns ?? 0,
       suggestions: parsed.suggestions ?? 0,
       autoApply: parsed.autoApply ?? 0,
       confidence: parsed.confidence ?? 0,
       suggestionList: parsed.suggestionList ?? [],
     };
+    try {
+      mkdirSync(cacheDir, { recursive: true });
+      const temporaryPath = `${cachePath}.${process.pid}.tmp`;
+      writeFileSync(temporaryPath, JSON.stringify({ createdAt: Date.now(), response }), 'utf8');
+      renameSync(temporaryPath, cachePath);
+    } catch {
+      // Suggestions are advisory; cache persistence is best effort.
+    }
+    return response;
   } catch {
     return null;
   }

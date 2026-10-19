@@ -13,9 +13,12 @@
  *   npx tsx src/tools/context-truncator.ts --info                    # Show current context size
  */
 
+import { createHash, randomUUID } from 'crypto';
 import { readFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
+import { loadConfigFile } from '../core/config-loader.js';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js';
 
 // Paths
 const ROOT = resolve(process.cwd());
@@ -31,7 +34,20 @@ const DEFAULT_CONFIG = {
   compressionRatio: 0.3, // Compress older turns to 30% of original
   preserveSystemMessages: true,
   preserveFirstUserMessage: true, // Keep original user request
+  summarizeOlderTurns: true,
+  maxSummaryTokens: 400,
 };
+
+type ContextTruncatorConfig = typeof DEFAULT_CONFIG;
+
+interface ContextEfficiencyConfig {
+  compactionPolicy?: {
+    enabled?: boolean;
+    slidingWindowTurns?: number;
+    summarizeOlderTurns?: boolean;
+    maxSummaryTokens?: number;
+  };
+}
 
 interface Message {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -50,6 +66,7 @@ interface TruncationResult {
   savedTokens: number;
   summary: string;
   removedIndexes: number[];
+  truncatedMessages?: Message[];
 }
 
 // Simple tokenizer (rough approximation: 1 token ≈ 4 chars for English/Spanish)
@@ -70,10 +87,30 @@ function log(msg: string): void {
   }
 }
 
+export function loadEffectiveContextConfig(): ContextTruncatorConfig {
+  const loaded = loadConfigFile<ContextEfficiencyConfig>('context-efficiency', {
+    defaults: {},
+  }).data;
+  const policy = loaded.compactionPolicy;
+  return {
+    ...DEFAULT_CONFIG,
+    maxTurns: policy?.slidingWindowTurns ?? DEFAULT_CONFIG.maxTurns,
+    summarizeOlderTurns: policy?.summarizeOlderTurns ?? DEFAULT_CONFIG.summarizeOlderTurns,
+    maxSummaryTokens: policy?.maxSummaryTokens ?? DEFAULT_CONFIG.maxSummaryTokens,
+  };
+}
+
+function clampToTokenBudget(text: string, maxTokens: number): string {
+  if (maxTokens <= 0 || estimateTokens(text) <= maxTokens) return text;
+  const maxChars = Math.max(0, maxTokens * 4);
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, Math.max(0, maxChars - 16)).trimEnd()}\n[truncated]`;
+}
+
 /**
  * Summarize older messages into a compact summary
  */
-function summarizeMessages(messages: Message[]): string {
+function summarizeMessages(messages: Message[], maxSummaryTokens: number): string {
   const userMsgs = messages
     .filter((m) => m.role === 'user')
     .map((m) => m.content.substring(0, 100) + (m.content.length > 100 ? '...' : ''));
@@ -86,11 +123,12 @@ function summarizeMessages(messages: Message[]): string {
     })
     .slice(0, 3);
 
-  return (
+  const summary =
     `[Context: ${messages.length} previous messages summarized]\n` +
     `User requests: ${userMsgs.slice(0, 3).join(' | ') || 'N/A'}\n` +
-    `Assistant actions: ${assistantSummary.join(' | ') || 'N/A'}`
-  );
+    `Assistant actions: ${assistantSummary.join(' | ') || 'N/A'}`;
+
+  return clampToTokenBudget(summary, maxSummaryTokens);
 }
 
 /**
@@ -155,12 +193,14 @@ export function truncateHistory(
 
   if (middleEnd > middleStart && messages.length > cfg.summaryThreshold) {
     const middleMessages = messages.slice(middleStart, middleEnd);
-    const summary = summarizeMessages(middleMessages);
-    resultMessages.push({
-      role: 'system',
-      content: summary,
-      timestamp: new Date().toISOString(),
-    });
+    if (cfg.summarizeOlderTurns) {
+      const summary = summarizeMessages(middleMessages, cfg.maxSummaryTokens);
+      resultMessages.push({
+        role: 'system',
+        content: summary,
+        timestamp: new Date().toISOString(),
+      });
+    }
     for (let i = middleStart; i < middleEnd; i++) removedIndexes.push(i);
   }
 
@@ -183,6 +223,73 @@ export function truncateHistory(
     removedIndexes,
     truncatedMessages: resultMessages, // Internal use
   } as TruncationResult;
+}
+
+export function recordContextCompactionSaving(
+  result: TruncationResult | null | undefined,
+  options: { source?: string; sessionId?: string } = {},
+): void {
+  if (!result || result.savedTokens <= 0) return;
+  try {
+    const source = options.source ?? 'context-truncator';
+    const manager = DatabaseManager.getInstance();
+    const hash = createHash('sha256')
+      .update(`${source}:${result.originalCount}:${result.truncatedCount}:${result.savedTokens}`)
+      .digest('hex')
+      .slice(0, 16);
+    manager
+      .getDb()
+      .prepare(
+        `INSERT OR IGNORE INTO token_savings
+          (message_id, session_id, category, saved_tokens, source, created_at, tenant_id)
+         VALUES (?, ?, ?, ?, ?, datetime('now'), ?)`,
+      )
+      .run(
+        `context-compaction:${hash}:${Date.now()}`,
+        options.sessionId ?? process.env.GENTLE_VANGUARD_SESSION_ID ?? null,
+        'context-compaction',
+        result.savedTokens,
+        source,
+        process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID,
+      );
+
+    const now = Date.now();
+    manager.insertTrace({
+      span_id: randomUUID(),
+      trace_id: `context-compaction-${hash}`,
+      name: 'context-compaction.saved',
+      start_time: now,
+      end_time: now,
+      duration: 0.001,
+      status: 'completed',
+      input_tokens: result.originalTokens,
+      output_tokens: result.estimatedTokens,
+      session_id: options.sessionId ?? process.env.GENTLE_VANGUARD_SESSION_ID ?? undefined,
+      attributes: JSON.stringify({
+        source,
+        originalCount: result.originalCount,
+        truncatedCount: result.truncatedCount,
+        savedTokens: result.savedTokens,
+      }),
+    });
+  } catch {
+    // Telemetry is best-effort; compaction must never break context handling.
+  }
+}
+
+export function compactHistory(
+  messages: Message[],
+  config: Partial<typeof DEFAULT_CONFIG> = {},
+  options: { recordTelemetry?: boolean; source?: string; sessionId?: string } = {},
+): TruncationResult {
+  const result = truncateHistory(messages, config);
+  if (options.recordTelemetry) {
+    recordContextCompactionSaving(result, {
+      source: options.source,
+      sessionId: options.sessionId,
+    });
+  }
+  return result;
 }
 
 /**
@@ -254,7 +361,11 @@ function monitorAndTruncate(): void {
     return;
   }
 
-  const result = truncateHistory(session.messages);
+  const result = compactHistory(session.messages, loadEffectiveContextConfig(), {
+    recordTelemetry: true,
+    source: 'context-truncator:monitor',
+    sessionId: session.sessionId,
+  });
 
   if (result.savedTokens > 0) {
     log(
@@ -284,10 +395,10 @@ Usage:
   npx tsx src/tools/context-truncator.ts --config          # Show default config
 
 Config (DEFAULT):
-  maxTurns: ${DEFAULT_CONFIG.maxTurns}
-  maxTokens: ${DEFAULT_CONFIG.maxTokens.toLocaleString()}
-  minTurns: ${DEFAULT_CONFIG.minTurns}
-  summaryThreshold: ${DEFAULT_CONFIG.summaryThreshold}
+  maxTurns: ${loadEffectiveContextConfig().maxTurns}
+  maxTokens: ${loadEffectiveContextConfig().maxTokens.toLocaleString()}
+  minTurns: ${loadEffectiveContextConfig().minTurns}
+  summaryThreshold: ${loadEffectiveContextConfig().summaryThreshold}
 `);
     return;
   }
@@ -303,7 +414,7 @@ Config (DEFAULT):
   }
 
   if (args.includes('--config')) {
-    console.log('Default config:\n' + JSON.stringify(DEFAULT_CONFIG, null, 2));
+    console.log('Effective config:\n' + JSON.stringify(loadEffectiveContextConfig(), null, 2));
     return;
   }
 

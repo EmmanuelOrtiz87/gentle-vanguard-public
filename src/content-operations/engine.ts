@@ -48,6 +48,19 @@ export type PlatformRegistry = {
   platforms: Record<string, PlatformCapability>;
 };
 
+export type OperationEnvelope<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: { code: string; message: string } };
+
+export type JobPreview = {
+  id: string;
+  platform: string;
+  currentStatus: Status;
+  publishStatus: 'READY_FOR_APPROVAL' | 'BLOCKED';
+  approvalRequired: boolean;
+  errors: string[];
+};
+
 /** Valid state transitions. A job can only move along these edges. */
 export const TRANSITIONS: Record<Status, Status[]> = {
   DRAFT: ['VALIDATED', 'FAILED'],
@@ -106,6 +119,22 @@ export function validate(job: Job, registry?: PlatformRegistry): string[] {
   }
 
   return errors;
+}
+
+/** Build a stable, offline preview envelope. This never changes the manifest. */
+export function previewJob(job: Job, registry: PlatformRegistry): OperationEnvelope<JobPreview> {
+  const errors = validate(job, registry);
+  return {
+    ok: true,
+    data: {
+      id: job.id,
+      platform: job.platform,
+      currentStatus: job.status,
+      publishStatus: errors.length === 0 ? 'READY_FOR_APPROVAL' : 'BLOCKED',
+      approvalRequired: job.approvalRequired,
+      errors,
+    },
+  };
 }
 
 export function transition(job: Job, to: Status): Job {

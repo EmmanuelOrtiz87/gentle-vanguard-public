@@ -24,9 +24,13 @@ import { existsSync, mkdirSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { recommend } from './recommend-agent.js';
-import { delegateWithGuardrail, compressDelegationLossless } from './agent-delegator.js';
+import {
+  delegateWithGuardrail,
+  compressDelegationLossless,
+  recordDelegationCompressionSaving,
+} from './agent-delegator.js';
 import { resolveAgentTier } from '../sdd/domain-tier.js';
-import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager.js';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js';
 
 const ROOT = resolve(process.cwd());
 const HITS_FILE = join(ROOT, '.session', 'routing', 'hits.jsonl');
@@ -116,6 +120,14 @@ async function main(): Promise<void> {
   //     reasoning). Falls back to the original when too short / not improved.
   const taskC = compressDelegationLossless(task);
   const contextC = context ? compressDelegationLossless(context) : null;
+  recordDelegationCompressionSaving(taskC, {
+    label: 'task',
+    source: `route-and-delegate:${rec.recommended}`,
+  });
+  recordDelegationCompressionSaving(contextC, {
+    label: 'context',
+    source: `route-and-delegate:${rec.recommended}`,
+  });
 
   // 2. Delegate natively — pass the M6 tier temperature override so the
   //    agent actually runs with the domain quality tier (premium: low temp /

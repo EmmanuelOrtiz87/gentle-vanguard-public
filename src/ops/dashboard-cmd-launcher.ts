@@ -118,7 +118,8 @@ async function waitForHealth(port: number, timeoutMs: number = 10000): Promise<b
 
 async function main() {
   const args = process.argv.slice(2);
-  const portArg = args.find((a, i) => a === '--port' && args[i + 1])?.slice(0, -1) || '8080';
+  const portIndex = args.indexOf('--port');
+  const portArg = portIndex >= 0 ? args[portIndex + 1] : '8080';
   const requestedPort = parseInt(portArg, 10) || 8080;
 
   log('=== Dashboard CMD Launcher ===');

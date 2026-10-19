@@ -8,7 +8,7 @@
  * valid for integrations that need streaming or platform-specific behavior.
  */
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 type Finding = {

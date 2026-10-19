@@ -65,4 +65,12 @@ describe('prepush-gate --skip-apps flag', () => {
       'cache must not be stored when --skip-apps is used',
     );
   });
+
+  it('allows slow but successful checks to finish before timing out', () => {
+    const src = readFileSync(GATE, 'utf-8');
+    const orchestrator = src.match(/name: 'orchestrator-auto-fix'[\s\S]*?timeoutMs: (\d+)_000/);
+    const performance = src.match(/name: 'perf-baseline'[\s\S]*?timeoutMs: (\d+)_000/);
+    assert.equal(orchestrator?.[1], '120');
+    assert.equal(performance?.[1], '120');
+  });
 });

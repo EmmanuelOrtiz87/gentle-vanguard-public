@@ -17,7 +17,7 @@ interface ExploreTask {
 const AGENT_CONFIG = {
   name: 'sdd-explore',
   description: 'BA exploration agent — requirements gathering and analysis',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.7,
   maxTokens: 4000,
   version: '1.0.0',

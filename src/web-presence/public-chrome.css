@@ -1,0 +1,73 @@
+/* Shared public chrome for the corporate website and Academy.
+   Canonical tokens stay in gv-design-system; these are public-site composition rules. */
+body[data-public-surface] .gv-topbar {
+  background:var(--gv-glass); backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--gv-border); box-shadow:none;
+}
+body[data-public-surface] .gv-topbar .gv-topbar-inner {
+  width:min(1320px,calc(100% - 48px)); max-width:none; min-height:64px;
+  padding:8px 0; margin-inline:auto; gap:24px; flex-wrap:nowrap;
+}
+body[data-public-surface] .gv-topbar .gv-brand { gap:10px; }
+body[data-public-surface] .gv-brand-logo { width:32px; height:32px; flex-shrink:0; }
+body[data-public-surface] .gv-topbar .gv-brand-wordmark { display:inline-flex; font-size:17px; }
+body[data-public-surface] .gv-topbar nav { margin-left:auto; gap:24px; }
+body[data-public-surface] .gv-topbar nav a { font-size:12.5px; padding-block:8px; min-height:44px; }
+body[data-public-surface] .gv-topbar nav a::after { bottom:0; height:1px; }
+body[data-public-surface] .gv-topbar .controls,
+body[data-public-surface] .academy-controls { gap:8px; flex-shrink:0; }
+body[data-public-surface] .gv-topbar .gv-icon-btn { width:44px; height:44px; min-width:44px; min-height:44px; padding:0; display:grid; place-items:center; background:transparent; border:1px solid var(--gv-border); border-radius:var(--gv-radius-sm); }
+body[data-public-surface] .academy-company { min-height:44px; font-size:12px; padding:10px 16px; gap:12px; }
+body[data-public-surface] .academy-company:hover { transform:none; }
+body[data-public-surface] .brand-closing { width:min(1200px,calc(100% - 64px)); margin-inline:auto; padding:48px 0 64px; position:relative; }
+body[data-public-surface] .brand-closing::before { content:""; display:block; width:64px; height:3px; background:var(--gv-gradient); margin-bottom:24px; }
+body[data-public-surface] .brand-closing p { font:700 clamp(26px,3.5vw,44px)/1.25 var(--gv-font-display); letter-spacing:-.025em; color:var(--gv-text); max-width:24ch; margin:0; text-wrap:balance; }
+body[data-public-surface] .gv-footer {
+  width:min(1200px,calc(100% - 64px)); max-width:none; margin:0 auto; padding:32px 0 40px;
+  display:flex; justify-content:flex-start; align-items:center; gap:24px; flex-wrap:wrap;
+  background:transparent; border-top:1px solid var(--gv-border); text-align:left;
+}
+body[data-public-surface] .gv-footer::before { display:none; }
+body[data-public-surface] .gv-footer .gv-brand-wordmark { display:inline-flex; font-size:17px; }
+body[data-public-surface] .gv-footer a:not(.gv-brand),
+body[data-public-surface] .gv-footer button,
+body[data-public-surface] .gv-footer small { font:400 13px/1.5 var(--gv-font-body); color:var(--gv-text-secondary); }
+body[data-public-surface] .gv-footer a:not(.gv-brand),
+body[data-public-surface] .gv-footer button { min-height:44px; display:inline-flex; align-items:center; padding:0; border:0; background:transparent; text-decoration:none; cursor:pointer; }
+body[data-public-surface] .gv-footer .social-links { display:flex; gap:16px; flex-wrap:wrap; margin:0; }
+body[data-public-surface] .gv-footer .social-links a { background:transparent; border:0; border-radius:0; }
+body[data-public-surface] .gv-footer a:hover,body[data-public-surface] .gv-footer button:hover { color:var(--gv-text); }
+body[data-public-surface] .academy-footer-meta { flex:1 0 100%; display:flex; align-items:center; flex-wrap:wrap; gap:16px 24px; border-top:1px solid var(--gv-border); padding-top:20px; }
+body[data-public-surface] .academy-footer-meta p { flex-basis:100%; font-size:12px; line-height:1.8; margin:0; color:var(--gv-text-secondary); }
+body[data-public-surface] .gv-footer .academy-footer-meta .gv-btn { padding:10px 16px; border:1px solid var(--gv-border); border-radius:var(--gv-radius-sm); }
+body[data-public-surface="academy"] .tabbar { top:64px; }
+@media(max-width:1150px) {
+  body[data-public-surface] .gv-topbar .gv-topbar-inner { gap:16px; }
+  body[data-public-surface] .gv-topbar nav { gap:16px; }
+}
+@media(max-width:900px) {
+  body[data-public-surface] .gv-topbar #academy-navigation { display:none; }
+  body[data-public-surface] .gv-topbar #academy-navigation.is-open { display:flex; }
+  body[data-public-surface] #academy-menu { display:grid; }
+  body[data-public-surface] .gv-topbar #academy-navigation { top:100%; width:100%; margin:0; padding:16px 24px; gap:0; align-items:stretch; }
+  body[data-public-surface] .gv-topbar #academy-navigation a { padding:14px 0; font-size:15px; }
+}
+@media(max-width:640px) {
+  body[data-public-surface] .gv-topbar .gv-topbar-inner { width:calc(100% - 32px); gap:8px; }
+  body[data-public-surface] .gv-topbar .gv-brand { gap:8px; }
+  body[data-public-surface] .gv-topbar .gv-brand-wordmark { display:inline-flex; font-size:14px; }
+  body[data-public-surface] .academy-controls { margin-left:auto; gap:6px; }
+  body[data-public-surface] .academy-company { width:44px; padding:0; }
+  body[data-public-surface] .academy-company span { display:none; }
+  body[data-public-surface] .gv-footer,body[data-public-surface] .brand-closing { width:calc(100% - 40px); }
+  body[data-public-surface] .gv-footer { gap:20px; }
+  body[data-public-surface] .gv-footer small { margin-left:auto; }
+}
+@media(max-width:360px) {
+  body[data-public-surface] .gv-topbar .gv-brand-wordmark { font-size:12px; }
+  body[data-public-surface] .gv-topbar .gv-topbar-inner { gap:4px; }
+  body[data-public-surface] .gv-topbar .controls { gap:6px; }
+  body[data-public-surface] .language-control .language-icon { display:none; }
+  body[data-public-surface] .controls .language-control { padding:0 4px; gap:0; }
+  body[data-public-surface] .controls .language-control select { width:34px; min-width:34px; }
+}

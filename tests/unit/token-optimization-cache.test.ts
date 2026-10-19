@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { saveSessionState } from '../../src/core/session-context-log';
 import { ResponseCache } from '../../src/resilience/response-cache';
 import { runPipeline } from '../../src/tokens/token-optimization-orchestrator';
 
@@ -34,4 +35,40 @@ test('runPipeline stores the original prompt key before compression', async () =
   assert.equal(first.output.fromCache, false);
   assert.equal(second.output.fromCache, true);
   assert.equal(second.output.cacheKey, first.output.cacheKey);
+});
+
+test('runPipeline can load session history into pre-process stage', async () => {
+  const sessionId = `pipeline-history-${Date.now()}`;
+  saveSessionState({
+    sessionId,
+    agent: 'test',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    totalTokens: 0,
+    totalCost: 0,
+    messageCount: 28,
+    turns: Array.from({ length: 28 }, (_, index) => ({
+      message: `turn-${index}`,
+      inputSummary: 'prior input summary with repeated operational details '.repeat(20),
+      outputSummary: 'prior output summary with confirmed decisions '.repeat(20),
+    })),
+  });
+
+  const result = await runPipeline(
+    {
+      prompt: 'Continue with the optimization work.',
+      context: `pipeline-history-${Date.now()}`,
+      cacheEnabled: false,
+      useSessionHistory: true,
+      sessionId,
+      historyTurns: 28,
+    },
+    { skipPreProcess: false, skipPostProcess: true },
+  );
+
+  const preProcess = result.stages.find((stage) => stage.stage === 'pre-process');
+  assert.ok(preProcess);
+  assert.ok(preProcess.savings > 0);
+  assert.match(String(preProcess.output), /\[Previous context\]/);
 });

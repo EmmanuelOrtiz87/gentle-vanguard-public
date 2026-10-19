@@ -25,6 +25,8 @@ const SECRET_PATH_PATTERNS: RegExp[] = [
   /\.pem$/i,
   /master\.key/i,
   /(^|[/\\])\.env$/i,
+  /(^|[/\\])\.env\.(?!example$)[^/\\]+$/i,
+  /(^|[/\\])\.git([/\\]|$)/i,
   /(^|[/\\])\.runtime([/\\]|$)/i,
   /(^|[/\\])\.session([/\\]|$)/i,
   /(^|[/\\])\.telemetry([/\\]|$)/i,
@@ -40,6 +42,8 @@ const SECRET_PATH_PATTERNS: RegExp[] = [
 /** Top-level entries copied into the payload (mirrors the public distribution contract). */
 export const PAYLOAD_ENTRIES: Array<{ path: string; required: boolean }> = [
   { path: 'src', required: true },
+  { path: 'packages/shared', required: true },
+  { path: 'adapters', required: true },
   { path: 'config', required: true },
   { path: 'docs', required: true },
   { path: 'tests/smoke', required: true },
@@ -55,6 +59,16 @@ export const PAYLOAD_ENTRIES: Array<{ path: string; required: boolean }> = [
   { path: 'VERSION', required: false },
   { path: 'LICENSE', required: false },
 ];
+
+/** Curated documentation shared by the installer and public repository. */
+export const PUBLIC_DOC_DIRECTORIES = ['getting-started', 'guides', 'marketing', 'supplementary', 'presentations', 'brand'];
+export function isPublicDocumentation(relativePath: string): boolean {
+  const path = relativePath.replaceAll('\\', '/');
+  if (path === 'docs') return true;
+  if (path === 'docs/presentations/public-presence.html') return false;
+  return PUBLIC_DOC_DIRECTORIES.some(dir => path === `docs/${dir}` || path.startsWith(`docs/${dir}/`)) ||
+    ['docs/technical/STACK-DOCUMENTATION.md', 'docs/REPOSITORY-PUBLICATION.md', 'docs/EXAMPLES.md'].includes(path);
+}
 
 /** True when a relative path matches any secret/state exclusion pattern. */
 export function isExcludedPath(relativePath: string): boolean {
@@ -88,7 +102,7 @@ export function stagePayload(repoRoot: string, stagedDir: string): PayloadResult
       recursive: true,
       filter: (src) => {
         const rel = src.slice(root.length + 1);
-        return !isExcludedPath(rel);
+        return !isExcludedPath(rel) && (!/^docs([/\\]|$)/.test(rel) || isPublicDocumentation(rel));
       },
     });
     copiedEntries.push(entry.path);

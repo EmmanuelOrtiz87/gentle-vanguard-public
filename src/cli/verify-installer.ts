@@ -50,7 +50,7 @@ function findLatestInstaller(
   if (!existsSync(distDir)) return null;
   const candidates = readdirSync(distDir)
     .filter((f) => /^Gentle-Vanguard-Setup-.*\.exe$/.test(f))
-    .sort();
+    .sort((a, b) => a.localeCompare(b, undefined, {numeric:true}));
   const exe = candidates[candidates.length - 1];
   if (!exe) return null;
   return { exe: join(distDir, exe), sha256File: join(distDir, `${exe}.sha256`) };
@@ -112,7 +112,7 @@ function main(): void {
   } else {
     report.results.push({
       check: 'sha256-checksum',
-      status: 'skip',
+      status: 'fail',
       detail: '.sha256 file missing',
     });
   }
@@ -190,7 +190,7 @@ function main(): void {
       }
       report.results.push({
         check: 'silent-uninstall',
-        status: unRun.error ? 'fail' : cleaned || keep ? 'pass' : 'pass',
+        status: !unRun.error && unRun.code === 0 && cleaned ? 'pass' : 'fail',
         detail: unRun.error
           ? unRun.error
           : cleaned

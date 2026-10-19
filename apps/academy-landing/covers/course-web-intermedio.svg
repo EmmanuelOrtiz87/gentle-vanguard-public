@@ -64,7 +64,10 @@
     <text x="600" y="884" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Responsivas e</text>
     <text x="600" y="976" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Interactivas</text>
   <!-- subtítulo -->
-  <text x="600" y="1128" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Lleva tus páginas al siguiente nivel: CSS responsivo con media queries y unidades fluidas, animaciones con propósito, JavaScript intermedio (objetos, arrays, JSON), eventos y validación de formularios, consumo de APIs con fetch, y un proyecto guiado de búsqueda con API real.</text>
+    <text x="600" y="1128" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Lleva tus páginas al siguiente nivel: CSS responsivo con media</text>
+<text x="600" y="1162" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">queries y unidades fluidas, animaciones con propósito, JavaScript</text>
+<text x="600" y="1196" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">intermedio (objetos, arrays, JSON), eventos y validación de</text>
+<text x="600" y="1230" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">formularios, consumo de APIs con fetch, y un proyecto guiado de</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~16 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">CSS · RESPONSIVE · JAVASCRIPT</text>

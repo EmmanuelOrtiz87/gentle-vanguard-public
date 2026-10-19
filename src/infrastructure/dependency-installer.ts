@@ -13,6 +13,7 @@
  */
 
 import { runSync } from '../core/run-command.js';
+import { existsSync } from 'node:fs';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -24,6 +25,8 @@ interface DepSpec {
   description: string;
   installHint: string;
   autoInstall?: string[];
+  envVar?: string;
+  envPathMustExist?: boolean;
 }
 
 interface DepResult {
@@ -91,8 +94,16 @@ const INSTALL_MAP: Record<string, () => boolean> = {
 };
 
 export async function installMissing(deps: DepSpec[], results: DepResult[]): Promise<number> {
+  // "stack" category = the stack's own capability tools (Engram, CodeGraph, REA,
+  // TruffleHog, gh, Lefthook). These are installed automatically during setup,
+  // without requiring --all; truly optional tooling (Go/Python/Scoop) stays gated.
+  const stackNames = new Set(
+    deps.filter((d) => d.category === 'stack').map((d) => d.name),
+  );
   const failed = results.filter((r) => r.status === 'FAIL');
-  const warned = results.filter((r) => r.status === 'WARN' && process.argv.includes('--all'));
+  const warned = results.filter(
+    (r) => r.status === 'WARN' && (process.argv.includes('--all') || stackNames.has(r.name)),
+  );
   const toInstall = [...failed, ...warned];
 
   if (toInstall.length === 0) {
@@ -125,6 +136,7 @@ export async function installMissing(deps: DepSpec[], results: DepResult[]): Pro
 
   let installed = 0;
   let failed_count = 0;
+  let manual = 0;
 
   for (const item of toInstall) {
     console.log(C.cyan(`\n  ── Installing ${item.name} ──`));
@@ -132,10 +144,12 @@ export async function installMissing(deps: DepSpec[], results: DepResult[]): Pro
     // Find the dep spec
     const spec = deps.find((d) => d.name === item.name);
     if (!spec || !spec.autoInstall || spec.autoInstall.length === 0) {
-      console.log(C.yellow(`  No auto-install available for ${item.name}.`));
+      // No auto-install path (e.g., bring-your-own Ghidra/IDA/Hopper) — this is a
+      // manual prerequisite, not a failure. Report the hint and continue.
+      console.log(C.yellow(`  ⚠ ${item.name}: manual install required (no auto-install path).`));
       if (spec) console.log(C.yellow(`  Manual: ${spec.installHint}`));
       else console.log(C.yellow(`  No install information available.`));
-      failed_count++;
+      manual++;
       continue;
     }
 
@@ -179,12 +193,23 @@ export async function installMissing(deps: DepSpec[], results: DepResult[]): Pro
 
   console.log(C.bold(C.cyan(`\n  ── Summary ──`)));
   console.log(`  Installed: ${C.green(String(installed))}`);
+  console.log(`  Manual:    ${manual > 0 ? C.yellow(String(manual)) : '0'}`);
   console.log(`  Failed:    ${failed_count > 0 ? C.red(String(failed_count)) : '0'}`);
   console.log(C.cyan(`  ───────────\n`));
 
+  if (manual > 0) {
+    console.log(C.yellow('  Some prerequisites need a manual install. Follow the hints above.'));
+  }
+
   if (failed_count > 0) {
-    console.log(C.yellow('  Some installations need manual steps. Follow the hints above.'));
+    console.log(C.yellow('  Some installations failed. Follow the hints above.'));
     return 1;
+  }
+
+  if (manual > 0) {
+    console.log(C.green('  Automated installs complete. Re-run the validator to confirm:'));
+    console.log(C.dim('  npx tsx src/dependency-validator.ts'));
+    return 0;
   }
 
   console.log(C.green('  All dependencies installed. Run the validator to confirm:'));
@@ -269,6 +294,45 @@ function getDepsInternal(): DepSpec[] {
       autoInstall: ['npm', 'install', '-g', '@opencode/codegraph'],
     },
     {
+      name: 'REA',
+      binary: 'rea',
+      category: 'stack',
+      required: false,
+      description: '',
+      installHint: '',
+      autoInstall: ['npm', 'install', '-g', 'rea-agents'],
+    },
+    {
+      name: 'Ghidra',
+      binary: '',
+      category: 'stack',
+      required: false,
+      envVar: 'GHIDRA_INSTALL_DIR',
+      envPathMustExist: true,
+      description: '',
+      installHint: 'Provision Ghidra 12.1.x and set GHIDRA_INSTALL_DIR.',
+    },
+    {
+      name: 'JDK 21',
+      binary: '',
+      category: 'stack',
+      required: false,
+      envVar: 'JAVA_HOME',
+      envPathMustExist: true,
+      description: '',
+      installHint: 'Install Temurin JDK 21 and set JAVA_HOME.',
+    },
+    {
+      name: 'adb (Android)',
+      binary: '',
+      category: 'stack',
+      required: false,
+      envVar: 'REA_ADB_PATH',
+      envPathMustExist: true,
+      description: '',
+      installHint: 'Point REA_ADB_PATH at the Android SDK platform-tools adb binary.',
+    },
+    {
       name: 'gh (GitHub CLI)',
       binary: 'gh',
       category: 'stack',
@@ -317,6 +381,18 @@ function getDepsInternal(): DepSpec[] {
 async function validateInternal(deps: DepSpec[]): Promise<DepResult[]> {
   const results: DepResult[] = [];
   for (const dep of deps) {
+    if (dep.envVar) {
+      const value = process.env[dep.envVar];
+      const found = Boolean(value) && (!dep.envPathMustExist || existsSync(value as string));
+      results.push({
+        name: dep.name,
+        found,
+        version: '',
+        status: found ? 'PASS' : dep.required ? 'FAIL' : 'WARN',
+        message: found ? `${dep.envVar}=${value}` : `Not found. ${dep.installHint}`,
+      });
+      continue;
+    }
     const which = IS_WIN ? 'where' : 'which';
     const found = run(which, [dep.binary]).status === 0;
     if (found) {

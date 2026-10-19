@@ -48,7 +48,7 @@
         "required": true,
         "critical": true,
         "phase": 0,
-        "description": "Enforce free model (opencode/mimo-v2.5-free) when credits exhausted"
+        "description": "Enforce free model (opencode-zen-C/mimo-v2.6-flash-free) when credits exhausted"
       },
       {
         "id": "tool-detection",

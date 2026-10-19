@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -36,10 +37,31 @@ import {
 } from '../../src/knowledge/engram-auto-update.js';
 import {
   compareSkillTrees,
+  evaluateToolAudit,
+  hasMiniMaxEngramMcpRuntime,
   isUsableLauncherFile,
   parseOpenCodeRuntimeMajor,
 } from '../../src/integrations/tool-interoperability-audit.js';
 import { findBrokenRelativeImports } from '../../src/tools/ast-import-parser.js';
+import { discoverAuditRoots } from '../../src/infrastructure/npm-audit-pre-push.js';
+import { checkDashboardHealth } from '../../src/ops/dashboard-health-checker.js';
+
+function listenOnEphemeralPort(server: Server): Promise<number> {
+  return new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      assert.equal(typeof address, 'object');
+      assert.notEqual(address, null);
+      resolve(address.port);
+    });
+  });
+}
+
+function closeServer(server: Server): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((err) => (err ? reject(err) : resolve()));
+  });
+}
 
 test('normalizes legacy fallback state without losing counters', () => {
   const state = normalizeFallbackState({
@@ -48,10 +70,20 @@ test('normalizes legacy fallback state without losing counters', () => {
     lastUpdated: '2026-08-02T05:47:07.522Z',
   });
 
-  assert.equal(state.activeModel, 'opencode/deepseek-v4-flash-free');
+  assert.equal(state.activeModel, 'opencode-zen-C/big-pickle');
   assert.deepEqual(state.exhaustedModels, []);
   assert.deepEqual(state.agentModelOverrides, {});
   assert.equal(state.globalFallbackCount, 7);
+});
+
+test('dependency audit discovers standalone app lockfiles', () => {
+  const root = mkdtempSync(join(tmpdir(), 'gv-audit-roots-'));
+  mkdirSync(join(root, 'apps', 'standalone'), { recursive: true });
+  writeFileSync(join(root, 'package.json'), '{}');
+  writeFileSync(join(root, 'apps', 'standalone', 'package.json'), '{}');
+  writeFileSync(join(root, 'apps', 'standalone', 'pnpm-lock.yaml'), 'lockfileVersion: 9.0\n');
+
+  assert.deepEqual(discoverAuditRoots(root), [root, join(root, 'apps', 'standalone')]);
 });
 
 test('accepts a configured stdio CodeGraph server without a persistent daemon', () => {
@@ -71,7 +103,7 @@ test('accepts a configured stdio CodeGraph server without a persistent daemon', 
 });
 
 test('alerts only when the unhealthy provider is the active model', () => {
-  assert.equal(evaluateProviderAlertStatus('glm-5.3-flash', 'deepseek-v4-flash-free'), 'PASS');
+  assert.equal(evaluateProviderAlertStatus('glm-5.3-flash', 'big-pickle'), 'PASS');
   assert.equal(evaluateProviderAlertStatus('glm-5.3-flash', 'glm-5.3-flash'), 'WARN');
 });
 
@@ -182,6 +214,70 @@ test('OpenCode runtime classification is version-aware and fails closed', () => 
   assert.equal(parseOpenCodeRuntimeMajor('3.0.0'), 'unsupported');
 });
 
+test('dashboard health checker reports Vite availability separately from WS health', async () => {
+  const ws = createServer((req, res) => {
+    if (req.url === '/api/health' || req.url === '/api/metrics') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok' }));
+      return;
+    }
+    res.writeHead(404).end();
+  });
+  const closedViteProbe = createServer();
+  const wsPort = await listenOnEphemeralPort(ws);
+  const closedVitePort = await listenOnEphemeralPort(closedViteProbe);
+  await closeServer(closedViteProbe);
+
+  try {
+    const result = await checkDashboardHealth(wsPort, closedVitePort);
+    assert.equal(result.status, 'healthy');
+    assert.equal(result.httpHealthOk, true);
+    assert.equal(result.viteOk, false);
+    assert.match(result.message, /Vite not responding/);
+  } finally {
+    await closeServer(ws);
+  }
+});
+
+test('MiniMax Engram MCP runtime detection requires an Engram server with mem tools', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'gv-minimax-mcp-'));
+  const runtime = join(dir, 'mcp-runtime-names.json');
+
+  writeFileSync(
+    runtime,
+    JSON.stringify({
+      servers: [
+        {
+          raw: 'configured/engram',
+          segment: 'engram',
+          tools: [{ raw: 'mem_search', segment: 'mem_search' }],
+        },
+      ],
+    }),
+  );
+  assert.equal(hasMiniMaxEngramMcpRuntime(runtime), true);
+
+  writeFileSync(
+    runtime,
+    JSON.stringify({
+      servers: [
+        {
+          raw: 'configured/codegraph',
+          segment: 'codegraph',
+          tools: [{ raw: 'graph_search', segment: 'graph_search' }],
+        },
+        {
+          raw: 'configured/engram',
+          segment: 'engram',
+          tools: [{ raw: 'health', segment: 'health' }],
+        },
+      ],
+    }),
+  );
+  assert.equal(hasMiniMaxEngramMcpRuntime(runtime), false);
+  assert.equal(hasMiniMaxEngramMcpRuntime(join(dir, 'missing.json')), false);
+});
+
 test('close import validation ignores examples inside template literals', () => {
   const root = mkdtempSync(join(tmpdir(), 'gv-import-scan-'));
   const source = join(root, 'source.ts');
@@ -207,6 +303,13 @@ test('close phases use canonical CodeGraph sync and treat neutral feedback as ev
   assert.match(source, /runScript\('src\/integrations\/codegraph-sync-autostart\.ts'/);
   assert.doesNotMatch(source, /runScript\('src\/codegraph-sync-autostart\.ts'/);
   assert.match(source, /phase: 'outcome-feedback',\s+status: 'PASS'/);
+});
+
+test('dashboard launchers do not emit legacy root-level dashboard script paths', () => {
+  for (const file of ['src/ops/dashboard-start.ts', 'src/ops/quick-start.ts']) {
+    const source = readFileSync(join(process.cwd(), file), 'utf8');
+    assert.doesNotMatch(source, /src\/dashboard-(start|stop|ws-autostart)\.ts/);
+  }
 });
 
 test('Engram updater selects the major-version Go module and validates doctor v2', () => {
@@ -256,6 +359,40 @@ test('tool audit rejects simulated launchers', () => {
   assert.equal(isUsableLauncherFile(real), true);
 });
 
+test('tool audit gate requires all expected clients to pass', () => {
+  const base = {
+    profile: true,
+    runtime: true,
+    launcher: true,
+    agents: null,
+    skills: 28,
+    hooks: 'n/a' as const,
+    engram: 'mcp' as const,
+    instructions: true,
+    assets: 'fresh' as const,
+    runtimeVariant: 'native',
+    detail: 'ok',
+  };
+  const rows = ['OpenCode', 'Codex', 'ZCode', 'MiniMax Code', 'GitHub Copilot', 'Antigravity'].map(
+    (tool) => ({ ...base, tool, status: 'PASS' as const }),
+  );
+
+  assert.deepEqual(evaluateToolAudit(rows), {
+    passed: true,
+    detail: '6/6 tool surfaces PASS',
+  });
+
+  assert.deepEqual(evaluateToolAudit(rows.slice(0, 5)), {
+    passed: false,
+    detail: 'missing tool surfaces: Antigravity',
+  });
+
+  assert.deepEqual(evaluateToolAudit([{ ...rows[0], status: 'WARN' as const }, ...rows.slice(1)]), {
+    passed: false,
+    detail: 'non-PASS tools: OpenCode=WARN',
+  });
+});
+
 test('Watchtower self-tests use the direct hidden TypeScript runner', () => {
   const source = readFileSync(
     join(import.meta.dirname, '..', '..', 'src', 'core', 'watchtower', 'checks-infra.ts'),
@@ -265,6 +402,41 @@ test('Watchtower self-tests use the direct hidden TypeScript runner', () => {
   assert.match(source, /runNpxTsxSync\('src\/core\/orchestrator-loop-guard\.ts'/);
   assert.match(source, /runNpxTsxSync\(\s*'src\/security\/guardrails\/input-moderation\.ts'/);
   assert.doesNotMatch(source, /runSync\('npx', \['tsx'/);
+});
+
+test('history secret scan avoids external diff converters', () => {
+  const source = readFileSync(
+    join(import.meta.dirname, '..', '..', 'src', 'core', 'watchtower', 'checks-security.ts'),
+    'utf8',
+  );
+
+  assert.match(source, /'--no-ext-diff'/);
+  assert.match(source, /'--no-textconv'/);
+});
+
+test('gv-analytics launcher and watchtower use Command Center pidfiles', () => {
+  const launcher = readFileSync(
+    join(import.meta.dirname, '..', '..', 'src', 'ops', 'gv-analytics-launcher.ts'),
+    'utf8',
+  );
+  const watchtower = readFileSync(
+    join(import.meta.dirname, '..', '..', 'src', 'core', 'watchtower', 'checks-dashboard.ts'),
+    'utf8',
+  );
+
+  assert.match(launcher, /app-analytics-api\.pid/);
+  assert.match(launcher, /app-analytics-vite\.pid/);
+  assert.match(watchtower, /app-analytics-api\.pid/);
+  assert.match(watchtower, /app-analytics-vite\.pid/);
+});
+
+test('upgrade package scripts route through the canonical gv CLI', () => {
+  const pkg = JSON.parse(
+    readFileSync(join(import.meta.dirname, '..', '..', 'package.json'), 'utf8'),
+  ) as { scripts?: Record<string, string> };
+
+  assert.equal(pkg.scripts?.upgrade, 'npx tsx src/cli/gv.ts upgrade');
+  assert.equal(pkg.scripts?.['upgrade:check'], 'npx tsx src/cli/gv.ts upgrade --check');
 });
 
 test('academy validation delegates to the canonical multi-course validator', () => {
@@ -279,7 +451,7 @@ test('academy validation delegates to the canonical multi-course validator', () 
 test('performance gate stays neutral without evidence and fails a measured regression', () => {
   assert.equal(performancePercentile([10, 20, 30, 40], 95), 40);
   const baseline = {
-    latency: { samples: 20, avg: 100, p50: 80, p95: 100, p99: 120, byRoute: [] },
+    latency: { samples: 50, avg: 100, p50: 80, p95: 100, p99: 120, byRoute: [] },
     tokens: {
       samples: 20,
       total: 2000,
@@ -306,6 +478,8 @@ test('performance gate stays neutral without evidence and fails a measured regre
   const current = structuredClone(baseline);
   current.latency.p95 = 125;
   assert.equal(evaluateRegression(current, baseline).status, 'FAIL');
+  current.latency.samples = 26;
+  assert.equal(evaluateRegression(current, baseline).status, 'PASS');
 });
 
 test('performance exercise summarizes measured durations without losing precision bounds', () => {

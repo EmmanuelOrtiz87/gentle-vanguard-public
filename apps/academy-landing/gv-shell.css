@@ -1,0 +1,533 @@
+/*
+ * Gentle-Vanguard Design System v2 — shared application shell.
+ *
+ * Source of truth for topbars, navigation, atmospheric background, panels,
+ * controls and footer primitives. Tokens come from the package in React
+ * consumers; static apps receive the generated runtime snapshot.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.gv-app-shell {
+  min-height: 100vh;
+  background: var(--gv-bg, var(--gv-primary-bg, #0f1115));
+  color: var(--gv-text, #e8eef4);
+  font-family: var(--gv-font-body, Inter, system-ui, sans-serif);
+}
+
+.gv-app-shell a {
+  color: inherit;
+}
+
+.gv-grid-bg {
+  /* impeccable-disable codex-grid-background: official GV atmosphere for navigation shells. */
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--gv-purple, var(--gv-accent, #a78bfa)) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--gv-cyan, var(--gv-primary, #22d3ee)) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 85% 80% at 50% 35%, black 35%, transparent 100%);
+}
+
+.gv-glow-a,
+.gv-glow-b {
+  position: fixed;
+  z-index: -1;
+  width: 42rem;
+  height: 42rem;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(48px);
+}
+
+.gv-glow-a {
+  top: -20rem;
+  right: -14rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gv-purple, #a78bfa) 18%, transparent),
+    transparent 68%
+  );
+}
+
+.gv-glow-b {
+  bottom: -20rem;
+  left: -14rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gv-cyan, var(--gv-primary, #22d3ee)) 15%, transparent),
+    transparent 68%
+  );
+}
+
+.gv-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--gv-z-sticky, 50);
+  background: color-mix(in srgb, var(--gv-bg, #0f1115) 88%, transparent);
+  border-bottom: 1px solid var(--gv-glass-border, var(--gv-border, rgba(167, 139, 250, 0.24)));
+  backdrop-filter: blur(14px) saturate(140%);
+  /* NOTA: solo propiedad estándar. lightningcss (vite 8) mergea la dupla
+     estándar+-webkit- y emite SOLO el prefijo, que Chromium moderno rechaza
+     (computed=none). Declarar solo la estándar sobrevive a todos los builds. */
+}
+
+.gv-topbar-inner,
+.gv-topbar .header-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(100% - 40px, var(--gv-content-max-width, 1180px));
+  min-height: 62px;
+  margin: 0 auto;
+  padding: 10px 0;
+}
+
+.gv-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  color: var(--gv-text, #e8eef4);
+  font: 700 17px/1 var(--gv-font-display, 'Poppins', sans-serif);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gv-brand-logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+/* impeccable-disable gradient-text: official Gentle-Vanguard wordmark treatment. */
+.gv-brand-wordmark,
+.gv-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--gv-text, #e8eef4);
+  font: 700 17px/1 var(--gv-font-display, 'Poppins', sans-serif);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+/* Wordmark homologado (NORM-APP-001, fix 2026-09-15):
+   "Gentle" SIEMPRE blanco/neutral; SOLO "Vanguard" lleva el gradiente.
+   Regla con especificidad alta para vencer overrides de apps (archify/archify-v2
+   pintaban el span completo con gradiente). */
+.gv-brand-wordmark,
+.gv-shell .gv-brand-wordmark,
+.gv-brand-wordmark a,
+.gv-shell .gv-brand-wordmark a {
+  color: var(--gv-text, #e9eef4) !important;
+  background: none !important;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  color: var(--gv-text, #eef2f7) !important;
+}
+.gv-brand-wordmark span,
+.gv-shell .gv-brand-wordmark span,
+.gv-brand-wordmark a span,
+.gv-shell .gv-brand-wordmark a span {
+  background: var(--gv-gradient, linear-gradient(135deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+}
+/* Botón de idioma: fuente homologada (13px) para que el icono no sobresalga
+   ni se vea distinto entre apps (fix 2026-09-15). */
+.gv-lang-dropdown-toggle,
+.gv-shell .gv-lang-dropdown .gv-icon-btn,
+.gv-shell .gv-lang-dropdown-toggle,
+.gv-lang-dropdown .gv-icon-btn {
+  font-size: 13px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+.gv-shell-context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 28%, transparent);
+}
+.gv-shell-context small {
+  color: var(--gv-muted, #8b95a8);
+  font: 600 10px/1 var(--gv-font-body, Inter, sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gv-shell-context strong {
+  overflow: hidden;
+  color: var(--gv-text, #e8eef4);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gv-view-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.gv-view-tabs a,
+.gv-view-tabs button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: var(--gv-radius-md, 8px);
+  color: var(--gv-muted, #8b95a8);
+  background: transparent;
+  font: 600 13px/1 var(--gv-font-body, Inter, sans-serif);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    background var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    border-color var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
+}
+.gv-view-tabs a:hover,
+.gv-view-tabs a:focus-visible,
+.gv-view-tabs button:hover,
+.gv-view-tabs button:focus-visible,
+.gv-view-tabs .active,
+.gv-view-tabs [aria-current='page'] {
+  color: var(--gv-text, #e8eef4);
+  border-color: color-mix(in srgb, var(--gv-purple, #a78bfa) 45%, transparent);
+  background: color-mix(in srgb, var(--gv-purple, #a78bfa) 14%, transparent);
+}
+
+.gv-shell-menu {
+  display: none;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 35%, transparent);
+  border-radius: var(--gv-radius-md, 8px);
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  cursor: pointer;
+}
+.gv-shell-menu span,
+.gv-shell-menu span::before,
+.gv-shell-menu span::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0 auto;
+  border-radius: 2px;
+  background: currentColor;
+  content: '';
+}
+.gv-shell-menu span::before {
+  transform: translateY(-6px);
+}
+.gv-shell-menu span::after {
+  transform: translateY(4px);
+}
+
+.gv-panel {
+  border: 1px solid var(--gv-glass-border, var(--gv-border, rgba(167, 139, 250, 0.24)));
+  border-radius: var(--gv-radius-lg, 12px);
+  background: var(--gv-glass, rgba(26, 31, 42, 0.72));
+  backdrop-filter: blur(10px);
+}
+.gv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--gv-radius-pill, 999px);
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  font: 700 13px/1 var(--gv-font-body, Inter, sans-serif);
+  cursor: pointer;
+  transition:
+    transform var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
+    box-shadow var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
+}
+.gv-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--gv-elev-md, 0 8px 24px rgba(0, 0, 0, 0.24));
+}
+.gv-btn-primary {
+  color: #0f1115;
+  background: var(--gv-gradient, linear-gradient(135deg, #a78bfa, #22d3ee));
+}
+.gv-btn-ghost {
+  border-color: color-mix(in srgb, var(--gv-cyan, var(--gv-primary, #22d3ee)) 42%, transparent);
+}
+.gv-btn-danger {
+  color: #0f1115;
+  background: var(--gv-red, #ee6d75);
+}
+.gv-btn-success {
+  color: #0f1115;
+  background: var(--gv-green, #4ade80);
+}
+.gv-btn-accent {
+  color: #0f1115;
+  background: var(--gv-purple, #8B5CF6);
+}
+
+/* Long-page navigation, native default. DD-20261017-03. */
+.gv-back-to-top {
+  position: fixed;
+  right: max(var(--gv-space-6, 24px), env(safe-area-inset-right));
+  bottom: max(var(--gv-space-6, 24px), env(safe-area-inset-bottom));
+  z-index: var(--gv-z-overlay, 50);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--gv-glass-border);
+  border-radius: 50%;
+  background: var(--gv-glass);
+  color: var(--gv-text);
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  transition: background var(--gv-duration-fast), transform var(--gv-duration-fast);
+}
+.gv-back-to-top[hidden] { display: none; }
+.gv-back-to-top:hover { background: var(--gv-surface-raised); }
+.gv-back-to-top:focus-visible { outline: 3px solid var(--gv-cyan); outline-offset: 3px; }
+@media (max-width: 639px) {
+  .gv-back-to-top {
+    right: max(var(--gv-space-4, 16px), env(safe-area-inset-right));
+    bottom: max(var(--gv-space-4, 16px), env(safe-area-inset-bottom));
+  }
+}
+.gv-btn:focus-visible,
+.gv-view-tabs a:focus-visible,
+.gv-view-tabs button:focus-visible,
+.gv-shell-menu:focus-visible {
+  outline: 3px solid var(--gv-cyan-soft, var(--gv-primary-light, #67e8f9));
+  outline-offset: 2px;
+}
+
+.gv-footer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding: 18px 20px;
+  border-top: 1px solid var(--gv-glass-border, var(--gv-border, rgba(167, 139, 250, 0.24)));
+  color: var(--gv-muted, #8b95a8);
+  font: 12px/1.5 var(--gv-font-body, Inter, sans-serif);
+}
+.gv-footer a {
+  color: var(--gv-text-secondary, var(--gv-text, #e8eef4));
+  text-decoration: none;
+}
+.gv-footer a:not(.gv-brand) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.gv-footer a:hover,
+.gv-footer a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 1023px) {
+  .gv-topbar-inner {
+    flex-wrap: wrap;
+  }
+  .gv-shell-menu {
+    display: block;
+  }
+  .gv-view-tabs.gv-collapsible {
+    display: none;
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .gv-view-tabs.gv-collapsible.is-open {
+    display: flex;
+  }
+}
+@media (max-width: 639px) {
+  .gv-topbar-inner,
+  .gv-topbar .header-inner {
+    width: min(100% - 24px, var(--gv-content-max-width, 1180px));
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .gv-brand { min-width: 0; }
+  .gv-view-tabs { max-width: 100%; overflow-x: auto; }
+  .gv-shell-context strong {
+    max-width: 30vw;
+  }
+  .gv-brand-wordmark {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gv-view-tabs a,
+  .gv-view-tabs button,
+  .gv-btn {
+    transition: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Light theme (homologado 2026-09-15) — shared key gv-cc-theme
+   ════════════════════════════════════════════════════════════════════ */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --gv-bg: #f5f7fb;
+  --gv-surface: #ffffff;
+  --gv-surface-icon: #f1f5f9;
+  --gv-text: #0f172a;
+  --gv-muted: #475569;
+  --gv-border: #cbd5e1;
+  --gv-glass: rgba(255, 255, 255, 0.7);
+  --gv-glass-border: rgba(15, 23, 42, 0.1);
+  /* Brand accents belong to tokens.css. Do not silently recolor the brand
+     when switching theme; use semantic deep variants on individual controls
+     when contrast requires them. DD-20261017-01. */
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Shell controls: icon button, language dropdown, theme toggle
+   ════════════════════════════════════════════════════════════════════ */
+
+.gv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--gv-purple, #a78bfa) 35%, transparent);
+  border-radius: 9px;
+  color: var(--gv-muted, #8b95a8);
+  background: transparent;
+  cursor: pointer;
+  transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
+}
+.gv-icon-btn:hover:not(:disabled) {
+  color: var(--gv-text, #e8eef4);
+  background: color-mix(in srgb, var(--gv-purple, #a78bfa) 14%, transparent);
+}
+.gv-icon-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--gv-cyan, #22d3ee) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.gv-lang-dropdown {
+  position: relative;
+}
+.gv-lang-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 168px;
+  padding: 4px;
+  border: 1px solid var(--gv-glass-border, rgba(167, 139, 250, 0.24));
+  border-radius: 10px;
+  background: var(--gv-surface, #1a1f2a);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.gv-lang-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--gv-text, #e8eef4);
+  background: transparent;
+  font: 600 13px/1 var(--gv-font-body, Inter, sans-serif);
+  text-align: left;
+  cursor: pointer;
+}
+.gv-lang-dropdown-menu button:hover,
+.gv-lang-dropdown-menu button[aria-current='true'] {
+  background: color-mix(in srgb, var(--gv-cyan, #22d3ee) 12%, transparent);
+}
+.gv-lang-dropdown-menu button .gv-lang-check {
+  margin-left: auto;
+  color: var(--gv-cyan, #22d3ee);
+}
+
+.gv-theme-toggle {
+  flex-shrink: 0;
+}
+
+.gv-shell-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  flex: 0 0 auto;
+}
+
+.gv-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+/* ── Transición de vista (canon v2.1.0) ──────────────────────────────────────
+   Aplicar .gv-view-fade al contenedor de la vista entrante; re-trigger con
+   remove → reflow → add al cambiar de vista. Respeta prefers-reduced-motion
+   vía el guard global del shell. */
+.gv-view-fade {
+  animation: gv-view-fade 0.28s ease both;
+}
+@keyframes gv-view-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+/* Contextual reading: native dialog owns focus, Escape and background inertness.
+   Opt in only after an explicit action; keep anchored content as no-JS fallback. */
+.gv-dialog {
+  color: var(--gv-text);
+  background: var(--gv-surface-raised);
+  border: 1px solid var(--gv-border);
+  border-radius: var(--gv-radius-lg);
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(20px, 4vw, 32px);
+}
+.gv-dialog::backdrop { background: color-mix(in srgb, var(--gv-bg-deep) 80%, transparent); }
+.gv-dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.gv-dialog-heading h2 { font: 700 clamp(22px, 4vw, 28px)/1.3 var(--gv-font-display); margin: 0; }
+.gv-dialog-heading button { min-height: 44px; flex-shrink: 0; }
+.gv-dialog p { font: 400 16px/1.8 var(--gv-font-body); margin: 0; max-width: 65ch; }
+html.gv-modal-open { overflow: hidden; }

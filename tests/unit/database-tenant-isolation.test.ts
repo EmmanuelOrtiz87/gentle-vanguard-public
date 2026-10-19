@@ -165,6 +165,39 @@ test('observability repositories never cross tenant boundaries', () => {
   db.close();
 });
 
+test('cache repository updates access telemetry and reports hit-rate', () => {
+  const db = createDatabase();
+  const cache = new CacheRepo(db);
+
+  cache.setCachedResponse('gentle-vanguard', 'telemetry-key', 'response');
+  const before = db
+    .prepare(
+      "SELECT hit_count AS hitCount, last_access AS lastAccess FROM response_cache WHERE tenant_id = ? AND key = ?",
+    )
+    .get('gentle-vanguard', 'telemetry-key') as { hitCount: number; lastAccess: string | null };
+
+  assert.equal(before.hitCount, 0);
+  assert.equal(before.lastAccess, null);
+
+  assert.equal(cache.getCachedResponse('gentle-vanguard', 'telemetry-key')?.response, 'response');
+
+  const after = db
+    .prepare(
+      "SELECT hit_count AS hitCount, last_access AS lastAccess FROM response_cache WHERE tenant_id = ? AND key = ?",
+    )
+    .get('gentle-vanguard', 'telemetry-key') as { hitCount: number; lastAccess: string | null };
+  assert.equal(after.hitCount, 1);
+  assert.ok(after.lastAccess, 'last_access is updated on hit');
+
+  const stats = cache.getCacheStats('gentle-vanguard');
+  assert.equal(stats.entries, 1);
+  assert.equal(stats.totalHits, 1);
+  assert.equal(stats.estimatedMisses, 1);
+  assert.equal(stats.hitRate, 50);
+
+  db.close();
+});
+
 test('tenant repositories use exact equality for reads and writes', () => {
   const db = createDatabase();
   const metrics = new MetricsRepo(db);

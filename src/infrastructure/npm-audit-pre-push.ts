@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
+import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { runSync } from '../core/run-command.js';
 
@@ -60,49 +61,74 @@ function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   return { auditLevel, verbose };
 }
 
+export function discoverAuditRoots(root: string): string[] {
+  const appsRoot = join(root, 'apps');
+  if (!existsSync(appsRoot)) return [root];
+
+  const appRoots = readdirSync(appsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(appsRoot, entry.name))
+    .filter(
+      (appRoot) =>
+        existsSync(join(appRoot, 'package.json')) &&
+        (existsSync(join(appRoot, 'pnpm-lock.yaml')) ||
+          existsSync(join(appRoot, 'package-lock.json'))),
+    )
+    .sort();
+
+  return [root, ...appRoots];
+}
+
+function sumVulnerabilities(results: AuditResult[]): VulnCounts {
+  return results.reduce(
+    (total, result) => ({
+      critical: total.critical + result.metadata.vulnerabilities.critical,
+      high: total.high + result.metadata.vulnerabilities.high,
+      moderate: total.moderate + result.metadata.vulnerabilities.moderate,
+      low: total.low + result.metadata.vulnerabilities.low,
+    }),
+    { critical: 0, high: 0, moderate: 0, low: 0 },
+  );
+}
+
 function main(): number {
   const { auditLevel, verbose } = parseArgs();
   const cwd = process.cwd();
 
-  // Detect package manager: pnpm (pnpm-lock.yaml) vs npm (package-lock.json)
-  const isPnpm = existsSync('pnpm-lock.yaml');
-  const pm = isPnpm ? 'pnpm' : 'npm';
-  console.log(`\n[npm-audit] Running ${pm} vulnerability scan...`);
-
-  if (!existsSync('package.json')) {
+  const auditRoots = discoverAuditRoots(cwd);
+  if (!existsSync(join(cwd, 'package.json'))) {
     console.log(`[npm-audit] No package.json found, skipping audit`);
     return 0;
   }
 
-  const auditResult = runSync(pm, ['audit', '--json'], {
-    cwd,
-  });
-
-  let audit: AuditResult | null = null;
-  try {
-    audit = JSON.parse(auditResult.stdout || '{}') as AuditResult;
-  } catch {
-    // JSON parse failure
-  }
-
-  if (!audit || !audit.metadata?.vulnerabilities) {
-    console.log(`[npm-audit] Invalid audit JSON, retrying with text output...`);
-    const textResult = runSync(pm, ['audit'], {
-      cwd,
-    });
-    console.log(textResult.stdout || textResult.stderr);
-
-    if (textResult.status !== 0 && /vulnerabilities/i.test(textResult.stdout)) {
-      console.log(`[BLOCKED] ${pm} audit found vulnerabilities`);
-      console.log(`\nTo fix vulnerabilities:`);
-      console.log(`  ${pm} audit fix`);
-      console.log(`  ${pm} audit fix --force  (if needed)`);
-      return 1;
+  const audits: AuditResult[] = [];
+  for (const auditRoot of auditRoots) {
+    const isPnpm = existsSync(join(auditRoot, 'pnpm-lock.yaml'));
+    const pm = isPnpm ? 'pnpm' : 'npm';
+    const relativeRoot = auditRoot === cwd ? '.' : auditRoot.slice(cwd.length + 1);
+    console.log(`\n[npm-audit] Running ${pm} production vulnerability scan (${relativeRoot})...`);
+    const args = isPnpm ? ['audit', '--prod', '--json'] : ['audit', '--omit=dev', '--json'];
+    const auditResult = runSync(pm, args, { cwd: auditRoot });
+    let audit: AuditResult | null = null;
+    try {
+      audit = JSON.parse(auditResult.stdout || '{}') as AuditResult;
+    } catch {
+      // JSON parse failure
     }
-    return 0;
+    if (!audit || !audit.metadata?.vulnerabilities) {
+      console.log(`[npm-audit] Invalid audit JSON for ${relativeRoot}; retrying with text output...`);
+      const textResult = runSync(pm, ['audit'], { cwd: auditRoot });
+      console.log(textResult.stdout || textResult.stderr);
+      if (textResult.status !== 0 && /vulnerabilities/i.test(textResult.stdout)) {
+        console.log(`[BLOCKED] ${pm} audit found vulnerabilities in ${relativeRoot}`);
+        return 1;
+      }
+      continue;
+    }
+    audits.push(audit);
   }
 
-  const vulnerabilities = audit.metadata.vulnerabilities;
+  const vulnerabilities = sumVulnerabilities(audits);
 
   if (verbose) {
     console.log(`[npm-audit] Vulnerability summary:`);
@@ -116,9 +142,11 @@ function main(): number {
 
   if (hasBlockingVuln) {
     // Collect the advisory IDs that are at/above the blocking level.
-    const blockingAdvisories = Object.entries(audit.advisories ?? {})
-      .filter(([, adv]) => BLOCK_LEVELS[auditLevel].includes(adv.severity as AuditLevel))
-      .map(([, adv]) => adv.github_advisory_id);
+    const blockingAdvisories = audits.flatMap((audit) =>
+      Object.entries(audit.advisories ?? {})
+        .filter(([, adv]) => BLOCK_LEVELS[auditLevel].includes(adv.severity as AuditLevel))
+        .map(([, adv]) => adv.github_advisory_id),
+    );
 
     // If EVERY blocking advisory is allowlisted (no fix available), do not block.
     if (

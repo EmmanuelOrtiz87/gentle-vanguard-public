@@ -61,7 +61,10 @@
   <!-- título -->
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Introducción a Linux</text>
   <!-- subtítulo -->
-  <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Aprende Linux desde cero: qué es, su historia y filosofía open source, cómo elegir e instalar una distribución (WSL, máquina virtual o dual boot), y domina la terminal con los comandos esenciales</text>
+    <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Aprende Linux desde cero: qué es, su historia y filosofía open</text>
+<text x="600" y="886" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">source, cómo elegir e instalar una distribución (WSL, máquina</text>
+<text x="600" y="920" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">virtual o dual boot), y domina la terminal con los comandos</text>
+<text x="600" y="954" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">esenciales</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~12 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">LINUX · TERMINAL · BASH</text>

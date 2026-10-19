@@ -39,9 +39,9 @@ const RUNTIME_STATE_FILE = join(ROOT, '.runtime', 'intelligent-delegator-state.j
 
 // Modelos disponibles en orden de preferencia (ordenados por capacidad/costo)
 const DEFAULT_MODEL_CHAIN: ModelInfo[] = [
-  { id: 'opencode/big-pickle', provider: 'opencode', tier: 'premium', cost: 'free' },
-  { id: 'opencode/mimo-v2.5-free', provider: 'opencode', tier: 'standard', cost: 'free' },
-  { id: 'opencode/deepseek-v4-flash-free', provider: 'opencode', tier: 'fast', cost: 'free' },
+  { id: 'opencode-zen-C/big-pickle', provider: 'opencode', tier: 'premium', cost: 'free' },
+  { id: 'opencode-zen-C/mimo-v2.6-flash-free', provider: 'opencode', tier: 'standard', cost: 'free' },
+  { id: 'opencode-zen-C/big-pickle', provider: 'opencode', tier: 'fast', cost: 'free' },
   { id: 'claude-haiku-4-5', provider: 'littellmott', tier: 'standard', cost: 'free' },
   { id: 'ollama/qwen2.5', provider: 'ollama', tier: 'local', cost: 'local' },
   { id: 'ollama/llama3', provider: 'ollama', tier: 'local', cost: 'local' },
@@ -49,13 +49,13 @@ const DEFAULT_MODEL_CHAIN: ModelInfo[] = [
 
 // Modelos por tipo de agente (especialización)
 const AGENT_MODEL_PREFERENCES: Record<string, string[]> = {
-  BA: ['opencode/big-pickle', 'opencode/mimo-v2.5-free'],
-  SAD: ['opencode/big-pickle', 'claude-haiku-4-5'],
-  DEV: ['opencode/big-pickle', 'opencode/deepseek-v4-flash-free'],
-  QA: ['opencode/big-pickle', 'opencode/mimo-v2.5-free'],
-  OPS: ['opencode/big-pickle', 'opencode/deepseek-v4-flash-free', 'ollama/qwen2.5'],
-  GOV: ['opencode/big-pickle', 'claude-haiku-4-5'],
-  DOC: ['opencode/big-pickle', 'claude-haiku-4-5'],
+  BA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
+  SAD: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
+  DEV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/big-pickle'],
+  QA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
+  OPS: ['opencode-zen-C/big-pickle', 'opencode-zen-C/big-pickle', 'ollama/qwen2.5'],
+  GOV: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
+  DOC: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
 };
 
 // =============================================================================
@@ -223,8 +223,8 @@ function detectOrchestratorModel(): string {
   }
 
   // 4. Default fallback
-  logger.info('Using default model: opencode/big-pickle');
-  return 'opencode/big-pickle';
+  logger.info('Using default model: opencode-zen-C/big-pickle');
+  return 'opencode-zen-C/big-pickle';
 }
 
 // =============================================================================

@@ -1,0 +1,274 @@
+{
+  "packageVersion": "4.3.0",
+  "factsGeneratedAt": "2026-10-19T20:03:27.499Z",
+  "pages": [
+    {
+      "page": "agents-pipeline.html",
+      "topic": "Agentes y pipeline",
+      "sources": [
+        ".opencode/agents",
+        "config/subagent-mapping.json"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "architecture.html",
+      "topic": "Arquitectura",
+      "sources": [
+        "docs/stack-manual-modules.md",
+        "docs/stack-manual-full.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "autonomy.html",
+      "topic": "Autonomía con verificaciones",
+      "sources": [
+        "docs/architecture/universal-quality-gate.md",
+        "config/universal-quality-gate.json"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "case-study-before-after.html",
+      "topic": "Método comparativo; sin resultados comerciales acreditados",
+      "sources": [
+        "docs/status/PRESENCIA-PUBLICA-Y-DISENO.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "commands.html",
+      "topic": "Comandos según el workspace",
+      "sources": [
+        "package.json",
+        "src/cli/gv.ts"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "contract-viewer.html",
+      "topic": "Visor documental; exportación PDF simulada en esta página",
+      "sources": [
+        "config/sdd-framework-mapping.json",
+        "src/sdd/check-sdd-gate.ts"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "dashboard.html",
+      "topic": "Observabilidad local",
+      "sources": [
+        "apps/web-dashboard/README.md",
+        "docs/dashboard/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "glossary.html",
+      "topic": "Referencia de términos",
+      "sources": [
+        "docs/stack-manual-modules.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "health.html",
+      "topic": "Salud: resultados sólo al ejecutar los checks",
+      "sources": [
+        "docs/stack-manual-modules.md",
+        "package.json"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "image-studio.html",
+      "topic": "Herramienta gráfica documental local; distinta de Content Studio",
+      "sources": [
+        "apps/content-cms/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "index.html",
+      "topic": "Índice técnico del stack",
+      "sources": [
+        "README.md",
+        "docs/status/CANONICAL-STATUS.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "knowledge-systems.html",
+      "topic": "Sistemas de conocimiento",
+      "sources": [
+        "docs/stack-manual-modules.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "marketing.html",
+      "topic": "Estrategia vigente y antecedentes sin validar",
+      "sources": [
+        ".agents/product-marketing.md",
+        "docs/marketing/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": true
+    },
+    {
+      "page": "md-viewer.html",
+      "topic": "Visor local de documentación",
+      "sources": [
+        "docs/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "memory-knowledge.html",
+      "topic": "Memoria y datos; respetar identidad de sesión",
+      "sources": [
+        "skills/engram-memory/SKILL.md",
+        "docs/generated/STACK-FACTS.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "operations-cloud.html",
+      "topic": "LOCAL-FIRST; promoción externa opcional",
+      "sources": [
+        "docs/status/CANONICAL-STATUS.md",
+        "docs/OPERATIONS.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "patterns-conventions.html",
+      "topic": "Canon y comportamiento vigentes",
+      "sources": [
+        "docs/brand/BRAND-KIT.md",
+        "docs/design/07-motion-ux-standard.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "public-presence.html",
+      "topic": "Estado generado de presencia pública",
+      "sources": [
+        "docs/status/PRESENCIA-PUBLICA-Y-DISENO.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "quickstart.html",
+      "topic": "Inicio y operación",
+      "sources": [
+        "GETTING-STARTED.md",
+        "package.json"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "resources-index.html",
+      "topic": "Referencia documental de recursos; el CMS operativo es otra app",
+      "sources": [
+        "apps/content-cms/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "security-governance.html",
+      "topic": "Seguridad y alcance local",
+      "sources": [
+        "docs/status/CANONICAL-STATUS.md",
+        "docs/architecture/universal-quality-gate.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "social-post.html",
+      "topic": "Composición local de posts; no publica ni aprueba campañas",
+      "sources": [
+        "apps/content-cms/README.md",
+        "docs/operations/CONTENT-OPERATIONS-ENGINE.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "study-material.html",
+      "topic": "Material de estudio; verificar comandos en su app",
+      "sources": [
+        "docs/README.md",
+        "package.json"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "v4-features.html",
+      "topic": "Referencia de evolución v4; consultar capacidades actuales",
+      "sources": [
+        "docs/status/CANONICAL-STATUS.md",
+        "docs/stack-manual-modules.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    },
+    {
+      "page": "video-studio.html",
+      "topic": "Herramienta documental; video operativo en Content Studio",
+      "sources": [
+        "apps/content-cms/README.md",
+        "apps/content-cms/server/shorts/README.md"
+      ],
+      "reviewed": "2026-10-18",
+      "scope": "Architecture shell, canonical aliases/fonts, current-source register and removal of editorial banners; not full historical-content or studio-function certification.",
+      "historicalMarketingCollapsed": false
+    }
+  ]
+}

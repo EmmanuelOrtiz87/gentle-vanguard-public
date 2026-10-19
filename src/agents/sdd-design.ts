@@ -17,7 +17,7 @@ interface DesignTask {
 const AGENT_CONFIG = {
   name: 'sdd-design',
   description: 'SAD architecture design agent — system design and API contracts',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.3,
   maxTokens: 4000,
   version: '1.0.0',

@@ -4,8 +4,8 @@
  *
  * Single-shot launcher for the gv-analytics app (API + optional Vite UI):
  *   - Kills any leftover process bound to the configured port (default 4754).
- *   - Spawns the API server detached, writes `.runtime/gv-analytics-api.pid`.
- *   - Spawns the Vite dev server detached, writes `.runtime/gv-analytics-vite.pid`.
+ *   - Spawns the API server detached, writes `.runtime/app-analytics-api.pid`.
+ *   - Spawns the Vite dev server detached, writes `.runtime/app-analytics-vite.pid`.
  *   - Cleans up pidfiles on SIGINT/SIGTERM.
  *
  * Pattern follows src/dashboard-cmd-launcher.ts (CMD native, no PowerShell,
@@ -26,8 +26,10 @@ const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');
 const APP_DIR = join(ROOT, 'apps', 'gv-analytics');
 const API_SCRIPT = join(APP_DIR, 'server', 'index.ts');
-const API_PID = join(RUNTIME_DIR, 'gv-analytics-api.pid');
-const VITE_PID = join(RUNTIME_DIR, 'gv-analytics-vite.pid');
+const API_PID = join(RUNTIME_DIR, 'app-analytics-api.pid');
+const VITE_PID = join(RUNTIME_DIR, 'app-analytics-vite.pid');
+const LEGACY_API_PID = join(RUNTIME_DIR, 'gv-analytics-api.pid');
+const LEGACY_VITE_PID = join(RUNTIME_DIR, 'gv-analytics-vite.pid');
 const LOG_DIR = join(RUNTIME_DIR, 'gv-analytics');
 
 const args = new Set(process.argv.slice(2));
@@ -98,6 +100,7 @@ async function freePort(port: number): Promise<void> {
   log('cleanup', `port ${port} in use, attempting to free it`);
   // Try existing pidfile first.
   await killPidFile(API_PID, 'previous API');
+  await killPidFile(LEGACY_API_PID, 'previous legacy API');
   await new Promise((r) => setTimeout(r, 400));
   // Fallback: ask Windows which PID owns the port and taskkill it.
   try {
@@ -155,7 +158,7 @@ function spawnDetached(
 function registerCleanup(): void {
   const cleanup = (signal: NodeJS.Signals) => {
     log('shutdown', `received ${signal}, cleaning up`);
-    for (const pidFile of [API_PID, VITE_PID]) {
+    for (const pidFile of [API_PID, VITE_PID, LEGACY_API_PID, LEGACY_VITE_PID]) {
       try {
         if (existsSync(pidFile)) {
           const pid = Number(readFileSync(pidFile, 'utf-8').trim());
@@ -183,6 +186,8 @@ async function main(): Promise<void> {
   registerCleanup();
   await killPidFile(API_PID, 'stale API pidfile');
   await killPidFile(VITE_PID, 'stale Vite pidfile');
+  await killPidFile(LEGACY_API_PID, 'stale legacy API pidfile');
+  await killPidFile(LEGACY_VITE_PID, 'stale legacy Vite pidfile');
   await freePort(PORT);
 
   spawnDetached('api', API_SCRIPT, { GV_ANALYTICS_PORT: String(PORT) }, API_PID);

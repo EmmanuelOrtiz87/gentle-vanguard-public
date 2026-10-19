@@ -85,7 +85,7 @@ async function startWsWatchdog(port: number): Promise<void> {
   // startWsServer() in-process would either block forever (--watch) or
   // leave no recovery loop (one-shot). `--import tsx` runs the script in the
   // spawned node process itself — hidden, no CLI-wrapper grandchild.
-  const autostartScript = path.join(ROOT, 'src', 'dashboard-ws-autostart.ts');
+  const autostartScript = path.join(ROOT, 'src', 'ops', 'dashboard-ws-autostart.ts');
   const child = spawn(
     process.execPath,
     ['--import', 'tsx', autostartScript, '--watch', '--port', String(port)],
@@ -156,9 +156,9 @@ function openBrowser(vitePort: number): void {
         stdio: 'ignore',
       }).unref();
     } else if (process.platform === 'darwin') {
-    spawn('open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      spawn('open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
     } else {
-    spawn('xdg-open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      spawn('xdg-open', [url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
     }
   } catch {
     if (!opts.quiet) console.warn(`[DASHBOARD] Could not open browser`);
@@ -279,7 +279,7 @@ async function main(): Promise<void> {
     console.log(`   WS API:    http://localhost:${selectedWs}/api/metrics`);
     console.log(`   Persisted: .runtime/dashboard-ports.json`);
     console.log('');
-    console.log('   Stop with: npx tsx src/dashboard-stop.ts');
+    console.log('   Stop with: node --import tsx src/ops/dashboard-stop.ts');
   }
 }
 

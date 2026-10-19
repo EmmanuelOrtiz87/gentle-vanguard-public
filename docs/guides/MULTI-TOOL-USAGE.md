@@ -168,10 +168,11 @@ El orquestador `mavis` carga las skills desde `~/.minimax/agents/mavis/skills/`.
 `~/.minimax/bin/gv-stack.cmd` es un helper para ejecutar la CLI de Gentle-Vanguard desde el entorno
 MiniMax; no debe interpretarse como launcher del runtime MiniMax Code.
 
-MiniMax expone MCP desde `/mcp` dentro de su TUI, pero esa UI no tiene un contrato externo estable
-para mutarla desde Codex. Mientras no se confirme allí, `engram-memory` usa el CLI real como
-fallback (`engram search/save/doctor --project gentle-vanguard`). Esto mantiene memoria operativa
-sin afirmar una integración MCP que no fue observada.
+MiniMax expone MCP desde `/mcp` dentro de su TUI. El audit del stack lee
+`~/.minimax/mcp-runtime-names.json`; si observa `configured/engram` con herramientas `mem_*`,
+reporta `engram: mcp`. Si ese inventario no existe o no trae Engram, `engram-memory` mantiene el CLI
+real como fallback (`engram search/save/doctor --project gentle-vanguard`). Esto conserva memoria
+operativa sin afirmar una integración MCP que no fue observada.
 
 ### 8. Windsurf ✅
 
@@ -210,15 +211,15 @@ node adapter.js generate-config skills/ .windsurf/windsurf.json
 
 **Capacidades**: varían por runtime.
 
-| Herramienta           | Engram                | Skills           | Multi-agent | Integración principal             |
-| --------------------- | --------------------- | ---------------- | ----------: | --------------------------------- |
-| OpenCode              | MCP + plugin          | Nativas          |          Sí | CLI real + config global          |
-| Codex                 | MCP + plugin          | Sincronizadas    |          Sí | `AGENTS.md` + plugin              |
-| ZCode                 | MCP genérico          | Sincronizadas    |          Sí | Runtime desktop + hooks           |
-| MiniMax Code          | CLI fallback / MCP UI | pi-agent         |          Sí | `mavis` + `engram-memory`         |
-| GitHub Copilot        | MCP                   | `.github/skills` |    Limitado | VS Code Agent Mode                |
-| Antigravity           | MCP compartido        | Workspace        |          Sí | `.gemini` + `.antigravity/skills` |
-| Cursor/Cline/Windsurf | MCP bridge            | Según cliente    |    Limitado | Perfil compatible                 |
+| Herramienta           | Engram                       | Skills           | Multi-agent | Integración principal             |
+| --------------------- | ---------------------------- | ---------------- | ----------: | --------------------------------- |
+| OpenCode              | MCP + plugin                 | Nativas          |          Sí | CLI real + config global          |
+| Codex                 | MCP + plugin                 | Sincronizadas    |          Sí | `AGENTS.md` + plugin              |
+| ZCode                 | MCP genérico                 | Sincronizadas    |          Sí | Runtime desktop + hooks           |
+| MiniMax Code          | MCP observado / CLI fallback | pi-agent         |          Sí | `mavis` + `engram-memory`         |
+| GitHub Copilot        | MCP                          | `.github/skills` |    Limitado | VS Code Agent Mode                |
+| Antigravity           | MCP compartido               | Workspace        |          Sí | `.gemini` + `.antigravity/skills` |
+| Cursor/Cline/Windsurf | MCP bridge                   | Según cliente    |    Limitado | Perfil compatible                 |
 
 ---
 

@@ -10,6 +10,8 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
 (function () {
   const extra = {
     en: {
+      presence_hero_lead: 'Local-first AI orchestration · automation with verification',
+      presence_skills: 'Indexed skills', presence_agents: 'OpenCode agents', presence_tables: 'Nexus tables', presence_migrations: 'Migrations',
       /* Nav */
       nav_commands: 'Commands',
       nav_glossary: 'Glossary',
@@ -87,6 +89,8 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
         '42 concepts across 7 domains — engineering, AI/LLM, infra, databases, protocols, testing and UX, each with exercises',
     },
     es: {
+      presence_hero_lead: 'Orquestación de IA local-first · automatización con verificaciones',
+      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_tables: 'Tablas Nexus', presence_migrations: 'Migraciones',
       /* Nav */
       nav_commands: 'Comandos',
       nav_glossary: 'Glosario',
@@ -164,6 +168,8 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
         '42 conceptos en 7 dominios — ingeniería, IA/LLM, infra, bases de datos, protocolos, testing y UX, cada uno con ejercicios',
     },
     'pt-BR': {
+      presence_hero_lead: 'Orquestração de IA local-first · automação com verificação',
+      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_tables: 'Tabelas Nexus', presence_migrations: 'Migrações',
       /* Nav */
       nav_commands: 'Comandos',
       nav_glossary: 'Glossário',

@@ -19,7 +19,7 @@ export class CacheRepo {
 
     this.db
       .prepare(
-        'UPDATE response_cache SET hit_count = hit_count + 1 WHERE tenant_id = ? AND key = ?',
+        "UPDATE response_cache SET hit_count = hit_count + 1, last_access = datetime('now') WHERE tenant_id = ? AND key = ?",
       )
       .run(tenantId, key);
     return { response: row.response, model: row.model ?? undefined, hitCount: row.hit_count };
@@ -48,7 +48,13 @@ export class CacheRepo {
       .run(tenantId, key);
   }
 
-  getCacheStats(tenantId: string): { entries: number; totalHits: number; expired: number } {
+  getCacheStats(tenantId: string): {
+    entries: number;
+    totalHits: number;
+    estimatedMisses: number;
+    hitRate: number;
+    expired: number;
+  } {
     const entries = (
       this.db
         .prepare('SELECT COUNT(*) as c FROM response_cache WHERE tenant_id = ?')
@@ -61,10 +67,17 @@ export class CacheRepo {
     ).h;
     const expired = (
       this.db
-        .prepare("SELECT COUNT(*) as c FROM response_cache WHERE expires_at < datetime('now')")
+        .prepare(
+          "SELECT COUNT(*) as c FROM response_cache WHERE tenant_id = ? AND expires_at < datetime('now')",
+        )
         .get(tenantId) as any
     ).c;
-    return { entries, totalHits, expired };
+    // Each persisted entry represents at least one original miss: the request
+    // that populated the cache. Subsequent reads are tracked in hit_count.
+    const estimatedMisses = entries;
+    const totalRequests = totalHits + estimatedMisses;
+    const hitRate = totalRequests > 0 ? Math.round((totalHits / totalRequests) * 10000) / 100 : 0;
+    return { entries, totalHits, estimatedMisses, hitRate, expired };
   }
 
   saveSemanticCache(
@@ -111,7 +124,7 @@ export class CacheRepo {
     if (!row) return null;
     this.db
       .prepare(
-        'UPDATE response_cache SET hit_count = hit_count + 1 WHERE tenant_id = ? AND key = ?',
+        "UPDATE response_cache SET hit_count = hit_count + 1, last_access = datetime('now') WHERE tenant_id = ? AND key = ?",
       )
       .run(tenantId, key);
     return {

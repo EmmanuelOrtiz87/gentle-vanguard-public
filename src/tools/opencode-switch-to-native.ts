@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Script para cambiar todos los agentes de opencode.json al modelo nativo
- * opencode/deepseek-v4-flash-free
+ * opencode-zen-C/big-pickle
  */
 
 import { readFileSync, writeFileSync } from 'fs';
@@ -40,9 +40,9 @@ function main(): void {
       const agentConfig = config.agent[agentName];
 
       // Solo cambiar modelos que no sean el nativo
-      if (agentConfig.model && agentConfig.model !== 'opencode/deepseek-v4-flash-free') {
-        console.log(`  ${agentName}: ${agentConfig.model} → opencode/deepseek-v4-flash-free`);
-        agentConfig.model = 'opencode/deepseek-v4-flash-free';
+      if (agentConfig.model && agentConfig.model !== 'opencode-zen-C/big-pickle') {
+        console.log(`  ${agentName}: ${agentConfig.model} → opencode-zen-C/big-pickle`);
+        agentConfig.model = 'opencode-zen-C/big-pickle';
         agentConfig.provider = 'opencode';
 
         // Asegurar litellm_settings apropiados
@@ -59,7 +59,7 @@ function main(): void {
     writeFileSync(OPENCODE_PATH, JSON.stringify(config, null, 2), 'utf-8');
 
     console.log(`\n✅ Actualizados ${updatedCount}/${agents.length} agentes`);
-    console.log('📊 Modelo nativo: opencode/deepseek-v4-flash-free');
+    console.log('📊 Modelo nativo: opencode-zen-C/big-pickle');
     console.log('🏷️  Provider: opencode');
     console.log(
       '\n⚠️  IMPORTANTE: Reinicia cualquier sesión de opencode para que los cambios surtan efecto',

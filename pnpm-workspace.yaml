@@ -1,6 +1,7 @@
 packages:
   # Active workspace members only.
   - 'apps/gv-analytics'
+  - 'apps/alexandria'
   - 'apps/web-dashboard'
   - 'apps/content-cms'
   - 'apps/gv-music'

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [4.3.0] — 2026-10-19 — Presencia pública unificada y distribución verificable
+
+- Web corporativa y Academy bajo un mismo sitio, catálogo paginado, chrome compartido e identidad y movimiento accesibles. Una entrada en Command Center.
+- Gate obligatorio de ocho comprobaciones sobre el export exacto; métricas externas desactivadas por defecto y CRM limitado a activación explícita/loopback.
+- Canon y documentación HTML actualizados; auditoría por app reproducible.
+- Bootstrapper: shared y adapters incluidos; documentación privada/estado excluidos; procesos ocultos y errores propagados. Node 22.18+ y pnpm 11+.
+- Núcleo público compilable sin apps privadas; generación de video y apps operativas permanecen privadas.
+- CI de Actions no ejecutada por restricción de facturación/límite de cuenta. Las pruebas locales no certifican toda la flota.
+
 ## [4.2.0] — 2026-10-07 — Release operativo, bots de cliente y distribución pública
 
 ### Nuevas capacidades

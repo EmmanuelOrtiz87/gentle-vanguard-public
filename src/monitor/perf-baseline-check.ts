@@ -70,15 +70,16 @@ const DEFAULT_BASELINE = join(resolve(process.cwd()), 'tests', 'performance', 'b
 // Pre-push hook commands that map to baseline entries. Measured in-place when no
 // --duration override is provided for the entry.
 const HOOK_COMMANDS: Record<string, string[]> = {
-  'audit-check': ['npx', 'tsx', 'src/infrastructure/siem-audit-bridge.ts', '--Scope', 'quick'],
+  'audit-check': ['node', '--import', 'tsx', 'src/infrastructure/siem-audit-bridge.ts', '--Scope', 'quick'],
   'npm-audit': [
-    'npx',
+    'node',
+    '--import',
     'tsx',
     'src/infrastructure/npm-audit-pre-push.ts',
     '--AuditLevel',
     'moderate',
   ],
-  'orchestrator-auto-fix': ['npx', 'tsx', 'src/orchestration/orchestrate-auto-fix.ts', '--Fix'],
+  'orchestrator-auto-fix': ['node', '--import', 'tsx', 'src/orchestration/orchestrate-auto-fix.ts', '--Fix'],
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

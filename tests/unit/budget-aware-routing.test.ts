@@ -47,14 +47,14 @@ function readLastDecisions(n: number): Array<Record<string, unknown>> {
   return lines.slice(-n).map((l) => JSON.parse(l));
 }
 
-const MODEL = 'opencode/big-pickle';
+const MODEL = 'opencode-zen-C/big-pickle';
 // El modelo de downgrade se lee de la config viva del router: el catálogo de
-// modelos libres cambia (mimo-v2.5-free -> ling-3.0-flash-fin-free -> ...) y el
+// modelos libres cambia (opencode-zen-C/mimo-v2.6-flash-free -> opencode-zen-C/ling-3.1-flash-free -> ...) y el
 // contrato es "downgrade al fallback configurado", no un nombre fijo.
 const ROUTER_CONFIG = JSON.parse(
   readFileSync(new URL('../../config/model-router.json', import.meta.url), 'utf-8'),
 ) as { fallback?: { model?: string } };
-const CHEAP = ROUTER_CONFIG.fallback?.model ?? 'opencode/mimo-v2.5-free';
+const CHEAP = ROUTER_CONFIG.fallback?.model ?? 'opencode-zen-C/mimo-v2.6-flash-free';
 
 test('usage below soft threshold -> tier ok, model unchanged', () => {
   const state = makeState(2_500_000); // 50% of 5M

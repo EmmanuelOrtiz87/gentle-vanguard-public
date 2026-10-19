@@ -5,15 +5,16 @@
 
 ## Excepción
 
-**Estructura propia (sin shell GV)** en la landing pública (`apps/academy-landing/`): no usa
-`gv-topbar`/`gv-view-tabs`/`gv-footer` del shell canónico; tiene layout de conversión propio.
+**Composición comercial propia** en la landing pública (`apps/academy-landing/`). Desde el
+19-10-2026 utiliza cabecera `.gv-topbar`, botones, preferencias de tema y snapshots canónicos
+del shell, tokens y fuentes. Conserva una estructura de catálogo/conversión, no el tablero
+de navegación de una app operativa.
 
 ## Razón
 
-Es la **cara pública de conversión** (sync a `gentlevanguard.github.io`): el patrón de landing de
+Es la **cara pública de conversión** (ruta `gentlevanguard.github.io/academy/`): el patrón de landing de
 conversión (hero, secciones de oferta, CTAs, catálogo) tiene su propia arquitectura de lectura y
-no debe cargar el shell de "app" (tabs, i18n switch, tema). Acoplamiento visual mínimo, máxima
-libertad de conversión.
+usa la identidad y las primitivas compartidas sin forzar una composición de aplicación interna.
 
 ## Alcance del waiver
 
@@ -22,7 +23,9 @@ libertad de conversión.
 - **Tipografía**: canónica Poppins/Inter/JetBrains Mono self-host (`gv-fonts.css` local, O-1).
 - **Marca**: logo canon byte-idéntico + favicon canon SVG (`/favicon.svg`); sin `.ico` como
   primario.
-- Sin i18n switch/tema (página es-AR por diseño).
+- Tema claro/oscuro con `gv-cc-theme`; sin selector de idioma (contenido es-AR por diseño).
+- Retorno a la empresa como botón, navegación móvil y back-to-top inferior derecho.
+- `design:surfaces:check/sync` incluye los snapshots de Academy para impedir drift.
 
 ## Vigencia
 

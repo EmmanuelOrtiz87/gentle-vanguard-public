@@ -63,7 +63,9 @@
     <text x="600" y="792" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Código Profesional y</text>
     <text x="600" y="884" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Reutilizable</text>
   <!-- subtítulo -->
-  <text x="600" y="1036" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Eleva tu Python a nivel profesional: programación orientada a objetos, módulos y entornos virtuales, comprehensions y generadores, decoradores, JSON/CSV y testing con pytest.</text>
+    <text x="600" y="1036" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Eleva tu Python a nivel profesional: programación orientada a</text>
+<text x="600" y="1070" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">objetos, módulos y entornos virtuales, comprehensions y</text>
+<text x="600" y="1104" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">generadores, decoradores, JSON/CSV y testing con pytest.</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~16 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">PYTHON · POO · CLASES</text>

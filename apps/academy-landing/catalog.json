@@ -1,44 +1,52 @@
 {
-  "generated": "2026-10-07T00:10:06.465Z",
+  "generated": "2026-10-19T15:19:47.204Z",
   "counts": {
     "courses": 28,
     "ebooks": 34,
     "ebooksPremium": 18,
-    "toolkits": 25,
-    "products": 87
+    "toolkits": 24,
+    "products": 86
   },
   "pricing": {
     "ebook-micro": {
       "usd": 20,
-      "includes": "20-40 páginas para dominar un tema en una tarde"
+      "salesMode": "fixed",
+      "includes": "Guía breve de autoestudio. Consulta capítulos y alcance de cada título; extensión de impresión variable."
     },
     "ebook-premium": {
       "usd": 40,
-      "includes": "80-150 páginas con conceptos, herramientas, prompts, casos, ejercicios, plantillas y workflows"
+      "salesMode": "fixed",
+      "includes": "Manual de autoestudio con ejercicios y ejemplos. No incluye consultoría, licencias de IA ni documentos personalizados."
     },
     "toolkit": {
       "usd": 80,
-      "includes": "Curso + ebook + 50 prompts + plantillas + emails + automatizaciones + casos"
+      "salesMode": "fixed",
+      "includes": "Paquete de recursos según su ficha. El curso y el ebook incluidos no se cobran otra vez como extras. Los procedimientos requieren ejecución y revisión del usuario."
     },
     "course-base": {
       "usd": 50,
+      "salesMode": "fixed",
       "includes": "Acceso completo al curso (todos los tracks y lecciones)"
     },
     "course-mentor": {
-      "usd": 100,
-      "includes": "Curso completo + 5 sesiones personalizadas de 1-2 horas"
+      "usd": null,
+      "salesMode": "quote",
+      "includes": "Curso y acompañamiento a cotizar: acordamos cantidad y duración de sesiones, preparación y alcance antes del pago."
     },
     "program-custom": {
-      "usd": 250,
-      "includes": "Formación a medida para tu empresa o equipo (hasta 5 personas): diagnóstico + diseño del programa, material completo para cada integrante, 4 sesiones en vivo y 30 días de seguimiento por WhatsApp"
+      "usd": null,
+      "salesMode": "quote",
+      "includes": "Programa a medida sujeto a diagnóstico, entregables, participantes, revisión y presupuesto previo."
     },
     "pack-agencia": {
-      "usd": 390,
-      "includes": "Los 5 perfiles creativos completos (Community Manager, Social Media, Diseño, Creador de Contenido y Copywriter): 5 cursos + 5 ebooks + 5 toolkits con prompts, plantillas y automatizaciones. Valor individual USD 750 — ahorro del 48%"
+      "usd": 320,
+      "salesMode": "fixed",
+      "includes": "Cinco toolkits creativos, cada uno con su curso y ebook. Compra individual: USD 400; paquete: USD 320. Ahorro: USD 80 (20%). Sin acompañamiento personalizado."
     },
     "mentor-individual": {
-      "usd": 20,
-      "includes": "Sesión 1 a 1 de 1 hora"
+      "usd": null,
+      "salesMode": "quote",
+      "includes": "Sesión a cotizar según duración, preparación y objetivo. Agenda y condiciones acordadas antes del pago."
     }
   },
   "products": {
@@ -319,7 +327,7 @@
         "id": "50-prompts-emprendedores",
         "title": "50 Prompts para Emprendedores",
         "type": "micro",
-        "pages": 32,
+        "chapters": 7,
         "audience": "Emprendedores, dueños de tiendas y freelancers",
         "featured": true,
         "priceTier": "ebook-micro"
@@ -328,7 +336,7 @@
         "id": "ai-engineering",
         "title": "AI Engineering — Patrones de producción",
         "type": "premium",
-        "pages": 90,
+        "chapters": 10,
         "audience": "Developers, tech leads, founders técnicos",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -337,7 +345,7 @@
         "id": "chatgpt-docentes",
         "title": "ChatGPT para Docentes",
         "type": "micro",
-        "pages": 34,
+        "chapters": 7,
         "audience": "Docentes, profesores y formadores",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -346,7 +354,7 @@
         "id": "excel-ia",
         "title": "Excel + IA",
         "type": "micro",
-        "pages": 36,
+        "chapters": 7,
         "audience": "Analistas, administrativos y finanzas",
         "featured": true,
         "priceTier": "ebook-micro"
@@ -355,7 +363,7 @@
         "id": "ia-administracion",
         "title": "IA para Administración",
         "type": "micro",
-        "pages": 30,
+        "chapters": 7,
         "audience": "Administrativos, asistentes y oficinas",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -364,7 +372,7 @@
         "id": "ia-community-manager",
         "title": "IA para Community Managers",
         "type": "micro",
-        "pages": 36,
+        "chapters": 11,
         "audience": "Community managers, freelancers y equipos de redes sociales",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -373,7 +381,7 @@
         "id": "ia-copywriter",
         "title": "IA para Copywriters",
         "type": "micro",
-        "pages": 36,
+        "chapters": 11,
         "audience": "Copywriters, redactores creativos y marketers de contenido",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -382,7 +390,7 @@
         "id": "ia-creador-contenido",
         "title": "IA para Creadores de Contenido",
         "type": "micro",
-        "pages": 36,
+        "chapters": 11,
         "audience": "Creadores de contenido, editores de video y marcas con canal propio",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -391,7 +399,7 @@
         "id": "ia-diseno-grafico",
         "title": "IA para Diseñadores Gráficos",
         "type": "micro",
-        "pages": 36,
+        "chapters": 11,
         "audience": "Diseñadores gráficos y digitales, freelancers y equipos de diseño",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -400,7 +408,7 @@
         "id": "ia-en-tu-dia-a-dia",
         "title": "IA en tu día a día",
         "type": "free",
-        "pages": 26,
+        "chapters": 9,
         "audience": "Personas que quieren empezar a usar IA en su vida cotidiana",
         "featured": true,
         "priceTier": "ebook-free"
@@ -409,7 +417,7 @@
         "id": "ia-estudiantes",
         "title": "IA para Estudiantes",
         "type": "micro",
-        "pages": 32,
+        "chapters": 7,
         "audience": "Estudiantes secundarios y universitarios",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -418,7 +426,7 @@
         "id": "ia-finanzas",
         "title": "IA para Finanzas",
         "type": "micro",
-        "pages": 34,
+        "chapters": 7,
         "audience": "Analistas financieros, contadores y dueños de negocio",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -427,7 +435,7 @@
         "id": "ia-marketing",
         "title": "IA para Marketing",
         "type": "micro",
-        "pages": 34,
+        "chapters": 7,
         "audience": "Marketers, community managers y equipos de marketing",
         "featured": true,
         "priceTier": "ebook-micro"
@@ -436,7 +444,7 @@
         "id": "ia-rrhh",
         "title": "IA para RRHH",
         "type": "micro",
-        "pages": 32,
+        "chapters": 7,
         "audience": "Profesionales de RRHH y People Ops",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -445,7 +453,7 @@
         "id": "ia-social-media-manager",
         "title": "IA para Social Media Managers",
         "type": "micro",
-        "pages": 36,
+        "chapters": 11,
         "audience": "Social media managers, marketers y creadores de contenido de marcas",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -454,7 +462,7 @@
         "id": "ia-ventas",
         "title": "IA para Ventas",
         "type": "micro",
-        "pages": 32,
+        "chapters": 7,
         "audience": "Vendedores, comerciales y equipos de ventas",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -463,7 +471,7 @@
         "id": "manual-ciberseguridad",
         "title": "Manual Práctico de Ciberseguridad — De persona a empresa",
         "type": "premium",
-        "pages": 120,
+        "chapters": 10,
         "audience": "Personas, profesionales de cualquier área, dueños de PyMEs, equipos de IT, managers y líderes que necesitan entender la defensa moderna",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -472,7 +480,7 @@
         "id": "manual-ia-administracion",
         "title": "Manual Práctico de IA para Administración",
         "type": "premium",
-        "pages": 120,
+        "chapters": 12,
         "audience": "Administrativos, asistentes, office managers, gestores",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -481,7 +489,7 @@
         "id": "manual-ia-ciberseguridad",
         "title": "Manual Práctico de IA aplicada a Ciberseguridad — Defender y operar con IA",
         "type": "premium",
-        "pages": 120,
+        "chapters": 10,
         "audience": "Profesionales de seguridad, developers de AI/ML, equipos de SOC, IR leads, threat hunters, red teamers, CISOs, CTOs, y líderes que deben implementar AI defendiendo al mismo tiempo",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -490,7 +498,7 @@
         "id": "manual-ia-community-manager",
         "title": "Manual Práctico de IA para Community Managers",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Community managers, freelancers y equipos de redes sociales",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -499,7 +507,7 @@
         "id": "manual-ia-copywriter",
         "title": "Manual Práctico de IA para Copywriters",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Copywriters senior, redactores creativos y consultores de conversión",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -508,7 +516,7 @@
         "id": "manual-ia-creador-contenido",
         "title": "Manual Práctico de IA para Creadores de Contenido",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Creadores de contenido, editores de video y canales de marca",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -517,7 +525,7 @@
         "id": "manual-ia-diseno-grafico",
         "title": "Manual Práctico de IA para Diseñadores Gráficos",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Diseñadores gráficos y digitales, directores de arte y estudios de diseño",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -526,7 +534,7 @@
         "id": "manual-ia-docentes",
         "title": "Manual Práctico de IA para Docentes",
         "type": "premium",
-        "pages": 120,
+        "chapters": 15,
         "audience": "Docentes, profesores y formadores de todos los niveles",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -535,7 +543,7 @@
         "id": "manual-ia-emprendedores",
         "title": "Manual Práctico de IA para Emprendedores",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Emprendedores, dueños de tiendas y freelancers",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -544,7 +552,7 @@
         "id": "manual-ia-estudiantes",
         "title": "Manual Práctico de IA para Estudiantes",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Estudiantes secundarios, universitarios y de posgrado",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -553,7 +561,7 @@
         "id": "manual-ia-finanzas",
         "title": "Manual Práctico de IA para Finanzas",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Analistas financieros, contadores y dueños de negocio",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -562,7 +570,7 @@
         "id": "manual-ia-legal",
         "title": "Manual Práctico de IA para Legal",
         "type": "premium",
-        "pages": 120,
+        "chapters": 13,
         "audience": "Abogados, paralegales, compliance officers, legal ops",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -571,7 +579,7 @@
         "id": "manual-ia-marketing",
         "title": "Manual Práctico de IA para Marketing",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Marketers, community managers y equipos de marketing",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -580,7 +588,7 @@
         "id": "manual-ia-profesionales",
         "title": "Manual Práctico de Inteligencia Artificial para Profesionales",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Profesionales de cualquier rubro",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -589,7 +597,7 @@
         "id": "manual-ia-rrhh",
         "title": "Manual Práctico de IA para RRHH",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Profesionales de RRHH y People Ops",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -598,7 +606,7 @@
         "id": "manual-ia-social-media-manager",
         "title": "Manual Práctico de IA para Social Media Managers",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Social media managers, marketers y equipos de contenido de marca",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -607,7 +615,7 @@
         "id": "manual-ia-ventas",
         "title": "Manual Práctico de IA para Ventas",
         "type": "premium",
-        "pages": 120,
+        "chapters": 14,
         "audience": "Vendedores, comerciales y equipos de ventas",
         "featured": true,
         "priceTier": "ebook-premium"
@@ -616,7 +624,7 @@
         "id": "notebooklm-guia",
         "title": "Guía Práctica de NotebookLM",
         "type": "micro",
-        "pages": 28,
+        "chapters": 6,
         "audience": "Estudiantes, investigadores y profesionales",
         "featured": false,
         "priceTier": "ebook-micro"
@@ -626,6 +634,10 @@
       {
         "id": "ai-engineering-toolkit",
         "title": "AI Engineering Toolkit",
+        "resourceCounts": {
+          "undefined": 6
+        },
+        "description": "Kit premium que reune todo: curso AI Engineering (8 modulos · 48 lecciones · 24h) + ebook de patrones de produccion (~90 pags) + checklists de madurez y operacion + plantillas de prompts con contrato + biblioteca de prompts semilla + casos practicos de implementacion. Todo lo necesario para llevar un sistema de IA a produccion siguiendo el patron stack de mechanical de Gentle Vanguard.",
         "includes": [
           "curso",
           "ebook",
@@ -645,6 +657,10 @@
       {
         "id": "ciberseguridad-toolkit",
         "title": "Toolkit de Ciberseguridad",
+        "resourceCounts": {
+          "undefined": 6
+        },
+        "description": "El toolkit definitivo de ciberseguridad: el curso 'Ciberseguridad — De persona a empresa' (8 tracks · 48 lecciones · 12h) + el 'Manual Práctico de Ciberseguridad' (120 págs premium) + checklists de auditoría (persona, PyME, Windows, macOS, Linux, mobile) + plantillas de respuesta a incidentes (ransomware, phishing, breach) + emails de comunicación a usuarios y reguladores + scripts de hardening (Windows, macOS, Linux, browser) + casos prácticos reales por industria. Aplicable desde el primer día: descargás, ejecutás, mejorás.",
         "includes": [
           "curso",
           "ebook",
@@ -666,6 +682,14 @@
       {
         "id": "ia-administracion-pro",
         "title": "IA para Administración Pro",
+        "resourceCounts": {
+          "prompts": 51,
+          "plantillas": 9,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para administrativos: el curso de fundamentos de IA, el Manual Práctico de IA para Administración (extensión variable), 51 prompts avanzados, plantillas de gestión y reporting, emails de comunicación financiera, automatizaciones de control y casos prácticos.",
         "includes": [
           "curso",
           "ebook",
@@ -686,6 +710,10 @@
       {
         "id": "ia-ciberseguridad-toolkit",
         "title": "Toolkit de IA aplicada a Ciberseguridad",
+        "resourceCounts": {
+          "undefined": 6
+        },
+        "description": "El toolkit definitivo de IA aplicada a ciberseguridad: el curso 'IA aplicada a Ciberseguridad — Defender y operar con IA' (8 tracks · 48 lecciones · 14h) + el 'Manual Práctico de IA aplicada a Ciberseguridad' (120 págs premium) + checklists de governance AI (alto riesgo EU AI Act, sistemas AI LLM, agentes, datos) + plantillas de respuesta a incidentes AI (prompt injection, jailbreak, exfiltration, model drift) + emails de comunicación a usuarios y reguladores + casos prácticos reales (BEC con deepfake, RAG poisoning, model theft, red team AI). Caso de estudio del stack de Gentle Vanguard (prompt-injection-guard, policy-engine fail-closed, MCP security gateway, ADRs 0027/0028/0029, OWASP agentic top10).",
         "includes": [
           "curso",
           "ebook",
@@ -706,6 +734,14 @@
       {
         "id": "ia-community-manager",
         "title": "IA para Community Managers",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para community managers: el curso de CM con IA, el ebook IA para Community Managers, 50 prompts profesionales, plantillas de calendarios y reportes, emails de gestión de clientes, automatizaciones de publicación y monitoreo, y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -726,6 +762,14 @@
       {
         "id": "ia-community-manager-pro",
         "title": "IA para Community Managers Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para community managers que quieren nivel profesional: el curso de CM con IA, el Manual Práctico de IA para Community Managers (extensión variable), 50 prompts avanzados de operación y negocio, plantillas de protocolos y reporting ejecutivo, emails de gestión de clientes, automatizaciones de operación multi-marca y casos prácticos complejos.",
         "includes": [
           "curso",
           "ebook",
@@ -746,6 +790,14 @@
       {
         "id": "ia-copywriter",
         "title": "IA para Copywriters",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para copywriters: el curso de Copywriter con IA, el ebook IA para Copywriters, 50 prompts profesionales, plantillas de briefs y landings, emails de gestión de clientes, automatizaciones de producción y QC, y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -766,6 +818,14 @@
       {
         "id": "ia-copywriter-pro",
         "title": "IA para Copywriters Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para copywriters a nivel consultora: el curso de Copywriter con IA, el Manual Práctico de IA para Copywriters (extensión variable), 50 prompts avanzados de conversión y negocio, plantillas de sistemas de copy y testing, emails de gestión de clientes premium, automatizaciones de producción y casos prácticos complejos.",
         "includes": [
           "curso",
           "ebook",
@@ -786,6 +846,14 @@
       {
         "id": "ia-creador-contenido",
         "title": "IA para Creadores de Contenido",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para creadores y editores: el curso de Creador de Contenido con IA, el ebook IA para Creadores de Contenido, 50 prompts de producción, plantillas de guiones y media kit, emails para sponsors y marcas, automatizaciones de publicación y repurposing, y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -806,6 +874,14 @@
       {
         "id": "ia-creador-contenido-pro",
         "title": "IA para Creadores de Contenido Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para creadores que viven de su contenido: el curso de Creador con IA, el Manual Práctico de IA para Creadores de Contenido (extensión variable), 50 prompts avanzados de producción y negocio, plantillas de pipelines y negociación, emails para marcas y sponsors, automatizaciones de operación y casos prácticos a nivel profesional.",
         "includes": [
           "curso",
           "ebook",
@@ -826,6 +902,14 @@
       {
         "id": "ia-diseno-grafico",
         "title": "IA para Diseñadores Gráficos",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para diseñadores: el curso de Diseño Gráfico y Digital con IA, el ebook IA para Diseñadores Gráficos, 50 prompts visuales y de negocio, plantillas de briefs y presentación, emails de gestión de clientes, automatizaciones de producción, y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -846,6 +930,14 @@
       {
         "id": "ia-diseno-grafico-pro",
         "title": "IA para Diseñadores Gráficos Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para diseñadores a nivel estudio: el curso de Diseño con IA, el Manual Práctico de IA para Diseñadores Gráficos (extensión variable), 50 prompts visuales y de negocio de nivel avanzado, plantillas de dirección de arte y campañas, emails de gestión de clientes, automatizaciones de producción y casos prácticos complejos.",
         "includes": [
           "curso",
           "ebook",
@@ -864,28 +956,16 @@
         "priceTier": "toolkit"
       },
       {
-        "id": "ia-docentes",
-        "title": "IA para Docentes",
-        "includes": [
-          "curso",
-          "ebook",
-          "prompts",
-          "plantillas",
-          "emails",
-          "automatizaciones",
-          "casos"
-        ],
-        "audience": "Docentes, profesores y formadores de todos los niveles",
-        "links": {
-          "course": "ia-fundamentos",
-          "ebook": "chatgpt-docentes"
-        },
-        "featured": false,
-        "priceTier": "toolkit"
-      },
-      {
         "id": "ia-docentes-pro",
         "title": "IA para Docentes Pro",
+        "resourceCounts": {
+          "prompts": 60,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "Incluye el curso general IA Fundamentos, el Manual Práctico de IA para Docentes, 60 prompts, 8 plantillas editables como texto, 8 modelos de email, 6 procedimientos guiados y 4 casos ilustrativos. Los prompts se ejecutan en una herramienta externa de IA; sus cuentas y consumos no están incluidos. No es un curso docente especializado ni un generador integrado; no incluye una secuencia escolar completa ni revisión personalizada.",
         "includes": [
           "curso",
           "ebook",
@@ -906,6 +986,14 @@
       {
         "id": "ia-emprendedores-pro",
         "title": "IA para Emprendedores Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para emprendedores: el curso de marketing con IA, el Manual Práctico de IA para Emprendedores (extensión variable), 50 prompts avanzados, plantillas de negocio, emails comerciales, automatizaciones y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -926,6 +1014,14 @@
       {
         "id": "ia-estudiantes",
         "title": "IA para Estudiantes",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para estudiantes que quieren estudiar más inteligente con IA: un curso completo de fundamentos, el ebook IA para Estudiantes, 50 prompts para resumir y preparar exámenes, plantillas de apuntes y planes de estudio, emails para comunicarte con profesores, automatizaciones de repaso y casos prácticos por tipo de materia.",
         "includes": [
           "curso",
           "ebook",
@@ -946,6 +1042,14 @@
       {
         "id": "ia-estudiantes-pro",
         "title": "IA para Estudiantes Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para estudiantes: el curso de fundamentos de IA, el Manual Práctico de IA para Estudiantes (extensión variable), 50 prompts avanzados por materia, plantillas de estudio y organización, emails académicos, automatizaciones de repaso y casos prácticos por tipo de carrera.",
         "includes": [
           "curso",
           "ebook",
@@ -966,6 +1070,14 @@
       {
         "id": "ia-finanzas-pro",
         "title": "IA para Finanzas Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para profesionales de finanzas: el curso de fundamentos de IA, el Manual Práctico de IA para Finanzas (extensión variable), 50 prompts avanzados, plantillas de reportes y presupuestos, emails de comunicación financiera, automatizaciones de control y casos prácticos por industria.",
         "includes": [
           "curso",
           "ebook",
@@ -986,6 +1098,14 @@
       {
         "id": "ia-legal-pro",
         "title": "IA para Legal Pro",
+        "resourceCounts": {
+          "prompts": 53,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para profesionales legales: el curso de fundamentos de IA, el Manual Práctico de IA para Legal (extensión variable), 53 prompts avanzados, plantillas legales y contratos, emails profesionales, automatizaciones de revisión y compliance, casos prácticos por especialidad.",
         "includes": [
           "curso",
           "ebook",
@@ -1006,6 +1126,14 @@
       {
         "id": "ia-marketing-pro",
         "title": "IA para Marketing Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para marketers que quieren llevar su estrategia al siguiente nivel: el curso de marketing con IA, el Manual Práctico de IA para Marketing (extensión variable), 50 prompts avanzados, plantillas de campañas y calendarios, emails de marketing, automatizaciones de publicación y casos prácticos por industria.",
         "includes": [
           "curso",
           "ebook",
@@ -1026,6 +1154,14 @@
       {
         "id": "ia-profesionales",
         "title": "IA para Profesionales",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit integral para profesionales de cualquier rubro: el curso de fundamentos de IA, el Manual Práctico de IA para Profesionales (extensión variable), 50 prompts avanzados, plantillas de informes y presentaciones, emails profesionales, automatizaciones de productividad y casos prácticos por industria.",
         "includes": [
           "curso",
           "ebook",
@@ -1046,6 +1182,14 @@
       {
         "id": "ia-rrhh-pro",
         "title": "IA para RRHH Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para profesionales de RRHH: el curso de fundamentos de IA, el Manual Práctico de IA para RRHH (extensión variable), 50 prompts avanzados, plantillas de reclutamiento y evaluación, emails de comunicación interna, automatizaciones de screening y casos prácticos.",
         "includes": [
           "curso",
           "ebook",
@@ -1066,6 +1210,14 @@
       {
         "id": "ia-social-media-manager",
         "title": "IA para Social Media Managers",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para social media managers: el curso de SMM con IA, el ebook IA para Social Media Managers, 50 prompts profesionales, plantillas de estrategia y calendarios, emails de gestión de clientes, automatizaciones de publicación y reportes, y casos prácticos reales.",
         "includes": [
           "curso",
           "ebook",
@@ -1086,6 +1238,14 @@
       {
         "id": "ia-social-media-manager-pro",
         "title": "IA para Social Media Managers Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para social media managers que operan a nivel agencia: el curso de SMM con IA, el Manual Práctico de IA para Social Media Managers (extensión variable), 50 prompts avanzados de estrategia y ads, plantillas de auditoría y reporting ejecutivo, emails de gestión de clientes, automatizaciones de operación y casos prácticos con presupuesto real.",
         "includes": [
           "curso",
           "ebook",
@@ -1106,6 +1266,14 @@
       {
         "id": "ia-ventas-pro",
         "title": "IA para Ventas Pro",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit premium para equipos de ventas: el curso de marketing con IA, el Manual Práctico de IA para Ventas (extensión variable), 50 prompts avanzados, plantillas de propuestas y pitch, emails de venta, automatizaciones de seguimiento y casos prácticos por industria.",
         "includes": [
           "curso",
           "ebook",

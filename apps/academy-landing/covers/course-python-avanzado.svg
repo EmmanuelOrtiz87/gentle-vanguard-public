@@ -64,7 +64,10 @@
     <text x="600" y="884" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Concurrencia y</text>
     <text x="600" y="976" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Producción</text>
   <!-- subtítulo -->
-  <text x="600" y="1128" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Python de nivel producción: tipado estático con mypy y pydantic, concurrencia con threading/multiprocessing/asyncio, APIs con FastAPI, bases de datos con SQLAlchemy, metaprogramación y optimización de rendimiento con profiling.</text>
+    <text x="600" y="1128" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Python de nivel producción: tipado estático con mypy y pydantic,</text>
+<text x="600" y="1162" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">concurrencia con threading/multiprocessing/asyncio, APIs con</text>
+<text x="600" y="1196" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">FastAPI, bases de datos con SQLAlchemy, metaprogramación y</text>
+<text x="600" y="1230" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">optimización de rendimiento con profiling.</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~18 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">PYTHON · TYPING · MYPY</text>

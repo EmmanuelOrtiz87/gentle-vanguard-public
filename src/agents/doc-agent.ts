@@ -17,7 +17,7 @@ interface DocTask {
 const AGENT_CONFIG = {
   name: 'doc-agent',
   description: 'Documentation agent — technical docs and guides',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.4,
   maxTokens: 4000,
   version: '1.0.0',

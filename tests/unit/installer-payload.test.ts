@@ -21,8 +21,12 @@ function makeFakeRepo(): string {
   writeFileSync(join(root, '.lefthook.yml'), 'pre-commit:\n');
   writeFileSync(join(root, 'opencode.json'), '{}\n');
   writeFileSync(join(root, 'README-PUBLIC.md'), '# GV\n');
-  mkdirSync(join(root, 'docs'), { recursive: true });
-  writeFileSync(join(root, 'docs', 'guide.md'), '# Guide\n');
+  mkdirSync(join(root, 'docs/getting-started'), { recursive: true });
+  writeFileSync(join(root, 'docs/getting-started/guide.md'), '# Guide\n');
+  mkdirSync(join(root, 'packages/shared/src'), { recursive: true });
+  writeFileSync(join(root, 'packages/shared/src/index.ts'), 'export const shared = true;');
+  mkdirSync(join(root, 'adapters'), { recursive: true });
+  writeFileSync(join(root, 'adapters/index.ts'), 'export {};');
   mkdirSync(join(root, 'tests', 'smoke'), { recursive: true });
   writeFileSync(join(root, 'tests', 'smoke', 'smoke.ps1'), 'ok\n');
   mkdirSync(join(root, 'scripts', 'database'), { recursive: true });
@@ -115,5 +119,25 @@ test('payload entry list has no excluded paths by construction', () => {
       false,
       `entry ${entry.path} must not be an excluded path`,
     );
+  }
+});
+
+test('staged distribution includes shared runtime and adapters but excludes private documentation', () => {
+  const repo = makeFakeRepo();
+  const stage = join(repo, '_public-stage');
+  try {
+    for (const path of ['docs/clientes/proposal.md', 'docs/sessions/local.md', 'docs/status/private.md', 'docs/presentations/public-presence.html']) {
+      mkdirSync(join(repo, path, '..'), { recursive: true });
+      writeFileSync(join(repo, path), 'PRIVATE FIXTURE');
+    }
+    stagePayload(repo, stage);
+    assert.ok(existsSync(join(stage, 'packages/shared/src/index.ts')));
+    assert.ok(existsSync(join(stage, 'adapters/index.ts')));
+    assert.ok(existsSync(join(stage, 'docs/getting-started/guide.md')));
+    for (const path of ['docs/clientes', 'docs/sessions', 'docs/status', 'docs/presentations/public-presence.html']) {
+      assert.equal(existsSync(join(stage, path)), false, path);
+    }
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
   }
 });

@@ -32,6 +32,10 @@ interface DependencySpec {
   installHint: string; // how to install
   autoInstall?: string[]; // [cmd, arg1, arg2, ...] for auto-install
 
+  // For env-var provided tools (e.g., Ghidra/JDK) — validates an environment variable
+  envVar?: string; // env var name that must be set (e.g., GHIDRA_INSTALL_DIR)
+  envPathMustExist?: boolean; // the env value must point to an existing path
+
   // For `platform` category — file/directory existence check instead of binary
   checkPath?: string; // relative path to check for existence
   isDir?: boolean; // true = directory check, false = file check
@@ -274,6 +278,51 @@ function getDependencies(): DependencySpec[] {
       autoInstall: ['npm', 'install', '-g', '@opencode/codegraph'],
     },
     {
+      name: 'REA',
+      binary: 'rea',
+      category: 'stack',
+      versionCmd: 'rea --version',
+      versionExtract: '(\\d+\\.\\d+\\.\\d+)',
+      required: false,
+      description:
+        'Reverse Engineer Anything MCP — shipped binaries, JS/Electron, .NET, APK, websites',
+      installHint: 'npm install -g rea-agents',
+      autoInstall: ['npm', 'install', '-g', 'rea-agents'],
+    },
+    {
+      name: 'Ghidra',
+      binary: '',
+      category: 'stack',
+      envVar: 'GHIDRA_INSTALL_DIR',
+      envPathMustExist: true,
+      required: false,
+      description: 'Native deep-analysis engine for REA — headless PE/ELF/Mach-O decompiler',
+      installHint:
+        'Provision Ghidra 12.1.x and set GHIDRA_INSTALL_DIR (see docs/stack-manual-modules.md §REA).',
+    },
+    {
+      name: 'JDK 21',
+      binary: '',
+      category: 'stack',
+      envVar: 'JAVA_HOME',
+      envPathMustExist: true,
+      required: false,
+      description: '64-bit full JDK ≥ 21 required by Ghidra for REA native analysis',
+      installHint:
+        'Install Temurin JDK 21 and set JAVA_HOME (winget install EclipseAdoptium.Temurin.21.JDK).',
+    },
+    {
+      name: 'adb (Android)',
+      binary: '',
+      category: 'stack',
+      envVar: 'REA_ADB_PATH',
+      envPathMustExist: true,
+      required: false,
+      description: 'Android Debug Bridge — REA device/APK tools (pull, install, logcat, screencap)',
+      installHint:
+        'Android SDK platform-tools; set REA_ADB_PATH to the absolute adb binary (stack SDK: tools/android/platform-tools/adb.exe).',
+    },
+    {
       name: 'gh (GitHub CLI)',
       binary: 'gh',
       category: 'stack',
@@ -514,6 +563,25 @@ async function validateAll(deps: DependencySpec[]): Promise<DepResult[]> {
   const results: DepResult[] = [];
 
   for (const dep of deps) {
+    // Env-var provided tool (e.g., Ghidra / JDK) — checked before binary handling
+    if (dep.envVar) {
+      const value = process.env[dep.envVar];
+      const pathOk = value ? existsSync(value) : false;
+      const found = Boolean(value) && (!dep.envPathMustExist || pathOk);
+      const status: 'PASS' | 'WARN' | 'FAIL' = found ? 'PASS' : dep.required ? 'FAIL' : 'WARN';
+      const missingHint = dep.required ? `Not set — ${dep.installHint}` : `Not set — optional. ${dep.installHint}`;
+      results.push({
+        name: dep.name,
+        category: dep.category,
+        found,
+        version: '',
+        required: dep.required,
+        status,
+        message: found ? `${dep.envVar}=${value}` : missingHint,
+      });
+      continue;
+    }
+
     // Platform category: file/directory existence check
     if (dep.category === 'platform') {
       const path = join(ROOT, dep.checkPath ?? '');

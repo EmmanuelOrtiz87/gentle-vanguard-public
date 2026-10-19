@@ -47,6 +47,20 @@ function readJson(...parts: string[]) {
   return JSON.parse(fs.readFileSync(path.resolve(ROOT, ...parts), 'utf-8'));
 }
 
+function isEngramMcpRunning(): boolean {
+  if (process.platform !== 'win32') return false;
+  try {
+    const r = runSync('tasklist', [], {
+      cwd: ROOT,
+      timeout: 3000,
+      maxBuffer: 1024 * 1024,
+    });
+    return r.stdout.toLowerCase().includes('engram.exe');
+  } catch {
+    return false;
+  }
+}
+
 /** Try to run a TS script via the in-process tsx loader if it exists. */
 function tryRunTs(tsPath: string, args: string[] = []): { status: number; stdout: string } {
   const fullPath = path.resolve(ROOT, tsPath);
@@ -288,15 +302,23 @@ async function checkEngramRag() {
     exists('src/knowledge/engram-rag-reindex.ts'),
     'src/knowledge/engram-rag-reindex.ts',
   );
+  if (isEngramMcpRunning()) {
+    writeCheck('engram doctor', true, 'MCP server active (CLI doctor skipped to avoid DB lock)');
+    return;
+  }
   try {
     const r =
       process.platform === 'win32'
-        ? runSync(process.env.ComSpec || 'cmd.exe', ['/c', 'engram', 'doctor', '--json'], {
-            cwd: ROOT,
-            timeout: getEffectiveProcessTimeout('health_check'),
-            maxBuffer: 1024 * 1024,
-          })
-        : runSync('engram', ['doctor', '--json'], {
+        ? runSync(
+            process.env.ComSpec || 'cmd.exe',
+            ['/c', 'engram', 'doctor', '--json', '--project', 'gentle-vanguard'],
+            {
+              cwd: ROOT,
+              timeout: getEffectiveProcessTimeout('health_check'),
+              maxBuffer: 1024 * 1024,
+            },
+          )
+        : runSync('engram', ['doctor', '--json', '--project', 'gentle-vanguard'], {
             cwd: ROOT,
             timeout: getEffectiveProcessTimeout('health_check'),
             maxBuffer: 1024 * 1024,
@@ -329,7 +351,11 @@ async function checkDashboardV3() {
         true,
         `HTTP API responding, Vite:${health.vitePort}`,
       );
-      writeCheck('dashboard dev server', true, `Vite running on ${health.vitePort}`);
+      writeCheck(
+        'dashboard dev server',
+        health.viteOk,
+        health.viteOk ? `Vite running on ${health.vitePort}` : 'not running',
+      );
       break;
     case 'degraded':
       // Degraded means the port is open but HTTP API not working
@@ -340,8 +366,8 @@ async function checkDashboardV3() {
       );
       writeCheck(
         'dashboard dev server',
-        health.vitePort === 5173,
-        health.vitePort === 5173 ? 'running' : 'not running',
+        health.viteOk,
+        health.viteOk ? `Vite running on ${health.vitePort}` : 'not running',
       );
       break;
     case 'down':

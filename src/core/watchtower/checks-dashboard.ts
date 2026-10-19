@@ -126,8 +126,8 @@ export async function checkGvAnalytics() {
   if (!quiet) logger.info('  [GV Analytics] Checking...');
 
   const apiPort = Number(process.env.GV_ANALYTICS_PORT || 4754);
-  const apiPidFile = join(RUNTIME_DIR, 'gv-analytics-api.pid');
-  const vitePidFile = join(RUNTIME_DIR, 'gv-analytics-vite.pid');
+  const apiPidFile = join(RUNTIME_DIR, 'app-analytics-api.pid');
+  const vitePidFile = join(RUNTIME_DIR, 'app-analytics-vite.pid');
   const appDir = join(ROOT, 'apps/gv-analytics');
 
   // 1. Build artifact present?

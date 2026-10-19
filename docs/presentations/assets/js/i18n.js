@@ -604,7 +604,7 @@
       dash_h2_filestruct: '8. File Structure',
       dash_h2_lifecycle: '9. Lifecycle Commands',
       dash_h2_health: '10. Health API',
-      idx_h1: 'Gentle-Vanguard',
+      idx_h1: 'GentleVanguard',
       idx_h2_apps: 'Stack Apps',
       idx_h2_infra: 'Infrastructure',
       idx_h2_exec: 'Executive Systems',
@@ -753,7 +753,7 @@
       ks_h2_commands: 'Operation commands',
       ks_h2_limits: 'Honest limits',
       ks_h2_sources: 'Canonical sources',
-          ri_h1: 'Gentle-Vanguard',
+          ri_h1: 'GentleVanguard',
       ri_h2_home: 'Home',
       ri_h2_content: 'Generate Content',
       ri_h2_manage: 'Management',
@@ -1372,7 +1372,7 @@
       dash_h2_filestruct: '8. Estructura de Archivos',
       dash_h2_lifecycle: '9. Comandos de Ciclo de Vida',
       dash_h2_health: '10. API de Salud',
-      idx_h1: 'Gentle-Vanguard',
+      idx_h1: 'GentleVanguard',
       idx_h2_apps: 'Apps del stack',
       idx_h2_infra: 'Infraestructura',
       idx_h2_exec: 'Sistemas Ejecutivos',
@@ -1521,7 +1521,7 @@
       ks_h2_commands: 'Comandos de operación',
       ks_h2_limits: 'Límites honestos',
       ks_h2_sources: 'Fuentes canónicas',
-          ri_h1: 'Gentle-Vanguard',
+          ri_h1: 'GentleVanguard',
       ri_h2_home: 'Principal',
       ri_h2_content: 'Generar Contenido',
       ri_h2_manage: 'Gestión',
@@ -2140,7 +2140,7 @@
       dash_h2_filestruct: '8. Estrutura de Arquivos',
       dash_h2_lifecycle: '9. Comandos de Ciclo de Vida',
       dash_h2_health: '10. API de Saúde',
-      idx_h1: 'Gentle-Vanguard',
+      idx_h1: 'GentleVanguard',
       idx_h2_apps: 'Apps do stack',
       idx_h2_infra: 'Infraestrutura',
       idx_h2_exec: 'Sistemas Executivos',
@@ -2284,7 +2284,7 @@
       ks_h2_commands: 'Comandos de operação',
       ks_h2_limits: 'Limites honestos',
       ks_h2_sources: 'Fontes canônicas',
-          ri_h1: 'Gentle-Vanguard',
+          ri_h1: 'GentleVanguard',
       ri_h2_home: 'Início',
       ri_h2_content: 'Gerar Conteúdo',
       ri_h2_manage: 'Gestão',
@@ -2318,8 +2318,10 @@
   function getCurrentLang() {
     try {
       const fromUrl = new URLSearchParams(window.location.search).get('lang');
+      if (fromUrl === 'pt') return 'pt-BR';
       if (fromUrl && DICT[fromUrl]) return fromUrl;
-      return localStorage.getItem(STORAGE_KEY) || 'en';
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved === 'pt' ? 'pt-BR' : (DICT[saved] ? saved : 'es');
     } catch (e) {
       return 'en';
     }

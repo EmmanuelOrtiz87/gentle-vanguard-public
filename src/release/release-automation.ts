@@ -21,7 +21,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { runSync, runSyncShell } from '../core/run-command.js';
+import { runSync } from '../core/run-command.js';
 import { log } from '../utils/logger.js';
 
 const ROOT = resolve(process.cwd());

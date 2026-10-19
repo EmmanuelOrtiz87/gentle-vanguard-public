@@ -63,7 +63,10 @@
     <text x="600" y="792" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">de Versiones</text>
     <text x="600" y="884" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Profesional</text>
   <!-- subtítulo -->
-  <text x="600" y="1036" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Domina Git desde cero: repositorios, staging area, commits y ramas; resuelve conflictos de merge sin miedo; colabora en GitHub con pull requests, code review y conventional commits; rescata el historial con reflog y bisect; automatiza tus tests con GitHub Actions y cierra con un proyecto guiado: tu portafolio desplegado en GitHub Pages.</text>
+    <text x="600" y="1036" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Domina Git desde cero: repositorios, staging area, commits y</text>
+<text x="600" y="1070" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">ramas; resuelve conflictos de merge sin miedo; colabora en GitHub</text>
+<text x="600" y="1104" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">con pull requests, code review y conventional commits; rescata el</text>
+<text x="600" y="1138" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">historial con reflog y bisect; automatiza tus tests con GitHub</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~14 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">GIT · GITHUB · CONTROL-DE-VERSIONES</text>

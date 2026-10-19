@@ -433,6 +433,22 @@ function main(): void {
     } else {
       writeInfo(`Task script not found at ${pdTaskScript}. Skipping.`);
     }
+
+    writeStep('Step 4b6: Scheduled Task - GV Knowledge Ops Refresh (daily)...');
+    const koTaskName = 'Gentle-Vanguard-Knowledge-Ops-Refresh';
+    const koTaskScript = join(root, 'src', 'ops', 'gv-knowledge-refresh-scheduled.ts');
+    if (existsSync(koTaskScript)) {
+      const koResult = registerScheduledTask(koTaskName, koTaskScript, root, 24);
+      if (koResult === 'ok') {
+        writeSuccess(`Scheduled task '${koTaskName}' registered hidden (daily source refresh).`);
+      } else if (koResult === 'fallback') {
+        writeSuccess(`Scheduled task '${koTaskName}' created hidden via wscript wrapper (daily source refresh).`);
+      } else {
+        writeInfo('Could not create GV Knowledge Ops refresh task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${koTaskScript}. Skipping.`);
+    }
   } else {
     writeInfo('Scheduled tasks not supported on this platform. Hooks handle sync.');
   }

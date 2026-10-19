@@ -62,7 +62,8 @@
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Toolkit de</text>
     <text x="600" y="792" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Ciberseguridad</text>
   <!-- subtítulo -->
-  <text x="600" y="944" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Kit completo: curso + manual + checklists + plantillas + emails + scripts + casos prácticos</text>
+    <text x="600" y="944" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Kit completo: curso + manual + checklists + plantillas + emails +</text>
+<text x="600" y="978" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">scripts + casos prácticos</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">CURSO + EBOOK + CHECKLISTS + PLANTILLAS + EMAILS + AUTOMATIZACIONES + CASOS + RECURSOS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">Personas, profesionales de cualquier área, dueños de PyMEs, equipos de IT, managers y líderes</text>

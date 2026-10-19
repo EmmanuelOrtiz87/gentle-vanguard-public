@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="es" class="gv-document-page">
   <head>
-    <meta name="theme-color" content="#0F1115" />
+    <meta name="theme-color" content="#0B1020" />
     <meta
       name="description"
-      content="Gentle-Vanguard — Autonomous AI Stack — Gentle-Vanguard documentation"
+      content="GentleVanguard — Autonomous AI Stack — GentleVanguard documentation"
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gentle-Vanguard — Autonomous AI Stack</title>
+    <title>GentleVanguard — Autonomous AI Stack</title>
     <link
       href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
@@ -145,8 +145,8 @@
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
     <script src="assets/js/i18n.js?v=3.0"></script>
-    <script src="assets/js/theme-toggle.js?v=2.0"></script>
-  </head>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script><link rel="icon" href="assets/canon/icon.svg">
+<link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
   <body>
     <div class="scroll-progress"></div>
     <div class="gv-grid-bg"></div>
@@ -155,7 +155,7 @@
     <header class="gv-topbar">
       <div class="gv-topbar-inner">
         <a class="gv-brand" href="index.html">
-          <img class="gv-brand-logo" src="assets/brand/gentle-vanguard/v2/raster/official/gv-icon-official.png" alt="Gentle-Vanguard" />
+          <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
         <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
@@ -174,7 +174,7 @@
           <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
           <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
           <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
-          <a href="#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
@@ -192,47 +192,21 @@
 
     <!-- Hero -->
     <header class="hero" id="overview">
-      <span class="hero-badge mb-3">✦ v4.0 — 100% Autonomous AI Stack</span>
+      <span class="hero-badge mb-3">✦ v4.3.0 · Documentación técnica</span>
       <h1
         class="display-1 fw-bold z-1"
         style="font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -0.02em; line-height: 1.05"
       >
-        <span class="glow"><span data-i18n="idx_h1">Gentle-Vanguard</span></span>
+        Gentle<span class="brand-accent">Vanguard</span>
       </h1>
       <p
-        class="lead text-secondary z-1"
+        class="lead text-secondary z-1" data-i18n="presence_hero_lead"
         style="max-width: 700px; font-size: clamp(1rem, 2vw, 1.3rem)"
       >
-        Plataforma Autónoma de Orquestración AI —
-        <strong class="text-light">100% Autonomous</strong>
+        Orquestación de IA local-first · automatización con verificaciones
       </p>
-      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3">
-        <div class="text-center">
-          <div class="stat-n" data-count="604">604</div>
-          <div class="stat-l">TS Files</div>
-        </div>
-        <div class="text-center">
-          <div class="stat-n" data-count="175">175</div>
-          <div class="stat-l">Test Files</div>
-        </div>
-        <div class="text-center">
-          <div class="stat-n"><span data-count="96">96</span>/96</div>
-          <div class="stat-l">Health PASS</div>
-        </div>
-        <div class="text-center">
-          <div class="stat-n" data-count="21">21</div>
-          <div class="stat-l">Agents</div>
-        </div>
-        <div class="text-center">
-          <div class="stat-n" data-count="92">92</div>
-          <div class="stat-l">Skills</div>
-        </div>
-        <div class="text-center">
-          <div class="stat-n" data-count="60">60</div>
-          <div class="stat-l">Normatives</div>
-        </div>
-      </div>
-      <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3" lang="es"><div class="text-center"><div class="stat-n">254</div><div class="stat-l" data-i18n="presence_skills">Skills indexadas</div></div><div class="text-center"><div class="stat-n">21</div><div class="stat-l" data-i18n="presence_agents">Agentes OpenCode</div></div><div class="text-center"><div class="stat-n">43</div><div class="stat-l" data-i18n="presence_tables">Tablas Nexus</div></div><div class="text-center"><div class="stat-n">22</div><div class="stat-l" data-i18n="presence_migrations">Migraciones</div></div></div>
+<div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
         <a href="quickstart.html" class="btn-gv"
           ><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a
         >
@@ -245,6 +219,10 @@
         >
       </div>
     </header>
+<!-- GV-PRESENCE:START -->
+<section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-10-18</a></section>
+<!-- GV-PRESENCE:END -->
+
 
     <section class="fade-in" id="stack-apps">
       <div class="section-title">
@@ -513,8 +491,8 @@
           Pipeline → Memory → Data → Executive
         </p>
       </div>
-    
-        
+
+
       </section>
 
     <!-- Stack Components -->
@@ -525,10 +503,10 @@
         <p data-i18n="c_index_3">20+ subsystems powering full autonomous lifecycle</p>
       </div>
       <div class="container-fluid px-4" style="max-width: 1400px">
-        <div class="gv-carousel" data-autoplay="5000" id="components-carousel">
-          <div class="gv-carousel-track">
+        <div class="gv-section-group" id="components-groups">
+          <div class="gv-section-stack">
             <h3 class="gv-subgroup-title"><span data-i18n="idx_h2_infra">Infrastructure</span></h3>
-            <div class="gv-carousel-slide active">
+            <div class="gv-section-item">
               <div class="row g-4">
                 <div class="col-sm-6 col-md-4">
                   <div class="section-card h-100">
@@ -586,7 +564,7 @@
               </div>
             </div>
             <h3 class="gv-subgroup-title"><span data-i18n="idx_h2_exec">Executive Systems</span></h3>
-            <div class="gv-carousel-slide">
+            <div class="gv-section-item">
               <div class="row g-4">
                 <div class="col-sm-6 col-md-4">
                   <div class="section-card h-100">
@@ -643,7 +621,7 @@
               </div>
             </div>
             <h3 class="gv-subgroup-title"><span data-i18n="idx_h2_perf">Performance &amp; Safety</span></h3>
-            <div class="gv-carousel-slide">
+            <div class="gv-section-item">
               <div class="row g-4">
                 <div class="col-sm-6 col-md-4">
                   <div class="section-card h-100">
@@ -701,7 +679,7 @@
               </div>
             </div>
             <h3 class="gv-subgroup-title"><span data-i18n="idx_h2_data">Data &amp; Quality</span></h3>
-            <div class="gv-carousel-slide">
+            <div class="gv-section-item">
               <div class="row g-4">
                 <div class="col-sm-6 col-md-4">
                   <div class="section-card h-100">
@@ -759,26 +737,6 @@
               </div>
             </div>
           </div>
-          <div class="gv-carousel-nav text-center mt-3">
-            <button
-              class="btn btn-sm btn-outline-secondary me-2"
-              onclick="moveCarousel('components-carousel', -1)"
-            >
-              ❮
-            </button>
-            <span class="carousel-dots mx-2">
-              <span class="dot active" onclick="goToSlide('components-carousel', 0)"></span>
-              <span class="dot" onclick="goToSlide('components-carousel', 1)"></span>
-              <span class="dot" onclick="goToSlide('components-carousel', 2)"></span>
-              <span class="dot" onclick="goToSlide('components-carousel', 3)"></span>
-            </span>
-            <button
-              class="btn btn-sm btn-outline-secondary ms-2"
-              onclick="moveCarousel('components-carousel', 1)"
-            >
-              ❯
-            </button>
-          </div>
         </div>
       </div>
     </section>
@@ -793,8 +751,8 @@
         </p>
       </div>
       <div class="row g-4">
-        
-        
+
+
       </section>
 
     <!-- Executive Systems Grid -->
@@ -1205,7 +1163,7 @@
   <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
   <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
 
-  
+
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
     <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
     <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
@@ -1702,7 +1660,7 @@
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_89"
-                  title="96 health checks across 22 components. All green: 96/96 PASS, 0 WARN, 0 FAIL."
+                  title="96 health checks across 22 components. All green: Ejemplo histórico de salud, 0 WARN, 0 FAIL."
                   >i</span
                 >
               </td>
@@ -1941,7 +1899,7 @@
       <div class="text-center mt-4">
         <span
           class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill me-2"
-          >92 Skills</span
+          >254 skills indexadas</span
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill"
@@ -1956,7 +1914,7 @@
         <div class="display-4 mb-2">📊</div>
         <h2 data-i18n="sec_stack_metrics">Stack Metrics</h2>
         <p data-i18n="c_index_94">
-          Real-time health and performance data — 96/96 PASS across 22 components
+          Real-time health and performance data — Ejemplo histórico de salud across 22 components
         </p>
       </div>
       <div class="row g-4">
@@ -1965,13 +1923,13 @@
             <h3 class="mb-3">
               <i class="bi bi-heart-pulse text-success me-2"></i>Health Overview<span
                 class="info-trigger"
-                data-i18n-title="tip_met_health"
-                title="96/96 checks PASS across 22 components: dashboard-ws, codegraph, ml-embeddings, engram, mcp, session, hooks, configs, tool-configs, security, cloud-connectors, tracing, state-persistence, audit, governance, gentle-vanguard-db, dashboard-ws and more. Measured by the maintenance watchtower."
+
+                title="Registro histórico; ejecutar watchtower para conocer el estado real de esta instalación."
                 >i</span
               >
             </h3>
             <div class="d-flex flex-wrap gap-2 mb-3">
-              <span class="badge bg-success fs-6 px-3 py-2">96/96 PASS</span>
+              <span class="badge bg-success fs-6 px-3 py-2">Ejemplo histórico de salud</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 WARN</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 FAIL</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 SKIP</span>
@@ -2163,6 +2121,14 @@
               Audit pipeline, policy enforcement, 60+ normatives, guardrails, incident response
             </p>
             <span class="badge-count">security-governance.html →</span>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="book-card" onclick="location.href = 'knowledge-systems.html'">
+            <div class="page-num">PAGE 06B</div>
+            <h4>📚 GV Knowledge Ops</h4>
+            <p>Recetas técnicas, costos, fuentes oficiales y operación local-first</p>
+            <span class="badge-count">knowledge-systems.html →</span>
           </div>
         </div>
         <div class="col-md-6 col-lg-4">
@@ -2576,7 +2542,7 @@
 <line x1="60" y1="390" x2="940" y2="390" stroke="#1e3a5f" stroke-width=".5"/>
 <text x="500" y="396" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
 
-  
+
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
     <rect class="gv-hotspot" x="61" y="66" width="350" height="22" rx="6" data-i18n-title="tip_hs_flow_phase1" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure."/>
     <rect class="gv-hotspot" x="435" y="66" width="370" height="22" rx="6" data-i18n-title="tip_hs_flow_phase2" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - 83 lazy background steps: deferred heavy work executed in batches of 2 workers after session start."/>
@@ -2814,7 +2780,7 @@
   <line x1="60" y1="483" x2="840" y2="483" stroke="#1e3a5f" stroke-width="0.5"/>
   <text x="450" y="495" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
 
-  
+
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
     <rect class="gv-hotspot" x="370" y="240" width="160" height="70" rx="6" data-i18n-title="tip_hs_data_nexus" role="button" tabindex="0" fill="transparent" aria-label="NEXUS DB: operational SQLite database (gentle-vanguard.db) with WAL mode, FK ON, 12 tables and 3 migrations."/>
     <rect class="gv-hotspot" x="130" y="75" width="650" height="48" rx="6" data-i18n-title="tip_hs_data_repos_blue" role="button" tabindex="0" fill="transparent" aria-label="Data DAOs (blue): MetricsRepo (metric_snapshots), SessionRepo (sessions) and TraceRepo (traces) - time-series and session history."/>
@@ -3037,7 +3003,7 @@
   <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
   <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
 
-  
+
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
     <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
     <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
@@ -3270,7 +3236,7 @@
   <line x1="40" y1="433" x2="860" y2="433" stroke="#1e3a5f" stroke-width="0.5"/>
   <text x="450" y="445" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
 
-  
+
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
     <rect class="gv-hotspot" x="30" y="80" width="200" height="280" rx="6" data-i18n-title="tip_hs_dash_sources" role="button" tabindex="0" fill="transparent" aria-label="Data Sources: real trace data read from .session/context-log/*.state.json and *.meta.json - no mock data."/>
     <rect class="gv-hotspot" x="340" y="80" width="220" height="280" rx="6" data-i18n-title="tip_hs_dash_backend" role="button" tabindex="0" fill="transparent" aria-label="Backend Server: real-data.ts computes metrics from state files; WebSocket Server pushes every 5s on port 8080."/>
@@ -3308,75 +3274,8 @@
       </div>
     </section>
 
-    <footer>
-      <p class="mb-2">
-        Gentle-Vanguard <strong>v4.0</strong> — 100% Autonomous AI Stack ·
-        <span class="text-secondary">✦ Plataforma Autónoma de Orquestración AI</span>
-      </p>
-      <p class="mb-2 d-flex flex-wrap justify-content-center gap-3">
-        <a
-          href="resources-index.html"
-          style="
-            background: linear-gradient(135deg, var(--p), var(--s));
-            color: var(--bg2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-weight: 600;
-          "
-          ><i class="bi bi-grid-3x3-gap-fill me-1"></i>CMS Dashboard</a
-        >
-        <a href="architecture.html"><i class="bi bi-diagram-3 me-1"></i>Architecture</a>
-        <a href="autonomy.html"><i class="bi bi-robot me-1"></i>Autonomy</a>
-        <a href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
-        <a href="quickstart.html"><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a>
-        <a href="memory-knowledge.html"><i class="bi bi-sd-card me-1"></i>Memory</a>
-        <a href="security-governance.html"><i class="bi bi-shield me-1"></i>Security</a>
-        <a href="agents-pipeline.html"><i class="bi bi-people me-1"></i>Agents</a>
-        <a href="operations-cloud.html"><i class="bi bi-cloud me-1"></i>Operations</a>
-        <a href="patterns-conventions.html"><i class="bi bi-diagram-2 me-1"></i>Patterns</a>
-        <a href="health.html"><i class="bi bi-heart-pulse me-1"></i>Health</a>
-        <a href="index.html"><i class="bi bi-book me-1"></i>The Book</a>
-        <a href="https://github.com/EmmanuelOrtiz87/gentle-vanguard" target="_blank"
-          ><i class="bi bi-github me-1"></i>GitHub</a
-        >
-      </p>
-      <div class="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-2">
-        <span
-          class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >328 TS Files</span
-        >
-        <span
-          class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >175 Test files</span
-        >
-        <span
-          class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >96/96 Health</span
-        >
-        <span
-          class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >16 Repos</span
-        >
-        <span
-          class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >92 Skills</span
-        >
-        <span
-          class="badge bg-light bg-opacity-10 text-light border border-light border-opacity-25 px-2 py-1"
-          style="font-size: 0.6rem"
-          >60 Normatives</span
-        >
-      </div>
-      <p class="mt-2 mb-0">
-        <small><i class="bi bi-cpu me-1"></i>Don't let your mellow hustle be faded.</small>
-      </p>
-    </footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.3.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
 
     <script src="assets/js/gv.js?v=2.1"></script>
-  </body>
+  <script src="assets/js/presentation-shell.js?v=1"></script></body>
 </html>

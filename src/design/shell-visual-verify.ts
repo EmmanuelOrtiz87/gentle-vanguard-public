@@ -13,6 +13,8 @@
  * Uso:      npm run shell:verify
  * Exit 0 = todas las apps homologadas · Exit 1 = algún FAIL (detalle en tabla).
  */
+import { mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { chromium, type Browser } from 'playwright';
 
 interface AppTarget {
@@ -23,20 +25,23 @@ interface AppTarget {
    * keys-only: topbar custom (Tailwind/propio) — solo comparte claves gv-cc-*;
    * se verifica que carga y tiene control de idioma en algún lugar.
    */
-  contract: 'full' | 'keys-only';
+  contract: 'full' | 'keys-only' | 'waiver';
 }
 
 const APPS: AppTarget[] = [
   { name: 'academy-web', url: 'http://127.0.0.1:4173', contract: 'full' },
-  { name: 'academy-landing', url: 'http://127.0.0.1:4174', contract: 'full' },
+  // Public conversion surface: its explicit DESIGN-WAIVER permits a custom
+  // landing structure while retaining canonical tokens, fonts and brand assets.
+  { name: 'academy-landing', url: 'http://127.0.0.1:4174', contract: 'waiver' },
   { name: 'content-cms', url: 'http://127.0.0.1:5175', contract: 'full' },
   { name: 'academy-crm', url: 'http://127.0.0.1:4792', contract: 'full' },
-  { name: 'archify', url: 'http://127.0.0.1:5179', contract: 'full' },
+  { name: 'archify', url: 'http://127.0.0.1:5181', contract: 'full' },
   { name: 'web-dashboard', url: 'http://127.0.0.1:5173', contract: 'keys-only' },
   { name: 'gv-analytics', url: 'http://127.0.0.1:5174', contract: 'keys-only' },
-  { name: 'prompt-studio', url: 'http://127.0.0.1:5176', contract: 'full' },
+  { name: 'alexandria', url: 'http://127.0.0.1:5180', contract: 'keys-only' },
+  { name: 'prompt-studio', url: 'http://127.0.0.1:5178', contract: 'full' },
   { name: 'design-hub', url: 'http://127.0.0.1:8095', contract: 'full' },
-  { name: 'command-center', url: 'http://127.0.0.1:8090', contract: 'full' },
+  { name: 'command-center', url: 'http://127.0.0.1:8092', contract: 'full' },
 ];
 
 const PROBE_FULL = `(() => {
@@ -78,47 +83,62 @@ interface ProbeKeys {
   themish: boolean;
 }
 
+const VIEWPORTS = [
+  { name: 'desktop', width: 1440, height: 1000 },
+  { name: 'mobile', width: 390, height: 844 },
+] as const;
+const AUDIT_DIR = resolve(import.meta.dirname, '../../.runtime/visual-audit');
+mkdirSync(AUDIT_DIR, { recursive: true });
+
 async function verifyPage(
   browser: Browser,
   app: AppTarget,
 ): Promise<{ pass: boolean; detail: string }> {
   const page = await browser.newPage();
+  const failures: string[] = [];
   try {
-    await page.goto(app.url, { timeout: 15_000, waitUntil: 'domcontentloaded' });
-    // Hidratación React / CSS apply: espera activa al primer control del shell.
-    await page
-      .waitForSelector('.gv-topbar, .gv-theme-toggle, [class*=lang], [class*=theme]', {
-        timeout: 5_000,
-      })
-      .catch(() => {});
-    await page.waitForTimeout(600);
-    if (app.contract === 'keys-only') {
-      const probe = JSON.parse(await page.evaluate(PROBE_KEYS)) as ProbeKeys;
-      const failed: string[] = [];
-      if (!probe.loaded) failed.push('carga');
-      // keys-only: la app comparte claves gv-cc-*; puede tener solo idioma,
-      // solo tema (web-dashboard es theme-only) o ambos.
-      if (!probe.langish && !probe.themish) failed.push('control-idioma-o-tema');
-      return {
-        pass: failed.length === 0,
-        detail: failed.length ? `FAIL: ${failed.join(', ')}` : 'ok (keys-only)',
-      };
+    for (const viewport of VIEWPORTS) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto(app.url, { timeout: 15_000, waitUntil: 'domcontentloaded' });
+      await page
+        .waitForSelector('.gv-topbar, .gv-theme-toggle, [class*=lang], [class*=theme]', {
+          timeout: 5_000,
+        })
+        .catch(() => {});
+      await page.waitForTimeout(400);
+      const layout = await page.evaluate(() => ({
+        // documentElement is the user-visible scroll container; body can keep
+        // the intrinsic width of intentionally clipped decorative children.
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+      }));
+      if (layout.documentWidth > layout.viewportWidth + 1) {
+        failures.push(`${viewport.name}-overflow`);
+      }
+      await page.screenshot({
+        path: resolve(AUDIT_DIR, `${app.name}-${viewport.name}.png`),
+        fullPage: false,
+      });
+      if (app.contract === 'waiver') continue;
+      if (app.contract === 'keys-only') {
+        const probe = JSON.parse(await page.evaluate(PROBE_KEYS)) as ProbeKeys;
+        if (!probe.loaded) failures.push(`${viewport.name}-carga`);
+        if (!probe.langish && !probe.themish) failures.push(`${viewport.name}-control-idioma-o-tema`);
+        continue;
+      }
+      const probe = JSON.parse(await page.evaluate(PROBE_FULL)) as ProbeFull;
+      const checks = [
+        { k: 'topbar', ok: probe.topbar },
+        { k: 'wordmark-blanco', ok: probe.wordmark.startsWith('rgb(') && !probe.wordmark.includes('rgba(0, 0, 0, 0)') },
+        { k: 'vanguard-gradiente', ok: probe.spanGradient },
+        { k: 'idioma-13px', ok: probe.langFontSize === '13px' },
+        { k: 'icono-idioma', ok: probe.langIcon },
+      ];
+      failures.push(...checks.filter((c) => !c.ok).map((c) => `${viewport.name}-${c.k}`));
     }
-    const probe = JSON.parse(await page.evaluate(PROBE_FULL)) as ProbeFull;
-    const checks = [
-      { k: 'topbar', ok: probe.topbar },
-      {
-        k: 'wordmark-blanco',
-        ok: probe.wordmark.startsWith('rgb(') && !probe.wordmark.includes('rgba(0, 0, 0, 0)'),
-      },
-      { k: 'vanguard-gradiente', ok: probe.spanGradient },
-      { k: 'idioma-13px', ok: probe.langFontSize === '13px' },
-      { k: 'icono-idioma', ok: probe.langIcon },
-    ];
-    const failed = checks.filter((c) => !c.ok).map((c) => c.k);
     return {
-      pass: failed.length === 0,
-      detail: failed.length ? `FAIL: ${failed.join(', ')}` : 'ok',
+      pass: failures.length === 0,
+      detail: failures.length ? `FAIL: ${failures.join(', ')}` : 'ok (desktop + mobile)',
     };
   } catch (e) {
     return { pass: false, detail: `no accesible: ${String(e).slice(0, 90)}` };
@@ -132,10 +152,18 @@ async function main(): Promise<void> {
   const browser = await chromium.launch({ headless: true });
   try {
     const results: Array<{ name: string; pass: boolean; detail: string }> = [];
-    for (const app of APPS) {
-      const r = await verifyPage(browser, app);
-      results.push({ name: app.name, ...r });
-      console.log(`${r.pass ? '✅' : '❌'} ${app.name.padEnd(16)} ${r.detail}`);
+    // A slow local app (notably Command Center) must not starve the audit
+    // while the other surfaces are already ready. Keep a small bounded batch
+    // so Chromium remains stable and the full audit fits CI/runner limits.
+    for (let i = 0; i < APPS.length; i += 3) {
+      const batch = await Promise.all(APPS.slice(i, i + 3).map(async (app) => ({
+        name: app.name,
+        ...(await verifyPage(browser, app)),
+      })));
+      for (const r of batch) {
+        results.push(r);
+        console.log(`${r.pass ? '✅' : '❌'} ${r.name.padEnd(16)} ${r.detail}`);
+      }
     }
     const failed = results.filter((r) => !r.pass);
     console.log(`\n${results.length - failed.length}/${results.length} apps homologadas en vivo.`);

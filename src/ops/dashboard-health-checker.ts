@@ -34,6 +34,7 @@ export interface DashboardHealthResult {
   httpHealthOk: boolean;
   httpMetricsOk: boolean;
   tcpOpen: boolean;
+  viteOk: boolean;
   port: number;
   vitePort: number;
   message: string;
@@ -51,16 +52,18 @@ async function httpGetJson(
   port: number,
   path: string,
   timeout = 3000,
+  hostname = '127.0.0.1',
+  accept = 'application/json',
 ): Promise<{ ok: boolean; statusCode: number; body: unknown; error?: string }> {
   return new Promise((resolve) => {
     const options = {
-      hostname: '127.0.0.1',
+      hostname,
       port,
       path,
       method: 'GET',
       timeout,
       headers: {
-        Accept: 'application/json',
+        Accept: accept,
       },
     };
 
@@ -127,8 +130,8 @@ async function tcpCheck(port: number, timeout = 2000): Promise<boolean> {
 /**
  * Check if Vite dev server is running (port 5173)
  */
-async function checkViteHealth(): Promise<boolean> {
-  const htmlResult = await httpGetJson(5173, '/', 2000);
+async function checkViteHealth(port: number): Promise<boolean> {
+  const htmlResult = await httpGetJson(port, '/', 2000, 'localhost', 'text/html,*/*');
   return htmlResult.ok && htmlResult.statusCode === 200;
 }
 
@@ -140,11 +143,11 @@ export async function checkDashboardHealth(
   vitePort = 5173,
 ): Promise<DashboardHealthResult> {
   // Run all checks in parallel
-  const [healthApi, metricsApi, tcpResult] = await Promise.all([
+  const [healthApi, metricsApi, tcpResult, viteOk] = await Promise.all([
     httpGetJson(wsPort, '/api/health', 3000),
     httpGetJson(wsPort, '/api/metrics', 3000),
     tcpCheck(wsPort, 2000),
-    checkViteHealth(),
+    checkViteHealth(vitePort),
   ]);
 
   const httpHealthOk = healthApi.ok && healthApi.body !== null;
@@ -156,7 +159,9 @@ export async function checkDashboardHealth(
 
   if (httpHealthOk || httpMetricsOk) {
     status = 'healthy';
-    message = `Dashboard fully operational (WS:${wsPort}, Vite:${vitePort})`;
+    message = viteOk
+      ? `Dashboard fully operational (WS:${wsPort}, Vite:${vitePort})`
+      : `Dashboard WS operational (WS:${wsPort}); Vite not responding on ${vitePort}`;
   } else if (tcpOpen) {
     status = 'degraded';
     message = `Dashboard listening on ${wsPort} but HTTP API not responding`;
@@ -170,6 +175,7 @@ export async function checkDashboardHealth(
     httpHealthOk,
     httpMetricsOk,
     tcpOpen,
+    viteOk,
     port: wsPort,
     vitePort: vitePort,
     message,

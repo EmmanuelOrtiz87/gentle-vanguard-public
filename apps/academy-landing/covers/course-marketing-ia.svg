@@ -61,7 +61,10 @@
   <!-- título -->
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Marketing con IA</text>
   <!-- subtítulo -->
-  <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico de marketing con Inteligencia Artificial para emprendedores, dueños de tiendas, freelancers y equipos chicos: fundamentos y plan, creación de contenido (textos, imágenes, video), redes sociales (Instagram, TikTok, LinkedIn, WhatsApp), email marketing, publicidad paga (Meta Ads y Google Ads), ventas y chatbots, analítica y optimización, y un plan de acción con casos reales</text>
+    <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico de marketing con Inteligencia Artificial para</text>
+<text x="600" y="886" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">emprendedores, dueños de tiendas, freelancers y equipos chicos:</text>
+<text x="600" y="920" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">fundamentos y plan, creación de contenido (textos, imágenes,</text>
+<text x="600" y="954" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">video), redes sociales (Instagram, TikTok, LinkedIn, WhatsApp),</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~9 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">MARKETING · IA · CONTENIDO</text>

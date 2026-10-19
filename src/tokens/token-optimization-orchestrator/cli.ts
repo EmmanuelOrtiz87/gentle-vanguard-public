@@ -31,6 +31,9 @@ Options:
   --level NAME          Chat level (chat-compact|chat-balanced|chat-detailed)
   --profile NAME        Compression profile (ultra|lleno|lite|simple)
   --context TEXT        Context for cache key
+  --session-id ID       Session id for .session/context-log history
+  --use-session-history Load previous turns from .session/context-log
+  --history-turns N     Number of recent session turns to include (default 12)
   --ttl MINUTES         Cache TTL in minutes
   --skip-cache          Skip cache check/store
   --skip-pre-process    Skip prompt compression
@@ -113,11 +116,16 @@ export async function main(): Promise<void> {
   const levelIdx = args.indexOf('--level');
   const profileIdx = args.indexOf('--profile');
   const contextIdx = args.indexOf('--context');
+  const sessionIdIdx = args.indexOf('--session-id');
+  const historyTurnsIdx = args.indexOf('--history-turns');
   const ttlIdx = args.indexOf('--ttl');
   const cacheCheckFlag = args.includes('--cache-check');
   const statsFlag = args.includes('--stats');
   const reportFlag = args.includes('--report');
   const skipCacheFlag = args.includes('--skip-cache');
+  const skipPreProcessFlag = args.includes('--skip-pre-process');
+  const skipPostProcessFlag = args.includes('--skip-post-process');
+  const useSessionHistoryFlag = args.includes('--use-session-history');
   const quietFlag = args.includes('--quiet');
   const jsonFlag = args.includes('--json');
   const clearMetricsFlag = args.includes('--clear-metrics');
@@ -258,6 +266,9 @@ export async function main(): Promise<void> {
   const profile =
     profileIdx >= 0 ? (args[profileIdx + 1] as 'ultra' | 'lleno' | 'lite' | 'simple') : undefined;
   const context = contextIdx >= 0 ? args[contextIdx + 1] : undefined;
+  const sessionId = sessionIdIdx >= 0 ? args[sessionIdIdx + 1] : undefined;
+  const historyTurns =
+    historyTurnsIdx >= 0 ? parseInt(args[historyTurnsIdx + 1] ?? '12', 10) : undefined;
   const ttl = ttlIdx >= 0 ? parseInt(args[ttlIdx + 1] ?? '60', 10) : undefined;
 
   switch (mode) {
@@ -306,13 +317,20 @@ export async function main(): Promise<void> {
       const pipelineInput: PipelineInput = {
         prompt: input,
         context,
+        sessionId,
+        useSessionHistory: useSessionHistoryFlag,
+        historyTurns,
         skill,
         chatLevel: level,
         cacheEnabled: !skipCacheFlag,
         ttlMinutes: ttl,
       };
 
-      const result = await runPipeline(pipelineInput);
+      const result = await runPipeline(pipelineInput, {
+        skipCache: skipCacheFlag,
+        skipPreProcess: skipPreProcessFlag,
+        skipPostProcess: skipPostProcessFlag,
+      });
 
       if (jsonFlag) {
         console.log(JSON.stringify(result, null, 2));

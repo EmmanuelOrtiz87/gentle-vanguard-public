@@ -61,7 +61,10 @@
   <!-- título -->
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Copywriter con IA</text>
   <!-- subtítulo -->
-  <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico de copywriting con Inteligencia Artificial: fundamentos que la IA no reemplaza, research y voz de marca, landings que convierten, email y newsletters, ads y redes, copy de producto y propuestas, tu sistema de prompts maestros, y casos reales con portafolio</text>
+    <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso práctico de copywriting con Inteligencia Artificial:</text>
+<text x="600" y="886" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">fundamentos que la IA no reemplaza, research y voz de marca,</text>
+<text x="600" y="920" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">landings que convierten, email y newsletters, ads y redes, copy</text>
+<text x="600" y="954" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">de producto y propuestas, tu sistema de prompts maestros, y casos</text>
   <!-- meta -->
   <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">~9 HORAS</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">COPYWRITING · REDACCION · IA</text>

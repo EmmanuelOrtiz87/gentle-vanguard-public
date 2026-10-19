@@ -225,11 +225,21 @@ function validateMCP(mcp: unknown): string[] {
     }
 
     // Validate service types
+    const serviceConfig = service as Record<string, unknown>;
     if ('type' in service) {
-      const validTypes = ['local', 'stdio'];
-      const typeValue = (service as Record<string, unknown>).type;
+      const validTypes = ['local', 'stdio', 'remote'];
+      const typeValue = serviceConfig.type;
       if (typeof typeValue === 'string' && !validTypes.includes(typeValue)) {
         errors.push(`MCP service ${name} has invalid type: ${typeValue}`);
+      }
+      if (typeValue === 'remote' && typeof serviceConfig.url !== 'string') {
+        errors.push(`MCP service ${name} with type remote requires url`);
+      }
+      if (
+        (typeValue === 'local' || typeValue === 'stdio') &&
+        typeof serviceConfig.command !== 'string'
+      ) {
+        errors.push(`MCP service ${name} with type ${typeValue} requires command`);
       }
     }
   }
@@ -345,6 +355,22 @@ function validateProviders(
     }
   }
 
+  return errors;
+}
+
+export function validateOpencodeConfigObject(config: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  const unknown = Object.keys(config).filter((k) => !VALID_PROPS.has(k));
+  if (unknown.length > 0) errors.push('Unrecognized top-level properties');
+  if ('agent' in config) errors.push(...validateAgents(config.agent));
+  if ('mcp' in config) errors.push(...validateMCP(config.mcp));
+  if ('permission' in config) errors.push(...validatePermissions(config.permission));
+  if ('provider' in config) {
+    const providers = config.provider as Record<string, ProviderDef>;
+    const disabled = (config.disabled_providers as string[] | undefined) || [];
+    errors.push(...validateProviders(providers, disabled).filter((e) => !e.startsWith('INFO:')));
+  }
+  errors.push(...validateStackCritical(config));
   return errors;
 }
 

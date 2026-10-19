@@ -12,6 +12,10 @@
 
 ## 1. ESTATUS DE MARCA (LEER PRIMERO)
 
+**Nombre público único: GentleVanguard**, sin espacio ni guion, también en textos, títulos, SEO, metadatos y mensajes. En UI: `Gentle<span>Vanguard</span>`; «Gentle» en texto claro y «Vanguard» en el gradiente oficial. La configuración `config/brand.json` debe publicar ese mismo nombre. Los identificadores técnicos ya establecidos (repositorios, paquetes, rutas, dominios y claves de memoria `gentle-vanguard`) conservan su sintaxis; los documentos históricos conservan su trazabilidad. DD-20261017-02.
+
+En topbars, usar el icono SVG transparente canónico `assets/brand/gentle-vanguard/v2/svg/icons/gv-transparent.svg` cuando el bitmap oficial muestre una placa de fondo. No recortar, vectorizar ni redibujar la marca; copiar el activo oficial byte a byte. La variante transparente mantiene la superficie del shell continua tanto en claro como en oscuro.
+
 | Variante | Estatus | Uso |
 | --- | --- | --- |
 | **v2.1.0 — v2.0 APPLICATION FINAL (SVG Asset System v2.0)** | ✅ **OFICIAL — ÚNICA** | Usar SIEMPRE |
@@ -124,6 +128,14 @@ Vanguard Violet `#8B5CF6`, Soft White `#F8FAFC`, Black `#050A14`.
 
 ## 4. CONSUMO POR FORMATO
 
+### Contrato de implementación y entrega (DD-20261017-01)
+
+- **Identidad y composición son capas distintas.** Paleta, tipografía, activos y controles se heredan del canon; una landing puede tener arte, profundidad y movimiento propios sin inventar otra identidad. Registrar esa composición en el `DESIGN.md` de la superficie.
+- No usar una skill histórica, README de paquete antiguo o CSS acumulado de otra app como fuente de marca. `skills/brand-guidelines-gv/SKILL.md` referencia este kit; no debe mantener una paleta paralela.
+- Para webs estáticas, los snapshots salen directamente del paquete: **shell → tokens → estilos de composición**. No redefinir `--gv-*` en la app. El shell no debe cambiar acentos globales por tema; para contraste usar variantes semánticas en el elemento correspondiente.
+- Además del gate de fuente, ejecutar **`node --import tsx packages/gv-design-system/src/cli/conformance.ts --url <URL>`** sobre la web funcionando. Compara la cascada real dark/light contra un documento limpio con el CSS generado. Un archivo correcto no garantiza el estilo final.
+- Capturas desktop/mobile, tres idiomas, teclado, contraste y movimiento reducido forman parte de la entrega. Una animación decorativa continua tiene pausa y se detiene fuera de pantalla o con documento oculto. No declarar homologación total del stack a partir de una sola app ni de checks estáticos con listas de superficies.
+
 ### Apps nativas del stack (obligatorio)
 
 - Tokens: `@gentle-vanguard/design-system` (exports oficiales del paquete) — **no** rutas
@@ -175,6 +187,8 @@ Vanguard Violet `#8B5CF6`, Soft White `#F8FAFC`, Black `#050A14`.
 ---
 
 ## 6. GOTCHAS / REGLAS
+
+**Adopción 2026-10-18 (DD-20261018-01):** el núcleo de interacción y lectura se rige por `docs/design/07-motion-ux-standard.md` §§8–10. El shell incorpora `.gv-dialog` como patrón contextual opt-in. La composición cinematográfica de corporate-web es una aplicación comercial del canon; no una obligación de efectos para apps operativas. El inventario `packages/gv-design-system/src/cli/adoption.ts` registra consumidores y copias; homologación completa exige evidencia runtime por app. No confundir disponibilidad del componente compartido con migración verificada de toda la flota.
 
 1. **El alpha `#121212`/Orbitron está DEPRECADO.** No confundir con el canon.
 2. **Space Grotesk ya NO es la display font** (fue de v2 Premium). Hoy: Poppins 700. Space *Mono*

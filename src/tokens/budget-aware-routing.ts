@@ -144,7 +144,7 @@ function loadDailyBudget(): number {
 
 /**
  * Default downgrade model: the free-tier fallback from model-router.json
- * (opencode/mimo-v2.5-free) when the downgrade profile is 'cheap'. Profiles
+ * (opencode-zen-C/mimo-v2.6-flash-free) when the downgrade profile is 'cheap'. Profiles
  * balanced/premium map to the same native model in this environment, so
  * without an explicit downgradeModel they imply no model rewrite.
  */
@@ -160,7 +160,7 @@ function resolveDefaultDowngradeModel(profile: string, explicit?: string): strin
   } catch {
     /* ignore */
   }
-  return 'opencode/mimo-v2.5-free';
+  return 'opencode-zen-C/mimo-v2.6-flash-free';
 }
 
 /** Today's real usage from Nexus token_usage (same source as token:status). Returns 0 if DB unavailable. */
@@ -314,7 +314,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   if (args[0] === '--demo') {
     const path = args[1] ?? 'subagent';
-    const requested = args[2] ?? 'opencode/big-pickle';
+    const requested = args[2] ?? 'opencode-zen-C/big-pickle';
     const state = getBudgetRoutingState();
     const resolved = resolveBudgetAwareModel(path, requested);
     console.log(

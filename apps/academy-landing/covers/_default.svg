@@ -10,9 +10,9 @@
     </linearGradient>
   </defs>
   <rect width="400" height="560" rx="14" fill="url(#g)" stroke="url(#a)" stroke-width="2"/>
-  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#06B6D4" letter-spacing="2">GENTLE-VANGUARD</text>
+  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#06B6D4" letter-spacing="2">GentleVanguard</text>
   <text x="200" y="262" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#8b93a7" letter-spacing="3">ACADEMY</text>
   <rect x="120" y="285" width="160" height="3" rx="1.5" fill="url(#a)"/>
   <text x="200" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#e8eaf0">Material de IA</text>
-  <text x="200" y="356" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#8b93a7">listo para entregar</text>
+  <text x="200" y="356" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#8b93a7">para estudiar y aplicar</text>
 </svg>

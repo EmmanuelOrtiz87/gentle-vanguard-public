@@ -65,7 +65,7 @@ function parseArgs(): DomainTask {
   const args = process.argv.slice(2);
   const task: DomainTask = {
     task: '',
-    model: process.env.AGENT_MODEL || 'opencode/deepseek-v4-flash-free',
+    model: process.env.AGENT_MODEL || 'opencode-zen-C/big-pickle',
     temperature: parseFloat(process.env.AGENT_TEMPERATURE || '0.3'),
   };
 

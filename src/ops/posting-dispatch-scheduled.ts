@@ -15,6 +15,7 @@
 
 import { appendFileSync, existsSync, mkdirSync, statSync, renameSync, unlinkSync } from 'fs';
 import { join, resolve } from 'path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(process.cwd());
 const LOG = join(ROOT, '.runtime', 'posting-dispatch-scheduled.log');
@@ -52,11 +53,15 @@ function log(msg: string): void {
 }
 
 async function main(): Promise<void> {
+  if (!existsSync(join(ROOT, 'apps/content-cms/server/db.ts'))) {
+    log('SKIP: Content Studio is not installed; no posting is performed.');
+    return;
+  }
   // Import directo del CLI one-shot (mismo proceso, sin nieto de tsx CLI).
-  const { getContentDb } = await import('../../apps/content-cms/server/db');
-  const { createPostQueueDb } = await import('../../apps/content-cms/server/posting/sqlite-adapter');
+  const { getContentDb } = await import(pathToFileURL(join(ROOT, 'apps/content-cms/server/db.ts')).href);
+  const { createPostQueueDb } = await import(pathToFileURL(join(ROOT, 'apps/content-cms/server/posting/sqlite-adapter.ts')).href);
   const { createProviderRegistry, dispatchOnce } = await import(
-    '../../apps/content-cms/server/posting/dispatch'
+    pathToFileURL(join(ROOT, 'apps/content-cms/server/posting/dispatch.ts')).href
   );
 
   const db = getContentDb();

@@ -417,13 +417,25 @@ export async function checkGitHistorySecrets() {
   const dumpPath = join(tmpdir(), `gv-history-dump-${process.pid}.txt`);
   try {
     // Materialize a textual diff of recent commits on ALL branches.
-    const log = spawnSync('git', ['log', '--all', '--no-merges', '-p', `-${HISTORY_SCAN_DEPTH}`], {
-      cwd: ROOT,
-      encoding: 'utf-8',
-      maxBuffer: 512 * 1024 * 1024,
-      windowsHide: true,
-      timeout: 90000,
-    });
+    const log = spawnSync(
+      'git',
+      [
+        'log',
+        '--all',
+        '--no-merges',
+        '--no-ext-diff',
+        '--no-textconv',
+        '-p',
+        `-${HISTORY_SCAN_DEPTH}`,
+      ],
+      {
+        cwd: ROOT,
+        encoding: 'utf-8',
+        maxBuffer: 512 * 1024 * 1024,
+        windowsHide: true,
+        timeout: 90000,
+      },
+    );
     if (log.status !== 0) {
       addResult(
         'history-secrets',

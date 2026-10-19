@@ -27,7 +27,7 @@ interface ApplyTask {
 const AGENT_CONFIG = {
   name: 'sdd-apply',
   description: 'DEV implementation agent — code generation and feature building',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.15,
   maxTokens: 6000,
   version: '1.0.0',

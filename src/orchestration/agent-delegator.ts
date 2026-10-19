@@ -10,11 +10,13 @@
  *   npx tsx src/orchestration/agent-delegator.ts --list
  */
 
+import { createHash, randomUUID } from 'crypto';
 import { runNpxTsx } from '../core/run-command';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { compressStructural, estimateTokens } from '../compression/structural-compression.js';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js';
 import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
 import { registerAttempt, detectLoop } from '../resilience/anti-loop-guard.js';
 import { evaluateFailure } from '../security/guardrail-orchestrator.js';
@@ -143,6 +145,57 @@ export function compressDelegationLossless(text: string): DelegationCompression 
   };
 }
 
+export function recordDelegationCompressionSaving(
+  compression: DelegationCompression | null | undefined,
+  options: { label: 'task' | 'context'; source: string; sessionId?: string },
+): void {
+  if (!compression?.applied || compression.saved <= 0) return;
+  try {
+    const manager = DatabaseManager.getInstance();
+    const messageHash = createHash('sha256')
+      .update(
+        `${options.source}:${options.label}:${compression.originalChars}:${compression.compressedChars}`,
+      )
+      .digest('hex')
+      .slice(0, 16);
+    manager
+      .getDb()
+      .prepare(
+        `INSERT OR IGNORE INTO token_savings
+          (message_id, session_id, category, saved_tokens, source, created_at, tenant_id)
+         VALUES (?, ?, ?, ?, ?, datetime('now'), ?)`,
+      )
+      .run(
+        `delegation-compression:${messageHash}:${Date.now()}`,
+        options.sessionId ?? process.env.GENTLE_VANGUARD_SESSION_ID ?? null,
+        'delegation-compression',
+        compression.saved,
+        `${options.source}:${options.label}`,
+        process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID,
+      );
+    const now = Date.now();
+    manager.insertTrace({
+      span_id: randomUUID(),
+      trace_id: `delegation-compression-${messageHash}`,
+      name: 'delegation-compression.saved',
+      start_time: now,
+      end_time: now,
+      duration: 0.001,
+      status: 'completed',
+      input_tokens: compression.originalTokens,
+      output_tokens: compression.compressedTokens,
+      attributes: JSON.stringify({
+        source: options.source,
+        label: options.label,
+        savedTokens: compression.saved,
+        ratio: compression.ratio,
+      }),
+    });
+  } catch {
+    // Telemetry is best-effort; compression must never break delegation.
+  }
+}
+
 const AGENTS_DIR = join(process.cwd(), 'src', 'agents');
 const CONFIG_PATH = join(process.cwd(), 'config', 'agents.json');
 
@@ -151,7 +204,7 @@ const DEFAULT_AGENTS: Record<string, AgentConfig> = {
   'sdd-explore': {
     name: 'sdd-explore',
     description: 'BA exploration agent — requirements gathering and analysis',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.7,
     maxTokens: 4000,
     systemPrompt: `You are the BA exploration agent for Gentle-Vanguard.
@@ -175,7 +228,7 @@ Output Format:
   'sdd-design': {
     name: 'sdd-design',
     description: 'SAD architecture design agent — system design and API contracts',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.3,
     maxTokens: 4000,
     systemPrompt: `You are the SAD architecture design agent for Gentle-Vanguard.
@@ -199,7 +252,7 @@ Output:
   'sdd-apply': {
     name: 'sdd-apply',
     description: 'DEV implementation agent — code generation and feature building',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.15,
     maxTokens: 6000,
     systemPrompt: `You are the DEV implementation agent for Gentle-Vanguard.
@@ -224,7 +277,7 @@ Quality Gates (must pass):
   'sdd-verify': {
     name: 'sdd-verify',
     description: 'QA verification agent — testing and validation',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.1,
     maxTokens: 4000,
     systemPrompt: `You are the QA verification agent for Gentle-Vanguard.
@@ -250,7 +303,7 @@ Evidence Required:
   'doc-agent': {
     name: 'doc-agent',
     description: 'Documentation agent — technical docs and guides',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.4,
     maxTokens: 4000,
     systemPrompt: `You are the Documentation agent for Gentle-Vanguard.
@@ -271,7 +324,7 @@ Documentation Standards:
   'ops-agent': {
     name: 'ops-agent',
     description: 'Operations agent — deployment, CI/CD, infrastructure',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.1,
     maxTokens: 4000,
     systemPrompt: `You are the Operations agent for Gentle-Vanguard.
@@ -291,7 +344,7 @@ Expertise:
   'gov-agent': {
     name: 'gov-agent',
     description: 'Governance agent — compliance, security, audit',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.1,
     maxTokens: 4000,
     systemPrompt: `You are the Governance agent for Gentle-Vanguard.
@@ -311,7 +364,7 @@ Areas:
   'session-agent': {
     name: 'session-agent',
     description: 'Session management agent — state tracking and lifecycle',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.3,
     maxTokens: 3000,
     systemPrompt: `You are the Session agent for Gentle-Vanguard.
@@ -325,7 +378,7 @@ Core Responsibilities:
   'self-diag-agent': {
     name: 'self-diag-agent',
     description: 'Self-diagnosis agent — auto-debug and recovery',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.1,
     maxTokens: 4000,
     systemPrompt: `You are the Self-Diagnosis agent for Gentle-Vanguard.
@@ -339,7 +392,7 @@ Core Responsibilities:
   'premortem-agent': {
     name: 'premortem-agent',
     description: 'Premortem analysis agent — risk identification',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.2,
     maxTokens: 4000,
     systemPrompt: `You are the Premortem agent for Gentle-Vanguard.
@@ -353,7 +406,7 @@ Core Responsibilities:
   'maintenance-agent': {
     name: 'maintenance-agent',
     description: 'Maintenance agent — cleanup and optimization',
-    model: 'opencode/deepseek-v4-flash-free',
+    model: 'opencode-zen-C/big-pickle',
     temperature: 0.1,
     maxTokens: 3000,
     systemPrompt: `You are the Maintenance agent for Gentle-Vanguard.
@@ -611,11 +664,19 @@ async function runNativeAgent(
       logger.info(
         `[agent-delegator] compressed task: ${taskCompressed.originalChars} -> ${taskCompressed.compressedChars} chars (ratio ${taskCompressed.ratio.toFixed(3)})`,
       );
+      recordDelegationCompressionSaving(taskCompressed, {
+        label: 'task',
+        source: `agent-delegator:${request.agent}`,
+      });
     }
     if (contextCompressed?.applied) {
       logger.info(
         `[agent-delegator] compressed context: ${contextCompressed.originalChars} -> ${contextCompressed.compressedChars} chars (ratio ${contextCompressed.ratio.toFixed(3)})`,
       );
+      recordDelegationCompressionSaving(contextCompressed, {
+        label: 'context',
+        source: `agent-delegator:${request.agent}`,
+      });
     }
 
     const args = ['--task', taskCompressed.text, '--model', model];

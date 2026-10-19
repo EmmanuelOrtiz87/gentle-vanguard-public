@@ -45,6 +45,7 @@ export interface CatalogItem {
   categories: string[];
   tags: string[];
   price: number;
+  includedSlugs?: string[];
 }
 
 export interface Recommendation {
@@ -150,6 +151,7 @@ export function loadCatalog(repoRoot: string = process.cwd()): CatalogItem[] {
       if (!existsSync(path)) continue;
       try {
         const raw = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+        if (raw.salesStatus === 'reference-only') continue;
         const slug = typeof raw.id === 'string' && raw.id ? raw.id : entry.name;
         const tier = raw.priceTier as Tier | undefined;
         if (!tier || !(tier in prices)) continue;
@@ -163,6 +165,8 @@ export function loadCatalog(repoRoot: string = process.cwd()): CatalogItem[] {
           categories: Array.isArray(raw.categories) ? (raw.categories as string[]) : [],
           tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : [],
           price: prices[tier] ?? 0,
+          includedSlugs: raw.links && typeof raw.links === 'object'
+            ? Object.values(raw.links).filter((s): s is string => typeof s === 'string') : [],
         });
       } catch {
         /* manifest roto: catalog.ts ya lo reporta; acá se ignora */
@@ -180,8 +184,8 @@ function loadPrices(path: string): Record<string, number> {
     };
     const out: Record<string, number> = {};
     for (const [tier, v] of Object.entries(raw.products ?? {})) {
-      const n = typeof v?.price === 'number' ? v.price : Number.parseFloat(String(v?.price));
-      if (Number.isFinite(n)) out[tier] = n;
+      const n = v?.price;
+      if (typeof n === 'number' && Number.isFinite(n) && n > 0) out[tier] = n;
     }
     return out;
   } catch {
@@ -227,6 +231,10 @@ export function buildRecommendations(
 
   const push = (item: CatalogItem | undefined, why: string, score: number, reason: RelationKind) => {
     if (!item || seen.has(item.slug)) return;
+    // No cobrar otra vez componentes ya incluidos, tampoco mediante un pack
+    // completo ofrecido como upgrade sin crédito por el material adquirido.
+    const owned = new Set([bought.slug, ...(bought.includedSlugs || [])]);
+    if ([item.slug, ...(item.includedSlugs || [])].some((slug) => owned.has(slug))) return;
     if (!priceMakesSense(bought.price, item.price)) return;
     seen.add(item.slug);
     out.push({
@@ -251,7 +259,7 @@ export function buildRecommendations(
   for (const item of catalog) {
     if (item.kind !== 'toolkit') continue;
     if (bundleIncludes(item.slug, bought.slug) && !seen.has(item.slug)) {
-      const why = 'Trae el material del curso más plantillas, prompts y casos reales.';
+      const why = 'Trae el material del curso más plantillas, prompts y casos de ejemplo.';
       push(item, why, 0.9, 'bundle');
     }
   }
@@ -305,7 +313,7 @@ export function applyTouchLimit(
   maxTouches = 2,
 ): { visible: Recommendation[]; exhausted: string[] } {
   const counts = new Map<string, number>();
-  if (alreadyOffered instanceof Map) {
+  if ('get' in alreadyOffered) {
     for (const [slug, count] of alreadyOffered) counts.set(slug, Math.max(0, count));
   } else {
     for (const slug of alreadyOffered) counts.set(slug, 1);

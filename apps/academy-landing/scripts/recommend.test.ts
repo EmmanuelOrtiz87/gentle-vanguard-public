@@ -46,6 +46,21 @@ const CATALOG: CatalogItem[] = [
   item('programa-empresas', 'course', 'program-custom', 250, { tags: ['empresas'], categories: ['corporativo'] }),
 ];
 
+test('un paquete real no recomienda componentes incluidos ni packs con cargos superpuestos', () => {
+  const catalog = loadCatalog();
+  const bought = catalog.find(c => c.slug === 'ia-docentes-pro')!;
+  assert.ok(bought.includedSlugs?.includes('ia-fundamentos'));
+  const owned = new Set([bought.slug, ...bought.includedSlugs!]);
+  const recs = buildRecommendations(bought, catalog, 100);
+  for (const rec of recs) {
+    const offer = catalog.find(c=>c.slug===rec.slug)!;
+    assert.ok(![offer.slug,...offer.includedSlugs || []].some(id=>owned.has(id)));
+  }
+  const manual = catalog.find(c=>c.slug==='manual-ia-docentes')!;
+  assert.ok(!buildRecommendations(manual,catalog,100).some(c=>c.slug==='ia-docentes-pro'));
+  assert.ok(!catalog.some(c=>c.slug==='ia-docentes'));
+});
+
 // ── filtros duros ───────────────────────────────────────────────────────
 
 test('NUNCA ofrece el producto ya comprado', () => {

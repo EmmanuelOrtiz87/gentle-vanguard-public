@@ -84,6 +84,15 @@ The gentle-vanguard includes integration with:
 | **Claude Code**          | AI coding agent          | https://claude.ai/code                                           |
 | **Native Review Engine** | Built-in workflow review | `./src/cli/gv.ts review`                                         |
 | **engram**               | Persistent memory        | `go install github.com/gentle-vanguard/engram/cmd/engram@latest` |
+| **rea**                  | Reverse engineering MCP  | `npm install -g rea-agents`                                      |
+
+`engram` and `rea` (both category `stack` in the dependency catalog) are provisioned
+automatically by `npm run stack:setup` / `npm run deps:install`; verify with
+`npm run deps:check` and `npm run install:doctor`. The optional native-analysis engine
+(`Ghidra` + `JDK 21`) is validated by `deps:check` through the `GHIDRA_INSTALL_DIR` and
+`JAVA_HOME` environment variables; it is bring-your-own (no auto-install). The REA Android
+tools additionally need `adb`, validated through `REA_ADB_PATH` (point it at the Android SDK
+`platform-tools/adb` binary).
 
 Windows one-shot update (no brew required): `./src/cli/gv.ts update-tools`
 

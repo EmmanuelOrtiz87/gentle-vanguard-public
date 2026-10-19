@@ -9,11 +9,14 @@ import {
   loadManifest,
   loadPlatformRegistry,
   packageJob,
+  previewJob,
   transition,
   validate,
   type Job,
   type PlatformRegistry,
 } from '../../src/content-operations/engine.js';
+import { preparePublication } from '../../src/content-operations/publication.js';
+import { buildShortQueueIntent, createJobFromShortRequest } from '../../src/content-operations/shorts.js';
 
 const baseJob: Job = {
   id: 'TEST-001',
@@ -30,6 +33,83 @@ const baseJob: Job = {
 
 test('content operations validates a complete job', () => {
   assert.deepEqual(validate(baseJob), []);
+});
+
+test('content operations previews a valid job without mutating it', () => {
+  const registry: PlatformRegistry = {
+    version: '1.0.0',
+    platforms: { linkedin: { mode: 'adapter', media: true, approvalRequired: true } },
+  };
+  const result = previewJob({ ...baseJob, asset: 'assets/example.png' }, registry);
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.data.publishStatus, 'READY_FOR_APPROVAL');
+    assert.deepEqual(result.data.errors, []);
+  }
+});
+
+test('content operations preview blocks invalid remote jobs', () => {
+  const registry: PlatformRegistry = {
+    version: '1.0.0',
+    platforms: { tiktok: { mode: 'adapter', media: true, approvalRequired: true } },
+  };
+  const result = previewJob({ ...baseJob, id: 'TEST-PREVIEW', platform: 'tiktok', approvalRequired: false }, registry);
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.data.publishStatus, 'BLOCKED');
+    assert.ok(result.data.errors.includes('approvalRequired must be true for remote publication'));
+  }
+});
+
+test('publication planning is fail-closed until approval and target are present', () => {
+  const registry: PlatformRegistry = {
+    version: '1.0.0',
+    platforms: { tiktok: { mode: 'adapter', media: true, approvalRequired: true } },
+  };
+  const blocked = preparePublication({ ...baseJob, platform: 'tiktok', asset: 'video.mp4' }, registry);
+  assert.equal(blocked.ok, false);
+  if (!blocked.ok) assert.match(blocked.error.message, /APPROVED/);
+
+  const ready = preparePublication(
+    { ...baseJob, platform: 'tiktok', asset: 'video.mp4', status: 'APPROVED' },
+    registry,
+    { accountId: 'tiktok-account-1' },
+  );
+  assert.equal(ready.ok, true);
+  if (ready.ok) {
+    assert.equal(ready.data.dryRun, true);
+    assert.equal(ready.data.adapter, 'tiktok-content-posting');
+    assert.equal(ready.data.target.accountId, 'tiktok-account-1');
+  }
+});
+
+test('ContentOS creates an auditable draft from gv-shorts-core input', () => {
+  const job = createJobFromShortRequest({
+    id: 'SHORT-001',
+    date: '2026-10-10',
+    campaign: 'GV KNOWLEDGE',
+    theme: 'ContentOS',
+    request: {
+      brief: 'Explicar como funciona el stack local-first de Gentle-Vanguard',
+      platform: 'youtube',
+      aspect: '9:16',
+      durationSec: 30,
+    },
+    asset: 'runtime/shorts/SHORT-001.mp4',
+  });
+  assert.equal(job.platform, 'youtube');
+  assert.equal(job.contentType, 'short-video');
+  assert.equal(job.status, 'DRAFT');
+  assert.equal(job.approvalRequired, true);
+  assert.equal(job.copy, 'Explicar como funciona el stack local-first de Gentle-Vanguard');
+});
+
+test('short queue intent is deterministic and idempotent', () => {
+  const request = { brief: 'Crear un short sobre el stack GV', platform: 'tiktok' as const, aspect: '9:16' as const, durationSec: 30 };
+  const first = buildShortQueueIntent({ id: 'same-input', request });
+  const second = buildShortQueueIntent({ id: 'same-input', request });
+  assert.deepEqual(first, second);
+  assert.match(first.eventId, /^short-[a-f0-9]{24}$/);
 });
 
 test('content operations rejects remote jobs without approval', () => {

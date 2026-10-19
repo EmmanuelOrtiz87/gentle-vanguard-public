@@ -48,6 +48,8 @@ export interface RegressionResult {
   checks: Array<{ metric: string; status: 'PASS' | 'NEUTRAL' | 'FAIL'; detail: string }>;
 }
 
+const MIN_LATENCY_P95_SAMPLES = 50;
+
 export function percentile(values: number[], percentileValue: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -209,7 +211,10 @@ export function evaluateRegression(
     'latency.p95',
     current.latency.p95,
     accepted.latency.p95,
-    current.quality.latency === 'sufficient' && accepted.quality.latency === 'sufficient',
+    current.quality.latency === 'sufficient' &&
+      accepted.quality.latency === 'sufficient' &&
+      current.latency.samples >= MIN_LATENCY_P95_SAMPLES &&
+      accepted.latency.samples >= MIN_LATENCY_P95_SAMPLES,
     20,
   );
   compareIncrease(

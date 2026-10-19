@@ -1,5 +1,5 @@
-import { compressPrompt } from '../../compression/prompt-compression.js';
 import { compressOutput } from '../../compression/output-compression.js';
+import { preProcessLLMInput } from '../../ml/llm-call-wrapper.js';
 import { enforceChatLevel } from '../../orchestration/chat-level-enforcer.js';
 import { ResponseCache, generateCacheKey } from '../../resilience/response-cache.js';
 import { getConfig } from './config.js';
@@ -92,9 +92,10 @@ async function runPreProcessStage(
   const start = Date.now();
   const original = input.prompt;
   const originalTokens = estimateTokens(original);
+  const hasHistory = Boolean(input.useSessionHistory || input.previousTurns?.length);
 
   try {
-    if (!config.preProcessCompression) {
+    if (!config.preProcessCompression && !hasHistory) {
       return {
         stage: 'pre-process',
         input: original,
@@ -107,18 +108,27 @@ async function runPreProcessStage(
       };
     }
 
-    // Use prompt compression
-    const compressed = compressPrompt(original, input.skill ?? 'default');
-    const tokensOut = estimateTokens(compressed.compressed);
+    const processed = preProcessLLMInput(
+      original,
+      {
+        skill: input.skill,
+        previousTurns: input.previousTurns,
+        sessionId: input.sessionId,
+        useSessionHistory: input.useSessionHistory,
+        historyTurns: input.historyTurns,
+        skipCompression: !config.preProcessCompression,
+      },
+      { recordContextTelemetry: Boolean(input.useSessionHistory || input.previousTurns?.length) },
+    );
 
     return {
       stage: 'pre-process',
       input: original,
-      output: compressed.compressed,
+      output: processed.processedPrompt,
       durationMs: Date.now() - start,
-      tokensIn: originalTokens,
-      tokensOut,
-      savings: originalTokens - tokensOut,
+      tokensIn: processed.originalTokens,
+      tokensOut: processed.compressedTokens,
+      savings: processed.originalTokens - processed.compressedTokens,
       success: true,
     };
   } catch (err) {
@@ -322,7 +332,10 @@ export async function runPipeline(
   }
 
   // Stage 2: Pre-process (prompt compression)
-  if (!options.skipPreProcess && config.preProcessCompression) {
+  if (
+    !options.skipPreProcess &&
+    (config.preProcessCompression || input.useSessionHistory || input.previousTurns?.length)
+  ) {
     const preProcess = await runPreProcessStage(input, config);
     stages.push(preProcess);
     input = { ...input, prompt: preProcess.output as string };

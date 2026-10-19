@@ -3,7 +3,7 @@
  * Model Enforcer - Garantiza uso del modelo gratuito disponible
  *
  * Cuando se detecta que un modelo tiene cuota agotada o no está disponible,
- * automáticamente reasigna todo el stack a usar opencode/deepseek-v4-flash-free
+ * automáticamente reasigna todo el stack a usar opencode-zen-C/big-pickle
  * que es el único modelo gratuito y disponible.
  *
  * Uso: npx tsx src/ml/model-enforcer.ts [--check] [--apply]
@@ -18,7 +18,7 @@ const ACTIVE_MODEL_PATH = join(ROOT, '.runtime', 'model-active.json');
 const PREFERENCE_PATH = join(ROOT, 'config', 'model-preference.json');
 const OPENCODE_CONFIG_PATH = join(ROOT, 'opencode.json');
 
-const FREE_MODEL = 'opencode/deepseek-v4-flash-free';
+const FREE_MODEL = 'opencode-zen-C/big-pickle';
 const FREE_PROVIDER = 'opencode';
 
 function getPreferredModel(): { model: string; provider: string } {
@@ -230,7 +230,7 @@ Uso:
 
 Descripción:
   Garantiza que todo el stack use el modelo gratuito disponible
-  (opencode/deepseek-v4-flash-free) cuando otros modelos
+  (opencode-zen-C/big-pickle) cuando otros modelos
   tengan cuota agotada o no estén disponibles.
 `);
   }

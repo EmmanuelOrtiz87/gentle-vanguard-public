@@ -13,6 +13,10 @@ export interface PipelineInput {
   prompt: string;
   context?: string;
   skill?: string;
+  previousTurns?: string[];
+  sessionId?: string;
+  useSessionHistory?: boolean;
+  historyTurns?: number;
   maxPromptTokens?: number;
   maxResponseTokens?: number;
   chatLevel?: ChatLevel;

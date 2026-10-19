@@ -1,0 +1,49 @@
+/* Architecture is the shared shell. Page content and editing canvases retain their purpose. */
+:root, :root[data-theme="dark"], :root[data-theme="light"] {
+  --bg:var(--gv-bg); --bg0:var(--gv-bg); --bg1:var(--gv-surface); --bg2:var(--gv-surface-raised);
+  --card:var(--gv-surface); --br:var(--gv-border); --br-soft:var(--gv-border); --border:var(--gv-border);
+  --text:var(--gv-text); --text-dim:var(--gv-text-secondary); --muted:var(--gv-text-secondary);
+  --p:var(--gv-cyan); --s:var(--gv-purple); --grad-start:var(--gv-purple); --grad-end:var(--gv-cyan);
+  --text-faint:var(--gv-text-secondary);
+}
+body { background:var(--gv-bg); color:var(--gv-text); font-family:var(--gv-font-body); }
+h1,h2,h3,h4,.gv-brand-wordmark { font-family:var(--gv-font-display); font-weight:700; }
+.gv-topbar { background:var(--gv-bg); border-bottom:1px solid var(--gv-border); padding-block:0; }
+.gv-topbar-inner { width:100%; max-width:1600px; margin-inline:auto; padding-inline:24px; }
+.gv-topbar .gv-brand-logo { width:32px; height:32px; object-fit:contain; }
+.gv-topbar button { font-family:var(--gv-font-body); }
+.section-card,.card-dao,.control-panel,.sidebar,.toolbar { color:var(--gv-text); border-color:var(--gv-border); }
+.section-card,.card-dao { background:var(--gv-surface); }
+.sh p { color:var(--gv-text-secondary); }
+.hero .text-secondary { color:var(--gv-text-secondary)!important; }
+.btn-generate { background:var(--gv-gradient); color:#fff; min-height:44px; }
+.sidebar,.layers-panel,.templates-panel,.toolbar { background:var(--gv-surface); }
+.control-input,.control-select,.prompt-box { background:var(--gv-bg); color:var(--gv-text); border-color:var(--gv-border); }
+.sidebar .nav-item { color:var(--gv-text-secondary); }
+.sidebar .nav-item.active,.sidebar .nav-item:hover { color:var(--gv-cyan); }
+.sidebar-logo .icon { background:transparent!important; font-size:0!important; }
+.sidebar-logo .icon::before { content:""; width:32px; height:32px; background:url('../canon/icon.svg') center/contain no-repeat; }
+.stat-card .value { color:var(--gv-cyan); }
+.gv-doc-section-menu { display:none; }
+@media(max-width:768px) {
+  .main-container { flex-direction:column; min-width:0; }
+  .main-container>.sidebar,.main-container>.right-panel,.main-container>.layers-panel,.main-container>.templates-panel,.main-container>.preview-panel { width:100%; max-width:100%; max-height:none; height:auto; flex-shrink:0; }
+  .main-container>.content-area,.main-container>.canvas-area { width:100%; min-width:0; padding:20px; overflow:visible; }
+  .contract-header { flex-direction:column; gap:16px; }
+  .contract-header .actions { flex-wrap:wrap; }
+  .toolbar,.toolbar-left,.toolbar-group,.editor-toolbar { display:flex; flex-wrap:wrap; min-width:0; gap:8px; }
+  .toolbar>* { max-width:100%; }
+  .editor-container { min-width:0; max-width:100%; }
+  .info-grid,.signature-grid { grid-template-columns:1fr; }
+  .gv-doc-section-menu { display:block; width:calc(100% - 32px); margin:16px; padding:12px; min-height:44px; background:var(--gv-surface); color:var(--gv-text); border:1px solid var(--gv-border); border-radius:var(--gv-radius-sm); }
+  .control-panel>.sidebar.is-open { display:block; width:100%; height:auto; position:static; }
+}
+.hero { flex-direction:column; }
+.hero h1 { font-weight:700!important; }
+body>footer { color:var(--gv-text-secondary); border-color:var(--gv-border); }
+.gv-document-footer { padding:32px 24px; text-align:center; border-top:1px solid var(--gv-border); background:var(--gv-bg); }
+.gv-document-footer nav { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 24px; }
+.gv-document-footer a { display:inline-flex; align-items:center; min-height:44px; color:var(--gv-text-secondary); text-underline-offset:4px; }
+button,input,select,textarea { font-family:var(--gv-font-body); }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid var(--gv-cyan); outline-offset:3px; }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }

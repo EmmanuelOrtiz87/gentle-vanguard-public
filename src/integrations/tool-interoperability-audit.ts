@@ -10,7 +10,7 @@ import { runSync } from '../core/run-command.js';
 
 type Status = 'PASS' | 'WARN' | 'FAIL';
 
-interface ToolAudit {
+export interface ToolAudit {
   tool: string;
   status: Status;
   profile: boolean;
@@ -30,6 +30,15 @@ interface SkillTreeComparison {
   fresh: boolean;
   differences: string[];
 }
+
+const EXPECTED_TOOL_SURFACES = [
+  'OpenCode',
+  'Codex',
+  'ZCode',
+  'MiniMax Code',
+  'GitHub Copilot',
+  'Antigravity',
+];
 
 function listRelativeFiles(root: string, current = root): string[] {
   if (!existsSync(current)) return [];
@@ -68,11 +77,47 @@ export function compareSkillTrees(source: string, target: string): SkillTreeComp
   return { fresh: differences.length === 0, differences };
 }
 
-function criticalSkillsFresh(root: string, targetRoot: string): boolean {
+const CODEX_MANAGED_IMPECCABLE_EXTRAS = new Set([
+  'scripts/detector/browser/injected/index.mjs',
+  'scripts/detector/injected/index.mjs',
+  'scripts/detector/cli/main.mjs',
+  'scripts/detector/design-system.mjs',
+  'scripts/detector/detect-antipatterns-browser.js',
+  'scripts/detector/detect-antipatterns.mjs',
+  'scripts/detector/engines/browser/detect-url.mjs',
+  'scripts/detector/engines/regex/detect-text.mjs',
+  'scripts/detector/engines/static-html/css-cascade.mjs',
+  'scripts/detector/engines/static-html/detect-html.mjs',
+  'scripts/detector/engines/visual/screenshot-contrast.mjs',
+  'scripts/detector/findings.mjs',
+  'scripts/detector/node/file-system.mjs',
+  'scripts/detector/profile/profiler.mjs',
+  'scripts/detector/registry/antipatterns.mjs',
+  'scripts/detector/rules/checks.mjs',
+  'scripts/detector/shared/color.mjs',
+  'scripts/detector/shared/constants.mjs',
+  'scripts/detector/shared/fonts.mjs',
+  'scripts/detector/shared/inline-ignores.mjs',
+  'scripts/detector/shared/page.mjs',
+  'scripts/lib/download-providers.js',
+  'scripts/lib/impeccable-config.mjs',
+]);
+
+function criticalSkillsFresh(
+  root: string,
+  targetRoot: string,
+  toleratedUnexpected = new Set<string>(),
+): boolean {
   return CRITICAL_SKILLS.every((skill) => {
     const sourceRoot =
       skill.root === 'opencode' ? join(root, '.opencode', 'skills') : join(root, 'skills');
-    return compareSkillTrees(join(sourceRoot, skill.dir), join(targetRoot, skill.dir)).fresh;
+    const comparison = compareSkillTrees(join(sourceRoot, skill.dir), join(targetRoot, skill.dir));
+    return (
+      comparison.differences.every((difference) => {
+        if (!difference.startsWith('unexpected:')) return false;
+        return toleratedUnexpected.has(`${skill.dir}/${difference.slice('unexpected:'.length)}`);
+      }) || comparison.fresh
+    );
   });
 }
 
@@ -192,6 +237,27 @@ function fileContains(path: string, pattern: RegExp): boolean {
   }
 }
 
+export function hasMiniMaxEngramMcpRuntime(path: string): boolean {
+  const config = readJson(path);
+  const servers = config?.servers;
+  if (!Array.isArray(servers)) return false;
+  return servers.some((server) => {
+    if (!server || typeof server !== 'object') return false;
+    const record = server as Record<string, unknown>;
+    const name = `${record.raw ?? ''} ${record.segment ?? ''}`.toLowerCase();
+    if (!name.includes('engram')) return false;
+    const tools = record.tools;
+    return (
+      Array.isArray(tools) &&
+      tools.some((tool) => {
+        if (!tool || typeof tool !== 'object') return false;
+        const toolRecord = tool as Record<string, unknown>;
+        return `${toolRecord.raw ?? ''} ${toolRecord.segment ?? ''}`.includes('mem_');
+      })
+    );
+  });
+}
+
 export function auditTools(
   root = process.cwd(),
   home = homedir(),
@@ -209,7 +275,11 @@ export function auditTools(
   const hookSafe = zcodeHooksSafe(join(home, '.zcode', 'cli', 'config.json'));
   const engramAvailable = commandAvailable('engram', pathValue);
   const zcodeAssetsFresh = criticalSkillsFresh(root, join(home, '.zcode', 'skills'));
-  const codexAssetsFresh = criticalSkillsFresh(root, join(home, '.codex', 'skills'));
+  const codexAssetsFresh = criticalSkillsFresh(
+    root,
+    join(home, '.codex', 'skills'),
+    new Set([...CODEX_MANAGED_IMPECCABLE_EXTRAS].map((file) => `impeccable/${file}`)),
+  );
   const minimaxAssetsFresh = criticalSkillsFresh(
     root,
     join(home, '.minimax', 'agents', 'mavis', 'skills'),
@@ -255,6 +325,7 @@ export function auditTools(
     join(home, '.gemini', 'GEMINI.md'),
     /Engram|Memory Protocol/i,
   );
+  const minimaxMcp = hasMiniMaxEngramMcpRuntime(join(home, '.minimax', 'mcp-runtime-names.json'));
 
   return [
     {
@@ -335,7 +406,7 @@ export function auditTools(
         existsSync(join(home, '.minimax', 'config.yaml')) &&
         minimaxSkills >= expectedSkills &&
         minimaxAssetsFresh &&
-        engramAvailable &&
+        (minimaxMcp || engramAvailable) &&
         existsSync(join(root, 'AGENTS.md'))
           ? 'PASS'
           : 'WARN',
@@ -345,11 +416,13 @@ export function auditTools(
       agents: null,
       skills: minimaxSkills,
       hooks: 'n/a',
-      engram: engramAvailable ? 'cli-fallback' : 'missing',
+      engram: minimaxMcp ? 'mcp' : engramAvailable ? 'cli-fallback' : 'missing',
       instructions: minimaxSkills >= expectedSkills && existsSync(join(root, 'AGENTS.md')),
       assets: minimaxAssetsFresh ? 'fresh' : 'stale',
       runtimeVariant: 'desktop/pi-agent',
-      detail: 'Runtime desktop/pi-agent; Engram CLI es fallback hasta configurar MCP desde /mcp',
+      detail: minimaxMcp
+        ? 'Runtime desktop/pi-agent; Engram MCP detectado en mcp-runtime-names.json'
+        : 'Runtime desktop/pi-agent; Engram CLI es fallback hasta configurar MCP desde /mcp',
     },
     {
       tool: 'GitHub Copilot',
@@ -400,6 +473,26 @@ export function auditTools(
       detail: 'Desktop runtime, workspace skills, MCP compartido y Memory Protocol',
     },
   ];
+}
+
+export function evaluateToolAudit(rows: ToolAudit[]): { passed: boolean; detail: string } {
+  const byTool = new Map(rows.map((row) => [row.tool, row]));
+  const missing = EXPECTED_TOOL_SURFACES.filter((tool) => !byTool.has(tool));
+  if (missing.length > 0) {
+    return { passed: false, detail: `missing tool surfaces: ${missing.join(', ')}` };
+  }
+
+  const nonPassing = EXPECTED_TOOL_SURFACES.map((tool) => byTool.get(tool)!)
+    .filter((row) => row.status !== 'PASS')
+    .map((row) => `${row.tool}=${row.status}`);
+  if (nonPassing.length > 0) {
+    return { passed: false, detail: `non-PASS tools: ${nonPassing.join(', ')}` };
+  }
+
+  return {
+    passed: true,
+    detail: `${EXPECTED_TOOL_SURFACES.length}/${EXPECTED_TOOL_SURFACES.length} tool surfaces PASS`,
+  };
 }
 
 function markdown(rows: ToolAudit[], generatedAt: string): string {

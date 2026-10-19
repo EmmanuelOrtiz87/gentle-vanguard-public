@@ -1,28 +1,20 @@
 # Academy Landing (pública)
 
 Landing de marketing **estática y autocontenida** para tráfico externo. Es la puerta de entrada
-comercial de la Academy fuera de la app: hero con stats, destacados con covers, manuales premium,
-micro-ebooks, pricing por tiers y formulario de captura de leads.
+comercial de Academy fuera de la app: portada de aprendizaje, catálogo paginado con portadas,
+precio y alcance por ficha, acompañamiento y contacto revisable por WhatsApp/correo.
 
-## Servir
 
-```bash
-./start.sh   # idempotente: node tools/serve-static.mjs :4174 bind 127.0.0.1, pidfile .runtime/app-academy-landing-http.pid
-./stop.sh    # pidfile + fallback por puerto
-# Abrir http://127.0.0.1:4174/
-```
+## Servir y publicar (sitio unificado)
 
-Registrada en Command Center (`http://127.0.0.1:8090`, app `academy-landing`) con el mismo puerto y
-pidfile, por lo que ambas vías conviven.
-
-Alternativas manuales:
-
-```bash
-# Desde la raíz del repo (sirve la app directamente):
-node tools/serve-static.mjs 4174 apps/academy-landing
-```
-
-También funciona con `file://` abriendo `index.html` directamente (los covers son rutas relativas).
+Publicada en https://gentlevanguard.github.io/academy/. La raíz del host es la web corporativa.
+Command Center muestra una sola tarjeta **Web GentleVanguard**; el ID `academy-landing` se conserva como alias compatible.
+Los launchers `start.sh` y `stop.sh` delegan en el ciclo de vida de corporate-web.
+Vista local: http://127.0.0.1:4188/academy/.
+Fuente del catálogo: esta carpeta y su generador; no se duplica el catálogo en corporate-web.
+Construcción única: `npm run web:prepare`. Validación: `npm run web:check` y `npm run web:verify`.
+Publicación única: `npm run web:publish` (`-- --dry-run` sólo prepara y valida).
+La exportación excluye scripts, README privados, runtime y launchers.
 
 ## Regenerar
 
@@ -82,3 +74,20 @@ Para deploy manual: `Actions → Deploy Academy Landing → Run workflow`.
 | `index.html`                               | Landing generada (NO editar a mano — regenerar con el script) |
 | `covers/*.svg`                             | Portadas de los productos destacados (copiadas por el script) |
 | `../academy-web/scripts/build-landing.mjs` | Script generador (fuente de verdad del template)              |
+
+
+## Catálogo · refinamiento del 18-10-2026
+
+Tarjetas compactas con portada, resumen normalizado, precio y compra visibles. Descripción completa en detalle accesible; grilla de 1/2/3/4 columnas. Desde el 19-10-2026 se navega por páginas numeradas con Anterior/Siguiente. Búsqueda y tema filtran la vista seleccionada y su estado se explica junto al control de restablecimiento. El generador y `catalog-card.mjs` conservan esta estructura al regenerar; la presentación normaliza el nombre público sin renombrar slugs o el catálogo fuente. Precios en cada ficha y pack; acompañamiento y alcance usan `landing-sections.mjs`/`offers.css`, sin cambiar tarifas ni política comercial. Diseño y límites: [DESIGN.md](DESIGN.md). Regresión: `npm run web:catalog:verify`. Command Center mantiene una sola entrada pública, Web GentleVanguard, puerto 4188.
+
+### Simplificación y continuidad corporativa · 19-10-2026
+
+La vista inicial contiene los 86 materiales. La búsqueda opera en el tipo seleccionado y el estado visible explica tipo, texto, tema y cantidad. “Ver todo el material” restablece esos criterios y la página. Se retiró el comparador que actuaba como segunda navegación; precio y compra permanecen en las fichas y el pack mantiene una consulta independiente. Cabecera, retorno a la empresa como botón, menú móvil, tema claro/oscuro y back-to-top usan criterios GV. La portada añade arte propio de aprendizaje. Fuentes: `academy-page.mjs`, `academy.css/js`, `catalog.js`; shell/fonts/tokens se verifican con `npm run design:surfaces:check`. El español continúa según el waiver; no se afirma traducción integral ni certificación total de accesibilidad.
+
+Cabecera, marca, icono de tema, cierre y footer comparten ahora `src/web-presence/public-chrome.css` con la web corporativa. El builder unificado carga esa capa después de las composiciones locales: los ajustes compartidos se realizan allí, sin duplicarlos en `academy.css` y `site.css`. `npm run web:chrome:verify` compara el resultado renderizado en cuatro anchos y ambos temas; ejecutar además la QA de catálogo al cambiar controles o márgenes. Evidencia en `.runtime/qa-public-chrome/`.
+
+### Publicación y límites de contacto
+
+`npm run web:gate` valida el export exacto; `web:publish` y la sincronización `--landing` lo exigen antes de enviar archivos. El comprobante externo al sitio se vincula con inventario, bytes y verificadores. Ver `docs/architecture/public-web-release-gate.md`. La QA bloquea escrituras y tráfico a otros orígenes; no genera ventas, contactos ni métricas.
+
+Métricas externas desactivadas por defecto (`LANDING_TRACK_URL` vacío). CRM local sólo con `LANDING_LOCAL_CRM_ENABLED=true` y hostname loopback; la web pública no escribe en el `127.0.0.1` del visitante. Nombre/correo excluidos de eventos de contacto. `MP_BRIDGE_URL=''` desactiva explícitamente el bridge; consultar su health no certifica compra o entrega.

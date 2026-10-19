@@ -65,11 +65,11 @@ pnpm run session:start
 
 ### Dashboard
 
-| Herramienta         | Comando                                 | Descripción                    |
-| ------------------- | --------------------------------------- | ------------------------------ |
-| **Dashboard Start** | `pnpm run dashboard:start`              | Inicia WebSocket server + Vite |
-| **Dashboard WS**    | `npx tsx src/dashboard-ws-autostart.ts` | Solo WebSocket server          |
-| **Dashboard Stop**  | `npx tsx src/dashboard-stop.ts`         | Detiene dashboard              |
+| Herramienta         | Comando                                               | Descripción                    |
+| ------------------- | ----------------------------------------------------- | ------------------------------ |
+| **Dashboard Start** | `pnpm run dashboard:start`                            | Inicia WebSocket server + Vite |
+| **Dashboard WS**    | `node --import tsx src/ops/dashboard-ws-autostart.ts` | Solo WebSocket server          |
+| **Dashboard Stop**  | `node --import tsx src/ops/dashboard-stop.ts`         | Detiene dashboard              |
 
 ### Cloud Connectors
 
@@ -194,8 +194,8 @@ Los siguientes warnings son **transitorios** y no indican problemas:
 Get-Content .runtime/dashboard-ws.log -Tail 20
 
 # Reiniciar
-npx tsx src/dashboard-stop.ts
-npx tsx src/dashboard-ws-autostart.ts
+node --import tsx src/ops/dashboard-stop.ts
+node --import tsx src/ops/dashboard-ws-autostart.ts
 ```
 
 ### TypeScript Errors

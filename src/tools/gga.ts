@@ -14,7 +14,7 @@
  *   const result = await GuardianAngel.delegate({
  *     agent: 'sdd-apply',
  *     task: 'implement feature',
- *     fallback: ['opencode/deepseek-v4-flash-free', 'claude-haiku-4-5']
+ *     fallback: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5']
  *   });
  *
  *   // O con auto-detección de provider
@@ -101,7 +101,7 @@ const GGA_LOG_FILE = join(ROOT, '.logs', 'gga.log');
 
 // Default providers in order of preference (absorbed from gentle-ai pattern)
 const DEFAULT_PROVIDER_CHAIN = [
-  { provider: 'opencode', model: 'deepseek-v4-flash-free', id: 'opencode/deepseek-v4-flash-free' },
+  { provider: 'opencode-zen-C', model: 'big-pickle', id: 'opencode-zen-C/big-pickle' },
   { provider: 'littellmott-nuevo', model: 'claude-haiku-4-5', id: 'claude-haiku-4-5' },
   { provider: 'ollama', model: 'qwen2.5-coder:14b', id: 'ollama/qwen2.5-coder:14b' },
 ];
@@ -184,7 +184,7 @@ function loadGGAState(): GGAState {
   return {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),
-    currentProvider: 'opencode/deepseek-v4-flash-free',
+    currentProvider: 'opencode-zen-C/big-pickle',
     health: {},
     exhaustedProviders: [],
     switchHistory: [],
@@ -256,8 +256,8 @@ function getDetectedModel(): string {
   }
 
   // Default
-  log('debug', 'Using default model: opencode/deepseek-v4-flash-free');
-  return 'opencode/deepseek-v4-flash-free';
+  log('debug', 'Using default model: opencode-zen-C/big-pickle');
+  return 'opencode-zen-C/big-pickle';
 }
 
 function getFallbackChain(preferredModel?: string): string[] {
@@ -668,7 +668,7 @@ Commands:
     Check health for specific provider
 
 Examples:
-  npx tsx src/tools/gga.ts delegate --agent sdd-apply --task "fix bug" --preferred-model opencode/deepseek-v4-flash-free
+  npx tsx src/tools/gga.ts delegate --agent sdd-apply --task "fix bug" --preferred-model opencode-zen-C/big-pickle
   npx tsx src/tools/gga.ts status
   npx tsx src/tools/gga.ts reset
 

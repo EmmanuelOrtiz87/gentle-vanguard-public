@@ -107,7 +107,7 @@ const FALLBACK_TRIGGERS = [
 
 // Default model chain for fallback
 const DEFAULT_FALLBACK_CHAIN = [
-  'opencode/deepseek-v4-flash-free', // Primary: opencode free tier
+  'opencode-zen-C/big-pickle', // Primary: opencode free tier
   'claude-haiku-4-5', // Secondary: Claude via littellmott
 ];
 
@@ -140,7 +140,7 @@ export function normalizeFallbackState(raw: unknown): FallbackState {
     activeModel:
       typeof value.activeModel === 'string'
         ? value.activeModel
-        : 'opencode/deepseek-v4-flash-free',
+        : 'opencode-zen-C/big-pickle',
     exhaustedModels: Array.isArray(value.exhaustedModels)
       ? value.exhaustedModels.filter((item): item is string => typeof item === 'string')
       : [],
@@ -163,7 +163,7 @@ function loadFallbackState(): FallbackState {
   return {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),
-    activeModel: 'opencode/deepseek-v4-flash-free',
+    activeModel: 'opencode-zen-C/big-pickle',
     exhaustedModels: [],
     agentModelOverrides: {},
   };
@@ -212,8 +212,8 @@ function getOrchestratorModel(): string {
     // Fall through
   }
 
-  // Default to opencode/deepseek-v4-flash-free (available free tier)
-  return 'opencode/deepseek-v4-flash-free';
+  // Default to opencode-zen-C/big-pickle (available free tier)
+  return 'opencode-zen-C/big-pickle';
 }
 
 // =============================================================================
@@ -521,7 +521,7 @@ function cli(): void {
       const emptyState: FallbackState = {
         version: '1.0.0',
         lastUpdated: new Date().toISOString(),
-        activeModel: 'opencode/deepseek-v4-flash-free',
+        activeModel: 'opencode-zen-C/big-pickle',
         exhaustedModels: [],
         agentModelOverrides: {},
       };

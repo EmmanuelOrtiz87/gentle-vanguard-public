@@ -99,6 +99,8 @@ interface GitOut {
   stdout: string;
   stderr: string;
   status: number | null;
+  error: string | null;
+  signal: string | null;
 }
 
 function git(args: string[], opts: { timeout?: number; quiet?: boolean } = {}): GitOut {
@@ -108,7 +110,14 @@ function git(args: string[], opts: { timeout?: number; quiet?: boolean } = {}): 
     stdio: 'pipe',
   });
   if (!opts.quiet && r.stdout?.trim()) process.stdout.write(r.stdout);
-  return { ok: r.status === 0, stdout: r.stdout ?? '', stderr: r.stderr ?? '', status: r.status };
+  return {
+    ok: r.status === 0,
+    stdout: r.stdout ?? '',
+    stderr: r.stderr ?? '',
+    status: r.status,
+    error: r.error?.message ?? null,
+    signal: r.signal,
+  };
 }
 
 function log(msg: string, color: 'c' | 'g' | 'y' | 'r' | 'gray' = 'gray'): void {
@@ -138,7 +147,12 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
   log('── Preflight ───────────────────────────────────────────────', 'c');
   const status = git(['status', '--porcelain'], { quiet: true });
   if (!status.ok) {
-    log('✗ git status falló (¿repo corrupto?): ' + status.stderr.split('\n')[0], 'r');
+    const detail =
+      status.stderr.split('\n').find(Boolean) ||
+      status.stdout.split('\n').find(Boolean) ||
+      status.error ||
+      `status=${status.status}${status.signal ? ` signal=${status.signal}` : ''}`;
+    log('✗ git status falló (¿repo corrupto?): ' + detail, 'r');
     return 2;
   }
   const dirtyLines = status.stdout.split('\n').filter(Boolean);

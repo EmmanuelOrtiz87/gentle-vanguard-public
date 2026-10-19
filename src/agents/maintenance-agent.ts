@@ -18,7 +18,7 @@ interface MaintenanceTask {
 const AGENT_CONFIG = {
   name: 'maintenance-agent',
   description: 'Maintenance agent — cleanup, optimization, and health monitoring',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.1,
   maxTokens: 3000,
   version: '1.0.0',

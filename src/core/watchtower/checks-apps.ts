@@ -20,7 +20,7 @@ const EXPECTED_APPS: Array<{ id: string; uiPort: number }> = [
   { id: 'cms', uiPort: 5175 },
   { id: 'academy', uiPort: 4173 },
   { id: 'prompts', uiPort: 5176 },
-  { id: 'archify', uiPort: 5179 },
+  { id: 'archify', uiPort: 5181 },
   { id: 'design-hub', uiPort: 8095 },
   { id: 'academy-crm', uiPort: 4791 },
   { id: 'academy-landing', uiPort: 4174 },

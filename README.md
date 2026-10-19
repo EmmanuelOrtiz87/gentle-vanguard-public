@@ -1,127 +1,51 @@
-# Gentle-Vanguard
+# GentleVanguard
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/EmmanuelOrtiz87/gentle-vanguard-public/main/docs/brand/assets/banner-github.svg" alt="Gentle-Vanguard" width="100%"/>
-</p>
+Local-first orchestration, memory and verification for AI-assisted software work.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Version-4.2.0-00BFFF?style=flat-square&labelColor=0D1117" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-4DCFFF?style=flat-square&labelColor=0D1117" alt="License">
-  <img src="https://img.shields.io/badge/Agents-21-00BFFF?style=flat-square&labelColor=0D1117" alt="Agents">
-  <img src="https://img.shields.io/badge/Skills-252-4DCFFF?style=flat-square&labelColor=0D1117" alt="Skills">
-</p>
+**Version 4.3.0** · [Company website](https://gentlevanguard.github.io/) · [Academy](https://gentlevanguard.github.io/academy/)
 
-> **Your AI writes code. Gentle-Vanguard makes sure it's done right.** An orchestration layer that
-> adds structure, memory and verification to the AI coding tools you already use.
+## Distribution scope
 
----
+This repository provides the TypeScript core, shared runtime primitives, setup tools and curated documentation. Operational apps, client projects, private skill content, databases, credentials and internal session reports are excluded. The company website and Academy have a separate public deployment; the installer does not bundle those apps.
 
-## The Problem You Know Too Well
+## Windows installer
 
-AI-assisted coding is fast — until it isn't:
+Download **Gentle-Vanguard-Setup-4.3.0.exe** and its `.sha256` from the [4.3.0 release](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/tag/v4.3.0).
 
-| Without Gentle-Vanguard                       | With Gentle-Vanguard                                              |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| 🔁 Every session starts from zero             | 🧠 Decisions and context persist across sessions                  |
-| 🎲 Quality depends on luck                    | ✅ Every change is verified before it's called done               |
-| 🌊 One giant prompt tries to do everything    | 🎯 Work routes to specialized agents (design, code, QA, security) |
-| 💸 Costs are invisible until the bill arrives | 📊 A local dashboard shows tokens, traces and health in real time |
-| 🔓 Secrets and risky changes slip through     | 🛡️ Quality gates, secret scanning and audit trails by default     |
+This is a **bootstrapper** requiring **Node.js 22.18+ (24 LTS recommended), pnpm 11+ and Git**. It installs sources and setup tools; bootstrap downloads locked dependencies when you choose to run it. It is not an offline or self-contained runtime.
 
-## Publication Frame
+The installer is unsigned unless the release states otherwise. Windows may display an unknown-publisher/SmartScreen prompt. Check the release checksum before running it:
 
-This public README is the curated product surface. It publishes only the information needed to
-evaluate, install and understand Gentle-Vanguard:
-
-- **Promise:** local-first orchestration, memory, quality gates and observable delivery.
-- **Proof:** release version, installer, source setup, architecture links and changelog.
-- **Boundary:** no client documents, private apps, runtime databases, secrets, internal costs or
-  unreleased operational notes.
-- **Source of truth:** this file is authored privately as `README-PUBLIC.md` and becomes
-  `README.md` in the public distribution repository.
-
-## How It Works
-
-One flow, deliberately simple: **understand → design → build → verify**.
-
-```mermaid
-flowchart LR
-  U[Your request] --> O[Orchestrator]
-  O --> B[BA · understand]
-  B --> S[SAD · design]
-  S --> D[DEV · build]
-  D --> Q[QA · verify]
-  Q --> R[Verified result]
+```powershell
+Get-FileHash .\Gentle-Vanguard-Setup-4.3.0.exe -Algorithm SHA256
 ```
 
-It works **alongside** OpenCode, Claude Code, Cline, Cursor, Windsurf and Codex — locally, with no
-mandatory cloud service.
+After installing the prerequisites, run the installer and choose whether to launch bootstrap. It initializes local data and verifies dependencies; failed phases return errors.
 
-## Get Started
+## From source
 
-### Option A — One-click launcher (Windows)
-
-Download `Gentle-Vanguard-Setup-4.2.0.exe` from the
-[releases page](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/latest) and run
-it. No Node.js, no dependencies — a single self-contained binary that guides you through setup.
-
-### Option B — From source (all platforms)
-
-```bash
+```sh
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard-public
-pnpm install
-npx tsx src/setup-complete.ts
-npm run start
+pnpm install --frozen-lockfile
+node --import tsx src/infrastructure/installer-bootstrap.ts
 ```
 
-Requirements: Node.js 20+, pnpm 11+ and Git. Windows, macOS and Linux are supported.
+Dependencies and optional providers may require network access. Credentials are supplied locally by the operator. Cloud services and operational apps are separate integrations.
 
-## What's Inside
+## Verification
 
-A curated look at the core capabilities — the [full documentation](#explore-further) covers
-everything.
+Release evidence records the source revision, installer checksum and local commands. GitHub Actions currently cannot start because of an account billing/spending restriction; local checks are not represented as remote CI passes.
 
-- **🤖 21 specialized agents** — requirements, architecture, implementation, QA, operations,
-  security and docs, each with its own focus.
-- **📚 252 indexed skills** — loaded only when a task needs them, from development to compliance.
-- **🧠 Engram memory** — decisions, bugs and conventions survive across sessions and compactions.
-- **📊 Local dashboard** — real-time metrics, tracing waterfall, alerts and feedback. No mock data.
-- **🛡️ Security built-in** — secret scanning, SBOM, provenance and quality gates in the delivery
-  pipeline.
-- **♻️ Self-healing processes** — a native process reaper recycles stale daemons, kills duplicates
-  and hung tasks at every session start, close and health check.
-- **🎓 Built-in Academy** — 9 tracks / 85 lessons in Spanish (tri-lingual UI) covering the stack,
-  agents, workflows, prompt engineering and methodology (SDD · TDD · BDD · RDD).
+The website has its own export/browser/identity gate. Public-core tests do not certify all private apps, client deployments, physical devices or payment/fulfilment flows.
 
-```mermaid
-flowchart TB
-  T[CLI / IDE / Dashboard] --> O[Orchestration]
-  O --> A[21 agents]
-  A --> K[252 skills]
-  A --> E[Persistent memory]
-  O --> D[Local dashboard]
-```
+## Documentation
 
-## Why It Stands Apart
-
-Gentle-Vanguard is deliberately different from agent configurators and chatbot starter kits. Tools
-like Gentle-AI focus on configuring the AI coding agents you already use; Gentle-Vanguard uses that
-same local-first discipline but extends it into an operating stack: release gates, observability,
-client apps, content pipelines, dashboards and distribution. Chatbot kits such as Agent Kit are
-excellent references for WhatsApp handoff, message buffers and production details; Gentle-Vanguard
-keeps those lessons inside a deterministic, auditable TypeScript delivery model.
-
-## Explore Further
-
-| Resource                                             | Description                    |
-| ---------------------------------------------------- | ------------------------------ |
-| [Getting Started](docs/getting-started/README.md)    | First-time setup, step by step |
-| [Architecture](docs/architecture/README.md)          | Full technical reference       |
-| [Installation](docs/getting-started/installation.md) | All installation options       |
-| [Examples](docs/use-cases/EXAMPLES.md)               | Usage examples                 |
-| [Changelog](CHANGELOG.md)                            | Version history                |
+- [Getting started](docs/getting-started/README.md)
+- [Architecture](docs/architecture/README.md)
+- [Changelog](CHANGELOG.md)
+- [Release process](docs/guides/RELEASE-PROCESS.md)
 
 ## License
 
-MIT © 2026 Emmanuel Ortiz
+MIT © 2026 Emmanuel Ortiz. See [LICENSE](LICENSE).

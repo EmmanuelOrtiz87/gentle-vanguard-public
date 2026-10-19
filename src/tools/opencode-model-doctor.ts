@@ -11,10 +11,11 @@
  * catalog in opencode.json.
  *
  * Usage:
- *   npx tsx src/tools/opencode-model-doctor.ts [--json] [--probe-models] [--provider <id>]
+ *   npx tsx src/tools/opencode-model-doctor.ts [--json] [--write] [--probe-models] [--provider <id>]
  *
  * Output modes:
  *   --json           Emit JSON report (for CI / automation)
+ *   --write          Save latest report for stack:doctor freshness checks
  *   --probe-models   Send a tiny chat completion per model to test SDK compat
  *   --provider <id>  Only probe this provider (default: all enabled providers)
  *
@@ -24,8 +25,8 @@
  *   2 = provider itself unreachable (auth/network)
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
+import { dirname, resolve } from 'path';
 import { homedir } from 'os';
 
 interface ProviderConfig {
@@ -123,9 +124,15 @@ const COLOR = {
 
 const args = process.argv.slice(2);
 const jsonMode = args.includes('--json');
+const writeReport = args.includes('--write');
 const probeModels = args.includes('--probe-models');
 const providerFilterIdx = args.indexOf('--provider');
 const providerFilter = providerFilterIdx >= 0 ? args[providerFilterIdx + 1] : null;
+const reportPathIdx = args.indexOf('--report-path');
+const reportPath =
+  reportPathIdx >= 0 && args[reportPathIdx + 1]
+    ? resolve(process.cwd(), args[reportPathIdx + 1])
+    : resolve(process.cwd(), 'reports/audits/model-catalog-latest.json');
 
 function log(msg: string, color: keyof typeof COLOR = 'reset') {
   if (!jsonMode) {
@@ -366,8 +373,10 @@ async function main() {
     const upstream = probe.models;
     const upstreamSet = new Set(upstream);
     const configuredSet = new Set(configured);
-    const missingInUpstream = configured.filter((m) => !upstreamSet.has(m));
-    const extrasInUpstream = upstream.filter((m) => !configuredSet.has(m));
+    // An inaccessible catalog is not evidence that configured models are stale.
+    // Keep the distinction explicit so 401/403/timeouts do not create false cleanup work.
+    const missingInUpstream = probe.ok ? configured.filter((m) => !upstreamSet.has(m)) : [];
+    const extrasInUpstream = probe.ok ? upstream.filter((m) => !configuredSet.has(m)) : [];
 
     const providerReport: ProviderReport = {
       id,
@@ -398,12 +407,14 @@ async function main() {
     );
     if (configured.length > 0) {
       log(`  configured: ${configured.length} model(s)`, 'dim');
-      if (missingInUpstream.length > 0) {
+      if (probe.ok && missingInUpstream.length > 0) {
         log(
           `  ${warn('stale config')}: ${missingInUpstream.length} model(s) in your config do NOT exist upstream:`,
           'reset',
         );
         for (const m of missingInUpstream) log(`    ${err('✗')} ${m}`, 'reset');
+      } else if (!probe.ok) {
+        log(`  ${warn('unverified')}: catalog inaccessible; configured models were not marked stale`, 'reset');
       }
     } else {
       log(`  configured: ${COLOR.cyan}auto-discovery (empty models block)${COLOR.reset}`, 'reset');
@@ -421,7 +432,7 @@ async function main() {
       if (!authInfo) continue;
       // When auto-discovery, pick models to probe. Prefer free, but always sample at least
       // a few so the user gets a real signal on paid-only providers (like opencode-go).
-      const FREE_PATTERNS = ['-free', 'big-pickle', 'contributor-free'];
+      const FREE_PATTERNS = ['-free', 'opencode-zen-C/big-pickle', 'contributor-free'];
       const freeSample = prov.upstreamCatalog
         .filter((m) => FREE_PATTERNS.some((p) => m.includes(p)))
         .slice(0, 5);
@@ -468,6 +479,12 @@ async function main() {
       log(`  broken probes:   ${report.summary.brokenModelProbes}`, 'reset');
     }
     log('', 'reset');
+  }
+
+  if (writeReport) {
+    mkdirSync(dirname(reportPath), { recursive: true });
+    writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+    log(`  report: ${reportPath}`, 'dim');
   }
 
   // Exit code: 1 if any configured model is stale

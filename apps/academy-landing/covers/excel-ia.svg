@@ -61,8 +61,8 @@
   <!-- título -->
   <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Excel + IA</text>
   <!-- subtítulo -->
-  <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Fórmulas, análisis de datos y automatización con IA</text>
+    <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Fórmulas, análisis de datos y automatización con IA</text>
   <!-- meta -->
-  <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">36 PÁGINAS</text>
+  <text x="600" y="1450" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">MATERIAL DE AUTOESTUDIO</text>
     <text x="600" y="1484" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#8b95a8" letter-spacing="2">Analistas, administrativos y finanzas</text>
 </svg>

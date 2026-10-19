@@ -13,7 +13,7 @@
  *   Escanea los logs de opencode + .session buscando firmas de error conocidas
  *   (config/model-health.json). Cuando el modelo ACTIVO falla, lo marca como
  *   unhealthy en .runtime/model-health.json (con cooldown) y auto-switch al
- *   modelo nativo opencode/deepseek-v4-flash-free vía model-switch.ts.
+ *   modelo nativo opencode-zen-C/big-pickle vía model-switch.ts.
  *
  * Uso:
  *   npx tsx src/ml/model-provider-healer.ts            # scan + auto-switch si aplica
@@ -120,7 +120,7 @@ function loadActiveModel(): { model: string; provider: string } {
   if (state?.model) return { model: state.model, provider: state.provider || 'unknown' };
   // Fallback: read from global opencode config
   const global = loadJsonSafe<{ model?: string }>(GLOBAL_OPENCODE_CONFIG, null);
-  return { model: global?.model || 'opencode/deepseek-v4-flash-free', provider: 'opencode' };
+  return { model: global?.model || 'opencode-zen-C/big-pickle', provider: 'opencode' };
 }
 
 function log(msg: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'INFO'): void {
@@ -266,7 +266,7 @@ function scanLogs(config: HealthConfig): Array<{
 // ─── Heal logic ───────────────────────────────────────────────────────
 
 function switchToFallback(config: HealthConfig): boolean {
-  const target = config.fallbackModel || 'opencode/deepseek-v4-flash-free';
+  const target = config.fallbackModel || 'opencode-zen-C/big-pickle';
   const modelSwitch = join(ROOT, 'scripts', 'utilities', 'MODEL-ROUTER', 'model-switch.ts');
   if (existsSync(modelSwitch)) {
     const res = runNpxTsxSync(modelSwitch, ['switch', target], {

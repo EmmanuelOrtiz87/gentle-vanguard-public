@@ -1,0 +1,49 @@
+/* Academy commercial reading: fixed material prices and one human-support proposal. */
+.academy-plans,.academy-scope { width:min(1600px,100%); margin-inline:auto; padding:64px clamp(20px,4vw,64px); }
+.offer-heading { display:grid; grid-template-columns:1.2fr 1fr; align-items:end; gap:48px; margin-bottom:36px; }
+.offer-heading h2,.scope-intro h2 { font:700 clamp(28px,3.2vw,46px)/1.22 var(--gv-font-display); letter-spacing:-.025em; text-wrap:balance; }
+.offer-heading h2 span { color:var(--gv-cyan-soft); }
+.offer-heading>p,.scope-intro>p { color:var(--gv-text-secondary); font-size:16px; line-height:1.8; max-width:52ch; }
+.academy-plans .pricing { max-width:none; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; }
+.academy-plans .price-card { padding:24px 20px; border:1px solid var(--gv-border); border-radius:var(--gv-radius-md); background:var(--gv-surface); display:flex; flex-direction:column; text-align:left; transition:border-color .2s ease,transform .2s ease; }
+.academy-plans .price-card:hover { border-color:var(--gv-cyan); transform:translateY(-3px); }
+.academy-plans .price-card h3 { font:700 17px/1.45 var(--gv-font-display); min-height:2.9em; }
+.academy-plans .price { font:700 clamp(30px,3vw,40px)/1.4 var(--gv-font-display); margin:20px 0 16px; color:var(--gv-text); white-space:nowrap; }
+.academy-plans .price span { font:600 13px var(--gv-font-body); color:var(--gv-text-secondary); }
+.academy-plans .price-card p { color:var(--gv-text-secondary); font-size:14px; line-height:1.7; margin-bottom:16px; }
+.academy-plans .price-card .plan-note { font-size:12px; line-height:1.7; margin-bottom:24px; }
+.academy-plans .price-card .btn { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:auto; min-height:48px; border-radius:var(--gv-radius-sm); padding:12px; font-size:13px; text-align:left; white-space:normal; }
+.guided-offer { display:grid; grid-template-columns:1fr auto; align-items:center; gap:40px; padding:32px; margin-top:24px; background:linear-gradient(120deg,color-mix(in srgb,var(--gv-purple) 13%,var(--gv-bg)),var(--gv-bg)); border:1px solid var(--gv-border); border-radius:var(--gv-radius-md); }
+.guided-offer h3 { font:700 clamp(21px,2.5vw,28px)/1.4 var(--gv-font-display); margin-bottom:12px; }
+.guided-offer p { max-width:76ch; font-size:15px; color:var(--gv-text-secondary); line-height:1.8; }
+.guided-offer ul { display:flex; flex-wrap:wrap; gap:8px 24px; padding-left:18px; margin-top:16px; color:var(--gv-text-secondary); font-size:13px; line-height:1.7; }
+.guided-offer .btn { max-width:300px; min-height:48px; border-radius:var(--gv-radius-sm); background:var(--gv-cyan); color:#090c11; display:flex; align-items:center; gap:16px; font-size:14px; }
+.guided-offer .btn:hover { background:var(--gv-cyan-soft); }
+.plans-currency { font-size:12px; line-height:1.8; color:var(--gv-text-secondary); margin:20px 0 0; max-width:110ch; }
+.academy-scope { display:grid; grid-template-columns:1fr 1.25fr; gap:clamp(40px,7vw,110px); border-block:1px solid var(--gv-border); margin-block:32px; background:var(--gv-bg); }
+.scope-intro>p { margin-top:24px; }
+.scope-contact { display:inline-flex; align-items:center; gap:16px; min-height:48px; margin-top:24px; color:var(--gv-cyan-soft); font-size:14px; text-decoration:underline; text-underline-offset:6px; }
+.scope-contact:hover { color:var(--gv-text); }
+.scope-intro::after { content:""; display:block; height:210px; margin-top:32px; background:linear-gradient(0deg,var(--gv-bg),transparent 35%),url('../assets/nexus-hero.webp') center/cover no-repeat; border-radius:var(--gv-radius-md); }
+.scope-content article { display:grid; grid-template-columns:32px minmax(0,1fr); gap:20px; padding:24px 0; border-bottom:1px solid var(--gv-border); }
+.scope-content article:first-child { padding-top:0; }
+.scope-content article>svg { width:28px; height:28px; color:var(--gv-cyan); margin-top:4px; }
+.scope-content h3 { font:700 20px/1.5 var(--gv-font-display); margin-bottom:12px; }
+.scope-content p { color:var(--gv-text-secondary); font-size:15px; line-height:1.85; max-width:68ch; }
+.education-scope { margin-top:24px; }
+.education-scope summary { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:48px; cursor:pointer; font-size:14px; font-weight:600; color:var(--gv-text); list-style:none; }
+.education-scope summary::-webkit-details-marker { display:none; }
+.education-scope summary span { font-size:22px; color:var(--gv-cyan); transition:transform .2s; }
+.education-scope[open] summary span { transform:rotate(45deg); }
+.education-scope p { margin-top:16px; font-size:14px; }
+.catalog-navigation .catalog-buttons { align-items:center; gap:12px; }
+.catalog-pages { display:flex; align-items:center; justify-content:center; gap:4px; }
+.catalog-page { min-width:44px; height:44px; border:1px solid var(--gv-border); border-radius:var(--gv-radius-sm); color:var(--gv-text-secondary); background:transparent; font:600 14px var(--gv-font-body); cursor:pointer; }
+.catalog-page:hover { border-color:var(--gv-cyan); color:var(--gv-text); }
+.catalog-page[aria-current="page"] { background:var(--gv-cyan); color:#090c11; border-color:var(--gv-cyan); }
+.catalog-pages>span { color:var(--gv-text-secondary); }
+.catalog-navigation button:disabled { opacity:.45; cursor:default; transform:none; }
+@media(max-width:1199px) { .academy-plans .pricing { grid-template-columns:repeat(3,minmax(0,1fr)); } .guided-offer { grid-template-columns:1fr; gap:24px; } }
+@media(max-width:899px) { .academy-plans .pricing { grid-template-columns:repeat(2,minmax(0,1fr)); } .offer-heading,.academy-scope { grid-template-columns:1fr; gap:32px; } .scope-intro::after { display:none; } .offer-heading>p { max-width:65ch; } }
+@media(max-width:599px) { .academy-plans,.academy-scope { padding-block:40px; } .academy-plans .pricing { grid-template-columns:1fr; } .academy-plans .price-card h3 { min-height:0; } .academy-plans .price-card { padding:24px; } .guided-offer { padding:24px; } .guided-offer ul { display:block; } .guided-offer li+li { margin-top:8px; } .scope-content article { gap:12px; } .catalog-navigation .catalog-buttons { display:grid; grid-template-columns:1fr 1fr; width:100%; } .catalog-pages { grid-column:1/-1; grid-row:2; } .catalog-next { grid-column:2; grid-row:1; } .catalog-prev { grid-column:1; grid-row:1; } }
+@media(prefers-reduced-motion:reduce) { .academy-plans .price-card,.education-scope summary span { transition:none; transform:none!important; } }

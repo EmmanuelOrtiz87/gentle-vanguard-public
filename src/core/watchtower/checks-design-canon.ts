@@ -18,6 +18,7 @@ import { existsSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { addResult, ROOT } from './context';
 import { log } from '../../utils/logger.js';
+import { auditUndefinedClasses } from '../../design/audit-undefined-classes.js';
 
 const logger = log('CORE-WATCHTOWER-CHECKS-DESIGN-CANON');
 
@@ -74,6 +75,36 @@ export async function checkDesignCanon(): Promise<void> {
     'npm run conformance --prefix packages/gv-design-system (detalles y fix por check)',
     true,
   );
+}
+
+export async function checkUndefinedClasses(): Promise<void> {
+  logger.info('  [Undefined Classes] clases gv-* usadas sin definición...');
+  try {
+    const { defined, used, missing } = auditUndefinedClasses();
+    if (missing.length === 0) {
+      addResult(
+        'undefined-classes',
+        'design',
+        'PASS',
+        `${used} clases gv-* usadas, todas definidas (${defined} definidas en el canon)`,
+        'ok',
+      );
+      return;
+    }
+    addResult(
+      'undefined-classes',
+      'design',
+      'FAIL',
+      `${missing.length} clase(s) gv-* usadas sin definición: ${missing
+        .slice(0, 4)
+        .map((m) => m.cls)
+        .join(', ')}`,
+      'definir en el paquete design-system o en el CSS de la app (npm run design:audit-classes)',
+      true,
+    );
+  } catch (err) {
+    addResult('undefined-classes', 'design', 'WARN', `audit falló: ${(err as Error).message}`, 'ok');
+  }
 }
 
 export async function checkRepoOrganization(): Promise<void> {

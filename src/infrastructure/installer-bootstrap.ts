@@ -10,7 +10,7 @@
 
 import { existsSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { runSync } from '../core/run-command.js';
 
 const root = resolve(process.cwd());
 const dryRun = process.argv.includes('--dry-run');
@@ -19,11 +19,9 @@ const full = process.argv.includes('--full');
 function command(name: string, args: string[], label: string): boolean {
   console.log(`${dryRun ? '[DRY-RUN] ' : ''}${label}`);
   if (dryRun) return true;
-  const result = spawnSync(name, args, {
+  const result = runSync(name, args, {
     cwd: root,
     stdio: 'inherit',
-    shell: false,
-    windowsHide: true,
   });
   if (result.status !== 0) {
     console.error(`Bootstrap failed in: ${label}`);
@@ -50,20 +48,20 @@ function main(): void {
     process.exit(1);
   if (
     !command(
-      'npx',
-      ['tsx', 'src/infrastructure/installer-doctor.ts', '--strict'],
+      process.execPath,
+      ['--import', 'tsx', 'src/infrastructure/installer-doctor.ts', '--strict'],
       'Verify installed dependencies',
     )
   )
     process.exit(1);
-  if (!command('npx', ['tsx', 'src/database/db-init.ts', '--quiet'], 'Initialize Nexus database'))
+  if (!command(process.execPath, ['--import', 'tsx', 'src/database/db-init.ts', '--quiet'], 'Initialize Nexus database'))
     process.exit(1);
-  if (!command('npx', ['lefthook', 'install'], 'Install repository hooks')) process.exit(1);
+  if (existsSync(join(root, '.git')) && !command('npx', ['lefthook', 'install'], 'Install repository hooks')) process.exit(1);
   if (
     full &&
     !command(
-      'npx',
-      ['tsx', 'src/core/maintenance-watchtower.ts', '--action', 'health'],
+      process.execPath,
+      ['--import', 'tsx', 'src/core/maintenance-watchtower.ts', '--action', 'health'],
       'Run full stack health check',
     )
   )

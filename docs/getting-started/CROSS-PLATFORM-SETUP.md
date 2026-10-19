@@ -293,6 +293,21 @@ Manually install:
 go install github.com/gentle-vanguard/engram/cmd/engram@latest
 ```
 
+### Problem: "REA won't install"
+
+Install the REA MCP globally and register it for your client:
+
+```bash
+npm install -g rea-agents
+rea setup --client opencode --yes   # or: antigravity | codex | copilot_cli
+rea doctor                          # expect ghidra configured when GHIDRA_INSTALL_DIR is set
+```
+
+Deep native analysis (PE/ELF/Mach-O) needs Ghidra + a 64-bit JDK ≥ 21 via the
+`GHIDRA_INSTALL_DIR` and `JAVA_HOME` environment variables; JS/Electron/.NET/APK/website
+analysis works without it. Both `engram` and `rea` are category `stack` in the dependency
+catalog, so `npm run stack:setup` provisions them automatically.
+
 ### Problem: "Wrong shell detected"
 
 The TypeScript CLI is shell-agnostic:

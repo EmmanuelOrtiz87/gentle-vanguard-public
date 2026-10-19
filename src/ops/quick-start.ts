@@ -48,7 +48,7 @@ function cleanupProcesses(): void {
 
 function checkDashboardRunning(): boolean {
   try {
-    runSync('curl', ['-s', 'http://localhost:8080/health'], {
+    runSync('curl', ['-s', 'http://localhost:8080/api/health'], {
       timeout: 2000,
       stdio: 'pipe',
     });
@@ -63,7 +63,7 @@ function startDashboard(): boolean {
   try {
     // Detached, hidden, shell-free spawn — no `start /B` cmd.exe chain.
     // Output keeps flowing to .runtime/dashboard.log like the old redirect.
-    runNpxTsx('src/dashboard-start.ts', ['--no-browser'], {
+    runNpxTsx('src/ops/dashboard-start.ts', ['--no-browser'], {
       cwd: ROOT,
       stdio: 'ignore',
       detached: true,
@@ -106,7 +106,7 @@ function printSuccess(): void {
   console.log('║  WS API:  http://localhost:8080                       ║');
   console.log('╠════════════════════════════════════════════════════════╣');
   console.log('║  Status:  npx tsx src/cli/gv.ts status                  ║');
-  console.log('║  Stop:    npx tsx src/dashboard-stop.ts               ║');
+  console.log('║  Stop:    node --import tsx src/ops/dashboard-stop.ts  ║');
   console.log('╚════════════════════════════════════════════════════════╝');
   console.log();
 }

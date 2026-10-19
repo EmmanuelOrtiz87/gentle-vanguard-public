@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "product": "Gentle-Vanguard",
-  "minimumNode": "20.0.0",
+  "minimumNode": "22.18.0",
   "minimumPnpm": "11.0.0",
   "required": [
     {
@@ -35,6 +35,11 @@
       "id": "codegraph",
       "command": "codegraph",
       "purpose": "Code graph and symbol intelligence"
+    },
+    {
+      "id": "rea",
+      "command": "rea",
+      "purpose": "Reverse engineering MCP (binaries, JS/Electron, .NET, APKs, websites)"
     },
     {
       "id": "docker",

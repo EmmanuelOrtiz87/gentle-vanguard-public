@@ -1,5 +1,9 @@
 # 🏗️ Architecture Documentation
 
+Public web release: [mandatory artifact QA, publication and operational limits](public-web-release-gate.md).
+
+Current public-presence/design work: [status and evidence](../status/PRESENCIA-PUBLICA-Y-DISENO.md), [app adoption plan](visual-homologation-plan.md), [canonical brand](../brand/BRAND-KIT.md) and [interaction standard](../design/07-motion-ux-standard.md). Corporate web and campaign rendering reuse the stack; public exports do not include internal apps or operational data.
+
 <p align="center">
   <b>Understanding the 5-layer topology that makes Gentle-Vanguard agnostic</b>
 </p>

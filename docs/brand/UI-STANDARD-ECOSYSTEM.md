@@ -1,4 +1,6 @@
-# Gentle-Vanguard — UI Standard del Ecosistema (Apps)
+# GentleVanguard — UI Standard del Ecosistema (antecedente)
+
+> **SUPERSEDED en identidad y método de consumo.** Este documento conserva el contrato de 2026-08-28 como antecedente. No copiar sus tokens ni usar Academy como fuente de estilos. La autoridad actual es [BRAND-KIT](BRAND-KIT.md), [TOKENS-v2](TOKENS-v2.json), los exports de `packages/gv-design-system` y [Motion & UX Standard](../design/07-motion-ux-standard.md). Poppins/Inter, nombre unido y canon APPLICATION FINAL. Las secciones históricas siguientes no autorizan una paleta paralela ni overrides de tokens.
 
 > Registro oficial del estandar visual para toda aplicacion del ecosistema Gentle-Vanguard
 > (dashboard, academy, analytics, y las que vengan). Version 1.0.0 · 2026-08-28. Fuente de

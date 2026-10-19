@@ -273,7 +273,7 @@ function getCurrentModel(): string {
     return registry.routingRules.orchestrator.primary;
   }
 
-  return 'opencode/deepseek-v4-flash-free'; // Default
+  return 'opencode-zen-C/big-pickle'; // Default
 }
 
 /**
@@ -343,10 +343,10 @@ function testErrorHandling(): void {
   const testErrors = [
     'Free usage exceeded, subscribe to Go',
     'API rate limit exceeded',
-    'quota exceeded for model opencode/deepseek-v4-flash-free',
+    'quota exceeded for model opencode-zen-C/big-pickle',
     'Credits exhausted',
     'Too many requests',
-    'Model opencode/deepseek-v4-flash-free not found',
+    'Model opencode-zen-C/big-pickle not found',
     'Unknown error occurred',
   ];
 

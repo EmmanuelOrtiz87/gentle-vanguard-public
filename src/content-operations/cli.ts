@@ -21,6 +21,7 @@ import {
   loadManifest,
   loadPlatformRegistry,
   packageJob,
+  previewJob,
   saveManifest,
   transition,
   validate,
@@ -28,6 +29,7 @@ import {
   type Status,
 } from './engine.js';
 import { exportKit } from './export-kit.js';
+import { preparePublication } from './publication.js';
 
 const root = process.cwd();
 const args = process.argv.slice(2);
@@ -91,6 +93,27 @@ switch (command) {
     }
     console.log(`\n${jobs.length - failed}/${jobs.length} jobs valid.`);
     process.exitCode = failed > 0 ? 1 : 0;
+    break;
+  }
+  case 'preview': {
+    const registry = loadPlatformRegistry(root);
+    const jobs = selectJobs(loadManifest(root));
+    const data = jobs.map((job) => {
+      const result = previewJob(job, registry);
+      return result.ok ? result.data : result.error;
+    });
+    console.log(JSON.stringify({ ok: true, data }, null, 2));
+    break;
+  }
+  case 'publication-preview': {
+    const registry = loadPlatformRegistry(root);
+    const accountId = get('account');
+    const jobs = selectJobs(loadManifest(root));
+    const results = jobs.map((job) => {
+      const result = preparePublication(job, registry, accountId ? { accountId } : undefined);
+      return result.ok ? result.data : result.error;
+    });
+    console.log(JSON.stringify({ ok: results.every((result) => !('code' in result)), data: results }, null, 2));
     break;
   }
   case 'prepare': {
@@ -186,6 +209,8 @@ switch (command) {
 Commands:
   list       List jobs (--date, --platform, --id, --status)
   validate   Validate jobs against manifest + platform registry
+  preview    Preview publish readiness without changing files
+  publication-preview  Build a fail-closed dry-run plan (--account=ACCOUNT-ID)
   prepare    Package validated jobs offline
   status     Show status summary
   report     Generate markdown report

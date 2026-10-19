@@ -29,7 +29,7 @@ const LOG = createLogger('SESSION-AUTOSTART');
 // ─── Loop-Guard soft check (ADR-0022, F4.1) ─────────────────────────────────
 async function checkLoopGuardSoft(): Promise<void> {
   try {
-    const r = runSync('npx', ['tsx', 'src/core/orchestrator-loop-guard.ts'], {
+    const r = runNpxTsxSync('src/core/orchestrator-loop-guard.ts', [], {
       timeout: 5000,
       cwd: ROOT,
     });
@@ -581,8 +581,21 @@ async function main() {
     LOG.warn(`[CLOSING-MARKER] Could not clear stale marker: ${err}`);
   }
 
-  // Loop-guard soft check (ADR-0022): runs before lock so every turn gets a signal,
-  // but never blocks the pipeline — soft WARN only.
+  // Fast reuse gate: repeated tool invocations should not pay for validation,
+  // checkpoints, or self-checks when a healthy bootstrap is already active.
+  if (!checkLock()) {
+    auditLog(
+      'session.skip',
+      'session-autostart',
+      'lock_check',
+      'skipped',
+      'Session autostart skipped - lock active',
+    );
+    process.exit(0);
+  }
+
+  // Loop-guard soft check (ADR-0022): runs only for a new bootstrap,
+  // and never blocks the pipeline — soft WARN only.
   await checkLoopGuardSoft();
 
   // ─── Session Validation (NEW) ───────────────────────────────────────────────
@@ -624,20 +637,6 @@ async function main() {
     }
   } catch (err) {
     LOG.warn(`[CHECKPOINT] Pre-start checkpoint failed (non-blocking): ${err}`);
-  }
-
-  // Lock check: only run once per OS user session
-  if (!checkLock()) {
-    auditLog(
-      'session.skip',
-      'session-autostart',
-      'lock_check',
-      'skipped',
-      'Session autostart skipped - lock active',
-    );
-    // Imports initialize lightweight observers; terminate the fast path so
-    // a repeated per-turn invocation cannot keep the shell alive.
-    process.exit(0);
   }
 
   // Log session start event

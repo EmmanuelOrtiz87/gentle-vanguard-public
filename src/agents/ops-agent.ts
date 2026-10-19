@@ -17,7 +17,7 @@ interface OpsTask {
 const AGENT_CONFIG = {
   name: 'ops-agent',
   description: 'Operations agent — deployment, CI/CD, infrastructure',
-  model: 'opencode/deepseek-v4-flash-free',
+  model: 'opencode-zen-C/big-pickle',
   temperature: 0.1,
   maxTokens: 4000,
   version: '1.0.0',
