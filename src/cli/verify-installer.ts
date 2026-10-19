@@ -3,20 +3,20 @@
 /**
  * verify-installer.ts — Clean-machine style verification for the NSIS installer.
  *
- * Simulates a fresh machine install cycle without requiring a VM:
+ * Executes only on an ephemeral GitHub-hosted Windows runner. A destination
+ * directory alone does not isolate the installer registry and Start menu writes.
  *   1. Verifies SHA256 checksum against the published .sha256 file.
  *   2. Runs the installer silently (/S) into a sandbox directory.
  *   3. Validates the staged payload (bootstrap.cmd, repair.cmd, sources, lockfile).
  *   4. Runs the silent uninstaller and validates cleanup.
  *
  * Usage:
- *   npx tsx src/cli/verify-installer.ts               # auto-detect latest installer
- *   npx tsx src/cli/verify-installer.ts --json        # JSON report
- *   npx tsx src/cli/verify-installer.ts --keep        # keep sandbox after run
+ *   node --import tsx src/cli/verify-installer.ts --json
+ * Failed installations are preserved for inspection on the disposable runner.
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -27,7 +27,6 @@ const DIST_DIR = join(ROOT, 'dist');
 
 const args = process.argv.slice(2);
 const jsonOut = args.includes('--json');
-const keep = args.includes('--keep');
 
 interface CheckResult {
   check: string;
@@ -61,6 +60,20 @@ function sha256(filePath: string): string {
 }
 
 export { findLatestInstaller, sha256 };
+
+export function isIsolatedWindowsRunner(platform: string, env: NodeJS.ProcessEnv): boolean {
+  return platform === 'win32' && env.GITHUB_ACTIONS === 'true' &&
+    env.RUNNER_ENVIRONMENT === 'github-hosted';
+}
+
+const uninstallKey = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Gentle-Vanguard';
+function registryEntryPresent(): boolean {
+  const query = spawnSync('reg.exe', ['query', uninstallKey], { windowsHide: true });
+  if (query.error || (query.status !== 0 && query.status !== 1)) {
+    throw new Error('Unable to inspect installer registry entry');
+  }
+  return query.status === 0;
+}
 
 /** Run a program detached-safe and wait for completion. */
 function runExe(
@@ -117,10 +130,23 @@ function main(): void {
     });
   }
 
+  // Fail closed before any installation or profile mutation.
+  report.results.push({
+    check: 'isolated-windows-runner',
+    status: isIsolatedWindowsRunner(process.platform, process.env) ? 'pass' : 'fail',
+    detail: 'Execution requires an ephemeral GitHub-hosted Windows runner; never spoof these variables on an operator profile.',
+  });
+  if (report.results.some((r) => r.status === 'fail')) { finish(report); return; }
+  const shortcuts = join(process.env.APPDATA ?? '', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Gentle-Vanguard');
+  if (registryEntryPresent() || existsSync(shortcuts)) {
+    report.results.push({ check: 'clean-profile', status: 'fail', detail: 'Existing installation metadata; refusing to overwrite it' });
+    finish(report); return;
+  }
+
   // Check 2: silent install into sandbox
   const sandbox = join(tmpdir(), `gv-installer-verify-${Date.now()}`);
   report.sandboxDir = sandbox;
-  rmSync(sandbox, { recursive: true, force: true });
+  if (existsSync(sandbox)) throw new Error('Verification directory already exists');
   const installRun = runExe(found.exe, ['/S', `/D=${sandbox}`], 180000);
   const installedOk =
     installRun.code === 0 &&
@@ -148,16 +174,22 @@ function main(): void {
           : `missing: ${missing.join(', ')}`,
     });
 
+    report.results.push({ check: 'installation-metadata',
+      status: registryEntryPresent() && ['Gentle-Vanguard.lnk', 'Repair Gentle-Vanguard.lnk', 'Uninstall.lnk']
+        .every((name) => existsSync(join(shortcuts, name))) ? 'pass' : 'fail' });
+
     // Check 4: no secrets in installed payload (defense in depth)
     const secretHits: string[] = [];
     const scanForSecrets = (dir: string): void => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (/^(node_modules|\.runtime|\.session|\.telemetry|keys|dist)$/i.test(entry.name))
+          if (/^(node_modules|\.git|apps|\.runtime|\.session|\.telemetry|keys|dist)$/i.test(entry.name)) {
+            secretHits.push(full);
             continue;
+          }
           scanForSecrets(full);
-        } else if (/\.(key|pem)$|master\.key|^\.env$/i.test(entry.name)) {
+        } else if (/\.(key|pem)$|master\.key|^\.env(?:\..+)?$/i.test(entry.name) && !/^\.env\.example$/i.test(entry.name)) {
           secretHits.push(full);
         }
       }
@@ -182,11 +214,12 @@ function main(): void {
     } else {
       const unRun = runExe(uninstaller, ['/S'], 120000);
       // NSIS uninstaller copies itself to temp and returns immediately; poll for cleanup.
-      let cleaned = !existsSync(join(sandbox, 'uninstall.exe'));
+      const isClean = (): boolean => !existsSync(sandbox) && !existsSync(shortcuts) && !registryEntryPresent();
+      let cleaned = isClean();
       const deadline = Date.now() + 30000;
       while (!cleaned && Date.now() < deadline) {
         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
-        cleaned = !existsSync(join(sandbox, 'uninstall.exe'));
+        cleaned = isClean();
       }
       report.results.push({
         check: 'silent-uninstall',
@@ -200,14 +233,7 @@ function main(): void {
     }
   }
 
-  // Cleanup sandbox unless requested otherwise
-  if (!keep && existsSync(sandbox)) {
-    try {
-      rmSync(sandbox, { recursive: true, force: true });
-    } catch {
-      // Windows may hold locks briefly after uninstaller exits
-    }
-  }
+  // Preserve failures for inspection; manual deletion would mask uninstall defects.
 
   report.success = report.results.every((r) => r.status !== 'fail');
   finish(report);
