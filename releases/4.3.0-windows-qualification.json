@@ -1,0 +1,43 @@
+{
+  "installer": "D:\\a\\gentle-vanguard-public\\gentle-vanguard-public\\dist\\Gentle-Vanguard-Setup-4.3.0.exe",
+  "version": "4.3.0",
+  "timestamp": "2026-10-19T20:45:22.963Z",
+  "sandboxDir": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\gv-installer-verify-1792442723057",
+  "results": [
+    {
+      "check": "sha256-checksum",
+      "status": "pass",
+      "detail": "4bd77252a64577efc7de802de4c184c99488409dbbafa4e3c5dc2ad57f9d7e07"
+    },
+    {
+      "check": "isolated-windows-runner",
+      "status": "pass",
+      "detail": "Execution requires an ephemeral GitHub-hosted Windows runner; never spoof these variables on an operator profile."
+    },
+    {
+      "check": "silent-install",
+      "status": "pass",
+      "detail": "installed to C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\gv-installer-verify-1792442723057"
+    },
+    {
+      "check": "payload-completeness",
+      "status": "pass",
+      "detail": "4 key entries present"
+    },
+    {
+      "check": "installation-metadata",
+      "status": "pass"
+    },
+    {
+      "check": "no-secrets-in-payload",
+      "status": "pass",
+      "detail": "no key/pem/env files"
+    },
+    {
+      "check": "silent-uninstall",
+      "status": "pass",
+      "detail": "uninstaller removed installation"
+    }
+  ],
+  "success": true
+}

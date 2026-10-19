@@ -17,7 +17,11 @@ node --import tsx src/cli/create-installer.ts
 
 NSIS 3+ is required to build. The result is `dist/Gentle-Vanguard-Setup-<version>.exe` and its SHA-256 sidecar. It is a bootstrapper requiring Node 22.18+, pnpm 11+, Git and dependency downloads. Apps, client/session/status documentation, secrets, databases and node_modules are excluded; shared runtime primitives and adapters are included. Bootstrap is opt-in.
 
-Validate archive integrity, extract to a dedicated temporary directory and compare the extracted payload with the staged file hashes. Scan the payload for secrets. Record signing status honestly. A structural/extraction test is not a clean-machine install/uninstall test; use an isolated Windows VM for the latter. The legacy verifier writes user-level uninstall entries and shortcuts and should not be run on an operator's normal profile.
+Signing, when configured with a real certificate, must finish before calculating the SHA-256 sidecar: Authenticode changes the executable bytes. Failed signing aborts finalization. The unsigned 4.3.0 executable is immutable; improvements to the build apply to future releases.
+
+Validate archive integrity, extract to a dedicated temporary directory and compare the extracted payload with the staged file hashes. Scan the payload for secrets. Record signing status honestly. A structural/extraction test is not a clean-machine install/uninstall test.
+
+The public `Public Windows Installer Qualification` workflow uses an ephemeral GitHub-hosted Windows runner, a pinned release executable digest and no private credentials. It checks installation, payload, user registry, Start menu shortcuts and complete uninstall cleanup without bootstrapping dependencies. The verifier refuses execution on normal profiles and self-hosted runners, aborts on checksum failure and preserves failed installations for inspection. Never spoof runner environment variables locally. This checks the installer lifecycle, not the complete first-use experience of the stack. Update the pinned version and digest deliberately for each new release; never replace an existing release binary.
 
 ## Public distribution
 
