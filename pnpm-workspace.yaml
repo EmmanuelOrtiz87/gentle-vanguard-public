@@ -29,7 +29,9 @@ overrides:
   qs: '>=6.15.4'
   hono: '>=4.13.13'
   postcss: '>=8.5.23'
-  vite: '8.2.2'
+  # 8.2.2 esta afectado por GHSA (launch-editor: escapeCmdArgs() no escapa el %
+  # en Windows, CVE moderado). Corregido en 8.2.4 (publicada 2026-10-06).
+  vite: '8.2.4'
   esbuild: '0.25.12'
   '@typescript-eslint/typescript-estree>minimatch': '9.0.7'
   # Audit 2026-10-06 (GHSA-68fv-2mgg-jv7q high, GHSA-jqcg-44mw-7w3h critical)
