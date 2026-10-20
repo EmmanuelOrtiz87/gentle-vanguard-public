@@ -1,4 +1,19 @@
-# 🏛️ Gentle-Vanguard Marketing Materials
+# GentleVanguard · Marketing y difusión
+
+## Operación vigente — 2026-10-18
+
+- [Estado verificado](../status/PRESENCIA-PUBLICA-Y-DISENO.md) · [Vista HTML](../presentations/public-presence.html).
+- [Campaña visual v2](campaigns/2026-10-gv-social-v2/README.md): cinco mensajes separados, diez PNG feed/story y textos/enlaces/alt. Propuesta en REVIEW; no publicada ni programada. El render vigente es la carpeta `gentle-vanguard-content-operations-20261018-035733/`; los `preview-*` son salidas del generador y se regeneran con `npm run content:campaign-preview`.
+- [Web corporativa](https://eortiz148700.github.io/gentlevanguard/) y [Academy](https://gentlevanguard.github.io/): destinos públicos diferentes para servicios y formación.
+- [Contexto comercial](../../.agents/product-marketing.md): público, necesidades y posicionamiento. El servicio principal es software a medida/sistemas empresariales; Academy acompaña como línea educativa.
+- [Content Operations](../operations/CONTENT-OPERATIONS-ENGINE.md): `npm run content:campaign-preview`, validación de jobs DRAFT y ZIP local sin llamadas a redes sociales.
+- [Canon de marca](../brand/BRAND-KIT.md) y [reglas de UX](../design/07-motion-ux-standard.md): una identidad, una idea y una acción por pieza. Sin resultados, clientes o productos listos inventados.
+
+Primera prioridad: aprobar mensajes y destinos, verificar el circuito de consulta y medir conversaciones útiles antes de invertir en anuncios. Ver el README de campaña para formatos, uso de perfiles/stickers y pedidos de nuevas piezas.
+
+## Antecedente histórico de marketing del stack
+
+El material siguiente conserva propuestas tempranas, métricas y claims del stack. **No es el posicionamiento comercial actual, no describe resultados medidos ni estados vigentes y no debe copiarse a campañas.** Para versiones/capacidades actuales, usar las fuentes enlazadas arriba y `package.json`. La identidad ya está definida; no está pendiente como indica el borrador histórico.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.17.0-brightgreen?style=for-the-badge" alt="Version">

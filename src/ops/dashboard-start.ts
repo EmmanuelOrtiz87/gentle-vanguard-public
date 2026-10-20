@@ -12,7 +12,12 @@ import * as path from 'path';
 import * as http from 'http';
 import { spawn } from 'child_process';
 import { pathToFileURL } from 'url';
-import { getFreePort, saveDashboardPorts } from './dashboard-common';
+import {
+  getFreePort,
+  isDashboardHtml,
+  readDashboardPorts,
+  saveDashboardPorts,
+} from './dashboard-common';
 
 const ROOT = path.resolve(process.cwd());
 const WEB_APP_DIR = path.join(ROOT, 'apps', 'web-dashboard');
@@ -167,7 +172,16 @@ function openBrowser(vitePort: number): void {
 
 /** Detect an already-running WS server on the standard candidate ports */
 async function detectRunningWs(): Promise<number | null> {
-  for (const p of [8080, 8082, 8083]) {
+  const configuredPort = readDashboardPorts()?.wsPort;
+  const candidates = [configuredPort, 8080, 8081, 8082, 8083].filter(
+    (port, index, ports): port is number =>
+      typeof port === 'number' &&
+      Number.isInteger(port) &&
+      port > 0 &&
+      port <= 65535 &&
+      ports.indexOf(port) === index,
+  );
+  for (const p of candidates) {
     const ok = await new Promise<boolean>((resolve) => {
       const req = http.get(`http://127.0.0.1:${p}/api/health`, { timeout: 2000 }, (res) => {
         resolve(res.statusCode === 200);
@@ -183,11 +197,18 @@ async function detectRunningWs(): Promise<number | null> {
   return null;
 }
 
-/** Probe whether an HTTP server is already serving at the given URL */
-async function isHttpOk(url: string): Promise<boolean> {
+/** Verify that the expected dashboard UI, not an unrelated local web app, is serving. */
+async function isDashboardUi(url: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const req = http.get(url, { timeout: 2000 }, (res) => {
-      resolve((res.statusCode ?? 500) < 500);
+      let html = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk: string) => {
+        if (html.length < 16_384) html += chunk;
+      });
+      res.on('end', () => {
+        resolve(res.statusCode === 200 && isDashboardHtml(html));
+      });
     });
     req.on('error', () => resolve(false));
     req.on('timeout', () => {
@@ -216,7 +237,7 @@ async function main(): Promise<void> {
   const desiredVite = opts.viteDevPort > 0 ? opts.viteDevPort : 5173;
   // Idempotency: adopt an already-serving Vite instead of spawning a duplicate
   // on a shifted port (getFreePort would jump to 5174 and orphan the known URL).
-  const viteAlreadyUp = await isHttpOk(`http://localhost:${desiredVite}/`);
+  const viteAlreadyUp = await isDashboardUi(`http://localhost:${desiredVite}/`);
   const selectedVite = viteAlreadyUp ? desiredVite : await getFreePort(desiredVite);
 
   saveDashboardPorts(selectedWs, selectedVite);

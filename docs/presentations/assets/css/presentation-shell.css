@@ -12,6 +12,7 @@ h1,h2,h3,h4,.gv-brand-wordmark { font-family:var(--gv-font-display); font-weight
 .gv-topbar-inner { width:100%; max-width:1600px; margin-inline:auto; padding-inline:24px; }
 .gv-topbar .gv-brand-logo { width:32px; height:32px; object-fit:contain; }
 .gv-topbar button { font-family:var(--gv-font-body); }
+.gv-evidence-note { width:min(1100px,calc(100% - 32px)); margin:12px auto 0; padding:12px 16px; border-left:3px solid var(--gv-cyan); border-radius:var(--gv-radius-sm); background:var(--gv-surface); color:var(--gv-text-secondary); font-size:.9rem; line-height:1.6; }
 .section-card,.card-dao,.control-panel,.sidebar,.toolbar { color:var(--gv-text); border-color:var(--gv-border); }
 .section-card,.card-dao { background:var(--gv-surface); }
 .sh p { color:var(--gv-text-secondary); }

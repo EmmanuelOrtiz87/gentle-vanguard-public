@@ -42,6 +42,7 @@ function isCanonical(file: string): boolean {
   const rel = relative(ROOT, file).replaceAll('\\', '/');
   return (
     !rel.includes('/') ||
+    ['docs/README.md', 'docs/brand/README.md', 'docs/marketing/README.md', 'docs/operations/README.md', 'docs/presentations/README.md', 'docs/status/CANONICAL-STATUS.md', 'docs/status/PRESENCIA-PUBLICA-Y-DISENO.md', 'docs/marketing/campaigns/2026-10-gv-social-v2/README.md'].includes(rel) ||
     rel.startsWith('docs/architecture/') ||
     rel === 'docs/stack-manual-modules.md' ||
     rel === 'docs/stack-manual-full.md' ||

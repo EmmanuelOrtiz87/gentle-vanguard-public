@@ -14,11 +14,22 @@
  * USAGE:
  *   npm run stack:bootstrap        # Interactive bootstrap
  *   npm run stack:bootstrap:auto   # Non-interactive (CI)
+ *   npm run stack:bootstrap -- --force  # Re-run checks despite an existing marker
+ *   npm run stack:bootstrap -- --quick  # Run checks without finalizing production readiness
  */
 
-import { existsSync, writeFileSync, readFileSync } from 'fs';
+import { existsSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { runSync } from '../core/run-command.js';
+import {
+  createBootstrapStatus,
+  healthCheckPassed,
+  resolveBootstrapOutcome,
+  shouldSkipBootstrapChecks,
+  type BootstrapChecks,
+  type BootstrapFinalization,
+  type BootstrapStatus,
+} from './stack-readiness.js';
 
 const ROOT = resolve(process.cwd());
 const BOOTSTRAP_FLAG = join(ROOT, '.runtime', '.stack-bootstrapped');
@@ -54,19 +65,6 @@ function step(name: string, status: 'pending' | 'running' | 'done' | 'error' | '
   };
   const color = status === 'done' ? colors.green : status === 'error' ? colors.red : colors.yellow;
   console.log(`${color}${icons[status]} ${name}${colors.reset}`);
-}
-
-interface BootstrapStatus {
-  timestamp: string;
-  phase: string;
-  healthy: boolean;
-  services: {
-    session: boolean;
-    delegation: boolean;
-    policy: boolean;
-    routing: boolean;
-    watchtower: boolean;
-  };
 }
 
 // =============================================================================
@@ -123,7 +121,8 @@ async function phase3_initPolicyEngine(): Promise<boolean> {
       const info = engine.getPoliciesInfo();
       step(`Phase 3: Policy Engine Loaded (${info.length} policies)`, 'done');
     } else {
-      step('Phase 3: Policy Engine (no policies found)', 'done');
+      step('Phase 3: Policy Engine Policies Missing', 'error');
+      return false;
     }
     return true;
   } catch (error) {
@@ -156,13 +155,14 @@ async function phase5_validateSecurity(): Promise<boolean> {
       const hasFullCoverage = content.includes('10/10') || content.includes('100%');
       if (hasFullCoverage) {
         step('Phase 5: OWASP Compliance (10/10)', 'done');
+        return true;
       } else {
         step('Phase 5: OWASP Compliance (partial)', 'warn');
       }
     } else {
-      step('Phase 5: OWASP Docs Missing', 'warn');
+      step('Phase 5: OWASP Docs Missing', 'error');
     }
-    return true;
+    return false;
   } catch {
     step('Phase 5: Security Validation Failed', 'error');
     return false;
@@ -176,40 +176,45 @@ async function phase6_healthCheck(): Promise<boolean> {
       cwd: ROOT,
       timeout: 60000,
     });
-    const passCount = ((result.stdout + result.stderr).match(/PASS/g) || []).length;
-    step(`Phase 6: Stack Health (${passCount}+ checks)`, 'done');
-    return true;
+    const output = result.stdout + result.stderr;
+    const summary = output.match(/PASS:\s*(\d+)\s*\|\s*WARN:\s*\d+\s*\|\s*FAIL:\s*(\d+)/i);
+    if (healthCheckPassed(output)) {
+      step(`Phase 6: Stack Health (${summary?.[1]} checks passed)`, 'done');
+      return true;
+    }
+    step('Phase 6: Required health checks did not all pass', 'error');
+    return false;
   } catch {
-    step('Phase 6: Health Check Incomplete', 'warn');
+    step('Phase 6: Health Check Incomplete', 'error');
     return false;
   }
 }
 
-async function phase7_finalize(): Promise<BootstrapStatus> {
+async function phase7_finalize(checks: BootstrapChecks): Promise<BootstrapStatus> {
   step('Phase 7: Finalizing', 'running');
-
-  // Create bootstrap flag
-  try {
-    writeFileSync(BOOTSTRAP_FLAG, new Date().toISOString());
-  } catch {
-    // Non-critical
+  const status = createBootstrapStatus(checks);
+  if (!status.healthy) {
+    step('Phase 7: Bootstrap Not Ready', 'error');
+    return status;
   }
-
-  const status: BootstrapStatus = {
-    timestamp: new Date().toISOString(),
-    phase: 'complete',
-    healthy: true,
-    services: {
-      session: true,
-      delegation: true,
-      policy: true,
-      routing: true,
-      watchtower: true,
-    },
-  };
-
+  try {
+    writeFileSync(BOOTSTRAP_FLAG, status.timestamp);
+  } catch (error) {
+    clearBootstrapMarker();
+    step('Phase 7: Could Not Write Bootstrap Marker', 'error');
+    log(`Bootstrap marker error: ${error}`, 'error');
+    return { ...status, phase: 'failed', healthy: false };
+  }
   step('Phase 7: Bootstrap Complete', 'done');
   return status;
+}
+
+function clearBootstrapMarker(): void {
+  try {
+    if (existsSync(BOOTSTRAP_FLAG)) unlinkSync(BOOTSTRAP_FLAG);
+  } catch (error) {
+    log(`Could not remove stale bootstrap marker: ${error}`, 'error');
+  }
 }
 
 // =============================================================================
@@ -219,6 +224,7 @@ async function phase7_finalize(): Promise<BootstrapStatus> {
 async function main(): Promise<void> {
   const autoMode = process.argv.includes('--auto');
   const quickMode = process.argv.includes('--quick');
+  const forceMode = process.argv.includes('--force');
 
   log('╔════════════════════════════════════════════════════════════════╗', 'info');
   log('║   GENTLE-VANGUARD STACK BOOTSTRAP v1.0                         ║', 'info');
@@ -227,13 +233,16 @@ async function main(): Promise<void> {
   log('');
 
   // Check if already bootstrapped
-  if (!autoMode && existsSync(BOOTSTRAP_FLAG)) {
+  const markerExists = existsSync(BOOTSTRAP_FLAG);
+  if (shouldSkipBootstrapChecks(markerExists, autoMode, forceMode)) {
     const lastBootstrap = readFileSync(BOOTSTRAP_FLAG, 'utf-8');
-    log(`Stack already bootstrapped: ${lastBootstrap}`, 'info');
-    log('Use --force to re-bootstrap or run: npm run stack:status', 'info');
+    log(`Previous bootstrap marker found: ${lastBootstrap}`, 'info');
+    log('Readiness is not verified by a marker. Re-run all checks with --force.', 'warn');
+    process.exitCode = 1;
     return;
   }
 
+  clearBootstrapMarker();
   const startTime = Date.now();
 
   // Execute phases
@@ -246,21 +255,26 @@ async function main(): Promise<void> {
     health: await phase6_healthCheck(),
   };
 
-  if (!quickMode) {
-    await phase7_finalize();
-  }
-
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-  const allHealthy = Object.values(results).every((r) => r);
+  const checksPassed = createBootstrapStatus(results).healthy;
+  let finalization: BootstrapFinalization = quickMode ? 'skipped' : 'failed';
+  if (!checksPassed) {
+    clearBootstrapMarker();
+  } else if (!quickMode) {
+    const status = await phase7_finalize(results);
+    finalization = status.healthy ? 'complete' : 'failed';
+  }
+  const outcome = resolveBootstrapOutcome(results, finalization);
 
   // Final report
   log('');
   log('╔════════════════════════════════════════════════════════════════╗', 'info');
   log('║   BOOTSTRAP REPORT                                             ║', 'info');
   log('╠════════════════════════════════════════════════════════════════╣', 'info');
+  const statusLabel = outcome.status;
   log(
-    `║   Status: ${allHealthy ? '✅ HEALTHY' : '⚠️  PARTIAL'}${' '.repeat(allHealthy ? 25 : 26)}║`,
-    allHealthy ? 'success' : 'warn',
+    `║   Status: ${statusLabel}${' '.repeat(Math.max(0, 39 - statusLabel.length))}║`,
+    outcome.readinessVerified ? 'success' : outcome.exitCode === 0 ? 'warn' : 'error',
   );
   log(`║   Duration: ${duration}s${' '.repeat(33)}║`, 'info');
   log('╠════════════════════════════════════════════════════════════════╣', 'info');
@@ -298,9 +312,13 @@ async function main(): Promise<void> {
   log('  npm run route:analyze          # Analyze task routing', 'info');
   log('  npm run validate:stack         # Full validation', 'info');
   log('');
-  log('Stack is ready for production use!', 'success');
+  if (outcome.readinessVerified) {
+    log('All required bootstrap checks passed.', 'success');
+  } else {
+    log('Production readiness not verified.', 'error');
+  }
 
-  process.exit(allHealthy ? 0 : 0); // Always succeed but warn
+  process.exitCode = outcome.exitCode;
 }
 
 // Run

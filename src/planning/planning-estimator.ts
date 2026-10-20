@@ -59,6 +59,7 @@ interface PRSize {
   reviewTime: string;
   mergeWindow: string;
   reviewersRequired: number;
+  calibrationStatus: 'uncalibrated';
 }
 
 function getEstimate(
@@ -96,7 +97,7 @@ function getEstimate(
         ? `${Math.round((estimatedMinutes / 60) * 10) / 10} hours`
         : `${Math.round((estimatedMinutes / 1440) * 10) / 10} days`;
 
-  const confidence = complexity <= 2 ? 'high' : complexity <= 3 ? 'medium' : 'low';
+  const confidence = 'uncalibrated';
 
   return {
     taskType,
@@ -139,7 +140,15 @@ function getPRSize(filesChanged: number, linesChanged: number): PRSize {
     reviewersRequired = 0;
   }
 
-  return { size, filesChanged, linesChanged, reviewTime, mergeWindow, reviewersRequired };
+  return {
+    size,
+    filesChanged,
+    linesChanged,
+    reviewTime,
+    mergeWindow,
+    reviewersRequired,
+    calibrationStatus: 'uncalibrated',
+  };
 }
 
 function showReport(
@@ -171,15 +180,27 @@ function showReport(
     console.log(`Tokens:        ${estimate.estimatedTokens}`);
     console.log(`Cost:          $${estimate.estimatedCost}`);
     console.log(`Confidence:    ${estimate.confidence}`);
+    console.log(
+      'Basis:         Rule-of-thumb defaults; no linked historical estimate/outcome calibration data was found.',
+    );
+    console.log(
+      'Cost basis:    Built-in model pricing table; assumed 70% input / 30% output token mix. Verify current provider prices.',
+    );
     console.log(`\n--- PR Classification ---`);
     console.log(`PR Size:       ${prSize.size}`);
     console.log(`Review Time:   ${prSize.reviewTime}`);
     console.log(`Merge Window:  ${prSize.mergeWindow}`);
     console.log(`Reviewers:     ${prSize.reviewersRequired}`);
+    console.log(
+      'PR basis:      Fixed size/review thresholds; no linked PR outcome calibration data was found.',
+    );
     if (prSize.size === 'XL')
       console.log(`\n[WARN] XL PR detected — MUST split into smaller PRs (< 1000 lines)`);
-    if (estimate.confidence === 'low')
-      console.log(`[WARN] Low confidence estimate — consider breaking down into smaller tasks`);
+    if (estimate.complexity > 3)
+      console.log('[WARN] High-complexity task — consider breaking it down into smaller tasks.');
+    console.log(
+      '[WARN] Treat time, token, and cost figures as uncalibrated planning inputs, not commitments.',
+    );
   }
 
   return estimate;
@@ -227,7 +248,7 @@ function main(): void {
       if (asJson) console.log(JSON.stringify(prSize));
       else
         console.log(
-          `PR Size: ${prSize.size} | Review: ${prSize.reviewTime} | Merge: ${prSize.mergeWindow} | Reviewers: ${prSize.reviewersRequired}`,
+          `PR Size: ${prSize.size} | Review: ${prSize.reviewTime} | Merge: ${prSize.mergeWindow} | Reviewers: ${prSize.reviewersRequired} | Calibration: uncalibrated heuristic`,
         );
       break;
     }

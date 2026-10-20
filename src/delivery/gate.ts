@@ -245,6 +245,37 @@ const GATES: GateDef[] = [
     description: 'GitHub workflow lint',
   },
   {
+    // Moved here from .github/workflows/ci.yml (design-identity job) so the
+    // coverage lives in the authoritative `production-gate` job and the
+    // workflow file stays byte-identical to upstream. Keeps the workflow
+    // scope out of the OAuth credential requirement for pushes.
+    name: 'design-surfaces-sync',
+    command: 'npm',
+    args: ['run', 'design:surfaces:check'],
+    timeoutMs: 120_000,
+    stage: 'pre-pr',
+    blocking: true,
+    description: 'Active native design surfaces in sync with canonical assets',
+  },
+  {
+    name: 'docs-presence',
+    command: 'npm',
+    args: ['run', 'docs:presence:check'],
+    timeoutMs: 120_000,
+    stage: 'pre-pr',
+    blocking: true,
+    description: 'Public documentation presence and canonical snapshots',
+  },
+  {
+    name: 'docs-presentations',
+    command: 'npm',
+    args: ['run', 'docs:presentations:check'],
+    timeoutMs: 120_000,
+    stage: 'pre-pr',
+    blocking: true,
+    description: 'Presentation editorial register and source references',
+  },
+  {
     name: 'sbom-generate',
     command: 'npx',
     args: ['tsx', 'src/security/generate-sbom.ts', '--output', 'sbom.json', '--format', 'json'],

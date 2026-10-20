@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import os from 'node:os';
 
 export interface ProcessMetrics {
@@ -23,11 +23,18 @@ interface Sample {
 const samples = new Map<number, Sample>();
 const cache = new Map<number, { expiresAt: number; value: ProcessMetrics }>();
 const histories = new Map<number, ProcessMetricPoint[]>();
+const pending = new Map<number, Promise<ProcessMetrics>>();
 const CACHE_MS = 4500;
 const HISTORY_LIMIT = 60;
 
 function unavailable(): ProcessMetrics {
-  return { status: 'unavailable', memoryMb: null, cpuPercent: null, sampledAt: new Date().toISOString(), history: [] };
+  return {
+    status: 'unavailable',
+    memoryMb: null,
+    cpuPercent: null,
+    sampledAt: new Date().toISOString(),
+    history: [],
+  };
 }
 
 function appendHistory(pid: number, point: ProcessMetricPoint): ProcessMetricPoint[] {
@@ -38,65 +45,110 @@ function appendHistory(pid: number, point: ProcessMetricPoint): ProcessMetricPoi
   return history.slice();
 }
 
-function parseWindows(pid: number): { cpuSeconds: number; memoryMb: number } | null {
-  const command = `$p=Get-Process -Id ${pid} -ErrorAction Stop; [PSCustomObject]@{cpu=$p.CPU;memory=$p.WorkingSet64}|ConvertTo-Json -Compress`;
-  const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command], {
-    encoding: 'utf8',
-    windowsHide: true,
-    timeout: 1500,
+function runProcessCommand(command: string, args: string[]): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile(
+      command,
+      args,
+      { encoding: 'utf8', windowsHide: true, timeout: 1500 },
+      (error, stdout) => resolve(error ? null : stdout),
+    );
   });
-  if (result.status !== 0 || !result.stdout?.trim()) return null;
+}
+
+async function parseWindows(pid: number): Promise<{ cpuSeconds: number; memoryMb: number } | null> {
+  const command = `$p=Get-Process -Id ${pid} -ErrorAction Stop; [PSCustomObject]@{cpu=$p.CPU;memory=$p.WorkingSet64}|ConvertTo-Json -Compress`;
+  const stdout = await runProcessCommand('powershell.exe', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    command,
+  ]);
+  if (!stdout?.trim()) return null;
   try {
-    const parsed = JSON.parse(result.stdout) as { cpu?: number; memory?: number };
+    const parsed = JSON.parse(stdout) as { cpu?: number; memory?: number };
     if (!Number.isFinite(parsed.cpu) || !Number.isFinite(parsed.memory)) return null;
-    return { cpuSeconds: Number(parsed.cpu), memoryMb: Math.round(Number(parsed.memory) / 1024 / 1024) };
+    return {
+      cpuSeconds: Number(parsed.cpu),
+      memoryMb: Math.round(Number(parsed.memory) / 1024 / 1024),
+    };
   } catch {
     return null;
   }
 }
 
-function parsePosix(pid: number): { cpuPercent: number; memoryMb: number } | null {
-  const result = spawnSync('ps', ['-p', String(pid), '-o', '%cpu=,rss='], {
-    encoding: 'utf8',
-    windowsHide: true,
-    timeout: 1500,
-  });
-  if (result.status !== 0 || !result.stdout?.trim()) return null;
-  const [cpu, rss] = result.stdout.trim().split(/\s+/).map(Number);
+async function parsePosix(pid: number): Promise<{ cpuPercent: number; memoryMb: number } | null> {
+  const stdout = await runProcessCommand('ps', ['-p', String(pid), '-o', '%cpu=,rss=']);
+  if (!stdout?.trim()) return null;
+  const [cpu, rss] = stdout.trim().split(/\s+/).map(Number);
   if (!Number.isFinite(cpu) || !Number.isFinite(rss)) return null;
   return { cpuPercent: Math.max(0, cpu), memoryMb: Math.round(rss / 1024) };
 }
 
-export function readProcessMetrics(pid: number, now = Date.now()): ProcessMetrics {
+export async function readProcessMetrics(pid: number, now = Date.now()): Promise<ProcessMetrics> {
   if (!Number.isInteger(pid) || pid <= 0) return unavailable();
   const cached = cache.get(pid);
-  if (cached && cached.expiresAt > now) return { ...cached.value, history: (histories.get(pid) ?? []).slice() };
-
-  let value: ProcessMetrics;
-  if (process.platform === 'win32') {
-    const parsed = parseWindows(pid);
-    if (!parsed) value = unavailable();
-    else {
-      const previous = samples.get(pid);
-      const elapsedSeconds = previous ? Math.max(0.001, (now - previous.sampledAt) / 1000) : 0;
-      const cpuPercent = previous
-        ? Math.min(os.cpus().length * 100, Math.max(0, ((parsed.cpuSeconds - previous.cpuSeconds) / elapsedSeconds) * 100))
-        : null;
-      samples.set(pid, { cpuSeconds: parsed.cpuSeconds, sampledAt: now });
-      const sampledAt = new Date(now).toISOString();
-      value = { status: 'available', memoryMb: parsed.memoryMb, cpuPercent, sampledAt, history: appendHistory(pid, { sampledAt, memoryMb: parsed.memoryMb, cpuPercent }) };
-    }
-  } else {
-    const parsed = parsePosix(pid);
-    value = parsed
-      ? (() => {
-          const sampledAt = new Date(now).toISOString();
-          return { status: 'available' as const, memoryMb: parsed.memoryMb, cpuPercent: parsed.cpuPercent, sampledAt, history: appendHistory(pid, { sampledAt, memoryMb: parsed.memoryMb, cpuPercent: parsed.cpuPercent }) };
-        })()
-      : unavailable();
+  if (cached && cached.expiresAt > now) {
+    return { ...cached.value, history: (histories.get(pid) ?? []).slice() };
   }
-  cache.set(pid, { expiresAt: now + CACHE_MS, value });
-  return value;
+  const inProgress = pending.get(pid);
+  if (inProgress) {
+    const value = await inProgress;
+    return { ...value, history: (histories.get(pid) ?? []).slice() };
+  }
+
+  const operation = (async (): Promise<ProcessMetrics> => {
+    let value: ProcessMetrics;
+    if (process.platform === 'win32') {
+      const parsed = await parseWindows(pid);
+      if (!parsed) value = unavailable();
+      else {
+        const previous = samples.get(pid);
+        const elapsedSeconds = previous ? Math.max(0.001, (now - previous.sampledAt) / 1000) : 0;
+        const cpuPercent = previous
+          ? Math.min(
+              os.cpus().length * 100,
+              Math.max(0, ((parsed.cpuSeconds - previous.cpuSeconds) / elapsedSeconds) * 100),
+            )
+          : null;
+        samples.set(pid, { cpuSeconds: parsed.cpuSeconds, sampledAt: now });
+        const sampledAt = new Date(now).toISOString();
+        value = {
+          status: 'available',
+          memoryMb: parsed.memoryMb,
+          cpuPercent,
+          sampledAt,
+          history: appendHistory(pid, { sampledAt, memoryMb: parsed.memoryMb, cpuPercent }),
+        };
+      }
+    } else {
+      const parsed = await parsePosix(pid);
+      value = parsed
+        ? (() => {
+            const sampledAt = new Date(now).toISOString();
+            return {
+              status: 'available' as const,
+              memoryMb: parsed.memoryMb,
+              cpuPercent: parsed.cpuPercent,
+              sampledAt,
+              history: appendHistory(pid, {
+                sampledAt,
+                memoryMb: parsed.memoryMb,
+                cpuPercent: parsed.cpuPercent,
+              }),
+            };
+          })()
+        : unavailable();
+    }
+    cache.set(pid, { expiresAt: now + CACHE_MS, value });
+    return value;
+  })();
+  pending.set(pid, operation);
+  try {
+    return await operation;
+  } finally {
+    pending.delete(pid);
+  }
 }
 
 export function readProcessMetricsHistory(pid: number, limit = HISTORY_LIMIT): ProcessMetricPoint[] {

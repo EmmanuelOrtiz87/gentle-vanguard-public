@@ -94,6 +94,7 @@ test('notification_url apunta al WORKER, no a la landing (regresión)', async ()
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-bridge-secret': 's3cret' },
       body: JSON.stringify({
+        slug: 'chatgpt-docentes',
         tier: 'ebook-micro',
         title: 'Test',
         unitPrice: 20,

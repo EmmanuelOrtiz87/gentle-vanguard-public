@@ -204,9 +204,14 @@ async function probeCatalog(
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(url, { method: 'GET', headers, signal: controller.signal });
-    clearTimeout(timer);
+    let res: Response;
+    try {
+      res = await fetch(url, { method: 'GET', headers, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
+      await res.body?.cancel();
       return { ok: false, models: [], error: `HTTP ${res.status}` };
     }
     const data = (await res.json()) as { data?: Array<{ id?: string }> } | Array<{ id?: string }>;
@@ -299,11 +304,13 @@ async function main() {
 
   if (!existsSync(configPath)) {
     log(err(`Config not found: ${configPath}`), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
   if (!existsSync(authPath)) {
     log(err(`Auth not found: ${authPath}`), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   const configText = readFileSync(configPath, 'utf-8').replace(/^\uFEFF/, '');
@@ -313,7 +320,8 @@ async function main() {
 
   if (!config.provider) {
     log(err('No provider block in opencode.json'), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   const disabled = new Set(config.disabled_providers || []);
@@ -487,11 +495,14 @@ async function main() {
     log(`  report: ${reportPath}`, 'dim');
   }
 
-  // Exit code: 1 if any configured model is stale
-  process.exit(report.summary.missingInUpstream > 0 ? 1 : 0);
+  process.exitCode = report.providers.some((provider) => !provider.catalogOK)
+    ? 2
+    : report.summary.missingInUpstream > 0
+      ? 1
+      : 0;
 }
 
 main().catch((e) => {
   log(err(`Doctor crashed: ${e.message}`), 'reset');
-  process.exit(2);
+  process.exitCode = 2;
 });

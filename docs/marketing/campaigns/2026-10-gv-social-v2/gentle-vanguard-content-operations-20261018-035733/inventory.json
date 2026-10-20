@@ -1,0 +1,67 @@
+{
+  "campaign": "gv_presentacion_v2",
+  "status": "REVIEW",
+  "publications": 0,
+  "assets": [
+    {
+      "path": "presentacion-feed.png",
+      "sha256": "132691027793567427b747dfbf73af98c65a3ea8b002781453aa0c9739f53b37",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "presentacion-story.png",
+      "sha256": "c1e438bb50b8c1e7ae87bdcaa19f3f8c1a26e47780748fa5c9ac40e04a591865",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "software-feed.png",
+      "sha256": "2b29c8dfa0df2be590973150a5d668bb93db28703d2e622ccb8545a0215d881c",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "software-story.png",
+      "sha256": "6a25a8c11c17850283304fc603c22dd8ad921da516e1c5c78a75ade6a4803132",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "automatizacion-feed.png",
+      "sha256": "d3f5a73bbcbcecba69eebb0f0e38e3f716f5da2f8146f287085ac029931a596f",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "automatizacion-story.png",
+      "sha256": "01b2861c6aa521f84db3e2307fd7729f72cce58f105760c1a4b09c1edff4f64c",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "ia-aplicada-feed.png",
+      "sha256": "f644d0bb643ecff53a63406fdde161e5705955cd30f5c52b2cc52868fc2dc8e4",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "ia-aplicada-story.png",
+      "sha256": "0987390c8f1c35fb7fe558c64d7a88ae29c140e5378c54dd2da09892c7ae3080",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "academy-feed.png",
+      "sha256": "a21ca795f78563dfabb4a26daffc7c6fbacd01fe834ba38b42e662dc2c4de811",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "academy-story.png",
+      "sha256": "7ffa625e97de992f6903965c8fc22f8d1284cd5f4ad4fb5cdbe39e56a02d2975",
+      "width": 1080,
+      "height": 1920
+    }
+  ]
+}

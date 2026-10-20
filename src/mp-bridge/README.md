@@ -22,9 +22,9 @@ la venta al CRM/hoja).
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/api/mp/preference` | Crea preferencia Checkout Pro. Body: `{ tier, title, unitPrice, currency, externalReference, backUrl }`. Devuelve `{ preferenceId, initPoint, externalReference }`. |
+| POST | `/api/mp/preference` | Crea preferencia Checkout Pro. Body: `{ slug, tier, unitPrice, currency, backUrl }`. Identidad, título, precio y referencia se validan o generan desde el catálogo del servidor. Devuelve `{ preferenceId, initPoint, externalReference, catalogRevision }`. |
 | POST | `/api/mp/webhook` | IPN de MercadoPago (JSON `{ type, data: { id } }` o `?topic=payment&id=`). Verifica el pago y notifica si `status === "approved"`. |
-| GET | `/api/mp/health` | Health check: `{ ok, hasToken, hasPublicKey }`. |
+| GET | `/api/mp/health` | Health check: `{ ok, hasToken, hasPublicKey, catalogRevision }`. |
 
 ## Env vars (secrets)
 
@@ -91,12 +91,13 @@ MP_BRIDGE_URL=https://gv-mp-bridge.<subdomain>.workers.dev node scripts/build-la
 ```
 
 Con `MP_BRIDGE_URL` definido, el modal de checkout:
-1. Captura contacto + order bump (flujo existente, sin cambios).
-2. `POST {bridge}/api/mp/preference` con el tier/producto → `preferenceId`.
+1. Captura contacto y comprueba que la revisión del catálogo coincida con el servidor.
+2. `POST {bridge}/api/mp/preference` con slug, tier y precio vigente → `preferenceId`. No admite productos retirados, importes alterados ni servicios sujetos a presupuesto.
 3. Embebe el **Wallet Brick** (`sdk.mercadopago.com/js/v2` + `MP_PUBLIC_KEY`)
    dentro del modal — el pago se procesa sin salir de la página.
-4. Fallback: si el bridge no responde, redirige a `init_point` (Checkout Pro
-   hosted) — nunca se pierde la venta.
+4. Sin public key usa `init_point` (Checkout Pro hosted). Si el bridge falla o el catálogo no coincide, deriva a consulta para confirmar importe y moneda. No usa links de pago antiguos con precios potencialmente distintos.
+
+Antes de publicar cambios comerciales, ejecutar `node --import tsx src/commerce/build-academy-catalog.ts`, desplegar el worker y regenerar la landing. El precio canónico es USD; una venta en otra moneda requiere cotización confirmada. La creación de una preferencia no acredita un pago ni prueba la entrega posterior.
 
 Sin `MP_BRIDGE_URL`, la landing conserva el comportamiento actual (links
 `mpago.la`) — la migración es no-destructiva.

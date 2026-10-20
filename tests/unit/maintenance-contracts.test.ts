@@ -40,6 +40,7 @@ import {
   evaluateToolAudit,
   hasMiniMaxEngramMcpRuntime,
   isUsableLauncherFile,
+  nativeSkillSurfaceReady,
   parseOpenCodeRuntimeMajor,
 } from '../../src/integrations/tool-interoperability-audit.js';
 import { findBrokenRelativeImports } from '../../src/tools/ast-import-parser.js';
@@ -212,6 +213,13 @@ test('OpenCode runtime classification is version-aware and fails closed', () => 
   assert.equal(parseOpenCodeRuntimeMajor('2.0.4-beta.1'), 'unsupported');
   assert.equal(parseOpenCodeRuntimeMajor('nightly'), 'unsupported');
   assert.equal(parseOpenCodeRuntimeMajor('3.0.0'), 'unsupported');
+});
+
+test('OpenCode native skill surface requires complete, fresh canonical skills', () => {
+  assert.equal(nativeSkillSurfaceReady(0, 27, false), false);
+  assert.equal(nativeSkillSurfaceReady(27, 27, false), false);
+  assert.equal(nativeSkillSurfaceReady(26, 27, true), false);
+  assert.equal(nativeSkillSurfaceReady(27, 27, true), true);
 });
 
 test('dashboard health checker reports Vite availability separately from WS health', async () => {

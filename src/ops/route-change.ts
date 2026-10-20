@@ -59,7 +59,7 @@ function getChangedFiles(): string[] {
 }
 
 function route(files: string[]): RoutingResult {
-  const hasLanding = files.some((f) => f.startsWith('apps/academy-landing/'));
+  const hasLanding = files.some((f) => (f.startsWith('apps/academy-landing/') || f.startsWith('apps/corporate-web/') || f.startsWith('src/web-presence/')));
   const hasOtherApp = files.some((f) => /^apps\/[^/]+\//.test(f) && !f.startsWith('apps/academy-landing/'));
   const hasPublicMirrorPath = files.some((f) =>
     /^(docs\/|demos\/|LICENSE|CONTRIBUTING\.md|SECURITY\.md|CHANGELOG\.md|README-PUBLIC\.md|gentle-vanguard-presentation\.html|build\/public\/|skills\/SKILL_INDEX\.md|config\/.*\.example\.json|config\/README\.md)/.test(f),
@@ -84,7 +84,7 @@ function route(files: string[]): RoutingResult {
     return {
       route: 'landing',
       changedFiles: files,
-      suggestion: 'SYNC LANDING: npx tsx src/ops/sync-landing-gentlevanguard.ts',
+      suggestion: 'SYNC WEB + ACADEMY: node --import tsx src/ops/sync-landing-gentlevanguard.ts',
     };
   }
 

@@ -80,7 +80,10 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: str
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+        timer = setTimeout(
+          () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+          timeoutMs,
+        );
       }),
     ]);
   } finally {
@@ -182,10 +185,10 @@ function checkPlatform(results: CheckResult[]): void {
       fix: 'npx opencode init',
     },
     {
-      name: 'OpenCode Skills',
-      path: '.opencode/skills',
+      name: 'Canonical Skills',
+      path: 'skills',
       isDir: true,
-      fix: 'Reinstall opencode or git submodule update',
+      fix: 'Add reviewed skills under skills/ and run npm run skills:governance:audit',
     },
     {
       name: 'MCP Registry',
@@ -320,51 +323,52 @@ async function checkIntegrity(results: CheckResult[], quick = false): Promise<vo
       status: 'PASS',
       message: 'MCP server active (CLI doctor skipped to avoid DB lock)',
     });
-  } else try {
-    // Engram may wait for its local service on Windows. Keep the verifier
-    // bounded and report the condition instead of blocking the whole gate.
-    const r = run('engram', ['doctor', '--json'], quick ? 3000 : 8000);
-    if (r.stdout) {
-      let data: { errors?: unknown[] } | null;
-      try {
-        data = JSON.parse(r.stdout) as { errors?: unknown[] };
-      } catch {
-        data = null;
-      }
-      if (data) {
-        const hasErrors = (data.errors ?? []).length > 0;
-        results.push({
-          name: 'Engram Memory',
-          layer: 'integrity',
-          status: hasErrors ? 'WARN' : 'PASS',
-          message: hasErrors ? `${data.errors?.length} issues found` : 'Healthy',
-          fixCmd: hasErrors ? 'engram doctor --fix' : undefined,
-        });
+  } else
+    try {
+      // Engram may wait for its local service on Windows. Keep the verifier
+      // bounded and report the condition instead of blocking the whole gate.
+      const r = run('engram', ['doctor', '--json'], quick ? 3000 : 8000);
+      if (r.stdout) {
+        let data: { errors?: unknown[] } | null;
+        try {
+          data = JSON.parse(r.stdout) as { errors?: unknown[] };
+        } catch {
+          data = null;
+        }
+        if (data) {
+          const hasErrors = (data.errors ?? []).length > 0;
+          results.push({
+            name: 'Engram Memory',
+            layer: 'integrity',
+            status: hasErrors ? 'WARN' : 'PASS',
+            message: hasErrors ? `${data.errors?.length} issues found` : 'Healthy',
+            fixCmd: hasErrors ? 'engram doctor --fix' : undefined,
+          });
+        } else {
+          // Non-JSON output but command ran — treat as healthy
+          results.push({
+            name: 'Engram Memory',
+            layer: 'integrity',
+            status: 'PASS',
+            message: 'Available',
+          });
+        }
       } else {
-        // Non-JSON output but command ran — treat as healthy
         results.push({
           name: 'Engram Memory',
           layer: 'integrity',
-          status: 'PASS',
-          message: 'Available',
+          status: 'WARN',
+          message: `Doctor exited (${r.status}): ${r.stderr || 'unknown'}`,
         });
       }
-    } else {
+    } catch {
       results.push({
         name: 'Engram Memory',
         layer: 'integrity',
         status: 'WARN',
-        message: `Doctor exited (${r.status}): ${r.stderr || 'unknown'}`,
+        message: 'Could not run engram doctor',
       });
     }
-  } catch {
-    results.push({
-      name: 'Engram Memory',
-      layer: 'integrity',
-      status: 'WARN',
-      message: 'Could not run engram doctor',
-    });
-  }
 
   // Nexus DB Integrity — check DB file exists and is valid
   try {
@@ -424,25 +428,26 @@ async function checkIntegrity(results: CheckResult[], quick = false): Promise<vo
       message: 'Deferred in quick mode (run npm run typecheck)',
       fixCmd: 'npm run typecheck',
     });
-  } else try {
-    const r = run('npx', ['--yes', 'tsc', '--noEmit'], 30000);
-    const errCount = r.stderr ? (r.stderr.match(/error TS\d+/g) || []).length : 0;
-    const hasTsErrors = errCount > 0 || (r.stdout?.includes('error TS') ?? false);
-    results.push({
-      name: 'TypeScript Typecheck',
-      layer: 'integrity',
-      status: hasTsErrors ? 'FAIL' : 'PASS',
-      message: hasTsErrors ? `${errCount} error(s) found` : '0 errors',
-      fixCmd: hasTsErrors ? 'npm run typecheck' : undefined,
-    });
-  } catch {
-    results.push({
-      name: 'TypeScript Typecheck',
-      layer: 'integrity',
-      status: 'SKIP',
-      message: 'Could not run tsc',
-    });
-  }
+  } else
+    try {
+      const r = run('npx', ['--yes', 'tsc', '--noEmit'], 30000);
+      const errCount = r.stderr ? (r.stderr.match(/error TS\d+/g) || []).length : 0;
+      const hasTsErrors = errCount > 0 || (r.stdout?.includes('error TS') ?? false);
+      results.push({
+        name: 'TypeScript Typecheck',
+        layer: 'integrity',
+        status: hasTsErrors ? 'FAIL' : 'PASS',
+        message: hasTsErrors ? `${errCount} error(s) found` : '0 errors',
+        fixCmd: hasTsErrors ? 'npm run typecheck' : undefined,
+      });
+    } catch {
+      results.push({
+        name: 'TypeScript Typecheck',
+        layer: 'integrity',
+        status: 'SKIP',
+        message: 'Could not run tsc',
+      });
+    }
 
   // Universal Quality Gate — composes the existing lifecycle controls across
   // software and non-software surfaces, so stack verification remains the
@@ -455,38 +460,39 @@ async function checkIntegrity(results: CheckResult[], quick = false): Promise<vo
       message: 'Deferred in quick mode (run npm run quality:universal)',
       fixCmd: 'npm run quality:universal',
     });
-  } else try {
-    const r = run('node', ['--import', 'tsx', 'src/quality/universal-quality-gate.ts']);
-    type UniversalGateReport = {
-      status?: string;
-      summary?: { total?: number; passed?: number };
-    };
-    let gate: UniversalGateReport | null = null;
+  } else
     try {
-      gate = r.stdout ? (JSON.parse(r.stdout) as UniversalGateReport) : null;
+      const r = run('node', ['--import', 'tsx', 'src/quality/universal-quality-gate.ts']);
+      type UniversalGateReport = {
+        status?: string;
+        summary?: { total?: number; passed?: number };
+      };
+      let gate: UniversalGateReport | null = null;
+      try {
+        gate = r.stdout ? (JSON.parse(r.stdout) as UniversalGateReport) : null;
+      } catch {
+        gate = null;
+      }
+      const gateStatus = gate?.status;
+      const gateOk = r.status === 0 && (gateStatus === 'pass' || gateStatus === 'warn');
+      results.push({
+        name: 'Universal Quality Gate',
+        layer: 'integrity',
+        status: gateOk ? (gateStatus === 'warn' ? 'WARN' : 'PASS') : 'FAIL',
+        message: gate?.summary
+          ? `${gate.summary.passed ?? 0}/${gate.summary.total ?? 0} controls passed`
+          : `Gate did not return a valid report${r.stderr ? `: ${r.stderr.slice(0, 120)}` : ''}`,
+        fixCmd: gateOk ? undefined : 'npm run quality:universal',
+      });
     } catch {
-      gate = null;
+      results.push({
+        name: 'Universal Quality Gate',
+        layer: 'integrity',
+        status: 'FAIL',
+        message: 'Could not run universal quality gate',
+        fixCmd: 'npm run quality:universal',
+      });
     }
-    const gateStatus = gate?.status;
-    const gateOk = r.status === 0 && (gateStatus === 'pass' || gateStatus === 'warn');
-    results.push({
-      name: 'Universal Quality Gate',
-      layer: 'integrity',
-      status: gateOk ? (gateStatus === 'warn' ? 'WARN' : 'PASS') : 'FAIL',
-      message: gate?.summary
-        ? `${gate.summary.passed ?? 0}/${gate.summary.total ?? 0} controls passed`
-        : `Gate did not return a valid report${r.stderr ? `: ${r.stderr.slice(0, 120)}` : ''}`,
-      fixCmd: gateOk ? undefined : 'npm run quality:universal',
-    });
-  } catch {
-    results.push({
-      name: 'Universal Quality Gate',
-      layer: 'integrity',
-      status: 'FAIL',
-      message: 'Could not run universal quality gate',
-      fixCmd: 'npm run quality:universal',
-    });
-  }
 }
 
 // ─── Reporter ─────────────────────────────────────────────────────────

@@ -40,6 +40,10 @@ for(const name of ['index.html','marketing.html','commands.html','patterns-conve
   else if(/<section\b/.test(text))text=text.replace(/(\s*<section\b)/,`\n${block}\n$1`);
   else if(text.includes('</header>'))text=text.replace('</header>',`</header>\n${block}`);
   else throw new Error(`No safe documentation insertion point: ${name}`);
+  const endMarker='<!-- GV-PRESENCE:END -->';
+  const endMarkerIndex=text.indexOf(endMarker);
+  const footerIndex=text.indexOf('<footer',endMarkerIndex+endMarker.length);
+  if(endMarkerIndex>=0&&footerIndex>=0&&!text.slice(endMarkerIndex+endMarker.length,footerIndex).trim())text=`${text.slice(0,endMarkerIndex+endMarker.length)}\n\n${text.slice(footerIndex)}`;
   generated(path,text);
 }
 if(drift)process.exitCode=1;else console.log(`PASS documentation presence ${check?'check':'sync'}: generated HTML, 6 entry points, canonical snapshots and fonts; package ${version}`);

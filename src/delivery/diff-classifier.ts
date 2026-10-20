@@ -32,6 +32,9 @@ const RULES: ClassRule[] = [
     cls: 'security',
     patterns: [
       /^src\/security\//,
+      /^(?:src|app|lib|server|overlay|config)\/(?:auth|authentication|authorization|security|encryption|credentials?|password|secrets?)(?:[/_.-]|$)/,
+      /^(?:src|app|lib|server|overlay|config)\/.*[/_.-](?:auth|authentication|authorization|security|encryption|credentials?|password|secrets?)(?:[/_.-]|$)/,
+      /^overlay\/.*\.rb$/,
       /^config\/.*security.*\.json$/,
       /^\.github\/workflows\/.*security.*\.ya?ml$/,
       /^\.secretlintrc/,
@@ -62,6 +65,7 @@ const RULES: ClassRule[] = [
       /^src\/.*\/schema\.ts$/,
       /^src\/.*\/types\.ts$/,
       /^src\/database\/migrations\//,
+      /^(?:db\/(?:migrate|migrations)|prisma\/migrations)\//,
     ],
     risk: 70,
   },
@@ -74,6 +78,20 @@ const RULES: ClassRule[] = [
       /^package-lock\.json$/,
       /^\.npmrc$/,
       /^\.pnpmfile\.cjs$/,
+      /(?:^|\/)Dockerfile$/,
+      /(?:^|\/)Dockerfile\.[^/]+$/,
+      /(?:^|\/)Gemfile$/,
+      /(?:^|\/)Gemfile\.lock$/,
+      /(?:^|\/)package\.json$/,
+      /(?:^|\/)package-lock\.json$/,
+      /(?:^|\/)pnpm-lock\.yaml$/,
+      /(?:^|\/)yarn\.lock$/,
+      /(?:^|\/)Cargo\.toml$/,
+      /(?:^|\/)Cargo\.lock$/,
+      /(?:^|\/)go\.mod$/,
+      /(?:^|\/)go\.sum$/,
+      /(?:^|\/)requirements\.txt$/,
+      /(?:^|\/)requirements\.[^/]+\.txt$/,
     ],
     risk: 75,
   },
@@ -81,6 +99,7 @@ const RULES: ClassRule[] = [
     cls: 'config',
     patterns: [
       /^config\//,
+      /^(?:deploy\/.*\.(?:json|ya?ml)|compose\.ya?ml)$/,
       /^\.env\.example$/,
       /^\.env\.sample$/,
       /^tsconfig.*\.json$/,
@@ -97,6 +116,7 @@ const RULES: ClassRule[] = [
       /^src\/.*\.(ts|tsx|js|jsx)$/,
       /^apps\/.*\/src\/.*\.(ts|tsx|js|jsx)$/,
       /^scripts\/.*\.ts$/,
+      /^apps\/[^/]+\/.*\.(?:ts|tsx|js|jsx|mjs|cjs|vue|svelte|rb|py|go|rs|java|cs|c|cc|cpp|h|html|css|scss)$/,
     ],
     risk: 40,
   },
@@ -120,10 +140,12 @@ const RULES: ClassRule[] = [
 
 export function classifyPath(path: string): DiffClass {
   const normalized = path.replace(/\\/g, '/');
+  const projectPath = normalized.match(/^apps\/[^/]+\/(.+)$/)?.[1];
+  const candidates = projectPath ? [normalized, projectPath] : [normalized];
   let best: DiffClass = 'docs';
   let bestRisk = -1;
   for (const rule of RULES) {
-    if (rule.patterns.some((p) => p.test(normalized))) {
+    if (rule.patterns.some((pattern) => candidates.some(candidate => pattern.test(candidate)))) {
       if (rule.risk > bestRisk) {
         best = rule.cls;
         bestRisk = rule.risk;

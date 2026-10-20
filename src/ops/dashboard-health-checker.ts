@@ -28,6 +28,7 @@
 import * as http from 'http';
 import { pathToFileURL } from 'url';
 import * as net from 'net';
+import { isDashboardHtml } from './dashboard-common.js';
 
 export interface DashboardHealthResult {
   status: 'healthy' | 'degraded' | 'down';
@@ -35,6 +36,7 @@ export interface DashboardHealthResult {
   httpMetricsOk: boolean;
   tcpOpen: boolean;
   viteOk: boolean;
+  viteApiOk: boolean;
   port: number;
   vitePort: number;
   message: string;
@@ -131,8 +133,26 @@ async function tcpCheck(port: number, timeout = 2000): Promise<boolean> {
  * Check if Vite dev server is running (port 5173)
  */
 async function checkViteHealth(port: number): Promise<boolean> {
-  const htmlResult = await httpGetJson(port, '/', 2000, 'localhost', 'text/html,*/*');
-  return htmlResult.ok && htmlResult.statusCode === 200;
+  return new Promise((resolve) => {
+    const req = http.get(
+      { hostname: '127.0.0.1', port, path: '/', timeout: 2000, headers: { Accept: 'text/html' } },
+      (res) => {
+        let html = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk: string) => {
+          if (html.length < 16_384) html += chunk;
+        });
+        res.on('end', () => {
+          resolve(res.statusCode === 200 && isDashboardHtml(html));
+        });
+      },
+    );
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
 }
 
 /**
@@ -143,16 +163,28 @@ export async function checkDashboardHealth(
   vitePort = 5173,
 ): Promise<DashboardHealthResult> {
   // Run all checks in parallel
-  const [healthApi, metricsApi, tcpResult, viteOk] = await Promise.all([
-    httpGetJson(wsPort, '/api/health', 3000),
+  const [healthApi, metricsApi, tcpResult, viteOk, viteHealthApi] = await Promise.all([
+    httpGetJson(wsPort, '/api/health/live', 5000),
     httpGetJson(wsPort, '/api/metrics', 3000),
     tcpCheck(wsPort, 2000),
     checkViteHealth(vitePort),
+    httpGetJson(vitePort, '/api/health/live', 5000),
   ]);
 
-  const httpHealthOk = healthApi.ok && healthApi.body !== null;
+  const httpHealthOk =
+    healthApi.ok &&
+    typeof healthApi.body === 'object' &&
+    healthApi.body !== null &&
+    'status' in healthApi.body &&
+    healthApi.body.status === 'ok';
   const httpMetricsOk = metricsApi.ok && metricsApi.body !== null;
   const tcpOpen = tcpResult;
+  const viteApiOk =
+    viteHealthApi.ok &&
+    typeof viteHealthApi.body === 'object' &&
+    viteHealthApi.body !== null &&
+    'status' in viteHealthApi.body &&
+    viteHealthApi.body.status === 'ok';
 
   let status: DashboardHealthResult['status'];
   let message: string;
@@ -176,6 +208,7 @@ export async function checkDashboardHealth(
     httpMetricsOk,
     tcpOpen,
     viteOk,
+    viteApiOk,
     port: wsPort,
     vitePort: vitePort,
     message,

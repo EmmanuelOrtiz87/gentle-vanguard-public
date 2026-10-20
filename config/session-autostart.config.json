@@ -95,7 +95,7 @@
         "args": "prune",
         "required": false,
         "phase": 95,
-        "description": "Session retention - prune old sessions, checkpoints, backups according to retention policy (max 10 sessions, 5 checkpoints, 3 backups)"
+        "description": "Session retention - prune old sessions, checkpoints, backups according to retention policy (max 10 sessions, 5 checkpoints, 14 backups)"
       },
       {
         "id": "github-bypass",
@@ -1132,7 +1132,7 @@
     "enabled": true,
     "maxSessionFiles": 10,
     "maxCheckpointsPerSession": 5,
-    "maxBackups": 3,
+    "maxBackups": 14,
     "maxCloseReports": 20,
     "sessionAgeThresholdDays": 30,
     "highScoreThreshold": 80,

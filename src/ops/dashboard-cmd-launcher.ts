@@ -10,10 +10,11 @@
  * USO: npx tsx src/dashboard-cmd-launcher.ts [--port 8080]
  */
 
-import { spawn, execFile } from 'child_process';
-import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'fs';
+import { spawn } from 'child_process';
+import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import * as http from 'http';
+import { getFreePort, readDashboardPorts, saveDashboardPorts } from './dashboard-common';
 
 const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');
@@ -33,7 +34,7 @@ function log(message: string): void {
   }
 }
 
-function isPortInUse(port: number): Promise<boolean> {
+function isDashboardRunning(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.get(`http://127.0.0.1:${port}/api/health`, { timeout: 2000 }, (res) => {
       resolve(res.statusCode === 200);
@@ -44,35 +45,6 @@ function isPortInUse(port: number): Promise<boolean> {
       resolve(false);
     });
   });
-}
-
-function cleanupPIDs(): void {
-  try {
-    if (existsSync(PID_FILE)) {
-      const pid = parseInt(readFileSync(PID_FILE, 'utf-8').trim(), 10);
-      if (!isNaN(pid)) {
-        try {
-          // CMD nativo: taskkill sin PowerShell
-          execFile('taskkill', ['/PID', String(pid), '/F'], { windowsHide: true }, () => {
-            log(`Cleaned up old process PID ${pid}`);
-          });
-        } catch {
-          // Proceso ya muerto
-        }
-      }
-      unlinkSync(PID_FILE);
-    }
-  } catch {
-    // Ignorar errores de cleanup
-  }
-}
-
-async function findFreePort(startPort: number): Promise<number> {
-  for (let port = startPort; port < startPort + 100; port++) {
-    const inUse = await isPortInUse(port);
-    if (!inUse) return port;
-  }
-  throw new Error(`No free port found in range ${startPort}-${startPort + 100}`);
 }
 
 function launchDashboard(port: number): Promise<number> {
@@ -109,7 +81,7 @@ function launchDashboard(port: number): Promise<number> {
 async function waitForHealth(port: number, timeoutMs: number = 10000): Promise<boolean> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const healthy = await isPortInUse(port);
+    const healthy = await isDashboardRunning(port);
     if (healthy) return true;
     await new Promise((r) => setTimeout(r, 500));
   }
@@ -119,28 +91,31 @@ async function waitForHealth(port: number, timeoutMs: number = 10000): Promise<b
 async function main() {
   const args = process.argv.slice(2);
   const portIndex = args.indexOf('--port');
-  const portArg = portIndex >= 0 ? args[portIndex + 1] : '8080';
-  const requestedPort = parseInt(portArg, 10) || 8080;
+  const configuredPorts = readDashboardPorts();
+  const portArg = portIndex >= 0 ? args[portIndex + 1] : undefined;
+  const requestedPort = Number(portArg ?? configuredPorts?.wsPort ?? 8080);
+  if (!Number.isInteger(requestedPort) || requestedPort < 1 || requestedPort > 65535) {
+    throw new Error(`Invalid dashboard port: ${portArg}`);
+  }
 
   log('=== Dashboard CMD Launcher ===');
   log('Architecture: CMD Native, Zero PowerShell');
 
-  // Limpiar PIDs viejos
-  cleanupPIDs();
-
   // Verificar si ya está corriendo
-  if (await isPortInUse(requestedPort)) {
+  if (await isDashboardRunning(requestedPort)) {
     log(`Dashboard already running on port ${requestedPort}`);
     return 0;
   }
 
-  // Buscar puerto libre
-  const port = await findFreePort(requestedPort);
+  const port = await getFreePort(requestedPort);
+  if (await isDashboardRunning(port)) {
+    log(`Dashboard already running on port ${port}`);
+    saveDashboardPorts(port, configuredPorts?.vitePort ?? 5173);
+    return 0;
+  }
   log(`Selected port: ${port}`);
 
-  // Guardar configuración
-  const portsFile = join(RUNTIME_DIR, 'dashboard-ports.json');
-  writeFileSync(portsFile, JSON.stringify({ wsPort: port, vitePort: 5173 }, null, 2));
+  saveDashboardPorts(port, configuredPorts?.vitePort ?? 5173);
 
   // Lanzar dashboard
   try {

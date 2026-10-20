@@ -32,7 +32,7 @@
       sec_architecture: 'System Architecture',
       sec_components: 'Stack Components',
       sec_autonomous: 'Autonomous Systems',
-      sec_data_layer: 'Data Layer — 16 Repos',
+      sec_data_layer: 'Data Layer — Nexus local',
       sec_executive: 'Executive Systems',
       sec_feature_matrix: 'Feature Matrix',
       sec_skills_rules: 'Skills & Rules Explorer',
@@ -105,13 +105,13 @@
       lbox_hint_drag: 'Drag to pan',
       lbox_hint_dbl: 'Double-click to toggle',
       tip_pipeline:
-        'Session autostart: 31 parallel Phase-1 steps + 78 lazy background steps launched in batches of 2. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init.',
+        'Session startup combines parallel initialization and selected deferred background work; exact steps depend on the current configuration.',
       tip_engram:
-        'Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 2,078 observations across 398+ sessions. Survives across sessions and compactions.',
+        'Persistent memory with synchronization, integrity checks and compaction. Check current local health and inventory for runtime status.',
       tip_codegraph:
-        'SQLite knowledge graph for symbol intelligence. 10,000+ nodes and 20,000+ edges across 600+ files with sub-millisecond symbol queries.',
+        'Knowledge graph for code-symbol intelligence; index size and query performance depend on the current workspace.',
       tip_dashboard:
-        'React + TypeScript + Vite observability SPA. WebSocket real-time updates every 5s with HTTP polling fallback, 7 dashboard sections, i18n in 3 languages and 8 alert rules.',
+        'React + TypeScript + Vite dashboard for LLM observability; verify live API and WebSocket availability before reporting runtime status.',
       tip_circuit:
         '3-state circuit breaker (CLOSED / OPEN / HALF_OPEN). 5 failures open the circuit, 2 successes recover it. Prevents cascading failures across the stack.',
       tip_autoapply:
@@ -125,11 +125,11 @@
       tip_scoring:
         'Per-session quality scoring tracking delegations, corrections and proactive hits. Automatic comparison, regression detection above 15% and anomaly alerts.',
       tip_watchtower:
-        'Central health orchestrator: 95 checks across 21 components with Promise.allSettled parallel execution and auto-heal modes (health, rebuild, autoheal, report, continuous).',
+        'Central health orchestrator for checks and repair/report modes. Run a current check before reporting results.',
       tip_nexus:
-        'Operational SQLite database (WAL mode, FK ON) with 16 repositories, 16 migrations and 23 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring.',
+        'Local operational SQLite database. Schema counts vary by installation; check live health before reporting current status.',
       tip_layers:
-        'The stack is organized in 6 layers: Tools (10 IDEs) → Agents (21 specialized) → Pipeline (110 enabled steps) → Memory & Knowledge → Data (16 Repos) → Executive systems.',
+        'The stack is organized in functional layers. Check the current inventory instead of assuming installed tool, agent or pipeline counts.',
       section_overview: 'Overview',
       section_architecture: 'Architecture',
       section_metrics: 'Metrics',
@@ -186,13 +186,13 @@
       tip_hs_dash_watchdog:
         'Watchdog Auto-Recovery: monitors :8080 every 5s, restarts up to 10 times, and kills the watchdog first to avoid loops.',
       tip_hs_data_nexus:
-        'NEXUS DB: operational SQLite database (gentle-vanguard.db) with WAL mode, FK ON, 12 tables and 3 migrations.',
+        'NEXUS DB: local operational SQLite database. Schema and migration counts depend on the installed build.',
       tip_hs_data_repos_blue:
         'Data DAOs (blue): MetricsRepo (metric_snapshots), SessionRepo (sessions) and TraceRepo (traces) - time-series and session history.',
       tip_hs_data_repos_green:
         'Quality DAOs (green): CacheRepo (response_cache) and EventRepo (events) - caching and event sourcing audit trail.',
       tip_hs_data_repos_orange:
-        'Ops DAOs (orange): HousekeepingRepo (token_usage) and MigrationRunner (16 migrations) - maintenance and schema evolution.',
+        'Ops data access and schema migration support. Check the current local inventory for installation-specific details.',
       tip_hs_data_repos_purple:
         'Memory DAOs (purple): SkillRepo (skill_usage), ContractRepo (contract_results) and ErrMemoryRepo (scoring) - usage and scoring.',
       tip_hs_flow_karpathy:
@@ -200,11 +200,11 @@
       tip_hs_flow_lazy_batch:
         'Lazy Batch - 5 background workers: runs deferred steps like Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline and Dashboard WS.',
       tip_hs_flow_phase1:
-        'Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure.',
+        'Phase 1 - parallel startup work: independent initializers run concurrently; check the current configuration for exact steps.',
       tip_hs_flow_phase2:
-        'Phase 2 - 78 lazy background steps: deferred heavy work executed in batches of 2 workers after session start.',
+        'Phase 2 - selected background work is deferred after session start; the current configuration determines its scope.',
       tip_hs_flow_process_bar:
-        'Process bar: parallel steps (32) then lazy background (78) then DONE - the full 110-step session pipeline.',
+        'Process bar: parallel startup followed by selected deferred work. Exact step counts are configuration-specific.',
       tip_hs_flow_session_manager:
         'Session Manager: generates the session ID, syncs Engram and tracks the session lifecycle.',
       tip_hs_flow_token_budget:
@@ -234,15 +234,15 @@
       tip_hs_loop_verification:
         'Phase 5 - Verification: runs typecheck, lint and tests; if verification fails, the action is rolled back.',
       tip_hs_agents:
-        'Agents - 21 specialized subagents: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
+        'Agents - specialized roles support orchestration, delivery, operations, governance and business workflows; consult the current inventory for the installed set.',
       tip_hs_data:
-        'Data Layer - Nexus SQLite DB with 16 repositories (15 DAOs + MigrationRunner), 16 migrations and 23 tables. WAL mode and FK ON enabled.',
+        'Data Layer - Nexus is a local operational SQLite database. Schema counts and backup readiness must be verified on the current installation.',
       tip_hs_executive:
         'Executive Systems - 12 autonomous subsystems: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (3,600+ observations), CodeGraph (10,000+ nodes), Graphify 4MB knowledge graph, ML Embeddings vector index, Nexus DB and Knowledge Vault.',
+        'Memory Layer - Engram, CodeGraph, Graphify, embeddings, Nexus DB and Knowledge Vault; current index sizes vary by workspace.',
       tip_hs_pipeline:
-        'Pipeline - 110 steps configured, 110 enabled: 32 Phase 1 parallel + 78 lazy background in batches of 2. Promise.allSettled never blocks on failure.',
+        'Pipeline - combines parallel startup with selected deferred background work. Exact step counts depend on the current configuration.',
       tip_hs_tools:
         'Tools - 10 IDE integrations: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Code generation, feature building, refactoring',
@@ -391,9 +391,9 @@
       tip_c_securitygovernance_96: 'Cost tracking &amp; attribution',
       tip_c_securitygovernance_97: 'Finance',
       tip_fm_55:
-        '16 repositories total: 15 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode.',
+        'Nexus data access is organized around repositories; available repositories vary by the installed build.',
       tip_fm_56:
-        '7 schema migrations create 23 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, applied automatically by DatabaseManager at session start.',
+        'Migration history and table counts vary by installation; inspect the current local database before reporting them.',
       tip_fm_57:
         '6-layer decoupled design: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
@@ -423,7 +423,7 @@
       tip_fm_70:
         'Graphify 4MB knowledge graph with god nodes, community structure and cross-file relationships.',
       tip_fm_71:
-        'Nexus operational DB: SQLite WAL mode, 23 tables, auto-init, auto-prune, auto-backup and watchtower monitoring.',
+        'Nexus is a local operational SQLite database; verify live health and schema on this installation.',
       tip_fm_72:
         'ML Embeddings vector index for semantic search over skills, norms and documentation.',
       tip_fm_73:
@@ -433,7 +433,7 @@
       tip_fm_75: 'Governance policies + rules enforcement across all 21 watchtower components.',
       tip_fm_76:
         'Guardrails: pre-input validation that rejects unsafe prompts before they reach the model.',
-      tip_fm_77: '60 normatives covering rules and policies for autonomous operation.',
+      tip_fm_77: 'Governance rules and policies; consult the current inventory for this installation.',
       tip_fm_78:
         'WebSocket push to the dashboard every 5 seconds with real metrics computed from traces.',
       tip_fm_79:
@@ -503,7 +503,7 @@
       tip_metricsrepo:
         'CRUD for metric_snapshots — time-series of tokens, latency and health sampled every 30s. Powers the real-time dashboard charts and trend analysis.',
       tip_nexus_arch:
-        'Nexus is the operational brain: SQLite in WAL mode with FK ON. 16 repositories (15 DAOs + MigrationRunner), 16 migrations (m001 initial schema, m002 stack tables, m003 session scoring, …) and 23 tables. Each component persists its live state to .state.json files under .session/context-log/. Auto-init, auto-prune, auto-backup and watchtower monitoring (gentle-vanguard-db component).',
+        'Nexus is local operational SQLite. Current schema and migration counts are installation-specific; verify local health and backup readiness before reporting status.',
       tip_sessionrepo:
         'sessions + session_scoring — upsert by session_id, active session queries and per-session quality scoring (delegations, corrections, proactive hits).',
       tip_sk_analysis:
@@ -827,7 +827,7 @@
       sec_architecture: 'Arquitectura del Sistema',
       sec_components: 'Componentes del Stack',
       sec_autonomous: 'Sistemas Autónomos',
-      sec_data_layer: 'Capa de Datos — 16 Repos',
+      sec_data_layer: 'Capa de Datos — Nexus local',
       sec_executive: 'Sistemas Ejecutivos',
       sec_feature_matrix: 'Matriz de Funcionalidades',
       sec_skills_rules: 'Explorador de Skills y Reglas',
@@ -906,7 +906,7 @@
       tip_codegraph:
         'Grafo de conocimiento SQLite para inteligencia de símbolos. 10,000+ nodos y 20,000+ aristas en 600+ archivos con consultas de símbolos en menos de un milisegundo.',
       tip_dashboard:
-        'SPA de observabilidad React + TypeScript + Vite. WebSocket con actualizaciones en tiempo real cada 5s con fallback de polling HTTP, 7 secciones del dashboard, i18n en 3 idiomas y 8 reglas de alerta.',
+        'Dashboard React + TypeScript + Vite para observabilidad de IA; verifica la disponibilidad actual de API y WebSocket antes de informar el estado.',
       tip_circuit:
         'Circuit breaker de 3 estados (CLOSED / OPEN / HALF_OPEN). 5 fallos abren el circuito, 2 éxitos lo recuperan. Previene fallos en cascada en todo el stack.',
       tip_autoapply:
@@ -920,11 +920,11 @@
       tip_scoring:
         'Scoring de calidad por sesión que rastrea delegaciones, correcciones y aciertos proactivos. Comparación automática, detección de regresión mayor al 15% y alertas de anomalías.',
       tip_watchtower:
-        'Orquestador central de salud: 95 checks en 21 componentes con ejecución paralela Promise.allSettled y modos de auto-healing (health, rebuild, autoheal, report, continuous).',
+        'Orquestador central de salud con verificaciones y modos de reparación/reporte. Ejecuta un check actual antes de informar resultados.',
       tip_nexus:
-        'Base de datos operacional SQLite (modo WAL, FK ON) con 16 repositorios, 16 migraciones y 23 tablas. Auto-init, auto-prune, auto-backup y monitoreo por watchtower.',
+        'Base de datos SQLite operacional local. Las cifras del esquema dependen de la instalación; verifica la salud actual antes de informar el estado.',
       tip_layers:
-        'El stack se organiza en 6 capas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (110 pasos habilitados) → Memoria y Conocimiento → Datos (16 Repos) → Sistemas ejecutivos.',
+        'El stack se organiza en capas funcionales. Consulta el inventario actual en lugar de asumir cantidades de herramientas, agentes o pasos del pipeline.',
       section_overview: 'Resumen',
       section_architecture: 'Arquitectura',
       section_metrics: 'Métricas',
@@ -981,13 +981,13 @@
       tip_hs_dash_watchdog:
         'Watchdog Auto-Recovery: monitoriza :8080 cada 5s, reinicia hasta 10 veces y mata el watchdog primero para evitar bucles.',
       tip_hs_data_nexus:
-        'NEXUS DB: base de datos operacional SQLite (gentle-vanguard.db) con modo WAL, FK ON, 12 tablas y 3 migraciones.',
+        'NEXUS DB: base de datos SQLite operacional local. Las cifras del esquema y migraciones dependen de la versión instalada.',
       tip_hs_data_repos_blue:
         'DAOs de datos (azul): MetricsRepo (metric_snapshots), SessionRepo (sessions) y TraceRepo (traces) - series temporales e historial de sesiones.',
       tip_hs_data_repos_green:
         'DAOs de calidad (verde): CacheRepo (response_cache) y EventRepo (events) - caché y auditoría de event sourcing.',
       tip_hs_data_repos_orange:
-        'DAOs de ops (naranja): HousekeepingRepo (token_usage) y MigrationRunner (16 migraciones) - mantenimiento y evolución de esquema.',
+        'Acceso a datos operacionales y soporte para migraciones del esquema. Consulta el inventario local para detalles de esta instalación.',
       tip_hs_data_repos_purple:
         'DAOs de memoria (púrpura): SkillRepo (skill_usage), ContractRepo (contract_results) y ErrMemoryRepo (scoring) - uso y puntuación.',
       tip_hs_flow_karpathy:
@@ -995,11 +995,11 @@
       tip_hs_flow_lazy_batch:
         'Lazy Batch - 5 workers en background: ejecuta pasos diferidos como Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline y Dashboard WS.',
       tip_hs_flow_phase1:
-        'Fase 1 - 31 pasos paralelos: inicializadores rápidos e independientes que corren en concurrencia y nunca bloquean ante fallos.',
+        'Fase 1 - trabajo paralelo de inicio: los inicializadores independientes corren en concurrencia; consulta la configuración actual para conocer los pasos.',
       tip_hs_flow_phase2:
-        'Fase 2 - 70 pasos lazy background: trabajo pesado diferido ejecutado en batches de 2 workers tras el inicio de sesión.',
+        'Fase 2 - algunas tareas se difieren al segundo plano después del inicio; su alcance depende de la configuración actual.',
       tip_hs_flow_process_bar:
-        'Barra de proceso: pasos paralelos (32), luego lazy background (78) y DONE - el pipeline completo de 110 pasos.',
+        'Barra de proceso: inicio paralelo seguido de tareas diferidas seleccionadas. Las cifras exactas dependen de la configuración.',
       tip_hs_flow_session_manager:
         'Session Manager: genera el ID de sesión, sincroniza Engram y rastrea el ciclo de vida de la sesión.',
       tip_hs_flow_token_budget:
@@ -1029,15 +1029,15 @@
       tip_hs_loop_verification:
         'Fase 5 - Verificación: ejecuta typecheck, lint y tests; si la verificación falla, la acción se revierte.',
       tip_hs_agents:
-        'Agents - 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
+        'Agents - los roles especializados apoyan la orquestación, entrega, operaciones, gobernanza y flujos de negocio; consulta el inventario actual para ver los instalados.',
       tip_hs_data:
-        'Data Layer - Base Nexus SQLite con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas. Modo WAL y FK ON habilitados.',
+        'Data Layer - Nexus es una base de datos SQLite operacional local. Las cifras del esquema y la preparación de respaldos deben verificarse en esta instalación.',
       tip_hs_executive:
         'Executive Systems - 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (3,600+ observaciones), CodeGraph (10.000+ nodos), Graphify 4MB grafo de conocimiento, ML Embeddings índice vectorial, Nexus DB y Knowledge Vault.',
+        'Memory Layer - Engram, CodeGraph, Graphify, embeddings, Nexus DB y Knowledge Vault; el tamaño de los índices varía por workspace.',
       tip_hs_pipeline:
-        'Pipeline - 110 pasos configurados, 110 habilitados: 32 Phase 1 paralelos + 78 lazy background en batches de 2. Promise.allSettled nunca bloquea ante fallos.',
+        'Pipeline - combina inicio paralelo con tareas seleccionadas en segundo plano. Las cifras exactas dependen de la configuración actual.',
       tip_hs_tools:
         'Tools - 10 integraciones IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Generación de código, construcción de features, refactoring',
@@ -1187,9 +1187,9 @@
       tip_c_securitygovernance_96: 'Seguimiento de costos &amp; atribución',
       tip_c_securitygovernance_97: 'Finanzas',
       tip_fm_55:
-        '16 repositorios en total: 15 DAOs + MigrationRunner. El MigrationRunner aplica las migraciones de esquema en orden con FK ON y modo WAL.',
+        'El acceso a datos de Nexus se organiza en repositorios; los disponibles dependen de la versión instalada.',
       tip_fm_56:
-        '16 migraciones de esquema crean 23 tablas. Migración 001 = esquema inicial, 002 = tablas del stack, 003 = session scoring, aplicadas automáticamente por DatabaseManager al inicio de sesión.',
+        'El historial de migraciones y las tablas dependen de la instalación; inspecciona la base local antes de informar esas cifras.',
       tip_fm_57:
         'Diseño desacoplado de 6 capas: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
@@ -1218,7 +1218,7 @@
       tip_fm_70:
         'Grafo de conocimiento Graphify de 4MB con god nodes, estructura de comunidades y relaciones entre archivos.',
       tip_fm_71:
-        'BD operacional Nexus: SQLite modo WAL, 23 tablas, auto-init, auto-prune, auto-backup y monitoreo del watchtower.',
+        'Nexus es una base de datos SQLite operacional local; verifica la salud y el esquema actuales de esta instalación.',
       tip_fm_72:
         'Índice vectorial ML Embeddings para búsqueda semántica sobre skills, normas y documentación.',
       tip_fm_73:
@@ -1229,7 +1229,7 @@
         'Políticas de governance + enforcement de reglas en los 21 componentes del watchtower.',
       tip_fm_76:
         'Guardrails: validación pre-input que rechaza prompts inseguros antes de que lleguen al modelo.',
-      tip_fm_77: '60 normativas que cubren reglas y políticas para la operación autónoma.',
+      tip_fm_77: 'Reglas y políticas de gobernanza; consulta el inventario actual de esta instalación.',
       tip_fm_78:
         'Push WebSocket al dashboard cada 5 segundos con métricas reales calculadas desde traces.',
       tip_fm_79:
@@ -1301,7 +1301,7 @@
       tip_metricsrepo:
         'CRUD de metric_snapshots — series temporales de tokens, latencia y salud muestreadas cada 30s. Alimenta las gráficas del dashboard en tiempo real y el análisis de tendencias.',
       tip_nexus_arch:
-        'Nexus es el cerebro operacional: SQLite en modo WAL con FK ON. 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones (m001 esquema inicial, m002 tablas del stack, m003 session scoring, …) y 23 tablas. Cada componente persiste su estado vivo en archivos .state.json bajo .session/context-log/. Auto-init, auto-prune, auto-backup y monitoreo del watchtower (componente gentle-vanguard-db).',
+        'Nexus es SQLite operacional local. Las cifras del esquema y migraciones dependen de la instalación; verifica la salud local y la preparación de respaldos antes de informar el estado.',
       tip_sessionrepo:
         'sessions + session_scoring — upsert por session_id, consultas de sesiones activas y scoring de calidad por sesión (delegaciones, correcciones, aciertos proactivos).',
       tip_sk_analysis:
@@ -1595,7 +1595,7 @@
       sec_architecture: 'Arquitetura do Sistema',
       sec_components: 'Componentes da Stack',
       sec_autonomous: 'Sistemas Autônomos',
-      sec_data_layer: 'Camada de Dados — 16 Repos',
+      sec_data_layer: 'Camada de Dados — Nexus local',
       sec_executive: 'Sistemas Executivos',
       sec_feature_matrix: 'Matriz de Funcionalidades',
       sec_skills_rules: 'Explorador de Skills e Regras',
@@ -1674,7 +1674,7 @@
       tip_codegraph:
         'Grafo de conhecimento SQLite para inteligência de símbolos. 10.000+ nós e 20.000+ arestas em 600+ arquivos com consultas de símbolos em menos de um milissegundo.',
       tip_dashboard:
-        'SPA de observabilidade React + TypeScript + Vite. WebSocket com atualizações em tempo real a cada 5s com fallback de polling HTTP, 7 seções do dashboard, i18n em 3 idiomas e 8 regras de alerta.',
+        'Dashboard React + TypeScript + Vite para observabilidade de IA; verifique a disponibilidade atual de API e WebSocket antes de informar o estado.',
       tip_circuit:
         'Circuit breaker de 3 estados (CLOSED / OPEN / HALF_OPEN). 5 falhas abrem o circuito, 2 sucessos o recuperam. Previne falhas em cascata em toda a stack.',
       tip_autoapply:
@@ -1688,11 +1688,11 @@
       tip_scoring:
         'Scoring de qualidade por sessão que rastreia delegações, correções e acertos proativos. Comparação automática, detecção de regressão acima de 15% e alertas de anomalias.',
       tip_watchtower:
-        'Orquestrador central de saúde: 95 checks em 21 componentes com execução paralela Promise.allSettled e modos de auto-healing (health, rebuild, autoheal, report, continuous).',
+        'Orquestrador central de saúde com verificações e modos de reparo/relatório. Execute uma verificação atual antes de informar resultados.',
       tip_nexus:
-        'Banco de dados operacional SQLite (modo WAL, FK ON) com 16 repositórios, 16 migrações e 23 tabelas. Auto-init, auto-prune, auto-backup e monitoramento por watchtower.',
+        'Banco SQLite operacional local. As contagens do esquema dependem da instalação; verifique a saúde atual antes de informar o estado.',
       tip_layers:
-        'A stack se organiza em 6 camadas: Tools (10 IDEs) → Agents (21 especializados) → Pipeline (110 passos habilitados) → Memória e Conhecimento → Dados (16 Repos) → Sistemas executivos.',
+        'A stack se organiza em camadas funcionais. Consulte o inventário atual em vez de presumir quantidades de ferramentas, agentes ou etapas do pipeline.',
       section_overview: 'Visão Geral',
       section_architecture: 'Arquitetura',
       section_metrics: 'Métricas',
@@ -1749,13 +1749,13 @@
       tip_hs_dash_watchdog:
         'Watchdog Auto-Recovery: monitora :8080 a cada 5s, reinicia até 10 vezes e mata o watchdog primeiro para evitar loops.',
       tip_hs_data_nexus:
-        'NEXUS DB: banco operacional SQLite (gentle-vanguard.db) com modo WAL, FK ON, 12 tabelas e 3 migrações.',
+        'NEXUS DB: banco SQLite operacional local. As contagens do esquema e das migrações dependem da versão instalada.',
       tip_hs_data_repos_blue:
         'DAOs de dados (azul): MetricsRepo (metric_snapshots), SessionRepo (sessions) e TraceRepo (traces) - séries temporais e histórico de sessões.',
       tip_hs_data_repos_green:
         'DAOs de qualidade (verde): CacheRepo (response_cache) e EventRepo (events) - cache e auditoria de event sourcing.',
       tip_hs_data_repos_orange:
-        'DAOs de ops (laranja): HousekeepingRepo (token_usage) e MigrationRunner (16 migrações) - manutenção e evolução de esquema.',
+        'Acesso a dados operacionais e suporte para migrações do esquema. Consulte o inventário local para detalhes desta instalação.',
       tip_hs_data_repos_purple:
         'DAOs de memória (roxo): SkillRepo (skill_usage), ContractRepo (contract_results) e ErrMemoryRepo (scoring) - uso e pontuação.',
       tip_hs_flow_karpathy:
@@ -1763,11 +1763,11 @@
       tip_hs_flow_lazy_batch:
         'Lazy Batch - 5 workers em background: executa etapas adiadas como Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline e Dashboard WS.',
       tip_hs_flow_phase1:
-        'Fase 1 - 31 etapas paralelas: inicializadores rápidos e independentes que rodam em concorrência e nunca bloqueiam ante falhas.',
+        'Fase 1 - trabalho paralelo de inicialização: inicializadores independentes rodam em concorrência; consulte a configuração atual para ver as etapas.',
       tip_hs_flow_phase2:
-        'Fase 2 - 70 etapas lazy background: trabalho pesado adiado executado em lotes de 2 workers após o início da sessão.',
+        'Fase 2 - algumas tarefas são adiadas para segundo plano após a inicialização; o escopo depende da configuração atual.',
       tip_hs_flow_process_bar:
-        'Barra de processo: etapas paralelas (32), depois lazy background (78) e DONE - o pipeline completo de 110 etapas.',
+        'Barra de processo: inicialização paralela seguida de tarefas adiadas selecionadas. As contagens exatas dependem da configuração.',
       tip_hs_flow_session_manager:
         'Session Manager: gera o ID da sessão, sincroniza o Engram e rastreia o ciclo de vida da sessão.',
       tip_hs_flow_token_budget:
@@ -1797,15 +1797,15 @@
       tip_hs_loop_verification:
         'Fase 5 - Verificação: executa typecheck, lint e testes; se a verificação falhar, a ação é revertida.',
       tip_hs_agents:
-        'Agents - 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele).',
+        'Agents - funções especializadas apoiam orquestração, entrega, operações, governança e fluxos de negócio; consulte o inventário atual para ver o conjunto instalado.',
       tip_hs_data:
-        'Data Layer - Banco Nexus SQLite com 16 repositórios (15 DAOs + MigrationRunner), 16 migrações e 23 tabelas. Modo WAL e FK ON habilitados.',
+        'Data Layer - Nexus é um banco SQLite operacional local. As contagens do esquema e a prontidão dos backups devem ser verificadas nesta instalação.',
       tip_hs_executive:
         'Executive Systems - 12 subsistemas autônomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors',
       tip_hs_memory:
-        'Memory Layer - Engram (3,600+ observações), CodeGraph (10.000+ nós), Graphify 4MB grafo de conhecimento, ML Embeddings índice vetorial, Nexus DB e Knowledge Vault.',
+        'Memory Layer - Engram, CodeGraph, Graphify, embeddings, Nexus DB e Knowledge Vault; o tamanho dos índices varia por workspace.',
       tip_hs_pipeline:
-        'Pipeline - 110 etapas configuradas, 110 habilitadas: 32 Phase 1 paralelas + 78 lazy background em lotes de 2. Promise.allSettled nunca bloqueia ante falhas.',
+        'Pipeline - combina inicialização paralela com tarefas selecionadas em segundo plano. As contagens exatas dependem da configuração atual.',
       tip_hs_tools:
         'Tools - 10 integrações IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code.',
       tip_c_agentspipeline_10: 'Geração de código, construção de features, refatoração',
@@ -1955,9 +1955,9 @@
       tip_c_securitygovernance_96: 'Rastreamento de custos &amp; atribuição',
       tip_c_securitygovernance_97: 'Finanças',
       tip_fm_55:
-        '16 repositórios no total: 15 DAOs + MigrationRunner. O MigrationRunner aplica as migrações de esquema em ordem com FK ON e modo WAL.',
+        'O acesso a dados do Nexus é organizado em repositórios; os disponíveis dependem da versão instalada.',
       tip_fm_56:
-        '16 migrações de esquema criam 23 tabelas. Migração 001 = esquema inicial, 002 = tabelas do stack, 003 = session scoring, aplicadas automaticamente pelo DatabaseManager no início da sessão.',
+        'O histórico de migrações e as tabelas dependem da instalação; inspecione o banco local antes de informar essas contagens.',
       tip_fm_57:
         'Design desacoplado de 6 camadas: Tools -> Agents -> Pipeline -> Memory -> Data -> Executive.',
       tip_fm_58:
@@ -1987,7 +1987,7 @@
       tip_fm_70:
         'Grafo de conhecimento Graphify de 4MB com god nodes, estrutura de comunidades e relações entre arquivos.',
       tip_fm_71:
-        'BD operacional Nexus: SQLite modo WAL, 23 tabelas, auto-init, auto-prune, auto-backup e monitoramento do watchtower.',
+        'Nexus é um banco SQLite operacional local; verifique a saúde e o esquema atuais desta instalação.',
       tip_fm_72:
         'Índice vetorial ML Embeddings para busca semântica sobre skills, normas e documentação.',
       tip_fm_73:
@@ -1997,7 +1997,7 @@
       tip_fm_75: 'Políticas de governance + aplicação de regras nos 21 componentes do watchtower.',
       tip_fm_76:
         'Guardrails: validação pre-input que rejeita prompts inseguros antes de chegarem ao modelo.',
-      tip_fm_77: '60 normativas que cobrem regras e políticas para a operação autônoma.',
+      tip_fm_77: 'Regras e políticas de governança; consulte o inventário atual desta instalação.',
       tip_fm_78:
         'Push WebSocket ao dashboard a cada 5 segundos com métricas reais calculadas a partir de traces.',
       tip_fm_79:
@@ -2069,7 +2069,7 @@
       tip_metricsrepo:
         'CRUD de metric_snapshots — séries temporais de tokens, latência e saúde amostradas a cada 30s. Alimenta os gráficos do dashboard em tempo real e a análise de tendências.',
       tip_nexus_arch:
-        'Nexus é o cérebro operacional: SQLite em modo WAL com FK ON. 16 repositórios (15 DAOs + MigrationRunner), 16 migrações (m001 esquema inicial, m002 tabelas do stack, m003 session scoring, …) e 23 tabelas. Cada componente persiste seu estado vivo em arquivos .state.json sob .session/context-log/. Auto-init, auto-prune, auto-backup e monitoramento do watchtower (componente gentle-vanguard-db).',
+        'Nexus é SQLite operacional local. As contagens do esquema e das migrações dependem da instalação; verifique a saúde local e a prontidão dos backups antes de informar o estado.',
       tip_sessionrepo:
         'sessions + session_scoring — upsert por session_id, consultas de sessões ativas e scoring de qualidade por sessão (delegações, correções, acertos proativos).',
       tip_sk_analysis:

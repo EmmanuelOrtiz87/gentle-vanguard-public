@@ -47,11 +47,10 @@ export async function checkDesignCanon(): Promise<void> {
     return;
   }
 
-  const r = spawnSync('npm', ['run', 'conformance', '--silent'], {
+  const r = spawnSync(process.execPath, ['--import', 'tsx', 'src/cli/conformance.ts'], {
     cwd: pkg,
     encoding: 'utf8',
     timeout: 120_000,
-    shell: process.platform === 'win32',
     windowsHide: true,
   });
   const out = `${r.stdout ?? ''}${r.stderr ?? ''}`;
