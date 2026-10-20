@@ -47,10 +47,10 @@ test('readAppScripts: wpp-bot tiene typecheck/test/lint', () => {
   assert.ok(scripts.lint, 'wpp-bot.lint debe existir');
 });
 
-test('readAppScripts: design-hub no tiene scripts de auditoria (solo start/stop)', () => {
+test('readAppScripts: design-hub exposes its native tests without inventing typecheck or lint', () => {
   const scripts = readAppScripts('design-hub');
   assert.equal(scripts.typecheck, undefined);
-  assert.equal(scripts.test, undefined);
+  assert.equal(scripts.test, 'node --test tools/*.test.mjs');
   assert.equal(scripts.lint, undefined);
 });
 
@@ -60,12 +60,12 @@ test('readAppScripts: devuelve vacio para app inexistente', () => {
 });
 
 test('planAppAudits: incluye solo kinds que tienen script definido', () => {
-  const apps = ['wpp-bot', 'design-hub']; // wpp-bot tiene todo, design-hub no tiene audit
+  const apps = ['wpp-bot', 'design-hub'];
   const plans = planAppAudits(apps, ['typecheck', 'test', 'lint']);
   const wpp = plans.find((p) => p.app === 'wpp-bot');
   const design = plans.find((p) => p.app === 'design-hub');
   assert.ok(wpp && wpp.plan.length === 3, 'wpp-bot debe planear 3 checks');
-  assert.ok(design && design.plan.length === 0, 'design-hub no debe planear checks');
+  assert.deepEqual(design?.plan.map((check) => check.kind), ['test']);
   assert.equal(design?.packageJsonExists, true, 'design-hub SI tiene package.json');
 });
 

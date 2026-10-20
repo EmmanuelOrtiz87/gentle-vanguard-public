@@ -26,6 +26,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { runSync } from '../core/run-command.js';
 
 export type AppCheckKind = 'typecheck' | 'test' | 'lint';
@@ -48,6 +49,13 @@ export interface AppAudit {
 }
 
 const ROOT = resolve(process.cwd());
+
+/** Keep failed checks at the end so bounded pre-push output retains the cause. */
+export function failureSummary(audits: AppAudit[]): string[] {
+  return audits.flatMap((app) => app.checks
+    .filter((check) => check.status === 'FAIL')
+    .map((check) => `FAIL ${app.app} ${check.kind}: ${check.message}`));
+}
 const APPS_DIR = join(ROOT, 'apps');
 
 interface PackageJsonScripts {
@@ -308,21 +316,14 @@ async function main(): Promise<void> {
       }
     }
   }
+  if (!json) for (const line of failureSummary(audits)) console.log(line);
   process.exit(failed > 0 ? 1 : 0);
 }
 
 // entrypoint: detecta cuando el script corre directamente (vs importado por tests/CLI).
 // `import.meta.url` siempre viene como file:/// (POSIX). En Windows process.argv[1]
-// trae separadores \. Comparar por basename resuelve cross-platform.
-function getEntrypointName(): string {
-  try {
-    return new URL(import.meta.url).pathname.split('/').pop() || '';
-  } catch {
-    return '';
-  }
-}
-
-if (getEntrypointName() === 'stack-audit-apps.ts' || getEntrypointName() === 'stack-audit-apps.js') {
+// trae separadores de Windows; resolverlo como URL evita ejecutar main al importar.
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch((err) => {
     console.error(`FATAL: ${(err as Error).message}`);
     process.exit(2);

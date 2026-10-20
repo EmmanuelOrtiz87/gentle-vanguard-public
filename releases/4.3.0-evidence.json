@@ -1,0 +1,32 @@
+{
+  "version": "4.3.0",
+  "verifiedAt": "2026-10-19",
+  "codeCommit": "55bd03457",
+  "documentationCommit": "4c3b30e06",
+  "installer": {
+    "name": "Gentle-Vanguard-Setup-4.3.0.exe",
+    "bytes": 59696526,
+    "sha256": "4bd77252a64577efc7de802de4c184c99488409dbbafa4e3c5dc2ad57f9d7e07",
+    "signing": "unsigned",
+    "payloadFiles": 1463,
+    "payloadInventorySha256": "d716c47d8c0f1e1eb945169d06d0bf99a37863316da9e89f59f5975f2fb2fb17",
+    "archiveIntegrity": "PASS",
+    "extractedPayloadComparison": "PASS: all staged files equal extracted bytes",
+    "installUninstall": "PASS: ephemeral GitHub-hosted Windows runner, run 39321905719; pinned published binary; install, payload, registry, shortcuts and uninstall cleanup",
+    "qualificationReport": "4.3.0-windows-qualification.json",
+    "qualificationSource": "c96927b45d90941bd913338f6cf6ac9473268d8d"
+  },
+  "checks": {
+    "focusedTests": "34 PASS: payload, installer selection/hash, Content Operations and hidden child processes",
+    "publicWebsite": "Eight-check export gate PASS; 19 unit cases and browser/identity checks",
+    "publicCore": "Frozen install, tsc, strict doctor and bootstrap PASS; initialized 22 local database migrations",
+    "payloadSecretScan": "0 matches, 80 patterns with entropy filtering",
+    "typescript": "PASS",
+    "lint": "PASS",
+    "privateCI": "Jobs did not start: GitHub account billing/spending restriction; not a private CI pass",
+    "publicCI": "PASS: Public Distribution Smoke run 39318256892 on public commit 985c746d; frozen install, tsc and strict doctor",
+    "anonymousDownload": "PASS: HTTP 200; 59696526 bytes and SHA-256 matched the local installer"
+  },
+  "scope": "Reviewed corporate/Academy delivery and release hardening. Excludes unrelated unreviewed local workspace changes and ten prior local WiFi/KOps commits.",
+  "limitations": ["No full private-app acceptance certification", "No physical-phone or real payment/fulfilment acceptance", "Unsigned Windows bootstrapper; internet and prerequisites required"]
+}

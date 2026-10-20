@@ -571,7 +571,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   const workflowDstDir = path.join(targetDir, '.github', 'workflows');
   rmIf(workflowDstDir, { recurse: true });
   mkdirp(workflowDstDir);
-  for (const wf of ['public-smoke.yml']) {
+  for (const wf of ['public-smoke.yml', 'public-installer-windows.yml']) {
     const src = path.join(workflowSrcDir, wf);
     if (!fs.existsSync(src)) continue;
     let content = fs.readFileSync(src, 'utf-8');
