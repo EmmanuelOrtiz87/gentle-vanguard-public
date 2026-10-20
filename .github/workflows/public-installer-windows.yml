@@ -1,0 +1,52 @@
+name: Public Windows Installer Qualification
+
+on:
+  push:
+    branches: [main, codex/installer-qualification]
+    paths:
+      - .github/workflows/public-installer-windows.yml
+      - src/cli/verify-installer.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    if: github.repository == 'EmmanuelOrtiz87/gentle-vanguard-public'
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Download immutable public release and verify pinned digest
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { mkdirSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const file = 'Gentle-Vanguard-Setup-4.3.0.exe';
+          const expected = '4bd77252a64577efc7de802de4c184c99488409dbbafa4e3c5dc2ad57f9d7e07';
+          const base = 'https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/download/v4.3.0/';
+          mkdirSync('dist', { recursive: true });
+          for (const name of [file, `${file}.sha256`]) {
+            const response = await fetch(base + name);
+            if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+            const bytes = Buffer.from(await response.arrayBuffer());
+            if (name === file && createHash('sha256').update(bytes).digest('hex') !== expected)
+              throw new Error('Published executable does not match the reviewed release');
+            writeFileSync(`dist/${name}`, bytes);
+          }
+          NODE
+      - name: Install, inspect registry and shortcuts, uninstall and verify cleanup
+        shell: bash
+        run: node --experimental-strip-types src/cli/verify-installer.ts --json > installer-qualification.json
+      - name: Preserve qualification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-qualification-4.3.0
+          path: installer-qualification.json
+          if-no-files-found: warn
