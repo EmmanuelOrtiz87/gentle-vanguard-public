@@ -54,8 +54,8 @@ host-specific tasks pass.
 
 ## Verification
 
-The latest published release remains **4.3.0**. The public snapshot `45f7c52a` passed
-[Public Distribution Smoke](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/actions/runs/40328886921):
+The latest published release remains **4.3.0**. The public snapshot `4ded74e7` passed
+[Public Distribution Smoke](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/actions/runs/40330557696):
 frozen install, TypeScript and strict doctor. Local private pre-push for `f7b78d3b3` passed 16/16;
 its GitHub workflows ended before executing any steps, so that run does not count as hosted CI
 evidence. Public-core checks do not certify the private app fleet.
