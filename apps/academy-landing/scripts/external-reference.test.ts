@@ -59,8 +59,15 @@ async function makeLanding(): Promise<{ api: LandingApi; lastBody: () => Record<
   const source = `${extractFn(HTML, 'normalizeSlugForRef')}\n${extractFn(HTML, 'bridgePreference')}`;
   let captured: Record<string, unknown> = {};
 
-  const fetchImpl = async (_url: string, init: { body: string }) => {
-    captured = JSON.parse(init.body) as Record<string, unknown>;
+  const fetchImpl = async (url: string, init?: { body?: string }) => {
+    if (url.endsWith('/api/mp/health')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ catalogRevision: '440e334308fb1ba8' }),
+      };
+    }
+    captured = JSON.parse(init?.body ?? '{}') as Record<string, unknown>;
     return {
       ok: true,
       status: 200,

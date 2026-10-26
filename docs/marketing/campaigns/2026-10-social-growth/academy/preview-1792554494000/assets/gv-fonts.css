@@ -1,0 +1,102 @@
+/* Gentle-Vanguard — Fuentes canónicas self-host (O-1, DD-20261002-01)
+ * Poppins (display 700) · Inter (body) · JetBrains Mono (código)
+ * Licencia SIL OFL 1.1 — redistribución permitida; paquete nativo, cero CDN.
+ * IMPORT: @gentle-vanguard/design-system/fonts.css
+ */
+/* impeccable-disable overused-font: Poppins/Inter/JetBrains Mono son la tipografía canon decretada (BRAND-KIT §2.3, DD-20260928-01) */
+/* Inter 400 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/Inter-400.woff2') format('woff2');
+}
+/* Inter 500 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/Inter-500.woff2') format('woff2');
+}
+/* Inter 600 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/Inter-600.woff2') format('woff2');
+}
+/* Inter 700 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/Inter-700.woff2') format('woff2');
+}
+/* JetBrains Mono 400 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/JetBrainsMono-400.woff2') format('woff2');
+}
+/* JetBrains Mono 500 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/JetBrainsMono-500.woff2') format('woff2');
+}
+/* JetBrains Mono 600 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/JetBrainsMono-600.woff2') format('woff2');
+}
+/* Poppins 300 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./fonts/Poppins-300.woff2') format('woff2');
+}
+/* Poppins 400 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/Poppins-400.woff2') format('woff2');
+}
+/* Poppins 500 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/Poppins-500.woff2') format('woff2');
+}
+/* Poppins 600 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/Poppins-600.woff2') format('woff2');
+}
+/* Poppins 700 — OFL 1.1 (latin subset) */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/Poppins-700.woff2') format('woff2');
+}

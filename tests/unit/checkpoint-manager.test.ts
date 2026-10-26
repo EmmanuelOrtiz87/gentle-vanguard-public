@@ -22,6 +22,74 @@ function makeTempRoot(): string {
 }
 
 describe('Checkpoint Manager', () => {
+  it('checkpoints state without copying external repos or dated evidence archives', async () => {
+    const mod = await import(SRC);
+    const root = makeTempRoot();
+    try {
+      for (const file of ['session-current.json', 'context-log/run/.state.json', 'evolution/learning.json',
+        'external-repos/vendor/source.ts', 'evolution-2026-10-16/security/image.tar']) {
+        const target = join(root, '.session', file);
+        mkdirSync(join(target, '..'), { recursive: true });
+        writeFileSync(target, 'preserve me');
+      }
+      const created = mod.createCheckpoint(root, { checkpointId: 'ckpt-scope' });
+      assert.equal(created.count, 3);
+      assert.equal(mod.verifyCheckpoint(root, created.checkpointId).status, 'INTACT');
+      assert.equal(readFileSync(join(root, '.session/evolution-2026-10-16/security/image.tar'), 'utf8'), 'preserve me');
+      assert.equal(readFileSync(join(root, '.session/external-repos/vendor/source.ts'), 'utf8'), 'preserve me');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps user artifacts and context while leaving historical telemetry in place', async () => {
+    const mod = await import(SRC);
+    const root = makeTempRoot();
+    try {
+      const retained = ['session-current.json', 'context-log/current/.state.json',
+        'evolution/learning.json', 'artifacts/finance/user-report.json', 'artifacts/health/user-report.json'];
+      const telemetry = ['live-metrics/old-session.json', 'contract-results/check-old.json', 'health/db-health-old.json'];
+      for (const file of [...retained, ...telemetry]) {
+        const target = join(root, '.session', file);
+        mkdirSync(join(target, '..'), { recursive: true });
+        writeFileSync(target, 'original');
+      }
+      const created = mod.createCheckpoint(root, { checkpointId: 'ckpt-state-only', prune: false });
+      assert.deepEqual(created.files.map((file: { path: string }) => file.path.replaceAll('\\', '/')).sort(), retained.sort());
+      assert.equal(mod.verifyCheckpoint(root, created.checkpointId).status, 'INTACT');
+      for (const file of telemetry) assert.equal(readFileSync(join(root, '.session', file), 'utf8'), 'original');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('never replaces an existing checkpoint when the same ID is requested', async () => {
+    const mod = await import(SRC);
+    const root = makeTempRoot();
+    try {
+      writeFileSync(join(root, '.session/state.json'), 'first');
+      mod.createCheckpoint(root, { checkpointId: 'ckpt-unique' });
+      writeFileSync(join(root, '.session/state.json'), 'second');
+      assert.throws(() => mod.createCheckpoint(root, { checkpointId: 'ckpt-unique' }));
+      assert.equal(readFileSync(join(root, '.session/checkpoints/ckpt-unique/state.json'), 'utf8'), 'first');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('allows checkpoint verification without pruning previous recovery points', async () => {
+    const mod = await import(SRC);
+    const root = makeTempRoot();
+    try {
+      for (let index = 0; index < 5; index++) {
+        mod.createCheckpoint(root, { checkpointId: `ckpt-retain-${index}`, prune: false });
+      }
+      assert.equal(mod.listCheckpoints(root).length, 5);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('module exports the expected contract', async () => {
     const mod = await import(SRC);
     for (const fn of [

@@ -1,0 +1,67 @@
+{
+  "campaign": "servicios_consultas_14d",
+  "status": "REVIEW",
+  "publications": 0,
+  "assets": [
+    {
+      "path": "s01-feed.png",
+      "sha256": "6067dff8ec0e4ee21b16bcd39393531c09f7310c0d44337b85a280af5592ba1f",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "s01-story.png",
+      "sha256": "8a965190b5d13b62e366e463f20b5220b165f19e428b7c2202b12994fb81332c",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "s02-feed.png",
+      "sha256": "131dd5bc7df91467c89f28a4310805dd679875447ed267efa690800ffbab85b9",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "s02-story.png",
+      "sha256": "0381af27a07ee4b64637d5518a76b3c62d9b67cd8d123ab2081eb372a6eeb9ed",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "s03-feed.png",
+      "sha256": "e898c0c3ad847de8e413abb5336af65bd1301ad61fed37ab29d517bcb1518026",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "s03-story.png",
+      "sha256": "861c0ff0ece206b9404f5c43a3b9cd0081fa5974c493cbf6beb2035ec1c3378e",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "s04-feed.png",
+      "sha256": "531d025005c8fcb4bc1fb4006e0a43be803d8b06664e2d2bbcfbec782965795f",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "s04-story.png",
+      "sha256": "f0195737f8228813ecf4172cd9126b00fe29f616e2a5b80e055aa4c2d58ccba9",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "s05-feed.png",
+      "sha256": "dcff409da41cc90cd496171458cf6ec235a2366fb17dc0466a3ce1ab2a42720f",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "s05-story.png",
+      "sha256": "dd35a606c0d6c675a8442fc49f53df6b093e550cbf85b874f015defa28b5feaa",
+      "width": 1080,
+      "height": 1920
+    }
+  ]
+}

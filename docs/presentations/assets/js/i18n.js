@@ -106,6 +106,8 @@
       lbox_hint_dbl: 'Double-click to toggle',
       tip_pipeline:
         'Session startup combines parallel initialization and selected deferred background work; exact steps depend on the current configuration.',
+      tip_health_history:
+        'Historical record; run the watchtower to learn the actual state of this installation.',
       tip_engram:
         'Persistent memory with synchronization, integrity checks and compaction. Check current local health and inventory for runtime status.',
       tip_codegraph:
@@ -901,6 +903,8 @@
       lbox_hint_dbl: 'Doble clic para alternar',
       tip_pipeline:
         'Autostart de sesión: 31 pasos Phase-1 en paralelo + 70 pasos lazy en background lanzados en lotes de 2. Incluye detección de herramientas, presupuesto de tokens, guías Karpathy, sync de codegraph, orquestación de seguridad e init de BD.',
+      tip_health_history:
+        'Registro histórico; ejecutar el watchtower para conocer el estado real de esta instalación.',
       tip_engram:
         'Memoria persistente con sincronización automática, checks de integridad SHA256 y compactación. Actualmente con 2,078 observaciones en 369 sesiones. Sobrevive entre sesiones y compactaciones.',
       tip_codegraph:
@@ -1669,6 +1673,8 @@
       lbox_hint_dbl: 'Clique duplo para alternar',
       tip_pipeline:
         'Autostart de sessão: 31 passos Phase-1 em paralelo + 70 passos lazy em background lançados em lotes de 2. Inclui detecção de ferramentas, orçamento de tokens, guias Karpathy, sync de codegraph, orquestração de segurança e init de BD.',
+      tip_health_history:
+        'Registro histórico; execute o watchtower para conhecer o estado real desta instalação.',
       tip_engram:
         'Memória persistente com sincronização automática, checks de integridade SHA256 e compactação. Atualmente com 2.078 observações em 369 sessões. Sobrevive entre sessões e compactações.',
       tip_codegraph:

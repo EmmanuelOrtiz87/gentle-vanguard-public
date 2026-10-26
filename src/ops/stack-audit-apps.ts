@@ -29,10 +29,10 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runSync } from '../core/run-command.js';
 
-export type AppCheckKind = 'typecheck' | 'test' | 'lint';
+export type AppCheckKind = 'typecheck' | 'test' | 'lint' | 'build';
 
 export interface AppCheck {
-  kind: AppCheckKind;
+  kind: string;
   status: 'PASS' | 'FAIL' | 'SKIP';
   durationMs: number;
   message: string;
@@ -44,11 +44,13 @@ export interface AppAudit {
   packageJsonExists: boolean;
   status: 'PASS' | 'WARN' | 'FAIL';
   checks: AppCheck[];
+  omissions: Array<{ script: string; reason: string }>;
   totalDurationMs: number;
   fixCmd?: string;
 }
 
 const ROOT = resolve(process.cwd());
+const VALIDATION_CONTRACT_PATH = join(ROOT, 'config', 'app-validation-contracts.json');
 
 /** Keep failed checks at the end so bounded pre-push output retains the cause. */
 export function failureSummary(audits: AppAudit[]): string[] {
@@ -58,6 +60,40 @@ export function failureSummary(audits: AppAudit[]): string[] {
 }
 const APPS_DIR = join(ROOT, 'apps');
 
+type NativeTestSuite = { runner: 'node-test' | 'vitest'; files: string[] };
+
+function readSafeLocalTestContracts(app: string): { scripts: Record<string, string>; nativeSuite?: NativeTestSuite; error?: string } {
+  try {
+    const config = JSON.parse(readFileSync(VALIDATION_CONTRACT_PATH, 'utf8')) as {
+      version?: number;
+      safeLocalTestScripts?: Record<string, Record<string, string>>;
+      nativeTestSuites?: Record<string, NativeTestSuite>;
+    };
+    if (config.version !== 1 || !config.safeLocalTestScripts || typeof config.safeLocalTestScripts !== 'object') {
+      return { scripts: {}, error: 'Invalid version or safeLocalTestScripts shape' };
+    }
+    const scripts = config.safeLocalTestScripts[app] ?? {};
+    if (Object.values(scripts).some((reason) => typeof reason !== 'string' || !reason.trim())) {
+      return { scripts: {}, error: `Invalid contract reason for ${app}` };
+    }
+    const nativeSuite = config.nativeTestSuites?.[app];
+    if (nativeSuite) {
+      if (!['node-test', 'vitest'].includes(nativeSuite.runner) || !Array.isArray(nativeSuite.files) || nativeSuite.files.length === 0) {
+        return { scripts: {}, error: `Invalid native test suite contract for ${app}` };
+      }
+      const appDir = join(APPS_DIR, app);
+      for (const file of nativeSuite.files) {
+        if (typeof file !== 'string' || file.includes('..') || file.startsWith('/') || file.startsWith('\\') || !existsSync(join(appDir, file))) {
+          return { scripts: {}, error: `Invalid or missing native test file for ${app}: ${String(file)}` };
+        }
+      }
+    }
+    return { scripts, nativeSuite };
+  } catch (error) {
+    return { scripts: {}, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 interface PackageJsonScripts {
   scripts?: Partial<Record<string, string>>;
 }
@@ -66,6 +102,7 @@ const CHECK_KIND_TO_SCRIPT: Record<AppCheckKind, string> = {
   typecheck: 'typecheck',
   test: 'test',
   lint: 'lint',
+  build: 'build',
 };
 
 /** Detecta apps en apps/* (excluye .runtime y directorios ocultos). */
@@ -85,7 +122,7 @@ export function readAppScripts(app: string): Partial<Record<AppCheckKind, string
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageJsonScripts;
     const out: Partial<Record<AppCheckKind, string>> = {};
     for (const kind of Object.keys(CHECK_KIND_TO_SCRIPT) as AppCheckKind[]) {
-      const scriptName = CHECK_KIND_TO_SCRIPT[kind];
+      const scriptName = kind === 'build' ? (pkg.scripts?.build ? 'build' : 'static:build') : CHECK_KIND_TO_SCRIPT[kind];
       if (typeof pkg.scripts?.[scriptName] === 'string') {
         out[kind] = pkg.scripts[scriptName] as string;
       }
@@ -103,33 +140,106 @@ export function readAppScripts(app: string): Partial<Record<AppCheckKind, string
 export function planAppAudits(
   apps: string[],
   only: AppCheckKind[],
-): Array<{ app: string; packageJsonExists: boolean; plan: Array<{ kind: AppCheckKind; script: string }> }> {
+): Array<{
+  app: string;
+  packageJsonExists: boolean;
+  plan: Array<{ kind: string; script: string }>;
+  omissions: Array<{ script: string; reason: string }>;
+}> {
   const out: Array<{
     app: string;
     packageJsonExists: boolean;
-    plan: Array<{ kind: AppCheckKind; script: string }>;
+    plan: Array<{ kind: string; script: string }>;
+    omissions: Array<{ script: string; reason: string }>;
   }> = [];
   for (const app of apps) {
     const pkgPath = join(APPS_DIR, app, 'package.json');
     const pkgExists = existsSync(pkgPath);
     const scripts = readAppScripts(app);
-    const plan: Array<{ kind: AppCheckKind; script: string }> = [];
+    const plan: Array<{ kind: string; script: string }> = [];
+    const omissions: Array<{ script: string; reason: string }> = [];
     for (const kind of only) {
       const script = scripts[kind];
-      if (script) plan.push({ kind, script });
+      if (kind === 'test') {
+        if (script) plan.push({ kind: 'test', script: 'test' });
+        const namedTests = readNamedTestScripts(app);
+        const contract = readSafeLocalTestContracts(app);
+        const safeTests = namedTests.filter((name) => contract.scripts[name] || !deferredTestReason(name));
+        plan.push(...safeTests.map((name) => ({ kind: name, script: name })));
+        if (contract.nativeSuite) plan.push({ kind: 'test:native', script: 'native-tests' });
+        for (const name of namedTests) {
+          const reason = contract.scripts[name] ? undefined : deferredTestReason(name);
+          if (reason) omissions.push({ script: name, reason });
+        }
+        for (const name of Object.keys(contract.scripts)) {
+          if (!namedTests.includes(name)) omissions.push({ script: name, reason: 'Contract references a script absent from package.json' });
+        }
+        if (contract.error) omissions.push({ script: 'config/app-validation-contracts.json', reason: `Could not load safe local test contracts: ${contract.error}` });
+        if (!script && safeTests.length === 0 && !contract.nativeSuite) {
+          omissions.push({
+            script: 'test',
+            reason: namedTests.length === 0
+              ? (pkgExists ? 'No test or test:* scripts are declared' : 'package.json is missing')
+              : 'No bounded, non-interactive test script is declared',
+          });
+        }
+        continue;
+      }
+      if (script) {
+        plan.push({ kind, script: kind === 'build' && !hasPackageScript(app, 'build') ? 'static:build' : kind });
+      } else {
+        omissions.push({ script: kind, reason: pkgExists ? `package.json does not define "${kind}"` : 'package.json is missing' });
+      }
     }
-    out.push({ app, packageJsonExists: pkgExists, plan });
+    out.push({ app, packageJsonExists: pkgExists, plan, omissions });
   }
   return out;
 }
 
+function hasPackageScript(app: string, name: string): boolean {
+  try {
+    const pkg = JSON.parse(readFileSync(join(APPS_DIR, app, 'package.json'), 'utf8')) as PackageJsonScripts;
+    return typeof pkg.scripts?.[name] === 'string';
+  } catch {
+    return false;
+  }
+}
+
+function readNamedTestScripts(app: string): string[] {
+  try {
+    const pkgPath = join(APPS_DIR, app, 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageJsonScripts;
+    return Object.keys(pkg.scripts ?? {}).filter((name) => name.startsWith('test:')).sort();
+  } catch {
+    return [];
+  }
+}
+
+function deferredTestReason(script: string): string | undefined {
+  const suffix = script.slice('test:'.length).toLowerCase();
+  if (/watch|coverage/.test(suffix)) return 'Watch/coverage mode is not a bounded deterministic suite';
+  if (/quality/.test(suffix)) return 'Composite quality script duplicates typecheck/lint/test checks';
+  if (/e2e|browser|gui|visual|autoplay|journey|bot-manager|smoke/.test(suffix)) {
+    return 'Dedicated integration/browser/service run; requires an explicit environment contract';
+  }
+  return undefined;
+}
+
 /** Ejecutor de un check individual contra una app. */
-export function runAppCheck(app: string, kind: AppCheckKind, _script: string): AppCheck {
+export function runAppCheck(app: string, kind: string, script: string): AppCheck {
   const start = Date.now();
   const appDir = join(APPS_DIR, app);
   try {
-    const r = runSync('npm', ['run', CHECK_KIND_TO_SCRIPT[kind], '--silent'], {
-      cwd: appDir,
+    const suite = script === 'native-tests' ? readSafeLocalTestContracts(app).nativeSuite : undefined;
+    if (script === 'native-tests' && !suite) throw new Error('Native test suite contract is missing or invalid');
+    const command = suite ? process.execPath : 'npm';
+    const args = suite
+      ? suite.runner === 'node-test'
+        ? ['--import', 'tsx', '--test', ...suite.files.map((file) => join(appDir, file))]
+        : [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run', '--root', appDir, ...suite.files]
+      : ['run', script, '--silent'];
+    const r = runSync(command, args, {
+      cwd: suite ? ROOT : appDir,
       stdio: 'pipe',
       timeout: 240_000,
     });
@@ -159,8 +269,9 @@ export function runAppCheck(app: string, kind: AppCheckKind, _script: string): A
 export function buildAppAudit(
   app: string,
   packageJsonExists: boolean,
-  plan: Array<{ kind: AppCheckKind; script: string }>,
+  plan: Array<{ kind: string; script: string }>,
   results: AppCheck[],
+  omissions: Array<{ script: string; reason: string }> = [],
 ): AppAudit {
   const checks: AppCheck[] = [];
   let anyFail = false;
@@ -183,9 +294,9 @@ export function buildAppAudit(
   let status: AppAudit['status'] = 'PASS';
   if (anyFail) {
     status = 'FAIL';
-  } else if (!packageJsonExists) {
+  } else if (!packageJsonExists && checks.length === 0) {
     status = 'WARN';
-  } else if (checks.length === 0 || checks.every((c) => c.status === 'SKIP')) {
+  } else if (checks.length === 0 || checks.every((c) => c.status === 'SKIP') || omissions.length > 0) {
     status = 'WARN';
   } else if (anyPass) {
     status = 'PASS';
@@ -197,21 +308,22 @@ export function buildAppAudit(
     packageJsonExists,
     status,
     checks,
+    omissions,
     totalDurationMs: checks.reduce((s, c) => s + c.durationMs, 0),
   };
 }
 
-/** Audita todas las apps con los kinds pedidos (default: typecheck + test). */
+/** Audita todas las apps con los kinds pedidos (default: typecheck + test + build). */
 export async function auditApps(
   options: { only?: AppCheckKind[]; execute?: boolean; affected?: string | null } = {},
 ): Promise<AppAudit[]> {
-  const only = options.only ?? ['typecheck', 'test'];
+  const only = options.only ?? ['typecheck', 'test', 'build'];
   const execute = options.execute ?? true;
   const allApps = discoverApps();
   const apps = options.affected ? filterAffectedApps(allApps, options.affected) : allApps;
   const plans = planAppAudits(apps, only);
   const audits: AppAudit[] = [];
-  for (const { app, packageJsonExists, plan } of plans) {
+  for (const { app, packageJsonExists, plan, omissions } of plans) {
     const totalStart = Date.now();
     const results: AppCheck[] = [];
     if (execute) {
@@ -223,7 +335,7 @@ export async function auditApps(
         results.push({ kind, status: 'SKIP', durationMs: 0, message: 'execute=false (plan only)' });
       }
     }
-    const audit = buildAppAudit(app, packageJsonExists, plan, results);
+    const audit = buildAppAudit(app, packageJsonExists, plan, results, omissions);
     audit.totalDurationMs = Date.now() - totalStart;
     audits.push(audit);
   }
@@ -266,13 +378,13 @@ export function filterAffectedApps(allApps: string[], ref: string): string[] {
 
 function parseOnly(value: string | undefined): AppCheckKind[] {
   if (value === 'none') return []; // --check none => solo descubrir
-  if (!value) return ['typecheck', 'test'];
-  const allowed: AppCheckKind[] = ['typecheck', 'test', 'lint'];
+  if (!value) return ['typecheck', 'test', 'build'];
+  const allowed: AppCheckKind[] = ['typecheck', 'test', 'lint', 'build'];
   const out: AppCheckKind[] = [];
   for (const tok of value.split(',').map((s) => s.trim())) {
     if ((allowed as string[]).includes(tok)) out.push(tok as AppCheckKind);
   }
-  return out.length ? out : ['typecheck', 'test'];
+  return out.length ? out : ['typecheck', 'test', 'build'];
 }
 
 async function main(): Promise<void> {
@@ -306,13 +418,16 @@ async function main(): Promise<void> {
     for (const a of audits) {
       const icon = a.status === 'PASS' ? '✓' : a.status === 'WARN' ? '!' : '✗';
       const detail = a.checks
-        .map((c) => `${c.kind}=${c.status}(${c.durationMs}ms)`)
+        .map((c) => `${c.kind}=${c.status}(${c.durationMs}ms)${c.status === 'SKIP' ? `:${c.message}` : ''}`)
         .join(' ');
       console.log(`  ${icon} ${a.app.padEnd(20)} ${detail}`);
       if (a.status === 'FAIL') {
         for (const c of a.checks) {
           if (c.status === 'FAIL') console.log(`      └─ ${c.kind}: ${c.message}`);
         }
+      }
+      for (const omission of a.omissions) {
+        console.log(`      └─ ${omission.script}: ${omission.reason}`);
       }
     }
   }

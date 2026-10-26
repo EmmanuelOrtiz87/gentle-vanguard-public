@@ -10,6 +10,7 @@
  *   npx tsx src/tools/models-sync.ts                 # backupea y poda los stale
  *   npx tsx src/tools/models-sync.ts --dry           # sólo muestra qué haría
  *   npx tsx src/tools/models-sync.ts --add-missing   # además agrega los del upstream
+ *   node --import tsx src/tools/models-sync.ts --add-missing --provider opencode-zen-C
  *   npx tsx src/tools/models-sync.ts --fix-active-model  # si `model` es stale, lo corrige
  *   npx tsx src/tools/models-sync.ts --config <ruta> --active opencode-zen-C/big-pickle
  *
@@ -17,6 +18,7 @@
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { runNpxTsxSync } from '../core/run-command.js';
+import {syncProviderModels} from './model-catalog-sync.js';
 
 interface DoctorProvider {
   id: string;
@@ -61,7 +63,11 @@ function fail(msg: string): never {
 
 function main(): void {
   console.log('[models-sync] consultando el doctor de modelos…');
-  const doctor = runNpxTsxSync('src/tools/opencode-model-doctor.ts', ['--json'], { timeout: 240_000 });
+  const providerFilter = argValue('--provider');
+  const doctor = runNpxTsxSync('src/tools/opencode-model-doctor.ts', ['--json', ...(providerFilter ? ['--provider', providerFilter] : [])], {
+    timeout: 240_000,
+    ...(argValue('--config') ? {env: {OPENCODE_CONFIG: argValue('--config')!}} : {}),
+  });
   // El doctor sale con código 1 justamente cuando encuentra modelos stale en la
   // config (que es el caso a reparar): sólo es error si no hay JSON en stdout.
   let report: DoctorJson;
@@ -74,7 +80,7 @@ function main(): void {
   const configPath = argValue('--config') ?? report.configPath;
   if (!configPath || !existsSync(configPath)) fail(`no encuentro la config: ${configPath}`);
 
-  const cfg = JSON.parse(readFileSync(configPath, 'utf8')) as OpencodeConfig;
+  const cfg = JSON.parse(readFileSync(configPath, 'utf8').replace(/^\uFEFF/, '')) as OpencodeConfig;
   const providers = cfg.provider ?? {};
 
   let removedTotal = 0;
@@ -83,28 +89,21 @@ function main(): void {
 
   for (const p of report.providers) {
     const local = providers[p.id];
-    if (!local?.models) continue;
+    if (!local) continue;
     if (!p.catalogOK) {
       lines.push(`  · ${p.id}: catálogo upstream no disponible → sin cambios`);
       continue;
     }
     const upstream = new Set(p.upstreamCatalog ?? []);
-    const configured = Object.keys(local.models);
+    const configured = Object.keys(local.models ?? {});
     const stale = configured.filter((m) => !upstream.has(m));
     const missing = (p.upstreamCatalog ?? []).filter((m) => !configured.includes(m));
 
-    if (stale.length > 0) {
-      for (const m of stale) delete local.models[m];
-      removedTotal += stale.length;
-    }
-    if (addMissing) {
-      for (const m of missing) {
-        local.models[m] = { name: m };
-        addedTotal++;
-      }
-    }
+    const changes = syncProviderModels(local, p, addMissing);
+    removedTotal += changes.removed;
+    addedTotal += changes.added;
     lines.push(
-      `  · ${p.id}: ${configured.length} configurados → ${Object.keys(local.models).length}` +
+      `  · ${p.id}: ${configured.length} configurados → ${Object.keys(local.models ?? {}).length}` +
         ` (stale removidos: ${stale.length}${stale.length ? ' [' + stale.slice(0, 4).join(', ') + (stale.length > 4 ? '…' : '') + ']' : ''})` +
         (addMissing ? ` | agregados: ${missing.length}` : ` | faltantes en config: ${missing.length} (usá --add-missing)`),
     );
@@ -115,7 +114,7 @@ function main(): void {
   const activeProvider = active ? report.providers.find((p) => active.startsWith(p.id + '/')) : undefined;
   const activeModel = active && activeProvider ? active.slice(activeProvider.id.length + 1) : undefined;
   const activeIsStale = Boolean(
-    active && activeProvider && activeModel && !(activeProvider.upstreamCatalog ?? []).includes(activeModel),
+    active && activeProvider?.catalogOK && activeModel && !(activeProvider.upstreamCatalog ?? []).includes(activeModel),
   );
 
   console.log('\n[models-sync] plan:');

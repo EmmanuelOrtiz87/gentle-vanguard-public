@@ -7,11 +7,10 @@ import {
   rmSync,
   renameSync,
   writeFileSync,
-  statSync,
 } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 
 export interface CheckpointManifestFile {
   path: string;
@@ -85,9 +84,16 @@ function getManifestPath(root: string, checkpointId: string): string {
   return join(getManifestDir(root), `${checkpointId}.json`);
 }
 
-const EXCLUDED_DIRS = new Set(['checkpoints', 'manifests', 'snapshots', 'traces', 'tracing']);
+// Checkpoints protect operational session state. Downloaded repos and dated
+// evolution evidence remain at their original paths; they are not session state.
+const EXCLUDED_DIRS = new Set([
+  'checkpoints', 'manifests', 'snapshots', 'traces', 'tracing', 'external-repos',
+]);
+// Only these top-level telemetry archives are outside session recovery scope.
+// A user's nested artifacts/health directory must still be protected.
+const TELEMETRY_DIRS = new Set(['live-metrics', 'contract-results', 'health']);
 
-function collectSessionFiles(dirPath: string, maxDepth: number = 6): string[] {
+function collectSessionFiles(dirPath: string, maxDepth: number = 6, topLevel = true): string[] {
   const files: string[] = [];
   if (maxDepth <= 0) return files;
   let entries;
@@ -98,8 +104,9 @@ function collectSessionFiles(dirPath: string, maxDepth: number = 6): string[] {
   }
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      if (EXCLUDED_DIRS.has(entry.name)) continue;
-      files.push(...collectSessionFiles(join(dirPath, entry.name), maxDepth - 1));
+      if (EXCLUDED_DIRS.has(entry.name) || /^evolution-\d{4}-\d{2}-\d{2}$/.test(entry.name)) continue;
+      if (topLevel && TELEMETRY_DIRS.has(entry.name)) continue;
+      files.push(...collectSessionFiles(join(dirPath, entry.name), maxDepth - 1, false));
     } else if (entry.isFile()) {
       files.push(join(dirPath, entry.name));
     }
@@ -133,7 +140,7 @@ export function pruneCheckpoints(rootInput: string, keepCount: number = 3): stri
 
 export function createCheckpoint(
   rootInput: string,
-  options: { checkpointId?: string; label?: string } = {},
+  options: { checkpointId?: string; label?: string; prune?: boolean } = {},
 ): CheckpointManifest {
   const root = normalizeRoot(rootInput);
   const sessionDir = getSessionRoot(root);
@@ -144,14 +151,12 @@ export function createCheckpoint(
     `ckpt-${new Date()
       .toISOString()
       .replace(/[^0-9]/g, '')
-      .slice(0, 14)}`;
+      .slice(0, 17)}-${randomUUID().slice(0, 8)}`;
   const targetDir = join(checkpointDir, checkpointId);
 
-  if (existsSync(targetDir)) {
-    rmSync(targetDir, { recursive: true, force: true });
-  }
-
-  ensureDir(targetDir);
+  ensureDir(checkpointDir);
+  // Atomic reservation: concurrent creators must never replace a recovery point.
+  mkdirSync(targetDir);
   ensureDir(manifestDir);
 
   const files: CheckpointManifestFile[] = [];
@@ -163,10 +168,11 @@ export function createCheckpoint(
     const relativePath = itemPath.slice(sessionDir.length + 1);
     const destPath = join(targetDir, relativePath);
     ensureDir(dirname(destPath));
-    writeFileSync(destPath, readFileSync(itemPath));
-    const size = statSync(itemPath).size;
+    const content = readFileSync(itemPath);
+    writeFileSync(destPath, content);
+    const size = content.length;
     totalSize += size;
-    files.push({ path: relativePath, size, sha256: computeFileHash(itemPath) });
+    files.push({ path: relativePath, size, sha256: createHash('sha256').update(content).digest('hex') });
   }
 
   const manifest: CheckpointManifest = {
@@ -182,7 +188,7 @@ export function createCheckpoint(
 
   writeFileSync(getManifestPath(root, checkpointId), JSON.stringify(manifest, null, 2), 'utf8');
 
-  const pruned = pruneCheckpoints(root, 3);
+  const pruned = options.prune === false ? [] : pruneCheckpoints(root, 3);
   if (pruned.length > 0) {
     console.warn(`[CHECKPOINT] Pruned ${pruned.length} old checkpoint(s): ${pruned.join(', ')}`);
   }
@@ -300,7 +306,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const [, , action = 'list'] = process.argv;
   const root = normalizeRoot(process.cwd());
   if (action === 'create') {
-    const manifest = createCheckpoint(root, { label: 'cli' });
+    const labelIndex = process.argv.indexOf('--label');
+    const manifest = createCheckpoint(root, {
+      label: labelIndex >= 0 ? process.argv[labelIndex + 1] : 'cli',
+      prune: !process.argv.includes('--no-prune'),
+    });
     console.log(JSON.stringify(manifest));
   } else if (action === 'list') {
     console.log(JSON.stringify(listCheckpoints(root)));

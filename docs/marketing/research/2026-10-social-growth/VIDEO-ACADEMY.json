@@ -1,0 +1,48 @@
+{
+  "title": "Aprendé a definir un pedido para la IA",
+  "brief": "Guion aprobado de campaña academy. Material propio. Borrador para revisar antes de publicar.",
+  "platform": "instagram-reels",
+  "aspect": "9:16",
+  "duration": 30,
+  "narration": "¿La IA te responde algo que no te sirve? Empezá por aclarar el pedido. Dale contexto, definí la tarea y elegí un formato. Pedir que no invente no reemplaza tu revisión. Si querés empezar a aprender IA con una ruta, escribinos APRENDER y consultá por IA de cero a cien, Nivel uno, en GentleVanguard Academy.",
+  "captions": [
+    {
+      "start": 0,
+      "end": 7,
+      "text": "¿La respuesta no te sirve?"
+    },
+    {
+      "start": 7,
+      "end": 14,
+      "text": "Contexto. Tarea. Formato."
+    },
+    {
+      "start": 14,
+      "end": 21,
+      "text": "Pedir revisión no garantiza exactitud."
+    },
+    {
+      "start": 21,
+      "end": 30,
+      "text": "Consultá Academy. Escribí APRENDER."
+    }
+  ],
+  "frames": [
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel-academy/01.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel-academy/03.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel-academy/05.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel-academy/07.png",
+      "durationSec": 9
+    }
+  ]
+}

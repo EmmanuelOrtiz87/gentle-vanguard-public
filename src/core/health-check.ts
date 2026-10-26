@@ -360,45 +360,46 @@ async function checkDashboardV3() {
       ? envVitePort
       : 5173;
   const health = await checkDashboardHealth(wsPort, vitePort);
+  // Decisión owner 2026-10-21: el dev server de Vite corre ON-DEMAND desde
+  // command-center (no daemon del autostart). Que la UI no esté arriba NO es
+  // fallo; un API proxy roto con UI arriba sí continúa siendo FAIL real.
+  const onDemandNote =
+    'no iniciado — on-demand vía command-center (decisión owner 2026-10-21)';
+  const viteVerdict = (up: boolean, ok: boolean, tail: string) => ({
+    pass: up ? ok : true,
+    detail: up
+      ? ok
+        ? tail
+        : `Dashboard UI is up but API proxy failed on ${health.vitePort}`
+      : `Dashboard dev server ${onDemandNote}`,
+  });
 
   // Map the health result to pass/fail
   switch (health.status) {
-    case 'healthy':
+    case 'healthy': {
+      const dev = viteVerdict(health.viteOk, health.viteApiOk, `Dashboard UI and API proxy responding on ${health.vitePort}`);
       writeCheck(
         `dashboard WS server (port ${health.port})`,
         true,
         `HTTP API responding, Vite:${health.vitePort}`,
       );
-      writeCheck(
-        'dashboard dev server',
-        health.viteOk && health.viteApiOk,
-        !health.viteOk
-          ? 'Dashboard UI not responding'
-          : health.viteApiOk
-            ? `Dashboard UI and API proxy responding on ${health.vitePort}`
-            : `Dashboard UI is up but API proxy failed on ${health.vitePort}`,
-      );
+      writeCheck('dashboard dev server', dev.pass, dev.detail);
       break;
-    case 'degraded':
+    }
+    case 'degraded': {
       // Degraded means the port is open but HTTP API not working
+      const dev = viteVerdict(health.viteOk, health.viteApiOk, `Dashboard UI and API proxy responding on ${health.vitePort}`);
       writeCheck(
         `dashboard WS server (port ${health.port})`,
         false,
         'TCP open but HTTP API not responding',
       );
-      writeCheck(
-        'dashboard dev server',
-        health.viteOk && health.viteApiOk,
-        !health.viteOk
-          ? 'Dashboard UI not responding'
-          : health.viteApiOk
-            ? `Dashboard UI and API proxy responding on ${health.vitePort}`
-            : `Dashboard UI is up but API proxy failed on ${health.vitePort}`,
-      );
+      writeCheck('dashboard dev server', dev.pass, dev.detail);
       break;
+    }
     case 'down':
       writeCheck(`dashboard WS server (port ${health.port})`, false, 'Not responding');
-      writeCheck('dashboard dev server', false, 'Not running');
+      writeCheck('dashboard dev server', true, `Dashboard WS + dev server ${onDemandNote}`);
       break;
   }
 }

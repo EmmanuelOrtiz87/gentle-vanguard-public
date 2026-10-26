@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import {
   appendFileSync,
+  closeSync,
   mkdirSync,
+  openSync,
   readFileSync,
   existsSync,
   writeFileSync,
@@ -52,6 +54,9 @@ async function createAutoCheckpoint(): Promise<void> {
       ['create', '--label', 'auto-session-start'],
       {
         timeout: 30000,
+        // 2026-10-21: spawnSync default (1MB) rebalsaba con ENOBUFS cuando el
+        // checkpoint-manager lista inventario grande; dar aire a 16MB.
+        maxBuffer: 16 * 1024 * 1024,
       },
     );
     if (r.status !== 0) throw r.error ?? new Error(`checkpoint exited ${r.status}`);
@@ -502,29 +507,35 @@ function startLazyStep(step: PipelineStep): { success: boolean; error?: string }
   );
 
   const args = parseStepArgs(step.args);
+  // stderr → lazy log (decisión owner 2026-10-21): observabilidad en vivo de los
+  // steps lazy. stdout+stderr van al mismo append-log; cada step aparece tras su
+  // línea "starting <id>". El fd se cierra en el padre tras el spawn (el hijo
+  // recibió su propia copia en spawn-time).
+  const lazyLogFd = openSync(LAZY_LOG_PATH, 'a');
   const child = scriptPath.endsWith('.ts')
     ? runNpxTsx(scriptPath, args, {
         cwd: ROOT,
-        stdio: 'ignore',
+        stdio: ['ignore', lazyLogFd, lazyLogFd],
         windowsHide: true,
         detached: true,
       })
     : scriptPath.endsWith('.ps1')
       ? run('pwsh', ['-NoProfile', '-File', scriptPath, ...args], {
           cwd: ROOT,
-          stdio: 'ignore',
+          stdio: ['ignore', lazyLogFd, lazyLogFd],
           windowsHide: true,
           detached: true,
         })
       : run(scriptPath, args, {
           cwd: ROOT,
-          stdio: 'ignore',
+          stdio: ['ignore', lazyLogFd, lazyLogFd],
           windowsHide: true,
           detached: true,
         });
   // The lock will auto-release when the child process exits
   // We don't need to maintain our lock - the child will have its own
   lock.release();
+  closeSync(lazyLogFd);
 
   child.unref();
   return { success: true };

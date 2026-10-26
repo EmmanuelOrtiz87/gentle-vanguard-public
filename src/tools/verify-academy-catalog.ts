@@ -11,12 +11,16 @@ const browser=await chromium.launch();const cases=[];
 try{
  const page=await browser.newPage({reducedMotion:'reduce'});const errors:string[]=[];
  await readOnlyQA(page.context(),base);
+ const catalogResponse=await page.request.get(new URL('catalog.json',base).href);
+ assert.ok(catalogResponse.ok(),'Published catalog loads');
+ const catalog=await catalogResponse.json();
+ const expectedProducts=catalog.counts.products;
  page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&r.url().startsWith(base))errors.push(r.status()+' '+r.url());});
  for(const width of [390,768,1024,1440,1920]){
   await page.setViewportSize({width,height:width>=1024?1200:1000});await page.goto(base);await page.evaluate(()=>document.fonts.ready);
   assert.equal(await page.locator('.academy-topbar a[href="/"].gv-btn').count(),1,'Corporate return is a real branded button');
   assert.equal(await page.locator('[data-catalog-section]').count(),0,'No secondary price-to-filter navigation');
-  assert.equal(await page.locator('#sec-destacados .grid>.card').count(),86,'All materials are reachable from the default category');
+  assert.equal(await page.locator('#sec-destacados .grid>.card').count(),expectedProducts,'All published materials are reachable from the default category');
   assert.ok(await page.locator('.academy-hero-art img').evaluate(el=>(el as HTMLImageElement).naturalWidth>0),'Learning illustration loads');
   if(width===390){await page.locator('#academy-menu').click();assert.equal(await page.locator('#academy-menu').getAttribute('aria-expanded'),'true');await page.keyboard.press('Escape');assert.equal(await page.locator('#academy-menu').getAttribute('aria-expanded'),'false');}
   await page.locator('[data-sec="sec-cursos"]').click();
@@ -44,9 +48,9 @@ try{
   await page.keyboard.press('Escape');assert.ok(!await dialog.isVisible());assert.ok(await summary.evaluate(el=>el===document.activeElement));
   await summary.click();await dialog.locator('.btn-checkout').click();await page.locator('#checkout-overlay').waitFor({state:'visible'});await page.locator('#checkout-cancel').click();
   await page.locator('#filter-q').fill('zzzxnonexistent');await page.waitForTimeout(250);assert.equal(await page.locator('.product-section.active .card:visible').count(),0);assert.ok(await page.locator('.catalog-empty').isVisible());
-  await page.locator('#filter-clear').click();assert.equal(await page.locator('#filter-q').inputValue(),'');assert.equal(await page.locator('.tab.active').getAttribute('data-sec'),'sec-destacados');assert.ok((await page.locator('#catalog-state').innerText()).includes('86'));
+  await page.locator('#filter-clear').click();assert.equal(await page.locator('#filter-q').inputValue(),'');assert.equal(await page.locator('.tab.active').getAttribute('data-sec'),'sec-destacados');assert.ok((await page.locator('#catalog-state').innerText()).includes(String(expectedProducts)));
   await page.locator('#filter-q').fill('python');await page.waitForTimeout(250);assert.ok(await page.locator('.product-section.active .card:visible').count()>0);assert.equal(await page.locator('.product-section.active').count(),1);
-  await page.locator('[data-sec="sec-destacados"]').click();assert.equal(await page.locator('#filter-q').inputValue(),'');assert.ok((await page.locator('#catalog-state').innerText()).includes('86'));
+  await page.locator('[data-sec="sec-destacados"]').click();assert.equal(await page.locator('#filter-q').inputValue(),'');assert.ok((await page.locator('#catalog-state').innerText()).includes(String(expectedProducts)));
   await page.locator('#filter-clear').click();await page.locator('[data-sec="sec-cursos"]').click();
   await page.evaluate(()=>localStorage.removeItem('gv-landing-cart'));await page.reload();await page.locator('[data-sec="sec-cursos"]').click();await page.mouse.move(0,0);
   await section.scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/courses-${width}.png`});

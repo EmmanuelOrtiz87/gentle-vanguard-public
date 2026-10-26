@@ -36,27 +36,57 @@ const logger = log('INTELLIGENT-DELEGATOR');
 
 const ROOT = process.cwd();
 const RUNTIME_STATE_FILE = join(ROOT, '.runtime', 'intelligent-delegator-state.json');
+const MODEL_REGISTRY_FILE = join(ROOT, 'config', 'model-health-registry.json');
 
-// Modelos disponibles en orden de preferencia (ordenados por capacidad/costo)
-const DEFAULT_MODEL_CHAIN: ModelInfo[] = [
-  { id: 'opencode-zen-C/big-pickle', provider: 'opencode', tier: 'premium', cost: 'free' },
-  { id: 'opencode-zen-C/mimo-v2.6-flash-free', provider: 'opencode', tier: 'standard', cost: 'free' },
-  { id: 'opencode-zen-C/big-pickle', provider: 'opencode', tier: 'fast', cost: 'free' },
-  { id: 'claude-haiku-4-5', provider: 'littellmott', tier: 'standard', cost: 'free' },
-  { id: 'ollama/qwen2.5', provider: 'ollama', tier: 'local', cost: 'local' },
-  { id: 'ollama/llama3', provider: 'ollama', tier: 'local', cost: 'local' },
-];
+interface RegistryModel {
+  provider: string;
+  tier: 'free' | 'balanced' | 'premium' | 'local';
+  costPer1kTokens: { input: number; output: number };
+  fallbackChain: string[];
+}
+
+interface CanonicalModelRegistry {
+  routingRules: { orchestrator: { primary: string } };
+  models: Record<string, RegistryModel>;
+}
+
+/** Deriva el orden de routing de la única fuente canónica; health sigue siendo desconocido hasta probarse. */
+function loadDefaultModelChain(): ModelInfo[] {
+  const registry = JSON.parse(readFileSync(MODEL_REGISTRY_FILE, 'utf8')) as CanonicalModelRegistry;
+  const primary = registry.routingRules.orchestrator.primary;
+  const primaryEntry = registry.models[primary];
+  if (!primaryEntry) throw new Error(`Primary model ${primary} is absent from ${MODEL_REGISTRY_FILE}`);
+  const ids = [...new Set([primary, ...(primaryEntry.fallbackChain ?? [])])];
+  return ids.map((id) => {
+    const entry = registry.models[id];
+    if (!entry) throw new Error(`Fallback model ${id} is absent from ${MODEL_REGISTRY_FILE}`);
+    const tier: ModelInfo['tier'] = entry.tier === 'local' ? 'local' : entry.tier === 'premium' ? 'premium' : 'standard';
+    const cost: ModelInfo['cost'] = tier === 'local' ? 'local' : entry.costPer1kTokens.input === 0 && entry.costPer1kTokens.output === 0 ? 'free' : 'paid';
+    return { id, provider: entry.provider, tier, cost };
+  });
+}
+
+// Modelos candidatos: registrados no implica que estén disponibles ahora.
+const DEFAULT_MODEL_CHAIN = loadDefaultModelChain();
+
+export function getDefaultModelIds(): string[] {
+  return DEFAULT_MODEL_CHAIN.map((model) => model.id);
+}
 
 // Modelos por tipo de agente (especialización)
 const AGENT_MODEL_PREFERENCES: Record<string, string[]> = {
   BA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
-  SAD: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
-  DEV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/big-pickle'],
+  SAD: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
+  DEV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   QA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
-  OPS: ['opencode-zen-C/big-pickle', 'opencode-zen-C/big-pickle', 'ollama/qwen2.5'],
-  GOV: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
-  DOC: ['opencode-zen-C/big-pickle', 'claude-haiku-4-5'],
+  OPS: ['opencode-zen-C/big-pickle', 'ollama/qwen2.5-coder:14b'],
+  GOV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
+  DOC: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
 };
+
+export function getConfiguredAgentModelIds(): string[] {
+  return [...new Set(Object.values(AGENT_MODEL_PREFERENCES).flat())];
+}
 
 // =============================================================================
 // TIPOS

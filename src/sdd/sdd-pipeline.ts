@@ -10,7 +10,7 @@ type PhaseName =
 
 interface PhaseGate {
   phase: string;
-  status: 'PASS' | 'FAIL' | 'DRYRUN';
+  status: 'PASS' | 'FAIL' | 'DRYRUN' | 'DRAFT' | 'BLOCKED';
   timestamp: string;
   artifact: string;
 }
@@ -31,8 +31,8 @@ const PHASE_ORDER: PhaseName[] = [
   'EXPLORE',
   'PROPOSE',
   'SPEC',
-  'TASKS',
   'DESIGN',
+  'TASKS',
   'APPLY',
   'VERIFY',
   'ARCHIVE',
@@ -94,6 +94,11 @@ function invokePhase(
   if (!existsSync(phaseDir)) {
     mkdirSync(phaseDir, { recursive: true });
   }
+  if (existsSync(join(phaseDir, 'artifact.md'))) {
+    throw new Error(
+      `${phaseName} artifact already exists; review it in place instead of overwriting`,
+    );
+  }
 
   try {
     const result = block();
@@ -101,7 +106,15 @@ function invokePhase(
     if (!existsSync(artifact)) {
       writeFileSync(artifact, `# ${phaseName}\n\n${description}\n`, 'utf-8');
     }
-    writePhaseGate(sddDir, phaseName, 'PASS', artifact);
+    // This CLI prepares templates, not LLM implementation or acceptance tests.
+    // Only INIT performs a complete bootstrap operation on its own.
+    const status =
+      result.status === 'blocked'
+        ? 'BLOCKED'
+        : phaseName === 'INIT' || result.archived
+          ? 'PASS'
+          : 'DRAFT';
+    writePhaseGate(sddDir, phaseName, status, artifact);
     return result;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -189,8 +202,10 @@ Examples:
     }
   }
 
-  if (!opts.feature) {
-    console.error('\x1b[31mError: --feature is required\x1b[0m');
+  if (!opts.feature || !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(opts.feature)) {
+    console.error(
+      '\x1b[31mError: --feature must be a simple name (letters, digits, - or _)\x1b[0m',
+    );
     process.exit(1);
   }
   if (!opts.description) {
@@ -206,6 +221,13 @@ function main(): void {
   const root = getRoot();
   const sddDir = join(root, '.sdd', opts.feature);
   const artifactsDir = join(root, '.session', 'sdd-pipeline');
+
+  if (opts.dryRun) {
+    console.log(
+      `DRY-RUN: scaffold ${opts.phase ?? PHASE_ORDER.join(' → ')} for ${opts.feature}; no phase execution`,
+    );
+    return;
+  }
 
   if (!existsSync(artifactsDir)) {
     mkdirSync(artifactsDir, { recursive: true });
@@ -301,21 +323,48 @@ function main(): void {
 
           case 'APPLY': {
             console.log(
-              '  \x1b[37m[APPLY] Implementation phase ready \u2014 use Team Mode for parallel execution\x1b[0m',
+              '  \x1b[37m[APPLY] Template only — implementation must be performed by the active agent\x1b[0m',
             );
-            const apply = `## Implementation: ${opts.feature}\n**Status**: Pending\n**Skills needed**: Determined by Team Mode orchestration\n`;
+            const apply = `## Implementation: ${opts.feature}\n**Status**: Pending\n**Execution**: active agent must implement and record evidence; no code changed by this scaffolder\n`;
             writeFileSync(join(sddDir, 'APPLY/artifact.md'), apply, 'utf-8');
             return { status: 'pending' };
           }
 
           case 'VERIFY': {
-            console.log('  \x1b[37m[VERIFY] Running quality gates...\x1b[0m');
+            console.log(
+              '  \x1b[37m[VERIFY] Verification template only; checks have not been executed\x1b[0m',
+            );
             const verify = `## Verification: ${opts.feature}\n**Lint**: Pending\n**Tests**: Pending\n**Judgment Day**: Pending\n`;
             writeFileSync(join(sddDir, 'VERIFY/artifact.md'), verify, 'utf-8');
             return { lint: 'pending', tests: 'pending', judgment: 'pending' };
           }
 
           case 'ARCHIVE': {
+            const priorPassed = PHASE_ORDER.filter((phase) => phase !== 'ARCHIVE').every(
+              (phase) => {
+                try {
+                  const gate = JSON.parse(
+                    readFileSync(join(sddDir, `gate-${phase}.json`), 'utf8'),
+                  ) as PhaseGate;
+                  return (
+                    gate.phase === phase &&
+                    gate.status === 'PASS' &&
+                    gate.artifact === join(sddDir, phase, 'artifact.md') &&
+                    existsSync(gate.artifact)
+                  );
+                } catch {
+                  return false;
+                }
+              },
+            );
+            if (!priorPassed) {
+              writeFileSync(
+                join(sddDir, 'ARCHIVE/artifact.md'),
+                '## Archive blocked\nPrior phase evidence is missing or not PASS.\n',
+                'utf8',
+              );
+              return { status: 'blocked' };
+            }
             const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
             const archive = `## Archive: ${opts.feature}\n**Completed**: ${now}\n**Artifacts**: ${sddDir}\n**Summary**: ${opts.description}\n`;
             writeFileSync(join(sddDir, 'ARCHIVE/artifact.md'), archive, 'utf-8');
@@ -334,18 +383,33 @@ function main(): void {
 
   const allPassed = phasesToRun.every((p) => {
     const gatePath = join(sddDir, `gate-${p}.json`);
-    return existsSync(gatePath);
+    try {
+      return JSON.parse(readFileSync(gatePath, 'utf8')).status === 'PASS';
+    } catch {
+      return false;
+    }
   });
 
   // Machine-executable re-entry (gentle-vanguard.continuation/v1): publish the
   // verbatim next-phase command after a passing phase — the operator never
   // reconstructs it from prose (absorbed from gentle-ai v2.5.0-rc.3).
   const lastPhase = phasesToRun[phasesToRun.length - 1];
-  const lastGateOk = existsSync(join(sddDir, `gate-${lastPhase}.json`));
+  let lastGateOk = false;
+  try {
+    lastGateOk =
+      JSON.parse(readFileSync(join(sddDir, `gate-${lastPhase}.json`), 'utf8')).status === 'PASS';
+  } catch {
+    /* No passing gate: do not publish an automatic phase transition. */
+  }
   const nextIdx = PHASE_ORDER.indexOf(lastPhase) + 1;
   if (!opts.dryRun && lastGateOk && nextIdx < PHASE_ORDER.length) {
     const nextPhase = PHASE_ORDER[nextIdx];
-    const command = `npx tsx src/sdd/sdd-pipeline.ts --feature ${opts.feature} --description "${opts.description}" --phase ${nextPhase}`;
+    // Published commands must preserve literal descriptions in the host shell.
+    const quotedDescription =
+      process.platform === 'win32'
+        ? `'${opts.description.replace(/'/g, "''")}'`
+        : `'${opts.description.replace(/'/g, `'"'"'`)}'`;
+    const command = `node --import tsx src/sdd/sdd-pipeline.ts --feature ${opts.feature} --description ${quotedDescription} --phase ${nextPhase}`;
     recordContinuation({
       workflowId: `sdd-${opts.feature}`,
       operation: `sdd.${nextPhase.toLowerCase()}`,
@@ -369,9 +433,20 @@ function main(): void {
 
   if (allPassed && !opts.dryRun) {
     console.log(
-      '\x1b[32m[SDD] Pipeline passed \u2014 ready for implementation via Team Mode\x1b[0m',
+      '\x1b[32m[SDD] Requested operations passed; phase evidence is available for review\x1b[0m',
     );
+  }
+  if (!allPassed) {
+    console.log(
+      '[SDD] DRAFT/BLOCKED: active agent must complete artifacts, implementation and checks before recording PASS.',
+    );
+    process.exitCode = 1;
   }
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+}

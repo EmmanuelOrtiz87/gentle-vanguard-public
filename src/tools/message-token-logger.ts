@@ -98,7 +98,7 @@ export function recordMessage(opts: {
     try {
       const insert = db.prepare(
         `INSERT INTO token_usage (session_id, prompt_tokens, completion_tokens, cost, model, timestamp)
-         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, datetime('now','localtime'))`,
       );
       const info = insert.run(
         opts.sessionId,

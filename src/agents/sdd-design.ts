@@ -151,7 +151,7 @@ async function main(): Promise<void> {
     console.log(result);
     console.log();
     console.log('=================================================');
-    console.log(`  Status: ✅ SUCCESS`);
+    console.log('  Status: TEMPLATE GENERATED — architecture still needs agent analysis');
     console.log(`  Duration: ${duration}ms`);
     console.log('=================================================');
 
@@ -160,6 +160,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: true,
+          executionKind: 'deterministic-design-template',
+          phaseComplete: false,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,
           task,

@@ -1,0 +1,48 @@
+{
+  "title": "Cada consulta necesita seguimiento",
+  "brief": "Guion aprobado de campaña servicios. Material propio. Borrador para revisar antes de publicar.",
+  "platform": "instagram-reels",
+  "aspect": "9:16",
+  "duration": 30,
+  "narration": "¿Quién sigue una consulta después de responderla? Si queda en la memoria, puede perderse el próximo paso. Probá registrar tres cosas: responsable, estado y próximo paso. Primero ordenamos el recorrido. Después vemos si conviene una integración, un bot o una app. ¿Dónde se corta el seguimiento en tu negocio? Escribinos PROCESO y contanos.",
+  "captions": [
+    {
+      "start": 0,
+      "end": 7,
+      "text": "¿Quién sigue la consulta?"
+    },
+    {
+      "start": 7,
+      "end": 14,
+      "text": "Responsable. Estado. Próximo paso."
+    },
+    {
+      "start": 14,
+      "end": 21,
+      "text": "Primero ordenar. Después automatizar."
+    },
+    {
+      "start": 21,
+      "end": 30,
+      "text": "Contanos tu proceso. Escribí PROCESO."
+    }
+  ],
+  "frames": [
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel/01.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel/03.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel/05.png",
+      "durationSec": 7
+    },
+    {
+      "path": "docs/marketing/research/2026-10-social-growth/carrusel/07.png",
+      "durationSec": 9
+    }
+  ]
+}

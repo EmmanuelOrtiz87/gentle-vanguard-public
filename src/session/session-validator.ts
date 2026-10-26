@@ -147,9 +147,11 @@ export async function validateSession(): Promise<ValidationResult> {
   } else if (validation.isNestedSession) {
     recommendation = 'reuse';
     message = 'Nested session detected - using parent session';
-  } else if (validation.sessionFileExists && !validation.hasActiveSession) {
+  } else if (validation.sessionFileExists && !validation.hasActiveSession && !['closed', 'completed'].includes(validation.status ?? '')) {
     recommendation = 'cleanup-first';
     message = 'Stale session file exists - cleanup required';
+  } else if (validation.sessionFileExists && ['closed', 'completed'].includes(validation.status ?? '')) {
+    message = `Session already ${validation.status} - no cleanup required`;
   } else {
     message = 'No active session - proceeding with new session';
   }

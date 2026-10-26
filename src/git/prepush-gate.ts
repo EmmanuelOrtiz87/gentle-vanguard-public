@@ -132,7 +132,7 @@ const CHECKS: GateCheck[] = [
     name: 'stack-audit-apps',
     command: 'node',
     args: ['--import', 'tsx', 'src/ops/stack-audit-apps.ts'],
-    timeoutMs: 360_000, // 6 min — corre typecheck+test en cada una de las 14 apps
+    timeoutMs: 900_000, // Sequential app checks exceeded 6 min on Windows; each app step remains bounded.
     description: 'Layer 5 stack-verify: typecheck + test en apps/* (14 apps)',
   },
   {
@@ -364,7 +364,13 @@ async function main(): Promise<void> {
   }
 
   const before = runGit(['status', '--porcelain']);
-  const results = await runChecks(checks);
+  // The app audit runs installer and backup suites that apply Windows ACLs.
+  // Let the other resource-heavy gates finish first so icacls is not competing
+  // with four concurrent builds/test runners for process, disk, and AV locks.
+  const appAudit = checks.find((check) => check.name === 'stack-audit-apps');
+  const parallelChecks = checks.filter((check) => check.name !== 'stack-audit-apps');
+  const results = await runChecks(parallelChecks);
+  if (appAudit) results.push(...await runChecks([appAudit], 1));
   const totalMs = Date.now() - start;
   const allPass = results.every((r) => r.status === 'pass');
   const fence = treeFence(before);

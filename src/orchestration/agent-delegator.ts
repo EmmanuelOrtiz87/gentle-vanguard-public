@@ -23,6 +23,7 @@ import { evaluateFailure } from '../security/guardrail-orchestrator.js';
 import { moderateInputHeuristic } from '../security/guardrails/input-moderation.js';
 import { resolveBudgetAwareModel } from '../tokens/budget-aware-routing.js';
 import { log } from '../utils/logger.js';
+import { nativeResultFailure } from './native-result.js';
 
 const logger = log('AGENT-DELEGATOR');
 
@@ -709,8 +710,9 @@ async function runNativeAgent(
 
     child.on('close', (code) => {
       const duration = Date.now() - startTime;
+      const declaredFailure = nativeResultFailure(stdout);
 
-      if (code === 0) {
+      if (code === 0 && !declaredFailure) {
         resolve({
           success: true,
           output: stdout.trim(),
@@ -721,7 +723,7 @@ async function runNativeAgent(
         resolve({
           success: false,
           output: stdout.trim(),
-          error: stderr.trim() || `Exit code: ${code}`,
+          error: declaredFailure || stderr.trim() || `Exit code: ${code}`,
           duration,
           model,
         });

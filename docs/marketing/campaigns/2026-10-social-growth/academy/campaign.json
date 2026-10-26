@@ -1,0 +1,97 @@
+{
+  "id": "academy_fundamentos_14d",
+  "status": "REVIEW",
+  "audience": "Personas que quieren empezar a aprender IA",
+  "pieces": [
+    {
+      "id": "a01",
+      "category": "Academy · Aprendé IA",
+      "title": [
+        "Un pedido claro",
+        "empieza con",
+        "contexto."
+      ],
+      "accentLine": 2,
+      "body": "Contexto, tarea, formato y revisión.",
+      "art": "service-ai.webp",
+      "cta": "Escribinos APRENDER",
+      "action": "Mensaje privado · APRENDER",
+      "destination": "https://gentlevanguard.github.io/academy/",
+      "alt": "GentleVanguard. Un pedido claro empieza con contexto.. Contexto, tarea, formato y revisión.",
+      "caption": "Pedirle algo a la IA deja muchas decisiones abiertas si no explicás qué necesitás. Probá definir contexto, tarea, formato y revisión. Eso no vuelve infalible la respuesta: todavía hay que verificarla. Escribinos APRENDER para consultar por IA — De 0 a 100 (Nivel 1), en Academy.",
+      "storySticker": "APRENDER"
+    },
+    {
+      "id": "a02",
+      "category": "Academy · Aprendé IA",
+      "title": [
+        "¿La respuesta",
+        "no te sirve?",
+        "Revisá el pedido."
+      ],
+      "accentLine": 2,
+      "body": "Una microlección para empezar a trabajar con IA.",
+      "art": "service-ai.webp",
+      "cta": "Escribinos APRENDER",
+      "action": "Mensaje privado · APRENDER",
+      "destination": "https://gentlevanguard.github.io/academy/",
+      "alt": "GentleVanguard. ¿La respuesta no te sirve? Revisá el pedido.. Una microlección para empezar a trabajar con IA.",
+      "caption": "¿La IA responde algo que no te sirve? Empezá por aclarar el pedido: para qué lo necesitás, sobre qué debe trabajar y en qué formato. Pedir que no invente no garantiza exactitud. Escribinos APRENDER para consultar por el curso inicial de Academy.",
+      "storySticker": "APRENDER"
+    },
+    {
+      "id": "a03",
+      "category": "Academy · Aprendé IA",
+      "title": [
+        "Antes de elegir",
+        "un curso,",
+        "mirá el temario."
+      ],
+      "accentLine": 2,
+      "body": "Revisá nivel, modalidad, precio y condiciones actuales.",
+      "art": "service-ai.webp",
+      "cta": "Escribinos APRENDER",
+      "action": "Mensaje privado · APRENDER",
+      "destination": "https://gentlevanguard.github.io/academy/",
+      "alt": "GentleVanguard. Antes de elegir un curso, mirá el temario.. Revisá nivel, modalidad, precio y condiciones actuales.",
+      "caption": "Antes de elegir un curso de IA, revisá si su nivel, temario y modalidad corresponden a tu objetivo. En el catálogo de Academy podés buscar IA — De 0 a 100 (Nivel 1) y consultar sus condiciones. Si querés orientación sobre esa formación, escribinos APRENDER.",
+      "storySticker": "APRENDER"
+    },
+    {
+      "id": "a04",
+      "category": "Academy · Aprendé IA",
+      "title": [
+        "Autoestudio y",
+        "acompañamiento",
+        "son distintos."
+      ],
+      "accentLine": 2,
+      "body": "El acompañamiento se acuerda y cotiza por separado.",
+      "art": "service-ai.webp",
+      "cta": "Escribinos APRENDER",
+      "action": "Mensaje privado · APRENDER",
+      "destination": "https://gentlevanguard.github.io/academy/",
+      "alt": "GentleVanguard. Autoestudio y acompañamiento son distintos.. El acompañamiento se acuerda y cotiza por separado.",
+      "caption": "El curso base de Academy es de autoestudio. El acompañamiento se acuerda y cotiza aparte, según el objetivo y alcance. No son la misma modalidad ni tienen las mismas condiciones. Escribinos APRENDER y contanos qué necesitás aprender para revisar cuál corresponde.",
+      "storySticker": "APRENDER"
+    },
+    {
+      "id": "a05",
+      "category": "Academy · Aprendé IA",
+      "title": [
+        "Contexto. Tarea.",
+        "Formato.",
+        "Revisión."
+      ],
+      "accentLine": 2,
+      "body": "Un pedido más definido; una respuesta que igual se verifica.",
+      "art": "service-ai.webp",
+      "cta": "Escribinos APRENDER",
+      "action": "Mensaje privado · APRENDER",
+      "destination": "https://gentlevanguard.github.io/academy/",
+      "alt": "GentleVanguard. Contexto. Tarea. Formato. Revisión.. Un pedido más definido; una respuesta que igual se verifica.",
+      "caption": "Mirá cómo cambia el pedido cuando definís contexto, tarea, formato y revisión. Es una microlección original de nuestra campaña, coherente con el temario de prompting. Si querés empezar una ruta de aprendizaje, escribinos APRENDER para consultar por IA — De 0 a 100 (Nivel 1).",
+      "storySticker": "APRENDER"
+    }
+  ]
+}

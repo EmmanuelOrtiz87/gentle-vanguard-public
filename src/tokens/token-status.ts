@@ -14,6 +14,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
+import type Database from 'better-sqlite3';
+import { getLocalDayKey } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -102,6 +104,40 @@ function queryNexus(sql: string, params: unknown[] = []): unknown {
   }
 }
 
+/** Aggregate a stack session with tool runtime IDs mapped to it by the session bridge. */
+export function readSessionTokenTotals(
+  db: Database.Database,
+  sessionId: string,
+): { input: number; output: number } {
+  const hasAliases = Boolean(db.prepare(
+    `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session_id_aliases'`,
+  ).get());
+  const where = hasAliases
+    ? 'session_id = ? OR session_id IN (SELECT alias_id FROM session_id_aliases WHERE session_id = ?)'
+    : 'session_id = ?';
+  const params = hasAliases ? [sessionId, sessionId] : [sessionId];
+  const row = db.prepare(
+    `SELECT COALESCE(SUM(prompt_tokens), 0) AS p, COALESCE(SUM(completion_tokens), 0) AS c
+     FROM token_usage WHERE ${where}`,
+  ).get(...params) as { p?: number; c?: number };
+  return { input: Number(row.p ?? 0) || 0, output: Number(row.c ?? 0) || 0 };
+}
+
+function readSessionTokenTotalsFromNexus(sessionId: string): { input: number; output: number } {
+  try {
+    const DatabaseConstructor = _require('better-sqlite3');
+    if (!fs.existsSync(NEXUS_DB_PATH)) return { input: 0, output: 0 };
+    const db = new DatabaseConstructor(NEXUS_DB_PATH, { readonly: true }) as Database.Database;
+    try {
+      return readSessionTokenTotals(db, sessionId);
+    } finally {
+      db.close();
+    }
+  } catch {
+    return { input: 0, output: 0 };
+  }
+}
+
 function readCompactions(): CompactionRecord[] {
   try {
     if (!fs.existsSync(COMPACTED_DIR)) return [];
@@ -128,17 +164,15 @@ function buildStatus(): StatusData {
   const sessionId = readSessionId();
 
   // Session usage from Nexus
-  const sessionRow = queryNexus(
-    'SELECT COALESCE(SUM(prompt_tokens),0) as p, COALESCE(SUM(completion_tokens),0) as c FROM token_usage WHERE session_id = ?',
-    [sessionId],
-  ) as { p?: number; c?: number } | null;
-  const input = Number(sessionRow?.p ?? 0) || 0;
-  const output = Number(sessionRow?.c ?? 0) || 0;
+  const sessionTotals = readSessionTokenTotalsFromNexus(sessionId);
+  const input = sessionTotals.input;
+  const output = sessionTotals.output;
   const total = input + output;
 
   // Daily usage from Nexus
   const dailyRow = queryNexus(
-    `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t FROM token_usage WHERE date(timestamp) = date('now')`,
+    `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t FROM token_usage WHERE date(timestamp) = ?`,
+    [getLocalDayKey()],
   ) as { t?: number } | null;
   const dailyUsed = Number(dailyRow?.t ?? 0) || 0;
 

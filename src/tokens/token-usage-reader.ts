@@ -26,6 +26,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import Database from 'better-sqlite3';
+import { getLocalDayKey } from './local-day.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,15 +82,13 @@ function readNexusToday(): { used: number; budget: number; source: string } | nu
     if (!existsSync(NEXUS_DB)) return null;
     const db = new Database(NEXUS_DB, { readonly: true });
     try {
-      const dayStart = new Date();
-      dayStart.setHours(0, 0, 0, 0);
       const row = db
         .prepare(
           `SELECT COALESCE(SUM(prompt_tokens),0) + COALESCE(SUM(completion_tokens),0) AS used
            FROM token_usage
-           WHERE timestamp >= datetime(?)`,
+           WHERE date(timestamp) = ?`,
         )
-        .get(dayStart.toISOString().replace('T', ' ').slice(0, 19)) as { used: number };
+        .get(getLocalDayKey()) as { used: number };
       if (row && row.used > 0) {
         return {
           used: row.used,

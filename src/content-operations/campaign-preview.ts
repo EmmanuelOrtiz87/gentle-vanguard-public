@@ -9,7 +9,11 @@ import { exportKit } from './export-kit.js';
 import { validate, loadPlatformRegistry, type Job } from './engine.js';
 
 const root=resolve(import.meta.dirname,'../..');
-const campaignDir=join(root,'docs/marketing/campaigns/2026-10-gv-social-v2');
+const campaignArg=process.argv.indexOf('--campaign-dir');
+const campaignDir=campaignArg>=0 ? resolve(process.argv[campaignArg+1] || '') : join(root,'docs/marketing/campaigns/2026-10-gv-social-v2');
+const dateArg=process.argv.indexOf('--date');
+const campaignDate=dateArg>=0 ? process.argv[dateArg+1]! : new Intl.DateTimeFormat('en-CA',{timeZone:'America/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+assert.match(campaignDate,/^\d{4}-\d{2}-\d{2}$/,'Expected --date YYYY-MM-DD');
 type Piece={id:string;category:string;title:string[];accentLine:number;body:string;art:string;cta:string;action:string;destination:string;alt:string;caption:string;storySticker:string};
 const campaign=JSON.parse(readFileSync(join(campaignDir,'campaign.json'),'utf8')) as {id:string;pieces:Piece[]};
 const output=join(campaignDir,`preview-${Date.now()}`);
@@ -75,7 +79,7 @@ try {
       await page.screenshot({path:pngPath});
       assetsWritten.push({path:`${filename}.png`,sha256:createHash('sha256').update(readFileSync(pngPath)).digest('hex'),width:1080,height});
       const link=new URL(piece.destination);link.searchParams.set('utm_source','instagram');link.searchParams.set('utm_medium','organic_social');link.searchParams.set('utm_campaign',campaign.id);link.searchParams.set('utm_content',filename.replaceAll('-','_'));
-      const job:Job={id:`${campaign.id}_${filename}`,date:'2026-10-18',platform:'instagram',campaign:campaign.id,theme:piece.category,contentType:format==='feed'?'image':'story',title:piece.title.join(' '),copy:piece.caption,cta:link.href,asset:relative(root,pngPath).replaceAll('\\','/'),status:'DRAFT',approvalRequired:true};
+      const job:Job={id:`${campaign.id}_${filename}`,date:campaignDate,timezone:'America/Buenos_Aires',platform:'instagram',campaign:campaign.id,theme:piece.category,contentType:format==='feed'?'image':'story',title:piece.title.join(' '),copy:piece.caption,cta:link.href,asset:relative(root,pngPath).replaceAll('\\','/'),status:'DRAFT',approvalRequired:true};
       assert.deepEqual(validate(job,loadPlatformRegistry(root)),[]);
       jobs.push(job);
       await page.close();

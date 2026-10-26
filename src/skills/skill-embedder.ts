@@ -335,6 +335,11 @@ export function discoverSkills(
     if (!existsSync(root)) continue;
     for (const entry of readdirSync(root, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
+      // Los directorios que empiezan con `_` son COPIAS INTERNAS (por ejemplo
+      // `_deprecated-impeccable-truncated`), no skills. Indexarlas hace que una
+      // copia deprecated compita por el nombre con la skill viva y la
+      // ensombrezca al cargar: el nombre declarado gana, no el directorio.
+      if (entry.name.startsWith('_')) continue;
       const skillPath = join(root, entry.name, 'SKILL.md');
       if (!existsSync(skillPath)) continue;
       const parsed = parseSkillDocument(readFileSync(skillPath, 'utf8'), entry.name);
