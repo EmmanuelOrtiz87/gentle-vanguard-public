@@ -620,7 +620,7 @@ async function autoFix(results: CheckResult[]): Promise<number> {
 async function checkApps(results: CheckResult[]): Promise<void> {
   // Lazy import para no acoplar el modulo al startup del orquestador.
   const { auditApps } = await import('./stack-audit-apps.js');
-  const audits = await auditApps({ only: ['typecheck', 'test'] });
+  const audits = await auditApps({ only: ['typecheck', 'test', 'build'] });
 
   const passed = audits.filter((a) => a.status === 'PASS').length;
   const warned = audits.filter((a) => a.status === 'WARN').length;
@@ -639,11 +639,18 @@ async function checkApps(results: CheckResult[]): Promise<void> {
       .filter((c) => c.status === 'FAIL')
       .map((c) => `${c.kind}: ${c.message.slice(0, 80)}`)
       .join(' | ');
+    const checkDetail = a.checks
+      .filter((c) => c.status === 'SKIP')
+      .map((c) => `${c.kind}: ${c.message.slice(0, 80)}`)
+      .join(' | ');
+    const omissionDetail = a.omissions
+      .map((omission) => `${omission.script}: ${omission.reason}`)
+      .join(' | ');
     results.push({
       name: `app:${a.app}`,
       layer: 'apps',
       status: a.status,
-      message: failDetail || a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
+      message: failDetail || [checkDetail, omissionDetail].filter(Boolean).join(' | ') || a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
       fixCmd: a.status === 'FAIL' ? `cd apps/${a.app} && npm run typecheck` : undefined,
     });
   }

@@ -5,7 +5,7 @@ import {PUBLIC_SITE,publicFiles} from './build.js';
 export const REQUIRED_PUBLIC_CHECKS=['unit','assets','navigation','catalog','chrome','identity-corporate','identity-academy','snapshots'] as const;
 const hash=(data:Buffer|string)=>createHash('sha256').update(data).digest('hex');
 const contractFiles=['src/web-presence/approval.ts','src/web-presence/gate.ts','src/web-presence/read-only-qa.ts','src/tools/verify-academy-catalog.ts','src/tools/verify-public-chrome.ts','src/tools/verify-unified-public-web.ts','apps/corporate-web/scripts/verify-pages.ts','packages/gv-design-system/src/cli/runtime-conformance.ts','packages/gv-design-system/src/cli/sync-surfaces.ts','packages/gv-design-system/dist/tokens.css','packages/gv-design-system/dist/shell.css','vitest.public-web.config.ts','tests/unit/public-web-build.test.ts','tests/unit/public-web-gate.test.ts','tests/unit/catalog-card.test.ts','tests/unit/landing-contact-boundary.test.ts'];
-function contractHash(){const root=resolve(import.meta.dirname,'../..');return hash(contractFiles.map(path=>path+':'+hash(readFileSync(resolve(root,path)))).join('\n'));}
+function contractHash(){const root=resolve(import.meta.dirname,'../..');return hash([...contractFiles,'tests/unit/landing-publication.test.ts','apps/academy-web/scripts/landing-publication.mjs','config/academy-landing.json'].map(path=>path+':'+hash(readFileSync(resolve(root,path)))).join('\n'));}
 export function verifyArtifact(artifact:string):string {
  const root=resolve(artifact),raw=readFileSync(root+'.json','utf8');
  const inventory=JSON.parse(raw) as {site:string;files:{path:string;sha256:string}[]};

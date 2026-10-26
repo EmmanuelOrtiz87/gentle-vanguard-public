@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
+import { getLocalDayKey } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -95,7 +96,7 @@ function now(): string {
 }
 
 function todayDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return getLocalDayKey();
 }
 
 function initDb(): void {
@@ -116,7 +117,7 @@ function recordUsage(sessionId: string, tokens: number, cost: number): void {
       .prepare(
         `INSERT INTO token_usage
          (session_id, prompt_tokens, completion_tokens, cost, model, timestamp, tenant_id)
-         VALUES (?, ?, 0, ?, ?, datetime('now'), 'gentle-vanguard')`,
+         VALUES (?, ?, 0, ?, ?, datetime('now','localtime'), 'gentle-vanguard')`,
       )
       .run(sessionId, tokens, cost, process.env.AI_MODEL || 'unknown');
     console.log(`[METRICS-STORE] Recorded: ${tokens} tokens, $${cost} for session ${sessionId}`);

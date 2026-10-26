@@ -18,7 +18,7 @@
  *
  * Nota ZCode: los cambios de agentes requieren una nueva sesión (no hot-reload).
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -78,6 +78,7 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
   { dir: 'systemic-issue-triage', root: 'stack' },
   // Fase 7 (2026-10-03) — short-form video generation (gv-shorts-core + content-cms shorts/).
   { dir: 'gv-shorts-skill', root: 'stack' },
+  { dir: 'gv-social-studio', root: 'stack' },
 ];
 
 /**
@@ -96,6 +97,7 @@ const SKILL_TARGETS: Record<string, string> = {
 
 export function copySkillTree(source: string, target: string): void {
   mkdirSync(target, { recursive: true });
+  if (realpathSync(source) === realpathSync(target)) return;
   cpSync(source, target, { recursive: true, force: true });
 }
 

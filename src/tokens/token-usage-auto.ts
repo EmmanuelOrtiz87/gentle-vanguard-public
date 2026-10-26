@@ -39,7 +39,7 @@ function writeTokenToNexus(
     if (db) {
       db.prepare(
         `INSERT INTO token_usage (session_id, prompt_tokens, completion_tokens, cost, model, timestamp)
-         VALUES (?, ?, ?, 0, ?, datetime('now'))`,
+         VALUES (?, ?, ?, 0, ?, datetime('now','localtime'))`,
       ).run(sessionId, promptTokens, completionTokens, model || null);
     }
   } catch {

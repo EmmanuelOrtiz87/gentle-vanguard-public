@@ -18,6 +18,12 @@ describe('unified public website boundary',()=>{
     expect(root).toContain('data-public-surface="corporate"');
     expect(root).toContain('href="public-chrome.css"');
     const academy=readFileSync(join(out,'academy/index.html'),'utf8');
+    const talkEnabled=JSON.parse(readFileSync('config/academy-landing.json','utf8')).talkResourcesEnabled===true;
+    expect(academy.includes('id="charla"')).toBe(talkEnabled);
+    expect(academy.includes('href="#charla"')).toBe(talkEnabled);
+    expect(academy.includes('<h3>IA en tu día a día</h3>')).toBe(talkEnabled);
+    const catalog=JSON.parse(readFileSync(join(out,'academy/catalog.json'),'utf8'));
+    expect(catalog.products.ebooks.some((p:{id:string})=>p.id==='ia-en-tu-dia-a-dia')).toBe(talkEnabled);
     expect(academy).toContain(`rel="canonical" href="${PUBLIC_SITE}academy/"`);
     expect(academy).toContain('href="/"');
     expect(academy).toContain('data-public-surface="academy"');

@@ -9,8 +9,8 @@
  * Features:
  *   - Test execution
  *   - Quality gate validation
- *   - Security scanning
- *   - Regression detection
+ *   - Security checklist (not an executed security scan)
+ *   - Configured test-suite results (not automatic spec acceptance)
  */
 
 import { spawn } from 'child_process';
@@ -269,13 +269,13 @@ async function main(): Promise<void> {
   try {
     // Run all tests
     const testResults = skipTests
-      ? { results: {}, allPassed: true, totalDuration: 0 }
+      ? { results: {}, allPassed: false, totalDuration: 0 }
       : await runAllTests();
 
     // Security checks
-    console.log('\nSecurity Checks:');
+    console.log('\nSecurity Checklist (not executed by this helper):');
     for (const check of SECURITY_CHECKS) {
-      console.log(`  ✅ ${check}`);
+      console.log(`  [NOT EXECUTED] ${check}`);
     }
 
     const duration = Date.now() - startTime;
@@ -294,6 +294,7 @@ async function main(): Promise<void> {
       testResults: skipTests ? 'SKIPPED' : testResults.results,
       allTestsPassed: testResults.allPassed,
       securityChecks: SECURITY_CHECKS,
+      securityChecksExecuted: false,
       dashboardBuild: dashboardExists,
       qualityGates: [
         'TypeScript compilation',
@@ -319,6 +320,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: testResults.allPassed,
+          verificationScope: 'configured-test-suites-only',
+          securityChecksExecuted: false,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,
           task,

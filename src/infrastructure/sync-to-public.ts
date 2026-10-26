@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import {assertApprovedArtifact} from '../web-presence/approval.js';
 import {isExcludedPath, PUBLIC_DOC_DIRECTORIES} from '../installer/payload.js';
+import { removePrivatePublicSources } from './public-source-boundary.js';
 /**
  * sync-to-public.ts — Sync changes from private repo to public repo.
  *
@@ -441,6 +442,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // narrower than the private engineering CI.
   rmIf(path.join(targetDir, 'src'), { recurse: true });
   copyIf(path.join(privateRepo, 'src'), path.join(targetDir, 'src'), { recurse: true });
+  removePrivatePublicSources(targetDir);
   // Runtime state is local-only and must never cross the publication boundary.
   rmIf(path.join(targetDir, 'src', '.gateguard-state.json'));
   rmIf(path.join(targetDir, '.runtime'), { recurse: true });

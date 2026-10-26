@@ -9,9 +9,9 @@
  * risk never force the heavier route. Only explicit request or accepted proposal.
  *
  * RULES:
- *   - 1-3 files, 1 mechanical change → Direct inline
- *   - 4+ files, broad research needed → Delegated direct (1 agent)
- *   - Ambiguous substantial features → Optional SDD (user accepts)
+ *   - No explicit delegation reason → Direct inline, regardless of size
+ *   - Named exploration/writer/backstop/verifier reason → Delegated
+ *   - Explicit SDD request → SDD
  *   - Commit/PR/Release → Follow repository policy (not SDD)
  *
  * USAGE:
@@ -122,6 +122,9 @@ export interface RoutingRequest {
   /** Whether user explicitly requested SDD */
   explicitSDD?: boolean;
 
+  /** ODD: a deliberate reason, never inferred from file count or task size. */
+  delegationReason?: 'explore' | 'parallel-writers' | 'context-backstop' | 'verifier';
+
   /** Stakeholder count */
   stakeholderCount?: number;
 }
@@ -133,17 +136,6 @@ export interface RoutingRequest {
 const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');
 const ROUTING_HISTORY_FILE = join(RUNTIME_DIR, 'routing-history.json');
-
-// Thresholds (from Gentle-AI trigger-rules)
-const THRESHOLDS = {
-  DIRECT_MAX_FILES: 3,
-  DIRECT_MAX_STEPS: 15,
-  DELEGATED_MIN_FILES: 4,
-  DELEGATED_MAX_FILES: 15,
-  SDD_MIN_AMBIGUITY: 0.4,
-  CONFIDENCE_DIRECT: 0.8,
-  CONFIDENCE_DELEGATED: 0.6,
-};
 
 // Complexity multipliers (impact on route selection)
 const COMPLEXITY_WEIGHTS = {
@@ -198,7 +190,7 @@ export class SmallestRouteRouter {
     });
 
     // Signal 2: Confidence
-    const confidence = request.confidence || this.inferConfidence(request);
+    const confidence = request.confidence ?? this.inferConfidence(request);
     signals.push({
       name: 'confidence',
       value: confidence,
@@ -265,8 +257,8 @@ export class SmallestRouteRouter {
 
     // Risk-aware verification: clasifica el diff actual y decide la verificación
     // post-apply (low → none, standard → sdd-verify, high → rdd-4r-review).
-    // Solo aplica a rutas que tocan código (delegated/sdd/collaborative).
-    if (analysis.route !== 'direct') {
+    // Inline changes need the same risk checks as delegated changes.
+    {
       try {
         const c = classifyRisk(false);
         if (c.tier !== 'low' || c.score > 0) {
@@ -417,7 +409,7 @@ export class SmallestRouteRouter {
   }
 
   private selectSmallestViable(
-    alternatives: RouteAlternative[],
+    _alternatives: RouteAlternative[],
     request: RoutingRequest,
   ): {
     route: RouteType;
@@ -435,54 +427,22 @@ export class SmallestRouteRouter {
       };
     }
 
-    // Rule 2: 1-3 files, high confidence → Direct
+    // ODD: size and uncertainty never authorize a delegation.
     const fileCount = this.estimateFileCount(request);
-    const confidence = request.confidence || this.inferConfidence(request);
-
-    if (
-      fileCount <= THRESHOLDS.DIRECT_MAX_FILES &&
-      confidence >= THRESHOLDS.CONFIDENCE_DIRECT &&
-      !request.requiresResearch
-    ) {
+    const confidence = request.confidence ?? this.inferConfidence(request);
+    if (request.delegationReason) {
       return {
-        route: 'direct',
-        reason: `${fileCount} file(s), high confidence (${(confidence * 100).toFixed(0)}%)`,
-        steps: fileCount * 3 + 2,
+        route: 'delegated',
+        reason: `Explicit ODD delegation reason: ${request.delegationReason}`,
+        steps: 20 + fileCount * 2,
         confidence,
       };
     }
-
-    // Rule 3: 4+ files or research needed → Delegated
-    if (fileCount >= THRESHOLDS.DELEGATED_MIN_FILES || request.requiresResearch) {
-      // But never force SDD just because of size
-      return {
-        route: 'delegated',
-        reason:
-          fileCount >= THRESHOLDS.DELEGATED_MIN_FILES
-            ? `${fileCount} files require focused agent`
-            : 'Research phase needs dedicated agent',
-        steps: 20 + fileCount * 2,
-        confidence: Math.max(confidence - 0.1, 0.5),
-      };
-    }
-
-    // Rule 4: Low confidence or high ambiguity → Offer SDD as option
-    const ambiguity = this.estimateAmbiguity(request);
-    if (ambiguity >= THRESHOLDS.SDD_MIN_AMBIGUITY && !request.explicitSDD) {
-      return {
-        route: 'delegated', // Offer, don't force
-        reason: `Ambiguous (${(ambiguity * 100).toFixed(0)}%), SDD available as option`,
-        steps: 25,
-        confidence: 0.6,
-      };
-    }
-
-    // Default: Delegated (safe middle ground)
     return {
-      route: 'delegated',
-      reason: 'Balanced approach for unclear scope',
-      steps: 20,
-      confidence: 0.65,
+      route: 'direct',
+      reason: 'ODD inline-first; no explicit SDD request or delegation reason',
+      steps: fileCount * 3 + 2,
+      confidence,
     };
   }
 
@@ -492,14 +452,11 @@ export class SmallestRouteRouter {
   ): boolean {
     // Require confirmation if:
     // - High ambiguity and not using SDD
-    // - Large file count with direct route
     // - Low confidence
 
     const ambiguity = this.estimateAmbiguity(request);
-    const fileCount = this.estimateFileCount(request);
 
     if (ambiguity > 0.7 && selected.route !== 'sdd') return true;
-    if (fileCount > 10 && selected.route === 'direct') return true;
     if (selected.confidence < 0.5) return true;
 
     return false;
@@ -670,8 +627,8 @@ Principles:
   - Only explicit request or accepted proposal selects SDD
 
 Routes:
-  direct      → Execute inline (1-3 files, high confidence)
-  delegated   → Single agent delegation (4+ files, research)
+  direct      → Execute inline by default (any file count)
+  delegated   → Explicit ODD delegation reason supplied by caller
   sdd         → Full SDD workflow (user accepted proposal)
   collaborative → Multi-agent collaboration (complex scope)
 `);

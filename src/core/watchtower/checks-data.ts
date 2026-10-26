@@ -4,11 +4,14 @@
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join } from 'path';
+import { createRequire } from 'module';
+import type Database from 'better-sqlite3';
 import { runSync } from '../run-command';
 import { getEffectiveProcessTimeout } from '../timeout-config';
 import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR, CheckResult } from './context';
 import { fileExists, getFileAgeHours } from './helpers';
 const logger = log('CORE-WATCHTOWER-CHECKS-DATA');
+const _require = createRequire(import.meta.url);
 import { log } from '../../utils/logger.js';
 
 // ─── Component: Tracing ──────────────────────────────────────────────────────
@@ -250,6 +253,68 @@ export function evaluateProviderAlertStatus(
   return modelName === activeModel ? 'WARN' : 'PASS';
 }
 
+export function getWatchtowerComponentStatus(counts: { fails: number; warns: number }): 'ISSUES' | 'WARN' | 'OK' {
+  return counts.fails > 0 ? 'ISSUES' : counts.warns > 0 ? 'WARN' : 'OK';
+}
+
+export function evaluateProviderEvidenceStatus(
+  modelName: string,
+  activeModel: string,
+  evidence: { status?: string; lastSuccessAt?: string; lastDetectedAt?: string; cooldownUntil?: string },
+  now = Date.now(),
+): CheckResult['status'] {
+  const lastSuccessAt = evidence.lastSuccessAt ? Date.parse(evidence.lastSuccessAt) : NaN;
+  const lastDetectedAt = evidence.lastDetectedAt ? Date.parse(evidence.lastDetectedAt) : NaN;
+  const ageMs = now - lastSuccessAt;
+  if (
+    Number.isFinite(lastSuccessAt) &&
+    ageMs >= 0 &&
+    ageMs <= 5 * 60_000 &&
+    (!Number.isFinite(lastDetectedAt) || lastSuccessAt >= lastDetectedAt)
+  ) return 'PASS';
+
+  if (evidence.status === 'unhealthy') {
+    const cooldownUntil = evidence.cooldownUntil ? Date.parse(evidence.cooldownUntil) : NaN;
+    if (Number.isFinite(cooldownUntil) && cooldownUntil > now && modelName !== activeModel) return 'PASS';
+    return 'WARN';
+  }
+
+  return 'WARN';
+}
+
+export function readLatestSuccessfulProviderUsage(
+  db: Database.Database,
+  modelName: string,
+): string | undefined {
+  const model = modelName.split('/').at(-1)?.trim().toLowerCase();
+  if (!model) return undefined;
+  const row = db.prepare(
+    `SELECT MAX(timestamp) AS timestamp FROM token_usage
+     WHERE completion_tokens > 0 AND (lower(model) = ? OR lower(model) LIKE ?)`,
+  ).get(model, `%/${model}`) as { timestamp?: string } | undefined;
+  return row?.timestamp || undefined;
+}
+
+function readModelSuccessEvidence(modelNames: string[]): Record<string, string> {
+  const dbPath = join(RUNTIME_DIR, 'gentle-vanguard.db');
+  if (!fileExists(dbPath)) return {};
+  let db: Database.Database | undefined;
+  try {
+    const DatabaseConstructor = _require('better-sqlite3') as typeof Database;
+    db = new DatabaseConstructor(dbPath, { readonly: true });
+    return Object.fromEntries(
+      modelNames.flatMap((name) => {
+        const timestamp = readLatestSuccessfulProviderUsage(db!, name);
+        return timestamp ? [[name, timestamp]] : [];
+      }),
+    );
+  } catch {
+    return {};
+  } finally {
+    db?.close();
+  }
+}
+
 export async function checkModelHealth() {
   if (!quiet) logger.info('  [model-provider-health] Checking...');
 
@@ -281,7 +346,13 @@ export async function checkModelHealth() {
 
   if (!fileExists(statePath)) {
     addResult('model-provider-health', 'state', 'PASS', `No unhealthy models tracked`, 'ok');
-    addResult('model-provider-health', 'active model', 'PASS', activeModel, 'ok');
+    addResult(
+      'model-provider-health',
+      'active model',
+      'WARN',
+      `${activeModel} has no tracked provider health or fresh successful probe`,
+      'verify-active-model',
+    );
     return;
   }
 
@@ -289,41 +360,55 @@ export async function checkModelHealth() {
     const state = JSON.parse(readFileSync(statePath, 'utf-8'));
     const models = (state.models ?? {}) as Record<
       string,
-      { status?: string; reason?: string; cooldownUntil?: string }
+      { status?: string; reason?: string; cooldownUntil?: string; lastSuccessAt?: string }
     >;
-    const now = Date.now();
-    const unhealthy = Object.entries(models).filter(
-      ([, m]) =>
-        m.status === 'unhealthy' && m.cooldownUntil && new Date(m.cooldownUntil).getTime() > now,
-    );
-    const healthy = Object.entries(models).filter(([, m]) => m.status === 'healthy');
+    const successes = readModelSuccessEvidence([...Object.keys(models), activeModel]);
+    const latestSuccess = (name: string, recorded?: string): string | undefined => {
+      const candidates = [recorded, successes[name]].filter((value): value is string => Boolean(value));
+      return candidates.sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1);
+    };
 
-    if (unhealthy.length > 0) {
-      for (const [name, m] of unhealthy) {
-        const isActive = name === activeModel;
+    if (Object.keys(models).length === 0) {
+      addResult('model-provider-health', 'state', 'WARN', 'No provider health records', 'verify');
+    } else {
+      for (const [name, model] of Object.entries(models)) {
+        const evidence = { ...model, lastSuccessAt: latestSuccess(name, model.lastSuccessAt) };
+        const status = evaluateProviderEvidenceStatus(name, activeModel, evidence);
+        const hasFreshSuccess = status === 'PASS' && model.status === 'healthy';
+        const isQuarantined = status === 'PASS' && model.status === 'unhealthy';
+        const detail = hasFreshSuccess
+          ? `verified success at ${model.lastSuccessAt}`
+          : isQuarantined
+            ? `inactive quarantined (${model.reason?.slice(0, 60) ?? 'unknown reason'})`
+            : model.status === 'unhealthy' && model.cooldownUntil && Date.parse(model.cooldownUntil) <= Date.now()
+              ? `cooldown expired without a successful probe (${model.reason?.slice(0, 60) ?? 'provider error'})`
+              : `no fresh successful probe (${model.reason?.slice(0, 60) ?? 'health unknown'})`;
         addResult(
           'model-provider-health',
           `model ${name}`,
-          evaluateProviderAlertStatus(name, activeModel),
-          `${isActive ? 'active unhealthy' : 'inactive quarantined'} (${m.reason?.slice(0, 60) ?? 'unknown reason'})`,
-          isActive ? 'switch-to-fallback' : 'cooldown-observe',
+          status,
+          detail,
+          status === 'PASS' ? 'ok' : name === activeModel ? 'verify-active-model' : 'verify-provider',
         );
       }
     }
-    if (healthy.length > 0) {
-      for (const [name, m] of healthy) {
-        addResult('model-provider-health', `model ${name}`, 'PASS', m.reason ?? 'healthy', 'ok');
-      }
-    }
-    if (unhealthy.length === 0 && healthy.length === 0) {
-      addResult('model-provider-health', 'state', 'PASS', 'No models tracked', 'ok');
-    }
+    const activeEvidence = models[activeModel];
+    const activeStatus = activeEvidence
+      ? evaluateProviderEvidenceStatus(activeModel, activeModel, {
+          ...activeEvidence,
+          lastSuccessAt: latestSuccess(activeModel, activeEvidence.lastSuccessAt),
+        })
+      : evaluateProviderEvidenceStatus(activeModel, activeModel, {
+          lastSuccessAt: latestSuccess(activeModel),
+        });
     addResult(
       'model-provider-health',
       'active model',
-      activeModel === 'unknown' ? 'WARN' : 'PASS',
-      activeModel,
-      'ok',
+      activeStatus,
+      activeModel === 'unknown' ? 'unknown' : activeStatus === 'PASS'
+        ? `${activeModel} has a fresh successful probe`
+        : `${activeModel} has no fresh successful probe`,
+      activeStatus === 'PASS' ? 'ok' : 'verify-active-model',
     );
   } catch {
     addResult(

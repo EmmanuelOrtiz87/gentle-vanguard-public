@@ -21,6 +21,7 @@
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import type { DatabaseManager } from '../database/nexus//manager.js';
+import { getLocalDayKey } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -255,9 +256,9 @@ export class TokenTracker {
                   COALESCE(SUM(cost), 0) AS cost,
                   COUNT(*) AS calls
            FROM token_usage
-           WHERE date(timestamp) = date('now')`,
+           WHERE date(timestamp) = ?`,
         )
-        .get() as { tokens: number; cost: number; calls: number };
+        .get(getLocalDayKey()) as { tokens: number; cost: number; calls: number };
       return { tokens: row.tokens, cost: row.cost, calls: row.calls };
     } catch {
       return { tokens: 0, cost: 0, calls: 0 };

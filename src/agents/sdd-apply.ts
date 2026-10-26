@@ -270,8 +270,10 @@ async function main(): Promise<void> {
     };
 
     // Run actual quality checks
-    console.log('Running quality gates...\n');
-    const qualityResults = await runQualityChecks();
+    console.log(dryRun ? 'Preview only; quality gates not executed.\n' : 'Running quality gates...\n');
+    const qualityResults = dryRun
+      ? { typecheck: false, lint: false, errors: [] as string[] }
+      : await runQualityChecks();
 
     const duration = Date.now() - startTime;
 
@@ -293,7 +295,7 @@ async function main(): Promise<void> {
     console.log();
     console.log('=================================================');
     console.log(
-      `  Status: ${qualityResults.typecheck && qualityResults.lint ? '✅ SUCCESS' : '❌ FAILED'}`,
+      '  Status: NEEDS ACTIVE AGENT — helper produced a plan; no implementation performed',
     );
     console.log(`  Duration: ${duration}ms`);
     console.log(
@@ -305,7 +307,10 @@ async function main(): Promise<void> {
     console.log(
       JSON.stringify(
         {
-          success: qualityResults.typecheck && qualityResults.lint,
+          success: false,
+          implementationPerformed: false,
+          executionKind: 'deterministic-plan-and-checks',
+          checksExecuted: !dryRun,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,
           task,
@@ -320,9 +325,8 @@ async function main(): Promise<void> {
       ),
     );
 
-    if (!qualityResults.typecheck || !qualityResults.lint) {
-      process.exit(1);
-    }
+    // Exit success from a diagnostic must not qualify an implementation dispatch.
+    if (!dryRun) process.exitCode = 2;
   } catch (error) {
     console.error('\n❌ Error:', error);
     process.exit(1);

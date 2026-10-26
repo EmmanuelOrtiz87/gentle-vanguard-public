@@ -32,6 +32,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { createRequire } from 'module';
 import { join, resolve } from 'path';
 import { log } from '../utils/logger.js';
+import { getLocalDayKey } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 const logger = log('BUDGET-ROUTING');
@@ -172,9 +173,9 @@ export function getUsedTokensToday(): number {
     try {
       const row = db
         .prepare(
-          `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t FROM token_usage WHERE date(timestamp) = date('now')`,
+          `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t FROM token_usage WHERE date(timestamp) = ?`,
         )
-        .get() as { t?: number } | undefined;
+        .get(getLocalDayKey()) as { t?: number } | undefined;
       return Number(row?.t ?? 0) || 0;
     } finally {
       db.close();

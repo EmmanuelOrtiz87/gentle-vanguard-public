@@ -294,9 +294,9 @@ triggers:
 
   # SDD Lifecycle (external reference)
   sdd:
-    keywords: ["implement", "code", "feature", "design", "architecture", "test", "deploy"]
+    keywords: ["sdd", "spec-driven", "sdd init", "sdd explore", "sdd apply", "sdd verify"]
     reference: "skills/sdd-lifecycle/SKILL.md"
-    rule: "Follow EXPLORE → SPEC → APPLY → VERIFY phases"
+    rule: "Opt-in only: follow SDD phases when explicitly requested or accepted. Otherwise use ODD inline-first."
 
   # Security (external reference)
   security:

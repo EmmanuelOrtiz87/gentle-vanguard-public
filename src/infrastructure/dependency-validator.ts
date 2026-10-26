@@ -256,6 +256,20 @@ function getDependencies(): DependencySpec[] {
       autoInstall: ['npm', 'install', '-g', 'lefthook'],
     },
     {
+      name: 'jq',
+      binary: 'jq',
+      category: 'stack',
+      minVersion: '>=1.6.0',
+      versionExtract: 'jq-(\\d+\\.\\d+(?:\\.\\d+)?)',
+      required: false,
+      description: 'JSON processor required by Engram lifecycle hooks to parse and register host sessions',
+      installHint: win() ? 'winget install --id jqlang.jq --exact --silent'
+        : mac() ? 'brew install jq' : 'apt install -y jq',
+      autoInstall: win()
+        ? ['winget', 'install', '--id', 'jqlang.jq', '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements']
+        : mac() ? ['brew', 'install', 'jq'] : ['apt', 'install', '-y', 'jq'],
+    },
+    {
       name: 'Engram',
       binary: 'engram',
       category: 'stack',
@@ -263,8 +277,8 @@ function getDependencies(): DependencySpec[] {
       versionExtract: '(\\d+\\.\\d+\\.\\d+)',
       required: false,
       description: 'Persistent memory — cross-session context retention',
-      installHint: 'go install github.com/gentle-vanguard/engram/cmd/engram@latest',
-      autoInstall: ['go', 'install', 'github.com/gentle-vanguard/engram/cmd/engram@latest'],
+      installHint: 'go install github.com/Gentleman-Programming/engram/v3/cmd/engram@latest',
+      autoInstall: ['go', 'install', 'github.com/Gentleman-Programming/engram/v3/cmd/engram@latest'],
     },
     {
       name: 'CodeGraph',

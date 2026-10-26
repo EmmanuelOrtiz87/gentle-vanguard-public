@@ -16,6 +16,17 @@ Construcción única: `npm run web:prepare`. Validación: `npm run web:check` y 
 Publicación única: `npm run web:publish` (`-- --dry-run` sólo prepara y valida).
 La exportación excluye scripts, README privados, runtime y launchers.
 
+## Material de la charla
+
+`config/academy-landing.json` controla `talkResourcesEnabled` (booleano). Está en `false`
+hasta que se dicte la charla. Oculta sus materiales (`talk` en el manifest), la sección,
+el enlace y las entradas del catálogo público; conserva el contenido original en Academy.
+Para habilitarlo, cambiar a `true` y ejecutar `npm run web:publish`. La preparación regenera
+la landing desde este parámetro y valida el resultado antes de publicar. Para volver a
+ocultarlo, cambiar a `false` y publicar. No se controla con parámetros de URL ni localStorage.
+Este control de publicación no revoca archivos descargados ni restringe por autenticación
+los assets estáticos que ya se habían publicado.
+
 ## Regenerar
 
 ```bash

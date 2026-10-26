@@ -1,7 +1,7 @@
 {
   "version": "2.3.0",
   "enabled": true,
-  "description": "Model Router: per-agent model/temperature binding. Cuentas C activas (2026-09-20): primario opencode-zen-C/big-pickle, fallback opencode-zen-C/mimo-v2.6-flash-free, cadena a opencode-go-C/glm-5.3-flash. PARAM_LEAK fix aplicado.",
+  "description": "Model Router: per-agent model/temperature binding. Verificación 2026-10-20: Console/Zen C activo, primario big-pickle y fallback gratuito MiMo. Los modelos de pago usan crédito Console/Zen. Go requiere suscripción, ausente en estas cuentas; no se usa como fallback automático. PARAM_LEAK fix aplicado.",
   "lastModified": "2026-07-31T04:45:00-03:00",
   "modifiedBy": "orchestrator",
   "defaults": {
@@ -350,7 +350,7 @@
     "enabled": true,
     "immutable": true,
     "budgetLimits": {
-      "dailyTokens": 5000000,
+      "dailyTokens": 10000000,
       "perSessionTokens": 3000000,
       "hardCapEnabled": true
     },
@@ -364,7 +364,7 @@
     "documentationRequired": true
   },
   "modelLevels": {
-    "description": "Abstract model capability levels used by routing policy. fastCheap = free tier (zen-C); strongCoding/strongReasoning/strongReview = paid tier verificado (go-C glm-5.3-flash/glm-5.3, 2026-09-20).",
+    "description": "Abstract model capability levels used by routing policy. fastCheap = free tier Console/Zen. Paid capability examples use Console/Zen prepaid credit, not Go subscription. GLM-5.3-Flash inference verified 2026-10-20; GLM-5.3 listed in authenticated catalog.",
     "fastCheap": {
       "description": "Fast, low-cost model for deterministic/structured tasks",
       "examples": [
@@ -376,7 +376,7 @@
     "strongCoding": {
       "description": "Strong coding model for implementation tasks",
       "examples": [
-        "opencode-go-C/glm-5.3-flash"
+        "opencode-zen-C/glm-5.3-flash"
       ],
       "thinking": "medium",
       "rationale": "Code generation needs robust tool-use model"
@@ -384,7 +384,7 @@
     "strongReasoning": {
       "description": "Strong reasoning model for architectural decisions",
       "examples": [
-        "opencode-go-C/glm-5.3"
+        "opencode-zen-C/glm-5.3"
       ],
       "thinking": "high",
       "rationale": "Deep reasoning for architecture, design, risk analysis"
@@ -392,7 +392,7 @@
     "strongReview": {
       "description": "Strong review model for audits and validation",
       "examples": [
-        "opencode-go-C/glm-5.3"
+        "opencode-zen-C/glm-5.3"
       ],
       "thinking": "high",
       "rationale": "Fresh-context model for thorough review and compliance"

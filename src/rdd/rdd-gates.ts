@@ -18,7 +18,8 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { runSync, runSyncShell } from '../core/run-command.js';
+import { runSyncShell } from '../core/run-command.js';
+import { checkedGit, readReceipt, receiptErrors } from './receipt-contract.js';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -107,216 +108,27 @@ function log(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'IN
   console.log(`${colors[level]}[${timestamp}] [RDD-GATE] [${level}] ${message}\u001b[0m`);
 }
 
-// ─── Git Operations ───────────────────────────────────────────────────────────
-
-function getCurrentSha(): string {
-  try {
-    return runSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).stdout.trim();
-  } catch (err) {
-    throw new Error(
-      `Failed to get current SHA: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-}
-
-function getTreeSha(sha?: string): string {
-  try {
-    const target = sha || 'HEAD';
-    return runSync('git', ['rev-parse', `${target}^{tree}`], { cwd: ROOT }).stdout.trim();
-  } catch (err) {
-    throw new Error(`Failed to get tree SHA: ${err instanceof Error ? err.message : String(err)}`);
-  }
-}
-
-// ─── Receipt Operations ────────────────────────────────────────────────────────
-
-interface ReceiptFinding {
-  severity: 'critical' | 'high' | 'medium' | 'low';
-}
-
-interface ReceiptData {
-  id: string;
-  candidateHash: string;
-  contentHash: string;
-  approved: boolean;
-  findings?: ReceiptFinding[];
-}
-
-function loadReceipt(receiptId: string): ReceiptData | null {
-  const receiptPath = join(ROOT, '.session', 'receipts', `${receiptId}.json`);
-  if (!existsSync(receiptPath)) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(readFileSync(receiptPath, 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-function findLatestReceipt(): ReceiptData | null {
-  const receiptsDir = join(ROOT, '.session', 'receipts');
-  if (!existsSync(receiptsDir)) {
-    return null;
-  }
-
-  try {
-    const files = runSyncShell('ls -t *.json 2>/dev/null || dir /b /o-d *.json 2>nul', {
-      cwd: receiptsDir,
-    })
-      .stdout.trim()
-      .split('\n');
-
-    if (files.length === 0 || files[0] === '') {
-      return null;
-    }
-
-    const latestFile = files[0].trim();
-    return JSON.parse(readFileSync(join(receiptsDir, latestFile), 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-// ─── Gate Validation ───────────────────────────────────────────────────────────
+// ─── Gate validation: shared contract with the receipt producer ────────────────
 
 export function validateGate(gate: DeliveryGate, receiptId?: string): GateValidation {
-  const currentSha = getCurrentSha();
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
-  // Find receipt
-  let receipt: ReceiptData | null = null;
-  if (receiptId) {
-    receipt = loadReceipt(receiptId);
-  } else {
-    receipt = findLatestReceipt();
+  let currentSha = '';
+  let receipt = null;
+  let errors: string[] = [];
+  try {
+    currentSha = checkedGit(ROOT, ['rev-parse', '--verify', 'HEAD^{commit}']).trim();
+    receipt = readReceipt(ROOT, receiptId);
+    errors = receipt ? receiptErrors(ROOT, receipt, gate) : ['No receipt found. Capture a candidate and complete its review first.'];
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
   }
-
-  if (!receipt) {
-    errors.push('No receipt found. Run review first: receipt-manager create --approved');
-    return {
-      gate,
-      valid: false,
-      receiptId: null,
-      candidateSha: '',
-      currentSha,
-      errors,
-      warnings,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  const candidateSha = receipt.candidateHash;
-
-  // Gate-specific validations
-  switch (gate) {
-    case 'post-apply': {
-      // post-apply: verify receipt exists and is valid
-      // Allow drift since we're still implementing
-      if (!receipt.approved) {
-        warnings.push('Receipt not yet approved. Review in progress.');
-      }
-      break;
-    }
-
-    case 'pre-commit': {
-      // pre-commit: SHA must match exactly (staged files)
-      const stagedSha = getCurrentSha();
-      if (candidateSha !== stagedSha) {
-        errors.push(
-          `SHA mismatch: receipt=${candidateSha.slice(0, 7)}, current=${stagedSha.slice(0, 7)}`,
-        );
-        errors.push('Files may have changed since review. Re-run review.');
-      }
-      break;
-    }
-
-    case 'pre-push': {
-      // pre-push: verify commit history includes reviewed SHA
-      try {
-        runSync('git', ['merge-base', '--is-ancestor', candidateSha, 'HEAD'], { cwd: ROOT });
-      } catch {
-        errors.push(`Candidate ${candidateSha.slice(0, 7)} not in current history`);
-        errors.push('Reviewed commit may have been rebased or lost');
-      }
-      break;
-    }
-
-    case 'pre-pr': {
-      // pre-pr: verify receipt matches both local and remote
-      const currentTree = getTreeSha();
-      const candidateTree = getTreeSha(candidateSha);
-
-      if (currentTree !== candidateTree) {
-        errors.push('Tree hash mismatch: files changed since review');
-        errors.push('Re-run review on current state');
-      }
-
-      // Check for unreviewed commits
-      try {
-        const unreviewed = runSync(
-          'git',
-          ['log', `${candidateSha}..HEAD`, '--oneline', '--no-decorate'],
-          { cwd: ROOT },
-        ).stdout.trim();
-
-        if (unreviewed) {
-          const count = unreviewed.split('\n').filter((l) => l).length;
-          errors.push(`${count} unreviewed commits since ${candidateSha.slice(0, 7)}`);
-        }
-      } catch {
-        // No unreviewed commits (or other error)
-      }
-      break;
-    }
-
-    case 'release': {
-      // release: strict validation, no changes allowed
-      const releaseTree = getTreeSha();
-      const reviewTree = getTreeSha(candidateSha);
-
-      if (releaseTree !== reviewTree) {
-        errors.push('CRITICAL: Tree hash mismatch at release gate');
-        errors.push('Release candidate differs from reviewed state');
-      }
-
-      if (!receipt.approved) {
-        errors.push('Receipt not approved. Cannot release unreviewed code.');
-      }
-
-      // Verify no critical findings
-      const criticalCount = receipt.findings?.filter((f) => f.severity === 'critical').length || 0;
-
-      if (criticalCount > 0) {
-        errors.push(`${criticalCount} critical findings must be resolved before release`);
-      }
-      break;
-    }
-  }
-
-  const valid = errors.length === 0;
-
-  if (valid) {
-    log(`Gate ${gate}: PASSED`, 'SUCCESS');
-  } else {
-    log(`Gate ${gate}: FAILED with ${errors.length} error(s)`, 'ERROR');
-  }
-
-  // Record validation
-  recordValidation(gate, valid, receipt.id, candidateSha, currentSha, errors, warnings);
-
-  return {
-    gate,
-    valid,
-    receiptId: receipt.id,
-    candidateSha,
-    currentSha,
-    errors,
-    warnings,
+  const result: GateValidation = {
+    gate, valid: errors.length === 0, receiptId: receipt?.id ?? null,
+    candidateSha: receipt?.candidateHash ?? '', currentSha, errors, warnings: [],
     timestamp: new Date().toISOString(),
   };
+  log('Gate ' + gate + ': ' + (result.valid ? 'PASSED' : 'FAILED'), result.valid ? 'SUCCESS' : 'ERROR');
+  recordValidation(gate, result.valid, result.receiptId ?? '', result.candidateSha, currentSha, errors, []);
+  return result;
 }
 
 function recordValidation(

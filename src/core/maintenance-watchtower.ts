@@ -69,6 +69,7 @@ import {
   checkModelHealth,
   checkAuditPipeline,
   checkGovernance,
+  getWatchtowerComponentStatus,
 } from './watchtower/checks-data';
 import { rebuildMlEmbeddings, reindexEngramRag } from './watchtower/rebuild';
 
@@ -373,7 +374,7 @@ function generateReport(outputPath?: string) {
   }
   const byComponent = Array.from(byComponentMap.entries()).map(([name, counts]) => ({
     component: name,
-    status: counts.fail > 0 ? 'ISSUES' : ('OK' as const),
+    status: getWatchtowerComponentStatus({ fails: counts.fail, warns: counts.warn }),
     fails: counts.fail,
     pass: counts.pass,
     warn: counts.warn,
@@ -392,7 +393,7 @@ function generateReport(outputPath?: string) {
   console.log(`  PASS: ${pass} | WARN: ${warn} | FAIL: ${fail} | SKIP: ${skip} | Total: ${total}`);
 
   for (const c of byComponent) {
-    const icon = c.status === 'OK' ? '  ' : '  ';
+    const icon = c.status === 'OK' ? '  ' : c.status === 'WARN' ? '⚠ ' : '✘ ';
     console.log(`    ${icon}${c.component}: ${c.status}`);
   }
 

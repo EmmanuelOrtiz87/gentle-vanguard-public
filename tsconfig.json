@@ -38,6 +38,7 @@
     "scripts/utilities/security/**/*.ts",
     "scripts/utilities/MODEL-ROUTER/**/*.ts",
     "scripts/validation/**/*.ts",
+    "skills/*/scripts/**/*.ts",
     "src/**/*.ts",
     "scripts/apps/**/*.ts",
     "apps/*/server/**/*.ts"
