@@ -8,6 +8,8 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
@@ -21,6 +23,7 @@ interface ModelHealth {
   consecutiveErrors: number;
   avgLatencyMs: number | null;
   lastError?: string;
+  checkEndpoint?: string;
 }
 
 interface ModelEntry {
@@ -30,7 +33,7 @@ interface ModelEntry {
   health: ModelHealth;
   fallbackChain: string[];
   capabilities: string[];
-  maxTokens: number;
+  maxTokens?: number;
   requiresLocal?: boolean;
   checkEndpoint?: string;
 }
@@ -53,6 +56,14 @@ interface ActiveModel {
   health?: ModelHealth;
 }
 
+const HEALTH_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function isHealthCacheFresh(health: ModelHealth | undefined): boolean {
+  if (!health?.lastChecked) return false;
+  const checkedAt = Date.parse(health.lastChecked);
+  return Number.isFinite(checkedAt) && Date.now() - checkedAt >= 0 && Date.now() - checkedAt <= HEALTH_CACHE_TTL_MS;
+}
+
 // Load registry
 function loadRegistry(): ModelRegistry {
   const content = readFileSync(REGISTRY_PATH, 'utf-8');
@@ -71,30 +82,49 @@ function saveActiveModel(model: string, provider: string, source: string): void 
 }
 
 // Check model health via simple ping
-async function checkModelHealth(modelId: string, entry: ModelEntry): Promise<ModelHealth> {
+export async function checkModelHealth(
+  modelId: string,
+  entry: ModelEntry,
+  fetchModel: typeof fetch = fetch,
+): Promise<ModelHealth> {
   const startTime = Date.now();
 
   try {
     // For local providers like Ollama, check if endpoint is reachable
-    if (entry.requiresLocal && entry.checkEndpoint) {
-      const response = await fetch(entry.checkEndpoint, {
+    if (entry.requiresLocal && entry.health?.checkEndpoint) {
+      const response = await fetchModel(entry.health.checkEndpoint, {
         method: 'GET',
         signal: AbortSignal.timeout(5000),
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        throw new Error(`Local health endpoint returned HTTP ${response.status}`);
+      }
+
+      const catalog = await response.json() as { models?: Array<{ name?: string; model?: string }> };
+      const requestedName = modelId.split('/').at(-1);
+      const installed = catalog.models?.some((model) => model.name === requestedName || model.model === requestedName);
+      if (!installed) {
         return {
-          status: 'available',
+          status: 'unavailable',
           lastChecked: new Date().toISOString(),
-          consecutiveErrors: 0,
+          consecutiveErrors: (entry.health?.consecutiveErrors || 0) + 1,
           avgLatencyMs: Date.now() - startTime,
+          lastError: `Local model ${requestedName} is not installed in the provider catalog`,
         };
       }
+
+      return {
+        status: 'available',
+        lastChecked: new Date().toISOString(),
+        consecutiveErrors: 0,
+        avgLatencyMs: Date.now() - startTime,
+      };
     }
 
     // For API providers, we trust the cache until an error occurs
     return {
-      status: entry.health?.status || 'unknown',
+      status: isHealthCacheFresh(entry.health) ? entry.health.status : 'unknown',
       lastChecked: new Date().toISOString(),
       consecutiveErrors: entry.health?.consecutiveErrors || 0,
       avgLatencyMs: entry.health?.avgLatencyMs,
@@ -111,7 +141,7 @@ async function checkModelHealth(modelId: string, entry: ModelEntry): Promise<Mod
 }
 
 // Detect error type from message
-function detectErrorType(errorMessage: string, patterns: Record<string, string[]>): string | null {
+export function detectErrorType(errorMessage: string, patterns: Record<string, string[]>): string | null {
   const lowerMsg = errorMessage.toLowerCase();
 
   for (const [type, patterns_list] of Object.entries(patterns)) {
@@ -123,7 +153,7 @@ function detectErrorType(errorMessage: string, patterns: Record<string, string[]
 }
 
 // Get next fallback model
-function getFallbackModel(
+export function getFallbackModel(
   currentModel: string,
   registry: ModelRegistry,
   strategy: string = 'cost-optimized',
@@ -134,7 +164,7 @@ function getFallbackModel(
   // Try fallback chain first
   for (const fallbackId of currentEntry.fallbackChain) {
     const fallbackEntry = registry.models[fallbackId];
-    if (fallbackEntry && fallbackEntry.health.status !== 'unavailable') {
+    if (fallbackEntry?.health.status === 'available' && isHealthCacheFresh(fallbackEntry.health)) {
       return { model: fallbackId, entry: fallbackEntry };
     }
   }
@@ -147,7 +177,7 @@ function getFallbackModel(
     for (const modelId of strategyChain) {
       if (modelId === currentModel) continue;
       const entry = registry.models[modelId];
-      if (entry && entry.health.status !== 'unavailable') {
+      if (entry?.health.status === 'available' && isHealthCacheFresh(entry.health)) {
         return { model: modelId, entry };
       }
     }
@@ -227,7 +257,9 @@ async function main(): Promise<void> {
       console.log('Model Health Status:');
       for (const [id, entry] of Object.entries(registry.models)) {
         const cost = entry.costPer1kTokens;
-        console.log(`  ${id}: ${entry.health.status} ($${cost.input}/$${cost.output} per 1k)`);
+        const freshness = isHealthCacheFresh(entry.health) ? 'fresh' : 'stale';
+        const status = freshness === 'fresh' ? entry.health.status : 'unknown';
+        console.log(`  ${id}: ${status} [${freshness}] ($${cost.input}/$${cost.output} per 1k)`);
       }
       break;
     }
@@ -284,4 +316,6 @@ Examples:
   }
 }
 
-main().catch(console.error);
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main().catch(console.error);
+}

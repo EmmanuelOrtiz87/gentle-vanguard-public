@@ -37,6 +37,7 @@
 
 import { StandardWebhooks } from '../webhooks/standard-webhooks.js';
 import { pathToFileURL } from 'url';
+import catalog from './catalog.json';
 
 /** KV mínimo (evita depender de @cloudflare/workers-types). Exportado para
  *  que los tests puedan tipar el fake correctamente. */
@@ -107,6 +108,7 @@ function authorized(req: Request, env: Env): boolean {
 async function createPreference(env: Env, body: unknown, workerOrigin: string): Promise<Response> {
   if (!env.MP_ACCESS_TOKEN) return error('MP_ACCESS_TOKEN no configurado', 500);
   const b = body as {
+    slug?: string;
     tier?: string;
     title?: string;
     unitPrice?: number;
@@ -114,21 +116,28 @@ async function createPreference(env: Env, body: unknown, workerOrigin: string): 
     externalReference?: string;
     backUrl?: string;
   };
-  const tier = b.tier || 'producto';
-  const title = b.title || 'Gentle-Vanguard Academy';
+  if (!b || typeof b !== 'object') return error('Producto requerido');
+  const product = (catalog.products as Record<string, { slug: string; tier: string; title: string; price: number; currency: string }>)[`${b.tier}:${b.slug}`];
+  if (!product) return error('Producto no disponible para compra directa');
+  const tier = product.tier;
+  const title = product.title;
   const unitPrice = Number(b.unitPrice);
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
     return error('unitPrice inválido');
   }
   const currency = b.currency || 'USD';
-  const externalReference =
-    b.externalReference || `gv-${tier}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (unitPrice !== product.price || currency !== product.currency) {
+    return error('Precio o moneda distintos del catálogo vigente. Solicita una cotización para otra moneda.');
+  }
+  // La atribución también es del servidor: una referencia del cliente no debe
+  // otorgar otro material por un pago de menor importe.
+  const externalReference = `gv_${tier}_${product.slug}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const baseUrl = (b.backUrl || '').replace(/\/+$/, '');
 
   const payload: Record<string, unknown> = {
     items: [
       {
-        id: `tier-${tier}`,
+        id: `${tier}:${product.slug}`,
         title,
         quantity: 1,
         unit_price: unitPrice,
@@ -177,6 +186,7 @@ async function createPreference(env: Env, body: unknown, workerOrigin: string): 
   }
   return json({
     ok: true,
+    catalogRevision: catalog.revision,
     preferenceId: data.id,
     initPoint: data.init_point || data.sandbox_init_point,
     externalReference: externalReference,
@@ -565,7 +575,7 @@ export default {
     try {
       if (url.pathname === '/api/mp/health') {
         return json(
-          { ok: true, hasToken: Boolean(env.MP_ACCESS_TOKEN), hasPublicKey: Boolean(env.MP_PUBLIC_KEY) },
+          { ok: true, hasToken: Boolean(env.MP_ACCESS_TOKEN), hasPublicKey: Boolean(env.MP_PUBLIC_KEY), catalogRevision: catalog.revision },
           200,
           cors,
         );

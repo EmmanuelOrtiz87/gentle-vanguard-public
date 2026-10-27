@@ -1,6 +1,6 @@
 /**
- * zcode-sync.ts — Sincroniza los agentes del stack (.opencode/agents/*.md) al formato
- * nativo de ZCode (~/.zcode/agents/*.md).
+ * zcode-sync.ts — Sincroniza agentes a ZCode y skills canónicas a superficies nativas
+ * de herramientas.
  *
  * Mapeo de frontmatter opencode → ZCode:
  *   description      → description (requerido)
@@ -12,13 +12,13 @@
  *   temperature      → nota en el body (ZCode no soporta temperature por agente)
  *
  * Uso:
- *   npx tsx src/zcode-sync.ts --sync          # escribe en ~/.zcode/agents/
- *   npx tsx src/zcode-sync.ts --sync --dry    # muestra el plan sin escribir
- *   npx tsx src/zcode-sync.ts --status        # compara stack vs ~/.zcode/agents
+ *   node --import tsx src/integrations/zcode-sync.ts --sync --skills-only --tools opencode
+ *   node --import tsx src/integrations/zcode-sync.ts --sync --dry --skills-only --tools opencode
+ *   node --import tsx src/integrations/zcode-sync.ts --status
  *
  * Nota ZCode: los cambios de agentes requieren una nueva sesión (no hot-reload).
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -37,7 +37,7 @@ const ZCODE_AGENTS_DIR = join(homedir(), '.zcode', 'agents');
 const ZCODE_CONFIG_PATH = join(homedir(), '.zcode', 'cli', 'config.json');
 
 /**
- * Skills críticas para uso diario en ZCode. Se copian a ~/.zcode/skills/.
+ * Skills críticas para uso diario en herramientas con superficies nativas.
  * NO copiar todas (~120): ZCode tiene un presupuesto fijo de metadata compartida
  * (excerpt de 250 chars por skill) — excederlo degrada el auto-trigger de TODAS.
  */
@@ -78,9 +78,7 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
   { dir: 'systemic-issue-triage', root: 'stack' },
   // Fase 7 (2026-10-03) — short-form video generation (gv-shorts-core + content-cms shorts/).
   { dir: 'gv-shorts-skill', root: 'stack' },
-  // Fase 8 (2026-10-06) — documentación comercial de clientes: modelo comercial vigente
-  // (NORM-CLIENTES-004/009/011), proceso de verificación y gates antes de presentar.
-  { dir: 'documentacion-comercial-clientes', root: 'opencode' },
+  { dir: 'gv-social-studio', root: 'stack' },
 ];
 
 /**
@@ -89,6 +87,7 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
  * Copilot y Antigravity consumen skills versionadas en el workspace.
  */
 const SKILL_TARGETS: Record<string, string> = {
+  opencode: join(process.cwd(), '.opencode', 'skills'),
   zcode: join(homedir(), '.zcode', 'skills'),
   codex: join(homedir(), '.codex', 'skills'),
   minimax: join(homedir(), '.minimax', 'agents', 'mavis', 'skills'),
@@ -98,6 +97,7 @@ const SKILL_TARGETS: Record<string, string> = {
 
 export function copySkillTree(source: string, target: string): void {
   mkdirSync(target, { recursive: true });
+  if (realpathSync(source) === realpathSync(target)) return;
   cpSync(source, target, { recursive: true, force: true });
 }
 
@@ -130,6 +130,10 @@ function syncSkills(dry: boolean, tools: string[]): boolean {
       const dst = join(target, s.dir);
       try {
         copySkillTree(src, dst);
+        if (tool === 'opencode') {
+          console.log(`  ✓ skill ${s.dir}`);
+          continue;
+        }
         let content = readFileSync(join(src, 'SKILL.md'), 'utf8');
         // ZCode/Codex requieren name+description en frontmatter; description ≤1024 chars.
         if (!/^---[\s\S]*?\nname:/.test(content)) {
@@ -361,6 +365,7 @@ function convertAgent(name: string, raw: string): string {
 function main(): void {
   const args = process.argv.slice(2);
   const dry = args.includes('--dry') || args.includes('--dry-run');
+  const skillsOnly = args.includes('--skills-only');
   const status = args.includes('--status');
   const toolsIdx = args.indexOf('--tools');
   const tools =
@@ -368,13 +373,13 @@ function main(): void {
       ? args[toolsIdx + 1].split(',').map((t) => t.trim())
       : Object.keys(SKILL_TARGETS);
 
-  if (!existsSync(STACK_AGENTS_DIR)) {
+  if (!skillsOnly && !existsSync(STACK_AGENTS_DIR)) {
     console.error(`No existe ${STACK_AGENTS_DIR}`);
     process.exit(1);
   }
-  const files = readdirSync(STACK_AGENTS_DIR).filter((f) => f.endsWith('.md'));
+  const files = skillsOnly ? [] : readdirSync(STACK_AGENTS_DIR).filter((f) => f.endsWith('.md'));
 
-  if (status) {
+  if (status && !skillsOnly) {
     console.log(`Stack agents: ${files.length} (${STACK_AGENTS_DIR})`);
     const synced = existsSync(ZCODE_AGENTS_DIR)
       ? new Set(readdirSync(ZCODE_AGENTS_DIR).filter((f) => f.endsWith('.md')))
@@ -386,30 +391,30 @@ function main(): void {
     return;
   }
 
-  if (!dry) mkdirSync(ZCODE_AGENTS_DIR, { recursive: true });
-  let count = 0;
   let failures = 0;
-  for (const f of files) {
-    const name = f.replace(/\.md$/, '');
-    let converted: string;
-    try {
-      converted = convertAgent(name, readFileSync(join(STACK_AGENTS_DIR, f), 'utf8'));
-    } catch (err) {
-      console.error(`  ✗ agente ${name}: ${err instanceof Error ? err.message : err}`);
-      failures++;
-      continue;
+  if (!skillsOnly) {
+    if (!dry) mkdirSync(ZCODE_AGENTS_DIR, { recursive: true });
+    let count = 0;
+    for (const f of files) {
+      const name = f.replace(/\.md$/, '');
+      let converted: string;
+      try {
+        converted = convertAgent(name, readFileSync(join(STACK_AGENTS_DIR, f), 'utf8'));
+      } catch (err) {
+        console.error(`  ✗ agente ${name}: ${err instanceof Error ? err.message : err}`);
+        failures++;
+        continue;
+      }
+      if (dry) {
+        console.log(`--- ${name} (dry run) ---`);
+        console.log(converted.split('\n').slice(0, 14).join('\n'));
+      } else {
+        // Escritura atomica por agente (un kill a mitad de write no deja el .md truncado).
+        writeFileAtomic(join(ZCODE_AGENTS_DIR, f), converted);
+        count++;
+      }
     }
-    if (dry) {
-      console.log(`--- ${name} (dry run) ---`);
-      console.log(converted.split('\n').slice(0, 14).join('\n'));
-    } else {
-      // Escritura atomica por agente (un kill a mitad no deja el .md truncado).
-      writeFileAtomic(join(ZCODE_AGENTS_DIR, f), converted);
-      count++;
-    }
-  }
-  if (!dry) {
-    console.log(`✓ ${count} agentes sincronizados a ${ZCODE_AGENTS_DIR}`);
+    if (!dry) console.log(`✓ ${count} agentes sincronizados a ${ZCODE_AGENTS_DIR}`);
   }
   console.log(`Sincronizando skills críticas a: ${tools.join(', ')}`);
   if (!syncSkills(dry, tools)) failures++;

@@ -6,18 +6,13 @@
  * If configured model fails, automatically switches to fallback.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { join } from 'path';
-import { evaluateFailure } from '../security/guardrail-orchestrator.js';
 
 const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
 const OPENCODE_PATH = join(ROOT, 'opencode.json');
-// PATH constants reserved for future features:
-const ACTIVE_MODEL_PATH = join(ROOT, '.runtime', 'model-active.json');
-void ACTIVE_MODEL_PATH; // Used in future persistence features
-const BROKER_LOG_PATH = join(ROOT, '.runtime', 'logs', 'model-broker.log');
 
 interface ModelEntry {
   provider: string;
@@ -32,7 +27,7 @@ interface ModelEntry {
   };
   fallbackChain: string[];
   capabilities: string[];
-  maxTokens: number;
+  maxTokens?: number;
   requiresLocal?: boolean;
   checkEndpoint?: string;
 }
@@ -119,8 +114,10 @@ class ModelBroker {
       return false;
     }
 
-    // For unknown status, assume available
-    const isAvailable = entry.health.status !== 'unavailable';
+    const checkedAt = entry.health.lastChecked ? Date.parse(entry.health.lastChecked) : NaN;
+    const ageMs = Date.now() - checkedAt;
+    const isAvailable =
+      entry.health.status === 'available' && Number.isFinite(checkedAt) && ageMs >= 0 && ageMs <= this.HEALTH_CACHE_TTL;
 
     // Cache the result
     this.healthCheckCache.set(modelId, {
@@ -143,75 +140,9 @@ class ModelBroker {
     };
   }
 
-  private async findAvailableFallback(
-    currentModel: string,
-    strategy: string = 'availability',
-  ): Promise<{ model: string; entry: ModelEntry } | null> {
-    const entry = this.registry.models[currentModel];
-    if (!entry) {
-      return null;
-    }
-
-    // Try fallback chain first
-    for (const fallbackId of entry.fallbackChain) {
-      const isAvailable = await this.checkModelHealth(fallbackId);
-      if (isAvailable) {
-        const fallbackEntry = this.registry.models[fallbackId];
-        return { model: fallbackId, entry: fallbackEntry };
-      }
-    }
-
-    // Try strategy-based fallback
-    if (this.registry.fallbackStrategies?.[strategy]) {
-      for (const modelId of this.registry.fallbackStrategies[strategy]) {
-        if (modelId === currentModel) continue;
-        const isAvailable = await this.checkModelHealth(modelId);
-        if (isAvailable) {
-          const fallbackEntry = this.registry.models[modelId];
-          return { model: modelId, entry: fallbackEntry };
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private logEvent(
-    agent: string,
-    model: string,
-    event: string,
-    data?: Record<string, unknown>,
-  ): void {
-    const timestamp = new Date().toISOString();
-    const logEntry =
-      JSON.stringify({
-        timestamp,
-        agent,
-        model,
-        event,
-        ...data,
-      }) + '\n';
-
-    // Ensure log directory exists
-    const logDir = join(ROOT, '.runtime', 'logs');
-    if (!existsSync(logDir)) {
-      require('fs').mkdirSync(logDir, { recursive: true });
-    }
-
-    // Append to log file
-    writeFileSync(BROKER_LOG_PATH, logEntry, { flag: 'a' });
-  }
-
-  /**
-   * Delegate a task to an agent with automatic model fallback
-   */
+  /** Report unsupported execution rather than fabricating a successful delegation. */
   async delegate(options: DelegationOptions): Promise<BrokerResult> {
-    const { agentName, task, allowFallback = true } = options;
-    // retryOnFailure and maxRetries reserved for future retry logic implementation
-
-    console.log(`🤖 ModelBroker delegating to ${agentName}: ${task.substring(0, 50)}...`);
-
-    // Get agent configuration
+    const { agentName } = options;
     const agentConfig = this.getAgentConfig(agentName);
     if (!agentConfig) {
       return {
@@ -224,76 +155,14 @@ class ModelBroker {
       };
     }
 
-    const configuredModel = agentConfig.model;
-    const configuredProvider = agentConfig.provider || 'opencode';
-
-    // Check if configured model is available
-    let finalModel = configuredModel;
-    let finalProvider = configuredProvider;
-    let switched = false;
-    let reason = '';
-
-    try {
-      const isAvailable = await this.checkModelHealth(configuredModel);
-
-      if (!isAvailable && allowFallback) {
-        // Find fallback
-        const fallback = await this.findAvailableFallback(configuredModel);
-
-        if (fallback) {
-          finalModel = fallback.model;
-          finalProvider = fallback.entry.provider;
-          switched = true;
-          reason = `Model ${configuredModel} unavailable, switched to fallback ${finalModel}`;
-
-          this.logEvent(agentName, finalModel, 'model_switched', {
-            from: configuredModel,
-            to: finalModel,
-            reason,
-          });
-        } else {
-          throw new Error(`Model ${configuredModel} unavailable and no fallback found`);
-        }
-      }
-
-      // Log the delegation
-      this.logEvent(agentName, finalModel, 'delegation_started', {
-        task_length: task.length,
-        model: finalModel,
-        provider: finalProvider,
-        switched,
-      });
-
-      // Simulated delegation - in real implementation this would call opencode API
-      return {
-        success: true,
-        agent: agentName,
-        model: finalModel,
-        provider: finalProvider,
-        switched,
-        reason,
-      };
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-
-      this.logEvent(agentName, configuredModel, 'delegation_failed', {
-        error: errorMsg,
-        attempted_model: finalModel,
-      });
-
-      // Record the failure as a guardrail incident so the orchestrator learns
-      // from real model/provider failures (feeds the learning loop).
-      evaluateFailure({ error: errorMsg, source: `model-broker:${agentName}` });
-
-      return {
-        success: false,
-        agent: agentName,
-        model: finalModel,
-        provider: finalProvider,
-        switched,
-        error: errorMsg,
-      };
-    }
+    return {
+      success: false,
+      agent: agentName,
+      model: agentConfig.model,
+      provider: agentConfig.provider || 'opencode',
+      switched: false,
+      error: 'Not executed: ModelBroker has no real agent execution adapter. Use native OpenCode task delegation.',
+    };
   }
 
   /**
@@ -310,7 +179,11 @@ class ModelBroker {
       status[agentName] = {
         model,
         available: isAvailable,
-        health: this.registry.models[model]?.health?.status || 'unknown',
+        health: isAvailable
+          ? 'available'
+          : this.registry.models[model]?.health?.status === 'available'
+            ? 'stale'
+            : this.registry.models[model]?.health?.status || 'unknown',
         fallbackChain: this.registry.models[model]?.fallbackChain || [],
       };
     }

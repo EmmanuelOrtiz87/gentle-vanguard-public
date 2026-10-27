@@ -4,11 +4,11 @@
     <meta name="theme-color" content="#0B1020" />
     <meta
       name="description"
-      content="GentleVanguard — Autonomous AI Stack — GentleVanguard documentation"
+      content="Documentación técnica y estado fechado del stack GentleVanguard"
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GentleVanguard — Autonomous AI Stack</title>
+    <title>GentleVanguard · Documentación técnica</title>
     <link
       href="assets/vendor/bootstrap.min.css"
       rel="stylesheet"
@@ -145,8 +145,8 @@
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
     <script src="assets/js/i18n.js?v=3.0"></script>
-    <script src="assets/js/theme-toggle.js?v=2.0"></script><link rel="icon" href="assets/canon/icon.svg">
-<link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
+<link rel="icon" href="assets/canon/icon.svg"><link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
   <body>
     <div class="scroll-progress"></div>
     <div class="gv-grid-bg"></div>
@@ -174,7 +174,7 @@
           <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
           <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
           <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
-          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+          <a href="diagrams.html"><span data-i18n="nav_diagrams">Diagrams</span></a>
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
@@ -189,6 +189,7 @@
         </div>
       </div>
     </header>
+<!-- GV-EVIDENCE-NOTE:START --><aside class="gv-evidence-note" role="note" data-i18n="presentation_evidence_note">Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada y ejecuta el comando indicado antes de tratarlas como vigentes.</aside><!-- GV-EVIDENCE-NOTE:END -->
 
     <!-- Hero -->
     <header class="hero" id="overview">
@@ -205,7 +206,8 @@
       >
         Orquestación de IA local-first · automatización con verificaciones
       </p>
-      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3" lang="es"><div class="text-center"><div class="stat-n">254</div><div class="stat-l" data-i18n="presence_skills">Skills indexadas</div></div><div class="text-center"><div class="stat-n">21</div><div class="stat-l" data-i18n="presence_agents">Agentes OpenCode</div></div><div class="text-center"><div class="stat-n">43</div><div class="stat-l" data-i18n="presence_tables">Tablas Nexus</div></div><div class="text-center"><div class="stat-n">22</div><div class="stat-l" data-i18n="presence_migrations">Migraciones</div></div></div>
+      <div class="d-flex flex-wrap gap-4 justify-content-center z-1 mt-3" lang="es" title="Snapshot de inventario 2026-10-19"><div class="text-center"><div class="stat-n">253</div><div class="stat-l" data-i18n="presence_skills">Skills indexadas</div></div><div class="text-center"><div class="stat-n">10</div><div class="stat-l" data-i18n="presence_agents">Agentes OpenCode</div></div><div class="text-center"><div class="stat-n">LOCAL</div><div class="stat-l" data-i18n="presence_nexus">Nexus local</div></div><div class="text-center"><div class="stat-n">22</div><div class="stat-l" data-i18n="presence_migrations">Migraciones</div></div></div>
+<p class="small text-secondary mt-2" lang="es">Inventario de configuración · 2026-10-19</p>
 <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
         <a href="quickstart.html" class="btn-gv"
           ><i class="bi bi-rocket-takeoff me-1"></i>Quick Start</a
@@ -223,6 +225,17 @@
 <section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-10-18</a></section>
 <!-- GV-PRESENCE:END -->
 
+    <section class="section-card" id="stack-update-summary" lang="es" style="margin:24px auto;max-width:1180px;padding:24px">
+      <p class="hero-badge">Estado técnico observado · 20-10-2026</p>
+      <h2 style="font-size:1.5rem">Mejoras recientes y límites operativos</h2>
+      <ul>
+        <li><strong>Salud local:</strong> la revalidación registró <code>health:check</code> ALL PASS y Watchtower 165 PASS / 0 WARN / 0 FAIL. Evidencia puntual; no equivale a readiness de producción.</li>
+        <li><strong>Nexus:</strong> integridad local OK y drill aislado con SHA-256 idéntico; retención de 14 copias. Aún debe confirmarse la siguiente ejecución diaria y no hay destino offsite.</li>
+        <li><strong>Estimador de PR:</strong> tamaños, tiempos y costos son heurísticos y <code>uncalibrated</code>; falta emparejar forecasts con resultados reales.</li>
+        <li><strong>CI hospedado:</strong> los últimos runs registrados terminaron antes de ejecutar steps; no prueban PASS ni un fallo de código.</li>
+      </ul>
+      <p>Consulta la <a href="../architecture/stack-assessment-2026-10.md">evaluación completa y sus fuentes</a> o abre la <a href="diagrams.html">galería central de diagramas</a>.</p>
+    </section>
 
     <section class="fade-in" id="stack-apps">
       <div class="section-title">
@@ -251,7 +264,7 @@
         <div class="display-4 mb-2">🏗️</div>
         <h2 data-i18n="sec_architecture">System Architecture</h2>
         <p data-i18n="c_index_2">
-          6-layer architecture — every layer purpose-built for autonomous operation
+          Six-layer architecture overview; runtime state varies by installation
         </p>
       </div>
       <div class="arch-layer">
@@ -266,7 +279,7 @@
       </div>
       <div class="arch-layer">
         <div class="layer-name">
-          <i class="bi bi-people me-1"></i>Layer 2 — Agents (21 Specialized)
+          <i class="bi bi-people me-1"></i>Layer 2 — Specialized Agents
         </div>
         <div class="items">
           <span>Orchestrator</span><span>BA (sdd-explore)</span><span>SAD (sdd-design)</span
@@ -279,26 +292,26 @@
       </div>
       <div class="arch-layer">
         <div class="layer-name">
-          <i class="bi bi-gear me-1"></i>Layer 3 — Pipeline (117 steps / 112 enabled / 83 lazy)
+          <i class="bi bi-gear me-1"></i>Layer 3 — Pipeline (parallel + deferred work)
         </div>
         <div class="items">
           <span>tool-detection</span><span>session-manager</span><span>token-budget</span
           ><span>karpathy-guidelines</span><span>codegraph-sync</span><span>security-orch</span
           ><span>db-init</span><span>auto-apply-safe</span><span>predictive-governor</span
-          ><span>auto-norm-learner</span><span>+83 background</span>
+          >          <span>auto-norm-learner</span><span>+ deferred work</span>
         </div>
       </div>
       <div class="arch-layer">
         <div class="layer-name"><i class="bi bi-book me-1"></i>Layer 4 — Memory & Knowledge</div>
         <div class="items">
-          <span>Engram (3,600+ obs)</span><span>CodeGraph (10,000+ nodes)</span
+          <span>Engram (persistent memory)</span><span>CodeGraph (symbol graph)</span
           ><span>Graphify (AST graph)</span><span>ML Embeddings</span><span>Nexus DB</span
           ><span>Knowledge Vault</span>
         </div>
       </div>
       <div class="arch-layer">
         <div class="layer-name">
-          <i class="bi bi-database me-1"></i>Layer 5 — Data (16 Repos / 16 Migrations)
+          <i class="bi bi-database me-1"></i>Layer 5 — Data (Nexus local)
         </div>
         <div class="items">
           <span>MetricsRepo</span><span>SessionRepo</span><span>TraceRepo</span
@@ -334,10 +347,10 @@
 
 <rect width="960" height="680" fill="url(#bg)"/>
 <text x="480" y="34" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="21" font-weight="700" letter-spacing="1">Architecture Layers</text>
-<text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11.5">Autonomous Stack — Layered Component Architecture</text>
+<text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11.5">Local-first AI stack — layered component architecture</text>
 
 <!-- ================= L6 EXECUTIVE ================= -->
-<g class="gv-node gv-hotspot" data-group="executive" data-i18n-title="tip_hs_executive" role="button" tabindex="0" data-tip="Executive Systems — 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors">
+<g class="gv-node gv-hotspot" data-group="executive" data-i18n-title="tip_hs_executive" role="button" tabindex="0" data-tip="Executive systems coordinate verification, escalation, safety, persistence, tracing and provider routing.">
 <g filter="url(#s)"><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#l6)"/></g>
 <text x="60" y="96" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">EXECUTIVE</text>
 <text x="60" y="112" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">12 systems · Orchestration layer</text>
@@ -362,10 +375,10 @@
 <line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L5 DATA ================= -->
-<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas">
+<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Nexus is local operational SQLite; schema counts vary by installation. Check current health before reporting status.">
 <g filter="url(#s)"><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#l5)"/></g>
 <text x="60" y="206" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">DATA</text>
-<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">16 repos · SQLite Nexus · 23 tables</text>
+<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">SQLite Nexus · local data</text>
 <text x="60" y="252" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
 <g fill="#1e293b" stroke="#ee6d75" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
 <rect x="180" y="196" width="62" height="24"/><text x="211" y="212" fill="#e2e8f0">Metrics</text>
@@ -380,19 +393,19 @@
 <rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
 <rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
 </g>
-<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
+<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="800">DB</text>
 </g>
 
 <line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L4 MEMORY ================= -->
-<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (3,600+ obs), CodeGraph (10,000+ nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
+<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory and knowledge services include Engram, CodeGraph, Graphify, embeddings, Nexus and the Knowledge Vault.">
 <g filter="url(#s)"><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#l4)"/></g>
 <text x="60" y="316" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">MEMORY</text>
 <text x="60" y="332" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">6 nodes · Persistent knowledge</text>
 <text x="60" y="362" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
 <g fill="#1e293b" stroke="#f4bb4f" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (3,600+)</text>
+<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram</text>
 <rect x="306" y="304" width="128" height="24"/><text x="370" y="320" fill="#e2e8f0">CodeGraph</text>
 <rect x="442" y="304" width="100" height="24"/><text x="492" y="320" fill="#e2e8f0">Graphify</text>
 <rect x="550" y="304" width="112" height="24"/><text x="606" y="320" fill="#e2e8f0">ML Embeddings</text>
@@ -405,15 +418,15 @@
 <line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L3 PIPELINE ================= -->
-<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2">
+<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Session workflow with parallel startup and deferred background work. Check the current configuration for step counts.">
 <g filter="url(#s)"><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#l3)"/></g>
 <text x="60" y="426" fill="#6ee7b7" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">PIPELINE</text>
-<text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">101 steps · Parallel + lazy</text>
+<text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">Parallel + deferred execution</text>
 <text x="60" y="472" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
 <g font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
+<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · parallel startup</text>
 <text x="442" y="433" fill="#64748b" font-size="15">→</text>
-<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 83 lazy bg</text>
+<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · deferred background work</text>
 </g>
 <g fill="#1e293b" stroke="#4ade80" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
 <rect x="180" y="448" width="46" height="20"/><text x="203" y="462" fill="#e2e8f0">ToolDet</text>
@@ -425,18 +438,18 @@
 <rect x="492" y="448" width="46" height="20"/><text x="515" y="462" fill="#e2e8f0">DbInit</text>
 <rect x="544" y="448" width="46" height="20"/><text x="567" y="462" fill="#e2e8f0">AutoAp</text>
 <rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
-<rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
+<rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+ more</text>
 </g>
-<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
+<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="800">FLOW</text>
 </g>
 
 <line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
 
 <!-- ================= L2 AGENTS ================= -->
-<g class="gv-node gv-hotspot" data-group="agents" data-i18n-title="tip_hs_agents" role="button" tabindex="0" data-tip="Agents — 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele)">
+<g class="gv-node gv-hotspot" data-group="agents" data-i18n-title="tip_hs_agents" role="button" tabindex="0" data-tip="Specialized agents support orchestration, delivery, operations, governance and business workflows; see the current agent inventory.">
 <g filter="url(#s)"><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#l2)"/></g>
 <text x="60" y="536" fill="#c4b5fd" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">AGENTS</text>
-<text x="60" y="552" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">21 types · Specialized subagents</text>
+<text x="60" y="552" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">Specialized subagents</text>
 <text x="60" y="582" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
 <g fill="#1e293b" stroke="#a78bfa" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
 <rect x="180" y="526" width="76" height="24"/><text x="218" y="542" fill="#e2e8f0">Orchestrator</text>
@@ -454,9 +467,9 @@
 <rect x="312" y="556" width="52" height="24"/><text x="338" y="572" fill="#e2e8f0">SIA</text>
 <rect x="370" y="556" width="60" height="24"/><text x="400" y="572" fill="#e2e8f0">GitFlow</text>
 <rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
-<rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
+<rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+ business roles</text>
 </g>
-<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
+<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="800">SET</text>
 </g>
 
 <line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
@@ -484,7 +497,7 @@
 <text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>
 <text x="20" y="620" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,620)">BOTTOM</text>
 <line x1="40" y1="690" x2="920" y2="690" stroke="#1e3a5f" stroke-width=".5"/>
-<text x="480" y="674" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+<text x="480" y="674" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="9">GentleVanguard · Local-first AI orchestration</text>
 </svg>
         <p class="text-secondary small mt-2">
           <i class="bi bi-info-circle me-1"></i>Full 6-layer architecture — Tools → Agents →
@@ -500,7 +513,7 @@
       <div class="section-title">
         <div class="display-4 mb-2">🧩</div>
         <h2 data-i18n="sec_components">Stack Components</h2>
-        <p data-i18n="c_index_3">20+ subsystems powering full autonomous lifecycle</p>
+        <p data-i18n="c_index_3">Integrated subsystems support the development lifecycle</p>
       </div>
       <div class="container-fluid px-4" style="max-width: 1400px">
         <div class="gv-section-group" id="components-groups">
@@ -515,13 +528,12 @@
                       Session Pipeline<span
                         class="info-trigger"
                         data-i18n-title="tip_pipeline"
-                        title="Session autostart: 117 steps total (112 enabled) with 83 lazy background steps launched in batches of 2. Includes tool detection, token budget, Karpathy guidelines, codegraph sync, security orchestration and DB init."
+                        title="Session startup runs parallel initialization and defers selected work to the background. Check the current configuration for enabled steps."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_4">
-                      117-step autostart pipeline (112 enabled), 83 lazy background steps,
-                      auto-apply integration
+                      Parallel session startup with selected background work and verification gates
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -533,13 +545,12 @@
                       Engram Memory<span
                         class="info-trigger"
                         data-i18n-title="tip_engram"
-                        title="Persistent memory with automatic sync, SHA256 integrity checks and compaction. Currently holding 3,600+ observations across 398+ sessions. Survives across sessions and compactions."
+                        title="Persistent memory with synchronization, integrity checks and compaction. Check current local health and inventory for runtime status."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_5">
-                      Persistent memory with auto-sync, integrity checks, compaction. 3,600+
-                      observations
+                      Persistent memory with synchronization, integrity checks and compaction
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -551,12 +562,12 @@
                       CodeGraph<span
                         class="info-trigger"
                         data-i18n-title="tip_codegraph"
-                        title="SQLite knowledge graph for symbol intelligence. 10,000+ nodes and 20,000+ edges across 600+ files with sub-millisecond symbol queries."
+                        title="Knowledge graph for code-symbol intelligence; index size and query performance depend on the current workspace."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_6">
-                      Knowledge graph: 10,000+ nodes, 20,000+ edges, sub-millisecond symbol queries
+                      Knowledge graph for code-symbol intelligence; verify current index status
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -573,13 +584,12 @@
                       Dashboard<span
                         class="info-trigger"
                         data-i18n-title="tip_dashboard"
-                        title="React + TypeScript + Vite observability SPA. WebSocket real-time updates every 5s with HTTP polling fallback, 7 dashboard sections, i18n in 3 languages and 8 alert rules."
+                        title="React + TypeScript + Vite dashboard for LLM observability; verify live API and WebSocket availability before reporting runtime status."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_7">
-                      React+TypeScript observability with WebSocket, 25+ REST endpoints, 8 alert
-                      rules
+                      React+TypeScript dashboard for LLM observability; verify live service status
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -705,13 +715,12 @@
                       Watchtower v2<span
                         class="info-trigger"
                         data-i18n-title="tip_watchtower"
-                        title="Central health orchestrator: 96 checks across 22 components with Promise.allSettled parallel execution and auto-heal modes (health, rebuild, autoheal, report, continuous)."
+                        title="Watchtower runs health checks and repair/report modes; current results require a fresh run."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_14">
-                      96 checks across 22 components. Promise.allSettled parallel exec. Auto-heal
-                      modes
+                      Health checks and repair/report modes; run a current check for results
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -723,13 +732,12 @@
                       Nexus DB<span
                         class="info-trigger"
                         data-i18n-title="tip_nexus"
-                        title="Operational SQLite database (WAL mode, FK ON) with 16 repositories, 16 migrations and 23 tables. Auto-init, auto-prune, auto-backup and watchtower monitoring."
+                        title="Local operational SQLite database. Check the current installed schema and live health before reporting status."
                         >i</span
                       >
                     </h3>
                     <p data-i18n="c_index_15">
-                      SQLite WAL mode, 16 migrations, 23 tables, 16 repos. Cache LRU, WAL
-                      auto-checkpoint &gt;1MB
+                      Local operational database; schema counts are installation-specific
                     </p>
                     <span class="badge-tag ok">Active</span>
                   </div>
@@ -747,7 +755,7 @@
         <div class="display-4 mb-2">🤖</div>
         <h2 data-i18n="sec_autonomous">Autonomous Systems</h2>
         <p data-i18n="c_index_16">
-          Self-learning, self-healing, self-evolving — 100% autonomous operation
+          Risk-based automation with verification and human approval for consequential changes
         </p>
       </div>
       <div class="row g-4">
@@ -760,7 +768,7 @@
       <div class="section-title">
         <div class="display-4 mb-2">⚙️</div>
         <h2 data-i18n="sec_executive">Executive Systems</h2>
-        <p data-i18n="c_index_29">12 autonomous subsystems powering the self-evolving stack</p>
+        <p data-i18n="c_index_29">Executive systems coordinate verification, safety and operations</p>
       </div>
       <div class="row g-3">
         <div class="col-md-4 col-lg-3">
@@ -882,11 +890,11 @@
             <span
               class="info-trigger"
               data-i18n-title="tip_exe_watchtower"
-              title="Central health orchestrator: 96 checks across 22 components running with Promise.allSettled parallelism. Modes: health, rebuild, autoheal, report, continuous, all."
+              title="Watchtower runs health checks and repair/report modes; current results require a fresh run."
               >i</span
             >
             <p data-i18n="c_index_45">
-              96 checks × 22 components. Promise.allSettled. Auto-heal modes
+              Health checks and repair/report modes; run a current check for results
             </p>
             <span class="badge-tag ok">Active</span>
           </div>
@@ -957,7 +965,7 @@
         </div>
       </div>
       <div class="text-center mt-4">
-        <svg class="svg-diagram svg-inline" viewBox="0 0 800 540" role="img" aria-label="Executive Autonomous Loop" >
+        <svg class="svg-diagram svg-inline" viewBox="0 0 800 540" role="img" aria-label="Executive orchestration loop">
 <title id="executive-loop-title">Executive Loop</title>
 <desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
   <defs>
@@ -1028,8 +1036,8 @@
   <rect width="800" height="500" fill="url(#bgGrad)"/>
 
   <!-- Title -->
-  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Autonomous Loop</text>
-  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Self-managing orchestration cycle with auto-healing and learning</text>
+  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Orchestration Loop</text>
+  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Orchestration cycle with verification, learning and human oversight</text>
 
   <!-- Orbit ring -->
   <ellipse cx="400" cy="265" rx="200" ry="75" fill="none" stroke="#1e3a5f" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
@@ -1161,7 +1169,7 @@
 
   <!-- Footer -->
   <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">GentleVanguard · Local-first AI orchestration</text>
 
 
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
@@ -1179,7 +1187,7 @@
 </svg>
         <p class="text-secondary small mt-2">
           <i class="bi bi-arrow-repeat me-1"></i>Detection → Evaluation → Decision → Execution →
-          Verification → Learning — the continuous autonomous cycle
+          Verification → Learning — an orchestration cycle with human oversight
         </p>
       </div>
     </section>
@@ -1214,11 +1222,11 @@
             <tr>
               <td><span class="text-info">Architecture</span></td>
               <td>
-                <span data-i18n="c_index_55">16 Repos (15 DAOs + MigrationRunner)</span
+                <span data-i18n="c_index_55">Nexus SQLite · local operational data</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_55"
-                  title="16 repositories total: 15 DAOs + MigrationRunner. The MigrationRunner applies schema migrations in order with FK ON and WAL mode."
+                  title="Nexus data access and schema are installation-specific; inspect the current local database before reporting counts."
                   >i</span
                 >
               </td>
@@ -1227,11 +1235,11 @@
             <tr>
               <td><span class="text-info">Architecture</span></td>
               <td>
-                <span data-i18n="c_index_56">16 DB Migrations / 23 Tables (WAL mode, FK ON)</span
+                <span data-i18n="c_index_56">Verify the installed schema and migrations</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_56"
-                  title="16 schema migrations create 23 tables. Migration 001 = initial schema, 002 = stack tables, 003 = session scoring, … 016 = token_savings, applied automatically by DatabaseManager at session start."
+                  title="Migration history and table counts vary by installation; use the current database health check."
                   >i</span
                 >
               </td>
@@ -1253,11 +1261,11 @@
             <tr>
               <td><span class="text-warning">Pipeline</span></td>
               <td>
-                <span data-i18n="c_index_58">117 Pipeline Steps (112 enabled / 83 lazy)</span
+                <span data-i18n="c_index_58">Parallel startup and deferred background tasks</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_58"
-                  title="117 total pipeline steps: 112 enabled run at session start (Phase-1 parallel + batches) using Promise.allSettled. Non-blocking and idempotent."
+                  title="The session pipeline combines parallel startup and deferred work; enabled step counts depend on the current configuration."
                   >i</span
                 >
               </td>
@@ -1266,11 +1274,11 @@
             <tr>
               <td><span class="text-warning">Pipeline</span></td>
               <td>
-                <span data-i18n="c_index_59">83 Lazy Background Tasks</span
+                <span data-i18n="c_index_59">Deferred background tasks</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_59"
-                  title="83 lazy background tasks are queued in batches after session start (batch delay 500ms -&gt; 100ms)."
+                  title="Selected tasks are queued after session start; the current configuration determines the exact set."
                   >i</span
                 >
               </td>
@@ -1383,11 +1391,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_68">Engram (3,600+ obs, auto-sync)</span
+                <span data-i18n="c_index_68">Engram persistent memory</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_68"
-                  title="Engram persistent memory: 3,600+ observations across 398+ sessions, auto-sync across sessions and projects."
+                  title="Engram provides persistent memory and synchronization; check current local health and inventory for runtime status."
                   >i</span
                 >
               </td>
@@ -1396,11 +1404,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_69">CodeGraph (10,000+ nodes, 20,000+ edges)</span
+                <span data-i18n="c_index_69">CodeGraph symbol graph</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_69"
-                  title="CodeGraph knowledge graph: 10,000+ nodes and 20,000+ edges derived from AST analysis."
+                  title="CodeGraph provides code-symbol intelligence; index size depends on the current workspace."
                   >i</span
                 >
               </td>
@@ -1422,11 +1430,11 @@
             <tr>
               <td><span class="text-info">Memory</span></td>
               <td>
-                <span data-i18n="c_index_71">Nexus DB (SQLite WAL, 23 tables)</span
+                <span data-i18n="c_index_71">Nexus DB (SQLite WAL, local)</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_71"
-                  title="Nexus operational DB: SQLite WAL mode, 23 tables, 16 migrations, auto-init, auto-prune, auto-backup and watchtower monitoring."
+                  title="Nexus is a local operational SQLite database; verify live health and schema on this installation."
                   >i</span
                 >
               </td>
@@ -1500,11 +1508,11 @@
             <tr>
               <td><span class="text-danger">Security</span></td>
               <td>
-                <span data-i18n="c_index_77">60 Normatives (rules + policies)</span
+                <span data-i18n="c_index_77">Governance rules and policies</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_77"
-                  title="60 normatives covering rules and policies for autonomous operation."
+                  title="Governance rules and policies; consult the current inventory for this installation."
                   >i</span
                 >
               </td>
@@ -1565,11 +1573,11 @@
             <tr>
               <td><span class="text-success">Dashboard</span></td>
               <td>
-                <span data-i18n="c_index_82">8 Alert Rules (auto-eval)</span
+                <span data-i18n="c_index_82">Dashboard alerts; verify current service availability</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_fm_82"
-                  title="8 alert rules auto-evaluated every broadcast cycle with status ok/degraded/fail."
+                  title="Dashboard alerting is represented in the UI; run a current service check to verify availability."
                   >i</span
                 >
               </td>
@@ -1903,7 +1911,7 @@
         >
         <span
           class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill"
-          >60 Normatives</span
+          >Governance rules and policies</span
         >
       </div>
     </section>
@@ -1923,8 +1931,8 @@
             <h3 class="mb-3">
               <i class="bi bi-heart-pulse text-success me-2"></i>Health Overview<span
                 class="info-trigger"
-
-                title="Registro histórico; ejecutar watchtower para conocer el estado real de esta instalación."
+                data-i18n-title="tip_health_history"
+                title="Historical record; run the watchtower to learn the actual state of this installation."
                 >i</span
               >
             </h3>
@@ -2068,7 +2076,7 @@
             <div class="page-num">PAGE 01</div>
             <h4 data-i18n="c_index_96">🏗️ Architecture</h4>
             <p data-i18n="c_index_97">
-              Deep architecture, 6 layers, 16 Repos, pipeline topology, system design decisions
+              Deep architecture, 6 layers, current operational state, pipeline topology and design decisions
             </p>
             <span class="badge-count">architecture.html →</span>
           </div>
@@ -2088,7 +2096,7 @@
             <div class="page-num">PAGE 03</div>
             <h4 data-i18n="c_index_100">📊 Dashboard</h4>
             <p data-i18n="c_index_101">
-              Real-time observability, WebSocket metrics, 7 sections, i18n, 8 alert rules
+              LLM observability dashboard; runtime API and WebSocket availability must be verified
             </p>
             <span class="badge-count">dashboard.html →</span>
           </div>
@@ -2263,1002 +2271,12 @@
       </div>
     </section>
 
-    <!-- Diagramas Interactivos -->
-    <section class="fade-in" id="diagrams">
-      <div class="section-title">
-        <div class="display-4 mb-2">🖼️</div>
-        <h2 data-i18n="sec_diagrams">Diagramas</h2>
-        <p data-i18n="c_index_116">
-          Arquitectura, estructura y funcionalidad — de lo simple a lo complejo. Pasa el cursor
-          sobre los nodos para explorar cada capa.
-        </p>
-      </div>
-      <div class="row g-3">
-        <div class="col-lg-6">
-          <div class="diagram-card">
-            <h4 class="mb-3"><i class="bi bi-stack text-info me-2"></i><span data-i18n="idx_h4_arch">Arquitectura en Capas</span></h4>
-            <svg class="svg-diagram svg-inline" viewBox="0 0 960 680" role="img" aria-label="Architecture Layers Diagram" >
-<title id="architecture-layers-title">Architecture Layers</title>
-<desc id="architecture-layers-desc">Gentle-Vanguard Architecture Layers diagram showing the main components, relationships and operational flow.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
-<linearGradient id="l1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".18"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f4bb4f" stop-opacity=".18"/><stop offset="100%" stop-color="#f4bb4f" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l5" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ee6d75" stop-opacity=".18"/><stop offset="100%" stop-color="#ee6d75" stop-opacity=".03"/></linearGradient>
-<linearGradient id="l6" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".22"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
-<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#131a2e"/><stop offset="100%" stop-color="#1a2235"/></linearGradient>
-<filter id="s"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".45"/></filter>
-<marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker></defs>
-
-<rect width="960" height="680" fill="url(#bg)"/>
-<text x="480" y="34" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="21" font-weight="700" letter-spacing="1">Architecture Layers</text>
-<text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11.5">Autonomous Stack — Layered Component Architecture</text>
-
-<!-- ================= L6 EXECUTIVE ================= -->
-<g class="gv-node gv-hotspot" data-group="executive" data-i18n-title="tip_hs_executive" role="button" tabindex="0" data-tip="Executive Systems — 12 subsistemas autónomos: Auto-Apply Safe, Circuit Breaker, Auto-Escalation, Dynamic Dependency Graph, AB Testing, Session Scoring, Norms Learner, Watchtower, Security Orchestrator, State Persistence, Distributed Tracing, Cloud Connectors">
-<g filter="url(#s)"><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="72" width="880" height="84" rx="12" fill="url(#l6)"/></g>
-<text x="60" y="96" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">EXECUTIVE</text>
-<text x="60" y="112" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">12 systems · Orchestration layer</text>
-<text x="60" y="142" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#67e8f9" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
-<rect x="180" y="86" width="72" height="24"/><text x="216" y="102" fill="#e2e8f0">Router</text>
-<rect x="258" y="86" width="72" height="24"/><text x="294" y="102" fill="#e2e8f0">Delegate</text>
-<rect x="336" y="86" width="72" height="24"/><text x="372" y="102" fill="#e2e8f0">Scoring</text>
-<rect x="414" y="86" width="72" height="24"/><text x="450" y="102" fill="#e2e8f0">Circuit Brk</text>
-<rect x="492" y="86" width="72" height="24"/><text x="528" y="102" fill="#e2e8f0">Escalate</text>
-<rect x="570" y="86" width="72" height="24"/><text x="606" y="102" fill="#e2e8f0">Norms</text>
-<rect x="648" y="86" width="72" height="24"/><text x="684" y="102" fill="#e2e8f0">Auto-Apply</text>
-<rect x="726" y="86" width="72" height="24"/><text x="762" y="102" fill="#e2e8f0">Rollback</text>
-<rect x="180" y="116" width="72" height="24"/><text x="216" y="132" fill="#e2e8f0">Watchtower</text>
-<rect x="258" y="116" width="72" height="24"/><text x="294" y="132" fill="#e2e8f0">Security</text>
-<rect x="336" y="116" width="72" height="24"/><text x="372" y="132" fill="#e2e8f0">Tracing</text>
-<rect x="414" y="116" width="72" height="24"/><text x="450" y="132" fill="#e2e8f0">Cloud</text>
-</g>
-<rect x="880" y="76" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="89" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">12</text>
-</g>
-
-<line x1="480" y1="160" x2="480" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
-
-<!-- ================= L5 DATA ================= -->
-<g class="gv-node gv-hotspot" data-group="data" data-i18n-title="tip_hs_data" role="button" tabindex="0" data-tip="Data Layer — Nexus SQLite DB con 16 repositorios (15 DAOs + MigrationRunner), 16 migraciones y 23 tablas">
-<g filter="url(#s)"><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="182" width="880" height="84" rx="12" fill="url(#l5)"/></g>
-<text x="60" y="206" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">DATA</text>
-<text x="60" y="222" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">16 repos · SQLite Nexus · 23 tables</text>
-<text x="60" y="252" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#ee6d75" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
-<rect x="180" y="196" width="62" height="24"/><text x="211" y="212" fill="#e2e8f0">Metrics</text>
-<rect x="248" y="196" width="62" height="24"/><text x="279" y="212" fill="#e2e8f0">Session</text>
-<rect x="316" y="196" width="62" height="24"/><text x="347" y="212" fill="#e2e8f0">Trace</text>
-<rect x="384" y="196" width="62" height="24"/><text x="415" y="212" fill="#e2e8f0">Event</text>
-<rect x="452" y="196" width="62" height="24"/><text x="483" y="212" fill="#e2e8f0">Cache</text>
-<rect x="520" y="196" width="62" height="24"/><text x="551" y="212" fill="#e2e8f0">Skill</text>
-<rect x="588" y="196" width="62" height="24"/><text x="619" y="212" fill="#e2e8f0">Contract</text>
-<rect x="656" y="196" width="62" height="24"/><text x="687" y="212" fill="#e2e8f0">ErrMem</text>
-<rect x="724" y="196" width="62" height="24"/><text x="755" y="212" fill="#e2e8f0">Backlog</text>
-<rect x="180" y="226" width="62" height="24"/><text x="211" y="242" fill="#e2e8f0">Housekeep</text>
-<rect x="248" y="226" width="62" height="24"/><text x="279" y="242" fill="#e2e8f0">Migrator</text>
-</g>
-<rect x="880" y="186" width="26" height="18" rx="9" fill="#fca5a5"/><text x="893" y="199" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">11</text>
-</g>
-
-<line x1="480" y1="270" x2="480" y2="288" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
-
-<!-- ================= L4 MEMORY ================= -->
-<g class="gv-node gv-hotspot" data-group="memory" data-i18n-title="tip_hs_memory" role="button" tabindex="0" data-tip="Memory Layer — Engram (3,600+ obs), CodeGraph (10,000+ nodos), Graphify, ML Embeddings, Nexus DB y Knowledge Vault">
-<g filter="url(#s)"><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="292" width="880" height="84" rx="12" fill="url(#l4)"/></g>
-<text x="60" y="316" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">MEMORY</text>
-<text x="60" y="332" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">6 nodes · Persistent knowledge</text>
-<text x="60" y="362" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#f4bb4f" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="304" width="118" height="24"/><text x="239" y="320" fill="#e2e8f0">Engram (3,600+)</text>
-<rect x="306" y="304" width="128" height="24"/><text x="370" y="320" fill="#e2e8f0">CodeGraph</text>
-<rect x="442" y="304" width="100" height="24"/><text x="492" y="320" fill="#e2e8f0">Graphify</text>
-<rect x="550" y="304" width="112" height="24"/><text x="606" y="320" fill="#e2e8f0">ML Embeddings</text>
-<rect x="670" y="304" width="90" height="24"/><text x="715" y="320" fill="#e2e8f0">Nexus DB</text>
-<rect x="768" y="304" width="120" height="24"/><text x="828" y="320" fill="#e2e8f0">Knowledge Vault</text>
-</g>
-<rect x="880" y="296" width="26" height="18" rx="9" fill="#fcd34d"/><text x="893" y="309" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">6</text>
-</g>
-
-<line x1="480" y1="380" x2="480" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
-
-<!-- ================= L3 PIPELINE ================= -->
-<g class="gv-node gv-hotspot" data-group="pipeline" data-i18n-title="tip_hs_pipeline" role="button" tabindex="0" data-tip="Pipeline — 117 pasos configurados, 117 habilitados: 31 Phase 1 paralelos + 83 lazy background en batches de 2">
-<g filter="url(#s)"><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="402" width="880" height="84" rx="12" fill="url(#l3)"/></g>
-<text x="60" y="426" fill="#6ee7b7" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">PIPELINE</text>
-<text x="60" y="442" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">101 steps · Parallel + lazy</text>
-<text x="60" y="472" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g font-family="system-ui,sans-serif" font-size="9.5" text-anchor="middle">
-<rect x="180" y="416" width="250" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="305" y="433" fill="#a7f3d0">Phase 1 · 31 parallel</text>
-<text x="442" y="433" fill="#64748b" font-size="15">→</text>
-<rect x="460" y="416" width="270" height="26" rx="8" fill="#4ade80" fill-opacity=".14" stroke="#4ade80" stroke-opacity=".6" stroke-width="1"/><text x="595" y="433" fill="#a7f3d0">Phase 2 · 83 lazy bg</text>
-</g>
-<g fill="#1e293b" stroke="#4ade80" stroke-opacity=".5" stroke-width="1" rx="5" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
-<rect x="180" y="448" width="46" height="20"/><text x="203" y="462" fill="#e2e8f0">ToolDet</text>
-<rect x="232" y="448" width="46" height="20"/><text x="255" y="462" fill="#e2e8f0">SessMgr</text>
-<rect x="284" y="448" width="46" height="20"/><text x="307" y="462" fill="#e2e8f0">TokBud</text>
-<rect x="336" y="448" width="46" height="20"/><text x="359" y="462" fill="#e2e8f0">Karp</text>
-<rect x="388" y="448" width="46" height="20"/><text x="411" y="462" fill="#e2e8f0">CodeG</text>
-<rect x="440" y="448" width="46" height="20"/><text x="463" y="462" fill="#e2e8f0">SecOr</text>
-<rect x="492" y="448" width="46" height="20"/><text x="515" y="462" fill="#e2e8f0">DbInit</text>
-<rect x="544" y="448" width="46" height="20"/><text x="567" y="462" fill="#e2e8f0">AutoAp</text>
-<rect x="596" y="448" width="46" height="20"/><text x="619" y="462" fill="#e2e8f0">Govern</text>
-<rect x="648" y="448" width="76" height="20"/><text x="686" y="462" fill="#6ee7b7">+27 more</text>
-</g>
-<rect x="880" y="406" width="26" height="18" rx="9" fill="#6ee7b7"/><text x="893" y="419" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">101</text>
-</g>
-
-<line x1="480" y1="490" x2="480" y2="508" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
-
-<!-- ================= L2 AGENTS ================= -->
-<g class="gv-node gv-hotspot" data-group="agents" data-i18n-title="tip_hs_agents" role="button" tabindex="0" data-tip="Agents — 21 subagentes especializados: Orchestrator, SDD (explore/design/apply/verify), Doc, Ops, Gov, Session, Premortem, Maintenance, Self-Diag, SIA, GitFlow, Knowledge + business (Mkt, Sales, Finance, HR, Legal, Bus-Tele)">
-<g filter="url(#s)"><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="512" width="880" height="84" rx="12" fill="url(#l2)"/></g>
-<text x="60" y="536" fill="#c4b5fd" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">AGENTS</text>
-<text x="60" y="552" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">21 types · Specialized subagents</text>
-<text x="60" y="582" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">Hover: detalle</text>
-<g fill="#1e293b" stroke="#a78bfa" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="8.5" text-anchor="middle">
-<rect x="180" y="526" width="76" height="24"/><text x="218" y="542" fill="#e2e8f0">Orchestrator</text>
-<rect x="262" y="526" width="60" height="24"/><text x="292" y="542" fill="#e2e8f0">BA-Expl</text>
-<rect x="328" y="526" width="60" height="24"/><text x="358" y="542" fill="#e2e8f0">SAD-Des</text>
-<rect x="394" y="526" width="60" height="24"/><text x="424" y="542" fill="#e2e8f0">DEV-App</text>
-<rect x="460" y="526" width="60" height="24"/><text x="490" y="542" fill="#e2e8f0">QA-Ver</text>
-<rect x="526" y="526" width="54" height="24"/><text x="553" y="542" fill="#e2e8f0">Doc</text>
-<rect x="586" y="526" width="54" height="24"/><text x="613" y="542" fill="#e2e8f0">Ops</text>
-<rect x="646" y="526" width="54" height="24"/><text x="673" y="542" fill="#e2e8f0">Gov</text>
-<rect x="706" y="526" width="54" height="24"/><text x="733" y="542" fill="#e2e8f0">Sess</text>
-<rect x="766" y="526" width="54" height="24"/><text x="793" y="542" fill="#e2e8f0">Prem</text>
-<rect x="180" y="556" width="60" height="24"/><text x="210" y="572" fill="#e2e8f0">Maint</text>
-<rect x="246" y="556" width="60" height="24"/><text x="276" y="572" fill="#e2e8f0">SelfDiag</text>
-<rect x="312" y="556" width="52" height="24"/><text x="338" y="572" fill="#e2e8f0">SIA</text>
-<rect x="370" y="556" width="60" height="24"/><text x="400" y="572" fill="#e2e8f0">GitFlow</text>
-<rect x="436" y="556" width="68" height="24"/><text x="470" y="572" fill="#e2e8f0">Knowledge</text>
-<rect x="510" y="556" width="110" height="24"/><text x="565" y="572" fill="#c4b5fd">+6 business</text>
-</g>
-<rect x="880" y="516" width="26" height="18" rx="9" fill="#c4b5fd"/><text x="893" y="529" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">21</text>
-</g>
-
-<line x1="480" y1="600" x2="480" y2="618" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
-
-<!-- ================= L1 TOOLS ================= -->
-<g class="gv-node gv-hotspot" data-group="tools" data-i18n-title="tip_hs_tools" role="button" tabindex="0" data-tip="Tools — 10 integraciones IDE: OpenCode, Claude Code, Cursor, Windsurf, Cline, Codex, Copilot, Continue.dev, Aider, Roo Code">
-<g filter="url(#s)"><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#bar)" stroke="#1e3a5f" stroke-width="1"/><rect x="40" y="622" width="880" height="56" rx="12" fill="url(#l1)"/></g>
-<text x="60" y="646" fill="#67e8f9" font-family="system-ui,sans-serif" font-size="13" font-weight="800" letter-spacing="1.2">TOOLS</text>
-<text x="60" y="662" fill="#cbd5e1" font-family="system-ui,sans-serif" font-size="10.5">10 IDEs · Execution primitives</text>
-<g fill="#1e293b" stroke="#22d3ee" stroke-opacity=".55" stroke-width="1" rx="6" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">
-<rect x="180" y="634" width="62" height="24"/><text x="211" y="650" fill="#e2e8f0">OpenCode</text>
-<rect x="248" y="634" width="62" height="24"/><text x="279" y="650" fill="#e2e8f0">Claude</text>
-<rect x="316" y="634" width="62" height="24"/><text x="347" y="650" fill="#e2e8f0">Cursor</text>
-<rect x="384" y="634" width="62" height="24"/><text x="415" y="650" fill="#e2e8f0">Windsurf</text>
-<rect x="452" y="634" width="62" height="24"/><text x="483" y="650" fill="#e2e8f0">Cline</text>
-<rect x="520" y="634" width="62" height="24"/><text x="551" y="650" fill="#e2e8f0">Codex</text>
-<rect x="588" y="634" width="62" height="24"/><text x="619" y="650" fill="#e2e8f0">Copilot</text>
-<rect x="656" y="634" width="62" height="24"/><text x="687" y="650" fill="#e2e8f0">Cont.dev</text>
-<rect x="724" y="634" width="62" height="24"/><text x="755" y="650" fill="#e2e8f0">Aider</text>
-<rect x="792" y="634" width="62" height="24"/><text x="823" y="650" fill="#e2e8f0">Roo Code</text>
-</g>
-<rect x="880" y="626" width="26" height="18" rx="9" fill="#67e8f9"/><text x="893" y="639" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="10" font-weight="800">10</text>
-</g>
-
-<text x="20" y="180" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,180)">TOP</text>
-<text x="20" y="620" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8" transform="rotate(-90,20,620)">BOTTOM</text>
-<line x1="40" y1="690" x2="920" y2="690" stroke="#1e3a5f" stroke-width=".5"/>
-<text x="480" y="674" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-</svg>
-            <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>6 capas: Tools → Agents → Pipeline → Memory →
-              Data → Executive. <strong class="text-info">Hover en las capas</strong> para ver
-              detalles.
-            </p>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="diagram-card">
-            <h4 class="mb-3"><i class="bi bi-diagram-2 text-info me-2"></i><span data-i18n="idx_h4_pipeline">Pipeline de Sesión</span></h4>
-            <svg class="svg-diagram svg-inline" viewBox="0 0 1000 400" role="img" aria-label="Session Pipeline Flow" >
-<title id="pipeline-flow-title">Pipeline Flow</title>
-<desc id="pipeline-flow-desc">Gentle-Vanguard Pipeline Flow diagram showing the main components, relationships and operational flow.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#090c11"/><stop offset="100%" stop-color="#0f1525"/></linearGradient>
-<linearGradient id="p1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/></linearGradient>
-<linearGradient id="p2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".2"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".05"/></linearGradient>
-<linearGradient id="b1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>
-<linearGradient id="b2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
-<filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/></filter>
-<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker></defs>
-
-<rect width="1000" height="400" fill="url(#bg)"/>
-<text x="500" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Pipeline Flow</text>
-<text x="500" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="11">101-step autonomous session pipeline — parallel + lazy execution</text>
-
-<rect x="60" y="65" width="880" height="24" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
-<rect x="61" y="66" width="350" height="22" rx="7" fill="#22d3ee" fill-opacity=".15" stroke="#22d3ee" stroke-width=".5"/>
-<text x="236" y="81" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 1 — 31 parallel steps</text>
-<text x="420" y="81" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="16">→</text>
-<rect x="435" y="66" width="370" height="22" rx="7" fill="#a78bfa" fill-opacity=".15" stroke="#a78bfa" stroke-width=".5"/>
-<text x="620" y="81" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Phase 2 — 83 lazy background steps</text>
-<rect x="820" y="62" width="32" height="30" rx="8" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width="1"/>
-<text x="836" y="82" text-anchor="middle" fill="#4ade80" font-family="system-ui,sans-serif" font-size="16" font-weight="700" filter="url(#g)">✓</text>
-<text x="411" y="64" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="8">32</text>
-<text x="805" y="64" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="8">65</text>
-
-<!-- Tool Detection -->
-<g filter="url(#s)"><rect x="60" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="68" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🔧</text>
-<text x="95" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Tool Detection</text>
-<text x="68" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Bash · Read · Write · Edit</text>
-<text x="68" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Grep · Glob · Task · Skill</text>
-<rect x="160" y="113" width="50" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="185" y="123" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">8 tools</text>
-
-<!-- Session Manager -->
-<g filter="url(#s)"><rect x="250" y="110" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="110" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="258" y="118" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="132" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">⚡</text>
-<text x="285" y="132" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Session Manager</text>
-<text x="258" y="148" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Session ID · Engram sync</text>
-<text x="258" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Lifecycle tracking</text>
-<rect x="357" y="113" width="50" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="382" y="123" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 ops</text>
-
-<!-- Token Budget -->
-<g filter="url(#s)"><rect x="60" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="60" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="68" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="78" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">💰</text>
-<text x="95" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Token Budget</text>
-<text x="68" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Budget allocation · Track</text>
-<text x="68" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Guard thresholds</text>
-<rect x="145" y="203" width="65" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="177" y="213" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 phases</text>
-
-<!-- Karpathy -->
-<g filter="url(#s)"><rect x="250" y="200" width="170" height="70" rx="8" fill="#151921" stroke="#1e3a5f" stroke-width="1"/><rect x="250" y="200" width="170" height="70" rx="8" fill="url(#p1)"/></g>
-<rect x="258" y="208" width="20" height="20" rx="4" fill="#22d3ee" fill-opacity=".15"/><text x="268" y="222" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="10">🧠</text>
-<text x="285" y="222" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Karpathy Guidelines</text>
-<text x="258" y="238" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Quality rubrics · Self-critique</text>
-<text x="258" y="250" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Doubt-driven dev</text>
-<rect x="355" y="203" width="52" height="14" rx="4" fill="#22d3ee" fill-opacity=".12"/><text x="381" y="213" text-anchor="middle" fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7">3 rules</text>
-
-<!-- Lazy Batch -->
-<g filter="url(#s)"><rect x="470" y="135" width="470" height="110" rx="10" fill="#151921" stroke="#a78bfa" stroke-width="1" stroke-opacity=".5"/><rect x="470" y="135" width="470" height="110" rx="10" fill="url(#p2)"/></g>
-<text x="705" y="155" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="11" font-weight="700">Lazy Batch — 5 background workers</text>
-
-<g font-family="system-ui,sans-serif" font-size="8"><rect x="490" y="168" width="200" height="14" rx="4" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width=".5"/><text x="590" y="178" text-anchor="middle" fill="#4ade80">Tracing Init</text><text x="700" y="178" fill="#94a3b8">lazy</text>
-<rect x="490" y="188" width="220" height="14" rx="4" fill="#4ade80" fill-opacity=".15" stroke="#4ade80" stroke-width=".5"/><text x="600" y="198" text-anchor="middle" fill="#4ade80">Cloud Connectors</text><text x="720" y="198" fill="#94a3b8">lazy</text>
-<rect x="490" y="208" width="190" height="14" rx="4" fill="#a78bfa" fill-opacity=".15" stroke="#a78bfa" stroke-width=".5"/><text x="585" y="218" text-anchor="middle" fill="#a78bfa">Event Sourcing</text><text x="690" y="218" fill="#94a3b8">lazy</text>
-<rect x="490" y="228" width="180" height="14" rx="4" fill="#f4bb4f" fill-opacity=".15" stroke="#f4bb4f" stroke-width=".5"/><text x="580" y="238" text-anchor="middle" fill="#f4bb4f">Audit Pipeline</text><text x="680" y="238" fill="#94a3b8">lazy</text>
-<rect x="490" y="248" width="210" height="14" rx="4" fill="#22d3ee" fill-opacity=".15" stroke="#22d3ee" stroke-width=".5"/><text x="595" y="258" text-anchor="middle" fill="#22d3ee">Dashboard WS</text><text x="710" y="258" fill="#94a3b8">lazy</text></g>
-
-<text x="500" y="280" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="9">+ 68 more lazy steps (watchtower, checkpoint, DB init, scoring, ...)</text>
-
-<!-- Process bar -->
-<rect x="60" y="305" width="880" height="18" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
-<rect x="62" y="307" width="340" height="14" rx="5" fill="url(#b1)" opacity=".6"/><text x="232" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">PARALLEL (31)</text>
-<rect x="403" y="307" width="5" height="14" rx="2" fill="#4b5563"/>
-<rect x="410" y="307" width="470" height="14" rx="5" fill="url(#b2)" opacity=".6"/><text x="645" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="9" font-weight="600">LAZY BACKGROUND (70)</text>
-<rect x="882" y="307" width="56" height="14" rx="5" fill="#4ade80" opacity=".8"/><text x="910" y="318" text-anchor="middle" fill="#090c11" font-family="system-ui,sans-serif" font-size="8" font-weight="600">DONE</text>
-
-<g transform="translate(60,340)"><rect x="0" y="0" width="400" height="36" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width=".5"/>
-<text x="10" y="15" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">Phase 1 steps:</text>
-<g fill="#22d3ee" fill-opacity=".2" rx="3"><rect x="90" y="6" width="16" height="12"/><rect x="112" y="6" width="16" height="12"/><rect x="134" y="6" width="16" height="12"/><rect x="156" y="6" width="16" height="12"/><rect x="178" y="6" width="16" height="12"/><rect x="200" y="6" width="16" height="12"/><rect x="222" y="6" width="16" height="12"/><rect x="244" y="6" width="16" height="12"/><rect x="266" y="6" width="16" height="12"/><rect x="288" y="6" width="16" height="12"/><rect x="310" y="6" width="16" height="12"/><rect x="332" y="6" width="50" height="12"/></g>
-<g fill="#22d3ee" font-family="system-ui,sans-serif" font-size="7" text-anchor="middle"><text x="98" y="15">S</text><text x="120" y="15">T</text><text x="142" y="15">B</text><text x="164" y="15">K</text><text x="186" y="15">W</text><text x="208" y="15">D</text><text x="230" y="15">H</text><text x="252" y="15">C</text><text x="274" y="15">M</text><text x="296" y="15">R</text><text x="318" y="15">A</text><text x="357" y="14">+20 more</text></g>
-<text x="10" y="30" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="8">S=Session T=Tool B=Budget K=Karpathy W=Watchtower D=DB H=Health C=Cloud M=MCP R=Router A=Audit</text></g>
-
-<line x1="60" y1="390" x2="940" y2="390" stroke="#1e3a5f" stroke-width=".5"/>
-<text x="500" y="396" text-anchor="middle" fill="#4b5563" font-family="system-ui,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-
-
-  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
-    <rect class="gv-hotspot" x="61" y="66" width="350" height="22" rx="6" data-i18n-title="tip_hs_flow_phase1" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - 31 parallel steps: fast, independent initializers that run concurrently and never block on failure."/>
-    <rect class="gv-hotspot" x="435" y="66" width="370" height="22" rx="6" data-i18n-title="tip_hs_flow_phase2" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - 83 lazy background steps: deferred heavy work executed in batches of 2 workers after session start."/>
-    <rect class="gv-hotspot" x="60" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_tool_detection" role="button" tabindex="0" fill="transparent" aria-label="Tool Detection: maps the 8 available tools (Bash, Read, Write, Edit, Grep, Glob, Task, Skill)."/>
-    <rect class="gv-hotspot" x="250" y="110" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_session_manager" role="button" tabindex="0" fill="transparent" aria-label="Session Manager: generates the session ID, syncs Engram and tracks the session lifecycle."/>
-    <rect class="gv-hotspot" x="60" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_token_budget" role="button" tabindex="0" fill="transparent" aria-label="Token Budget: allocates the 5M daily / 3M per-session budget and enforces guard thresholds."/>
-    <rect class="gv-hotspot" x="250" y="200" width="170" height="70" rx="6" data-i18n-title="tip_hs_flow_karpathy" role="button" tabindex="0" fill="transparent" aria-label="Karpathy Guidelines: 3 rules (Think First, Simplicity, Surgical Changes) with quality rubrics and self-critique."/>
-    <rect class="gv-hotspot" x="470" y="135" width="470" height="110" rx="6" data-i18n-title="tip_hs_flow_lazy_batch" role="button" tabindex="0" fill="transparent" aria-label="Lazy Batch - 5 background workers: runs deferred steps like Tracing Init, Cloud Connectors, Event Sourcing, Audit Pipeline and Dashboard WS."/>
-    <rect class="gv-hotspot" x="60" y="305" width="880" height="18" rx="6" data-i18n-title="tip_hs_flow_process_bar" role="button" tabindex="0" fill="transparent" aria-label="Process bar: parallel steps (31) then lazy background (70) then DONE - the full 101-step session pipeline."/>
-</svg>
-            <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>117 pasos: 112 enabled + 83 lazy background en
-              batches.
-            </p>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="diagram-card">
-            <h4 class="mb-3"><i class="bi bi-database text-info me-2"></i><span data-i18n="idx_h4_nexus">Nexus DB & DAOs</span></h4>
-            <svg class="svg-diagram svg-inline" viewBox="0 0 900 500" role="img" aria-label="Data Architecture — Nexus DB" >
-<title id="data-architecture-title">Data Architecture</title>
-<desc id="data-architecture-desc">Gentle-Vanguard Data Architecture diagram showing the main components, relationships and operational flow.</desc>
-  <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090c11"/>
-      <stop offset="100%" stop-color="#0f1525"/>
-    </linearGradient>
-    <radialGradient id="nexusGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
-      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="daoBlue" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="daoGreen" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="daoPurple" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="daoOrange" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#f4bb4f" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#f4bb4f" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="nexusGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="strongGlow">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
-    </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
-    </marker>
-    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4ade80"/>
-    </marker>
-    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee"/>
-    </marker>
-  </defs>
-
-  <!-- Background -->
-  <rect width="900" height="500" fill="url(#bgGrad)"/>
-
-  <!-- Title -->
-  <text x="450" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Data Architecture — Nexus DB</text>
-  <text x="450" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">SQLite WAL mode · 15 DAOs · 16 migrations</text>
-
-  <!-- Legend -->
-  <g transform="translate(680, 20)">
-    <rect x="0" y="0" width="8" height="8" rx="2" fill="#22d3ee"/>
-    <text x="14" y="8" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Data</text>
-    <rect x="0" y="14" width="8" height="8" rx="2" fill="#4ade80"/>
-    <text x="14" y="22" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Quality</text>
-    <rect x="0" y="28" width="8" height="8" rx="2" fill="#a78bfa"/>
-    <text x="14" y="36" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Memory</text>
-    <rect x="0" y="42" width="8" height="8" rx="2" fill="#f4bb4f"/>
-    <text x="14" y="50" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Ops</text>
-  </g>
-
-  <!-- Center Nexus DB -->
-  <circle cx="450" cy="275" r="155" fill="url(#nexusGlow)"/>
-  <g filter="url(#strongGlow)">
-    <rect x="370" y="240" width="160" height="70" rx="12" fill="#151921" stroke="url(#nexusGrad)" stroke-width="2"/>
-    <rect x="370" y="240" width="160" height="70" rx="12" fill="#22d3ee" fill-opacity="0.05"/>
-  </g>
-  <text x="450" y="260" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="700" filter="url(#glow)">NEXUS DB</text>
-  <text x="450" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">gentle-vanguard.db</text>
-  <text x="450" y="290" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="8">SQLite WAL · FK ON</text>
-
-  <!-- ===== TOP RING: 5 DAOs ===== -->
-
-  <!-- MetricsRepo - top-left -->
-  <g filter="url(#shadow)">
-    <rect x="130" y="85" width="140" height="38" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="0.5"/>
-    <rect x="130" y="85" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
-  </g>
-  <rect x="138" y="93" width="8" height="22" rx="2" fill="#22d3ee"/>
-  <text x="154" y="103" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">MetricsRepo</text>
-  <text x="154" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">metric_snapshots</text>
-  <line x1="270" y1="104" x2="365" y2="250" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
-
-  <!-- SessionRepo - top-center -->
-  <g filter="url(#shadow)">
-    <rect x="310" y="75" width="140" height="38" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="0.5"/>
-    <rect x="310" y="75" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
-  </g>
-  <rect x="318" y="83" width="8" height="22" rx="2" fill="#22d3ee"/>
-  <text x="334" y="93" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">SessionRepo</text>
-  <text x="334" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">sessions</text>
-  <line x1="380" y1="113" x2="420" y2="235" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
-
-  <!-- TraceRepo - top-right -->
-  <g filter="url(#shadow)">
-    <rect x="490" y="75" width="140" height="38" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="0.5"/>
-    <rect x="490" y="75" width="140" height="38" rx="6" fill="url(#daoBlue)"/>
-  </g>
-  <rect x="498" y="83" width="8" height="22" rx="2" fill="#22d3ee"/>
-  <text x="514" y="93" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">TraceRepo</text>
-  <text x="514" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">traces</text>
-  <line x1="520" y1="113" x2="480" y2="235" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowBlue)"/>
-
-  <!-- EventRepo - top-right far -->
-  <g filter="url(#shadow)">
-    <rect x="640" y="85" width="140" height="38" rx="6" fill="#151921" stroke="#4ade80" stroke-width="0.5"/>
-    <rect x="640" y="85" width="140" height="38" rx="6" fill="url(#daoGreen)"/>
-  </g>
-  <rect x="648" y="93" width="8" height="22" rx="2" fill="#4ade80"/>
-  <text x="664" y="103" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">EventRepo</text>
-  <text x="664" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">events</text>
-  <line x1="640" y1="104" x2="535" y2="250" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowGreen)"/>
-
-  <!-- CacheRepo - left -->
-  <g filter="url(#shadow)">
-    <rect x="60" y="195" width="140" height="38" rx="6" fill="#151921" stroke="#4ade80" stroke-width="0.5"/>
-    <rect x="60" y="195" width="140" height="38" rx="6" fill="url(#daoGreen)"/>
-  </g>
-  <rect x="68" y="203" width="8" height="22" rx="2" fill="#4ade80"/>
-  <text x="84" y="213" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">CacheRepo</text>
-  <text x="84" y="225" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">response_cache</text>
-  <line x1="200" y1="214" x2="365" y2="260" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrowGreen)"/>
-
-  <!-- ===== BOTTOM RING: 5 DAOs ===== -->
-
-  <!-- SkillRepo - bottom-left -->
-  <g filter="url(#shadow)">
-    <rect x="640" y="200" width="140" height="38" rx="6" fill="#151921" stroke="#a78bfa" stroke-width="0.5"/>
-    <rect x="640" y="200" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
-  </g>
-  <rect x="648" y="208" width="8" height="22" rx="2" fill="#a78bfa"/>
-  <text x="664" y="218" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">SkillRepo</text>
-  <text x="664" y="230" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">skill_usage</text>
-  <line x1="640" y1="219" x2="535" y2="265" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- ContractRepo - bottom-center -->
-  <g filter="url(#shadow)">
-    <rect x="490" y="370" width="140" height="38" rx="6" fill="#151921" stroke="#a78bfa" stroke-width="0.5"/>
-    <rect x="490" y="370" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
-  </g>
-  <rect x="498" y="378" width="8" height="22" rx="2" fill="#a78bfa"/>
-  <text x="514" y="388" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">ContractRepo</text>
-  <text x="514" y="400" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">contract_results</text>
-  <line x1="520" y1="370" x2="485" y2="315" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- ErrorMemoryRepo - bottom-right -->
-  <g filter="url(#shadow)">
-    <rect x="310" y="380" width="140" height="38" rx="6" fill="#151921" stroke="#a78bfa" stroke-width="0.5"/>
-    <rect x="310" y="380" width="140" height="38" rx="6" fill="url(#daoPurple)"/>
-  </g>
-  <rect x="318" y="388" width="8" height="22" rx="2" fill="#a78bfa"/>
-  <text x="334" y="398" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">ErrMemoryRepo</text>
-  <text x="334" y="410" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">scoring</text>
-  <line x1="380" y1="380" x2="425" y2="315" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- HousekeepingRepo - right -->
-  <g filter="url(#shadow)">
-    <rect x="130" y="370" width="140" height="38" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="0.5"/>
-    <rect x="130" y="370" width="140" height="38" rx="6" fill="url(#daoOrange)"/>
-  </g>
-  <rect x="138" y="378" width="8" height="22" rx="2" fill="#f4bb4f"/>
-  <text x="154" y="388" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">HousekeepingRepo</text>
-  <text x="154" y="400" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">token_usage</text>
-  <line x1="270" y1="389" x2="365" y2="315" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- MigrationRunner - bottom-left far -->
-  <g filter="url(#shadow)">
-    <rect x="60" y="290" width="140" height="38" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="0.5"/>
-    <rect x="60" y="290" width="140" height="38" rx="6" fill="url(#daoOrange)"/>
-  </g>
-  <rect x="68" y="298" width="8" height="22" rx="2" fill="#f4bb4f"/>
-  <text x="84" y="308" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">MigrationRunner</text>
-  <text x="84" y="320" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">16 migrations</text>
-  <line x1="200" y1="309" x2="360" y2="275" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- ===== DATA FLOW ARROWS ===== -->
-  <g>
-    <!-- State.json → Dashboard WS -->
-    <path d="M 160 140 Q 80 170 80 250 Q 80 330 160 370" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowBlue)"/>
-    <rect x="38" y="240" width="22" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
-    <text x="49" y="250" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="6">Z</text>
-
-    <!-- Session → Checkpoints -->
-    <path d="M 310 113 Q 250 130 230 170" fill="none" stroke="#4ade80" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowGreen)"/>
-
-    <!-- Events → Audit -->
-    <path d="M 640 123 Q 700 150 720 200" fill="none" stroke="#4ade80" stroke-width="1" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#arrowGreen)"/>
-  </g>
-
-  <!-- Side annotation for state.json flows -->
-  <g transform="translate(30, 135)">
-    <rect x="-8" y="-8" width="100" height="20" rx="4" fill="#151921" stroke="#1e3a5f" stroke-width="0.5"/>
-    <text x="42" y="6" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">.state.json flows</text>
-  </g>
-
-  <!-- Migration badges -->
-  <g transform="translate(660, 438)">
-    <rect x="0" y="0" width="100" height="16" rx="6" fill="#151921" stroke="#1e3a5f" stroke-width="0.5"/>
-    <text x="50" y="11" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="7">M001 · M002 · M003</text>
-  </g>
-
-  <!-- Footer -->
-  <line x1="60" y1="483" x2="840" y2="483" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="450" y="495" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-
-
-  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
-    <rect class="gv-hotspot" x="370" y="240" width="160" height="70" rx="6" data-i18n-title="tip_hs_data_nexus" role="button" tabindex="0" fill="transparent" aria-label="NEXUS DB: operational SQLite database (gentle-vanguard.db) with WAL mode, FK ON, 12 tables and 3 migrations."/>
-    <rect class="gv-hotspot" x="130" y="75" width="650" height="48" rx="6" data-i18n-title="tip_hs_data_repos_blue" role="button" tabindex="0" fill="transparent" aria-label="Data DAOs (blue): MetricsRepo (metric_snapshots), SessionRepo (sessions) and TraceRepo (traces) - time-series and session history."/>
-    <rect class="gv-hotspot" x="60" y="195" width="720" height="38" rx="6" data-i18n-title="tip_hs_data_repos_green" role="button" tabindex="0" fill="transparent" aria-label="Quality DAOs (green): CacheRepo (response_cache) and EventRepo (events) - caching and event sourcing audit trail."/>
-    <rect class="gv-hotspot" x="310" y="370" width="470" height="48" rx="6" data-i18n-title="tip_hs_data_repos_purple" role="button" tabindex="0" fill="transparent" aria-label="Memory DAOs (purple): SkillRepo (skill_usage), ContractRepo (contract_results) and ErrMemoryRepo (scoring) - usage and scoring."/>
-    <rect class="gv-hotspot" x="60" y="290" width="720" height="118" rx="6" data-i18n-title="tip_hs_data_repos_orange" role="button" tabindex="0" fill="transparent" aria-label="Ops DAOs (orange): HousekeepingRepo (token_usage) and MigrationRunner (16 migrations) - maintenance and schema evolution."/>
-</svg>
-            <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>Nexus SQLite central con 16 repos especializados
-              (16 migraciones, 23 tablas).
-            </p>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="diagram-card">
-            <h4 class="mb-3"><i class="bi bi-arrow-repeat text-info me-2"></i><span data-i18n="idx_h4_loop">Loop Ejecutivo</span></h4>
-            <svg class="svg-diagram svg-inline" viewBox="0 0 800 540" role="img" aria-label="Executive Autonomous Loop" >
-<title id="executive-loop-title">Executive Loop</title>
-<desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
-  <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090c11"/>
-      <stop offset="100%" stop-color="#0f1525"/>
-    </linearGradient>
-    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
-      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="detectGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#0891b2"/>
-    </linearGradient>
-    <linearGradient id="evalGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
-    </linearGradient>
-    <linearGradient id="decideGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4ade80"/>
-      <stop offset="100%" stop-color="#4ade80"/>
-    </linearGradient>
-    <linearGradient id="execGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f4bb4f"/>
-      <stop offset="100%" stop-color="#f4bb4f"/>
-    </linearGradient>
-    <linearGradient id="verifyGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ee6d75"/>
-      <stop offset="100%" stop-color="#ee6d75"/>
-    </linearGradient>
-    <linearGradient id="learnGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="strongGlow">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/>
-    </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
-    </marker>
-    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
-    </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
-    </marker>
-  </defs>
-
-  <!-- Background -->
-  <rect width="800" height="500" fill="url(#bgGrad)"/>
-
-  <!-- Title -->
-  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Autonomous Loop</text>
-  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Self-managing orchestration cycle with auto-healing and learning</text>
-
-  <!-- Orbit ring -->
-  <ellipse cx="400" cy="265" rx="200" ry="75" fill="none" stroke="#1e3a5f" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
-  <ellipse cx="400" cy="265" rx="200" ry="75" fill="url(#ringGlow)"/>
-
-  <!-- Main circle glow -->
-  <circle cx="400" cy="265" r="180" fill="url(#centerGlow)"/>
-
-  <!-- ====== PHASE CIRCLES (on ellipse) ====== -->
-
-  <!-- Detection (top) - 0° -->
-  <g filter="url(#shadow)">
-    <circle cx="400" cy="155" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
-    <circle cx="400" cy="155" r="44" fill="url(#detectGrad)" fill-opacity="0.1"/>
-    <text x="400" y="160" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
-  </g>
-  <text x="400" y="183" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Detection</text>
-  <text x="400" y="145" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
-
-  <!-- Evaluation (top-right) - 60° -->
-  <g filter="url(#shadow)">
-    <circle cx="570" cy="248" r="44" fill="#151921" stroke="#a78bfa" stroke-width="2"/>
-    <circle cx="570" cy="248" r="44" fill="url(#evalGrad)" fill-opacity="0.1"/>
-    <text x="570" y="253" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
-  </g>
-  <text x="570" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Evaluation</text>
-
-  <!-- Decision (bottom-right) - 120° -->
-  <g filter="url(#shadow)">
-    <circle cx="530" cy="355" r="44" fill="#151921" stroke="#4ade80" stroke-width="2"/>
-    <circle cx="530" cy="355" r="44" fill="url(#decideGrad)" fill-opacity="0.1"/>
-    <text x="530" y="360" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
-  </g>
-  <text x="530" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Decision</text>
-
-  <!-- Execution (bottom-left) - 180° -->
-  <g filter="url(#shadow)">
-    <circle cx="400" cy="385" r="44" fill="#151921" stroke="#f4bb4f" stroke-width="2"/>
-    <circle cx="400" cy="385" r="44" fill="url(#execGrad)" fill-opacity="0.1"/>
-    <text x="400" y="390" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
-  </g>
-  <text x="400" y="413" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Execution</text>
-
-  <!-- Verification (bottom-left-more) - 240° -->
-  <g filter="url(#shadow)">
-    <circle cx="270" cy="355" r="44" fill="#151921" stroke="#ee6d75" stroke-width="2"/>
-    <circle cx="270" cy="355" r="44" fill="url(#verifyGrad)" fill-opacity="0.1"/>
-    <text x="270" y="360" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
-  </g>
-  <text x="270" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Verification</text>
-
-  <!-- Learning (top-left) - 300° -->
-  <g filter="url(#shadow)">
-    <circle cx="230" cy="248" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
-    <circle cx="230" cy="248" r="44" fill="url(#learnGrad)" fill-opacity="0.1"/>
-    <text x="230" y="253" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
-  </g>
-  <text x="230" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Learning</text>
-
-  <!-- ====== ARROWS between phases ====== -->
-  <path d="M 442 165 Q 510 195 537 238" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 566 290 Q 555 325 540 344" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 494 358 Q 460 375 442 378" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 358 378 Q 330 375 312 358" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 258 316 Q 245 295 238 285" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 272 228 Q 310 195 358 165" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-  <!-- ====== CENTER ====== -->
-  <g filter="url(#strongGlow)">
-    <circle cx="400" cy="265" r="50" fill="#151921" stroke="url(#centerGrad)" stroke-width="2"/>
-    <circle cx="400" cy="265" r="50" fill="url(#centerGrad)" fill-opacity="0.08"/>
-  </g>
-  <text x="400" y="258" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="700">Auto-Apply</text>
-  <text x="400" y="275" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
-
-  <!-- ====== OUTER RING MODULES ====== -->
-
-  <!-- Circuit Breaker (top-right outer) -->
-  <g filter="url(#shadow)">
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#151921" stroke="#ee6d75" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ee6d75" fill-opacity="0.05"/>
-  </g>
-  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ee6d75"/>
-  <text x="635" y="163" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
-  <line x1="595" y1="175" x2="570" y2="220" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
-
-  <!-- Auto-Escalation (bottom-right outer) -->
-  <g filter="url(#shadow)">
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f4bb4f" fill-opacity="0.05"/>
-  </g>
-  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f4bb4f"/>
-  <text x="635" y="363" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
-  <line x1="610" y1="358" x2="576" y2="358" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
-
-  <!-- Session Scoring (bottom-left outer) -->
-  <g filter="url(#shadow)">
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#22d3ee" fill-opacity="0.05"/>
-  </g>
-  <rect x="60" y="349" width="8" height="18" rx="2" fill="#22d3ee"/>
-  <text x="75" y="363" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
-  <line x1="190" y1="358" x2="225" y2="358" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
-
-  <!-- Norms Learner (top-left outer) -->
-  <g filter="url(#shadow)">
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#151921" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#4ade80" fill-opacity="0.05"/>
-  </g>
-  <rect x="60" y="149" width="8" height="18" rx="2" fill="#4ade80"/>
-  <text x="75" y="163" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
-  <line x1="190" y1="158" x2="228" y2="220" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
-
-  <!-- Legend -->
-  <g transform="translate(52, 388)">
-    <text x="0" y="0" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">FASES DEL CICLO</text>
-    <circle cx="5" cy="12" r="3.5" fill="#22d3ee"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
-    <circle cx="5" cy="24" r="3.5" fill="#a78bfa"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
-    <circle cx="5" cy="36" r="3.5" fill="#4ade80"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
-    <circle cx="5" cy="48" r="3.5" fill="#f4bb4f"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
-    <circle cx="5" cy="60" r="3.5" fill="#ee6d75"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
-    <circle cx="5" cy="72" r="3.5" fill="url(#learnGrad)"/><text x="13" y="75" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">6 Learning</text>
-    <line x1="0" y1="81" x2="120" y2="81" stroke="#1e3a5f" stroke-width="0.5"/>
-    <circle cx="5" cy="90" r="3.5" fill="#151921" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
-    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ee6d75" fill-opacity="0.3" stroke="#ee6d75" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
-    <line x1="0" y1="112" x2="30" y2="112" stroke="#4b5563" stroke-width="1"/><text x="35" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Core cycle</text>
-    <line x1="0" y1="124" x2="30" y2="124" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
-  </g>
-
-  <!-- Footer -->
-  <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-
-
-  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
-    <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
-    <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
-    <rect class="gv-hotspot" x="486" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_decision" role="button" tabindex="0" fill="transparent" aria-label="Phase 3 - Decision: chooses the winning action with confidence thresholds; escalates when uncertainty is high."/>
-    <rect class="gv-hotspot" x="356" y="341" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_execution" role="button" tabindex="0" fill="transparent" aria-label="Phase 4 - Execution: applies the selected action through the safe auto-apply gate, tracking every mutation."/>
-    <rect class="gv-hotspot" x="226" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_verification" role="button" tabindex="0" fill="transparent" aria-label="Phase 5 - Verification: runs typecheck, lint and tests; if verification fails, the action is rolled back."/>
-    <rect class="gv-hotspot" x="186" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_learning" role="button" tabindex="0" fill="transparent" aria-label="Phase 6 - Learning: records outcomes in Engram and the routing table, improving future decisions."/>
-    <rect class="gv-hotspot" x="350" y="215" width="100" height="100" rx="6" data-i18n-title="tip_hs_loop_autoapply" role="button" tabindex="0" fill="transparent" aria-label="Auto-Apply SAFE: the central verification gate - changes are only applied when they pass all safety checks."/>
-    <rect class="gv-hotspot" x="610" y="140" width="130" height="36" rx="6" data-i18n-title="tip_hs_loop_circuit_breaker" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Circuit Breaker: opens after repeated failures to stop cascading errors and halts the loop."/>
-    <rect class="gv-hotspot" x="610" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_auto_escalation" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Auto-Escalation: promotes unresolved issues to a higher authority (orchestrator or human)."/>
-    <rect class="gv-hotspot" x="50" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_session_scoring" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Session Scoring: grades each session (delegations, corrections, proactive hits) and feeds the routing table."/>
-    <rect class="gv-hotspot" x="50" y="140" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_norms_learner" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Norms Learner: learns project conventions and injects them as adaptive norms into new sessions."/>
-</svg>
-            <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>Detección → Evaluación → Decisión → Ejecución →
-              Verificación → Aprendizaje.
-            </p>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="diagram-card">
-            <h4 class="mb-3">
-              <i class="bi bi-speedometer2 text-info me-2"></i><span data-i18n="idx_h4_dash">Dashboard del Stack</span>
-            </h4>
-            <svg class="svg-diagram svg-inline" viewBox="0 0 900 450" role="img" aria-label="Stack Dashboard Overview" >
-<title id="stack-dashboard-title">Stack Dashboard</title>
-<desc id="stack-dashboard-desc">Gentle-Vanguard Stack Dashboard diagram showing the main components, relationships and operational flow.</desc>
-  <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090c11"/>
-      <stop offset="100%" stop-color="#0f1525"/>
-    </linearGradient>
-    <linearGradient id="srcGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="midGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="frontGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="fallbackGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#f4bb4f" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#f4bb4f" stop-opacity="0.05"/>
-    </linearGradient>
-    <linearGradient id="barBlue" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#0891b2"/>
-    </linearGradient>
-    <linearGradient id="barPurple" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
-    </linearGradient>
-    <linearGradient id="barGreen" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#4ade80"/>
-      <stop offset="100%" stop-color="#4ade80"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
-    </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
-    </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
-    </marker>
-    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4ade80"/>
-    </marker>
-    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
-    </marker>
-  </defs>
-
-  <!-- Background -->
-  <rect width="900" height="450" fill="url(#bgGrad)"/>
-
-  <!-- Title -->
-  <text x="450" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Dashboard Architecture</text>
-  <text x="450" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">LLM Observability — real-time WebSocket + HTTP polling fallback</text>
-
-  <!-- ===== LEFT: DATA SOURCES ===== -->
-  <g filter="url(#shadow)">
-    <rect x="30" y="80" width="200" height="280" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="30" y="80" width="200" height="280" rx="10" fill="url(#srcGrad)"/>
-  </g>
-
-  <!-- Section header -->
-  <rect x="40" y="90" width="180" height="24" rx="6" fill="#22d3ee" fill-opacity="0.1"/>
-  <text x="130" y="106" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">📁 Data Sources</text>
-
-  <!-- State file entries -->
-  <g transform="translate(45, 130)">
-    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
-    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">.session/</text>
-  </g>
-  <g transform="translate(45, 158)">
-    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
-    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">  context-log/</text>
-  </g>
-  <g transform="translate(45, 186)">
-    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
-    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">    *.state.json</text>
-  </g>
-  <g transform="translate(45, 214)">
-    <rect x="0" y="0" width="170" height="22" rx="4" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="0.3"/>
-    <text x="12" y="14" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">    *.meta.json</text>
-  </g>
-
-  <!-- Labels -->
-  <g transform="translate(45, 255)">
-    <text x="0" y="0" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Real trace data</text>
-    <text x="0" y="14" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">No mock data</text>
-  </g>
-
-  <!-- File icon indicator -->
-  <g transform="translate(200, 195)">
-    <rect x="-6" y="-6" width="20" height="20" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
-    <text x="4" y="6" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10">📄</text>
-  </g>
-
-  <!-- Arrow from data sources to middle -->
-  <line x1="230" y1="220" x2="335" y2="220" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow)" opacity="0.7"/>
-  <rect x="260" y="192" width="50" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="285" y="202" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7">read</text>
-
-  <!-- ===== MIDDLE: BACKEND ===== -->
-  <g filter="url(#shadow)">
-    <rect x="340" y="80" width="220" height="280" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="340" y="80" width="220" height="280" rx="10" fill="url(#midGrad)"/>
-  </g>
-
-  <rect x="350" y="90" width="200" height="24" rx="6" fill="#a78bfa" fill-opacity="0.1"/>
-  <text x="450" y="106" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">⚙ Backend Server</text>
-
-  <!-- real-data.ts box -->
-  <g filter="url(#shadow)">
-    <rect x="360" y="130" width="180" height="50" rx="6" fill="#1a2235" stroke="#a78bfa" stroke-width="0.5"/>
-    <rect x="360" y="130" width="180" height="50" rx="6" fill="url(#midGrad)"/>
-  </g>
-  <text x="370" y="148" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600">real-data.ts</text>
-  <text x="370" y="163" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Reads .state.json →</text>
-  <text x="370" y="175" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">computes metrics</text>
-
-  <!-- WS Server box -->
-  <g filter="url(#shadow)">
-    <rect x="360" y="200" width="180" height="60" rx="6" fill="#1a2235" stroke="#a78bfa" stroke-width="1"/>
-    <rect x="360" y="200" width="180" height="60" rx="6" fill="#a78bfa" fill-opacity="0.08"/>
-  </g>
-  <text x="470" y="220" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600" filter="url(#glow)">WebSocket Server</text>
-  <text x="470" y="237" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">port 8080</text>
-  <text x="470" y="252" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Push every 5s</text>
-
-  <!-- Arrow connecting real-data → WS -->
-  <line x1="450" y1="180" x2="450" y2="195" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
-
-  <!-- ===== RIGHT TOP: FRONTEND ===== -->
-  <g filter="url(#shadow)">
-    <rect x="600" y="80" width="270" height="170" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="600" y="80" width="270" height="170" rx="10" fill="url(#frontGrad)"/>
-  </g>
-
-  <rect x="610" y="90" width="250" height="24" rx="6" fill="#4ade80" fill-opacity="0.1"/>
-  <text x="735" y="106" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">🖥 Frontend — React / Vite</text>
-
-  <!-- 7 section blocks -->
-  <g transform="translate(615, 128)">
-    <rect x="0" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="27" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Metrics</text>
-    <rect x="60" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="87" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Traces</text>
-    <rect x="120" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="147" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Alerts</text>
-    <rect x="180" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="207" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Feedback</text>
-  </g>
-  <g transform="translate(615, 152)">
-    <rect x="0" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="27" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Scoring</text>
-    <rect x="60" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="87" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Waterfall</text>
-    <rect x="120" y="0" width="55" height="18" rx="4" fill="#4ade80" fill-opacity="0.1" stroke="#4ade80" stroke-width="0.3"/>
-    <text x="147" y="12" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">Info Popup</text>
-  </g>
-
-  <!-- WS push arrow -->
-  <path d="M 560 230 Q 580 160 600 160" fill="none" stroke="#4ade80" stroke-width="2" marker-end="url(#arrowGreen)"/>
-  <rect x="570" y="180" width="24" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="582" y="190" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="7">WS</text>
-
-  <!-- ===== RIGHT BOTTOM: HTTP FALLBACK ===== -->
-  <g filter="url(#shadow)">
-    <rect x="600" y="275" width="270" height="85" rx="10" fill="#151921" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="600" y="275" width="270" height="85" rx="10" fill="url(#fallbackGrad)"/>
-  </g>
-
-  <rect x="610" y="285" width="250" height="24" rx="6" fill="#f4bb4f" fill-opacity="0.1"/>
-  <text x="735" y="301" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">⬇ HTTP Polling Fallback</text>
-
-  <text x="620" y="320" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">useMetrics.ts — always runs</text>
-  <text x="620" y="335" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">regardless of WS state</text>
-  <text x="620" y="350" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="7">Resilient: WS down → HTTP takes over</text>
-
-  <!-- HTTP fallback arrow -->
-  <path d="M 560 230 Q 640 260 635 275" fill="none" stroke="#f4bb4f" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowOrange)"/>
-  <rect x="610" y="245" width="24" height="14" rx="4" fill="#090c11" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="622" y="255" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="7">HTTP</text>
-
-  <!-- ===== BOTTOM: WATCHDOG ===== -->
-  <g filter="url(#shadow)">
-    <rect x="340" y="380" width="530" height="40" rx="8" fill="#151921" stroke="#ee6d75" stroke-width="0.5" stroke-opacity="0.5"/>
-    <rect x="340" y="380" width="530" height="40" rx="8" fill="#ee6d75" fill-opacity="0.03"/>
-  </g>
-  <rect x="350" y="388" width="18" height="24" rx="4" fill="#ee6d75" fill-opacity="0.15"/>
-  <text x="359" y="404" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12">🛡</text>
-  <text x="375" y="405" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Watchdog Auto-Recovery</text>
-  <text x="495" y="405" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Monitors :8080 every 5s · 10 restart attempts · kills watchdog first</text>
-
-  <!-- Watchdog arrow to WS -->
-  <line x1="450" y1="380" x2="450" y2="265" stroke="#ee6d75" stroke-width="1" stroke-dasharray="3,3" opacity="0.4" marker-end="url(#arrow)"/>
-
-  <!-- Footer -->
-  <line x1="40" y1="433" x2="860" y2="433" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="450" y="445" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-
-
-  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
-    <rect class="gv-hotspot" x="30" y="80" width="200" height="280" rx="6" data-i18n-title="tip_hs_dash_sources" role="button" tabindex="0" fill="transparent" aria-label="Data Sources: real trace data read from .session/context-log/*.state.json and *.meta.json - no mock data."/>
-    <rect class="gv-hotspot" x="340" y="80" width="220" height="280" rx="6" data-i18n-title="tip_hs_dash_backend" role="button" tabindex="0" fill="transparent" aria-label="Backend Server: real-data.ts computes metrics from state files; WebSocket Server pushes every 5s on port 8080."/>
-    <rect class="gv-hotspot" x="600" y="80" width="270" height="170" rx="6" data-i18n-title="tip_hs_dash_frontend" role="button" tabindex="0" fill="transparent" aria-label="Frontend - React/Vite: 7 sections (Metrics, Traces, Alerts, Feedback, Scoring, Waterfall, Info Popup) with i18n."/>
-    <rect class="gv-hotspot" x="600" y="275" width="270" height="85" rx="6" data-i18n-title="tip_hs_dash_fallback" role="button" tabindex="0" fill="transparent" aria-label="HTTP Polling Fallback: useMetrics.ts always polls HTTP, so data loads even if the WebSocket server is down."/>
-    <rect class="gv-hotspot" x="340" y="380" width="530" height="40" rx="6" data-i18n-title="tip_hs_dash_watchdog" role="button" tabindex="0" fill="transparent" aria-label="Watchdog Auto-Recovery: monitors :8080 every 5s, restarts up to 10 times, and kills the watchdog first to avoid loops."/>
-</svg>
-            <p class="text-secondary small mt-2 mb-0">
-              <i class="bi bi-info-circle me-1"></i>Observabilidad en tiempo real: WS + HTTP, 7
-              secciones, i18n, alertas.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tools Ecosystem -->
+<!-- Tools Ecosystem -->
     <section class="fade-in" id="tools">
       <div class="section-title">
         <div class="display-4 mb-2">🛠️</div>
         <h2 data-i18n="sec_tools">Tools Ecosystem</h2>
-        <p data-i18n="c_index_117">10 supported tools — one unified autonomous stack</p>
+        <p data-i18n="c_index_117">Supported tools for a unified local-first workflow</p>
       </div>
       <div class="d-flex flex-wrap justify-content-center gap-2">
         <span class="tool-badge"><i class="bi bi-terminal text-info"></i>OpenCode</span>

@@ -884,90 +884,101 @@ export async function phaseCleanup(
     });
   }
 
-  // 5.4 Clean temp files (unregistered + stale registry entries)
-  try {
-    const registryPath = join(ROOT, '.session', 'temp-file-registry.json');
-    if (existsSync(registryPath)) {
-      // Clean unregistered temp files
-      const tempDirs = ['.session/tmp/', '.session/cache/', '.temp/', 'tmp/'];
-      let cleanedCount = 0;
-      for (const dir of tempDirs) {
-        const fullDir = join(ROOT, dir);
-        if (!existsSync(fullDir)) continue;
-        try {
-          const entries = readdirSync(fullDir, { withFileTypes: true });
-          for (const entry of entries) {
-            const full = join(fullDir, entry.name);
-            if (entry.isFile() && !entry.name.endsWith('.gitkeep')) {
-              // Check if registered
-              const relPath = relative(ROOT, full).replace(/\\/g, '/');
-              const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
-              const isRegistered = (registry.entries || []).some(
-                (e: { path: string }) => e.path === relPath,
-              );
-              if (!isRegistered) {
-                rmSync(full, { force: true });
-                cleanedCount++;
+  // Legacy cleanup includes unmanifested files and checkpoint pruning. Closing a
+  // session alone does not authorize deletion: use the same explicit retention
+  // authorization as the manifest-based path above.
+  if (retentionAuthorized) {
+    // 5.4 Clean temp files (unregistered + stale registry entries)
+    try {
+      const registryPath = join(ROOT, '.session', 'temp-file-registry.json');
+      if (existsSync(registryPath)) {
+        // Clean unregistered temp files
+        const tempDirs = ['.session/tmp/', '.session/cache/', '.temp/', 'tmp/'];
+        let cleanedCount = 0;
+        for (const dir of tempDirs) {
+          const fullDir = join(ROOT, dir);
+          if (!existsSync(fullDir)) continue;
+          try {
+            const entries = readdirSync(fullDir, { withFileTypes: true });
+            for (const entry of entries) {
+              const full = join(fullDir, entry.name);
+              if (entry.isFile() && !entry.name.endsWith('.gitkeep')) {
+                // Check if registered
+                const relPath = relative(ROOT, full).replace(/\\/g, '/');
+                const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
+                const isRegistered = (registry.entries || []).some(
+                  (e: { path: string }) => e.path === relPath,
+                );
+                if (!isRegistered) {
+                  rmSync(full, { force: true });
+                  cleanedCount++;
+                }
               }
             }
+          } catch {
+            /* skip */
           }
-        } catch {
-          /* skip */
         }
-      }
-      if (cleanedCount > 0) {
-        results.push({
-          phase: 'temp-cleanup',
-          status: 'PASS',
-          detail: `Cleaned ${cleanedCount} unregistered temp files`,
-        });
-        ok(`Temp cleanup: removed ${cleanedCount} unregistered files`);
+        if (cleanedCount > 0) {
+          results.push({
+            phase: 'temp-cleanup',
+            status: 'PASS',
+            detail: `Cleaned ${cleanedCount} unregistered temp files`,
+          });
+          ok(`Temp cleanup: removed ${cleanedCount} unregistered files`);
+        } else {
+          // Clean state — nothing to remove. PASS, not SKIP.
+          results.push({
+            phase: 'temp-cleanup',
+            status: 'PASS',
+            detail: 'No temp files to clean — clean state',
+          });
+        }
       } else {
-        // Clean state — nothing to remove. PASS, not SKIP.
+        // No registry file => no temp files were created this session. Clean.
         results.push({
           phase: 'temp-cleanup',
           status: 'PASS',
-          detail: 'No temp files to clean — clean state',
+          detail: 'No temp registry — clean state',
         });
       }
-    } else {
-      // No registry file => no temp files were created this session. Clean.
+    } catch (e: unknown) {
       results.push({
         phase: 'temp-cleanup',
-        status: 'PASS',
-        detail: 'No temp registry — clean state',
+        status: 'SKIP',
+        detail: e instanceof Error ? e.message : 'Cleanup error',
       });
     }
-  } catch (e: unknown) {
+
+    // 5.5 Flush caches and reset
+    const cr = runScript(
+      'src/session/session-cleanup-start.ts',
+      ['-SkipOrphanCleanup', '-SkipSessionInit', '-Quiet'],
+      60000,
+    );
     results.push({
-      phase: 'temp-cleanup',
-      status: 'SKIP',
-      detail: e instanceof Error ? e.message : 'Cleanup error',
+      phase: 'cache-flush',
+      status: cr.status === 0 ? 'PASS' : 'FAIL',
+      detail: cr.status === 0 ? 'Caches flushed' : `Exit: ${cr.status}`,
+    });
+
+    // 5.6 Session retention - prune old sessions, checkpoints, backups
+    const retentionResult = runSessionRetention(true);
+    results.push({
+      phase: 'session-retention',
+      status: 'PASS',
+      detail:
+        retentionResult.kept > 0
+          ? `Retention: ${retentionResult.removed} removed, ${retentionResult.kept} kept`
+          : 'Retention: no cleanup needed',
+    });
+  } else {
+    results.push({
+      phase: 'legacy-artifact-cleanup',
+      status: 'PASS',
+      detail: 'Artifacts, caches and historical checkpoints preserved (retention not authorized)',
     });
   }
-
-  // 5.5 Flush caches and reset
-  const cr = runScript(
-    'src/session/session-cleanup-start.ts',
-    ['-SkipOrphanCleanup', '-Quiet'],
-    60000,
-  );
-  results.push({
-    phase: 'cache-flush',
-    status: cr.status === 0 ? 'PASS' : 'FAIL',
-    detail: cr.status === 0 ? 'Caches flushed' : `Exit: ${cr.status}`,
-  });
-
-  // 5.6 Session retention - prune old sessions, checkpoints, backups
-  const retentionResult = runSessionRetention(true);
-  results.push({
-    phase: 'session-retention',
-    status: 'PASS',
-    detail:
-      retentionResult.kept > 0
-        ? `Retention: ${retentionResult.removed} removed, ${retentionResult.kept} kept`
-        : 'Retention: no cleanup needed',
-  });
 
   // 5.8 Rebuild the adaptive routing table so the session's recorded outcomes become
   // learning rather than raw rows. Found 2026-10-02: the loop was honest but starved.

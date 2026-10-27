@@ -35,7 +35,7 @@ async function withTempDir(fn: () => void | Promise<void>): Promise<void> {
     await fn();
   } finally {
     process.chdir(prev);
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

@@ -77,6 +77,14 @@ export function compareSkillTrees(source: string, target: string): SkillTreeComp
   return { fresh: differences.length === 0, differences };
 }
 
+export function nativeSkillSurfaceReady(
+  skillCount: number,
+  expectedCount: number,
+  fresh: boolean,
+): boolean {
+  return expectedCount > 0 && skillCount >= expectedCount && fresh;
+}
+
 const CODEX_MANAGED_IMPECCABLE_EXTRAS = new Set([
   'scripts/detector/browser/injected/index.mjs',
   'scripts/detector/injected/index.mjs',
@@ -296,6 +304,8 @@ export function auditTools(
   const openCodeMcp = hasEngramJsonServer(join(home, '.config', 'opencode', 'opencode.json'), [
     ['mcp'],
   ]);
+  const openCodeSkills = countFiles(join(root, '.opencode', 'skills'), 'SKILL.md');
+  const openCodeAssetsFresh = criticalSkillsFresh(root, join(root, '.opencode', 'skills'));
 
   const codexTomlCandidates = [
     join(home, '.codex', 'config.toml'),
@@ -336,23 +346,24 @@ export function auditTools(
         openCodeLauncher &&
         openCodeRuntimeVersion.supported &&
         openCodePlugin &&
-        openCodeMcp
+        openCodeMcp &&
+        nativeSkillSurfaceReady(openCodeSkills, expectedSkills, openCodeAssetsFresh)
           ? 'PASS'
           : 'WARN',
       profile: openCodeProfile,
       runtime: openCodeRuntime,
       launcher: openCodeLauncher,
       agents: sourceAgents,
-      skills: countFiles(join(root, '.opencode', 'skills'), 'SKILL.md'),
+      skills: openCodeSkills,
       hooks: 'n/a',
       engram: openCodeMcp && openCodePlugin ? 'mcp' : 'missing',
       instructions: openCodePlugin && existsSync(join(root, 'AGENTS.md')),
-      assets: 'n/a',
+      assets: openCodeAssetsFresh ? 'fresh' : 'stale',
       runtimeVariant: openCodeRuntimeVersion.variant,
       detail:
         openCodeRuntimeVersion.variant === 'v2'
           ? 'OpenCode V2 detectado; MCP/config nativos requieren calificación y review transport no se anuncia'
-          : 'CLI real V1, plugin oficial Engram v2 y MCP global',
+          : `CLI real V1, plugin oficial Engram v2 y MCP global; skills nativas ${openCodeSkills}/${expectedSkills}${openCodeAssetsFresh ? ' frescas' : ' ausentes o desactualizadas'}`,
     },
     {
       tool: 'Codex',
@@ -491,7 +502,7 @@ export function evaluateToolAudit(rows: ToolAudit[]): { passed: boolean; detail:
 
   return {
     passed: true,
-    detail: `${EXPECTED_TOOL_SURFACES.length}/${EXPECTED_TOOL_SURFACES.length} tool surfaces PASS`,
+    detail: `${EXPECTED_TOOL_SURFACES.length}/${EXPECTED_TOOL_SURFACES.length} tool configuration surfaces PASS (not runtime task qualification)`,
   };
 }
 
@@ -508,7 +519,7 @@ function markdown(rows: ToolAudit[], generatedAt: string): string {
         `| ${row.tool} | ${row.status} | ${row.runtimeVariant} | ${row.profile ? 'sí' : 'no'} | ${row.runtime ? 'sí' : 'no'} | ${row.launcher ? 'sí' : 'no'} | ${row.agents ?? 'n/a'} | ${row.skills} | ${row.assets} | ${row.hooks} | ${row.engram} | ${row.instructions ? 'sí' : 'no'} |`,
     ),
     '',
-    '## Criterio',
+    '## Criterio — configuración, no calificación de tareas ejecutadas',
     '',
     'Un runtime desktop puede estar operativo sin una CLI global. PASS exige el contrato nativo de cada herramienta: perfil, instrucciones, skills con árboles y hashes frescos, Engram por MCP o fallback explícito y, cuando aplica, agentes y hooks seguros. OpenCode se clasifica por la versión reportada por el ejecutable; una major desconocida o V2 todavía no calificada nunca hereda capacidades V1.',
     '',
@@ -521,7 +532,7 @@ function main(): void {
   const generatedAt = new Date().toISOString();
   console.log(
     JSON.stringify(
-      { generatedAt, expectedCriticalSkills: CRITICAL_SKILLS.length, tools: rows },
+      { generatedAt, scope: 'configuration surfaces only; not host model/tool execution', expectedCriticalSkills: CRITICAL_SKILLS.length, tools: rows },
       null,
       2,
     ),

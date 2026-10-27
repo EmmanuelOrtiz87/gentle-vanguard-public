@@ -256,6 +256,20 @@ function getDependencies(): DependencySpec[] {
       autoInstall: ['npm', 'install', '-g', 'lefthook'],
     },
     {
+      name: 'jq',
+      binary: 'jq',
+      category: 'stack',
+      minVersion: '>=1.6.0',
+      versionExtract: 'jq-(\\d+\\.\\d+(?:\\.\\d+)?)',
+      required: false,
+      description: 'JSON processor required by Engram lifecycle hooks to parse and register host sessions',
+      installHint: win() ? 'winget install --id jqlang.jq --exact --silent'
+        : mac() ? 'brew install jq' : 'apt install -y jq',
+      autoInstall: win()
+        ? ['winget', 'install', '--id', 'jqlang.jq', '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements']
+        : mac() ? ['brew', 'install', 'jq'] : ['apt', 'install', '-y', 'jq'],
+    },
+    {
       name: 'Engram',
       binary: 'engram',
       category: 'stack',
@@ -263,8 +277,8 @@ function getDependencies(): DependencySpec[] {
       versionExtract: '(\\d+\\.\\d+\\.\\d+)',
       required: false,
       description: 'Persistent memory — cross-session context retention',
-      installHint: 'go install github.com/gentle-vanguard/engram/cmd/engram@latest',
-      autoInstall: ['go', 'install', 'github.com/gentle-vanguard/engram/cmd/engram@latest'],
+      installHint: 'go install github.com/Gentleman-Programming/engram/v3/cmd/engram@latest',
+      autoInstall: ['go', 'install', 'github.com/Gentleman-Programming/engram/v3/cmd/engram@latest'],
     },
     {
       name: 'CodeGraph',
@@ -450,18 +464,18 @@ function getDependencies(): DependencySpec[] {
       installHint: 'File: opencode.json in project root',
     },
     {
-      name: 'OpenCode Skills',
+      name: 'Canonical Skills',
       binary: '',
       category: 'platform',
-      checkPath: '.opencode/skills',
+      checkPath: 'skills',
       isDir: true,
       detailCmd: win()
-        ? 'cmd /c "dir /b .opencode\\skills 2>nul | find /c /v \"\""'
-        : 'ls -1 .opencode/skills 2>/dev/null | wc -l',
+        ? 'cmd /c "dir /b skills 2>nul | find /c /v \"\""'
+        : 'ls -1 skills 2>/dev/null | wc -l',
       detailExtract: '(\\d+)',
       required: true,
-      description: 'OpenCode skills — specialized workflow instructions for agents',
-      installHint: 'Run: git submodule update --init or reinstall opencode',
+      description: 'Canonical skill modules used by the stack skill router',
+      installHint: 'Add reviewed skills under skills/ and run npm run skills:governance:audit',
     },
     {
       name: 'MCP Registry',
@@ -569,7 +583,9 @@ async function validateAll(deps: DependencySpec[]): Promise<DepResult[]> {
       const pathOk = value ? existsSync(value) : false;
       const found = Boolean(value) && (!dep.envPathMustExist || pathOk);
       const status: 'PASS' | 'WARN' | 'FAIL' = found ? 'PASS' : dep.required ? 'FAIL' : 'WARN';
-      const missingHint = dep.required ? `Not set — ${dep.installHint}` : `Not set — optional. ${dep.installHint}`;
+      const missingHint = dep.required
+        ? `Not set — ${dep.installHint}`
+        : `Not set — optional. ${dep.installHint}`;
       results.push({
         name: dep.name,
         category: dep.category,

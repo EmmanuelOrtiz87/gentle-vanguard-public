@@ -63,6 +63,7 @@ export interface ExternalApiTimeouts {
   jira_api_ms?: number;
   confluence_api_ms?: number;
   engram_operation_ms?: number;
+  engram_doctor_ms?: number;
   mcp_bridge_start_ms?: number;
   mcp_request_ms?: number;
   description?: string;

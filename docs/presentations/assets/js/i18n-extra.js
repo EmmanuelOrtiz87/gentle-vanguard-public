@@ -11,7 +11,9 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
   const extra = {
     en: {
       presence_hero_lead: 'Local-first AI orchestration · automation with verification',
-      presence_skills: 'Indexed skills', presence_agents: 'OpenCode agents', presence_tables: 'Nexus tables', presence_migrations: 'Migrations',
+      presence_skills: 'Indexed skills', presence_agents: 'OpenCode agents', presence_nexus: 'Nexus · local', presence_migrations: 'Migrations',
+      presentation_evidence_note:
+        'Quantified or capability claims on this page (counts, percentages, PASS scores) are historical or illustrative, not current verification. Check dated evidence and run the referenced command before relying on them as current.',
       /* Nav */
       nav_commands: 'Commands',
       nav_glossary: 'Glossary',
@@ -90,7 +92,9 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
     },
     es: {
       presence_hero_lead: 'Orquestación de IA local-first · automatización con verificaciones',
-      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_tables: 'Tablas Nexus', presence_migrations: 'Migraciones',
+      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_nexus: 'Nexus · local', presence_migrations: 'Migraciones',
+      presentation_evidence_note:
+        'Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada y ejecuta el comando indicado antes de tratarlas como vigentes.',
       /* Nav */
       nav_commands: 'Comandos',
       nav_glossary: 'Glosario',
@@ -169,7 +173,9 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
     },
     'pt-BR': {
       presence_hero_lead: 'Orquestração de IA local-first · automação com verificação',
-      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_tables: 'Tabelas Nexus', presence_migrations: 'Migrações',
+      presence_skills: 'Skills indexadas', presence_agents: 'Agentes OpenCode', presence_nexus: 'Nexus · local', presence_migrations: 'Migrações',
+      presentation_evidence_note:
+        'Afirmações quantitativas ou de capacidade nesta página (contagens, percentuais e resultados PASS) são históricas ou ilustrativas, não uma verificação atual. Consulte evidências datadas e execute o comando indicado antes de tratá-las como atuais.',
       /* Nav */
       nav_commands: 'Comandos',
       nav_glossary: 'Glossário',

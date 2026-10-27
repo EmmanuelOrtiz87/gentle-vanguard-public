@@ -13,11 +13,12 @@ import { join } from 'node:path';
 import {
   analyzeProcesses,
   DEFAULT_OPTIONS,
+  parseWindowsProcessSnapshot,
   type ProcessSnapshot,
   type ProcessInfo,
 } from '../../src/core/process-hygiene.ts';
 
-const REPO = 'C:\\Workspace_local\\gentle-vanguard';
+const REPO = process.cwd();
 
 function proc(
   pid: number,
@@ -213,6 +214,118 @@ test('vite dev server matches vite-server class, not skill-server', () => {
   );
 });
 
+test('keeps independent stdio skill servers attached to separate live clients', () => {
+  const copilot = proc(37488, 12840, `"node.exe" dist/scripts/mcp/skill-server.js`, 0.3);
+  const dashboard = proc(
+    10008,
+    30772,
+    `"node.exe" ${REPO}\\apps\\web-dashboard\\node_modules\\tsx\\dist\\cli.mjs ${REPO}\\scripts\\mcp\\skill-server.ts`,
+    0.1,
+  );
+  const s = snap([copilot, dashboard], [37488, 12840, 10008, 30772]);
+
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+
+  assert.ok(!findings.some((f) => f.kind === 'duplicate-daemon'));
+  assert.deepStrictEqual(
+    keptHealthy.filter((daemon) => daemon.classId === 'skill-server').map((daemon) => daemon.pid),
+    [10008, 37488],
+  );
+});
+
+test('still cleans redundant skill servers under the same live client', () => {
+  const older = proc(37488, 12840, `"node.exe" dist/scripts/mcp/skill-server.js`, 0.3);
+  const newer = proc(10008, 12840, `"node.exe" dist/scripts/mcp/skill-server.js`, 0.1);
+  const s = snap([older, newer], [37488, 10008, 12840]);
+
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+
+  assert.deepStrictEqual(
+    findings.filter((f) => f.kind === 'duplicate-daemon').map((f) => f.pid),
+    [37488],
+  );
+  assert.ok(
+    keptHealthy.some((daemon) => daemon.classId === 'skill-server' && daemon.pid === 10008),
+  );
+});
+
+test('recognizes live non-node client parents for independent stdio skill servers', () => {
+  const output = [
+    '19484\t37172\tcopilot.exe\t2026-10-20T01:00:00.000Z\tcopilot.exe --server --stdio',
+    '7140\t24788\tnode.exe\t2026-10-20T01:30:00.000Z\twebsocket-server.ts',
+    '17012\t19484\tnode.exe\t2026-10-20T01:40:00.000Z\tnode.exe dist/scripts/mcp/skill-server.js',
+    '39340\t7140\tnode.exe\t2026-10-20T01:45:00.000Z\tnode.exe tsx/cli.mjs scripts/mcp/skill-server.ts',
+  ].join('\n');
+  const { repoProcesses, livePids } = parseWindowsProcessSnapshot(output, new Map());
+
+  assert.ok(livePids.has(19484), 'Copilot client PID is tracked as live');
+  assert.ok(
+    !repoProcesses.some((process) => process.pid === 19484),
+    'the external Copilot client is not treated as a repo daemon',
+  );
+
+  const { findings, keptHealthy } = analyzeProcesses(
+    {
+      repoProcesses,
+      livePids,
+      portOwners: new Map(),
+      pidFiles: new Map(),
+    },
+    OPTS,
+  );
+  assert.ok(!findings.some((finding) => finding.classId === 'skill-server'));
+  assert.deepStrictEqual(
+    keptHealthy
+      .filter((daemon) => daemon.classId === 'skill-server')
+      .map((daemon) => daemon.pid)
+      .sort((a, b) => a - b),
+    [17012, 39340],
+  );
+});
+
+test('does not classify a daemon from another checkout as a repo process', () => {
+  const localPid = 26772;
+  const foreignPid = 38292;
+  const foreignPosixPid = 38293;
+  const localServer = join(process.cwd(), 'apps', 'command-center', 'server.ts');
+  const foreignServer = 'C:\\external\\gentle-vanguard\\apps\\command-center\\server.ts';
+  const foreignPosixServer = '/external/gentle-vanguard/apps/command-center/server.ts';
+  const pidFiles = new Map([[join('.runtime', 'command-center.pid'), String(localPid)]]);
+  const output = [
+    `${localPid}\t1000\tnode.exe\t2026-10-20T01:30:00.000Z\t"node.exe" --import tsx "${localServer}"`,
+    `${foreignPid}\t2000\tnode.exe\t2026-10-20T01:31:00.000Z\t"node.exe" --import tsx "${foreignServer}"`,
+    `${foreignPosixPid}\t2000\tnode.exe\t2026-10-20T01:32:00.000Z\tnode --import tsx ${foreignPosixServer}`,
+  ].join('\n');
+
+  const { repoProcesses, livePids } = parseWindowsProcessSnapshot(output, pidFiles);
+  const { findings, keptHealthy } = analyzeProcesses(
+    {
+      repoProcesses,
+      livePids,
+      portOwners: new Map(),
+      pidFiles,
+    },
+    OPTS,
+  );
+
+  assert.ok(livePids.has(foreignPid), 'foreign process remains visible for parent-liveness checks');
+  assert.ok(
+    livePids.has(foreignPosixPid),
+    'foreign POSIX process remains visible for parent checks',
+  );
+  assert.ok(repoProcesses.some((process) => process.pid === localPid));
+  assert.ok(
+    !repoProcesses.some((process) => process.pid === foreignPid || process.pid === foreignPosixPid),
+    'foreign checkout daemons are outside the set this worktree can manage',
+  );
+  assert.ok(
+    !findings.some((finding) => finding.pid === foreignPid || finding.pid === foreignPosixPid),
+  );
+  assert.ok(
+    keptHealthy.some((daemon) => daemon.classId === 'command-center' && daemon.pid === localPid),
+  );
+});
+
 test('static app servers (node serve-static) are protected classes, not hung one-shots', () => {
   // academy: start.sh shape (node serve-static, post-migración 2026-10) —
   // pidfile records the msys nohup wrapper pid (alive, but not a class
@@ -228,7 +341,7 @@ test('static app servers (node serve-static) are protected classes, not hung one
   const hub = proc(
     888,
     7,
-    'python -m http.server 8095 --bind 127.0.0.1 --directory C:\\Workspace_local\\gentle-vanguard\\apps\\design-hub',
+    `python -m http.server 8095 --bind 127.0.0.1 --directory ${REPO}\\apps\\design-hub`,
     26,
     'python.exe',
   );

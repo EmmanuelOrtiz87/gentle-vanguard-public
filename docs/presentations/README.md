@@ -1,23 +1,25 @@
 # Presentations
 
-Material de presentación del stack GentleVanguard. Versión vigente: package.json (4.2.0 al 2026-10-18). Versiones antiguas quedan fuera de
+Material de presentación del stack GentleVanguard. Versión vigente: package.json (4.3.0 al 2026-10-20). Versiones antiguas quedan fuera de
 la documentación viva.
 
-> **Nota de alcance**: este material es la documentación oficial de presentación del stack. La ruta
-> canónica de instalación y uso vive en [`GETTING-STARTED.md`](../../GETTING-STARTED.md),
+> **Nota de alcance**: este material es la documentación de presentación del stack. La ruta canónica
+> de instalación y uso vive en [`GETTING-STARTED.md`](../../GETTING-STARTED.md),
 > [`docs/OPERATIONS.md`](../OPERATIONS.md) y [`docs/GOVERNANCE-USERS.md`](../GOVERNANCE-USERS.md).
-> Métricas verificadas 2026-09-22: watchtower 154 checks / 29 componentes · pipeline de sesión
-> 110 steps (32 + 78 lazy) · 191 archivos de test.
+> No usar conteos de salud, pruebas o pasos como valores permanentes: consultar evidencia fechada y
+> ejecutar los checks actuales antes de cada decisión de entrega.
 
 ## Estado vigente
 
-Revisión visual del 18-10: carruseles inactivos comprobados en los HTML; quedan sólo el script legado sin carga y referencias de contenido a carruseles de redes. Índice con hero vertical, resumen de versión/contadores vigente y prueba en tres idiomas (`npm run docs:presentations:review`). Topbars y footers actuales usan GentleVanguard e icono transparente. Ver [matriz de homologación y límites](../design/10-native-homologation-2026-10-18.md). El contenido histórico técnico todavía requiere la revisión del propietario; el registro de fuentes no lo convierte en información vigente.
+Actualización editorial del 20-10: navegación de diagramas centralizada en esta galería, con 10 SVG accesibles y secciones de galería repetidas retiradas de las páginas temáticas. Se conservan sólo gráficos contextuales que explican su contenido. `docs:presentations:check` detecta drift del registro y del shell; no certifica por sí solo hechos históricos, todas las traducciones ni la funcionalidad de las herramientas.
 
-Actualización de integración: la campaña ya está en Content Studio (5 contenidos, 10 variantes y 10 medios), sin aprobación ni agenda. Registro de **25 presentaciones** en `presentation-register.json`; `docs:presentations:sync` actualiza clasificación, fuentes y resúmenes desde Stack Facts, y `docs:presentations:check` detecta drift. Marketing conserva hipótesis previas en un disclosure histórico cerrado; no son resultados/servicios aprobados. `STACK-FACTS-BRIEF.md` ya deriva del inventario actual, no del recuento de septiembre.
+El registro mantiene **26 páginas** (incluida esta galería). `docs:presentations:sync` actualiza clasificación, fuentes y resúmenes desde Stack Facts; `docs:presentations:check` detecta drift. Marketing conserva hipótesis previas en un disclosure histórico cerrado; no son resultados ni servicios aprobados.
+
+Las páginas con cifras o afirmaciones de capacidad heredadas muestran una advertencia traducida (EN/ES/PT-BR): esos valores no representan verificación actual. Se marca explícitamente el contenido cuantificado de 19 páginas; esto no certifica la vigencia de todas las afirmaciones ni equivale a una auditoría completa del resto.
 
 Los scripts de las herramientas documentales Image/Video Studio recuperaron sus indicadores de canvas/resolución y reflow móvil; el visor Markdown resuelve imágenes/enlaces respecto al documento de origen. Estas correcciones de apertura no acreditan todas las funciones de exportación, proveedores o conectores. La operación de contenidos real sigue en `apps/content-cms`.
 
-`npm run docs:presence:verify` recorre las 25 páginas del registro, dos anchos y ambos temas (100 casos): tokens renderizados, fuentes, cabecera/footer compartidos, ausencia de carteles/carruseles, errores JS/HTTP y lectura móvil. El visor de contratos apila paneles en móvil; Recursos incorpora navegación de secciones desplegable. No certifica todas las acciones ni traducciones. `docs:presence:check` y `docs:presentations:check` quedaron incorporados al job de identidad de CI; su ejecución remota depende del siguiente push del workspace. No se afirmó una corrida de Actions para estos cambios locales.
+`npm run docs:presentations:check` verifica el registro editorial y el shell compartido; `npm run docs:presence:check` verifica la salida de presencia y los snapshots canónicos. Ninguno certifica todas las acciones ni traducciones. La validación hosted no se presume aprobada por checks locales; consultar el estado de CI por separado.
 
 [Web, marca y difusión](public-presence.html) reúne avances, evidencias y pendientes. Fuente: [ficha de estado](../status/PRESENCIA-PUBLICA-Y-DISENO.md). `npm run docs:presence:sync` genera HTML, accesos y snapshots canónicos; `npm run docs:presence:check` detecta drift. La web está publicada; la campaña está en revisión.
 
@@ -25,19 +27,19 @@ Los scripts de las herramientas documentales Image/Video Studio recuperaron sus 
 
 - [index.html](index.html) — landing principal: arquitectura, componentes, autonomía, data layer,
   executive systems, feature matrix
-- [architecture.html](architecture.html) — arquitectura en 6 capas, 16 DAOs, pipeline de sesión,
-  optimizaciones de rendimiento
+- [architecture.html](architecture.html) — capas, límites, componentes y optimizaciones
 - [autonomy.html](autonomy.html) — sistemas autónomos: executive loop, auto-apply, circuit breaker
 - [dashboard.html](dashboard.html) — observabilidad LLM (React/TS/Vite + WebSocket)
+- [diagrams.html](diagrams.html) — catálogo central de 10 diagramas técnicos accesibles
 - [quickstart.html](quickstart.html) — arranque rápido del stack
 - [memory-knowledge.html](memory-knowledge.html) — memoria y conocimiento (Engram, CodeGraph,
   Graphify, Nexus)
 - [knowledge-systems.html](knowledge-systems.html) — Obsidian, Engram, Nexus, CodeGraph y Graphify
 - [security-governance.html](security-governance.html) — seguridad, gobernanza y normativas
-- [agents-pipeline.html](agents-pipeline.html) — 21 agentes especializados + pipeline
+- [agents-pipeline.html](agents-pipeline.html) — perfiles de agentes y pipeline
 - [operations-cloud.html](operations-cloud.html) — operaciones, cloud y CI/CD
 - [patterns-conventions.html](patterns-conventions.html) — patrones y convenciones
-- [health.html](health.html) — watchtower 154 checks / 29 componentes
+- [health.html](health.html) — comandos y evidencia de health; ejecutar para obtener estado actual
 - [commands.html](commands.html) — comandos CLI del stack
 - [glossary.html](glossary.html) — glosario de términos
 - [study-material.html](study-material.html) — material de estudio
@@ -54,7 +56,7 @@ Los scripts de las herramientas documentales Image/Video Studio recuperaron sus 
 
 ## Diseño
 
-Las 25 páginas comparten cabecera de Arquitectura, icono transparente, controles de idioma/tema y footer. `presentation-shell.css` vincula los aliases históricos con tokens canónicos, unifica tipografía y corrige paneles móviles sin rediseñar canvases. El registro editorial permanece en JSON: los carteles se eliminan del generador, no se ocultan con CSS. La ficha de estado conserva su cuerpo documental en español aunque comparta navegación multilingüe. Autoridad: [Brand Kit](../brand/BRAND-KIT.md) y [Motion & UX Standard](../design/07-motion-ux-standard.md).
+Las 26 páginas comparten cabecera de Arquitectura, icono transparente, controles de idioma/tema y footer. `presentation-shell.css` vincula los aliases históricos con tokens canónicos, unifica tipografía y corrige paneles móviles sin rediseñar canvases. El registro editorial permanece en JSON: los carteles se eliminan del generador, no se ocultan con CSS. La ficha de estado conserva su cuerpo documental en español aunque comparta navegación multilingüe. Autoridad: [Brand Kit](../brand/BRAND-KIT.md) y [Motion & UX Standard](../design/07-motion-ux-standard.md).
 
 Convenciones existentes, a verificar por superficie:
 
@@ -81,9 +83,9 @@ Convenciones existentes, a verificar por superficie:
 
 ## Diagramas
 
-- 27 diagramas SVG en 12 páginas, **integrados en las secciones temáticas que los mencionan**
-  (con card + caption descriptivo), no apilados al final
-- Script de reubicación: `scripts/maintenance/diagrams-in-context.mjs`
+- 10 SVG actuales en [diagrams.html](diagrams.html), accesibles y con fuentes documentales.
+- Las páginas pueden conservar gráficos contextuales; la galería general no se repite en cada una.
+- Los datos de Nexus, estimación y gates muestran sus límites o fecha de evidencia.
 
 ## Assets
 
@@ -91,5 +93,5 @@ Convenciones existentes, a verificar por superficie:
 - `assets/js/` — i18n (en/es/pt-BR), lightbox, theme-toggle, gv.js (shell canónico)
 - `assets/vendor/` — bootstrap.min.css, bootstrap-icons (css+woff2/woff), marked, highlight,
   github-dark (local-first, cero CDN)
-- `diagrams/` — 5 diagramas SVG con colores oficiales
+- `diagrams/` — 10 SVG fuente usados por la galería central
 - `social-assets/`, `social-templates/` — plantillas sociales

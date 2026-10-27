@@ -166,7 +166,7 @@ async function main(): Promise<void> {
     console.log(result);
     console.log();
     console.log('=================================================');
-    console.log(`  Status: ✅ SUCCESS`);
+    console.log('  Status: TEMPLATE GENERATED — requirements still need agent analysis');
     console.log(`  Duration: ${duration}ms`);
     console.log(`  Recommended Phase: ${JSON.parse(result).recommendedPhase}`);
     console.log('=================================================');
@@ -176,6 +176,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: true,
+          executionKind: 'deterministic-requirements-template',
+          phaseComplete: false,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,
           task,

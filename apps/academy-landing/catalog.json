@@ -1,11 +1,11 @@
 {
-  "generated": "2026-10-19T15:19:47.204Z",
+  "generated": "2026-10-20T23:25:38.780Z",
   "counts": {
     "courses": 28,
-    "ebooks": 34,
+    "ebooks": 33,
     "ebooksPremium": 18,
     "toolkits": 24,
-    "products": 86
+    "products": 85
   },
   "pricing": {
     "ebook-micro": {
@@ -403,15 +403,6 @@
         "audience": "Diseñadores gráficos y digitales, freelancers y equipos de diseño",
         "featured": false,
         "priceTier": "ebook-micro"
-      },
-      {
-        "id": "ia-en-tu-dia-a-dia",
-        "title": "IA en tu día a día",
-        "type": "free",
-        "chapters": 9,
-        "audience": "Personas que quieren empezar a usar IA en su vida cotidiana",
-        "featured": true,
-        "priceTier": "ebook-free"
       },
       {
         "id": "ia-estudiantes",

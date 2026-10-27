@@ -7,6 +7,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
+import { formatReadinessStatus } from './stack-readiness.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -96,7 +97,7 @@ async function main(): Promise<void> {
   const bootstrapFlag = join(ROOT, '.runtime', '.stack-bootstrapped');
   if (existsSync(bootstrapFlag)) {
     const ts = readFileSync(bootstrapFlag, 'utf-8');
-    log('✅ Stack Bootstrapped', 'success');
+    log('ℹ️  Bootstrap Marker Found (not a health check)', 'info');
     log(`   Last: ${ts.slice(0, 19)}`, 'info');
     log('');
   } else {
@@ -105,6 +106,9 @@ async function main(): Promise<void> {
     log('');
   }
 
+  log(`⚠️  ${formatReadinessStatus(existsSync(bootstrapFlag))}`, 'warn');
+  log('');
+
   // Quick Commands
   log('Quick Commands:', 'info');
   log('  npm run stack:bootstrap       # Bootstrap stack', 'info');
@@ -112,7 +116,6 @@ async function main(): Promise<void> {
   log('  npm run route:stats            # Routing statistics', 'info');
   log('  npm run validate:stack         # Full validation', 'info');
   log('');
-  log('Stack is ready for production!', 'success');
 }
 
 void main();

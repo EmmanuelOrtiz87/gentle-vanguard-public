@@ -116,8 +116,8 @@
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
     <script src="assets/js/i18n.js?v=3.0"></script>
-    <script src="assets/js/theme-toggle.js?v=2.0"></script><link rel="icon" href="assets/canon/icon.svg">
-<link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
+    <script src="assets/js/theme-toggle.js?v=2.0"></script>
+<link rel="icon" href="assets/canon/icon.svg"><link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
   <body>
     <div class="scroll-progress"></div>
     <div class="gv-grid-bg"></div>
@@ -145,7 +145,7 @@
           <a href="commands.html"><span data-i18n="nav_commands">Commands</span></a>
           <a href="glossary.html"><span data-i18n="nav_glossary">Glossary</span></a>
           <a href="study-material.html"><span data-i18n="nav_study">Study</span></a>
-          <a href="index.html#diagrams"><span data-i18n="nav_diagrams">Diagrams</span></a>
+          <a href="diagrams.html"><span data-i18n="nav_diagrams">Diagrams</span></a>
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
@@ -160,6 +160,7 @@
         </div>
       </div>
     </header>
+<!-- GV-EVIDENCE-NOTE:START --><aside class="gv-evidence-note" role="note" data-i18n="presentation_evidence_note">Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada y ejecuta el comando indicado antes de tratarlas como vigentes.</aside><!-- GV-EVIDENCE-NOTE:END -->
 
     <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ v4.0 — Command Reference</span>
@@ -1426,25 +1427,25 @@
               </tr>
               <tr
                 data-command="presentations:verify:cdp"
-                data-search="presentations:verify:cdp verifica una página vía chrome devtools protocol. .opencode/skills/presentations-maintenance/scripts/cdp-verify-page.cjs"
+                data-search="presentations:verify:cdp verifica una página vía chrome devtools protocol. skills/presentations-maintenance/scripts/cdp-verify-page.ts"
               >
                 <td><code class="cmd-code">npm run presentations:verify:cdp</code></td>
                 <td class="cmd-desc">Verifica una página vía Chrome DevTools Protocol.</td>
                 <td>
                   <span class="cmd-ref mono"
-                    >.opencode/skills/presentations-maintenance/scripts/cdp-verify-page.cjs</span
+                    >skills/presentations-maintenance/scripts/cdp-verify-page.ts</span
                   >
                 </td>
               </tr>
               <tr
                 data-command="presentations:verify:cdp:hotspots"
-                data-search="presentations:verify:cdp:hotspots verifica hotspots de todas las páginas vía cdp. .opencode/skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.cjs"
+                data-search="presentations:verify:cdp:hotspots verifica hotspots de todas las páginas vía cdp. skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.ts"
               >
                 <td><code class="cmd-code">npm run presentations:verify:cdp:hotspots</code></td>
                 <td class="cmd-desc">Verifica hotspots de todas las páginas vía CDP.</td>
                 <td>
                   <span class="cmd-ref mono"
-                    >.opencode/skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.cjs</span
+                    >skills/presentations-maintenance/scripts/cdp-verify-hotspots-all.ts</span
                   >
                 </td>
               </tr>

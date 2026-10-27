@@ -367,8 +367,24 @@ function invokeKarpathyEnforcement(trigger: Trigger): KarpathyResult {
 
 function walkFiles(root: string): string[] {
   const results: string[] = [];
-  const skipDirs = new Set(['node_modules', '.git', 'build', 'dist']);
+  const skipDirs = new Set(['node_modules', '.git', 'build', 'dist', 'coverage',
+    '.session', '.runtime', '.next', '.nuxt', 'output']);
   const extensions = new Set(['.ps1', '.ts', '.js', '.go']);
+
+  // Respect the repository's source boundary, including new, non-ignored files.
+  // Never descend into session snapshots or downloaded repositories.
+  const listed = runSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
+    cwd: root, timeout: 5000, maxBuffer: 16 * 1024 * 1024,
+  });
+  if (listed.status === 0) {
+    return [...new Set(listed.stdout.split('\0'))]
+      .filter((file) => file && extensions.has(path.extname(file).toLowerCase()) &&
+        !file.split(/[\\/]/).some((part) => skipDirs.has(part)))
+      .map((file) => path.join(root, file))
+      .filter((file) => {
+        try { return fs.lstatSync(file).isFile(); } catch { return false; }
+      });
+  }
 
   function walk(dir: string): void {
     try {
@@ -376,7 +392,7 @@ function walkFiles(root: string): string[] {
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (!skipDirs.has(entry.name)) walk(fullPath);
+          if (!skipDirs.has(entry.name) && !entry.name.startsWith('.')) walk(fullPath);
         } else if (entry.isFile() && extensions.has(path.extname(entry.name).toLowerCase())) {
           results.push(fullPath);
         }
@@ -386,7 +402,15 @@ function walkFiles(root: string): string[] {
     }
   }
 
-  walk(root);
+  // Installer distributions have no .git: scan their known source roots only.
+  for (const source of ['src', 'scripts', 'adapters', 'packages', 'apps', 'tests', 'config', 'skills']) {
+    walk(path.join(root, source));
+  }
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (entry.isFile() && extensions.has(path.extname(entry.name).toLowerCase())) {
+      results.push(path.join(root, entry.name));
+    }
+  }
   return results;
 }
 

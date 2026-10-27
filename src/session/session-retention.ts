@@ -6,7 +6,7 @@
  * según políticas definidas:
  * - Máximo 10 sesiones históricas (configurable)
  * - Máximo 5 checkpoints por sesión
- * - Máximo 3 backups rotativos
+ * - Máximo 14 backups rotativos
  * - Cleanup automático de archivos temporales
  *
  * Uso:
@@ -25,7 +25,7 @@ const ROOT = resolve(process.cwd());
 const CONFIG = {
   maxSessionFiles: 10,
   maxCheckpointsPerSession: 5,
-  maxBackups: 3,
+  maxBackups: 14,
   maxCloseReports: 20,
   sessionAgeThresholdDays: 30, // Always keep sessions from last 30 days
   highScoreThreshold: 80, // Keep 5 extra sessions with score > 80

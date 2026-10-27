@@ -428,7 +428,7 @@ function main(): void {
         score: 0.0,
         matchType: 'tier3_clarify',
         confidence: 'low',
-        reason: 'No semantic matches found — BA exploration required',
+        reason: 'No semantic matches found — requirements helper recommended; clarify inline by default',
       },
     ];
     console.log(JSON.stringify(fallback, null, 2));

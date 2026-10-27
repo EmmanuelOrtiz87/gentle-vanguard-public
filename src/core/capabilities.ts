@@ -94,21 +94,21 @@ const REGISTRY: ContractDescriptor[] = [
   },
   {
     contract: 'gentle-vanguard.sdd-pipeline/v1',
-    protocol: '1.1',
+    protocol: '1.2',
     operations: [
       'init',
       'explore',
       'propose',
       'spec',
-      'tasks',
       'design',
+      'tasks',
       'apply',
       'verify',
       'archive',
     ],
     status: 'stable',
     description:
-      'Spec-Driven Development phase pipeline. 1.1 publishes per-phase continuations with the verbatim next-phase command.',
+      'Opt-in SDD scaffolding and evidence gates. 1.2 distinguishes DRAFT/BLOCKED from PASS; templates do not implement code or execute acceptance checks. Continuations require a passing gate.',
   },
   {
     contract: 'gentle-vanguard.sdd-research/v1',

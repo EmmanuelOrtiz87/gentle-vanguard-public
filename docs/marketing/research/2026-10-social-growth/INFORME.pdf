@@ -1,0 +1,743 @@
+GentleVanguard · Estado operativo actualizado · 21/10/2026
+
+Estado operativo de redes y contenido
+
+ Verificación: 21/10/2026 · GentleVanguard
+ Esta actualización reemplaza el estado técnico inicial del informe. La investigación de referencias se conserva
+ con su fecha y límites; no son métricas de las nuevas campañas.
+
+ Qué quedó operativo
+
+ • Texto: el CMS usa Gemini gemini-flash-lite-latest. La generación real produjo variantes para Instagram y
+ TikTok. Quedan como borradores: la revisión editorial sigue siendo necesaria.
+ • Arte local: Creative Studio devolvió HTTP 201 y persistió una pieza de 1080×1350. Las plantillas ahora
+ incorporan Poppins, Inter y el wordmark oficial. No dependen de cuota generativa.
+ • Integración de imágenes: el CMS admite OpenAI-compatible y Gemini, con selector de modelo visual
+ separado del modelo de texto. Valida los bytes y produce el canvas real solicitado, sin estirar el original.
+ Conserva además el archivo original del proveedor antes de convertirlo; la copia adaptada no sustituye esa
+ fuente.
+ • Videos: dos MP4 de 30 segundos, H.264 + AAC, 1080×1920, con voz de Windows y subtítulos quemados.
+ Usan arte propio y guion definido, sin claves de stock. La inspección visual detectó y corrigió el escalado
+ excesivo de subtítulos de libass.
+ • Campañas: diez contenidos importados al CMS, cinco por frente; veinte variantes de Instagram feed/historia
+ y diez variantes de TikTok en estado generado/borrador. No se aprobaron, programaron ni publicaron
+ remotamente. Repetir la importación produjo cero duplicados.
+ • Portabilidad: Social Studio se incorporó a la lista crítica y se sincronizó a OpenCode, Codex, ZCode,
+ MiniMax, Copilot y Antigravity. La auditoría de interoperabilidad reportó PASS para los seis clientes; eso
+ verifica integración y superficies, no que todos los modelos externos tengan cuota.
+ • Zen: la inferencia API de glm-5.3-flash en la cuenta Zen C devolvió HTTP 200 con texto. La prueba con 128
+ tokens de salida máximos consumió 93 tokens totales, incluyendo razonamiento. No se cambió el modelo
+ global del usuario a uno de pago.
+ • Protección de configuración: las pruebas de settings usan almacenamiento temporal aislado; ya no guardan
+ «template» sobre la configuración real del CMS.
+
+                                                                                                                                                                         Actualización 1
+GentleVanguard · Estado operativo actualizado · 21/10/2026
+
+Límites externos y alternativa disponible
+
+Dependencia        Resultado real de esta verificación            Cómo operar mientras tanto
+
+Imágenes Gemini    Catálogo autenticado HTTP 200; inferencia de   Composición local con arte propio. Revisar cuota y
+                   modelos de imagen probados HTTP 429,           condiciones del proyecto en Google antes de
+                   RESOURCE_EXHAUSTED.                            reintentar; no supone que la clave sea inválida.
+
+Imágenes OpenAI    Catálogo autenticado HTTP 200; generación      Plantillas y composición local. Revisar el límite/cuota
+                   con gpt-image-1-mini HTTP 429.                 del proyecto; no se verificó aquí si es saldo o un límite
+                                                                  temporal.
+
+Big Pickle / GLM   HTTP 403, FreeTierError, en esta sesión.       Gemini texto operativo en CMS. Zen GLM Flash de
+Flash free de Zen                                                 pago respondió, usando el crédito existente; elegirlo
+                                                                  conscientemente si se usa.
+
+Voz Edge           El adaptador se corrigió para la API real del  Voz local de Windows comprobada en los dos MP4.
+                   paquete; la llamada viva respondió HTTP 403.   No declarar restablecido Edge por pasar un test con
+                                                                  frontera simulada.
+
+Stock Pexels/Pixabay Sin claves configuradas.                     Usar frames y grabaciones propias. El pipeline de
+                                                                  stock sigue incompleto; la alternativa local ya
+                                                                  renderizó videos.
+
+Conexión directa   Faltan credenciales OAuth nativas. Buffer      Preparar material y borradores; Buffer es la conexión
+Instagram/TikTok   autenticado reconoce ambas cuentas.            existente. No se certificó publicación ni analítica
+                                                                  privada mediante una prueba remota.
+
+Insights y atribución Sin exportación privada verificada.         Registros CSV separados por campaña. No fabricar
+                                                                  métricas de retención, compradores o retorno.
+
+Ninguna integración local puede crear cuota, crédito o autorizaciones de un proveedor. Se conservaron
+conexiones y claves existentes; no se compraron planes, créditos ni anuncios. Los datos de prueba son
+puntuales y se deben revalidar cuando cambie el acceso.
+
+Cómo repetir la producción nativa
+
+Desde la raíz del repositorio:
+
+# Generar prueba visual de una campaña propia; la fecha identifica preparación, no programación.
+node --import tsx src/content-operations/campaign-preview.ts --campaign-dir
+docs/marketing/campaigns/2026-10-social-growth/servicios --date 2026-10-21
+
+# Validar/importar el bundle curado. Omitir --apply para una inspección sin escritura.
+node --import tsx src/content-operations/import-campaign.ts --bundle
+docs/marketing/campaigns/2026-10-social-growth/servicios/bundle --apply
+
+# Generar video local desde guion, subtítulos y frames propios.
+node --import tsx apps/content-cms/server/social/studio-cli.ts video --script
+docs/marketing/research/2026-10-social-growth/VIDEO-SERVICIOS.json
+node --import tsx apps/content-cms/server/social/studio-cli.ts video --script
+docs/marketing/research/2026-10-social-growth/VIDEO-ACADEMY.json
+
+# Verificar las integraciones mantenidas.
+
+                                                                                                  Actualización 2
+GentleVanguard · Estado operativo actualizado · 21/10/2026
+
+ node --import tsx src/integrations/tool-interoperability-audit.ts
+ Las campañas originales están en docs/marketing/campaigns/2026-10-social-growth/{servicios,academy}/.
+ Los directorios bundle/ preservan fuentes, inventario, hashes y PNG. Los previews fechados son
+ reproducibles y no se versionan.
+
+ Entregables para revisar
+
+ • Video de servicios (videos/servicios.mp4) y video de Academy (videos/academy.mp4), con sus SRT.
+ • VIDEO-SERVICIOS.json y VIDEO-ACADEMY.json: fuentes editables de narración, captions y frames. Sus
+ tiempos de subtítulo son editoriales y no una alineación palabra por palabra de Whisper.
+ • Dos carruseles de siete láminas en carrusel/ y carrusel-academy/.
+ • Diez ideas completas con copy y veinte PNG de feed/historia en los bundles de campaña.
+ • Calendario de 14 días, prompts, registros de contenido y leads sin datos inventados.
+
+ Validación y próximos pasos
+
+ Validación local realizada: 222 tests del CMS, 75 tests de gv-shorts-core, typecheck y build del CMS,
+ comprobación de dimensiones/duración/códecs con FFprobe, inspección visual de artes y video, y auditoría
+ de seis integraciones. El gate obligatorio de push y el cierre de sesión generan evidencia adicional propia.
+ Los pendientes externos quedan identificados en la tabla. La operación disponible permite continuar
+ preparando contenido con Gemini texto, composición y video local. Antes de una publicación se revisa la
+ pieza concreta, el contacto, el destino y las condiciones de la plataforma; las cuentas no fueron modificadas
+ para publicar automáticamente.
+
+                                                                                                                                                                        Actualización 3
+De publicaciones a
+conversaciones comerciales
+
+Instagram y TikTok
+Servicios + Academy: campañas y recorridos separados
+
+GentleVanguard
+Investigación: 20/10/2026 · Actualización: 21/10/2026
+
+10 ideas · 16 prompts en el kit adjunto
+Dos recorridos para convertir interés en acción
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ GentleVanguard · Investigación del 20/10/2026 · Plan actualizado el 21/10/2026
+
+ 1. La decisión recomendada
+
+ Durante las próximas dos semanas, impulsar dos campañas con recorridos separados, según la prioridad
+ confirmada por el usuario: servicios de software y automatización para pymes, y formación de Academy.
+ Producir cinco ideas para cada frente, compartiendo recursos de producción y conservando mensaje,
+ destino y medición propios.
+
+ En servicios, enfocarnos en pymes que pierden el seguimiento de consultas entre WhatsApp, planillas y
+ memoria. En Academy, empezar por personas que quieren aprender a usar IA con criterio y evaluar el curso
+ publicado «IA — De 0 a 100 (Nivel 1)». Mezclar ambas ofertas dentro de una misma pieza dificulta entender
+ qué contratar; las cuentas pueden ser las mismas, pero cada pieza debe indicar claramente a qué recorrido
+ pertenece. La selección del producto educativo es una propuesta inicial para el piloto, no una previsión de
+ ventas.
+
+ Resultado buscado: en servicios, conversaciones calificadas que puedan avanzar a alcance y propuesta; en
+ Academy, consultas sobre la formación y compras confirmadas. Medir cada recorrido por separado. Una
+ publicación con muchas reproducciones puede aportar reconocimiento sin generar clientes. No existe un
+ prompt ni un truco que garantice viralidad.
+
+ Primeras tres acciones:
+
+ 1. Preparar la recepción de consultas: responsable, registro y respuesta inicial del apartado 7.
+
+ 2. Producir una demostración de seguimiento para servicios y una microlección de prompting para
+ Academy, con los guiones y carruseles adjuntos.
+
+ 3. Ejecutar el piloto de 14 días, registrar resultados a las 72 horas y a los 7 días y repetir el enfoque que
+ atraiga consultas pertinentes.
+
+ Entregables: este informe, PROMPTS-Y-PIEZAS.md, CAMPANA-ACADEMY.md, CALENDARIO-14-DIAS.csv,
+ REGISTRO-CONTENIDO.csv y REGISTRO-LEADS.csv. El HTML permite leer y copiar; el PDF sirve para
+ compartir. Todo queda como propuesta y material de trabajo, sin publicaciones ni mensajes enviados a
+ terceros. No se indicaron referentes preferidos; se conserva la muestra seleccionada y verificada, sin
+ atribuir al usuario afinidad con esas cuentas.
+
+ 2. Qué se investigó y qué podemos afirmar
+
+ Se revisaron fuentes oficiales de Instagram, TikTok, OpenAI y Google; el contexto de producto y marca del
+ repositorio; las herramientas del stack; y una muestra deliberada de perfiles y publicaciones públicas. La
+ muestra busca aprender mecanismos, no representa estadísticamente al mercado.
+
+ La observación directa incluyó los perfiles de GV en ambas redes, nueve fichas públicas de TikTok de GV,
+ tres reels externos de Instagram —Ruben Loan, Dot CSV y Platzi— y el catálogo visible de TikTok de Platzi,
+ incluyendo la versión del mismo video de IA y dos promociones con destino explícito. En TikTok se abrió
+ también el video de chatbot de GV y el de IA de Platzi. Se distinguieron texto, fotogramas visibles y
+ contadores; no se transcribieron ni evaluaron íntegramente todos los videos.
+
+ No se accedió a Insights privados, retención, alcance único, clics, inversión publicitaria ni ventas de las
+ cuentas externas. Tampoco se puede determinar si una pieza fue impulsada con publicidad a partir de sus
+ contadores. Las métricas públicas cambian. No calculamos engagement comparando likes de una red con
+
+                                                                                                                                                                                            2
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+vistas de otra.
+
+Tres niveles de evidencia: observado = visible o probado; interpretación = explicación plausible del
+mecanismo; experimento = adaptación propuesta para GV. Las afirmaciones hechas por un creador sobre
+IA o resultados comerciales no se consideran verificadas por aparecer en su publicación.
+
+Foto pública de GentleVanguard
+
+Canal                 Observado en esta revisión                       Implicación práctica
+
+Instagram,            727 seguidores, 806 seguidos. Bio centrada en    Existe una base inicial. Probar una promesa
+@gentlevanguard.sj    IA, aprender, automatizar y construir. Enlaces   más concreta para el comprador de servicios y
+                      múltiples, incluido gentlevanguard.github.io.    ordenar los enlaces. El acceso a una
+                                                                       publicación propia terminó en una solicitud de
+                                                                       inicio de sesión; no se inventó su contenido.
+
+TikTok,               267 seguidores, 583 seguidos, 75 me gusta        La bio comunica un tema amplio, pero no
+@gentlevanguard.sj    acumulados. Bio: «IA + Tecnología práctica /     define con claridad qué problema comercial
+                      Aprendé • Automatizá • Construí con criterio».   resolvemos ni cómo consultar.
+
+TikTok, nueve fichas  Contadores de reproducciones visibles: 39, 517,  Diferencias grandes dentro de una muestra
+visibles              537, 318, 127, 181, 166, 27 y 75.                pequeña y de distintas edades. No bastan para
+                                                                       atribuir causalidad al tema, horario o
+                                                                       frecuencia.
+
+En particular, el video de chatbot del 30/09 mostraba 537 reproducciones, 9 me gusta y 0 comentarios,
+además de etiquetas de contenido promocional y generado por IA. Su caption empieza por «¿Te escriben
+clientes y no llegás a responder todo?» y termina preguntando qué consulta se repite en el negocio. Tiene
+una entrada comercial más concreta que «tenés las herramientas a tu alcance». El paso que falta probar es
+conectar esa pregunta con una demostración verificable y una consulta de alcance. [G2]
+
+No conocemos todavía la tasa de llegada a consultas. Los 0 comentarios no significan 0 ventas, y 537
+reproducciones no significan 537 personas distintas.
+
+3. Qué mecanismos se ven en otras cuentas
+
+Ruben Loan: convertir un concepto en un método
+
+Observado: reel del 27/09/2026 con tres razones para escribir y sistematizar el trabajo con IA: no perder lo
+pensado, poder repetir/mejorar y separar pensar de ejecutar. Fotograma con presentador, micrófono,
+subtítulos y referencia a su YouTube. Caption con destino youtube.com/@rubenloan. [R1]
+
+Interpretación: la lista reduce el esfuerzo de comprensión y el canal largo permite desarrollar el método. Se
+observa el paso hacia YouTube; no se verificó la conversión posterior a un producto pago.
+
+Aplicación GV: «Tres datos que necesitás antes de automatizar tus consultas»: pregunta frecuente,
+responsable y próximo paso. Mostrar una ficha realista con datos ficticios. Cerrar con una invitación a
+describir el proceso del negocio. Tomar la estructura educativa, sin copiar identidad ni materiales.
+
+                                                                                                                   3
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ Dot CSV: curiosidad acompañada de explicación visual
+
+ Observado: reel del 14/10/2026 titulado «El mayor hito de la IA aplicada a las matemáticas», con 755 me
+ gusta y 12 comentarios visibles. Fotograma dividido entre visualización y presentador, con subtítulos. Hay
+ comentarios que expresan curiosidad y otros que cuestionan afirmaciones. [R2]
+
+ Interpretación: un título de novedad atrae interés y la combinación de cara + visualización facilita explicar.
+ Los comentarios también muestran que atención y confianza no son equivalentes. No se verificó aquí la
+ afirmación científica del video.
+
+ Aplicación GV: usar novedad solo cuando podamos demostrarla: «Probamos registrar una consulta sin
+ copiarla tres veces». Mostrar entrada y resultado. Evitar superlativos como «la mejor IA» o porcentajes de
+ ahorro sin medición propia. Este formato sirve para autoridad; no reemplaza una oferta.
+
+ Platzi en Instagram: demostrar el resultado antes de vender la formación
+
+ Observado: reel del 15/10/2026: «Sin cámaras, sin actores, sin estadio. Solo IA». Presenta una escena de
+ fútbol generada y conecta con Platzi AI Academy: «Tu primera clase dura 2 minutos». Mostraba
+ aproximadamente 29,9 mil me gusta y 279 comentarios. Varios comentarios se refieren a personajes y
+ referencias culturales, no a intención de compra. [R3]
+
+ Interpretación: resultado visible explicación de cómo aprenderlo reducción del esfuerzo percibido
+ destino comercial. La conversación cultural puede ampliar atención sin representar compradores. Las
+ ventas no son públicas.
+
+ Aplicación GV: abrir con un resultado que sí podamos ofrecer y enseñar: una consulta ficticia registrada con
+ responsable y estado. Después mostrar el problema que resuelve. No copiar personajes, celebridades,
+ marcas ni una promesa de clase gratuita que GV no tenga habilitada.
+
+ Platzi en TikTok: mismo mensaje, rendimiento distinto y ofertas específicas
+
+ Observado: la versión equivalente del video de IA mostraba 1.973 reproducciones, 69 me gusta y 2
+ comentarios, con identificación de contenido generado por IA. Su perfil enlaza a platzi.com/promo. Otras
+ fichas anuncian un curso de email marketing con fecha y otro de Obsidian con destino específico. [R4–R6]
+
+ Interpretación: la oferta tiene un objeto y un próximo paso reconocibles. La diferencia de contadores entre
+ redes demuestra por qué no conviene trasladar expectativas de una plataforma a otra; no prueba qué
+ algoritmo causó la diferencia. La urgencia y disponibilidad son afirmaciones de esa empresa.
+
+ Aplicación GV: adaptar apertura, ritmo y CTA a cada canal; enlazar a la página pertinente. Usar fecha,
+ descuento o cupos solo si son reales y están aprobados. No replicar «pocos cupos» como recurso
+ automático.
+
+ Patrón común que merece probarse
+
+ Problema o resultado reconocible explicación breve evidencia visible siguiente paso sencillo. La
+ demostración puede ser un registro, un antes/después del flujo o una captura propia. Debe quedar claro
+ qué es un prototipo, qué funciona y qué todavía requiere integración.
+
+ Para servicios GV, una demostración modesta de seguimiento comercial tiene más coherencia de
+ posicionamiento que una imagen espectacular sin relación con el servicio. Su rendimiento se debe medir, no
+ asumir.
+
+                                                                                                                                                                                            4
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+4. Alcance: fundamentos útiles y mitos que debemos
+abandonar
+
+Instagram explica que Feed, Stories, Explore y Reels usan sistemas distintos. Su explicación oficial de 2023
+menciona, entre otras señales y predicciones para Reels, compartir, terminar de ver y dar me gusta. Es un
+fundamento publicado, no una tabla de pesos vigente certificada para 2026. [S1]
+
+TikTok Creative Codes recomienda estructura de apertura, desarrollo y cierre; formato vertical, sonido y
+recursos que mantengan interés. Es orientación de creatividad publicitaria: usarla para diseñar piezas no
+demuestra cómo se ordena todo el contenido orgánico. [S2]
+
+Las antiguas direcciones del soporte de TikTok devolvieron 404 mediante el lector; el resultado oficial
+actual redirigió a una página de soporte que no pudo recuperarse por completo. No se usó la respuesta
+generada del buscador como fuente del algoritmo. Es preferible reconocer esta limitación a inventar pesos
+de retención. La etiqueta de IA sí fue observada directamente en las piezas abiertas. [S5]
+
+Idea frecuente                                                 Criterio de trabajo
+«Si sigo a mucha gente, la red me castiga»
+                                                               Esta revisión no encontró respaldo oficial para diagnosticar el
+                                                               alcance por la relación seguidos/seguidores. No hacer una
+                                                               limpieza masiva con esa promesa.
+
+«El único problema es publicar poco»                           La frecuencia permite experimentar, pero también importan
+«Cinco hashtags aseguran alcance»                              mensaje, prueba, distribución, audiencia y recepción de
+                                                               consultas. No hay causa única demostrada.
+
+                                                               Los hashtags ayudan a contextualizar. La cantidad óptima del
+                                                               stack es una regla interna, no una garantía de distribución.
+                                                               Usar pocos y pertinentes, sin rellenar.
+
+«Hay una hora mágica»                                          Elegir horarios operables y compararlos con Insights propios.
+                                                               Los horarios genéricos de una herramienta son hipótesis.
+
+«Un post viral valida el negocio»                              La validación comercial necesita consultas pertinentes,
+«La IA fabrica el caso de éxito»                               propuestas y ventas. Un pico de vistas puede atraer público
+                                                               ajeno al servicio.
+
+                                                               Puede crear ilustraciones y prototipos; no debe fabricar
+                                                               testimonios, clientes, capturas de resultados ni escenas que
+                                                               simulen evidencia real.
+
+No reutilizar videos con el logo de otra plataforma: conservar un archivo maestro propio y exportar
+versiones nativas. Esto no autoriza retirar marcas de procedencia, credenciales de contenido o
+identificaciones de IA. Mantener subtítulos legibles; evitar convertir todo el video en una pared de texto.
+Música y material de archivo deben permitir el uso comercial previsto.
+
+Corrección de material anterior: el playbook interno conservaba recomendaciones sobre ratio de seguidos y
+cadencia presentadas con más certeza de la que permite esta evidencia. Se tratan como hipótesis
+históricas, no reglas. Tampoco se debe ofrecer el curso por participación en la charla pendiente: ese
+recurso sigue deshabilitado.
+
+                                                                                                                              5
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+5. Prueba real de las capacidades del stack
+
+Capacidad               Prueba y resultado                                 Uso razonable hoy
+
+Investigación web       Crawler sin clave Firecrawl; fallback activo Jina  Investigar con revisión de relevancia y verificar
+                        + buscadores. Recuperó documentación útil,         fuentes en navegador. Una ejecución exitosa
+                        pero varias búsquedas devolvieron resultados       no certifica calidad de búsqueda.
+                        ajenos al tema.
+
+Observación             Perfiles y varias publicaciones públicas           Auditoría pública cualitativa. No sustituye
+Instagram/TikTok        accesibles en navegador; algunas piezas            Insights ni permite ver ventas privadas.
+                        propias de Instagram pidieron login.
+
+Social Studio:          CLI generó plan de 2 semanas; el valor por         Estructura y organización; requiere edición
+plan/calendario         defecto fue 2 piezas/semana. Algunas               humana. No usar estimatedScore como
+                        propuestas repetían el brief y recibían            pronóstico comercial.
+                        estimaciones altas.
+
+Social Studio: control  Detectó apertura demasiado larga en una            Control de formato y advertencias; no valida
+de texto                prueba de caption de una sola línea; puntuación    verdad, estrategia ni audiencia.
+                        52, revisión requerida. También penalizó 0
+                        hashtags según regla interna.
+
+Plantillas visuales     Código disponible para SVG determinista y          Borrador técnico. Para producción usar
+locales                 proporciones 1:1, 4:5, 9:16. Plantilla actual usa  Poppins, Inter y activos oficiales; el kit de esta
+                        Arial y una marca textual simplificada.            entrega usa composición propia de marca.
+
+Imágenes generativas    Implementación OpenAI-compatible disponible,       Disponibilidad de código, no certificación de
+dentro del CMS          con modelo por defecto gpt-image-1. No se          acceso a un modelo actual. Validar endpoint,
+                        ejecutó inferencia de imagen en este estudio.      costo, imagen devuelta y tamaño real antes de
+                                                                           un lote.
+
+Proporciones de         El código solicita 1024×1536 al proveedor para     Verificar dimensiones del archivo y hacer
+imagen del CMS          4:5 y 9:16, aunque devuelve metadatos              recorte/composición real. No confiar solo en
+                        nominales de 1080×1350/1920.                       esos metadatos.
+
+Generación de texto     Endpoint vivo llm-status: provider template,       No presentar las plantillas como texto
+del CMS                 source fallback, configured false.                 generado por un LLM. Seleccionar y validar
+                                                                           proveedor antes de automatizar copy.
+
+Shorts                  Endpoint vivo: LLM=true, TTS=true y                Pipeline automático de stock incompleto. Los
+                        FFmpeg=true, pero stock=false; readiness           booleanos de readiness no prueban una
+                        general=false por falta de clave Pexels/Pixabay.   inferencia o voz; no se renderizó un job
+                                                                           completo. Se puede preparar guion y usar
+                                                                           grabaciones propias.
+
+Publicación nativa      CLI: Instagram y TikTok sin credenciales           Requiere conexión nativa antes de usar esa
+                        directas configuradas.                             ruta.
+
+Publicación por Buffer  Consulta de lectura real a Buffer exitosa:         Autenticación y catálogo confirmados. No se
+                        canales gentlevanguard.sj de Instagram y           probó publicación ni disponibilidad de todos
+                        TikTok, y canal X existente.                       los formatos, permisos o analítica por canal.
+
+                                                                                                                               6
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+Capacidad       Prueba y resultado                               Uso razonable hoy
+Medición y CRM
+                No se obtuvo exportación privada de Insights ni  Empezar con los CSV adjuntos y pasar al CRM
+                se siguió un lead real de esta campaña.          cuando el circuito esté validado.
+
+Evidencia técnica de esta sesión en .runtime/social-research-20261020/, especialmente buffer-live.json,
+shorts-readiness.json, settings-llm-status.json, studio-plan.json y studio-check.json. No contienen claves
+en los archivos de prueba citados. Es una verificación puntual, no una garantía permanente.
+
+ChatGPT/Gemini y los agentes de código cumplen funciones diferentes. Un modelo con generación de
+imágenes puede devolver una imagen; MiniMax Code o GitHub Copilot pueden ayudarnos a escribir
+prompts y producir HTML/SVG, guiones y automatizaciones. Tener una cuenta o un modelo de chat no
+demuestra acceso a un generador de imágenes o video. La suscripción de una interfaz tampoco certifica
+crédito API. El banco de prompts permite trabajar con el modelo visual realmente habilitado y usar
+composición determinista para texto y logo. No se certificó aquí inferencia de imagen desde Copilot o
+MiniMax.
+
+6. El sistema editorial propuesto
+
+Posicionamiento y perfil
+
+Bio de trabajo para probar: «Software y automatización para pymes · Formación en IA con Academy. Elegí:
+resolver un proceso o aprender ↓». Ajustar al límite real de cada perfil. Esta redacción es un borrador; no se
+modificaron los perfiles. En las cuentas compartidas, las portadas deben identificar «Servicios para pymes»
+o «Academy · Aprendé IA» con la misma identidad de marca.
+
+Enlace principal de servicios: https://gentlevanguard.github.io/. Para una pieza específicamente educativa:
+https://gentlevanguard.github.io/academy/. No enviar una consulta de software a un catálogo de cursos. En
+TikTok, comprobar si la cuenta permite enlace clicable; si no, usar mensajes habilitados o una dirección
+breve visible. No depender de un enlace que el usuario no pueda pulsar.
+
+Fijar tres contenidos: servicios y cómo consultar, Academy y cómo evaluar el curso, y una demostración
+propia. Destacadas sugeridas: Servicios, Demos, Cómo trabajamos y Academy. Las palabras deben
+describir contenido existente, no promesas futuras. No se propone abrir cuentas nuevas: primero probar
+ambos recorridos en las cuentas actuales.
+
+                                                                                                                7
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+Cuatro series con tareas distintas
+
+Serie               Función                                    Ejemplo GV                    Siguiente paso
+
+Problema cotidiano  Que el comprador se                        «¿Quién responde la consulta  Identificar el proceso que
+                    reconozca                                  cuando vos no estás?»         falla.
+
+Demostración        Mostrar criterio y capacidad               Consulta ficticia ficha       Pedir una revisión del
+                                                               responsable próximo paso.     alcance para su negocio.
+
+Método y límites    Dar confianza                              «Cuándo un bot debe pasar la  Conversar sobre reglas y
+                                                               conversación a una persona».  excepciones.
+
+Oferta concreta     Facilitar contratación                     Apps, integraciones y         Describir necesidad y
+                                                               seguimiento adaptados al      acordar siguiente paso; sin
+                                                               proceso real.                 precio o plazo inventado.
+
+Para cada idea: un comprador, un problema, una prueba y una acción. Decir «automatizar consultas» es
+demasiado amplio si no se muestra qué entra, qué sale y quién controla. El contenido educativo debe
+acercar al problema del comprador, no convertirse en una lista interminable de herramientas.
+
+Distribución sostenible
+
+Piloto propuesto: 5 ideas principales por semana, adaptadas a dos redes, con 3 videos breves y 2
+carruseles o publicaciones de fotos. Son 10 ideas: cinco de servicios (S01–S05) y cinco de Academy
+(A01–A05); no veinte ideas distintas ni diez por cada frente. Si la producción excede la capacidad
+disponible, bajar a 3 ideas/semana y alternar ambos frentes, conservando la calidad de demostración y la
+atención de consultas.
+
+En Instagram: portada clara, carrusel que se entienda sin caption y reels con subtítulos. En TikTok: entrada
+hablada/directa, demostración temprana y textos compatibles con su interfaz; las secuencias de fotos son
+una opción a probar. No asumir que el mismo archivo tendrá la misma distribución. Publicar cuando
+podamos atender respuestas y medir, sin proclamar una hora universal.
+
+Distribuir desde canales propios y conversaciones donde sea pertinente y esté permitido. Evitar respuestas
+comerciales repetidas en publicaciones ajenas, grupos sin consentimiento y mensajes masivos. Una
+colaboración local con una demostración conjunta requiere acordar alcance y autorización de ambas partes.
+
+Academy: campaña y recorrido propios
+
+Oferta inicial verificada: «IA — De 0 a 100 (Nivel 1)», identificador ia-fundamentos, figura en el catálogo
+público consultado con nivel de 0 a 100 y 16 horas estimadas. La modalidad curso base se publica a USD 50
+e incluye acceso a los tracks y lecciones. El precio se debe comprobar de nuevo antes de publicarlo; la
+lectura del catálogo no valida una compra, el cobro ni la entrega. El acompañamiento se cotiza aparte; no
+prometer tutoría incluida, sesiones en vivo, licencias de modelos ni resultados de aprendizaje garantizados.
+
+El programa local documenta fundamentos, herramientas, prompting, productividad, creación de contenido
+y seguridad, entre otros temas. Para no dispersar la campaña, usar una sola demostración inicial: convertir
+una instrucción vaga en un pedido con contexto, tarea, formato y revisión. El objetivo es mostrar cómo se
+aprende a trabajar con IA, sin regalar ficticiamente el curso ni ligar su acceso a la charla pendiente.
+
+Recorrido Academy: microlección perfil o mensaje «APRENDER» ficha del curso en
+https://gentlevanguard.github.io/academy/ revisar temario, modalidad, precio y condiciones compra o
+
+                                                                                                              8
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ consulta confirmación real de pago/acceso. No se verificó una URL profunda por producto; indicar el título
+ exacto que debe localizarse en el catálogo, sin inventar un enlace directo o un filtro inexistente. El primer
+ CTA puede ser «Escribinos APRENDER para consultar el curso»; la atención es manual y no promete
+ entrega automática.
+
+ Las cinco piezas y los prompts específicos están en CAMPANA-ACADEMY.md. No usar el carrusel de
+ software como anuncio del curso. La conexión entre ambos frentes es contextual: si una persona quiere
+ aprender, sigue Academy; si quiere que implementemos una solución, pasa a servicios con su
+ consentimiento. No sumar ambas acciones al final de la misma pieza.
+
+ Separación comercial: campaña servicios_consultas_14d, palabra «PROCESO», IDs S y destino corporativo;
+ campaña academy_fundamentos_14d, palabra «APRENDER», IDs A y destino Academy. Etiquetar registros
+ con campaña e interés. Las palabras clave facilitan la clasificación manual, no activan un bot por sí solas.
+
+ 7. Cómo convertir una consulta en una oportunidad
+
+ Embudo significa una secuencia de pasos: publicación perfil consulta problema entendido
+ propuesta decisión. Lead es una persona que expresó interés y dejó una forma de continuar la
+ conversación. CTA es la acción sugerida al final de una pieza. Conversión es completar el siguiente paso
+ definido; no siempre es una compra.
+
+ Flujo manual inicial
+
+ 1. El contenido invita a contar un problema concreto. No prometer un mensaje automático por comentar si
+ esa automatización no existe.
+
+ 2. Responder en el mismo canal o pedir permiso para continuar por privado. No pedir teléfonos, facturación
+ o documentos en comentarios públicos.
+
+ 3. Hacer tres preguntas: qué proceso se repite, cómo lo resuelven hoy y dónde se pierde el seguimiento.
+ Luego consultar volumen aproximado, urgencia y quién decide, si resulta pertinente.
+
+ 4. Registrar solo lo necesario, con origen de la consulta, estado y próximo paso. Un comentario genérico no
+ pasa automáticamente a «lead calificado».
+
+ 5. Si hay encaje, acordar una conversación de alcance y luego una propuesta por etapas. El precio y
+ compromiso se confirman después de entender el problema.
+
+ 6. Pedir permiso para hacer seguimiento. Sin respuesta, un recordatorio a las 48–72 horas hábiles es una
+ hipótesis operativa; después cerrar la conversación sin insistir. Si dice que no, detener el contacto.
+
+ Lead calificado de servicios: representa o decide en un negocio, describe un proceso que GV puede
+ resolver y acepta un siguiente paso. Consulta pertinente de Academy: la persona expresa un objetivo de
+ aprendizaje y pide temario, modalidad o condiciones del curso. No exigirle ser dueño de negocio ni enviarla
+ obligatoriamente a una llamada comercial. Presupuesto o fecha desconocidos se registran como
+ desconocidos, sin inventar intención de compra.
+
+ Responsable inicial propuesto: Emmanuel. Revisar bandejas dos veces al día en días hábiles. Objetivo
+ interno de respuesta: un día hábil, sujeto a capacidad; no publicarlo como garantía hasta poder cumplirlo.
+ No se configuraron bots ni promesas de atención permanente.
+
+                                                                                                                                                                                            9
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ Respuestas listas para adaptar
+
+ Comentario: «Gracias por contarlo. ¿Se les complica más responder la primera consulta o hacer el
+ seguimiento después? Si preferís, seguimos por privado sin compartir datos de clientes acá».
+
+ Primer privado solicitado: «Hola, gracias por escribir a GentleVanguard. Para entender si podemos ayudarte:
+ ¿qué tarea se repite, cómo la resuelven hoy y en qué parte se pierde el seguimiento? Con un ejemplo sin
+ datos personales alcanza».
+
+ Cuando preguntan precio: «Depende del proceso, los canales y las integraciones. Si me contás qué
+ necesitás resolver y cómo trabajan hoy, podemos definir un alcance y preparar una propuesta. No hace
+ falta que envíes información sensible».
+
+ Siguiente paso: «Por lo que contás, vale la pena revisar [proceso]. ¿Te parece coordinar una conversación
+ para delimitarlo? Después te confirmamos opciones, etapas y presupuesto. ¿Querés que te escriba si queda
+ pendiente?».
+
+ Seguimiento consentido: «Hola, retomo lo que conversamos sobre [problema]. ¿Sigue siendo una prioridad
+ o preferís dejarlo para más adelante? Si no es el momento, lo dejamos acá».
+
+ Cierre: «Gracias por avisar. Dejamos la conversación cerrada por ahora. Si cambia la necesidad, podés
+ volver a escribirnos».
+
+ Registro y atribución
+
+ Usar REGISTRO-LEADS.csv con campaña e interés. Para servicios: nuevo, conversando, calificado, alcance,
+ propuesta, ganado, perdido o cerrado. Para Academy: consulta, curso identificado, condiciones informadas,
+ compra pendiente, compra confirmada, acceso confirmado o cerrado. Un pago informado por la persona
+ permanece pendiente de validación; no confundir clic, formulario o captura con compra confirmada.
+ Siempre incluir próximo paso y fecha; no acumular contactos sin acción. Guardar el registro local con
+ acceso restringido y retirar datos que ya no sean necesarios. No subir datos personales de leads a modelos
+ externos para redactar contenidos.
+
+ Ejemplo de enlace etiquetado: https://gentlevanguard.github.io/?utm_source=instagram&utm_medium=orga
+ nic_social&utm_campaign=consultas_pymes_14d&utm_content=demo_seguimiento. Estas etiquetas ayudan
+ solo si existe un sistema que las registre. Si no, anotar manualmente «¿Cómo nos encontraste?» y el ID de
+ pieza cuando sea conocido. No atribuir toda venta posterior al último post.
+
+ 8. Piloto de 14 días y cómo decidir
+
+ El calendario adjunto usa D1–D14 para empezar cuando estén listos el circuito de consultas y los materiales.
+ No hay contenido programado en las cuentas. D1–D2 se destinan a preparación; las diez ideas se producen
+ con un guion común y se adaptan por canal. Los bloques de revisión también cuentan como trabajo.
+
+ Experimento de servicios: apertura centrada en problema frente a resultado en S02 y S05, dos
+ demostraciones comparables del seguimiento. Experimento de Academy: A02 y A05 explican el mismo
+ pedido con contexto, tarea, formato y revisión; una apertura pregunta por el problema y la otra muestra
+ primero el ejemplo. Mantener tema, duración aproximada, calidad de prueba y CTA dentro de cada par. En
+ publicaciones orgánicas las audiencias y horarios no se controlan: son comparaciones exploratorias, no
+ pruebas causales rigurosas. No enfrentar el alcance de una pieza educativa con el de una oferta de
+ software como si compitieran por el mismo objetivo, ni subir duplicados seguidos para forzar un ganador.
+
+                                                                                                                                                                                           10
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+Registrar a las 72 horas y otra vez a los 7 días. Las piezas de la segunda semana necesitarán una revisión
+posterior al día 14 para completar su ventana de siete días. Comparar medianas de varias piezas similares,
+no un pico aislado. Si solo hay una o dos observaciones, acumular datos antes de declarar éxito.
+
+Medida                     Cómo usarla                                     Cuidado
+
+Reproducciones /           Indican distribución; registrar ambos si la     Reproducciones no equivalen a personas
+alcance                    plataforma los ofrece.                          únicas.
+
+Tiempo medio /             Ayudan a ubicar problemas de apertura, ritmo o  Requieren analítica propia; comparar
+finalización               duración.                                       duraciones parecidas.
+
+Guardados y                Señal de utilidad o circulación.                No son ventas; no mezclar denominadores
+compartidos                                                                entre redes.
+
+Visitas al perfil y clics  Muestran interés por el siguiente paso.         No atribuir clics a una pieza si la herramienta
+                                                                           no lo permite.
+
+Conversaciones             Mide intención expresada.                       Distinguir preguntas sobre cursos de
+iniciadas                                                                  necesidades de servicios.
+
+Leads calificados,         Vinculan el contenido al objetivo comercial.    Registrar fecha, origen conocido y monto real,
+propuestas y ventas                                                        sin atribución forzada.
+
+Fórmulas de servicios: tasa de leads calificados = leads calificados / conversaciones nuevas de servicios;
+tasa de propuesta = propuestas / leads calificados de servicios. Academy: consultas pertinentes, visitas a
+catálogo atribuibles si se registran, compras y accesos confirmados. Tasa consulta compra = compradores
+únicos confirmados / personas únicas que consultaron Academy en la cohorte observada; registrar ventana
+y compras tardías. No sumar compradores directos que no consultaron al numerador de esa tasa: contarlos
+aparte. Si el denominador es cero, registrar «sin base», no 0%. Guardados por alcance = guardados /
+alcance, solo si ambos están disponibles y corresponden a la misma pieza/ventana.
+
+Reglas de decisión propuestas:
+
+• Pocas vistas y buena respuesta de quienes llegan: probar nuevas aperturas y distribución sin cambiar toda
+la oferta.
+
+• Muchas vistas sin consultas: revisar a quién atrae el mensaje, claridad del servicio, CTA y acceso al
+contacto.
+
+• Consultas sin encaje: precisar sector y problema en la pieza; separar Academy de servicios.
+
+• Leads con encaje sin propuesta: revisar capacidad de atención, definición de alcance y siguiente paso.
+
+• Propuestas sin cierre: investigar objeciones reales de precio, confianza, plazo o prioridad; no culpar
+automáticamente al algoritmo.
+
+No hay una meta de ventas fiable sin línea de base. El objetivo de ejecución del piloto es completar las diez
+ideas, responder las consultas y registrar los datos disponibles. Cualquier volumen de leads deseado es un
+objetivo, no una previsión. No se recomienda invertir en anuncios hasta verificar el recorrido de contacto y
+tener una oferta y prueba coherentes.
+
+                                                                                                                            11
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ 9. Producción con modelos visuales y video
+
+ Separar el trabajo en cuatro pasos: mensaje arte composición validación. OpenAI recomienda
+ describir sujeto, composición, estilo y restricciones, y en ediciones separar qué cambia de lo que debe
+ conservarse. Google ofrece generación y edición iterativas e indica que sus imágenes incluyen SynthID.
+ [S3–S4]
+
+ Para un carrusel consistente: cerrar el guion completo, crear una imagen o referencia de estilo, generar una
+ lámina por vez conservando esa referencia y después montar textos y logo con precisión. Revisar cada
+ palabra y exportar todas las láminas con igual tamaño. Un generador que escribe bien puede igualmente
+ alterar acentos, números o logotipos.
+
+ Estándar de esta campaña: fondo #0B1020, acentos #06B6D4 y #8B5CF6; degradado oficial
+ linear-gradient(135deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%); títulos Poppins 700 y cuerpo Inter.
+ Usar el wordmark oficial como archivo; nunca pedir al modelo que lo reconstruya. Una imagen generada
+ puede ser el fondo, pero la marca debe conservarse intacta.
+
+ Formatos de producción propuestos: carrusel 1080×1350 y video 1080×1920. Son tamaños de trabajo, no
+ una afirmación sobre todos los límites de las plataformas. Revisar la previsualización real y dejar zonas
+ libres para los controles. No estirar un render 2:3 para convertirlo en 9:16. Para video, encuadrar o extender
+ el fondo antes de colocar textos.
+
+ Video inicial recomendado: grabación propia de pantalla + voz propia + subtítulos revisados. Es suficiente
+ para mostrar una capacidad real. Alternativa: animar el diagrama del carrusel y narrar el mismo ejemplo. El
+ video generativo es opcional; validar acceso y derechos, y no animar texto o interfaces de forma que altere
+ la evidencia.
+
+ Revisión antes de publicar: ¿se entiende sin contexto?, ¿el primer cuadro expresa el problema?, ¿la
+ demostración es real o está rotulada como ficticia?, ¿logo/texto correctos?, ¿una sola acción?, ¿destino
+ funciona?, ¿sin datos personales?, ¿derechos de música/recursos?, ¿etiquetado de IA/promoción que
+ corresponda?, ¿quién atiende las respuestas? El uso de IA no reemplaza estas comprobaciones.
+
+ 10. Fuentes y trazabilidad
+
+ Consultadas el 20/10/2026, hora local de Argentina. Los contadores son una foto de esta revisión. Las
+ fuentes externas respaldan observaciones concretas; la estrategia y la cadencia propuestas son decisiones
+ de trabajo.
+
+ • A1. Catálogo público de Academy, consulta adicional del 21/10/2026 para la campaña doble. Producto
+ ia-fundamentos, 16 horas estimadas, modalidad curso base USD 50. Programa contrastado con
+ apps/academy-web/data/courses/ia-fundamentos/course.json. No se probó una transacción.
+
+ • G1. Perfiles propios: Instagram y TikTok. Perfil y fichas públicas observados en navegador.
+
+ • G2. GV: consultas y chatbot. Caption, fecha 30/09, contadores y etiquetas observados directamente.
+
+ • G3. GV: planificación; tres tareas; tres líneas de prompt. Fichas públicas de perfil, no análisis completo de
+ sus videos.
+
+ • R1. Ruben Loan: tres razones y método. Caption y fotograma observados; destino YouTube visible.
+
+ • R2. Dot CSV: matemáticas e IA. Caption, fotograma y contadores observados. No valida afirmaciones
+ científicas del creador.
+
+                                                                                                                                                                                           12
+GentleVanguard · Servicios + Academy · Investigación + acción
+
+ • R3. Platzi: escena de fútbol con IA, Instagram. Caption, fotograma, comentarios y contadores observados.
+ • R4. Platzi: misma propuesta en TikTok. Caption, contadores y etiqueta de IA observados.
+ • R5. Platzi: email marketing. Ficha pública observada; fecha y cupos son afirmaciones de esa marca.
+ • R6. Platzi: Obsidian y perfil con enlace comercial. Destinos declarados observados; no se auditó el
+ checkout ni sus conversiones.
+ • S1. Instagram Ranking Explained, 31/05/2023. Fuente oficial recuperada; fundamento histórico con límites
+ explicitados.
+ • S2. TikTok Creative Codes. Fuente oficial de creatividad publicitaria recuperada.
+ • S3. OpenAI: Image prompting. Fuente oficial recuperada. El catálogo cambia; los prompts adjuntos no
+ presuponen acceso a un modelo específico.
+ • S4. Google: Gemini image generation. Fuente oficial recuperada; generación, edición y SynthID.
+ • S5. Soporte TikTok: resultado actual de recomendaciones. Redirección observada; contenido completo no
+ recuperado. No usado como respaldo de pesos algorítmicos. Identificación de IA enlazada desde las piezas.
+ Fuentes internas: .agents/product-marketing.md v7; docs/brand/BRAND-KIT.md, TOKENS-v2.json,
+ OFFICIAL-ASSETS-2026-10.md; skill y CLI de Social Studio; apps/content-cms/server/creative.ts,
+ shorts/http.ts, settings.ts y providers de posting. Se preserva la distinción entre implementación disponible y
+ capacidad efectivamente probada.
+
+                                                                                                                                                                                           13
+

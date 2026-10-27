@@ -1,0 +1,77 @@
+{
+  "id": "gv_presentacion_v2",
+  "status": "REVIEW",
+  "audience": "Dueños y responsables de pymes y operaciones; Academy se dirige a personas que quieren aprender y aplicar IA.",
+  "pieces": [
+    {
+      "id": "presentacion",
+      "category": "Software con criterio de negocio",
+      "title": ["Tu próximo paso", "puede empezar", "por una pregunta."],
+      "accentLine": 2,
+      "body": "Conocé qué hacemos, cómo trabajamos y qué podemos construir con vos.",
+      "art": "nexus-hero.webp",
+      "cta": "Conocé GentleVanguard",
+      "action": "Web en el perfil",
+      "destination": "https://eortiz148700.github.io/gentlevanguard/",
+      "alt": "GentleVanguard. Tu próximo paso puede empezar por una pregunta. Presentación de nuestra web y forma de trabajar, con una estructura abstracta de conexiones en cyan y violeta.",
+      "caption": "Ya tenemos un lugar para mostrarte lo que hacemos. En nuestra web podés conocer los servicios, la forma de trabajar y los desarrollos propios de GentleVanguard. Desde San Juan, Argentina, trabajamos por proyecto para transformar necesidades concretas en herramientas digitales. ¿Qué te gustaría hacer funcionar mejor? Conocé la web desde el enlace del perfil.",
+      "storySticker": "Conocé nuestra web"
+    },
+    {
+      "id": "software",
+      "category": "Software a medida",
+      "title": ["Tu operación", "no entra en", "una planilla."],
+      "accentLine": 2,
+      "body": "Apps y sistemas diseñados alrededor de tu forma de trabajar.",
+      "art": "service-software.webp",
+      "cta": "Contanos qué necesitás",
+      "action": "WhatsApp · +54 9 264 5452221",
+      "destination": "https://eortiz148700.github.io/gentlevanguard/#servicios",
+      "alt": "GentleVanguard, software a medida. Tu operación no entra en una planilla. Apps y sistemas diseñados alrededor de tu forma de trabajar. Ilustración abstracta de arquitectura de software en capas. WhatsApp +54 9 264 5452221.",
+      "caption": "Cuando el seguimiento depende de varias planillas, mensajes y tareas manuales, conviene revisar el proceso completo. En GentleVanguard diseñamos apps y sistemas alrededor de cómo trabaja tu negocio. Empezamos por entender la necesidad y acordar prioridades y etapas. ¿Qué parte de tu operación te gustaría ordenar? Escribinos por WhatsApp al +54 9 264 5452221 o explorá los servicios en nuestra web.",
+      "storySticker": "Explorá software a medida"
+    },
+    {
+      "id": "automatizacion",
+      "category": "Automatización e integraciones",
+      "title": ["El mismo dato.", "Otra carga", "manual."],
+      "accentLine": 2,
+      "body": "Conectemos tus herramientas y los pasos que hoy repetís.",
+      "art": "service-automation.webp",
+      "cta": "Revisemos ese proceso",
+      "action": "WhatsApp · +54 9 264 5452221",
+      "destination": "https://eortiz148700.github.io/gentlevanguard/#servicios",
+      "alt": "GentleVanguard, automatización e integraciones. El mismo dato. Otra carga manual. Conectemos tus herramientas y los pasos que hoy repetís. Ilustración abstracta de conductos conectados. WhatsApp +54 9 264 5452221.",
+      "caption": "Copiar un dato de una herramienta a otra parece un paso pequeño, hasta que se repite durante toda la semana. Podemos analizar cómo conectar tus sistemas y automatizar pasos concretos, según las posibilidades de cada herramienta. Contanos qué tarea repetís hoy y revisemos por dónde empezar. WhatsApp: +54 9 264 5452221.",
+      "storySticker": "Conocé cómo trabajamos"
+    },
+    {
+      "id": "ia-aplicada",
+      "category": "IA aplicada al negocio",
+      "title": ["La IA empieza", "con una", "buena pregunta."],
+      "accentLine": 2,
+      "body": "Primero una necesidad concreta. Después, la herramienta adecuada.",
+      "art": "service-ai.webp",
+      "cta": "Exploremos tu caso de uso",
+      "action": "WhatsApp · +54 9 264 5452221",
+      "destination": "https://eortiz148700.github.io/gentlevanguard/#servicios",
+      "alt": "GentleVanguard, IA aplicada al negocio. La IA empieza con una buena pregunta. Primero una necesidad concreta; después, la herramienta adecuada. Núcleo óptico abstracto en cyan y violeta. WhatsApp +54 9 264 5452221.",
+      "caption": "¿Qué tarea o decisión de tu negocio necesita mejor información o menos trabajo repetitivo? En GentleVanguard partimos de esa pregunta para evaluar dónde puede aportar la IA: asistentes, consulta de información o apoyo a procesos. Con alcance definido, revisión humana y validación del caso. Contanos qué te gustaría explorar. WhatsApp: +54 9 264 5452221.",
+      "storySticker": "Explorá IA aplicada"
+    },
+    {
+      "id": "academy",
+      "category": "GV Academy",
+      "title": ["Aprendé IA.", "Aplicala", "con criterio."],
+      "accentLine": 2,
+      "body": "Cursos, ebooks y toolkits de autoestudio. Explorá el alcance de cada recurso.",
+      "art": "academy",
+      "cta": "Explorá GV Academy",
+      "action": "Catálogo en el enlace del perfil",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GV Academy de GentleVanguard. Aprendé IA, aplicala con criterio. Cursos, ebooks y toolkits de autoestudio. Gráfica de las tres categorías de recursos, sin representar portadas de productos.",
+      "caption": "Aprender una herramienta es un comienzo. Entender cuándo y cómo usarla también importa. En GV Academy encontrás cursos, ebooks y toolkits de autoestudio sobre tecnología e inteligencia artificial. Revisá el temario, el formato y el alcance de cada producto antes de elegir. Explorá el catálogo desde el enlace del perfil. No se incluye acompañamiento personalizado salvo que se acuerde en la oferta correspondiente.",
+      "storySticker": "Explorá el catálogo"
+    }
+  ]
+}

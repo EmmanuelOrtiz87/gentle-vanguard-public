@@ -1,12 +1,13 @@
 #!/usr/bin/env npx tsx
 
 /** Normalize the self-contained documentation presentation pages. */
+import {presentationShell} from './presentation-shell.js';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const ROOT = resolve(process.cwd());
 const PRESENTATIONS = join(ROOT, 'docs', 'presentations');
-const SHARED_CSS = 'assets/css/gv.css?v=2.1';
+const SHARED_CSS = 'assets/css/gv.css?v=3.0';
 
 function pageTitle(file: string): string {
   return file
@@ -34,7 +35,7 @@ function normalize(file: string): boolean {
   html = html.replace(
     /<head([^>]*)>/i,
     (_match, attrs: string) =>
-      `<head${attrs}>\n    <meta name="theme-color" content="#0b1020" />\n    <meta name="description" content="${title.replace(/"/g, '&quot;')} — Gentle-Vanguard documentation" />`,
+      `<head${attrs}>\n    <meta name="theme-color" content="#0b1020" />\n    <meta name="description" content="${title.replace(/"/g, '&quot;')} — GentleVanguard documentation" />`,
   );
   if (!/<link[^>]+href=["']assets\/css\/gv\.css/i.test(html)) {
     html = html.replace(
@@ -45,6 +46,7 @@ function normalize(file: string): boolean {
   if (!/<title>/i.test(html)) {
     html = html.replace(/<head[^>]*>/i, (head) => `${head}\n    <title>${title}</title>`);
   }
+  html=presentationShell(html,ROOT);
   if (html !== original) {
     writeFileSync(path, html, 'utf8');
     return true;

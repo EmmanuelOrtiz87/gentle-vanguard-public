@@ -125,6 +125,8 @@ interface DaemonClass {
   port?: 'wsPort' | 'vitePort';
   /** how the keeper instance is chosen */
   keep: 'pidfile' | 'port' | 'newest';
+  /** retain one instance per live parent for client-owned stdio servers */
+  allowParallelParents?: boolean;
   /** what respawns this class if killed */
   respawn: 'autostart' | 'watchdog' | 'client' | 'manual';
   /** aged instances may be recycled (only when respawn is safe) */
@@ -215,6 +217,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Dashboard skills server',
     match: /skill-server/,
     keep: 'newest',
+    allowParallelParents: true,
     respawn: 'watchdog',
     recycleAged: false,
   },
@@ -485,6 +488,15 @@ function isRepoScoped(cmdline: string): boolean {
 
 const repoRootPatternCache = repoRootPattern();
 
+function hasExternalAbsoluteScriptPath(cmdline: string): boolean {
+  for (const match of cmdline.matchAll(
+    /(?:^|\s)"?((?:[A-Za-z]:[\\/]|\/|\\\\)[^"]+?\.(?:tsx?|[cm]?js|py))"?(?=\s|$)/gi,
+  )) {
+    if (!repoRootPatternCache.test(match[1])) return true;
+  }
+  return false;
+}
+
 /** Tab-delimited lines: pid \t ppid \t name \t createdIso \t cmdline */
 /**
  * Pidfile lookup tolerant to path-separator differences (Windows `\` vs POSIX `/`)
@@ -502,6 +514,38 @@ function pidValueFor(pidFiles: Map<string, string>, pidFile: string): string | u
   return undefined;
 }
 
+export function parseWindowsProcessSnapshot(
+  output: string,
+  pidFiles: Map<string, string>,
+): { repoProcesses: ProcessInfo[]; livePids: Set<number> } {
+  const repoProcesses: ProcessInfo[] = [];
+  const livePids = new Set<number>();
+
+  for (const line of output.split(/\r?\n/)) {
+    const parts = line.split('\t');
+    if (parts.length < 5) continue;
+    const pid = parseInt(parts[0], 10);
+    if (isNaN(pid)) continue;
+    livePids.add(pid);
+
+    const cmdline = parts.slice(4).join('\t');
+    const admitted =
+      parts[2] === 'node.exe' || parts[2] === 'chrome.exe' || parts[2] === 'python.exe';
+    if (!admitted) continue;
+    if (isRepoScoped(cmdline) || classifyDaemon(cmdline, pid, pidFiles)) {
+      repoProcesses.push({
+        pid,
+        ppid: parseInt(parts[1], 10) || 0,
+        name: parts[2],
+        created: parts[3],
+        cmdline,
+      });
+    }
+  }
+
+  return { repoProcesses, livePids };
+}
+
 function scanProcesses(pidFiles: Map<string, string>): {
   repoProcesses: ProcessInfo[];
   livePids: Set<number>;
@@ -512,40 +556,18 @@ function scanProcesses(pidFiles: Map<string, string>): {
     if (process.platform === 'win32') {
       // python.exe = legacy static app servers (http.server pre-migración a
       // node serve-static, 2026-10) + scripts python del repo (regen covers,
-      // docs tools); nohup.exe = msys wrapper whose winpid is what start.sh
-      // pidfiles record.
+      // docs tools). Include all parent PIDs in liveness checks because MCP
+      // stdio servers can be children of external clients such as Copilot.exe.
       const psCmd =
-        `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='chrome.exe' OR Name='cmd.exe' OR Name='conhost.exe' OR Name='python.exe' OR Name='py.exe' OR Name='nohup.exe'" | ` +
+        `Get-CimInstance Win32_Process | ` +
         `ForEach-Object { "$($_.ProcessId)\`t$($_.ParentProcessId)\`t$($_.Name)\`t$($_.CreationDate.ToString('o'))\`t$($_.CommandLine)" }`;
       const r = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
         timeout: 15000,
         stdio: ['ignore', 'pipe', 'ignore'],
       });
-      for (const line of r.stdout.split(/\r?\n/)) {
-        const parts = line.split('\t');
-        if (parts.length < 5) continue;
-        const pid = parseInt(parts[0], 10);
-        if (isNaN(pid)) continue;
-        livePids.add(pid);
-        const cmdline = parts.slice(4).join('\t');
-        // cmd/conhost/nohup only contribute to parent/pidfile liveness, never findings
-        const admitted =
-          parts[2] === 'node.exe' || parts[2] === 'chrome.exe' || parts[2] === 'python.exe';
-        if (!admitted) continue;
-        // Legacy python static app servers were spawned with RELATIVE paths
-        // (`-d .`, `--directory apps/...`) so isRepoScoped can miss them — a
-        // process matching a registered daemon class belongs to the repo by
-        // definition.
-        if (isRepoScoped(cmdline) || classifyDaemon(cmdline, pid, pidFiles)) {
-          repoProcesses.push({
-            pid,
-            ppid: parseInt(parts[1], 10) || 0,
-            name: parts[2],
-            created: parts[3],
-            cmdline,
-          });
-        }
-      }
+      const parsed = parseWindowsProcessSnapshot(r.stdout, pidFiles);
+      repoProcesses.push(...parsed.repoProcesses);
+      for (const pid of parsed.livePids) livePids.add(pid);
     } else {
       const r = runSync('ps', ['-eo', 'pid:10,ppid:10,etimes:10,comm:40,args:400'], {
         timeout: 10000,
@@ -627,6 +649,7 @@ function classifyDaemon(
   pid: number,
   pidFiles: Map<string, string> = new Map(),
 ): DaemonClass | null {
+  if (hasExternalAbsoluteScriptPath(cmdline)) return null;
   for (const c of DAEMON_CLASSES) {
     if (c.match.test(cmdline)) return c;
     // Ambiguous relative shape: only the pidfile owner may claim the class.
@@ -740,8 +763,28 @@ export function analyzeProcesses(
     }
 
     if (keeper) keptHealthy.push({ classId: cls.id, pid: keeper.pid, ageHours: keeperAge });
+    const parallelKeepers = new Set<number>();
+    if (cls.allowParallelParents) {
+      const parentPids = new Set(
+        chainTops
+          .filter((instance) => instance.ppid !== keeper?.ppid && snap.livePids.has(instance.ppid))
+          .map((instance) => instance.ppid),
+      );
+      for (const parentPid of parentPids) {
+        const parentInstances = chainTops.filter((instance) => instance.ppid === parentPid);
+        const parentKeeper = parentInstances.reduce((newest, instance) =>
+          Date.parse(instance.created) > Date.parse(newest.created) ? instance : newest,
+        );
+        parallelKeepers.add(parentKeeper.pid);
+        keptHealthy.push({
+          classId: cls.id,
+          pid: parentKeeper.pid,
+          ageHours: ageHours(parentKeeper, now),
+        });
+      }
+    }
     for (const inst of chainTops) {
-      if (inst === keeper) continue;
+      if (inst === keeper || parallelKeepers.has(inst.pid)) continue;
       findings.push({
         pid: inst.pid,
         name: inst.name,

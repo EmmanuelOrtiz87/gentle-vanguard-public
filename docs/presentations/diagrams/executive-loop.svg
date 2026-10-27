@@ -1,220 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="100%" height="100%" role="img" aria-labelledby="executive-loop-title executive-loop-desc" focusable="false">
-<title id="executive-loop-title">Executive Loop</title>
-<desc id="executive-loop-desc">Gentle-Vanguard Executive Loop diagram showing the main components, relationships and operational flow.</desc>
-  <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090c11"/>
-      <stop offset="100%" stop-color="#0f1525"/>
-    </linearGradient>
-    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
-      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="detectGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#0891b2"/>
-    </linearGradient>
-    <linearGradient id="evalGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
-    </linearGradient>
-    <linearGradient id="decideGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4ade80"/>
-      <stop offset="100%" stop-color="#4ade80"/>
-    </linearGradient>
-    <linearGradient id="execGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f4bb4f"/>
-      <stop offset="100%" stop-color="#f4bb4f"/>
-    </linearGradient>
-    <linearGradient id="verifyGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ee6d75"/>
-      <stop offset="100%" stop-color="#ee6d75"/>
-    </linearGradient>
-    <linearGradient id="learnGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="strongGlow">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/>
-    </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
-    </marker>
-    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f4bb4f"/>
-    </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
-    </marker>
-  </defs>
-
-  <!-- Background -->
-  <rect width="800" height="500" fill="url(#bgGrad)"/>
-
-  <!-- Title -->
-  <text x="400" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" letter-spacing="1">Executive Autonomous Loop</text>
-  <text x="400" y="53" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="11">Self-managing orchestration cycle with auto-healing and learning</text>
-
-  <!-- Orbit ring -->
-  <ellipse cx="400" cy="265" rx="200" ry="75" fill="none" stroke="#1e3a5f" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
-  <ellipse cx="400" cy="265" rx="200" ry="75" fill="url(#ringGlow)"/>
-
-  <!-- Main circle glow -->
-  <circle cx="400" cy="265" r="180" fill="url(#centerGlow)"/>
-
-  <!-- ====== PHASE CIRCLES (on ellipse) ====== -->
-
-  <!-- Detection (top) - 0° -->
-  <g filter="url(#shadow)">
-    <circle cx="400" cy="155" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
-    <circle cx="400" cy="155" r="44" fill="url(#detectGrad)" fill-opacity="0.1"/>
-    <text x="400" y="160" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">1</text>
-  </g>
-  <text x="400" y="183" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Detection</text>
-  <text x="400" y="145" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="7" opacity="0.6">●</text>
-
-  <!-- Evaluation (top-right) - 60° -->
-  <g filter="url(#shadow)">
-    <circle cx="570" cy="248" r="44" fill="#151921" stroke="#a78bfa" stroke-width="2"/>
-    <circle cx="570" cy="248" r="44" fill="url(#evalGrad)" fill-opacity="0.1"/>
-    <text x="570" y="253" text-anchor="middle" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">2</text>
-  </g>
-  <text x="570" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Evaluation</text>
-
-  <!-- Decision (bottom-right) - 120° -->
-  <g filter="url(#shadow)">
-    <circle cx="530" cy="355" r="44" fill="#151921" stroke="#4ade80" stroke-width="2"/>
-    <circle cx="530" cy="355" r="44" fill="url(#decideGrad)" fill-opacity="0.1"/>
-    <text x="530" y="360" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">3</text>
-  </g>
-  <text x="530" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Decision</text>
-
-  <!-- Execution (bottom-left) - 180° -->
-  <g filter="url(#shadow)">
-    <circle cx="400" cy="385" r="44" fill="#151921" stroke="#f4bb4f" stroke-width="2"/>
-    <circle cx="400" cy="385" r="44" fill="url(#execGrad)" fill-opacity="0.1"/>
-    <text x="400" y="390" text-anchor="middle" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">4</text>
-  </g>
-  <text x="400" y="413" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Execution</text>
-
-  <!-- Verification (bottom-left-more) - 240° -->
-  <g filter="url(#shadow)">
-    <circle cx="270" cy="355" r="44" fill="#151921" stroke="#ee6d75" stroke-width="2"/>
-    <circle cx="270" cy="355" r="44" fill="url(#verifyGrad)" fill-opacity="0.1"/>
-    <text x="270" y="360" text-anchor="middle" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">5</text>
-  </g>
-  <text x="270" y="383" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Verification</text>
-
-  <!-- Learning (top-left) - 300° -->
-  <g filter="url(#shadow)">
-    <circle cx="230" cy="248" r="44" fill="#151921" stroke="#22d3ee" stroke-width="2"/>
-    <circle cx="230" cy="248" r="44" fill="url(#learnGrad)" fill-opacity="0.1"/>
-    <text x="230" y="253" text-anchor="middle" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="700" filter="url(#glow)">6</text>
-  </g>
-  <text x="230" y="276" text-anchor="middle" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="9">Learning</text>
-
-  <!-- ====== ARROWS between phases ====== -->
-  <path d="M 442 165 Q 510 195 537 238" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 566 290 Q 555 325 540 344" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 494 358 Q 460 375 442 378" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 358 378 Q 330 375 312 358" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 258 316 Q 245 295 238 285" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 272 228 Q 310 195 358 165" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-  <!-- ====== CENTER ====== -->
-  <g filter="url(#strongGlow)">
-    <circle cx="400" cy="265" r="50" fill="#151921" stroke="url(#centerGrad)" stroke-width="2"/>
-    <circle cx="400" cy="265" r="50" fill="url(#centerGrad)" fill-opacity="0.08"/>
-  </g>
-  <text x="400" y="258" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="700">Auto-Apply</text>
-  <text x="400" y="275" text-anchor="middle" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" filter="url(#glow)">✓ SAFE</text>
-
-  <!-- ====== OUTER RING MODULES ====== -->
-
-  <!-- Circuit Breaker (top-right outer) -->
-  <g filter="url(#shadow)">
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#151921" stroke="#ee6d75" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="140" width="130" height="36" rx="6" fill="#ee6d75" fill-opacity="0.05"/>
-  </g>
-  <rect x="620" y="149" width="8" height="18" rx="2" fill="#ee6d75"/>
-  <text x="635" y="163" fill="#ee6d75" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Circuit Breaker</text>
-  <line x1="595" y1="175" x2="570" y2="220" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
-
-  <!-- Auto-Escalation (bottom-right outer) -->
-  <g filter="url(#shadow)">
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#f4bb4f" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="610" y="340" width="140" height="36" rx="6" fill="#f4bb4f" fill-opacity="0.05"/>
-  </g>
-  <rect x="620" y="349" width="8" height="18" rx="2" fill="#f4bb4f"/>
-  <text x="635" y="363" fill="#f4bb4f" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Auto-Escalation</text>
-  <line x1="610" y1="358" x2="576" y2="358" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrowOrange)" opacity="0.6"/>
-
-  <!-- Session Scoring (bottom-left outer) -->
-  <g filter="url(#shadow)">
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#151921" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="340" width="140" height="36" rx="6" fill="#22d3ee" fill-opacity="0.05"/>
-  </g>
-  <rect x="60" y="349" width="8" height="18" rx="2" fill="#22d3ee"/>
-  <text x="75" y="363" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Session Scoring</text>
-  <line x1="190" y1="358" x2="225" y2="358" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
-
-  <!-- Norms Learner (top-left outer) -->
-  <g filter="url(#shadow)">
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#151921" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-    <rect x="50" y="140" width="140" height="36" rx="6" fill="#4ade80" fill-opacity="0.05"/>
-  </g>
-  <rect x="60" y="149" width="8" height="18" rx="2" fill="#4ade80"/>
-  <text x="75" y="163" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">Norms Learner</text>
-  <line x1="190" y1="158" x2="228" y2="220" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
-
-  <!-- Legend -->
-  <g transform="translate(52, 388)">
-    <text x="0" y="0" fill="#f1f5f9" font-family="system-ui,-apple-system,sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">FASES DEL CICLO</text>
-    <circle cx="5" cy="12" r="3.5" fill="#22d3ee"/><text x="13" y="15" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">1 Detection</text>
-    <circle cx="5" cy="24" r="3.5" fill="#a78bfa"/><text x="13" y="27" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">2 Evaluation</text>
-    <circle cx="5" cy="36" r="3.5" fill="#4ade80"/><text x="13" y="39" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">3 Decision</text>
-    <circle cx="5" cy="48" r="3.5" fill="#f4bb4f"/><text x="13" y="51" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">4 Execution</text>
-    <circle cx="5" cy="60" r="3.5" fill="#ee6d75"/><text x="13" y="63" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">5 Verification</text>
-    <circle cx="5" cy="72" r="3.5" fill="url(#learnGrad)"/><text x="13" y="75" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">6 Learning</text>
-    <line x1="0" y1="81" x2="120" y2="81" stroke="#1e3a5f" stroke-width="0.5"/>
-    <circle cx="5" cy="90" r="3.5" fill="#151921" stroke="url(#centerGrad)" stroke-width="1.5"/><text x="13" y="93" fill="#4ade80" font-family="system-ui,-apple-system,sans-serif" font-size="8">✓ Auto-Apply SAFE</text>
-    <rect x="0" y="99" width="9" height="6" rx="2" fill="#ee6d75" fill-opacity="0.3" stroke="#ee6d75" stroke-width="0.8"/><text x="13" y="105" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rail modules</text>
-    <line x1="0" y1="112" x2="30" y2="112" stroke="#4b5563" stroke-width="1"/><text x="35" y="115" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Core cycle</text>
-    <line x1="0" y1="124" x2="30" y2="124" stroke="#f4bb4f" stroke-width="1" stroke-dasharray="3,3"/><text x="35" y="127" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="8">Guard rails</text>
-  </g>
-
-  <!-- Footer -->
-  <line x1="50" y1="523" x2="750" y2="523" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="400" y="535" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
-
-  
-  <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->
-    <rect class="gv-hotspot" x="356" y="111" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_detection" role="button" tabindex="0" fill="transparent" aria-label="Phase 1 - Detection: identifies anomalies, new signals or degradation events in the environment, tool outputs and session traces."/>
-    <rect class="gv-hotspot" x="526" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_evaluation" role="button" tabindex="0" fill="transparent" aria-label="Phase 2 - Evaluation: scores each candidate action against quality rubrics, cost and risk before deciding."/>
-    <rect class="gv-hotspot" x="486" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_decision" role="button" tabindex="0" fill="transparent" aria-label="Phase 3 - Decision: chooses the winning action with confidence thresholds; escalates when uncertainty is high."/>
-    <rect class="gv-hotspot" x="356" y="341" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_execution" role="button" tabindex="0" fill="transparent" aria-label="Phase 4 - Execution: applies the selected action through the safe auto-apply gate, tracking every mutation."/>
-    <rect class="gv-hotspot" x="226" y="311" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_verification" role="button" tabindex="0" fill="transparent" aria-label="Phase 5 - Verification: runs typecheck, lint and tests; if verification fails, the action is rolled back."/>
-    <rect class="gv-hotspot" x="186" y="204" width="88" height="88" rx="6" data-i18n-title="tip_hs_loop_learning" role="button" tabindex="0" fill="transparent" aria-label="Phase 6 - Learning: records outcomes in Engram and the routing table, improving future decisions."/>
-    <rect class="gv-hotspot" x="350" y="215" width="100" height="100" rx="6" data-i18n-title="tip_hs_loop_autoapply" role="button" tabindex="0" fill="transparent" aria-label="Auto-Apply SAFE: the central verification gate - changes are only applied when they pass all safety checks."/>
-    <rect class="gv-hotspot" x="610" y="140" width="130" height="36" rx="6" data-i18n-title="tip_hs_loop_circuit_breaker" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Circuit Breaker: opens after repeated failures to stop cascading errors and halts the loop."/>
-    <rect class="gv-hotspot" x="610" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_auto_escalation" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Auto-Escalation: promotes unresolved issues to a higher authority (orchestrator or human)."/>
-    <rect class="gv-hotspot" x="50" y="340" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_session_scoring" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Session Scoring: grades each session (delegations, corrections, proactive hits) and feeds the routing table."/>
-    <rect class="gv-hotspot" x="50" y="140" width="140" height="36" rx="6" data-i18n-title="tip_hs_loop_norms_learner" role="button" tabindex="0" fill="transparent" aria-label="Guard rail - Norms Learner: learns project conventions and injects them as adaptive norms into new sessions."/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="executive-loop-title executive-loop-desc" focusable="false">
+<title id="executive-loop-title">Automatización con supervisión</title>
+<desc id="executive-loop-desc">Un ciclo de operación observa señales, evalúa riesgo, requiere aprobación humana cuando corresponde, ejecuta, verifica y conserva evidencia.</desc>
+<defs><marker id="loop-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0L12 6L0 12Z" fill="#334155"/></marker></defs>
+<rect width="1280" height="720" fill="#F5F7FB"/>
+<text x="64" y="68" fill="#1E40AF" font-family="JetBrains Mono, monospace" font-size="16" font-weight="500" letter-spacing="2">OPERACIÓN SUPERVISADA</text>
+<text x="64" y="124" fill="#0B1020" font-family="Poppins, Inter, sans-serif" font-size="32" font-weight="700">Automatizar no elimina el control</text>
+<text x="64" y="160" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="16">La ruta depende del riesgo; una verificación fallida detiene o escala.</text>
+<g fill="none" stroke="#334155" stroke-width="3" marker-end="url(#loop-arrow)">
+  <path d="M256 328H312"/><path d="M504 328H560"/><path d="M752 328H808"/><path d="M1000 328H1056"/>
+  <path d="M1152 408V520H160V408"/>
+</g>
+<g font-family="Inter, Arial, sans-serif">
+  <rect x="64" y="248" width="192" height="160" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="88" y="288" fill="#1E40AF" font-family="JetBrains Mono, monospace" font-size="14">01</text>
+  <text x="88" y="332" fill="#0B1020" font-size="20" font-weight="700">Observar</text>
+  <text x="88" y="364" fill="#475569" font-size="16">señales y estado</text>
+  <rect x="312" y="248" width="192" height="160" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="336" y="288" fill="#1E40AF" font-family="JetBrains Mono, monospace" font-size="14">02</text>
+  <text x="336" y="332" fill="#0B1020" font-size="20" font-weight="700">Evaluar</text>
+  <text x="336" y="364" fill="#475569" font-size="16">riesgo y alcance</text>
+  <rect x="560" y="248" width="192" height="160" rx="8" fill="#F3EDFF" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="584" y="288" fill="#6D3FD1" font-family="JetBrains Mono, monospace" font-size="14">03 · GATE</text>
+  <text x="584" y="332" fill="#0B1020" font-size="20" font-weight="700">Aprobar</text>
+  <text x="584" y="364" fill="#475569" font-size="16">persona si aplica</text>
+  <rect x="808" y="248" width="192" height="160" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="832" y="288" fill="#1E40AF" font-family="JetBrains Mono, monospace" font-size="14">04</text>
+  <text x="832" y="332" fill="#0B1020" font-size="20" font-weight="700">Actuar</text>
+  <text x="832" y="364" fill="#475569" font-size="16">cambio reversible</text>
+  <rect x="1056" y="248" width="160" height="160" rx="8" fill="#E8FAFC" stroke="#06B6D4" stroke-width="3"/>
+  <text x="1080" y="288" fill="#0B7285" font-family="JetBrains Mono, monospace" font-size="14">05</text>
+  <text x="1080" y="332" fill="#0B1020" font-size="20" font-weight="700">Verificar</text>
+  <text x="1080" y="364" fill="#334155" font-size="16">y registrar</text>
+</g>
+<rect x="360" y="544" width="560" height="64" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="392" y="584" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Fallo → detener, recuperar o escalar; no ocultar el resultado.</text>
+<text x="64" y="680" fill="#475569" font-family="JetBrains Mono, monospace" font-size="12">FUENTES: docs/architecture/universal-quality-gate.md · docs/architecture/stack-assessment-2026-10.md</text>
 </svg>

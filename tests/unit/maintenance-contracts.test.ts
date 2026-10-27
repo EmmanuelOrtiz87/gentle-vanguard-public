@@ -8,7 +8,12 @@ import test from 'node:test';
 
 import { normalizeFallbackState } from '../../src/ml/model-fallback-orchestrator.js';
 import { evaluateCodeGraphAvailability } from '../../src/core/watchtower/checks-infra.js';
-import { evaluateProviderAlertStatus } from '../../src/core/watchtower/checks-data.js';
+import {
+  evaluateProviderAlertStatus,
+  evaluateProviderEvidenceStatus,
+  getWatchtowerComponentStatus,
+  readLatestSuccessfulProviderUsage,
+} from '../../src/core/watchtower/checks-data.js';
 import { getEmbeddingFreshnessHours } from '../../src/skills/skill-embedder-incremental.js';
 import { findDuplicateJsonKeys } from '../../src/tools/json-lint.js';
 import {
@@ -40,6 +45,7 @@ import {
   evaluateToolAudit,
   hasMiniMaxEngramMcpRuntime,
   isUsableLauncherFile,
+  nativeSkillSurfaceReady,
   parseOpenCodeRuntimeMajor,
 } from '../../src/integrations/tool-interoperability-audit.js';
 import { findBrokenRelativeImports } from '../../src/tools/ast-import-parser.js';
@@ -105,6 +111,50 @@ test('accepts a configured stdio CodeGraph server without a persistent daemon', 
 test('alerts only when the unhealthy provider is the active model', () => {
   assert.equal(evaluateProviderAlertStatus('glm-5.3-flash', 'big-pickle'), 'PASS');
   assert.equal(evaluateProviderAlertStatus('glm-5.3-flash', 'glm-5.3-flash'), 'WARN');
+});
+
+test('does not equate an expired provider-error cooldown with a verified recovery', () => {
+  assert.equal(
+    evaluateProviderEvidenceStatus('glm-4-7', 'big-pickle', {
+      status: 'healthy',
+      reason: 'prior provider error',
+      lastDetectedAt: '2026-10-06T18:46:49.846Z',
+    }),
+    'WARN',
+  );
+  assert.equal(
+    evaluateProviderEvidenceStatus('big-pickle', 'big-pickle', { status: 'unknown' }),
+    'WARN',
+  );
+  assert.equal(
+    evaluateProviderEvidenceStatus('mimo', 'big-pickle', {
+      status: 'healthy',
+      lastSuccessAt: new Date().toISOString(),
+    }),
+    'PASS',
+  );
+});
+
+test('uses successful Nexus token completions as provider recovery evidence', () => {
+  const db = new Database(':memory:');
+  db.exec('CREATE TABLE token_usage (model TEXT, timestamp TEXT, completion_tokens INTEGER);');
+  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('big-pickle', '2026-10-24 21:06:54', 3);
+  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('mimo-v2.6-flash-free', '2026-10-24 21:06:53', 0);
+  try {
+    assert.equal(
+      readLatestSuccessfulProviderUsage(db, 'opencode-zen-C/big-pickle'),
+      '2026-10-24 21:06:54',
+    );
+    assert.equal(readLatestSuccessfulProviderUsage(db, 'mimo-v2.6-flash-free'), undefined);
+  } finally {
+    db.close();
+  }
+});
+
+test('component rollup preserves WARN instead of displaying OK when checks warn', () => {
+  assert.equal(getWatchtowerComponentStatus({ fails: 0, warns: 2 }), 'WARN');
+  assert.equal(getWatchtowerComponentStatus({ fails: 1, warns: 0 }), 'ISSUES');
+  assert.equal(getWatchtowerComponentStatus({ fails: 0, warns: 0 }), 'OK');
 });
 
 test('uses the latest successful embedding verification as freshness source', () => {
@@ -214,9 +264,16 @@ test('OpenCode runtime classification is version-aware and fails closed', () => 
   assert.equal(parseOpenCodeRuntimeMajor('3.0.0'), 'unsupported');
 });
 
+test('OpenCode native skill surface requires complete, fresh canonical skills', () => {
+  assert.equal(nativeSkillSurfaceReady(0, 27, false), false);
+  assert.equal(nativeSkillSurfaceReady(27, 27, false), false);
+  assert.equal(nativeSkillSurfaceReady(26, 27, true), false);
+  assert.equal(nativeSkillSurfaceReady(27, 27, true), true);
+});
+
 test('dashboard health checker reports Vite availability separately from WS health', async () => {
   const ws = createServer((req, res) => {
-    if (req.url === '/api/health' || req.url === '/api/metrics') {
+    if (req.url === '/api/health/live' || req.url === '/api/metrics') {
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ status: 'ok' }));
       return;
@@ -379,7 +436,7 @@ test('tool audit gate requires all expected clients to pass', () => {
 
   assert.deepEqual(evaluateToolAudit(rows), {
     passed: true,
-    detail: '6/6 tool surfaces PASS',
+    detail: '6/6 tool configuration surfaces PASS (not runtime task qualification)',
   });
 
   assert.deepEqual(evaluateToolAudit(rows.slice(0, 5)), {

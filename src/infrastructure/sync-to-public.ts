@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import {assertApprovedArtifact} from '../web-presence/approval.js';
 import {isExcludedPath, PUBLIC_DOC_DIRECTORIES} from '../installer/payload.js';
+import { removePrivatePublicSources } from './public-source-boundary.js';
 /**
  * sync-to-public.ts — Sync changes from private repo to public repo.
  *
@@ -201,6 +202,11 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
       copyIf(src, path.join(targetDir, dir), { recurse: true });
     }
   }
+  // El archivo historico de marketing NO se publica: son playbooks superados
+  // (2026-09) con claims y estados que ya no son vigentes. El propio
+  // docs/marketing/archive/README.md lo marca como material que no debe leerse
+  // ni copiarse a campanas. Publicarlo seria contraproducente.
+  rmIf(path.join(targetDir, 'docs/marketing/archive'), { recurse: true });
   rmIf(path.join(targetDir, 'docs/presentations/public-presence.html'));
   // Public architecture and publication guidance. Keep the technical reference
   // explicit so README links remain valid without exposing internal docs.
@@ -352,7 +358,6 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
     'legacy-foundation',
     'openspec',
     'plugins',
-    'releases',
     'client',
     'gentle-vanguard',
     '.ft',
@@ -370,7 +375,30 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   ]) {
     rmIf(path.join(targetDir, staleDir), { recurse: true });
   }
-  copyIf(path.join(privateRepo, 'releases/latest-version.json'), path.join(targetDir, 'releases/latest-version.json'));
+  // 9d. releases/ NO es un directorio stale.
+  //
+  // `releases/latest-version.json` es el manifiesto de integridad del
+  // instalador publicado (version + download_url + sha256). Lo consume
+  // `.github/workflows/auto-update.yml` para calcular `minimum_version`, y
+  // `releases/*-qualification.json` es la evidencia de verificacion en
+  // Windows que acompaña al release.
+  //
+  // Borrarlos (que es lo que hacia la allowlist anterior) dejaba al
+  // auto-updater sin sha256 y con el fallback `minimum_version 3.0.0`. Ya
+  // paso antes: ver CHANGELOG "Auto-update integrity" (latest-version.json
+  // apuntaba a una version con URL 404 y sha256 vacio).
+  //
+  // Solo cruzan los JSON: ningun binario pasa por aqui.
+  const releasesSrc = path.join(privateRepo, 'releases');
+  const releasesDst = path.join(targetDir, 'releases');
+  if (fs.existsSync(releasesSrc)) {
+    mkdirp(releasesDst);
+    for (const file of fs.readdirSync(releasesSrc)) {
+      if (file.endsWith('.json')) {
+        copyIf(path.join(releasesSrc, file), path.join(releasesDst, file));
+      }
+    }
+  }
 
   // 9d. Stale root files that are not part of the public allowlist. The sync
   // copies an explicit set of root files (README, LICENSE, CONTRIBUTING,
@@ -414,6 +442,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // narrower than the private engineering CI.
   rmIf(path.join(targetDir, 'src'), { recurse: true });
   copyIf(path.join(privateRepo, 'src'), path.join(targetDir, 'src'), { recurse: true });
+  removePrivatePublicSources(targetDir);
   // Runtime state is local-only and must never cross the publication boundary.
   rmIf(path.join(targetDir, 'src', '.gateguard-state.json'));
   rmIf(path.join(targetDir, '.runtime'), { recurse: true });
@@ -567,11 +596,16 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 
   // 10d. Public workflow only. Private CI and release workflows must not run against
   // the public distribution: their assertions include private operational assets.
+  //
+  // `public-installer-windows.yml` va aca porque CORRE en el repo publico: es
+  // el que qualify el instalador en un runner Windows y produce
+  // `releases/*-qualification.json`. Si falta en la lista, el sync lo borra
+  // del repo publico y se pierde la capacidad de re-calificar un release.
   const workflowSrcDir = path.join(privateRepo, '.github', 'workflows');
   const workflowDstDir = path.join(targetDir, '.github', 'workflows');
   rmIf(workflowDstDir, { recurse: true });
   mkdirp(workflowDstDir);
-  for (const wf of ['public-smoke.yml']) {
+  for (const wf of ['public-smoke.yml', 'public-installer-windows.yml']) {
     const src = path.join(workflowSrcDir, wf);
     if (!fs.existsSync(src)) continue;
     let content = fs.readFileSync(src, 'utf-8');

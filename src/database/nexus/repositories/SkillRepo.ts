@@ -120,7 +120,7 @@ export class SkillRepo {
     this.db
       .prepare(
         `INSERT INTO token_usage (session_id, prompt_tokens, completion_tokens, cost, model, tenant_id, timestamp)
-          VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+          VALUES (?, ?, ?, ?, ?, ?, datetime('now','localtime'))`,
       )
       .run(sessionId, promptTokens, completionTokens, cost, model ?? null, tenantId);
   }

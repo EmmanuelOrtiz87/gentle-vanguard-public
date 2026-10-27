@@ -45,17 +45,26 @@ export function gitStatus(cwd: string = ROOT): {
   dirty: string[];
   untracked: string[];
 } {
-  const r = runGit(['status', '--porcelain'], cwd);
-  const lines = r.stdout.split('\n').filter(Boolean);
+  const r = runGit(['status', '--porcelain=v1', '-z', '--untracked-files=all'], cwd, 60_000, true);
+  if (!r.ok) throw new Error(`Cannot inspect worktree status: ${r.stderr}`);
+  const records = r.stdout.split('\0').filter(Boolean);
   const dirty: string[] = [];
   const untracked: string[] = [];
-  for (const line of lines) {
-    const status = line.slice(0, 2).trim();
-    const path = line.slice(3);
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
+    const status = record.slice(0, 2);
+    const path = record.slice(3);
     if (status === '??') untracked.push(path);
     else dirty.push(path);
+    // Porcelain -z supplies the old name in a separate record. Review both:
+    // moving sensitive code to a harmless-looking name must not lower its risk.
+    if (/[RC]/.test(status)) {
+      const previousPath = records[++index];
+      if (!previousPath) throw new Error('Incomplete Git rename status');
+      dirty.push(previousPath);
+    }
   }
-  return { clean: lines.length === 0, dirty, untracked };
+  return { clean: records.length === 0, dirty, untracked };
 }
 
 export function currentBranch(cwd: string = ROOT): string {

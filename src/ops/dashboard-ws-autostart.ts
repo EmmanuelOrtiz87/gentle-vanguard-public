@@ -25,6 +25,7 @@ import {
   saveDashboardPorts,
   readDashboardPorts,
   logToFile,
+  openDashboardServerStderr,
   removeFile,
   isProcessAlive,
 } from './dashboard-common';
@@ -36,15 +37,13 @@ const WS_SCRIPT = path.join(WS_SERVER_DIR, 'server', 'websocket-server.ts');
 const PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws.pid');
 const WATCHDOG_PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
 
-/** HTTP health check against localhost:port/api/health — with 1 soft retry.
- *  A single 3s timeout flake was enough to trip the 2-failure restart budget
- *  (confirmed in dashboard-ws.log 2026-08-27); retrying once absorbs transient
- *  latency spikes without masking a real outage (2 consecutive hard fails
- *  still trigger the restart path). */
+/** HTTP liveness check against localhost:port/api/health/live — with 1 soft retry.
+ *  A cached repository-health refresh can briefly block the server event loop,
+ *  so allow headroom before treating it as unavailable. */
 function healthCheck(port: number): Promise<boolean> {
   const once = (): Promise<boolean> =>
     new Promise((resolve) => {
-      const req = http.get(`http://127.0.0.1:${port}/api/health`, { timeout: 3000 }, (res) => {
+      const req = http.get(`http://127.0.0.1:${port}/api/health/live`, { timeout: 5000 }, (res) => {
         resolve(res.statusCode === 200);
       });
       req.on('error', () => resolve(false));
@@ -57,44 +56,18 @@ function healthCheck(port: number): Promise<boolean> {
   return once().then((ok) => (ok ? ok : once()));
 }
 
-/** Clean stale PID/port files */
+/** Clean stale PID files but keep configured ports so the server can restart on them. */
 function cleanStaleFiles(): void {
-  const filesToCheck = [
-    PID_FILE,
-    WATCHDOG_PID_FILE,
-    path.join(RUNTIME_DIR, 'dashboard-ports.json'),
-  ];
-
-  for (const f of filesToCheck) {
+  for (const f of [PID_FILE, WATCHDOG_PID_FILE]) {
     try {
       if (!fs.existsSync(f)) continue;
       const content = fs.readFileSync(f, 'utf-8').trim();
-
-      if (/^\d+$/.test(content)) {
-        const pid = parseInt(content, 10);
-        if (!isProcessAlive(pid)) removeFile(f);
-      } else if (content.includes('"wsPort"')) {
-        try {
-          const ports = JSON.parse(content);
-          if (ports.wsPort) {
-            const exists = awaitExists(ports.wsPort);
-            if (!exists) removeFile(f);
-          }
-        } catch {
-          removeFile(f);
-        }
-      } else {
-        removeFile(f);
-      }
+      const pid = /^\d+$/.test(content) ? Number(content) : 0;
+      if (!pid || !isProcessAlive(pid)) removeFile(f);
     } catch {
       removeFile(f);
     }
   }
-}
-
-/** Quick check if a TCP port is in use */
-function awaitExists(port: number): Promise<boolean> {
-  return healthCheck(port);
 }
 
 /** CLI flag helper */
@@ -123,16 +96,23 @@ async function launchServer(preferredPort = 0): Promise<number> {
 
   // Load tsx in-process (`node --import tsx`). The spawned PID IS the server
   // process — no CLI wrapper, no grandchild, no visible console on Windows.
-  const child = spawn(process.execPath, ['--import', 'tsx', WS_SCRIPT], {
-    cwd: WS_SERVER_DIR,
-    stdio: 'ignore',
-    detached: true,
-    windowsHide: true,
-    env: {
-      ...process.env,
-      WS_PORT: String(selectedPort),
-    },
-  });
+  const stderrFd = openDashboardServerStderr();
+  let child: ReturnType<typeof spawn>;
+  try {
+    child = spawn(process.execPath, ['--import', 'tsx', WS_SCRIPT], {
+      cwd: WS_SERVER_DIR,
+      stdio: ['ignore', 'ignore', stderrFd],
+      detached: true,
+      windowsHide: true,
+      env: {
+        ...process.env,
+        WS_PORT: String(selectedPort),
+      },
+    });
+  } finally {
+    fs.closeSync(stderrFd);
+  }
+  child.on('error', (err) => logToFile(`[START] WS server spawn failed: ${err.message}`));
 
   child.unref();
   const procId = child.pid;
@@ -179,11 +159,23 @@ const WATCH_HEALTHY_RESET_MS = 300000; // 5 min stable → restart budget resets
 
 /** Check standard candidate ports (excluding one) for an already-running WS. */
 async function findHealthyCandidatePort(excludePort: number): Promise<number | null> {
-  for (const p of [8080, 8082, 8083]) {
+  for (const p of getCandidatePorts()) {
     if (p === excludePort) continue;
     if (await healthCheck(p)) return p;
   }
   return null;
+}
+
+function getCandidatePorts(): number[] {
+  const configuredPort = readDashboardPorts()?.wsPort;
+  return [configuredPort, 8080, 8081, 8082, 8083].filter(
+    (port, index, ports): port is number =>
+      typeof port === 'number' &&
+      Number.isInteger(port) &&
+      port > 0 &&
+      port <= 65535 &&
+      ports.indexOf(port) === index,
+  );
 }
 
 /**
@@ -320,7 +312,7 @@ async function main(overridePort?: number): Promise<number> {
 
   // Check if WS server already running
   let adoptedPort: number | null = null;
-  for (const testPort of [8080, 8082, 8083]) {
+  for (const testPort of getCandidatePorts()) {
     const ok = await healthCheck(testPort);
     if (ok) {
       adoptedPort = testPort;

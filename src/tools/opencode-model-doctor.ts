@@ -18,6 +18,7 @@
  *   --write          Save latest report for stack:doctor freshness checks
  *   --probe-models   Send a tiny chat completion per model to test SDK compat
  *   --provider <id>  Only probe this provider (default: all enabled providers)
+ *   --model <id>     With --probe-models, probe only this model (small targeted check)
  *
  * Exit codes:
  *   0 = all probed models OK
@@ -62,6 +63,8 @@ interface ModelProbeResult {
     | 'OK'
     | 'NOT_FOUND'
     | 'AUTH_FAILED'
+    | 'CLIENT_RESTRICTED'
+    | 'SUBSCRIPTION_REQUIRED'
     | 'RATE_LIMITED'
     | 'USAGE_LIMIT'
     | 'INSUFFICIENT_BALANCE'
@@ -86,6 +89,7 @@ interface ProviderReport {
     | 'NONE';
   catalogEndpoint: string;
   catalogOK: boolean;
+  selectorReady?: boolean;
   catalogCount: number;
   upstreamCatalog: string[]; // all model IDs from the upstream /v1/models
   configuredCatalog: string[]; // model IDs configured in opencode.json
@@ -126,6 +130,8 @@ const args = process.argv.slice(2);
 const jsonMode = args.includes('--json');
 const writeReport = args.includes('--write');
 const probeModels = args.includes('--probe-models');
+const modelFilterIdx = args.indexOf('--model');
+const modelFilter = modelFilterIdx >= 0 ? args[modelFilterIdx + 1] : null;
 const providerFilterIdx = args.indexOf('--provider');
 const providerFilter = providerFilterIdx >= 0 ? args[providerFilterIdx + 1] : null;
 const reportPathIdx = args.indexOf('--report-path');
@@ -204,9 +210,14 @@ async function probeCatalog(
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(url, { method: 'GET', headers, signal: controller.signal });
-    clearTimeout(timer);
+    let res: Response;
+    try {
+      res = await fetch(url, { method: 'GET', headers, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
+      await res.body?.cancel();
       return { ok: false, models: [], error: `HTTP ${res.status}` };
     }
     const data = (await res.json()) as { data?: Array<{ id?: string }> } | Array<{ id?: string }>;
@@ -242,6 +253,7 @@ async function probeModel(
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${key}`,
+        'User-Agent': 'GentleVanguard-ModelDoctor/1.0',
       },
       body: JSON.stringify(body),
       signal: controller.signal,
@@ -250,6 +262,12 @@ async function probeModel(
     if (res.ok) return { id: modelId, status: 'OK' };
     const text = await res.text();
     const lower = text.toLowerCase();
+    if (lower.includes('freetiererror') || lower.includes('only be used from within opencode')) {
+      return { id: modelId, status: 'CLIENT_RESTRICTED', detail: text.slice(0, 200) };
+    }
+    if (lower.includes('active opencode go subscription is required')) {
+      return { id: modelId, status: 'SUBSCRIPTION_REQUIRED', detail: text.slice(0, 200) };
+    }
     // Classify by body FIRST (more reliable than status code), then fall back to status
     if (
       lower.includes('insufficient balance') ||
@@ -299,11 +317,13 @@ async function main() {
 
   if (!existsSync(configPath)) {
     log(err(`Config not found: ${configPath}`), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
   if (!existsSync(authPath)) {
     log(err(`Auth not found: ${authPath}`), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   const configText = readFileSync(configPath, 'utf-8').replace(/^\uFEFF/, '');
@@ -313,7 +333,8 @@ async function main() {
 
   if (!config.provider) {
     log(err('No provider block in opencode.json'), 'reset');
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   const disabled = new Set(config.disabled_providers || []);
@@ -385,6 +406,7 @@ async function main() {
       authSource: authInfo?.source || 'NONE',
       catalogEndpoint,
       catalogOK: probe.ok,
+      selectorReady: configured.length > 0,
       catalogCount: upstream.length,
       upstreamCatalog: upstream,
       configuredCatalog: configured,
@@ -417,8 +439,8 @@ async function main() {
         log(`  ${warn('unverified')}: catalog inaccessible; configured models were not marked stale`, 'reset');
       }
     } else {
-      log(`  configured: ${COLOR.cyan}auto-discovery (empty models block)${COLOR.reset}`, 'reset');
-      log(`  ${ok('+')} available upstream models: ${upstream.length}`, 'reset');
+      log(`  configured: ${warn('empty custom-provider catalog — hidden from the model selector')}`, 'reset');
+      log(`  available upstream: ${upstream.length}; run models:sync -- --add-missing --provider ${id}`, 'reset');
     }
   }
 
@@ -432,14 +454,14 @@ async function main() {
       if (!authInfo) continue;
       // When auto-discovery, pick models to probe. Prefer free, but always sample at least
       // a few so the user gets a real signal on paid-only providers (like opencode-go).
-      const FREE_PATTERNS = ['-free', 'opencode-zen-C/big-pickle', 'contributor-free'];
+      const FREE_PATTERNS = ['-free', 'big-pickle', 'contributor-free'];
       const freeSample = prov.upstreamCatalog
         .filter((m) => FREE_PATTERNS.some((p) => m.includes(p)))
         .slice(0, 5);
       const paidSample = prov.upstreamCatalog
         .filter((m) => !FREE_PATTERNS.some((p) => m.includes(p)))
         .slice(0, 3);
-      const toProbe =
+      const toProbe = modelFilter ? [modelFilter] :
         prov.configuredCatalog.length > 0
           ? prov.configuredCatalog
           : [...freeSample, ...paidSample].slice(0, 5);
@@ -487,11 +509,14 @@ async function main() {
     log(`  report: ${reportPath}`, 'dim');
   }
 
-  // Exit code: 1 if any configured model is stale
-  process.exit(report.summary.missingInUpstream > 0 ? 1 : 0);
+  process.exitCode = report.providers.some((provider) => !provider.catalogOK)
+    ? 2
+    : report.summary.missingInUpstream > 0 || report.summary.brokenModelProbes > 0 || report.providers.some(provider => provider.selectorReady === false)
+      ? 1
+      : 0;
 }
 
 main().catch((e) => {
   log(err(`Doctor crashed: ${e.message}`), 'reset');
-  process.exit(2);
+  process.exitCode = 2;
 });

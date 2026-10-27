@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { runSync, runNpxTsxSync } from '../../adapters/command-runner.js';
+import { readDashboardPorts } from '../ops/dashboard-common.js';
 import { getEffectiveProcessTimeout } from './timeout-config';
 import { printBanner } from '../cli/banner.js';
 
@@ -29,6 +30,10 @@ function exists(...parts: string[]) {
 
 function bin(name: string): string {
   return process.platform === 'win32' ? `${name}.cmd` : name;
+}
+
+function isValidPort(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 && value <= 65535;
 }
 
 function spawnPortable(command: string, args: string[], timeout: number, maxBuffer?: number) {
@@ -341,38 +346,60 @@ async function checkDashboardV3() {
 
   // Import and use the new robust health checker
   const { checkDashboardHealth } = await import('../ops/dashboard-health-checker.js');
-  const health = await checkDashboardHealth(8080, 5173);
+  const ports = readDashboardPorts();
+  const envWsPort = Number(process.env.WS_PORT);
+  const envVitePort = Number(process.env.VITE_DEV_PORT);
+  const wsPort = isValidPort(ports?.wsPort)
+    ? ports.wsPort
+    : isValidPort(envWsPort)
+      ? envWsPort
+      : 8080;
+  const vitePort = isValidPort(ports?.vitePort)
+    ? ports.vitePort
+    : isValidPort(envVitePort)
+      ? envVitePort
+      : 5173;
+  const health = await checkDashboardHealth(wsPort, vitePort);
+  // Decisión owner 2026-10-21: el dev server de Vite corre ON-DEMAND desde
+  // command-center (no daemon del autostart). Que la UI no esté arriba NO es
+  // fallo; un API proxy roto con UI arriba sí continúa siendo FAIL real.
+  const onDemandNote =
+    'no iniciado — on-demand vía command-center (decisión owner 2026-10-21)';
+  const viteVerdict = (up: boolean, ok: boolean, tail: string) => ({
+    pass: up ? ok : true,
+    detail: up
+      ? ok
+        ? tail
+        : `Dashboard UI is up but API proxy failed on ${health.vitePort}`
+      : `Dashboard dev server ${onDemandNote}`,
+  });
 
   // Map the health result to pass/fail
   switch (health.status) {
-    case 'healthy':
+    case 'healthy': {
+      const dev = viteVerdict(health.viteOk, health.viteApiOk, `Dashboard UI and API proxy responding on ${health.vitePort}`);
       writeCheck(
         `dashboard WS server (port ${health.port})`,
         true,
         `HTTP API responding, Vite:${health.vitePort}`,
       );
-      writeCheck(
-        'dashboard dev server',
-        health.viteOk,
-        health.viteOk ? `Vite running on ${health.vitePort}` : 'not running',
-      );
+      writeCheck('dashboard dev server', dev.pass, dev.detail);
       break;
-    case 'degraded':
+    }
+    case 'degraded': {
       // Degraded means the port is open but HTTP API not working
+      const dev = viteVerdict(health.viteOk, health.viteApiOk, `Dashboard UI and API proxy responding on ${health.vitePort}`);
       writeCheck(
         `dashboard WS server (port ${health.port})`,
         false,
         'TCP open but HTTP API not responding',
       );
-      writeCheck(
-        'dashboard dev server',
-        health.viteOk,
-        health.viteOk ? `Vite running on ${health.vitePort}` : 'not running',
-      );
+      writeCheck('dashboard dev server', dev.pass, dev.detail);
       break;
+    }
     case 'down':
       writeCheck(`dashboard WS server (port ${health.port})`, false, 'Not responding');
-      writeCheck('dashboard dev server', false, 'Not running');
+      writeCheck('dashboard dev server', true, `Dashboard WS + dev server ${onDemandNote}`);
       break;
   }
 }

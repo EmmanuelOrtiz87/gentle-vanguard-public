@@ -27,6 +27,18 @@
         "description": "Limpieza de registros OS huerfanos (PS1->TS migration): Run keys y scheduled tasks apuntando a scripts borrados causaban ventanas cmd/pwsh fantasma visibles. Best-effort: tareas elevadas se reintentan cada sesion."
       },
       {
+        "id": "mcp-tool-inventory",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/mcp/mcp-inventory.ts",
+        "args": "--diff",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 240000,
+        "description": "Gobernacion MCP (BL-MVI6ZNMA-P8GM): inventario REAL de tools de cada server MCP activo (SDK client, tools/list, sin adivinar) + drift-gate vs baseline .runtime/mcp-inventory/baseline.json — exit 1 si una tool aparece o desaparece (permisos/policy desfenestrados). Detector log-based (skipOnFailure); actualiza baseline con npm run mcp:inventory:diff tras cambios de MCP intencionales. Hallazgo conocido: engram-mcp del registry falla stdio (npx engram@0.0.1); el engram de opencode.json responde 19 tools."
+      },
+      {
         "id": "process-hygiene",
         "enabled": true,
         "script": "src/core/process-hygiene.ts",
@@ -95,7 +107,7 @@
         "args": "prune",
         "required": false,
         "phase": 95,
-        "description": "Session retention - prune old sessions, checkpoints, backups according to retention policy (max 10 sessions, 5 checkpoints, 3 backups)"
+        "description": "Session retention - prune old sessions, checkpoints, backups according to retention policy (max 10 sessions, 5 checkpoints, 14 backups)"
       },
       {
         "id": "github-bypass",
@@ -451,6 +463,17 @@
         "description": "Sincroniza agentes, skills críticas y hooks entre OpenCode, Codex, ZCode, MiniMax, Copilot y Antigravity. Repara drift al iniciar sesión sin bloquear el arranque."
       },
       {
+        "id": "client-runtime-observation",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/integrations/client-qualification.ts",
+        "args": "--observe",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 30000,
+        "description": "Diagnóstico local acotado por capacidad: versión OpenCode, evidencia previa vigente, MCP lectura real, binding host y cobertura inventariada. Publica latest.json y evento Nexus sin inferencias LLM automáticas; collector exit 0 no significa calificación completa."
+      },
+      {
         "id": "maintenance-watchtower",
         "enabled": true,
         "lazy": true,
@@ -524,12 +547,12 @@
       },
       {
         "id": "checkpoint-auto-create",
-        "enabled": true,
+        "enabled": false,
         "lazy": true,
         "script": "src/ops/checkpoint-manager.ts",
         "args": "create",
         "required": false,
-        "description": "Auto-create session state checkpoint at session start for rollback safety (TS)"
+        "description": "Disabled duplicate: session-autostart already creates checkpoints before startup and after READY; avoid a competing background writer"
       },
       {
         "id": "audit-pipeline-init",
@@ -1132,7 +1155,7 @@
     "enabled": true,
     "maxSessionFiles": 10,
     "maxCheckpointsPerSession": 5,
-    "maxBackups": 3,
+    "maxBackups": 14,
     "maxCloseReports": 20,
     "sessionAgeThresholdDays": 30,
     "highScoreThreshold": 80,

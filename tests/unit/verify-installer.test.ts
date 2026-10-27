@@ -7,6 +7,14 @@ import { test } from 'node:test';
 
 const { findLatestInstaller, sha256 } = await import('../../src/cli/verify-installer.js');
 
+test('installer execution requires an ephemeral GitHub-hosted Windows runner', async () => {
+  const { isIsolatedWindowsRunner } = await import('../../src/cli/verify-installer.js');
+  assert.equal(isIsolatedWindowsRunner('win32', {}), false);
+  assert.equal(isIsolatedWindowsRunner('win32', { GITHUB_ACTIONS: 'true', RUNNER_ENVIRONMENT: 'self-hosted' }), false);
+  assert.equal(isIsolatedWindowsRunner('linux', { GITHUB_ACTIONS: 'true', RUNNER_ENVIRONMENT: 'github-hosted' }), false);
+  assert.equal(isIsolatedWindowsRunner('win32', { GITHUB_ACTIONS: 'true', RUNNER_ENVIRONMENT: 'github-hosted' }), true);
+});
+
 test('findLatestInstaller returns null when dist dir does not exist', () => {
   const missing = join(tmpdir(), `gv-verify-test-missing-${Date.now()}`);
   assert.equal(findLatestInstaller(missing), null);

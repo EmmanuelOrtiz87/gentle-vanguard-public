@@ -19,6 +19,13 @@ interface DashboardPorts {
   updated?: string;
 }
 
+export function isDashboardHtml(html: string): boolean {
+  return (
+    /<title>\s*GentleVanguard Dashboard\s*<\/title>/i.test(html) &&
+    /<div id=["']root["']><\/div>/i.test(html)
+  );
+}
+
 /**
  * Find a free TCP port starting from preferred.
  * Tries to bind a TCP listener — cleanest cross-platform port check.
@@ -169,6 +176,12 @@ export function logToFile(message: string): void {
   const logFile = path.join(RUNTIME_DIR, 'dashboard-ws.log');
   const timestamp = new Date().toISOString();
   fs.appendFileSync(logFile, `${timestamp} | ${message}\n`, 'utf-8');
+}
+
+/** Open a durable stderr destination for a detached dashboard WS server. */
+export function openDashboardServerStderr(): number {
+  ensureRuntimeDir();
+  return fs.openSync(path.join(RUNTIME_DIR, 'dashboard-ws-server.stderr.log'), 'a');
 }
 
 /** Remove a file if it exists (silent) */

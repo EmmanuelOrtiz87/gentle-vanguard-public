@@ -18,6 +18,10 @@ interface SddDoc {
 const VALID_STATUSES = new Set(['validated', 'done', 'active']);
 
 function main(): number {
+  if (!process.argv.includes('--enforce')) {
+    console.log('[SDD-GATE] ODD default: SDD opt-in. Use --enforce only for an explicitly selected SDD workflow.');
+    return 0;
+  }
   const cwd = process.cwd();
   const repoRoot = execGit(['rev-parse', '--show-toplevel'], cwd) || resolve(cwd);
 
