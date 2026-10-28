@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const root=resolve(import.meta.dirname,'../..');
 const out=join(root,'.runtime/qa-docs-presence');mkdirSync(out,{recursive:true});
+const packageVersion=(JSON.parse(readFileSync(join(root,'package.json'),'utf8')) as {version:string}).version;
 const server=spawn(process.execPath,[join(root,'tools/serve-static.mjs'),'4195',root,'--no-store'],{stdio:'ignore',windowsHide:true});
 const browser=await chromium.launch();
 const errors:string[]=[];
@@ -35,7 +36,7 @@ try {
       assert.deepEqual(actual,expected,`${name}/${theme}: canonical rendered properties`);
       assert.ok(await page.evaluate(()=>document.fonts.check('700 20px Poppins')&&document.fonts.check('400 16px Inter')));
       if(name==='public-presence.html'){
-        assert.ok(await page.locator('main').innerText().then(text=>text.includes('REVIEW')&&text.includes('DRAFT')&&text.includes('4.2.0')));
+        assert.ok(await page.locator('main').innerText().then(text=>text.includes('REVIEW')&&text.includes('DRAFT')&&text.includes(packageVersion)),`Public presence page should reflect current stack version ${packageVersion}`);
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Generated reading page reflows');
         const missing=await page.locator('main a[href]').evaluateAll(links=>links.map(el=>el.getAttribute('href')!).filter(href=>!/^(?:[a-z][a-z0-9+.-]*:|#)/i.test(href)));
         for(const link of missing){const response=await page.request.get(new URL(link,page.url()).href);assert.equal(response.status(),200,link);}

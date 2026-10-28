@@ -37,6 +37,64 @@ The workflow publishes `build/`, example configuration, selected `docs/`, demos,
 license, changelog, bootstrap/setup files and `README-PUBLIC.md`. The sync script is the source of
 truth for the exact allowlist; update it when adding a new public component.
 
+## Manual sync when GitHub Actions is blocked (billing)
+
+GitHub refuses to start workflow jobs when the account has failed payments or a spending limit that
+blocks Actions. No workflow change can compensate: the job never runs.
+
+```
+The job was not started because recent account payments have failed or your spending limit
+needs to be increased.
+```
+
+`gh run view <run-id>` shows that annotation with `steps: []`. Until GitHub Billing is regularized,
+the landing can still be synchronized from the local machine by reproducing exactly what the
+workflow does.
+
+1. Shallow-clone the target (default branch `main` for the brand repo):
+
+```powershell
+$dir = ".runtime\publishing\landing-manual-$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())"
+New-Item -ItemType Directory -Path $dir -Force | Out-Null
+Set-Location $dir
+git init -q
+git remote add origin https://github.com/gentlevanguard/gentlevanguard.github.io.git
+git fetch origin main --depth=1
+git checkout -q -B main FETCH_HEAD
+Set-Location ../..
+```
+
+2. Run the same command the workflow uses (`--landing` is required for the brand repo). The script
+   runs the publication gates itself (unit tests, assets allowlist, navigation, catalog, chrome,
+   identity conformance, snapshots) and prints `APPROVED_ARTIFACT=<path>`:
+
+```powershell
+node --import tsx src/infrastructure/sync-to-public.ts `
+  --private-repo "$PWD" --public-repo "$PWD\$dir" `
+  --public-repo-slug gentlevanguard/gentlevanguard.github.io --skip-push --landing
+```
+
+3. Review the diff **before** pushing. Only allowlisted public files may change; no `apps/` outside
+   `apps/academy-landing/`, no `.env`, no `node_modules`. CRLF/LF noise appears as
+   worktree-modified entries but disappears after `git add -A`; the real content diff is what
+   `git diff --cached` reports.
+
+4. Commit and push with the workflow's message shape:
+
+```powershell
+git -C $dir add -A
+git -C $dir -c user.name="gentle-vanguard-bot" -c user.email="bot@gentle-vanguard" `
+  commit -m "sync: automated sync from private repo - <YYYY-MM-DD> (manual run; CI Actions blocked by billing)"
+git -C $dir push origin main
+```
+
+5. Smoke test the hosted page: expect HTTP 200 and the `GentleVanguard` marker at
+   `https://gentlevanguard.github.io/`. Pages usually serves the new build within a minute.
+
+Verified 2026-10-28: the sync was a no-op except `academy/catalog.json`'s `generated` timestamp —
+the expected result when the site content was already current and only the scheduled sync was
+behind.
+
 ## Release checklist
 
 - [ ] No secrets in the working tree or recent commits.

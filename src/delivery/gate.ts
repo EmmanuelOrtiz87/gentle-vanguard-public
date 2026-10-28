@@ -174,12 +174,21 @@ const GATES: GateDef[] = [
   },
   {
     name: 'test-unit',
-    command: 'npx',
-    args: ['tsx', '--test', 'tests/unit/*.test.ts'],
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/run-unit-node-tests.ts'],
     timeoutMs: 180_000,
     stage: 'pre-pr',
     blocking: true,
-    description: 'Unit tests',
+    description: 'Unit tests (node:test specs; vitest specs run in web-check)',
+  },
+  {
+    name: 'web-check',
+    command: 'pnpm',
+    args: ['web:check'],
+    timeoutMs: 180_000,
+    stage: 'pre-pr',
+    blocking: true,
+    description: 'Public-web vitest suite (specs that import vitest)',
   },
   {
     name: 'skill-size-ratchet',
@@ -316,7 +325,7 @@ const GATES: GateDef[] = [
   {
     name: 'rdd-release-gate',
     command: 'npx',
-    args: ['tsx', 'src/rdd/rdd-gates.ts', 'validate', '--stage', 'release'],
+    args: ['tsx', 'src/rdd/rdd-gates.ts', 'validate', 'release'],
     timeoutMs: 60_000,
     stage: 'release',
     blocking: true,
@@ -344,7 +353,7 @@ function runGate(gate: GateDef): GateCheckResult {
   const durationMs = Date.now() - start;
   const ok = r.status === 0;
   const status: CheckStatus = ok ? 'pass' : 'fail';
-  const detail = ok ? '' : (r.stderr ?? r.stdout ?? '').split('\n').slice(-5).join('\n');
+  const detail = ok ? '' : (r.stderr || r.stdout || '').split('\n').slice(-5).join('\n');
   let degraded = false;
   if (!ok && gate.name === 'container-scan') {
     try {

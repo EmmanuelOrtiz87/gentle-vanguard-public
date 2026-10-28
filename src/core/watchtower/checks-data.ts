@@ -315,6 +315,126 @@ function readModelSuccessEvidence(modelNames: string[]): Record<string, string> 
   }
 }
 
+// ─── Active routing scope for model-provider-health ──────────────────────────
+// The healer keeps every model that ever produced a provider error in
+// .runtime/model-health.json, and an entry can only reach PASS through a
+// successful completion recorded in the last 5 minutes. Models that were used
+// in the past but are not part of the current routing config can therefore
+// never self-heal and would keep the watchtower in WARN forever. Scope the
+// signal to the models the stack actually routes today.
+
+type JsonObject = Record<string, unknown>;
+
+export interface TrackedModelEvidence {
+  status?: string;
+  reason?: string;
+  lastSuccessAt?: string;
+  lastDetectedAt?: string;
+  cooldownUntil?: string;
+}
+
+function asJsonObject(value: unknown): JsonObject | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as JsonObject)
+    : undefined;
+}
+
+function collectModelIds(value: unknown, target: Set<string>): void {
+  if (typeof value === 'string' && value.trim()) target.add(value.trim());
+  if (Array.isArray(value)) value.forEach((item) => collectModelIds(item, target));
+}
+
+/** Flat list of every model id referenced by the active router/fallback configs. */
+export function extractManagedModelIds(router: unknown, fallback: unknown): string[] {
+  const ids = new Set<string>();
+  const routerObject = asJsonObject(router);
+  if (routerObject) {
+    collectModelIds(asJsonObject(routerObject.defaults)?.model, ids);
+    collectModelIds(asJsonObject(routerObject.fallback)?.model, ids);
+    collectModelIds(asJsonObject(routerObject.failover)?.fallbackModel, ids);
+    for (const binding of Object.values(asJsonObject(routerObject.agentBindings) ?? {})) {
+      collectModelIds(asJsonObject(binding)?.model, ids);
+    }
+  }
+  const fallbackObject = asJsonObject(fallback);
+  if (fallbackObject) {
+    for (const agent of Object.values(asJsonObject(fallbackObject.agentFallbacks) ?? {})) {
+      const entry = asJsonObject(agent);
+      collectModelIds(entry?.primary, ids);
+      collectModelIds(entry?.chain, ids);
+    }
+    collectModelIds(fallbackObject.universalFallbacks, ids);
+  }
+  return [...ids];
+}
+
+export function readManagedModelIds(): string[] {
+  const readConfig = (fileName: string): unknown => {
+    try {
+      return JSON.parse(readFileSync(join(ROOT, 'config', fileName), 'utf-8'));
+    } catch {
+      return null;
+    }
+  };
+  return extractManagedModelIds(readConfig('model-router.json'), readConfig('model-fallback.json'));
+}
+
+/**
+ * Match rule: full id (`provider/model`), exact state key, or last segment
+ * (`/model`) against the managed set. The last-segment rule keeps a routed
+ * model detectable when the state still records a stale provider alias
+ * (e.g. `opencode` for the `opencode-zen-C` catalog).
+ */
+export function isRoutedModel(
+  modelName: string,
+  provider: string | undefined,
+  managedModelIds: readonly string[],
+): boolean {
+  const bareName = (modelName.split('/').at(-1) ?? modelName).trim().toLowerCase();
+  return managedModelIds.some((id) => {
+    if (id === modelName) return true;
+    if (provider && id === `${provider}/${modelName}`) return true;
+    return (id.split('/').at(-1) ?? id).trim().toLowerCase() === bareName;
+  });
+}
+
+/**
+ * Final status/detail for a tracked model. Entries outside the active routing
+ * scope (and not the active model) are reported as untracked PASS; routed
+ * entries keep the verified-recovery contract of evaluateProviderEvidenceStatus.
+ */
+export function evaluateTrackedModelHealth(
+  modelName: string,
+  provider: string | undefined,
+  activeModel: string,
+  evidence: TrackedModelEvidence,
+  managedModelIds: readonly string[],
+  now = Date.now(),
+): { status: CheckResult['status']; detail: string } {
+  const bareActive = (activeModel.split('/').at(-1) ?? activeModel).trim().toLowerCase();
+  const isActive =
+    modelName === activeModel || modelName.trim().toLowerCase() === bareActive;
+  // An empty managed set means the router configs are unreadable: fail open
+  // (keep the legacy WARN) instead of silently suppressing provider signal.
+  if (managedModelIds.length > 0 && !isActive && !isRoutedModel(modelName, provider, managedModelIds)) {
+    return { status: 'PASS', detail: 'untracked (not in active routing)' };
+  }
+
+  const status = evaluateProviderEvidenceStatus(modelName, activeModel, evidence, now);
+  const hasFreshSuccess = status === 'PASS' && evidence.status === 'healthy';
+  const isQuarantined = status === 'PASS' && evidence.status === 'unhealthy';
+  const detail = hasFreshSuccess
+    ? `verified success at ${evidence.lastSuccessAt}`
+    : isQuarantined
+      ? `inactive quarantined (${evidence.reason?.slice(0, 60) ?? 'unknown reason'})`
+      : evidence.status === 'unhealthy' &&
+          evidence.cooldownUntil &&
+          Date.parse(evidence.cooldownUntil) <= now
+        ? `cooldown expired without a successful probe (${evidence.reason?.slice(0, 60) ?? 'provider error'})`
+        : `no fresh successful probe (${evidence.reason?.slice(0, 60) ?? 'health unknown'})`;
+  return { status, detail };
+}
+
 export async function checkModelHealth() {
   if (!quiet) logger.info('  [model-provider-health] Checking...');
 
@@ -360,9 +480,16 @@ export async function checkModelHealth() {
     const state = JSON.parse(readFileSync(statePath, 'utf-8'));
     const models = (state.models ?? {}) as Record<
       string,
-      { status?: string; reason?: string; cooldownUntil?: string; lastSuccessAt?: string }
+      {
+        status?: string;
+        reason?: string;
+        provider?: string;
+        cooldownUntil?: string;
+        lastSuccessAt?: string;
+      }
     >;
     const successes = readModelSuccessEvidence([...Object.keys(models), activeModel]);
+    const managedModelIds = readManagedModelIds();
     const latestSuccess = (name: string, recorded?: string): string | undefined => {
       const candidates = [recorded, successes[name]].filter((value): value is string => Boolean(value));
       return candidates.sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1);
@@ -373,22 +500,19 @@ export async function checkModelHealth() {
     } else {
       for (const [name, model] of Object.entries(models)) {
         const evidence = { ...model, lastSuccessAt: latestSuccess(name, model.lastSuccessAt) };
-        const status = evaluateProviderEvidenceStatus(name, activeModel, evidence);
-        const hasFreshSuccess = status === 'PASS' && model.status === 'healthy';
-        const isQuarantined = status === 'PASS' && model.status === 'unhealthy';
-        const detail = hasFreshSuccess
-          ? `verified success at ${model.lastSuccessAt}`
-          : isQuarantined
-            ? `inactive quarantined (${model.reason?.slice(0, 60) ?? 'unknown reason'})`
-            : model.status === 'unhealthy' && model.cooldownUntil && Date.parse(model.cooldownUntil) <= Date.now()
-              ? `cooldown expired without a successful probe (${model.reason?.slice(0, 60) ?? 'provider error'})`
-              : `no fresh successful probe (${model.reason?.slice(0, 60) ?? 'health unknown'})`;
+        const health = evaluateTrackedModelHealth(
+          name,
+          model.provider,
+          activeModel,
+          evidence,
+          managedModelIds,
+        );
         addResult(
           'model-provider-health',
           `model ${name}`,
-          status,
-          detail,
-          status === 'PASS' ? 'ok' : name === activeModel ? 'verify-active-model' : 'verify-provider',
+          health.status,
+          health.detail,
+          health.status === 'PASS' ? 'ok' : name === activeModel ? 'verify-active-model' : 'verify-provider',
         );
       }
     }

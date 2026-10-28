@@ -31,7 +31,7 @@ import { run } from '../core/run-command';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const CACHE_FILE = join(ROOT, '.runtime', 'prepush-cache.json');
-const GATE_VERSION = 3; // bump when check definitions change
+const GATE_VERSION = 4; // bump when check definitions change
 
 // ─── Check definitions (mirrors .lefthook.yml pre-push) ─────────────────────
 
@@ -252,17 +252,29 @@ function saveCache(cache: GateCache): void {
 
 // ─── Check runner ────────────────────────────────────────────────────────────
 
-interface CheckResult {
+export interface CheckResult {
   name: string;
   status: 'pass' | 'fail' | 'error';
   durationMs: number;
   tail: string;
 }
 
-function runOne(check: GateCheck): Promise<CheckResult> {
+export function buildPerfBaselineArgs(results: CheckResult[]): string[] {
+  const measuredChecks = new Set(['audit-check', 'npm-audit', 'orchestrator-auto-fix']);
+  return [
+    'run',
+    'perf:baseline:check',
+    '--',
+    ...results
+      .filter((result) => measuredChecks.has(result.name))
+      .map((result) => `--duration=${result.name}=${(result.durationMs / 1000).toFixed(2)}`),
+  ];
+}
+
+function runOne(check: GateCheck, args = check.args): Promise<CheckResult> {
   return new Promise((resolvePromise) => {
     const start = Date.now();
-    const child = run(check.command, check.args, { cwd: ROOT, timeout: check.timeoutMs });
+    const child = run(check.command, args, { cwd: ROOT, timeout: check.timeoutMs });
     let stdout = '';
     let stderr = '';
     child.stdout?.on('data', (d: Buffer) => {
@@ -368,8 +380,14 @@ async function main(): Promise<void> {
   // Let the other resource-heavy gates finish first so icacls is not competing
   // with four concurrent builds/test runners for process, disk, and AV locks.
   const appAudit = checks.find((check) => check.name === 'stack-audit-apps');
-  const parallelChecks = checks.filter((check) => check.name !== 'stack-audit-apps');
+  const perfBaseline = checks.find((check) => check.name === 'perf-baseline');
+  const parallelChecks = checks.filter(
+    (check) => check.name !== 'stack-audit-apps' && check.name !== 'perf-baseline',
+  );
   const results = await runChecks(parallelChecks);
+  if (perfBaseline) {
+    results.push(await runOne(perfBaseline, buildPerfBaselineArgs(results)));
+  }
   if (appAudit) results.push(...await runChecks([appAudit], 1));
   const totalMs = Date.now() - start;
   const allPass = results.every((r) => r.status === 'pass');

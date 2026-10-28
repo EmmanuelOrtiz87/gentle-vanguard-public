@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync } from 'fs';
-import { resolve, join } from 'path';
+import { existsSync, readdirSync } from 'fs';
+import { resolve, join, basename, dirname } from 'path';
 import { runSync, runNpxTsxSync } from '../core/run-command.js';
 import { pathToFileURL } from 'url';
 
@@ -89,29 +89,70 @@ function success(validator: string, details: string): void {
   summary.validated.push(`${validator}: ${details}`);
 }
 
-function findFirstFile(root: string, pattern: string, recursive = true): string | null {
-  const cmd = `Get-ChildItem -Path "${root}" -Filter "${pattern}" ${recursive ? '-Recurse' : ''} -File -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
-  const out = result.stdout.trim();
-  return out || null;
+const IGNORED_SCAN_DIRS = new Set([
+  '.backups',
+  '.git',
+  '.pnpm-store',
+  '.runtime',
+  '.session',
+  'build',
+  'dist',
+  'node_modules',
+]);
+
+function wildcardMatcher(pattern: string): RegExp {
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escaped.replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i');
 }
 
-function findFirstFileWithExtension(
+function* walkFiles(root: string, recursive = true): Generator<string> {
+  let entries;
+  try {
+    entries = readdirSync(root, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    const path = join(root, entry.name);
+    if (entry.isFile()) {
+      yield path;
+    } else if (recursive && entry.isDirectory() && !IGNORED_SCAN_DIRS.has(entry.name)) {
+      yield* walkFiles(path, true);
+    }
+  }
+}
+
+export function findFirstFile(root: string, pattern: string, recursive = true): string | null {
+  const matches = wildcardMatcher(pattern);
+  for (const path of walkFiles(root, recursive)) {
+    if (matches.test(basename(path))) return path;
+  }
+  return null;
+}
+
+export function findFirstFileWithExtension(
   root: string,
   pattern: string,
   extensions: string[],
 ): string | null {
-  const cmd = `Get-ChildItem -Path "${root}" -Filter "${pattern}" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @(${extensions.map((e) => `'${e}'`).join(',')}) } | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
-  const out = result.stdout.trim();
-  return out || null;
+  const matches = wildcardMatcher(pattern);
+  const allowedExtensions = new Set(extensions.map((extension) => extension.toLowerCase()));
+  for (const path of walkFiles(root)) {
+    const fileName = basename(path);
+    const extension = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+    if (matches.test(fileName) && allowedExtensions.has(extension)) return path;
+  }
+  return null;
 }
 
-function findInDir(root: string, regex: string): string | null {
-  const cmd = `Get-ChildItem -Path "${root}" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match "${regex}" } | Select-Object -First 1 | Select-Object -ExpandProperty FullName`;
-  const result = runSync('pwsh', ['-NoProfile', '-Command', cmd], { stdio: 'pipe' });
-  const out = result.stdout.trim();
-  return out || null;
+export function findInDir(root: string, regex: string): string | null {
+  const matches = new RegExp(regex, 'i');
+  for (const path of walkFiles(root)) {
+    const parent = dirname(path);
+    if (matches.test(parent)) return path;
+  }
+  return null;
 }
 
 function initializeValidators(): void {

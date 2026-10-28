@@ -32,9 +32,18 @@ overrides:
   body-parser: '>=2.4.0'
   js-yaml: '>=5.4.1'
   nanoid: '>=3.3.18'
-  qs: '>=6.15.4'
+  # GHSA-6pq8-jhm2-2vcw (qs ≤6.16.0, moderate, DoS con arrayFormat comma):
+  # parcheado en 6.16.1 (publicado 2026-10-14). Subido desde '>=6.15.4' porque
+  # el lock seguía resolviendo 6.16.0.
+  qs: '>=6.16.1'
   hono: '>=4.13.13'
   postcss: '>=8.5.23'
+  # Mantener Vitest en el primer parche del mocker vulnerable.
+  '@vitest/mocker': '4.1.12'
+  # Impeccable solo usa Puppeteer como herramienta de desarrollo; la versión
+  # anterior retenía chromium-bidi 17 con Zod 3 vulnerable. Puppeteer 25.16
+  # usa chromium-bidi 157 y Zod 4.6.5+ sin forzar un major sobre el consumidor.
+  'impeccable>puppeteer': '25.16.0'
   # 8.2.2 esta afectado por GHSA (launch-editor: escapeCmdArgs() no escapa el %
   # en Windows, CVE moderado). Corregido en 8.2.4 (publicada 2026-10-06).
   vite: '8.2.4'

@@ -7,22 +7,33 @@ server does not prove that a host can run a model or invoke a tool. The structur
 
 ## Current host matrix
 
-Audit date: **2026-10-26**. All six configuration surfaces passed. Execution status reflects bounded
-evidence available on this workstation, not feature parity across every host.
+Configuration audit date: **2026-10-28**. The dated audit at
+[`reports/audits/tool-interoperability-2026-10-28.md`](../../reports/audits/tool-interoperability-2026-10-28.md)
+records **6/6 configuration PASS**, 28 expected critical skills and fresh assets on all six hosts.
+Execution evidence below is still the bounded 2026-10-26 set (not re-run). Caveat from the
+2026-10-28 regeneration: a first run at 13:16Z returned OpenCode `WARN` with
+`runtimeVariant=unsupported` (the audit reads `opencode --version` with a 3 s timeout and does not
+grant PASS when the variant is unreadable); the reported run at 13:24Z and a repeat gave PASS/`v1`
+(CLI 1.19.4). The failure was not reproduced; the WARN was not hidden by inheriting capabilities.
+Separately, `config/tool-opencode.json` was aligned the same day (`version: 1.19.4`, the CLI the
+stack launches); the audit still gates on major `v1`/`v2`, so profile metadata never grants PASS.
 
-| Host           | Configuration                                         | Runtime / launcher evidence                            | Real execution evidence                                     | Remaining limit                                      |
-| -------------- | ----------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------- |
-| OpenCode       | PASS; 21 agents, 32 skills, Engram MCP, fresh assets  | CLI runtime and launcher available                     | Synthetic model inference and `sdd-apply` delegation passed | No blanket parity claim for every model or skill     |
-| Codex          | PASS; 21 agents, 35 skills, Engram MCP, fresh assets  | Native desktop host and MCP tools available            | Harness k=3: 12/12 rollouts and 9/9 sessions                | Semantic judge 0/9; no verified rule adoption        |
-| ZCode          | PASS; 21 agents, 29 skills, Engram MCP, safe hooks    | Desktop runtime; no stack launcher detected            | Not qualified in this run                                   | Needs a bounded host task with a verifiable artifact |
-| MiniMax Code   | PASS; 29 skills, Engram MCP; agent count not reported | Desktop / pi-agent runtime; no stack launcher detected | Not qualified in this run                                   | Needs a bounded host task with a verifiable artifact |
-| GitHub Copilot | PASS; 29 skills, Engram MCP, fresh assets             | VS Code Agent Mode and launcher detected               | Not qualified in this run                                   | Needs an isolated Agent Mode task and artifact check |
-| Antigravity    | PASS; 29 skills, Engram MCP, fresh assets             | Desktop runtime; no stack launcher detected            | Not qualified in this run                                   | Needs a bounded host task with a verifiable artifact |
+| Host           | Configuration                                         | Runtime / launcher evidence                            | Real execution evidence                                                                        | Remaining limit                                                                   |
+| -------------- | ----------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| OpenCode       | PASS; 21 agents, 32 skills, Engram MCP, fresh assets, variant `v1` (CLI 1.19.4) | CLI runtime and launcher available                     | Synthetic `glm-5.3-flash-free` inference returned `READY`; prior `sdd-apply` delegation passed | Qualification fixture for delegated SDD timed out at 45s; no blanket parity claim |
+| Codex          | PASS; 21 agents, 35 skills, Engram MCP, fresh assets  | Native desktop host and MCP tools available            | Harness k=3: 12/12 rollouts and 9/9 sessions                                                   | Semantic judge 0/9; no verified rule adoption                                     |
+| ZCode          | PASS; 21 agents, 29 skills, Engram MCP, safe hooks    | ZCode desktop 3.16.3 installed; no `zcode` command     | Not qualified                                                                                  | App is present, but no fresh synthetic execution was run                          |
+| MiniMax Code   | PASS; 29 skills, Engram MCP; agent count not reported | Desktop / pi-agent runtime; no stack launcher detected | 2026-10-26, M3.1-Flash: synthetic `READY` returned in 5s                                       | Only inference qualified; native tool/MCP execution remains untested              |
+| GitHub Copilot | PASS; 29 skills, Engram MCP, fresh assets             | Copilot CLI 1.0.103 installed; MCP config and skills load | Inference attempt blocked: monthly Copilot quota exceeded; no model result                   | Retry inference after quota reset; native tool execution remains untested         |
+| Antigravity    | PASS; 29 skills, Engram MCP, fresh assets             | Desktop runtime; no stack launcher detected            | 2026-10-26, Gemini 3.8 Flash High: synthetic `READY` returned in 7s                            | Only inference qualified; native tool/MCP execution remains untested              |
 
-The audit output is configuration evidence only. OpenCode and Codex have the execution evidence
-listed above; ZCode, MiniMax Code, Copilot and Antigravity remain execution `SKIP`. Ollama is a
-local model substrate, not another host. Do not report the stack as universally homologated until
-each supported host has a fresh, attributable execution result.
+The audit output is configuration evidence only. OpenCode, Codex, MiniMax Code and Antigravity have
+the bounded execution evidence listed above; ZCode remains execution `SKIP` because no fresh task was
+run, and Copilot remains `SKIP` because the model request was rejected by the monthly quota before
+inference. The OpenCode SDD qualification
+fixture timed out after 45 seconds even though simple inference works; the timeout does not qualify
+delegated execution. Ollama is a local model substrate, not another host. Do not report the stack as
+universally homologated until each supported host has a fresh, attributable execution result.
 
 ## Qualification protocol
 

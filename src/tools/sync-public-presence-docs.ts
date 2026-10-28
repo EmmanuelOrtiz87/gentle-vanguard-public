@@ -12,6 +12,8 @@ if(/--gv-[\w-]+\s*:/.test(composition))throw new Error('Documentation compositio
 for(const asset of ['fonts.css','shell.css','tokens.css'])if(!composition.includes(`../canon/${asset}`))throw new Error(`Documentation must import canonical ${asset}`);
 const version=(JSON.parse(readFileSync(join(root,'package.json'),'utf8')) as {version:string}).version;
 if(!md.includes(`**${version}**`))throw new Error('Presence source version differs from package.json');
+const reviewedAt=md.match(/^Revisión:\s*(\d{4}-\d{2}-\d{2})/m)?.[1];
+if(!reviewedAt)throw new Error('Presence source review date is missing');
 // Reuse the trusted, vendored MIT parser already shipped by the documentation.
 const context:{marked?:{parse:(text:string)=>string}}={};
 runInNewContext(readFileSync(join(root,'docs/presentations/assets/vendor/marked.min.js'),'utf8'),context);
@@ -29,7 +31,7 @@ for(const [from,to] of [['packages/gv-design-system/dist/tokens.css','tokens.css
 const fonts=join(root,'packages/gv-design-system/dist/fonts');
 for(const name of readdirSync(fonts)){const target=join(canon,'fonts',name);const original=readFileSync(join(fonts,name));if(check){if(!existsSync(target)||!readFileSync(target).equals(original)){console.error(`DRIFT font ${name}`);drift=true;}}else{mkdirSync(resolve(target,'..'),{recursive:true});cpSync(join(fonts,name),target);}}
 const marker='<!-- GV-PRESENCE:START -->';
-const block=`${marker}\n<section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-10-18</a></section>\n<!-- GV-PRESENCE:END -->`;
+const block=`${marker}\n<section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · ${reviewedAt}</a></section>\n<!-- GV-PRESENCE:END -->`;
 for(const name of ['index.html','marketing.html','commands.html','patterns-conventions.html','resources-index.html','social-post.html']){
   const path=join(root,'docs/presentations',name);let text=readFileSync(path,'utf8');
   if(name==='marketing.html'&&text.includes('GV-HISTORICAL-MARKETING:START')){

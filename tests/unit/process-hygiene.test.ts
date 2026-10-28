@@ -291,10 +291,16 @@ test('does not classify a daemon from another checkout as a repo process', () =>
   const foreignServer = 'C:\\external\\gentle-vanguard\\apps\\command-center\\server.ts';
   const foreignPosixServer = '/external/gentle-vanguard/apps/command-center/server.ts';
   const pidFiles = new Map([[join('.runtime', 'command-center.pid'), String(localPid)]]);
+  // Relative creation times: a hardcoded ISO date ages past DEFAULT_OPTIONS
+  // (maxAgeHours: 24, recycleAged: true) and the command-center keeper is then
+  // legitimately RECYCLED instead of kept healthy — unrelated to the
+  // cross-checkout protection this test guards.
+  const createdMinAgo = (minutes: number): string =>
+    new Date(Date.now() - minutes * 60_000).toISOString();
   const output = [
-    `${localPid}\t1000\tnode.exe\t2026-10-20T01:30:00.000Z\t"node.exe" --import tsx "${localServer}"`,
-    `${foreignPid}\t2000\tnode.exe\t2026-10-20T01:31:00.000Z\t"node.exe" --import tsx "${foreignServer}"`,
-    `${foreignPosixPid}\t2000\tnode.exe\t2026-10-20T01:32:00.000Z\tnode --import tsx ${foreignPosixServer}`,
+    `${localPid}\t1000\tnode.exe\t${createdMinAgo(30)}\t"node.exe" --import tsx "${localServer}"`,
+    `${foreignPid}\t2000\tnode.exe\t${createdMinAgo(31)}\t"node.exe" --import tsx "${foreignServer}"`,
+    `${foreignPosixPid}\t2000\tnode.exe\t${createdMinAgo(32)}\tnode --import tsx ${foreignPosixServer}`,
   ].join('\n');
 
   const { repoProcesses, livePids } = parseWindowsProcessSnapshot(output, pidFiles);

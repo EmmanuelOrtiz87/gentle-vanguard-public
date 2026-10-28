@@ -17,6 +17,18 @@
         "description": "GUARDRAIL anti-pérdida (post-incidente 2026-09-19): snapshot de archivos untracked + parches de cambios sin commit a .session/snapshots/untracked/. Lo irrecuperable de git queda respaldado en cada inicio de sesión."
       },
       {
+        "id": "reviewed-boundary",
+        "enabled": true,
+        "lazy": false,
+        "script": "src/review/reviewed-boundary.ts",
+        "args": "status --quiet",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 20000,
+        "description": "RDD-lite (absorción gentle-ai v4.3.1 #5654/#5635, GB-2026-10-28): al iniciar sesión valida el reviewed boundary — .session/reviewed-boundary.json registra el último commit con review aceptada y la próxima revisión parte de ahí (delta, no full-range); sin boundary falla al merge-base upstream. Estado derivable, no-crítico: skipOnFailure."
+      },
+      {
         "id": "legacy-registration-cleanup",
         "enabled": true,
         "script": "src/core/legacy-registration-cleanup.ts",

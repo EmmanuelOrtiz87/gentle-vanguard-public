@@ -247,12 +247,13 @@ export function runAppCheck(app: string, kind: string, script: string): AppCheck
     if (r.status === 0) {
       return { kind, status: 'PASS', durationMs, message: 'ok' };
     }
-    const stderrTail = (r.stderr || r.stdout || '').slice(-280).replace(/\s+/g, ' ').trim();
+    const failureOutput = [r.stderr, r.stdout, r.error?.message].filter(Boolean).join('\n');
+    const failureDetail = failureOutput.slice(-2_000).replace(/\s+/g, ' ').trim();
     return {
       kind,
       status: 'FAIL',
       durationMs,
-      message: stderrTail || `exit ${r.status}`,
+      message: failureDetail || `exit ${r.status}`,
       exitCode: r.status ?? undefined,
     };
   } catch (err) {

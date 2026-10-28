@@ -26,7 +26,9 @@ import { log } from '../../utils/logger.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-BG-TASKS');
 
 const STATE_FILE = resolve(ROOT, '.runtime', 'bg-tasks.json');
+const PENDING_WARN = 1;
 const PENDING_FAIL = 3;
+const OS_LEAK_WARN = 1;
 const OS_LEAK_FAIL = 2;
 
 interface StateFile {
@@ -82,11 +84,13 @@ export async function checkBgTasks(): Promise<void> {
     return;
   }
 
-  addResult(
-    'bg-tasks',
-    'hygiene',
-    'WARN',
-    `${pending.length} pending (${pendingIds || '—'}), ${osLeaks.length} OS leaks (${osSummary})`,
-    'drain next turn: call task_output(task_id="<id>") for each pending; reap OS leaks with --apply',
-  );
+  if (pending.length >= PENDING_WARN || osLeaks.length >= OS_LEAK_WARN) {
+    addResult(
+      'bg-tasks',
+      'hygiene',
+      'WARN',
+      `${pending.length} pending (${pendingIds || '—'}), ${osLeaks.length} OS leaks (${osSummary})`,
+      'drain next turn: call task_output(task_id="<id>") for each pending; reap OS leaks with --apply',
+    );
+  }
 }

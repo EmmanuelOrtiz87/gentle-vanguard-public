@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { buildPerfBaselineArgs } from '../../src/git/prepush-gate.ts';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const GATE = resolve(ROOT, 'src', 'git', 'prepush-gate.ts');
@@ -25,6 +26,21 @@ function listChecks(args: string[]): string[] {
 }
 
 describe('prepush-gate --skip-apps flag', () => {
+  it('evaluates measured check durations without rerunning the checks', () => {
+    const args = buildPerfBaselineArgs([
+      { name: 'npm-audit', status: 'pass', durationMs: 12_345, tail: '' },
+      { name: 'orchestrator-auto-fix', status: 'fail', durationMs: 98_765, tail: '' },
+      { name: 'typecheck', status: 'pass', durationMs: 1000, tail: '' },
+    ]);
+    assert.deepEqual(args, [
+      'run',
+      'perf:baseline:check',
+      '--',
+      '--duration=npm-audit=12.35',
+      '--duration=orchestrator-auto-fix=98.77',
+    ]);
+  });
+
   it('default --list includes stack-audit-apps', () => {
     const names = listChecks(['--list']);
     assert.ok(

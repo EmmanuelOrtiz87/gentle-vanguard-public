@@ -91,9 +91,22 @@ describe('background-tasks helper CLI', () => {
   });
 
   it('source file references all required layers', () => {
+    // 9a1091a95 moved OS-level detection into the shared classifier
+    // src/core/bg-os-leaks.ts (single source of truth shared with the
+    // watchtower check), renaming the local listOsBgCandidates helper away.
     const src = readFileSync(SCRIPT, 'utf-8');
-    assert.ok(src.includes('listOsBgCandidates'), 'must list OS-level candidates');
+    assert.ok(
+      src.includes("from '../../src/core/bg-os-leaks'"),
+      'must delegate OS-level candidates to the shared classifier',
+    );
+    assert.ok(src.includes('listOsLeakCandidates'), 'must list OS-level candidates');
     assert.ok(src.includes('drain-hint'), 'must expose --drain-hint');
     assert.ok(src.includes('--apply'), 'must guard reap behind --apply');
+
+    const sharedSrc = readFileSync(resolve(ROOT, 'src', 'core', 'bg-os-leaks.ts'), 'utf-8');
+    assert.ok(
+      sharedSrc.includes('export function listOsLeakCandidates'),
+      'shared classifier must export listOsLeakCandidates',
+    );
   });
 });
