@@ -1,11 +1,8 @@
 <!doctype html>
-<html lang="es" class="gv-document-page">
+<html lang="es" class="gv-document-page" data-bs-theme="dark">
   <head>
-    <meta name="theme-color" content="#0B1020" />
-    <meta
-      name="description"
-      content="Visor de Documentos — GentleVanguard — GentleVanguard documentation"
-    />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="Visor de Documentos — GentleVanguard — GentleVanguard documentation" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Visor de Documentos — GentleVanguard</title>
@@ -125,6 +122,13 @@
         width: 100%;
         border-collapse: collapse;
         margin: 1rem 0;
+      }
+      @media (max-width: 640px) {
+        .md-content table {
+          display: block;
+          max-width: 100%;
+          overflow-x: auto;
+        }
       }
       .md-content th {
         text-align: left;

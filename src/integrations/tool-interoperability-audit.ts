@@ -85,6 +85,34 @@ export function nativeSkillSurfaceReady(
   return expectedCount > 0 && skillCount >= expectedCount && fresh;
 }
 
+export function copilotRuntimeVariant(
+  copilotCliAvailable: boolean,
+  vscodeAgentModeConfigured: boolean,
+): string {
+  if (copilotCliAvailable) return 'copilot-cli';
+  if (vscodeAgentModeConfigured) return 'vscode-agent-mode';
+  return 'configured-only';
+}
+
+export function zcodeEngramMode(
+  mcpAvailable: boolean,
+  cliAvailable: boolean,
+): 'mcp' | 'cli-fallback' | 'missing' {
+  return mcpAvailable ? 'mcp' : cliAvailable ? 'cli-fallback' : 'missing';
+}
+
+export function hasAgentCoverage(actual: number, expected: number): boolean {
+  return actual >= expected;
+}
+
+export function copilotRuntimeReady(
+  copilotCliAvailable: boolean,
+  workspaceSettingsPresent: boolean,
+  vscodeAgentModeAvailable: boolean,
+): boolean {
+  return copilotCliAvailable || (workspaceSettingsPresent && vscodeAgentModeAvailable);
+}
+
 const CODEX_MANAGED_IMPECCABLE_EXTRAS = new Set([
   'scripts/detector/browser/injected/index.mjs',
   'scripts/detector/injected/index.mjs',
@@ -324,6 +352,9 @@ export function auditTools(
     ['mcpServers'],
   ]);
   const copilotMcp = hasEngramJsonServer(join(appData, 'Code', 'User', 'mcp.json'), [['servers']]);
+  const copilotCli = findUsableCommand('copilot', pathValue);
+  const vscodeAgentMode = commandAvailable('code', pathValue);
+  const copilotRuntime = existsSync(join(root, '.vscode', 'settings.json')) || copilotCli !== null;
   const copilotInstructions = existsSync(
     join(appData, 'Code', 'User', 'prompts', 'engram.instructions.md'),
   );
@@ -391,12 +422,11 @@ export function auditTools(
     {
       tool: 'ZCode',
       status:
-        zcodeAgents === sourceAgents &&
+        hasAgentCoverage(zcodeAgents, sourceAgents) &&
         zcodeSkills >= expectedSkills &&
         zcodeAssetsFresh &&
         hookSafe &&
-        zcodeMcp &&
-        engramAvailable
+        (zcodeMcp || engramAvailable)
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-zcode.json')),
@@ -405,7 +435,7 @@ export function auditTools(
       agents: zcodeAgents,
       skills: zcodeSkills,
       hooks: hookSafe ? 'safe' : 'unsafe',
-      engram: zcodeMcp ? 'mcp' : 'missing',
+      engram: zcodeEngramMode(zcodeMcp, engramAvailable),
       instructions: existsSync(join(root, 'AGENTS.md')) && zcodeSkills >= expectedSkills,
       assets: zcodeAssetsFresh ? 'fresh' : 'stale',
       runtimeVariant: 'desktop',
@@ -439,8 +469,11 @@ export function auditTools(
       tool: 'GitHub Copilot',
       status:
         existsSync(join(root, 'config', 'tool-vscode.json')) &&
-        existsSync(join(root, '.vscode', 'settings.json')) &&
-        commandAvailable('code', pathValue) &&
+        copilotRuntimeReady(
+          copilotCli !== null,
+          existsSync(join(root, '.vscode', 'settings.json')),
+          vscodeAgentMode,
+        ) &&
         copilotSkills >= expectedSkills &&
         copilotAssetsFresh &&
         copilotMcp &&
@@ -448,8 +481,8 @@ export function auditTools(
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-vscode.json')),
-      runtime: existsSync(join(root, '.vscode', 'settings.json')),
-      launcher: commandAvailable('code', pathValue),
+      runtime: copilotRuntime,
+      launcher: copilotCli !== null || vscodeAgentMode,
       agents: null,
       skills: copilotSkills,
       hooks: 'n/a',
@@ -457,8 +490,14 @@ export function auditTools(
       instructions:
         copilotInstructions && existsSync(join(root, '.github', 'copilot-instructions.md')),
       assets: copilotAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: 'vscode-agent-mode',
-      detail: 'VS Code Agent Mode, workspace skills, MCP e instrucciones oficiales',
+      runtimeVariant: copilotRuntimeVariant(
+        copilotCli !== null,
+        existsSync(join(root, '.vscode', 'settings.json')) && vscodeAgentMode,
+      ),
+      detail:
+        copilotCli !== null
+          ? 'Copilot CLI, workspace skills, MCP e instrucciones oficiales'
+          : 'VS Code Agent Mode, workspace skills, MCP e instrucciones oficiales',
     },
     {
       tool: 'Antigravity',

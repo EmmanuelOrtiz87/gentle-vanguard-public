@@ -46,7 +46,7 @@ pnpm run health:check
 npx tsx src/session/session-autostart.ts
 
 # O manualmente
-pnpm run session:start
+npm run session:autostart:detached
 ```
 
 ---

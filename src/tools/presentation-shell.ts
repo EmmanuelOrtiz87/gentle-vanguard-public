@@ -2,6 +2,41 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+/**
+ * Canonical `<head>` shape shared with normalize-doc-html.ts.
+ *
+ * The two tools used to disagree: sync-public-presence-docs generated its page
+ * through presentationShell(), and the normalizer rewrote the same header
+ * afterwards, so `docs:presence:check` reported drift right after every
+ * normalize pass. Applying the same rules here makes the pipeline idempotent:
+ * generate -> normalize -> check all produce identical bytes.
+ */
+function normalizeHead(html: string): string {
+  const title = html.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim() || 'Documentación';
+  let out = html.replace(/<html([^>]*)>/i, (_match, attrs: string) => {
+    const withClass = /\bclass=["'][^"']*["']/i.test(attrs)
+      ? attrs.replace(/class=["']([^"']*)["']/i, (_m, value) => {
+          const classes = [...new Set(`${value} gv-document-page`.split(/\s+/).filter(Boolean))];
+          return `class="${classes.join(' ')}"`;
+        })
+      : `${attrs} class="gv-document-page"`;
+    return `<html${/\bdata-bs-theme=/i.test(withClass) ? withClass : `${withClass} data-bs-theme="dark"`}>`;
+  });
+  out = out.replace(/\s*<meta\s+name=["'](?:theme-color|description)["'][^>]*>/gi, '');
+  out = out.replace(
+    /<head([^>]*)>/i,
+    (_match, attrs: string) =>
+      `<head${attrs}>\n    <meta name="theme-color" content="#0b1020" />\n    <meta name="description" content="${title.replace(/"/g, '&quot;')} — GentleVanguard documentation" />`,
+  );
+  if (!/<link[^>]+href=["']assets\/css\/gv\.css/i.test(out)) {
+    out = out.replace(/<\/head>/i, `    <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />\n  </head>`);
+  }
+  if (!/<title>/i.test(out)) {
+    out = out.replace(/<head[^>]*>/i, (head) => `${head}\n    <title>${title}</title>`);
+  }
+  return out;
+}
+
 export function presentationShell(html: string, root: string): string {
   const reference = readFileSync(resolve(root, 'docs/presentations/architecture.html'), 'utf8');
   const header = reference.match(/<header class="gv-topbar">[\s\S]*?<\/header>/)?.[0];
@@ -23,5 +58,5 @@ export function presentationShell(html: string, root: string): string {
   const footer=`<footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v${version}</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>`;
   if (/<footer\b/.test(html)) html=html.replace(/<footer\b[\s\S]*?<\/footer>/,footer);
   else html=html.replace('</main>','</main>'+footer);
-  return html;
+  return normalizeHead(html);
 }

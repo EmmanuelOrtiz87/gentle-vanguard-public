@@ -507,7 +507,7 @@ export const PATTERNS: SecretPattern[] = [
     description: 'Bitbucket app password (32-64 chars near a bitbucket keyword).',
     category: 'cloud',
     risk: 'medium',
-    regex: /(?:bitbucket)[\s\S]{0,40}["']?([a-zA-Z0-9=_\-]{32,64})["']?/i,
+    regex: /(?:bitbucket)[\s\S]{0,40}["']?((?=[a-zA-Z0-9_\-]*[a-zA-Z0-9])[a-zA-Z0-9_\-]{32,64})["']?/i,
     falsePositives: [],
     captureGroup: 1,
     builtin: false,

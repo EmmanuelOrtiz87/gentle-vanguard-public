@@ -11,6 +11,8 @@ import { evaluateCodeGraphAvailability } from '../../src/core/watchtower/checks-
 import {
   evaluateProviderAlertStatus,
   evaluateProviderEvidenceStatus,
+  evaluateTrackedModelHealth,
+  extractManagedModelIds,
   getWatchtowerComponentStatus,
   readLatestSuccessfulProviderUsage,
 } from '../../src/core/watchtower/checks-data.js';
@@ -42,11 +44,15 @@ import {
 } from '../../src/knowledge/engram-auto-update.js';
 import {
   compareSkillTrees,
+  copilotRuntimeReady,
+  copilotRuntimeVariant,
   evaluateToolAudit,
   hasMiniMaxEngramMcpRuntime,
+  hasAgentCoverage,
   isUsableLauncherFile,
   nativeSkillSurfaceReady,
   parseOpenCodeRuntimeMajor,
+  zcodeEngramMode,
 } from '../../src/integrations/tool-interoperability-audit.js';
 import { findBrokenRelativeImports } from '../../src/tools/ast-import-parser.js';
 import { discoverAuditRoots } from '../../src/infrastructure/npm-audit-pre-push.js';
@@ -80,6 +86,17 @@ test('normalizes legacy fallback state without losing counters', () => {
   assert.deepEqual(state.exhaustedModels, []);
   assert.deepEqual(state.agentModelOverrides, {});
   assert.equal(state.globalFallbackCount, 7);
+});
+
+test('interoperability accepts native MCP or CLI integrations per tool', () => {
+  assert.equal(zcodeEngramMode(true, false), 'mcp');
+  assert.equal(zcodeEngramMode(false, true), 'cli-fallback');
+  assert.equal(zcodeEngramMode(false, false), 'missing');
+  assert.equal(copilotRuntimeReady(true, false, false), true);
+  assert.equal(copilotRuntimeReady(false, true, true), true);
+  assert.equal(copilotRuntimeReady(false, true, false), false);
+  assert.equal(hasAgentCoverage(21, 10), true);
+  assert.equal(hasAgentCoverage(9, 10), false);
 });
 
 test('dependency audit discovers standalone app lockfiles', () => {
@@ -131,6 +148,85 @@ test('does not equate an expired provider-error cooldown with a verified recover
       status: 'healthy',
       lastSuccessAt: new Date().toISOString(),
     }),
+    'PASS',
+  );
+});
+
+test('provider health alerts only for models inside the active routing scope', () => {
+  const managed = extractManagedModelIds(
+    {
+      defaults: { model: 'opencode-zen-C/big-pickle' },
+      fallback: { model: 'opencode-zen-C/mimo-v2.6-flash-free' },
+      failover: { fallbackModel: 'opencode-zen-C/glm-5.3-flash-free' },
+      agentBindings: { ORCHESTRATOR: { model: 'opencode-zen-C/nemotron-3.5-lightning-free' } },
+    },
+    {
+      agentFallbacks: {
+        DEV: { primary: 'opencode-zen-C/big-pickle', chain: ['ollama/qwen2.5-coder:7b'] },
+      },
+      universalFallbacks: ['ollama/qwen2.5-coder:14b'],
+    },
+  );
+  assert.deepEqual(managed.sort(), [
+    'ollama/qwen2.5-coder:14b',
+    'ollama/qwen2.5-coder:7b',
+    'opencode-zen-C/big-pickle',
+    'opencode-zen-C/glm-5.3-flash-free',
+    'opencode-zen-C/mimo-v2.6-flash-free',
+    'opencode-zen-C/nemotron-3.5-lightning-free',
+  ]);
+
+  const staleEvidence = {
+    status: 'unhealthy',
+    reason: 'prior provider error',
+    lastDetectedAt: '2026-08-06T22:07:32.832Z',
+    cooldownUntil: '2026-08-06T23:07:32.834Z',
+  };
+  const activeModel = 'opencode-zen-C/big-pickle';
+
+  // Legacy residue outside routing: untracked PASS, never a permanent WARN.
+  const untracked = evaluateTrackedModelHealth(
+    'kimi-2-5',
+    'littellmott-nuevo',
+    activeModel,
+    staleEvidence,
+    managed,
+  );
+  assert.equal(untracked.status, 'PASS');
+  assert.equal(untracked.detail, 'untracked (not in active routing)');
+
+  // A routed model without a fresh success keeps the honest WARN (quota case),
+  // including a state entry recorded under a stale provider alias.
+  assert.equal(
+    evaluateTrackedModelHealth('big-pickle', 'opencode', activeModel, staleEvidence, managed).status,
+    'WARN',
+  );
+  assert.equal(
+    evaluateTrackedModelHealth('big-pickle', 'opencode-zen-C', activeModel, staleEvidence, managed).status,
+    'WARN',
+  );
+
+  // The active model is never downscoped, even if it were missing from routing.
+  assert.equal(
+    evaluateTrackedModelHealth('big-pickle', 'opencode', activeModel, staleEvidence, []).status,
+    'WARN',
+  );
+
+  // Unreadable router configs fail open (empty managed set keeps legacy WARN).
+  assert.equal(
+    evaluateTrackedModelHealth('kimi-2-5', 'littellmott-nuevo', activeModel, staleEvidence, []).status,
+    'WARN',
+  );
+
+  // A routed model with a fresh verified success still passes.
+  assert.equal(
+    evaluateTrackedModelHealth(
+      'mimo-v2.6-flash-free',
+      'opencode',
+      activeModel,
+      { status: 'healthy', lastSuccessAt: new Date().toISOString() },
+      managed,
+    ).status,
     'PASS',
   );
 });
@@ -414,6 +510,12 @@ test('tool audit rejects simulated launchers', () => {
 
   assert.equal(isUsableLauncherFile(demo), false);
   assert.equal(isUsableLauncherFile(real), true);
+});
+
+test('tool audit identifies Copilot CLI independently from VS Code Agent Mode', () => {
+  assert.equal(copilotRuntimeVariant(true, true), 'copilot-cli');
+  assert.equal(copilotRuntimeVariant(false, true), 'vscode-agent-mode');
+  assert.equal(copilotRuntimeVariant(false, false), 'configured-only');
 });
 
 test('tool audit gate requires all expected clients to pass', () => {

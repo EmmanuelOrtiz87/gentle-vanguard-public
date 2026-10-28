@@ -204,7 +204,7 @@
 
   <!-- Footer -->
   <line x1="40" y1="433" x2="860" y2="433" stroke="#1e3a5f" stroke-width="0.5"/>
-  <text x="450" y="445" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v3.5.0 — Autonomous AI Stack</text>
+  <text x="450" y="445" text-anchor="middle" fill="#4b5563" font-family="system-ui,-apple-system,sans-serif" font-size="9">Gentle-Vanguard v4.3.0 — Autonomous AI Stack</text>
 
   
   <!-- ===== HOTSPOTS INTERACTIVOS (gv-hotspot) ===== -->

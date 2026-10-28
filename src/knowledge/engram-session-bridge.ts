@@ -5,12 +5,18 @@
  * Unifica el flujo de sesiones Engram para que funcione idénticamente
  * en TODAS las herramientas (OpenCode, Claude, Cline, Cursor, etc.)
  *
- * PATRÓN REAL DE SESIONES ENGRAM (importante — evita "unknown_session"):
- *   Engram nativo NO tiene comando de session-start/session-end: crea sesiones
- *   AUTOMÁTICAMENTE agrupando observaciones por ventana temporal. Por eso el
- *   sessionId del stack (`session-<ISO>`) es SOLO un identificador local de
- *   tracking en `.session/session-current.json` — NUNCA debe pasarse a la
- *   capa Engram como id de sesión, porque Engram lo rechaza como unknown.
+ * PATRÓN REAL DE SESIONES ENGRAM (v3.4.0 MCP EXPLICÍTO — actualizado 2026-10-28,
+ * GB-2026-10-28-engram-session-lifecycle.md):
+ *   El CLI `engram` no tiene subcomando session, PERO el MCP (`engram mcp`)
+ *   SÍ expone `mem_session_start`/`mem_session_end`/`mem_session_summary`.
+ *   Este bridge los usa NATIVO (one-shot stdio, src/knowledge/engram-mcp-session.ts):
+ *   sessionStart() REGISTRA la sesión y sessionEnd() la CIERRA — cerrando asÍ
+ *   la clase de error "multiple active runtime sessions match the current
+ *   project and directory" (antes: sesiones de stack sin registro ni cierre →
+ *   zombis activos que bloqueaban mem_save).
+
+ *   El sessionId del stack (`session-<ISO>`) es caller-provided
+ *   (`Caller-provided unique session ID`) — válido para mem_session_start.
  *
  *   El cierre real ante Engram es PERSISTIR un resumen (`engram save
  *   --type session_summary`), que adjunta la observación a la sesión
@@ -26,6 +32,7 @@
  */
 
 import { runSync } from '../core/run-command.js';
+import { engramSessionEnd as engramMcpSessionEnd, engramSessionStart } from './engram-mcp-session.js';
 import { pathToFileURL } from 'url';
 import * as http from 'http';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -92,7 +99,16 @@ export interface SessionEndResult {
 export function sessionStart(sessionId?: string): SessionStartResult {
   const sid = sessionId || `session-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`;
   const persisted = updateLocalSessionState(sid, 'active');
-  console.log(`[ENGRAM] Session started locally: ${sid} (tracking persisted: ${persisted})`);
+  // Nuevo (2026-10-28): registra la sesión EN engram via MCP nativo (one-shot).
+  // Best-effort (S4): un fallo no bloquea el start.
+  let mcpNote = 'mcp: skipped';
+  try {
+    const r = engramSessionStart(sid, ROOT);
+    mcpNote = r.ok ? 'mcp: registered' : `mcp: ${r.error ?? 'error'}`;
+  } catch (e) {
+    mcpNote = `mcp: ${e instanceof Error ? e.message : e}`;
+  }
+  console.log(`[ENGRAM] Session started locally: ${sid} (tracking persisted: ${persisted}, ${mcpNote})`);
   return { success: true, sessionId: sid };
 }
 
@@ -160,6 +176,7 @@ export async function sessionEnd(
 ): Promise<SessionEndResult> {
   let mcpSuccess = false;
   let httpSuccess = false;
+  let mcpNativeClose = false;
   let error = '';
 
   // 1. Intentar generar resumen vía MCP (CLI `engram save --type session_summary`)
@@ -189,7 +206,20 @@ export async function sessionEnd(
     console.warn(`[ENGRAM] HTTP close warning:`, e);
   }
 
-  const success = mcpSuccess || httpSuccess;
+  const success = mcpSuccess || httpSuccess || mcpNativeClose;
+
+  // 3. Cierre NATIVO MCP (2026-10-28, GB-2026-10-28-engram-session-lifecycle):
+  //    mem_session_end cierra la sesión runtime del stack en engram — sin esto
+  //    quedan zombis activos y mem_save del MCP falla por "multiple active
+  //    runtime sessions". Best-effort (S4).
+  try {
+    const r = engramMcpSessionEnd(sessionId, summary ? 'Cerrada por session-close orchestrator' : undefined);
+    mcpNativeClose = r.ok;
+    if (!r.ok) error += ` MCP-native-close: ${r.error ?? 'error'}`;
+    else console.log(`[ENGRAM] Runtime session closed via MCP: ${sessionId}`);
+  } catch (e) {
+    error += ` MCP-native-close: ${e instanceof Error ? e.message : e}`;
+  }
 
   // 4. SIEMPRE marcar el cierre local en .session/session-current.json para que
   //    ninguna sesión del stack quede colgada como "active" sin actividad real.

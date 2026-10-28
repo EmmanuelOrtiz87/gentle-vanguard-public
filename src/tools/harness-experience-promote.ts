@@ -230,7 +230,7 @@ function main(): number {
   const gate = spawnSync(
     process.execPath,
     ['--import', 'tsx', 'src/tools/harness-doctor.ts', '--strict'],
-    { cwd: ROOT, encoding: 'utf-8' }
+    { cwd: ROOT, encoding: 'utf-8', windowsHide: true }
   );
   const gateOutput = `${gate.stdout ?? ''}${gate.stderr ?? ''}`;
   process.stdout.write(gateOutput);
