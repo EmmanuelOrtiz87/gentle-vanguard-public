@@ -220,43 +220,71 @@ export function writeFileAtomic(path: string, data: string): void {
   }
 }
 
+/**
+ * Hooks gestionados por el stack, por evento. El merge es POR-HOOK: las entradas
+ * de terceros (p.ej. post-tool-use-token-log.ts registrado a mano, f15a6fed4)
+ * se conservan; sólo se regeneran las entradas cuyo script coincide con uno
+ * gestionado. Un spread `{...current, hooks: {...}}` completo las pisaría.
+ */
+const MANAGED_HOOKS: Record<string, Array<{ matcher: string; script: string; timeoutMs: number; statusMessage: string }>> = {
+  SessionStart: [
+    { matcher: 'startup|resume', script: 'src/zcode-hooks/session-start.ts', timeoutMs: 30000, statusMessage: 'Gentle-Vanguard: session autostart' },
+  ],
+  PostToolUse: [
+    { matcher: 'Write|Edit', script: 'src/zcode-hooks/post-edit-graphify.ts', timeoutMs: 150000, statusMessage: 'Gentle-Vanguard: graphify update' },
+  ],
+};
+
+type HookEntry = {
+  matcher?: string;
+  hooks?: Array<{ type?: string; command?: string; args?: string[]; [k: string]: unknown }>;
+  [k: string]: unknown;
+};
+
+/** Script .ts de zcode-hooks invocado por una entrada, si lo hay. */
+function entryHookScript(entry: HookEntry): string | undefined {
+  for (const h of entry.hooks ?? []) {
+    const arg = (h.args ?? []).find((a) => a.endsWith('.ts') && a.includes('zcode-hooks'));
+    if (arg) return arg.replace(/\\/g, '/');
+  }
+  return undefined;
+}
+
 export function buildZCodeHookConfig(current: JsonObject, repoRoot: string): JsonObject {
   const script = (relativePath: string) => join(repoRoot, relativePath).replace(/\\/g, '/');
+  const node = process.execPath.replace(/\\/g, '/');
+  const existingEvents =
+    (((current.hooks as JsonObject | undefined)?.events as JsonObject) ?? {}) as Record<string, unknown>;
+  const currentHooks = (current.hooks as JsonObject | undefined) ?? {};
+  const events: Record<string, unknown> = {};
+
+  for (const [event, managed] of Object.entries(MANAGED_HOOKS)) {
+    const currentEntries = Array.isArray(existingEvents[event]) ? (existingEvents[event] as HookEntry[]) : [];
+    // Entradas ajenas al stack (scripts que no gestionamos) sobreviven intactas.
+    const foreign = currentEntries.filter(
+      (e) => !managed.some((m) => entryHookScript(e)?.endsWith(m.script)),
+    );
+    const managedEntries: HookEntry[] = managed.map((m) => ({
+      matcher: m.matcher,
+      hooks: [
+        {
+          type: 'process',
+          command: node,
+          args: ['--import', 'tsx', script(m.script)],
+          timeoutMs: m.timeoutMs,
+          statusMessage: m.statusMessage,
+        },
+      ],
+    }));
+    events[event] = [...foreign, ...managedEntries];
+  }
+  // Eventos no gestionados por el stack también se preservan.
+  for (const [event, entries] of Object.entries(existingEvents)) {
+    if (!(event in events)) events[event] = entries;
+  }
   return {
     ...current,
-    hooks: {
-      enabled: true,
-      events: {
-        SessionStart: [
-          {
-            matcher: 'startup|resume',
-            hooks: [
-              {
-                type: 'process',
-                command: process.execPath.replace(/\\/g, '/'),
-                args: ['--import', 'tsx', script('src/zcode-hooks/session-start.ts')],
-                timeoutMs: 30000,
-                statusMessage: 'Gentle-Vanguard: session autostart',
-              },
-            ],
-          },
-        ],
-        PostToolUse: [
-          {
-            matcher: 'Write|Edit',
-            hooks: [
-              {
-                type: 'process',
-                command: process.execPath.replace(/\\/g, '/'),
-                args: ['--import', 'tsx', script('src/zcode-hooks/post-edit-graphify.ts')],
-                timeoutMs: 150000,
-                statusMessage: 'Gentle-Vanguard: graphify update',
-              },
-            ],
-          },
-        ],
-      },
-    },
+    hooks: { ...currentHooks, enabled: true, events },
   };
 }
 

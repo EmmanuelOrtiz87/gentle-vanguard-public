@@ -43,6 +43,31 @@
         "$value": "#67e8f9",
         "$type": "color"
       },
+      "accentText": {
+        "$value": "#06B6D4",
+        "$type": "color",
+        "description": "Acento primario como TEXTO. En tema oscuro coincide con accent.cyan (ya legible: 7.8:1). En tema claro el valor es #155e75, porque #06B6D4 da 2.26:1 sobre #f5f7fb. Distinto de accent.cyan, que es la SUPERFICIE de acento (bordes, tintes, glows).",
+        "lightMode": {
+          "$value": "#155e75",
+          "$type": "color",
+          "description": "Variante legible sobre fondos claros (6.78:1 sobre #f5f7fb, 7.27:1 sobre #ffffff)."
+        }
+      },
+      "accentInk": {
+        "$value": "#052f36",
+        "$type": "color",
+        "description": "Texto EN una superficie de acento (5.9:1 sobre #06B6D4). El blanco sobre el acento da 2.43:1 y no cumple."
+      },
+      "accentAltText": {
+        "$value": "#c4b5fd",
+        "$type": "color",
+        "description": "Acento secundario (violeta) como TEXTO. En tema oscuro usa accent.purpleSoft; #8B5CF6 da 4.48:1 sobre #0B1020 y no llega a 4.5:1. En tema claro el valor es #6d28d9.",
+        "lightMode": {
+          "$value": "#6d28d9",
+          "$type": "color",
+          "description": "Variante legible sobre fondos claros (6.78:1 sobre #f5f7fb, 7.11:1 sobre #ffffff)."
+        }
+      },
       "purple": {
         "$value": "#8B5CF6",
         "$type": "color",

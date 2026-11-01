@@ -12,12 +12,12 @@
 .academy-plans .price span { font:600 13px var(--gv-font-body); color:var(--gv-text-secondary); }
 .academy-plans .price-card p { color:var(--gv-text-secondary); font-size:14px; line-height:1.7; margin-bottom:16px; }
 .academy-plans .price-card .plan-note { font-size:12px; line-height:1.7; margin-bottom:24px; }
-.academy-plans .price-card .btn { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:auto; min-height:48px; border-radius:var(--gv-radius-sm); padding:12px; font-size:13px; text-align:left; white-space:normal; }
+.academy-plans .price-card .btn { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:auto; min-height:48px; border-radius:var(--gv-radius-pill); padding:12px; font-size:13px; text-align:left; white-space:normal; }
 .guided-offer { display:grid; grid-template-columns:1fr auto; align-items:center; gap:40px; padding:32px; margin-top:24px; background:linear-gradient(120deg,color-mix(in srgb,var(--gv-purple) 13%,var(--gv-bg)),var(--gv-bg)); border:1px solid var(--gv-border); border-radius:var(--gv-radius-md); }
 .guided-offer h3 { font:700 clamp(21px,2.5vw,28px)/1.4 var(--gv-font-display); margin-bottom:12px; }
 .guided-offer p { max-width:76ch; font-size:15px; color:var(--gv-text-secondary); line-height:1.8; }
 .guided-offer ul { display:flex; flex-wrap:wrap; gap:8px 24px; padding-left:18px; margin-top:16px; color:var(--gv-text-secondary); font-size:13px; line-height:1.7; }
-.guided-offer .btn { max-width:300px; min-height:48px; border-radius:var(--gv-radius-sm); background:var(--gv-cyan); color:#090c11; display:flex; align-items:center; gap:16px; font-size:14px; }
+.guided-offer .btn { max-width:300px; min-height:48px; border-radius:var(--gv-radius-pill); background:var(--gv-gradient); color:var(--gv-bg-deep); font-weight:700; display:flex; align-items:center; gap:16px; font-size:14px; }
 .guided-offer .btn:hover { background:var(--gv-cyan-soft); }
 .plans-currency { font-size:12px; line-height:1.8; color:var(--gv-text-secondary); margin:20px 0 0; max-width:110ch; }
 .academy-scope { display:grid; grid-template-columns:1fr 1.25fr; gap:clamp(40px,7vw,110px); border-block:1px solid var(--gv-border); margin-block:32px; background:var(--gv-bg); }

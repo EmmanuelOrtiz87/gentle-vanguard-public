@@ -208,7 +208,7 @@ ${rules}
 ### Token Reduction
 - Target: 2000 tokens max
 - Compression: semantic abbreviations
-- Cache: enabled in .session/prompt-cache
+- Cache: response cache en Nexus (tabla response_cache), TTL por temperatura (deterministas 24h)
 
 ### Response Profile
 ${resp}

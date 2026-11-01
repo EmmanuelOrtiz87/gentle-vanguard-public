@@ -34,7 +34,7 @@ import { fileExists, readJson, testPort, isCodeGraphProcessRunning } from './wat
 import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard';
 import { checkAppsRegistry, checkAppsAudit } from './watchtower/checks-apps';
 import { checkBgTasks } from './watchtower/checks-bg-tasks';
-import { checkDesignCanon, checkRepoOrganization, checkUndefinedClasses } from './watchtower/checks-design-canon';
+import { checkDesignCanon, checkDesignSurfacesDrift, checkRepoOrganization, checkUndefinedClasses } from './watchtower/checks-design-canon';
 import {
   checkCodeGraph,
   checkTimeoutDaemon,
@@ -443,6 +443,7 @@ async function runAllChecks() {
     checkAppsAudit,
     checkBgTasks,
     checkDesignCanon,
+    checkDesignSurfacesDrift,
     checkUndefinedClasses,
     checkRepoOrganization,
     checkCodeGraph,

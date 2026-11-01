@@ -167,7 +167,44 @@ function windowsScriptSpawn(
  * @param options - Optional spawn options
  * @returns RunSyncResult with stdout, stderr, status, error
  */
+/**
+ * rtk semi-automático (2026-10-31): comandos de solo lectura de alta salida se
+ * enrutan por rtk (Apache-2.0) para comprimir lo que entra al contexto. Sin hook
+ * global (norma procesos-ocultos): solo captura síncrona, con fallback completo
+ * al comando original si rtk no está disponible o falla. GV_RTK=0 lo apaga.
+ */
+const RTK_READ_ONLY = new Set(['ls', 'dir']);
+const RTK_GIT_SUBCOMMANDS = new Set(['status', 'log', 'branch', 'diff']);
+let rtkAvailable: boolean | null = null;
+
+function shouldRouteRtk(command: string, args: string[], options: RunOptions): boolean {
+  if (process.env.GV_RTK === '0') return false;
+  if (process.env.VITEST || process.env.NODE_ENV === 'test') return false;
+  // Solo captura síncrona (stdio pipe): si el caller quiere ver el output, no se toca.
+  if (options.stdio && options.stdio !== 'pipe') return false;
+  const first = (args[0] ?? '').toLowerCase();
+  const readOnly = command === 'git' ? RTK_GIT_SUBCOMMANDS.has(first) : RTK_READ_ONLY.has(command);
+  if (!readOnly) return false;
+  if (rtkAvailable === null) {
+    rtkAvailable = spawnSync('rtk', ['--version'], { windowsHide: true, timeout: 5_000 }).status === 0;
+  }
+  return rtkAvailable;
+}
+
 export function runSync(
+  command: string,
+  args: string[] = [],
+  options: RunOptions = {},
+): RunSyncResult {
+  if (shouldRouteRtk(command, args, options)) {
+    const routed = runSyncDirect('rtk', [command, ...args], options);
+    if (routed.status === 0 && routed.stdout.trim()) return routed;
+    // rtk falló o devolvió vacío: fallback silencioso al comando original
+  }
+  return runSyncDirect(command, args, options);
+}
+
+function runSyncDirect(
   command: string,
   args: string[] = [],
   options: RunOptions = {},

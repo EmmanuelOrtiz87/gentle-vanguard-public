@@ -12,7 +12,7 @@
  *   npm run academy:validate         # Validar integridad
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { runSync } from '../core/run-command.js';
 
@@ -78,6 +78,27 @@ function loadAcademyIndex(): Record<string, string[]> {
     }
   }
 
+  // Cursos del canon 2026-09 (data/courses/<id>/content-<track>.js): el index
+  // legacy arriba solo cubre el layout viejo de la raiz. ai-engineering vive
+  // en el canon nuevo (tracks m1..m9) y es el hogar de las lecciones de
+  // ingenieria (delegador, smart-task, router — ver newFeatures).
+  const aiEngDir = join(ACADEMY_DIR, 'courses', 'ai-engineering');
+  if (existsSync(aiEngDir)) {
+    const lessonIds: string[] = [];
+    for (const f of readdirSync(aiEngDir)) {
+      if (!/^content-.*\.js$/.test(f)) continue;
+      try {
+        const matches = readFileSync(join(aiEngDir, f), 'utf-8').match(/"id":\s*"([^"]+)"/g);
+        if (matches) {
+          lessonIds.push(...matches.map((m) => m.replace(/"id":\s*"|"/g, '')));
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    index['ai-engineering'] = lessonIds;
+  }
+
   return index;
 }
 
@@ -87,17 +108,23 @@ function generateSyncReport(): ChangeLog {
     changes: [],
   };
 
-  // New features from v4.0 BLACKCAT
+  // New features pendientes de authoring. Estado 2026-11-01:
+  // - Policy Engine @govern y OWASP Agentic Top 10: CUBIERTOS por el curso
+  //   gobernanza-ia (track gov-caso-real: policy-engine fail-closed, ADRs
+  //   0027-0029, OWASP agentic top10) — ya no se proponen.
+  // - Intelligent Delegator v2.0, SmartTask Wrapper y Smallest Route Router:
+  //   componentes de ingenieria del stack — su hogar es ai-engineering (curso
+  //   developer), NO agentes-ia (uso personal, nivel de 0 a 100). Quedan como
+  //   pendientes de authoring real (el generador automatico produce plantillas
+  //   con codigo truncado, no publicables en producto comercial).
   const newFeatures = [
     {
       component: 'Intelligent Delegator v2.0',
-      track: 'agentes',
+      track: 'ai-engineering',
       lesson: 'intelligent-delegator-v2',
     },
-    { component: 'SmartTask Wrapper', track: 'agentes', lesson: 'smart-task-wrapper' },
-    { component: 'Policy Engine @govern', track: 'arquitectura', lesson: 'policy-engine-govern' },
-    { component: 'OWASP Agentic Top 10', track: 'arquitectura', lesson: 'owasp-agentic-top10' },
-    { component: 'Smallest Route Router', track: 'optimizacion', lesson: 'smallest-route-router' },
+    { component: 'SmartTask Wrapper', track: 'ai-engineering', lesson: 'smart-task-wrapper' },
+    { component: 'Smallest Route Router', track: 'ai-engineering', lesson: 'smallest-route-router' },
   ];
 
   const currentIndex = loadAcademyIndex();

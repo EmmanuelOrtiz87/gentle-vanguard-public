@@ -76,6 +76,32 @@ export async function checkDesignCanon(): Promise<void> {
   );
 }
 
+// Drift de superficies estáticas: copias activas de gv-shell.css/gv-tokens.css/
+// gv-fonts.css vs el dist del paquete (sync-surfaces exit 1 si difieren).
+export async function checkDesignSurfacesDrift(): Promise<void> {
+  logger.info('  [Design Surfaces] drift de copias estáticas del shell...');
+  const r = spawnSync(process.execPath, ['--import', 'tsx', 'packages/gv-design-system/src/cli/sync-surfaces.ts'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    timeout: 120_000,
+    windowsHide: true,
+  });
+  const out = `${r.stdout ?? ''}${r.stderr ?? ''}`;
+  if (r.status === 0) {
+    addResult('design-surfaces', 'drift', 'PASS', 'copias estáticas del shell sincronizadas con el canónico', 'ok');
+    return;
+  }
+  const drifted = out.split('\n').filter((l) => l.startsWith('DRIFT')).slice(0, 4);
+  addResult(
+    'design-surfaces',
+    'drift',
+    'FAIL',
+    `${drifted.length || '?'} superficie(s) desincronizada(s): ${drifted.join(' | ') || out.slice(-200)}`,
+    'npm run design:surfaces:sync -- --apply (tras npm run build:tokens del paquete)',
+    true,
+  );
+}
+
 export async function checkUndefinedClasses(): Promise<void> {
   logger.info('  [Undefined Classes] clases gv-* usadas sin definición...');
   try {

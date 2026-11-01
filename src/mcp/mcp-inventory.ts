@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 /**
  * MCP inventory — inventario REAL de tools de los servers MCP activos (BL-MVI62UGZ-M4AX
- * residuo BL-MVI6ZNMA-P8GM). Nada se adivina: conecta cada server stdio habilitado con el
- * SDK MCP (client) y lista sus tools vía tools/list.
+ * residuo BL-MVI6ZNMA-P8GM). Nada se adivina: conecta cada server habilitado y lista
+ * sus tools vía tools/list.
+ *
+ * Transportes soportados:
+ *   - stdio (mcp-registry + opencode.json): spawn por StdioClientTransport (SDK).
+ *   - remote con headers (auth bearer): StreamableHTTPClientTransport + sustitución {env:VAR}.
+ *   - remote con OAuth de OpenCode: token/refresh leídos de ~/.local/share/opencode/
+ *     mcp-auth.json (refresh automático vía RFC 8414 si venció); sin credencial queda
+ *     diferido como remote-oauth, nunca cuenta como fallo.
  *
  * Output:
  *   .runtime/mcp-inventory/mcp-inventory-latest.json   — captura actual
@@ -21,7 +28,9 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { homedir } from 'os';
 import { join, resolve } from 'path';
 
 const ROOT = resolve(process.cwd());
@@ -37,6 +46,8 @@ interface ServerSpec {
   args: string[];
   heavy?: boolean;
   remoteOauth?: boolean;
+  url?: string;
+  headers?: Record<string, string>;
 }
 
 interface InventoryServer {
@@ -73,6 +84,21 @@ export function parseArgString(raw: unknown): string[] {
   return out;
 }
 
+/**
+ * Sustituye `{env:VAR}` en valores de headers de servers remotos (opencode.json).
+ * El token nunca vive en el archivo de config: vive en el entorno del usuario.
+ */
+export function expandEnvValue(raw: string): string {
+  return raw.replace(/\{env:([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, name: string) => process.env[name] ?? '');
+}
+
+function remoteHeaders(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) out[k] = expandEnvValue(String(v));
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec[] {
   const specs: ServerSpec[] = [];
   const regPath = join(root, 'config', 'mcp-registry.json');
@@ -89,7 +115,18 @@ export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec
     for (const [name, s] of Object.entries(oc.mcp ?? {})) {
       if (!s.enabled) continue;
       if (s.type === 'remote') {
-        specs.push({ name, source: 'opencode', command: '(remote)', args: [], remoteOauth: true });
+        // Remote con headers configurados (auth bearer) SÍ se inventaría vía HTTP;
+        // sin headers queda diferido como remote-oauth.
+        const headers = remoteHeaders(s.headers);
+        specs.push({
+          name,
+          source: 'opencode',
+          command: '(remote)',
+          args: [],
+          remoteOauth: !headers,
+          url: typeof s.url === 'string' ? s.url : undefined,
+          headers,
+        });
         continue;
       }
       const heavy = name === 'chrome-devtools';
@@ -154,10 +191,126 @@ export function diffToolsets(baseline: string[], current: string[]): { added: st
 
 // ------------------------------------------------------------------ discovery
 
+interface OpenCodeAuthEntry {
+  tokens?: { accessToken?: string; refreshToken?: string; expiresAt?: number };
+  clientInfo?: { clientId?: string };
+  serverUrl?: string;
+}
+
+function loadOpenCodeAuth(serverName: string): OpenCodeAuthEntry | undefined {
+  const path = join(homedir(), '.local', 'share', 'opencode', 'mcp-auth.json');
+  if (!existsSync(path)) return undefined;
+  try {
+    const store = JSON.parse(readFileSync(path, 'utf-8')) as { [name: string]: OpenCodeAuthEntry };
+    return store[serverName];
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Token OAuth vigente de un server remoto guardado por OpenCode
+ * (~/.local/share/opencode/mcp-auth.json tras `opencode mcp auth <server>`).
+ * Si el access token venció pero hay refreshToken, lo refresca vía el
+ * token_endpoint descubierto en /.well-known/oauth-authorization-server
+ * (RFC 8414 / OAuth MCP). Devuelve undefined si no hay credencial utilizable —
+ * el inventario reporta diferido, nunca fallo.
+ */
+export async function resolveRemoteOAuthToken(serverName: string): Promise<string | undefined> {
+  const entry = loadOpenCodeAuth(serverName);
+  const tokens = entry?.tokens;
+  if (!tokens?.accessToken) return undefined;
+  const expired = typeof tokens.expiresAt === 'number' && Date.now() / 1000 > tokens.expiresAt;
+  if (!expired) return tokens.accessToken;
+  if (!tokens.refreshToken) return undefined;
+
+  const serverUrl = entry?.serverUrl;
+  if (!serverUrl) return undefined;
+  try {
+    const url = new URL(serverUrl);
+    // RFC 8414: /.well-known/oauth-authorization-server[/path] — el path del MCP
+    // (p.ej. /mcp) puede formar parte del discovery.
+    const origins = [
+      `${url.origin}/.well-known/oauth-authorization-server${url.pathname}`,
+      `${url.origin}/.well-known/oauth-authorization-server`,
+    ];
+    let tokenEndpoint: string | undefined;
+    for (const candidate of origins) {
+      const res = await fetch(candidate, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) continue;
+      const meta = (await res.json()) as { token_endpoint?: string };
+      if (meta.token_endpoint) {
+        tokenEndpoint = meta.token_endpoint;
+        break;
+      }
+    }
+    if (!tokenEndpoint) return undefined;
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: tokens.refreshToken,
+      client_id: entry?.clientInfo?.clientId ?? '',
+    });
+    const res = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body,
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return undefined;
+    const payload = (await res.json()) as { access_token?: string; refresh_token?: string; expires_in?: number };
+    if (!payload.access_token) return undefined;
+    // El refresh puede ROTAR el refresh_token: persistir el nuevo par en el
+    // store de OpenCode (misma estructura) para no invalidar su próxima sesión.
+    try {
+      const path = join(homedir(), '.local', 'share', 'opencode', 'mcp-auth.json');
+      const store = JSON.parse(readFileSync(path, 'utf-8')) as Record<string, OpenCodeAuthEntry>;
+      const e = store[serverName];
+      if (e?.tokens) {
+        e.tokens.accessToken = payload.access_token;
+        if (payload.refresh_token) e.tokens.refreshToken = payload.refresh_token;
+        if (typeof payload.expires_in === 'number') e.tokens.expiresAt = Date.now() / 1000 + payload.expires_in;
+        writeFileSync(path, JSON.stringify(store, null, 2), 'utf-8');
+      }
+    } catch {
+      /* best-effort: el inventario ya tiene su token para esta corrida */
+    }
+    return payload.access_token;
+  } catch {
+    return undefined;
+  }
+}
+
 async function listToolsFor(spec: ServerSpec): Promise<InventoryServer> {
   const base: InventoryServer = { name: spec.name, source: spec.source, command: `${spec.command} ${spec.args.join(' ')}`.trim(), tools: [] };
-  if (spec.remoteOauth) return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
+  // Remote: con headers declarados (bearer) o con token OAuth de OpenCode se
+  // inventaría vía HTTP streamable; sin credencial queda diferido (no es fallo).
+  if (spec.url && !spec.headers) {
+    const oauthToken = await resolveRemoteOAuthToken(spec.name);
+    if (!oauthToken) return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
+    spec = { ...spec, headers: { Authorization: `Bearer ${oauthToken}` } };
+  }
+  if (spec.remoteOauth && !spec.url) return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
   try {
+    if (spec.url) {
+      // Remote MCP con auth vía headers (p.ej. mercadopago bearer): transporte
+      // HTTP streamable del SDK, headers expandidos de {env:VAR}.
+      const transport = new StreamableHTTPClientTransport(new URL(spec.url), {
+        requestInit: spec.headers ? { headers: spec.headers } : undefined,
+      });
+      const client = new Client({ name: 'gv-mcp-inventory', version: '1.0.0' });
+      const timeout = setTimeout(() => transport.close(), CONNECT_TIMEOUT_MS);
+      try {
+        await client.connect(transport);
+        const res = await client.listTools();
+        base.tools = (res.tools ?? []).map((t) => t.name).sort();
+        await client.close();
+      } catch (e: unknown) {
+        base.error = e instanceof Error ? e.message.split('\n')[0] : String(e);
+      } finally {
+        clearTimeout(timeout);
+      }
+      return base;
+    }
     const transport = new StdioClientTransport({ command: spec.command, args: spec.args, stderr: 'ignore' });
     const client = new Client({ name: 'gv-mcp-inventory', version: '1.0.0' });
     const timeout = setTimeout(() => transport.close(), CONNECT_TIMEOUT_MS);
@@ -201,9 +354,11 @@ async function main(argv: readonly string[]): Promise<number> {
     const inv = await listToolsFor(spec);
     resolvedByName.set(spec.name, inv);
     servers.push(inv);
-    if (spec.remoteOauth) console.error(`  ∼ ${inv.name} — requiere OAuth; inventario diferido`);
+    // El estado lo define el RESULTADO, no la declaración: un remote-oauth con
+    // credencial resuelta es un server verificado más.
+    if (inv.error?.startsWith('remote-oauth')) console.error(`  ∼ ${inv.name} — requiere OAuth; inventario diferido`);
     else if (inv.error) console.error(`  ∅ ${inv.name} — error: ${inv.error}`);
-    else console.error(`  ✔ ${inv.name} — ${inv.tools.length} tools`);
+    else console.error(`  ✔ ${inv.name} — ${inv.tools.length} tools${spec.url ? ' (remoto)' : ''}`);
   }
 
   const capturedAt = new Date().toISOString();

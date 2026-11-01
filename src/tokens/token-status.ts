@@ -205,6 +205,23 @@ function buildStatus(): StatusData {
   };
 }
 
+function readResponseCache(): { rows: number; hitCount: number; tokensSaved: number; latest: string | null } {
+  try {
+    const db = _require('better-sqlite3')(NEXUS_DB_PATH, { readonly: true }) as {
+      prepare: (sql: string) => { get: (...args: unknown[]) => Record<string, unknown> | undefined };
+    };
+    const row = db
+      .prepare(
+        `SELECT COUNT(*) AS rows, COALESCE(SUM(hit_count),0) AS hits, COALESCE(SUM(tokens_saved),0) AS saved, MAX(last_access) AS latest
+         FROM response_cache`,
+      )
+      .get() as { rows: number; hits: number; saved: number; latest: string | null } | undefined;
+    return { rows: row?.rows ?? 0, hitCount: row?.hits ?? 0, tokensSaved: row?.saved ?? 0, latest: row?.latest ?? null };
+  } catch {
+    return { rows: 0, hitCount: 0, tokensSaved: 0, latest: null };
+  }
+}
+
 function render(s: StatusData): string {
   const lines: string[] = [];
   lines.push('');
@@ -243,6 +260,16 @@ function render(s: StatusData): string {
     lines.push('    (sin eventos de compactación registrados)');
   }
   lines.push('══════════════════════════════════════════════════════');
+    const cache = readResponseCache();
+  lines.push('');
+  lines.push('  ── Response cache (Nexus) ──');
+  lines.push(`  Entradas:     ${cache.rows}`);
+  lines.push(`  Cache hits:   ${cache.hitCount}`);
+  lines.push(`  Tokens ahorrados: ${cache.tokensSaved}`);
+  lines.push(`  Último uso:   ${cache.latest ?? 'sin uso'}`);
+  if (cache.rows > 0 && cache.hitCount === 0) {
+    lines.push('  ⚠ cache poblado sin hits: evaluar si el cache semántico justifica su costo.');
+  }
   return lines.join('\n');
 }
 
