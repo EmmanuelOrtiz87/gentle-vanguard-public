@@ -19,6 +19,11 @@
 :root {
   color-scheme: dark;
 
+  /* --gv-cyan / --gv-purple = SUPERFICIE de acento (bordes, tintes, glows).
+     --gv-accent-text = la misma familia, legible como TEXTO (>= 4.5:1).
+     --gv-accent-alt-text = acento alternativo (violeta) legible como TEXTO.
+     --gv-accent-ink = texto EN una superficie de acento. */
+
   /* === PRIMARY === */
   --gv-purple: #8B5CF6;
   --gv-purple-deep: #7c3aed;
@@ -26,6 +31,9 @@
   --gv-cyan: #06B6D4;
   --gv-cyan-deep: #0891b2;
   --gv-cyan-soft: #67e8f9;
+  --gv-accent-text: #06B6D4;
+  --gv-accent-ink: #052f36;
+  --gv-accent-alt-text: #c4b5fd;
   --gv-gold: #fbbf24;
 
   /* === SURFACE === */
@@ -149,6 +157,13 @@
   --gv-muted: #475569;
   --gv-text-disabled: #94a3b8;
   --gv-text-inverse: #ffffff;
+  /* Superficie de acento != acento como TEXTO.
+     --gv-cyan (#06B6D4) es la superficie (bordes, tintes, glows).
+     --gv-accent-text es la variante legible como texto sobre fondos claros
+     (>= 4.5:1 en bg, surface, surface-raised y bg-elevated). */
+  --gv-accent-text: #155e75;
+  --gv-accent-ink: #052f36;
+  --gv-accent-alt-text: #6d28d9;
   --gv-border: rgba(15, 23, 42, 0.1);
   --gv-border-accent: rgba(167, 139, 250, 0.25);
   --gv-elev-md: 0 4px 12px rgba(15, 23, 42, 0.08);

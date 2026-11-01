@@ -9,25 +9,43 @@ declare global { interface Window { axe: {run: (context:Document,options:unknown
 const args=process.argv.slice(2);
 const option=(name:string,fallback:string)=>args.includes(name) ? args[args.indexOf(name)+1] : fallback;
 const url=option('--url','');
-if(!/^https?:\/\//.test(url)) throw new Error('Usage: npm run qa:web -- --url URL [--browsers chromium,firefox,webkit] [--out PATH] [--slow]');
+if(!/^https?:\/\//.test(url)) throw new Error('Usage: npm run qa:web -- --url URL [--browsers chromium,firefox,webkit] [--out PATH] [--slow] [--live]');
 const output=resolve(option('--out',`.runtime/qa-web/${Date.now()}`));
 mkdirSync(output,{recursive:true});
 const types={chromium,firefox,webkit};
 const selected=option('--browsers','chromium,firefox,webkit').split(',') as (keyof typeof types)[];
 if(selected.some(name=>!types[name])) throw new Error('Unknown browser');
+// --live: apps con polling en vivo o CSP dura — navega con load+settle y bypassCSP.
+// Sin --live, un networkidle que no se asienta hace fallback automático al modo live.
+const live=args.includes('--live');
+const limitations:string[]=[];
 const axePath=createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const failures:string[]=[];
 const results:unknown[]=[];
+async function gotoSettled(page:{goto:(u:string,o:Record<string,unknown>)=>Promise<unknown>;waitForTimeout:(ms:number)=>Promise<void>}):Promise<void>{
+  if(live){
+    await page.goto(url,{waitUntil:'load',timeout:45_000});
+    await page.waitForTimeout(3_000);
+    return;
+  }
+  try{
+    await page.goto(url,{waitUntil:'networkidle',timeout:45_000});
+  }catch{
+    limitations.push(`networkidle no se asentó en ${url}; fallback a load+settle (app con polling en vivo)`);
+    await page.goto(url,{waitUntil:'load',timeout:45_000});
+    await page.waitForTimeout(3_000);
+  }
+}
 for(const name of selected){
   const browser=await types[name].launch({headless:true});
   try{
     for(const theme of ['dark','light']){
-      const context=await browser.newContext({viewport:{width:390,height:844},colorScheme:theme as 'dark'|'light',reducedMotion:'reduce',hasTouch:true});
+      const context=await browser.newContext({viewport:{width:390,height:844},colorScheme:theme as 'dark'|'light',reducedMotion:'reduce',hasTouch:true,bypassCSP:live});
       await context.addInitScript(theme=>localStorage.setItem('gv-cc-theme',theme),theme);
       const page=await context.newPage();
       page.on('pageerror',error=>failures.push(`${name}/${theme}: ${error.message}`));
       page.on('response',response=>{if(response.status()>=400)failures.push(`${name}: HTTP ${response.status()} ${response.url()}`);});
-      await page.goto(url,{waitUntil:'networkidle'});
+      await gotoSettled(page);
       await page.evaluate(()=>document.fonts.ready);
       await page.addScriptTag({path:axePath});
       const languages=await page.locator('#language option').evaluateAll(options=>options.map(o=>(o as HTMLOptionElement).value));
@@ -64,12 +82,13 @@ for(const name of selected){
         new PerformanceObserver(list=>{for(const entry of list.getEntries())window.qaVitals.lcp=entry.startTime;}).observe({type:'largest-contentful-paint',buffered:true});
         new PerformanceObserver(list=>{for(const entry of list.getEntries())if(!(entry as PerformanceEntry & {hadRecentInput:boolean}).hadRecentInput)window.qaVitals.cls+=(entry as PerformanceEntry & {value:number}).value;}).observe({type:'layout-shift',buffered:true});
       });
-      await page.goto(url,{waitUntil:'networkidle'});
+      await page.goto(url,{waitUntil:live?'load':'networkidle',timeout:45_000});
+      if(live)await page.waitForTimeout(3_000);
       results.push({syntheticMobile:true,latencyMs:150,downloadKiBps:128,cpuSlowdown:4,...await page.evaluate(()=>({vitals:window.qaVitals,loadMs:(performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).loadEventEnd}))});
       await page.close();
     }
   }finally{await browser.close();}
 }
-writeFileSync(resolve(output,'report.json'),JSON.stringify({url,results,failures,limitations:'Browser engines and synthetic network, not physical devices or a complete WCAG certification.'},null,2));
+writeFileSync(resolve(output,'report.json'),JSON.stringify({url,live,limitations:limitations.length?limitations:undefined,results,failures,limitations_note:'Browser engines and synthetic network, not physical devices or a complete WCAG certification.'},null,2));
 console.log(JSON.stringify({output,cases:results.length,failures},null,2));
 if(failures.length)process.exitCode=1;

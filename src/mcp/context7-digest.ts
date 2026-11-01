@@ -160,19 +160,22 @@ function createHiddenVbs(taskName: string, taskScript: string, root: string): st
 }
 
 function registerWeekly(root: string): void {
+  // REGLA procesos-ocultos: wrapper VBS windowless PRIMERO — node.exe directo
+  // bajo InteractiveToken muestra una consola en cada trigger.
   const self = quoteWindowsArg(SCRIPT_PATH);
   mkdirSync(join(root, '.runtime'), { recursive: true });
-  const native = runSync('schtasks', ['/Create', '/TN', TASK_NAME, '/TR', `${quoteWindowsArg(process.execPath)} --import tsx ${self} --quiet`, '/SC', 'WEEKLY', '/D', 'SUN', '/ST', '09:30', '/F'], { timeout: 15000, stdio: 'pipe' });
-  if (native.status === 0) {
-    console.log(`[ctx7-digest] tarea semanal oculta registrada (node directo): ${TASK_NAME} — Domingos 09:30`);
-    return;
-  }
   const vbsPath = join(root, '.runtime', 'gv-ctx7-weekly-digest.vbs');
   writeFileSync(vbsPath, createHiddenVbs(TASK_NAME, SCRIPT_PATH, root), 'utf-8');
   const wrapper = runSync('schtasks', ['/Create', '/TN', TASK_NAME, '/TR', `${quoteWindowsArg('wscript.exe')} ${quoteWindowsArg(vbsPath)}`, '/SC', 'WEEKLY', '/D', 'SUN', '/ST', '09:30', '/F'], { timeout: 15000, stdio: 'pipe' });
-  console.log(wrapper.status === 0
-    ? `[ctx7-digest] tarea semanal oculta registrada (wrapper wscript): ${TASK_NAME} — Domingos 09:30`
-    : `[ctx7-digest] ERROR registrando tarea (native + wrapper fallaron). Sin registro; correr manual: npm run ctx7:digest`);
+  if (wrapper.status === 0) {
+    console.log(`[ctx7-digest] tarea semanal oculta registrada (wrapper wscript): ${TASK_NAME} — Domingos 09:30`);
+    return;
+  }
+  // Último recurso VISIBLE (wscript bloqueado): node.exe directo.
+  const native = runSync('schtasks', ['/Create', '/TN', TASK_NAME, '/TR', `${quoteWindowsArg(process.execPath)} --import tsx ${self} --quiet`, '/SC', 'WEEKLY', '/D', 'SUN', '/ST', '09:30', '/F'], { timeout: 15000, stdio: 'pipe' });
+  console.log(native.status === 0
+    ? `[ctx7-digest] tarea semanal registrada (node directo — consola puede parpadear): ${TASK_NAME} — Domingos 09:30`
+    : `[ctx7-digest] ERROR registrando tarea (wrapper + native fallaron). Sin registro; correr manual: npm run ctx7:digest`);
 }
 
 // ------------------------------------------------------------------------ main

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-10-28T13:55:29.942Z",
+  "generated": "2026-11-01T10:25:47.606Z",
   "counts": {
-    "courses": 28,
+    "courses": 30,
     "ebooks": 33,
     "ebooksPremium": 18,
-    "toolkits": 24,
-    "products": 85
+    "toolkits": 26,
+    "products": 89
   },
   "pricing": {
     "ebook-micro": {
@@ -65,7 +65,7 @@
         "id": "ai-engineering",
         "title": "AI Engineering — Sistemas de IA de producción",
         "level": "developer",
-        "hours": 24,
+        "hours": 11,
         "categories": [
           "ia-aplicada",
           "infraestructura-redes-ciberseguridad"
@@ -79,6 +79,16 @@
         "categories": [
           "negocios-productividad",
           "infraestructura-redes-ciberseguridad"
+        ]
+      },
+      {
+        "id": "automatizacion-ia",
+        "title": "Automatización de Procesos con IA para pymes",
+        "level": "de 0 a 100",
+        "hours": 12,
+        "categories": [
+          "negocios-productividad",
+          "ia-aplicada"
         ]
       },
       {
@@ -143,7 +153,7 @@
       },
       {
         "id": "gentle-vanguard",
-        "title": "Gentle-Vanguard",
+        "title": "GentleVanguard",
         "level": "intermedio",
         "hours": 12,
         "categories": [
@@ -158,6 +168,16 @@
         "hours": 14,
         "categories": [
           "software-programacion"
+        ]
+      },
+      {
+        "id": "gobernanza-ia",
+        "title": "Gobernanza y Cumplimiento de IA — EU AI Act para empresas",
+        "level": "intermedio",
+        "hours": 14,
+        "categories": [
+          "negocios-productividad",
+          "ia-aplicada"
         ]
       },
       {
@@ -625,10 +645,8 @@
       {
         "id": "ai-engineering-toolkit",
         "title": "AI Engineering Toolkit",
-        "resourceCounts": {
-          "undefined": 6
-        },
-        "description": "Kit premium que reune todo: curso AI Engineering (8 modulos · 48 lecciones · 24h) + ebook de patrones de produccion (~90 pags) + checklists de madurez y operacion + plantillas de prompts con contrato + biblioteca de prompts semilla + casos practicos de implementacion. Todo lo necesario para llevar un sistema de IA a produccion siguiendo el patron stack de mechanical de Gentle Vanguard.",
+        "resourceCounts": {},
+        "description": "Kit premium que reune todo: curso AI Engineering (9 modulos · 22 lecciones · 11h) + ebook de patrones de produccion (~90 pags) + checklists de madurez y operacion + plantillas de prompts con contrato + biblioteca de prompts semilla + casos practicos de implementacion. Todo lo necesario para llevar un sistema de IA a produccion siguiendo el patron stack de mechanical de GentleVanguard.",
         "includes": [
           "curso",
           "ebook",
@@ -646,11 +664,36 @@
         "priceTier": "toolkit"
       },
       {
+        "id": "automatizacion-ia-toolkit",
+        "title": "Toolkit de Automatización de Procesos con IA",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para automatizar tu pyme con IA: el curso 'Automatización de Procesos con IA para pymes' (8 tracks · 48 lecciones · 12h) + 50 prompts listos para usar (mapeo y diseño, construcción y paso de IA, casos de negocio, datos y seguridad, operación y escalado) + plantillas operativas (diseño de flujo en 8 puntos, suite de 10 casos, ficha de biblioteca, versiones, cuentas de servicio, tablero de métricas) + emails de comunicación (kick-off, puesta en producción, errores, capacitación) + automatizaciones de seguimiento (revisión de errores, alertas de cuota, muestreo de drift) + casos prácticos reales. Basado en las automatizaciones reales del stack de GentleVanguard (reservas y locks, barridos, alertas de gasto, onboarding de solicitudes).",
+        "includes": [
+          "curso",
+          "prompts",
+          "plantillas",
+          "emails",
+          "automatizaciones",
+          "casos",
+          "recursos"
+        ],
+        "audience": "Dueños y managers de pymes, operadores de procesos (ventas, atención, administración, RRHH), y cualquier persona que quiera recuperar horas de trabajo repetitivo con IA sin programar",
+        "links": {
+          "course": "automatizacion-ia"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
         "id": "ciberseguridad-toolkit",
         "title": "Toolkit de Ciberseguridad",
-        "resourceCounts": {
-          "undefined": 6
-        },
+        "resourceCounts": {},
         "description": "El toolkit definitivo de ciberseguridad: el curso 'Ciberseguridad — De persona a empresa' (8 tracks · 48 lecciones · 12h) + el 'Manual Práctico de Ciberseguridad' (120 págs premium) + checklists de auditoría (persona, PyME, Windows, macOS, Linux, mobile) + plantillas de respuesta a incidentes (ransomware, phishing, breach) + emails de comunicación a usuarios y reguladores + scripts de hardening (Windows, macOS, Linux, browser) + casos prácticos reales por industria. Aplicable desde el primer día: descargás, ejecutás, mejorás.",
         "includes": [
           "curso",
@@ -666,6 +709,32 @@
         "links": {
           "course": "ciberseguridad",
           "ebook": "manual-ciberseguridad"
+        },
+        "featured": true,
+        "priceTier": "toolkit"
+      },
+      {
+        "id": "gobernanza-ia-toolkit",
+        "title": "Toolkit de Gobernanza y Cumplimiento de IA",
+        "resourceCounts": {
+          "prompts": 50,
+          "plantillas": 8,
+          "emails": 8,
+          "automatizaciones": 6,
+          "casos": 4
+        },
+        "description": "El toolkit para gobernar la IA de tu empresa: el curso 'Gobernanza y Cumplimiento de IA — EU AI Act para empresas' (8 tracks · 48 lecciones · 14h) + 50 prompts de gobernanza listos para usar (inventario y clasificación, EU AI Act y riesgo, proveedores y contratos, política y capacitación, incidentes y auditoría) + plantillas operativas (política de IA en extensión variable, ficha de caso de uso, ADR, matriz RACI, evaluación de proveedores, registro de incidentes) + emails de comunicación (lanzamiento de política, zonas de datos, capacitación, incidentes) + automatizaciones de seguimiento (revisión trimestral, alertas de gasto IA, onboarding de usos) + casos prácticos reales. Caso de estudio del stack de GentleVanguard (policy-engine fail-closed, prompt-injection-guard, ADRs 0027/0028/0029, OWASP agentic top10).",
+        "includes": [
+          "curso",
+          "checklists",
+          "plantillas",
+          "emails",
+          "casos",
+          "recursos"
+        ],
+        "audience": "Dueños y directores de pymes, responsables de compliance y legal, CTOs y líderes de IT, responsables de RRHH, y cualquier persona que deba responder '¿qué IA usa tu empresa y con qué datos?'",
+        "links": {
+          "course": "gobernanza-ia"
         },
         "featured": true,
         "priceTier": "toolkit"
@@ -701,10 +770,8 @@
       {
         "id": "ia-ciberseguridad-toolkit",
         "title": "Toolkit de IA aplicada a Ciberseguridad",
-        "resourceCounts": {
-          "undefined": 6
-        },
-        "description": "El toolkit definitivo de IA aplicada a ciberseguridad: el curso 'IA aplicada a Ciberseguridad — Defender y operar con IA' (8 tracks · 48 lecciones · 14h) + el 'Manual Práctico de IA aplicada a Ciberseguridad' (120 págs premium) + checklists de governance AI (alto riesgo EU AI Act, sistemas AI LLM, agentes, datos) + plantillas de respuesta a incidentes AI (prompt injection, jailbreak, exfiltration, model drift) + emails de comunicación a usuarios y reguladores + casos prácticos reales (BEC con deepfake, RAG poisoning, model theft, red team AI). Caso de estudio del stack de Gentle Vanguard (prompt-injection-guard, policy-engine fail-closed, MCP security gateway, ADRs 0027/0028/0029, OWASP agentic top10).",
+        "resourceCounts": {},
+        "description": "El toolkit definitivo de IA aplicada a ciberseguridad: el curso 'IA aplicada a Ciberseguridad — Defender y operar con IA' (8 tracks · 48 lecciones · 14h) + el 'Manual Práctico de IA aplicada a Ciberseguridad' (120 págs premium) + checklists de governance AI (alto riesgo EU AI Act, sistemas AI LLM, agentes, datos) + plantillas de respuesta a incidentes AI (prompt injection, jailbreak, exfiltration, model drift) + emails de comunicación a usuarios y reguladores + casos prácticos reales (BEC con deepfake, RAG poisoning, model theft, red team AI). Caso de estudio del stack de GentleVanguard (prompt-injection-guard, policy-engine fail-closed, MCP security gateway, ADRs 0027/0028/0029, OWASP agentic top10).",
         "includes": [
           "curso",
           "ebook",

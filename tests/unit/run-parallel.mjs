@@ -21,7 +21,7 @@
  *   - Este runner cierra GAP-008 con paralelización nativa de Node 22+.
  */
 import { spawn } from 'node:child_process';
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { cpus } from 'node:os';
 
@@ -45,6 +45,8 @@ function parseArgs() {
 function discoverTests(dir, pattern) {
   /** @type {string[]} */
   const out = [];
+  /** @type {string[]} */
+  const vitestRouted = [];
   function walk(d) {
     for (const name of readdirSync(d)) {
       const p = join(d, name);
@@ -52,7 +54,15 @@ function discoverTests(dir, pattern) {
       if (st.isDirectory()) {
         walk(p);
       } else if (name.endsWith('.test.ts')) {
-        if (!pattern || name.includes(pattern)) out.push(p);
+        if (pattern && !name.includes(pattern)) continue;
+        // Los tests escritos contra la API de vitest no corren bajo node --test
+        // (runner ausente → TypeError en validateTags). Se rutean a vitest.
+        const head = readFileSync(p, 'utf8').split('\n', 5).join('\n');
+        if (/from\s+'vitest'/.test(head)) {
+          vitestRouted.push(p);
+          continue;
+        }
+        out.push(p);
       }
     }
   }
@@ -60,6 +70,10 @@ function discoverTests(dir, pattern) {
     walk(dir);
   } catch {
     // tests/unit/ no existe — silent
+  }
+  if (vitestRouted.length > 0) {
+    console.error(`[runner] ${vitestRouted.length} archivos vitest excluidos de node --test (correr con: pnpm vitest run):`);
+    for (const f of vitestRouted) console.error(`  - ${relative(ROOT, f)}`);
   }
   return out.sort();
 }

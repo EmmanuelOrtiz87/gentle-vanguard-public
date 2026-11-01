@@ -41,7 +41,13 @@ const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
 // - GHSA-vfj7-8cjw-p6xm (braces, stack-exhaustion DoS): el advisory declara patched >=3.0.4
 //   pero 3.0.4 NO existe en el registry (latest 3.0.3, 2024-05). Transitive de secretlint/
 //   tailwindcss/typescript-eslint (dev-only). Revisar cuando publique la versión parcheada.
-const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-vfj7-8cjw-p6xm']);
+// - GHSA-g3hv-75wg-m249 (minimatch <11.0.1, ReDoS vía glob): la cadena vulnerable es
+//   exceljs@4.4.0 (última publicada) → archiver@5.3.2 → glob@7 → minimatch@3. Sin parche
+//   alcanzable: los overrides por selector >2 segmentos no son soportados por pnpm v11 y
+//   forzar minimatch 11 bajo glob 7 rompe la API que archiver-utils/readdir-glob usan.
+//   Superficie: XLSX export local de alexandria/gv-analytics. Revisar cuando exceljs
+//   actualice archiver.
+const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-vfj7-8cjw-p6xm', 'GHSA-g3hv-75wg-m249']);
 
 function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   const args = process.argv.slice(2);

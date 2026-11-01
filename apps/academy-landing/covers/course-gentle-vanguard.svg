@@ -59,7 +59,7 @@
   <!-- regla gradiente -->
   <rect x="430" y="560" width="340" height="4" rx="2" fill="url(#gvGrad)"/>
   <!-- título -->
-  <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">Gentle-Vanguard</text>
+  <text x="600" y="700" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#ffffff">GentleVanguard</text>
   <!-- subtítulo -->
     <text x="600" y="852" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">Curso introductorio al stack de orquestación de agentes</text>
 <text x="600" y="886" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="26" font-weight="400" fill="#8b95a8">local-first: fundamentos, arquitectura, optimización, agentes,</text>

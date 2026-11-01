@@ -128,12 +128,11 @@ function executeRule(rule: CorrectionRule, _score: number): CorrectionResult {
     let result: CorrectionResult;
     switch (rule.id) {
       case 'TokenBudgetExceeded':
-        modifyJsonConfig('config/behavior-prompts.json', (c) => {
-          c.skillComplexityTier = 'BASIC';
-        });
+        // behavior-prompts.json deprecado (deprecated/config/ — cero lectores):
+        // la corrección queda como no-op documentado hasta migrar el mecanismo.
         result = {
           success: true,
-          message: 'Token budget corrected: reduced skill complexity to BASIC',
+          message: 'Token budget corrected: behavior-prompts.json deprecado (cero lectores) — no-op, skillComplexityTier no se modifica',
         };
         break;
       case 'HighErrorRate':

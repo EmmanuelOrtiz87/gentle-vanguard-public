@@ -196,6 +196,17 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: true,
   },
   {
+    id: 'key-registry',
+    label: 'Key Registry (loopback :3045)',
+    // El launcher (key-registry-autostart.ts) es transitorio: solo el server
+    // queda vivo (detached). El PID file decide cuál es el dueño legítimo.
+    match: /key-registry-server\.ts/,
+    pidFile: join(RUNTIME_DIR, 'key-registry.pid'),
+    keep: 'pidfile',
+    respawn: 'autostart',
+    recycleAged: false,
+  },
+  {
     id: 'codegraph-mcp',
     label: 'CodeGraph MCP server',
     match: /codegraph-mcp-server-start\.ts/,

@@ -23,11 +23,15 @@ interface HealthReport {
  * Registers a Windows scheduled task that runs a TS script via
  * `node.exe --import tsx <script>` every `intervalHours` hours.
  *
- * Native schtasks.exe/node.exe registration is attempted first. A native
- * wscript.exe wrapper is the hidden fallback; PowerShell is used only as a
- * last-resort registration fallback when both native forms are unavailable.
+ * REGLA procesos-ocultos (2026-10-29): node.exe es una app de CONSOLA — bajo
+ * InteractiveToken, Task Scheduler muestra una ventana en cada trigger aunque
+ * el script interno use windowsHide. Por eso el camino primario es el wrapper
+ * wscript.exe (VBS windowless); el registro node.exe directo queda SOLO como
+ * último recurso visible mejor que nada, y PowerShell S4U como registro de
+ * emergencia. Orden: wscript → node directo → PowerShell.
  *
- * Returns 'ok' (node.exe registered), 'fallback' (wscript wrapper), or 'error'.
+ * Returns 'ok' (wscript wrapper, hidden), 'fallback' (node.exe direct, only if
+ * wscript was blocked), or 'error'.
  */
 function registerScheduledTask(
   taskName: string,
@@ -41,17 +45,6 @@ function registerScheduledTask(
     intervalHours >= 24
       ? ['/SC', 'DAILY']
       : ['/SC', 'MINUTE', '/MO', String(Math.max(1, Math.round(intervalHours * 60)))];
-  const nativeResult = runCmd('schtasks.exe', [
-    '/Create',
-    '/TN',
-    taskName,
-    '/TR',
-    nativeCommand,
-    ...scheduleArgs,
-    '/F',
-  ]);
-  if (nativeResult.status === 0) return 'ok';
-
   const vbsPath = join(
     root,
     '.runtime',
@@ -59,6 +52,7 @@ function registerScheduledTask(
   );
   mkdirSync(join(root, '.runtime'), { recursive: true });
   writeFileSync(vbsPath, createHiddenVbs(taskName, taskScript, root), 'utf-8');
+  // PRIMARIO: wscript.exe windowless — nunca consola visible, siempre funciona.
   const wrapperResult = runCmd('schtasks.exe', [
     '/Create',
     '/TN',
@@ -68,15 +62,27 @@ function registerScheduledTask(
     ...scheduleArgs,
     '/F',
   ]);
-  if (wrapperResult.status === 0) return 'fallback';
+  if (wrapperResult.status === 0) return 'ok';
 
-  // Last resort only: the native Task Scheduler command may be unavailable
-  // on restricted systems. This fallback is intentionally not the primary
-  // path and still registers node.exe/wscript.exe, never a PowerShell action.
+  // Último recurso VISIBLE (solo si wscript.exe está bloqueado en el sistema):
+  // node.exe directo. En un shell interactivo la tarea parpadeará una consola.
+  const nativeResult = runCmd('schtasks.exe', [
+    '/Create',
+    '/TN',
+    taskName,
+    '/TR',
+    nativeCommand,
+    ...scheduleArgs,
+    '/F',
+  ]);
+  if (nativeResult.status === 0) return 'fallback';
+
+  // Registro de emergencia cuando ni siquiera schtasks /Create funciona.
+  // Igual orden de preferencia: acción wscript hidden → node directo.
   const interval = `(New-TimeSpan -Hours ${intervalHours})`;
   const psRegister = [
     '-Command',
-    `$action = New-ScheduledTaskAction -Execute '${process.execPath}' -Argument '--import tsx "${taskScript}"' -WorkingDirectory '${root}'; ` +
+    `$action = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument '"${vbsPath}"' -WorkingDirectory '${root}'; ` +
       `$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date '08:00') -RepetitionInterval ${interval} -RepetitionDuration ([TimeSpan]::FromDays(30)); ` +
       `$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5); ` +
       `$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType S4U; ` +
@@ -86,7 +92,7 @@ function registerScheduledTask(
   if (regResult.status === 0) return 'ok';
   const psFallback = [
     '-Command',
-    `$action = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument '"${vbsPath}"' -WorkingDirectory '${root}'; ` +
+    `$action = New-ScheduledTaskAction -Execute '${process.execPath}' -Argument '--import tsx "${taskScript}"' -WorkingDirectory '${root}'; ` +
       `$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date '08:00') -RepetitionInterval ${interval} -RepetitionDuration ([TimeSpan]::FromDays(30)); ` +
       `$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5); ` +
       `Register-ScheduledTask -TaskName '${taskName}' -Action $action -Trigger $trigger -Settings $settings -Force`,
@@ -335,10 +341,12 @@ function main(): void {
     if (existsSync(taskScript)) {
       const regResult = registerScheduledTask(taskName, taskScript, root, 1);
       if (regResult === 'ok') {
-        writeSuccess(`Scheduled task '${taskName}' registered (node.exe direct).`);
+        writeSuccess(
+          `Scheduled task '${taskName}' registered hidden via wscript wrapper (syncs CodeGraph every hour).`,
+        );
       } else if (regResult === 'fallback') {
         writeSuccess(
-          `Scheduled task '${taskName}' created hidden via wscript wrapper (syncs CodeGraph every hour).`,
+          `Scheduled task '${taskName}' registered via node.exe direct (wscript blocked — console flash possible).`,
         );
       } else {
         writeInfo(
@@ -356,11 +364,11 @@ function main(): void {
       const wtResult = registerScheduledTask(wtTaskName, wtTaskScript, root, 0.5);
       if (wtResult === 'ok') {
         writeSuccess(
-          `Scheduled task '${wtTaskName}' registered hidden (autoheals daemons every 30 min).`,
+          `Scheduled task '${wtTaskName}' registered hidden via wscript wrapper (autoheals daemons every 30 min).`,
         );
       } else if (wtResult === 'fallback') {
         writeSuccess(
-          `Scheduled task '${wtTaskName}' created hidden via wscript wrapper (autoheals daemons every 30 min).`,
+          `Scheduled task '${wtTaskName}' registered via node.exe direct (wscript blocked — console flash possible; autoheals daemons every 30 min).`,
         );
       } else {
         writeInfo(
@@ -380,11 +388,11 @@ function main(): void {
       const kaResult = registerScheduledTask(kaTaskName, kaTaskScript, root, 0.25);
       if (kaResult === 'ok') {
         writeSuccess(
-          `Scheduled task '${kaTaskName}' registered hidden (revives apps every 15 min).`,
+          `Scheduled task '${kaTaskName}' registered hidden via wscript wrapper (revives apps every 15 min).`,
         );
       } else if (kaResult === 'fallback') {
         writeSuccess(
-          `Scheduled task '${kaTaskName}' created hidden via wscript wrapper (revives apps every 15 min).`,
+          `Scheduled task '${kaTaskName}' registered via node.exe direct (wscript blocked — console flash possible; revives apps every 15 min).`,
         );
       } else {
         writeInfo('Could not create apps keepalive scheduled task (requires admin).');
@@ -400,10 +408,12 @@ function main(): void {
       // Diario: backup de .runtime/gentle-vanguard.db + prune keep 14.
       const bkResult = registerScheduledTask(bkTaskName, bkTaskScript, root, 24);
       if (bkResult === 'ok') {
-        writeSuccess(`Scheduled task '${bkTaskName}' registered hidden (daily DB backup).`);
+        writeSuccess(
+          `Scheduled task '${bkTaskName}' registered hidden via wscript wrapper (daily DB backup).`,
+        );
       } else if (bkResult === 'fallback') {
         writeSuccess(
-          `Scheduled task '${bkTaskName}' created hidden via wscript wrapper (daily DB backup).`,
+          `Scheduled task '${bkTaskName}' registered via node.exe direct (wscript blocked — console flash possible; daily DB backup).`,
         );
       } else {
         writeInfo('Could not create Nexus backup scheduled task (requires admin).');
@@ -421,11 +431,11 @@ function main(): void {
       const pdResult = registerScheduledTask(pdTaskName, pdTaskScript, root, 0.25);
       if (pdResult === 'ok') {
         writeSuccess(
-          `Scheduled task '${pdTaskName}' registered hidden (drains post queue every 15 min).`,
+          `Scheduled task '${pdTaskName}' registered hidden via wscript wrapper (drains post queue every 15 min).`,
         );
       } else if (pdResult === 'fallback') {
         writeSuccess(
-          `Scheduled task '${pdTaskName}' created hidden via wscript wrapper (drains post queue every 15 min).`,
+          `Scheduled task '${pdTaskName}' registered via node.exe direct (wscript blocked — console flash possible; drains post queue every 15 min).`,
         );
       } else {
         writeInfo('Could not create posting dispatch scheduled task (requires admin).');
@@ -440,9 +450,13 @@ function main(): void {
     if (existsSync(koTaskScript)) {
       const koResult = registerScheduledTask(koTaskName, koTaskScript, root, 24);
       if (koResult === 'ok') {
-        writeSuccess(`Scheduled task '${koTaskName}' registered hidden (daily source refresh).`);
+        writeSuccess(
+          `Scheduled task '${koTaskName}' registered hidden via wscript wrapper (daily source refresh).`,
+        );
       } else if (koResult === 'fallback') {
-        writeSuccess(`Scheduled task '${koTaskName}' created hidden via wscript wrapper (daily source refresh).`);
+        writeSuccess(
+          `Scheduled task '${koTaskName}' registered via node.exe direct (wscript blocked — console flash possible; daily source refresh).`,
+        );
       } else {
         writeInfo('Could not create GV Knowledge Ops refresh task (requires admin).');
       }

@@ -124,11 +124,12 @@ function initSessionData(): { sid: string; sessionData: Record<string, unknown> 
 }
 
 function flushCaches(sessionDir: string, sessionData: Record<string, unknown>): void {
+  // Nota: .session/prompt-cache eliminado — era un placeholder sin consumidor
+  // (la cache de respuestas real vive en Nexus: tabla response_cache).
   const targets = [
     { path: join(sessionDir, 'normativa-cache'), type: 'dir' as const },
     { path: join(sessionDir, 'preprocess-response-cache.json'), type: 'file' as const },
     { path: join(sessionDir, 'token-usage.json'), type: 'file' as const },
-    { path: join(sessionDir, 'prompt-cache'), type: 'dir' as const },
   ];
   let flushed = 0;
   for (const t of targets) {
@@ -142,7 +143,7 @@ function flushCaches(sessionDir: string, sessionData: Record<string, unknown>): 
       flushed++;
     }
   }
-  for (const d of ['normativa-cache', 'prompt-cache']) {
+  for (const d of ['normativa-cache']) {
     const fp = join(sessionDir, d);
     if (!existsSync(fp)) mkdirSync(fp, { recursive: true });
   }

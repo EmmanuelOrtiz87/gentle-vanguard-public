@@ -170,9 +170,16 @@ export function recordLLMProviderTrace(options: LLMProviderTraceOptions): void {
 
 // ─── Cache Key Generation ─────────────────────────────────────────────────────
 
+/**
+ * La identity del request es SEMÁNTICA: prompt + modelo + parámetros + contexto.
+ * El sessionId NO participa: incluirlo fragmenta la cache (cada sesión regenera
+ * keys distintas → hit rate ~0; la tabla response_cache acumuló 2 filas en toda
+ * su historia por esta razón). El sessionId sigue viajando en options para
+ * telemetría, que no es identidad de cache.
+ */
 function generateCacheKey(prompt: string, options: LLMCallOptions): string {
   const data = JSON.stringify({
-    version: 2,
+    version: 3,
     prompt,
     model: options.model ?? '',
     maxTokens: options.maxTokens ?? null,
@@ -184,9 +191,21 @@ function generateCacheKey(prompt: string, options: LLMCallOptions): string {
     context: options.context ?? '',
     previousTurns: options.previousTurns ?? [],
     query: options.query ?? '',
-    sessionId: options.sessionId ?? '',
   });
   return createHash('sha256').update(data).digest('hex');
+}
+
+/**
+ * TTL de cache por semántica de la llamada: respuestas deterministas
+ * (temperature ≤ 0.2) son reutilizables en el tiempo (24h); las creativas
+ * conservan el default del cache (60 min). GV_RESPONSE_CACHE_TTL_MIN gana
+ * siempre, para que el owner pueda gobernar sin tocar código.
+ */
+function cacheTtlMinutes(options: LLMCallOptions): number | undefined {
+  const env = Number(process.env.GV_RESPONSE_CACHE_TTL_MIN);
+  if (Number.isFinite(env) && env > 0) return Math.floor(env);
+  const temp = options.temperature ?? null;
+  return temp !== null && temp <= 0.2 ? 24 * 60 : undefined;
 }
 
 // ─── Token Estimation ─────────────────────────────────────────────────────────
@@ -519,6 +538,7 @@ export async function wrapLLMCall(
       postProcessed.processedResponse,
       tokensSaved,
       effectiveOptions.context,
+      cacheTtlMinutes(effectiveOptions),
     );
   }
 

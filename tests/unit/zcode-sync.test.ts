@@ -92,6 +92,46 @@ test('buildZCodeHookConfig: re-corrida es idempotente (merge sobre su propia sal
   assert.deepEqual(second, first);
 });
 
+test('buildZCodeHookConfig: merge POR-HOOK preserva hooks de terceros (regresión f15a6fed4)', () => {
+  // El hook post-tool-use-token-log.ts fue registrado a mano en el config vivo;
+  // el sync debe conservarlo y sólo regenerar las entradas que gestiona el stack.
+  const current = {
+    hooks: {
+      enabled: true,
+      events: {
+        PostToolUse: [
+          {
+            matcher: '',
+            hooks: [
+              {
+                type: 'process',
+                command: 'node',
+                args: ['--import', 'tsx', 'C:/repo/src/zcode-hooks/post-tool-use-token-log.ts'],
+                timeoutMs: 30000,
+                statusMessage: 'token log',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  };
+  const next = buildZCodeHookConfig(current as Record<string, unknown>, '/repo');
+  const post = ((next.hooks as { events: Record<string, unknown> }).events
+    .PostToolUse as Array<{ hooks?: Array<{ args?: string[] }> }>);
+  const args = post.flatMap((e) => (e.hooks ?? []).flatMap((h) => h.args ?? []));
+  assert.ok(
+    args.some((a) => a.endsWith('post-tool-use-token-log.ts')),
+    'el hook de terceros (token-log) debe sobrevivir al sync',
+  );
+  assert.ok(
+    args.some((a) => a.endsWith('post-edit-graphify.ts')),
+    'el hook gestionado (graphify) debe regenerarse',
+  );
+  assert.equal(post.filter((e) => (e.hooks ?? []).some((h) => (h.args ?? []).some((a) => a.endsWith('post-edit-graphify.ts')))).length, 1,
+    'sin duplicados del hook gestionado tras re-corridas');
+});
+
 test('zcode-hooks: los paths que invocan los hooks existen (no drift por refactor)', () => {
   // Regression 2026-09-30: session-start.ts referenciaba src/session-autostart-detached.ts
   // pero el archivo vive en src/session/ desde el F2.2. El hook se rompía silenciosamente.

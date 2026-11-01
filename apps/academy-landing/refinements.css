@@ -1,0 +1,63 @@
+/*
+ * Academy refinements — capa de experiencia homologada a la landing corporativa
+ * (gentlevanguard.github.io). Solo compone sobre --gv-*: no redefine tokens.
+ * Patrones aprobados en corporate-web/public/refinements.css, adaptados a las
+ * clases de Academy (cards de catálogo, topbar, back-to-top).
+ */
+
+/* === Botones: píldora con gradiente y elevación (patrón corporate) === */
+.gv-btn { border-radius:var(--gv-radius-pill); font-weight:600; transition:transform var(--gv-duration-fast) var(--gv-ease-out-expo), box-shadow var(--gv-duration-fast), filter var(--gv-duration-fast), background var(--gv-duration-fast); }
+.gv-btn-primary, .gv-app-shell .gv-btn-primary { background:var(--gv-gradient); color:var(--gv-bg-deep) !important; box-shadow:var(--gv-elev-sm); }
+.gv-btn-primary:hover { transform:translateY(-2px); box-shadow:var(--gv-elev-glow); filter:brightness(1.12); }
+.gv-btn-primary:active { transform:translateY(0); filter:brightness(.98); }
+.gv-btn-ghost:hover { background:var(--gv-surface-raised); color:var(--gv-text); }
+
+/* === Cards del catálogo: spotlight radial al hover (patrón spotlight-card) === */
+.catalog-grid .card { position:relative; isolation:isolate; transition:border-color var(--gv-duration-base), box-shadow var(--gv-duration-base), transform var(--gv-duration-base); }
+.catalog-grid .card:before { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%), var(--gv-glow-cyan), transparent 65%); opacity:0; transition:opacity var(--gv-duration-base); }
+.catalog-grid .card:hover:before, .catalog-grid .card:focus-within:before { opacity:1; }
+.catalog-grid .card:hover { border-color:var(--gv-border-accent-strong); box-shadow:var(--gv-elev-lg); }
+
+/* === Back-to-top: fijo con anillo de progreso (patrón corporate) === */
+.academy-top-btn { position:fixed; right:24px; bottom:24px; z-index:60; display:grid; place-items:center; width:48px; height:48px; border:1px solid var(--gv-glass-border); border-radius:50%; color:var(--gv-text) !important; background:var(--gv-glass); backdrop-filter:blur(10px); cursor:pointer; box-shadow:var(--gv-elev-md); transition:background var(--gv-duration-fast), transform var(--gv-duration-fast); }
+.academy-top-btn:hover { background:var(--gv-surface-raised); transform:translateY(-3px); }
+.academy-top-btn[hidden] { display:none; }
+.academy-top-btn:focus-visible { outline:3px solid var(--gv-cyan); outline-offset:4px; }
+.academy-top-btn .scroll-ring { position:absolute; inset:0; transform:rotate(-90deg); pointer-events:none; }
+.academy-top-btn .scroll-ring circle { fill:none; stroke:var(--gv-cyan); stroke-width:1.5; stroke-dasharray:132; stroke-dashoffset:calc(132 - var(--page-progress,0)*132); stroke-linecap:round; }
+.academy-top-btn svg.arrow-up { position:relative; z-index:1; }
+
+/* === Difuminado continuo ligado al scroll (estilo E) ===
+   Nitidez al centro, blur + desvanecido hacia los bordes. Solo contenido. */
+@media (prefers-reduced-motion: no-preference) {
+  .gv-scrub { opacity:var(--sc-o,1); filter:blur(var(--sc-b,0px)); transform:translateY(var(--sc-t,0px)); }
+}
+
+/* === Iconos de interfaz y enlaces con flecha === */
+.text-link svg, .card-actions svg { transition:transform var(--gv-duration-fast) var(--gv-ease-out-expo); }
+.text-link:hover svg { transform:translate(2px,-2px); }
+.gv-footer a:not(.gv-brand), .gv-footer small, .gv-footer p { font-size:13px; }
+
+/* === Cierre de marca (patrón brand-closing del corporate) === */
+.academy-closing { padding-block:48px 64px; position:relative; }
+.academy-closing:before { content:''; display:block; width:64px; height:3px; background:var(--gv-gradient); margin-bottom:24px; }
+.academy-closing p { font:700 clamp(26px,3.5vw,44px)/1.25 var(--gv-font-display); letter-spacing:-.025em; color:var(--gv-text); max-width:24ch; margin:0; text-wrap:balance; }
+
+/* === Tema claro === */
+[data-theme=light] .gv-btn-primary, [data-theme=light] .gv-app-shell .gv-btn-primary { color:var(--gv-text) !important; filter:brightness(1.4); }
+[data-theme=light] .gv-btn-primary:hover { filter:brightness(1.46); }
+[data-theme=light] .catalog-grid .card:before { background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%), color-mix(in srgb,var(--gv-cyan) 55%,transparent), transparent 65%); }
+
+/* === Mobile === */
+@media(max-width:640px) {
+  .academy-top-btn { right:16px; bottom:16px; width:44px; height:44px; }
+  .academy-top-btn .scroll-ring { width:44px; height:44px; }
+}
+
+/* === Movimiento reducido: patrones corporate === */
+@media(prefers-reduced-motion:reduce) {
+  .gv-scrub { opacity:1 !important; filter:none !important; transform:none !important; }
+  .gv-btn-primary:hover, .academy-top-btn:hover { transform:none; }
+  .catalog-grid .card:before { transition:none; }
+  .text-link:hover svg { transform:none; }
+}

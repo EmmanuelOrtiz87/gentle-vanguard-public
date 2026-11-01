@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { MigrationRunner } from '../../database/nexus//repositories/MigrationRunner';
 import { TokenRepo } from '../../database/nexus//repositories/TokenRepo';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, renameSync, readdirSync, rmSync, statSync } from 'fs';
 import { join, resolve } from 'path';
 import { SessionUsage, TransactionUsage } from './readers.js';
 import { recordForwardAliases } from '../../session/session-id-bridge.js';
@@ -14,12 +14,34 @@ export const SESSION_DIR = join(ROOT, '.session');
 export const NEXUS_DB = join(ROOT, '.runtime', 'gentle-vanguard.db');
 export const REPORT = join(ROOT, 'reports', 'stack-live-observability-latest.json');
 export const LOG_FILE = join(RUNTIME_DIR, 'token-ingest.log');
+// Rotación: el log es append-only de daemons de larga vida; sin límite creció a
+// 78MB en ~2 semanas. 50MB por tramo, se conservan los últimos 3 tramos.
+const LOG_MAX_BYTES = 50 * 1024 * 1024;
+const LOG_KEEP_ROTATIONS = 3;
+
+function rotateLogIfNeeded(): void {
+  try {
+    if (!existsSync(LOG_FILE) || statSync(LOG_FILE).size < LOG_MAX_BYTES) return;
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    renameSync(LOG_FILE, join(RUNTIME_DIR, `token-ingest-${stamp}.log`));
+    const rotations = readdirSync(RUNTIME_DIR)
+      .filter((f) => /^token-ingest-\d{4}-\d{2}-\d{2}T.*\.log$/.test(f))
+      .sort()
+      .reverse();
+    for (const old of rotations.slice(LOG_KEEP_ROTATIONS)) {
+      rmSync(join(RUNTIME_DIR, old), { force: true });
+    }
+  } catch {
+    /* non-fatal: mejor perder la rotación que el ingest */
+  }
+}
 
 export function log(msg: string): void {
   const line = `[${new Date().toISOString()}] ${msg}`;
   logger.info(line);
   try {
     mkdirSync(RUNTIME_DIR, { recursive: true });
+    rotateLogIfNeeded();
     appendFileSync(LOG_FILE, line + '\n', 'utf-8');
   } catch {
     /* non-fatal */

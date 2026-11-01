@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'fs';
 import * as path from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { runSync } from '../core/run-command.js';
 
 interface CliArgs {
@@ -66,7 +66,9 @@ function daysInMonth(year: number, month: number): number {
 function main(): void {
   const { outputDir, forceNewMonth, onDemand } = parseArgs();
 
-  const scriptPath = pathToFileURL(process.argv[1]).pathname;
+  // fileURLToPath (no .pathname): en Windows pathname="/C:/..." y path.resolve
+  // produce "C:\C:\..." (doble prefijo de drive) → ENOENT al mkdir.
+  const scriptPath = fileURLToPath(pathToFileURL(process.argv[1]));
   let workspaceRoot = path.resolve(scriptPath);
   for (let i = 0; i < 3; i++) {
     workspaceRoot = path.dirname(workspaceRoot);

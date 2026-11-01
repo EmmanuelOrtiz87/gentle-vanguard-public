@@ -264,13 +264,20 @@
   background: transparent;
   font: 700 13px/1 var(--gv-font-body, Inter, sans-serif);
   cursor: pointer;
+  text-decoration: none;
   transition:
     transform var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out),
     box-shadow var(--gv-duration-fast, 180ms) var(--gv-ease-out, ease-out);
 }
+/* Un botón es un botón, no un link: el texto jamás se subraya, ni en hover
+ * (a.gv-btn supera la especificidad de un `a:hover` global de la app). */
 .gv-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--gv-elev-md, 0 8px 24px rgba(0, 0, 0, 0.24));
+}
+a.gv-btn:hover,
+a.gv-btn:focus-visible {
+  text-decoration: none;
 }
 .gv-btn-primary {
   color: #0f1115;
@@ -292,7 +299,13 @@
   background: var(--gv-purple, #8B5CF6);
 }
 
-/* Long-page navigation, native default. DD-20261017-03. */
+/* Long-page navigation, native default. DD-20261017-03.
+ *
+ * ESTÁNDAR DEL STACK (DD-20261030-01): el botón de volver arriba vive
+ * SIEMPRE en la esquina inferior derecha. Cualquier botón flotante (FAB de
+ * chat, ayuda, accesos) se apila ARRIBA de él — nunca encima ni debajo.
+ * Offset de apilado: altura del botón (44px) + 12px.
+ */
 .gv-back-to-top {
   position: fixed;
   right: max(var(--gv-space-6, 24px), env(safe-area-inset-right));
@@ -314,6 +327,11 @@
 .gv-back-to-top[hidden] { display: none; }
 .gv-back-to-top:hover { background: var(--gv-surface-raised); }
 .gv-back-to-top:focus-visible { outline: 3px solid var(--gv-cyan); outline-offset: 3px; }
+
+/* Botón flotante apilado ARRIBA del de volver arriba (mismo estándar). */
+.gv-fab-stack {
+  bottom: calc(max(var(--gv-space-6, 24px), env(safe-area-inset-bottom)) + 44px + 12px);
+}
 @media (max-width: 639px) {
   .gv-back-to-top {
     right: max(var(--gv-space-4, 16px), env(safe-area-inset-right));
