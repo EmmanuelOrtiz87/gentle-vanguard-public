@@ -26,43 +26,52 @@ const PID_WATCHDOG = path.join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
 const PID_WS = path.join(RUNTIME_DIR, 'dashboard-ws.pid');
 const PID_VITE = path.join(RUNTIME_DIR, 'dashboard-vite.pid');
 
-/** Kill watchdog process by reading its PID file — must happen FIRST to avoid restart loops */
-function stopWatchdog(): void {
+/**
+ * Kill watchdog process by reading its PID file — must happen FIRST to avoid restart loops.
+ *
+ * The PID file is removed AFTER the kill (and only if the kill was aimed at
+ * the PID we read): removing it first loses the only handle we have on the
+ * supervisor.
+ */
+function stopWatchdog(): number | null {
+  let pid: number | null = null;
   try {
     if (fs.existsSync(PID_WATCHDOG)) {
       const content = fs.readFileSync(PID_WATCHDOG, 'utf-8').trim();
       if (/^\d+$/.test(content)) {
-        killProcess(parseInt(content, 10));
+        pid = parseInt(content, 10);
+        killProcess(pid, true);
       }
-      fs.unlinkSync(PID_WATCHDOG);
     }
   } catch {
     // ignore
   }
+  return pid;
 }
 
-/** Kill any remaining node processes matching dashboard patterns */
+/**
+ * Kill any remaining node processes matching dashboard patterns.
+ *
+ * Antes usaba `wmic`, que esta DESCONTINUADO (y desaparece) en Windows 11
+ * 24H2: la llamada fallaba y no mataba a nadie. Ahora usa Get-CimInstance,
+ * que es el mecanismo que ya usa el resto del stack (checks-infra.ts).
+ */
 function killNodeProcesses(): void {
   if (process.platform !== 'win32') return;
   try {
-    const result = runSync(
-      'wmic',
-      ['process', 'where', "name='node.exe'", 'get', 'ProcessId,CommandLine', '/format:csv'],
-      {
-        timeout: getEffectiveProcessTimeout('default'),
-      },
-    );
-    if (result.status !== 0) return;
-    const output = (result.stdout ?? '').toString();
-    for (const line of output.split('\n')) {
-      if (line.includes('websocket-server') || line.includes('vite')) {
-        const parts = line.trim().split(',');
-        const pid = parts[parts.length - 1];
-        if (pid && /^\d+$/.test(pid)) {
-          killProcess(parseInt(pid, 10));
-        }
-      }
-    }
+    const psCmd = `@(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'web-dashboard' -and ($_.CommandLine -match 'websocket-server' -or $_.CommandLine -match 'vite') }).Count`;
+    const count = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
+      timeout: getEffectiveProcessTimeout('default'),
+      stdio: 'pipe',
+    });
+    const n = parseInt((count.stdout ?? '').toString().trim(), 10);
+    if (!isNaN(n) && n === 0) return;
+
+    const killCmd = `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'web-dashboard' -and ($_.CommandLine -match 'websocket-server' -or $_.CommandLine -match 'vite') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`;
+    runSync('powershell', ['-NoProfile', '-Command', killCmd], {
+      timeout: getEffectiveProcessTimeout('default'),
+      stdio: 'pipe',
+    });
   } catch {
     // ignore
   }
@@ -76,28 +85,34 @@ async function main(): Promise<void> {
   const wsPort = ports?.wsPort ?? 8080;
   const vitePort = ports?.vitePort ?? 5173;
 
-  // Clear state files FIRST
-  clearDashboardPorts();
-  removeFileIfExists(PID_WS);
-  removeFileIfExists(PID_VITE);
+  /**
+   * ORDEN (2026-11-03). Antes este script BORRABA los PID files y DESPUES
+   * intentaba matar por PID file: el PID ya no existia, el server sobrevivia
+   * y `npm run dashboard:stop` no paraba nada. Ahora:
+   *
+   *   1. Se mata el watchdog (si no, reinicia el server que vamos a matar).
+   *   2. Se matan WS y Vite por su PID file (con tree kill: sin /T quedan
+   *      hijos huerfanos, como los skill-server del WS).
+   *   3. Se mata por dueno del puerto.
+   *   4. Se limpia lo que quedo por nombre de proceso.
+   *   5. AHORA si se borran los PID files y el de puertos.
+   */
+  const watchdogPid = stopWatchdog();
 
-  // Kill watchdog FIRST (prevents restart loops)
-  stopWatchdog();
-
-  // Kill by PID files
-  stopByPidFile(PID_WS);
-  stopByPidFile(PID_VITE);
+  // Kill by PID files (tree kill: the WS server leaves child processes).
+  stopByPidFile(PID_WS, true);
+  stopByPidFile(PID_VITE, true);
 
   // Kill by port ownership
   const wsPid = await getProcessIdByPort(wsPort);
   if (wsPid) {
-    killProcess(wsPid);
+    killProcess(wsPid, true);
     if (!quiet) console.log(`[DASHBOARD] Stopped WS server on port ${wsPort} (PID ${wsPid})`);
   }
 
   const vitePid = await getProcessIdByPort(vitePort);
   if (vitePid) {
-    killProcess(vitePid);
+    killProcess(vitePid, true);
     if (!quiet)
       console.log(`[DASHBOARD] Stopped Vite dev server on port ${vitePort} (PID ${vitePid})`);
   }
@@ -105,8 +120,16 @@ async function main(): Promise<void> {
   // Clean up any remaining node processes
   killNodeProcesses();
 
+  // Clear state files LAST: until here they were the only handle on the daemons.
+  removeFileIfExists(PID_WATCHDOG);
+  removeFileIfExists(PID_WS);
+  removeFileIfExists(PID_VITE);
+  clearDashboardPorts();
+
   if (!quiet) {
-    console.log(`[DASHBOARD] All dashboard processes stopped (WS:${wsPort}, Vite:${vitePort}).`);
+    const parts = [`WS:${wsPort}`, `Vite:${vitePort}`];
+    if (watchdogPid) parts.push(`watchdog:${watchdogPid}`);
+    console.log(`[DASHBOARD] All dashboard processes stopped (${parts.join(', ')}).`);
   }
 }
 

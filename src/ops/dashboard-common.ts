@@ -7,11 +7,148 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as net from 'net';
+import { spawn, spawnSync } from 'child_process';
 import { runSync } from '../../adapters/command-runner.js';
 import { pathToFileURL } from 'url';
+import { watchdogIsAlive } from './dashboard-watchdog-policy';
 
 const RUNTIME_DIR = path.resolve(process.cwd(), '.runtime');
 const PORTS_FILE = path.join(RUNTIME_DIR, 'dashboard-ports.json');
+
+/**
+ * Mata al proceso REGISTRADO del dashboard (el del PID file).
+ *
+ * POR QUE EXISTE (2026-11-03)
+ * Un daemon WEDGED (puerto abierto, event loop bloqueado) NO muere con
+ * `process.kill(pid, 'SIGKILL')` en Windows: el proceso no puede atender la
+ * senal. Hay que usar `taskkill /F /T` (tree kill), que lo termina por
+ * fuera del proceso. Ya se habia visto en el incidente del dashboard: el
+ * `Stop-Process -Force` fallaba en silencio y `taskkill /F /PID` si
+ * funcionaba.
+ *
+ * El tree kill tambien se lleva a los hijos (skill-server, etc.), que si no
+ * quedan huerfanos ocupando recursos.
+ *
+ * Solo se mata lo que el propio stack registro: un proceso ajeno que
+ * escuche en el puerto NO se toca.
+ */
+export function killRecordedWsProcess(pidFile: string): boolean {
+  try {
+    if (!fs.existsSync(pidFile)) return false;
+    const pid = Number(fs.readFileSync(pidFile, 'utf-8').trim());
+    if (!Number.isInteger(pid) || pid <= 0) return false;
+    if (pid === process.pid) return false;
+
+    if (process.platform === 'win32') {
+      const r = spawnSync('taskkill', ['/F', '/T', '/PID', String(pid)], {
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      if (r.status !== 0) return false;
+    } else {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        return false;
+      }
+    }
+    try {
+      fs.unlinkSync(pidFile);
+    } catch {
+      /* non-fatal */
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Asegura que exista un watchdog externo VIVO para el dashboard.
+ *
+ * POR QUE (2026-11-03)
+ * Un dashboard sin watchdog es un dashboard sin supervisor: si el server se
+ * cuelga, nadie lo reinicia. El autoheal del watchtower lanza el SERVER, no
+ * el watchdog — y el watchdog podia SUICIDARSE al agotar su presupuesto de
+ * reinicios, dejando el dashboard sin nadie que lo cuidara, de forma
+ * permanente y silenciosa.
+ *
+ * Invariante que se cierra aca: **por la via que se arranque el dashboard,
+ * hay un watchdog_threads.** El launcher es la via canonica del autoheal,
+ * asi que es el lugar donde se garantiza.
+ *
+ * El watchdog arranca con `--watch`: si el server ya esta sano (lo acaba de
+ * lanzar el propio launcher), lo ADOPTA y se limita a vigilarlo. No hay
+ * conflicto: el guard de instancia unica vive en el propio autostart.
+ */
+export function ensureWatchdog(port: number): { spawned: boolean; reason: string } {
+  const watchdogPidFile = path.join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
+
+  // 1) Ya hay un watchdog registrado y vivo -> nada que hacer.
+  const alive = watchdogIsAlive(
+    watchdogPidFile,
+    (pid) => {
+      process.kill(pid, 0); // lanza si el proceso no existe
+      return true;
+    },
+    (p) => {
+      try {
+        return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null;
+      } catch {
+        return null;
+      }
+    },
+  );
+  if (alive) {
+    let pid = 0;
+    try {
+      pid = Number(fs.readFileSync(watchdogPidFile, 'utf-8').trim());
+    } catch {
+      /* noop */
+    }
+    return { spawned: false, reason: `watchdog ya vivo (PID=${pid})` };
+  }
+
+  // 2) No hay watchdog (o el registrado esta muerto) -> lo arrancamos.
+  const autostartScript = path.resolve(process.cwd(), 'src', 'ops', 'dashboard-ws-autostart.ts');
+  if (!fs.existsSync(autostartScript)) {
+    return { spawned: false, reason: `no existe ${autostartScript}` };
+  }
+
+  const child = spawn(
+    process.execPath,
+    ['--import', 'tsx', autostartScript, '--watch', '--port', String(port)],
+    {
+      cwd: process.cwd(),
+      stdio: 'ignore',
+      detached: true,
+      windowsHide: true,
+      shell: false,
+    },
+  );
+  child.unref();
+  return { spawned: true, reason: `watchdog arrancado (PID=${child.pid})` };
+}
+
+/**
+ * Timeout del probe de liveness del dashboard WS.
+ *
+ * UN SOLO VALOR PARA TODO EL STACK (2026-11-03).
+ *
+ * El server calcula las metricas de forma SINCRONA en su event loop
+ * (lectura de la base, git, caches): hay ventanas de varios segundos en las
+ * que esta VIVO pero tarda en responder. Con un probe corto, esa ventana se
+ * confunde con "colgado":
+ *
+ *   - el watchdog externo mataba y relanzaba un server sano (228 reinicios);
+ *   - el health check del stack reportaba FAIL con el server funcionando;
+ *   - el proxy de Vite se caia por lo mismo.
+ *
+ * 15s diferencia "vivo y ocupado" de "colgado": un daemon realmente wedged
+ * (event loop bloqueado para siempre) tampoco responde en 15s, asi que el
+ * umbral sigue distinguiendo los dos casos.
+ */
+export const DASHBOARD_PROBE_TIMEOUT_MS = 15_000;
 
 interface DashboardPorts {
   wsPort?: number;
@@ -136,11 +273,19 @@ export function isProcessAlive(pid: number): boolean {
   }
 }
 
-/** Kill a process by PID */
-export function killProcess(pid: number): void {
+/**
+ * Kill a process by PID.
+ *
+ * `tree` mata tambien a los hijos (taskkill /T). Es lo correcto para los
+ * daemons del stack: el WS server deja hijos (skill-server) que, si quedan
+ * vivos, siguen ocupando memoria y puertos. Y es la UNICA via contra un
+ * daemon wedged: `process.kill(pid, 'SIGKILL')` no lo detiene (su event loop
+ * esta bloqueado y no atiende la senal).
+ */
+export function killProcess(pid: number, tree = false): void {
   try {
     if (process.platform === 'win32') {
-      runSync('taskkill', ['/F', '/PID', String(pid)], { timeout: 3000 });
+      runSync('taskkill', ['/F', ...(tree ? ['/T'] : []), '/PID', String(pid)], { timeout: 5000 });
     } else {
       process.kill(pid, 'SIGTERM');
     }
@@ -150,12 +295,12 @@ export function killProcess(pid: number): void {
 }
 
 /** Read a PID from a file and kill the process, then remove the file */
-export function stopByPidFile(pidFile: string): void {
+export function stopByPidFile(pidFile: string, tree = false): void {
   try {
     if (fs.existsSync(pidFile)) {
       const content = fs.readFileSync(pidFile, 'utf-8').trim();
       if (/^\d+$/.test(content)) {
-        killProcess(parseInt(content, 10));
+        killProcess(parseInt(content, 10), tree);
       }
       fs.unlinkSync(pidFile);
     }

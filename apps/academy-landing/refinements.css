@@ -7,8 +7,8 @@
 
 /* === Botones: píldora con gradiente y elevación (patrón corporate) === */
 .gv-btn { border-radius:var(--gv-radius-pill); font-weight:600; transition:transform var(--gv-duration-fast) var(--gv-ease-out-expo), box-shadow var(--gv-duration-fast), filter var(--gv-duration-fast), background var(--gv-duration-fast); }
-.gv-btn-primary, .gv-app-shell .gv-btn-primary { background:var(--gv-gradient); color:var(--gv-bg-deep) !important; box-shadow:var(--gv-elev-sm); }
-.gv-btn-primary:hover { transform:translateY(-2px); box-shadow:var(--gv-elev-glow); filter:brightness(1.12); }
+.gv-btn-primary, .gv-app-shell .gv-btn-primary { background:var(--gv-gradient); color:var(--gv-bg-deep) !important; box-shadow:var(--gv-elev-sm); filter:brightness(1.2); }
+.gv-btn-primary:hover { transform:translateY(-2px); box-shadow:var(--gv-elev-glow); filter:brightness(1.28); }
 .gv-btn-primary:active { transform:translateY(0); filter:brightness(.98); }
 .gv-btn-ghost:hover { background:var(--gv-surface-raised); color:var(--gv-text); }
 

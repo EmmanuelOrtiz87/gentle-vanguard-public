@@ -94,6 +94,79 @@ const CHECKS: GateCheck[] = [
     description: 'Deadcode ratchet (knip) — bloquea si crece vs .deadcode-baseline.txt',
   },
   {
+    name: 'gates-verify',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/quality-gates-verify.ts'],
+    timeoutMs: 120_000,
+    description:
+      'Calidad de gates: cada gate declarado "enforced" en config/quality-gates.json tiene ejecucion real (hook o workflow)',
+  },
+  {
+    name: 'skills-accessibility',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/skills-accessibility-gate.ts'],
+    timeoutMs: 120_000,
+    description:
+      'Accesibilidad de skills: toda skill cargable es alcanzable por el router (indice semantico + description)',
+  },
+  {
+    name: 'gitignore-source-guard',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/gitignore-source-guard.ts'],
+    timeoutMs: 180_000,
+    description:
+      'Guard anti-.gitignore: el codigo fuente referenciado por el repo viaja en el clon',
+  },
+  {
+    name: 'app-typecheck-coverage',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/app-typecheck-coverage-gate.ts'],
+    timeoutMs: 120_000,
+    description:
+      'Cobertura de typecheck: el typecheck de cada app verifica TODO su codigo, no solo src/',
+  },
+  {
+    name: 'decks-guion-coverage',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/decks-guion-coverage-gate.ts'],
+    timeoutMs: 60_000,
+    description:
+      'Guiones de presentacion: cada deck tiene guion y una seccion por cada slide',
+  },
+  {
+    name: 'decks-facts-drift',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/decks-facts-drift-gate.ts'],
+    timeoutMs: 60_000,
+    description:
+      'Cifras de los decks: las afirmaciones sobre el repo coinciden con la medicion',
+  },
+  {
+    name: 'glossary-export',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/glossary-export.ts', '--check'],
+    timeoutMs: 60_000,
+    description: 'Nomenclatura portable sin drift respecto del glosario del sitio',
+  },
+  {
+    name: 'gates-selftest',
+    command: 'node',
+    args: [
+      '--import',
+      'tsx',
+      '--test',
+      'src/tools/skills-accessibility-gate.test.ts',
+      'src/tools/gitignore-source-guard.test.ts',
+      'src/tools/app-typecheck-coverage-gate.test.ts',
+      'src/tools/decks-guion-coverage-gate.test.ts',
+      'src/tools/decks-facts-drift-gate.test.ts',
+      'src/tools/glossary-export.test.ts',
+      'src/ops/stack-audit-apps.test.ts',
+    ],
+    timeoutMs: 120_000,
+    description: 'Test negativo de los gates nuevos: verifica que muerdan',
+  },
+  {
     name: 'shell-quoting',
     command: 'npm',
     args: ['run', 'audit:shell-quoting'],

@@ -1,26 +1,33 @@
 #!/usr/bin/env node
 /**
- * Image Generation CLI — native AI image generation via DALL-E, Stable Diffusion, FLUX.
- * Falls back to SVG template engine when APIs are unavailable.
+ * Image Generation CLI — native AI image generation via the connected image app
+ * (mcode-tools connector), DALL-E, Stable Diffusion or FLUX.
+ * Falls back to SVG template engine when no image backend is available.
+ *
+ * Provider order for `--provider auto`: connected app -> API keys -> SVG.
  *
  * Usage:
- *   npx tsx src/cli/image-gen.ts "prompt" --provider dall-e --output img.png
- *   npx tsx src/cli/image-gen.ts --config config/image-batch.json
- *   npx tsx src/cli/image-gen.ts "banner" --provider svg --banner hero
+ *   node --import tsx src/cli/image-gen.ts "prompt" --provider auto --output img.png
+ *   node --import tsx src/cli/image-gen.ts --config config/image-batch.json
+ *   node --import tsx src/cli/image-gen.ts "banner" --provider svg --banner hero
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { resolve, dirname, extname } from 'path';
+import { resolve, dirname, extname, join } from 'path';
+import { tmpdir } from 'os';
+import { spawnSync } from 'child_process';
 
 interface GenArgs {
   prompt: string;
-  provider: 'dall-e' | 'stability' | 'flux' | 'svc';
+  provider: 'dall-e' | 'stability' | 'flux' | 'svc' | 'connector' | 'auto';
   output: string;
   format: string;
   config?: string;
   banner?: string;
   batchFile?: string;
   brandConfig?: string;
+  aspect: string;
+  resolution: string;
   json: boolean;
 }
 
@@ -34,18 +41,20 @@ interface BatchItem {
 function parseArgs(): GenArgs {
   const raw = process.argv.slice(2);
   const promptParts: string[] = [];
-  let provider: GenArgs['provider'] = 'svc';
+  let provider: GenArgs['provider'] = 'auto';
   let output = '';
   let format = '';
   let config = '';
   let banner = '';
   let brandConfig = '';
+  let aspect = '16:9';
+  let resolution = '2K';
   let json = false;
 
   for (let i = 0; i < raw.length; i++) {
     switch (raw[i]) {
       case '--provider':
-        provider = (raw[++i] || 'svc') as GenArgs['provider'];
+        provider = (raw[++i] || 'auto') as GenArgs['provider'];
         break;
       case '--output':
         output = raw[++i] || '';
@@ -61,6 +70,12 @@ function parseArgs(): GenArgs {
         break;
       case '--brand':
         brandConfig = raw[++i] || '';
+        break;
+      case '--aspect':
+        aspect = raw[++i] || '16:9';
+        break;
+      case '--resolution':
+        resolution = raw[++i] || '2K';
         break;
       case '--json':
         json = true;
@@ -78,6 +93,8 @@ function parseArgs(): GenArgs {
     config,
     banner,
     brandConfig,
+    aspect,
+    resolution,
     json,
   };
 }
@@ -259,6 +276,117 @@ async function callReplicate(prompt: string, model: 'stability' | 'flux'): Promi
   }
 }
 
+/**
+ * Connected-app image generation (mcode-tools connector).
+ *
+ * This is the backend that works on a machine with no API keys: the connected
+ * image app does the generation, and the asset comes back as a Matrix Drive
+ * node that we resolve to a short-lived URL and download locally.
+ */
+function mcodeToolsAvailable(): boolean {
+  try {
+    const probe = spawnSync('mcode-tools --help', {
+      encoding: 'utf8',
+      shell: true,
+      timeout: 20000,
+    });
+    return probe.status === 0;
+  } catch {
+    return false;
+  }
+}
+
+/** Quote a path for a Windows shell command line. */
+function shellQuote(value: string): string {
+  return /[\s"]/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value;
+}
+
+async function callConnector(
+  prompt: string,
+  aspect: string,
+  resolution: string,
+): Promise<{ buffer: Buffer; extension: string } | null> {
+  if (!mcodeToolsAvailable()) {
+    console.error('[IMAGE-GEN] mcode-tools no esta disponible en el PATH.');
+    return null;
+  }
+
+  const argsFile = join(tmpdir(), `gv-image-${Date.now()}-${process.pid}.json`);
+  const payload = {
+    requests: [
+      {
+        prompt,
+        aspect_ratio: aspect,
+        resolution,
+        output_file: `gv-image-${Date.now()}.png`,
+      },
+    ],
+  };
+  writeFileSync(argsFile, JSON.stringify(payload), 'utf8');
+
+  try {
+    const call = spawnSync(
+      `mcode-tools connector call connector__matrix__generate_image --args-file ${shellQuote(argsFile)}`,
+      { encoding: 'utf8', shell: true, timeout: 600000 },
+    );
+    if (call.status !== 0) {
+      console.error(`[IMAGE-GEN] connector fallo: ${(call.stderr || call.stdout || '').trim()}`);
+      return null;
+    }
+    let parsed: { success_items?: { node_id: string; file_name?: string }[]; message?: string };
+    try {
+      parsed = JSON.parse((call.stdout || '').trim());
+    } catch {
+      console.error('[IMAGE-GEN] respuesta del connector no interpretable');
+      return null;
+    }
+    const item = parsed.success_items?.[0];
+    if (!item?.node_id) {
+      console.error(`[IMAGE-GEN] el connector no devolvio imagen: ${parsed.message ?? 'sin detalle'}`);
+      return null;
+    }
+
+    const urlCall = spawnSync(`mcode-tools get_asset_url ${item.node_id}`, {
+      encoding: 'utf8',
+      shell: true,
+      timeout: 120000,
+    });
+    if (urlCall.status !== 0) {
+      console.error('[IMAGE-GEN] no se pudo resolver la URL del asset');
+      return null;
+    }
+    const { download_url: downloadUrl } = JSON.parse((urlCall.stdout || '').trim()) as {
+      download_url: string;
+    };
+    if (!downloadUrl) return null;
+
+    const res = await fetch(downloadUrl);
+    if (!res.ok) {
+      console.error(`[IMAGE-GEN] descarga fallida: ${res.status}`);
+      return null;
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    // The app decides the container (png or jpg); do not lie about it.
+    const fromName = (item.file_name ?? '').toLowerCase().endsWith('.jpg')
+      ? '.jpg'
+      : (item.file_name ?? '').toLowerCase().endsWith('.webp')
+        ? '.webp'
+        : '.png';
+    const fromMagic = buffer[0] === 0xff && buffer[1] === 0xd8 ? '.jpg' : fromName;
+    return { buffer, extension: fromMagic };
+  } catch (err) {
+    console.error('[IMAGE-GEN] connector error:', err);
+    return null;
+  } finally {
+    try {
+      const { unlinkSync } = await import('fs');
+      if (existsSync(argsFile)) unlinkSync(argsFile);
+    } catch {
+      /* best effort */
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const args = parseArgs();
 
@@ -294,7 +422,7 @@ async function main(): Promise<void> {
   // Single mode
   if (!args.prompt) {
     console.error(
-      '[IMAGE-GEN] Usage: npx tsx src/cli/image-gen.ts "prompt" [--provider dall-e|stability|flux|svg] [--output file.png]',
+      '[IMAGE-GEN] Usage: node --import tsx src/cli/image-gen.ts "prompt" [--provider auto|connector|dall-e|stability|flux|svg] [--aspect 16:9] [--resolution 2K] [--output file.png]',
     );
     process.exit(1);
   }
@@ -324,12 +452,32 @@ async function generateImage(args: GenArgs): Promise<boolean> {
       finalFormat = 'png';
       break;
     }
-    case 'svc':
+    case 'connector': {
+      console.error(`[IMAGE-GEN] Calling connected image app: "${prompt.substring(0, 60)}..."`);
+      const res = await callConnector(prompt, args.aspect, args.resolution);
+      imageBuffer = res?.buffer ?? null;
+      finalFormat = res ? res.extension.replace('.', '') : 'png';
+      break;
+    }
+    case 'auto':
     default: {
-      console.error(`[IMAGE-GEN] Generating SVG: "${prompt.substring(0, 60)}..."`);
-      const svgContent = generateSvg(args);
-      imageBuffer = Buffer.from(svgContent, 'utf8');
-      finalFormat = 'svg';
+      // Order: connected app (no keys needed) -> API keys -> SVG.
+      if (mcodeToolsAvailable()) {
+        console.error(`[IMAGE-GEN] Connected image app: "${prompt.substring(0, 60)}..."`);
+        const res = await callConnector(prompt, args.aspect, args.resolution);
+        imageBuffer = res?.buffer ?? null;
+        finalFormat = res ? res.extension.replace('.', '') : 'png';
+      }
+      if (!imageBuffer && process.env.OPENAI_API_KEY) {
+        console.error('[IMAGE-GEN] Falling back to DALL-E 3');
+        imageBuffer = await callDalle(prompt);
+        finalFormat = 'png';
+      }
+      if (!imageBuffer) {
+        console.error('[IMAGE-GEN] Generating SVG: "' + prompt.substring(0, 60) + '..."');
+        imageBuffer = Buffer.from(generateSvg(args), 'utf8');
+        finalFormat = 'svg';
+      }
       break;
     }
   }
@@ -343,13 +491,20 @@ async function generateImage(args: GenArgs): Promise<boolean> {
   }
 
   // Save output
+  const realExt = finalFormat === 'svg' ? '.svg' : finalFormat === 'jpg' ? '.jpg' : '.png';
   let outputPath = args.output;
   if (!outputPath) {
     const timestamp = Date.now();
-    const ext = finalFormat === 'svg' ? '.svg' : '.png';
-    outputPath = `assets/generated/image-${timestamp}${ext}`;
+    outputPath = `assets/generated/image-${timestamp}${realExt}`;
   } else if (!extname(outputPath)) {
-    outputPath += finalFormat === 'svg' ? '.svg' : '.png';
+    outputPath += realExt;
+  } else {
+    // The backend decides the container; never write JPEG bytes into a .png.
+    const wanted = extname(outputPath).toLowerCase();
+    const wantedFormat = wanted === '.svg' ? 'svg' : wanted === '.jpg' || wanted === '.jpeg' ? 'jpg' : 'png';
+    if (wantedFormat !== finalFormat) {
+      outputPath = outputPath.slice(0, outputPath.length - wanted.length) + realExt;
+    }
   }
 
   const fullPath = resolve(process.cwd(), outputPath);

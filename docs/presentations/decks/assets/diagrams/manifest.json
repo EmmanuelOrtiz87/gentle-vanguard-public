@@ -1,0 +1,42 @@
+{
+  "architecture-layers.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "data-architecture.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "executive-loop.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "governance-tiers.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "nexus-backup-policy.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "pipeline-flow.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "planning-estimates.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "release-gates.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "setup-flow.png": {
+    "w": 2000,
+    "h": 1125
+  },
+  "stack-dashboard.png": {
+    "w": 2000,
+    "h": 1000
+  }
+}

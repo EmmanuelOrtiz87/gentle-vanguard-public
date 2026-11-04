@@ -12,13 +12,22 @@ const checks = [
   ['server updates linked reminder', 'server/api.mjs', 'const wantsReminder = Boolean(merged.create_reminder)'],
   ['local-first updates linked reminder', 'public/js/local-api.mjs', 'const wantsReminder = Boolean(merged.create_reminder)'],
   ['mobile search has dedicated row', 'public/css/base.css', 'flex: 0 0 100%'],
+  ['global search tolerates typos', 'public/js/core/search.mjs', 'oneEditApart('],
+  ['mobile navigation has a More menu', 'public/js/main.js', 'nav-more'],
+  ['operator names can be edited', 'public/js/main.js', 'Editar operador'],
+  ['resolved reminders can be reactivated', 'public/js/views/reminders.js', "['pausado', 'resuelto'].includes(r.status)"],
   ['service worker cache is versioned', 'public/sw.js', "const CACHE = '"],
+  ['contact import supports selecting one or all', 'public/js/views/contacts.js', 'data-import-select-all'],
+  ['PWA declares the vCard share target', 'public/manifest.webmanifest', '"share_target"'],
+  ['local attachments persist in IndexedDB', 'public/js/core/local-attachments.mjs', 'indexedDB.open('],
+  ['server attachments enforce the one-file phase', 'server/attachments.mjs', 'MAX_ATTACHMENTS_PER_ENTITY = 1'],
 ] as const;
 
 const exactSharedFiles = [
   'server/calc.mjs',
   'server/recurrence.mjs',
   'public/js/core/calc.mjs',
+  'public/js/core/search.mjs',
   'public/js/core/validate.mjs',
   'public/css/btn-active.css',
   'tests/e2e-journey.mjs',

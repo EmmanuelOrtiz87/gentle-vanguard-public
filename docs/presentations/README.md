@@ -25,6 +25,24 @@ Los scripts de las herramientas documentales Image/Video Studio recuperaron sus 
 
 ## Contenido
 
+- [FAQ.md](FAQ.md) — **preguntas que van a hacer en un evento**, con respuesta
+  corta y honesta. Incluye la sección de preguntas incómodas y las reglas del
+  que presenta (qué no se afirma: no hay clientes, no hay resultados medidos,
+  no hay precios).
+- [NOMENCLATURA.md](NOMENCLATURA.md) — **glosario portable** (284 términos con
+  su definición y la ruta del repo donde vive cada uno). Generado desde
+  `glossary.html` con `npm run docs:glossary`; `npm run docs:glossary:check`
+  falla si queda desactualizado.
+- [decks/speech/](decks/README.md) — **guion de cada deck**: el texto hablable
+  slide por slide, el tiempo, la transición, las preguntas esperadas y lo que
+  no hay que decir. `npm run decks:guion` exige cobertura completa (una sección
+  por slide) y es bloqueante.
+- [decks/](decks/README.md) — **canon oficial de presentaciones PPTX**: toolkit declarativo
+  (tema, 17 tipos de página, iconos, diagramas, arte de portada generado por IA, export a PNG y
+  PDF, PDF armado desde PNG para cualquier OS), 3 sets bilingües (negocio/leads, enterprise,
+  onboarding técnico), el registro de decisión visual (`gv-theme-candidates`), template oficial
+  con 6 masters y el manual de uso. Se opera desde el stack con `npm run decks:lint|build|template|manual|
+  hero|export:png|export:pdf|export:pdf:png` (ver `skills/gv-presentations/SKILL.md`)
 - [index.html](index.html) — landing principal: arquitectura, componentes, autonomía, data layer,
   executive systems, feature matrix
 - [architecture.html](architecture.html) — capas, límites, componentes y optimizaciones
