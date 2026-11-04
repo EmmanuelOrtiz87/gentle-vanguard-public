@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 /**
- * Auto-Optimizer
+ * Auto-Optimizer (MEASUREMENT-ONLY)
  *
- * Automatically optimizes the Gentle-Vanguard stack based on session metrics.
+ * Mide el hit-rate del ResponseCache y persiste un reporte. NO aplica
+ * optimizaciones automáticas: el output anterior ("Optimizations applied
+ * automatically") mentía — corregido 2026-11-04 (auditoría de stack, regla
+ * "no asumir ni fingir"). Si se quieren optimizaciones reales, construirlas
+ * como steps con efecto verificable en el autostart.
  * Modes: auto, analyze, dry-run
  */
 
@@ -41,12 +45,12 @@ function runAutoOptimize(mode: string, quiet: boolean): void {
   const cacheStats = analyzeCache();
 
   if (!quiet) {
-    console.log('\n=== Auto-Optimization Report ===\n');
+    console.log('\n=== Auto-Optimization Report (measurement-only) ===\n');
     console.log(`Cache Hit Rate: ${cacheStats.hitRate.toFixed(1)}%`);
     console.log(`Cache Entries: ${cacheStats.entries}`);
     console.log(`Mode: ${mode}`);
-    console.log('\nStatus: All systems operational');
-    console.log('Optimizations applied automatically.\n');
+    console.log('\nStatus: medición completada');
+    console.log('No se aplicaron optimizaciones automáticas (este script mide, no optimiza).\n');
   }
 
   // Save report
@@ -63,7 +67,8 @@ function runAutoOptimize(mode: string, quiet: boolean): void {
         mode,
         cacheHitRate: cacheStats.hitRate,
         cacheEntries: cacheStats.entries,
-        status: 'success',
+        status: 'measurement-only',
+        note: 'sin efecto: el script mide cache hit-rate; no aplica optimizaciones',
       },
       null,
       2,

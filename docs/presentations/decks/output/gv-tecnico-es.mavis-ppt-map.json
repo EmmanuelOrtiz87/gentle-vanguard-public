@@ -1,0 +1,574 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-tecnico-es",
+  "title": "GentleVanguard - Onboarding técnico del stack",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/content",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "cover",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Onboarding técnico",
+          "editable": true
+        },
+        {
+          "elementId": "cover-title",
+          "role": "title",
+          "type": "string",
+          "text": "Cómo se trabaja\ndentro del stack",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleSize",
+          "role": "titleSize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleH",
+          "role": "titleH",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-subtitle",
+          "role": "subtitle",
+          "type": "string",
+          "text": "Mapa del repositorio, anatomía de una sesión, agentes, skills, comandos, base operacional y las reglas que sostienen todo lo demás.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-meta",
+          "role": "meta",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "cover-versión",
+          "role": "versión",
+          "type": "string",
+          "text": "Guía de incorporación - Noviembre 2026",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "agenda",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "agenda-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Recorrido",
+          "editable": true
+        },
+        {
+          "elementId": "agenda-title",
+          "role": "title",
+          "type": "string",
+          "text": "Lo que vas a recorrer",
+          "editable": true
+        },
+        {
+          "elementId": "agenda-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Orden recomendado para una primera semana.",
+          "editable": true
+        },
+        {
+          "elementId": "agenda-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "layers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "layers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Mapa",
+          "editable": true
+        },
+        {
+          "elementId": "layers-title",
+          "role": "title",
+          "type": "string",
+          "text": "Ocho carpetas, una responsabilidad cada una",
+          "editable": true
+        },
+        {
+          "elementId": "layers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "La separación no es estética: es lo que permite que las validaciones sean automáticas.",
+          "editable": true
+        },
+        {
+          "elementId": "layers-labelW",
+          "role": "labelW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "layers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "flow",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "flow-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Sesión",
+          "editable": true
+        },
+        {
+          "elementId": "flow-title",
+          "role": "title",
+          "type": "string",
+          "text": "Qué pasa cuando escribís un pedido",
+          "editable": true
+        },
+        {
+          "elementId": "flow-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Seis etapas, todas instrumentadas. Ninguna es magia: todas dejan registro.",
+          "editable": true
+        },
+        {
+          "elementId": "flow-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "cards",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "cards-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Roster",
+          "editable": true
+        },
+        {
+          "elementId": "cards-title",
+          "role": "title",
+          "type": "string",
+          "text": "21 agentes, cada uno con su perímetro",
+          "editable": true
+        },
+        {
+          "elementId": "cards-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Un agente tiene modelo, permisos, límite de pasos, presupuesto y fallback declarados.",
+          "editable": true
+        },
+        {
+          "elementId": "cards-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cards-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Capacidades",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "Skills: la biblioteca que evita reescribir",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Comandos",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Los que se usan todos los días",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cada operación del stack es un comando auditable. No hay acciones ocultas.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "layout": "figureLayers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "figureLayers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Datos",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-title",
+          "role": "title",
+          "type": "string",
+          "text": "Nexus: la memoria operacional del stack",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "44 tablas y 22 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-textW",
+          "role": "textW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-layers",
+          "role": "layers",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Calidad",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "La calidad no se pide: se ejecuta",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "El stack corre sus propios controles en cada commit, en cada push y en cada ciclo de salud.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "layout": "timeline",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "timeline-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Instalación",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-title",
+          "role": "title",
+          "type": "string",
+          "text": "Del clone a la primera sesión",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Pasos idempotentes: si se corta, se vuelve a correr sin duplicar nada.",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Router",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "El router decide, y deja decidir el código",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "La temperatura y el modelo por defecto están bloqueados por política: no se cambian en caliente.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Reglas",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "Lo que no se negocia en este repositorio",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Referencia",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Dónde buscar cada tipo de respuesta",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "El conocimiento está versionado. No hace falta preguntar.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "layout": "closing",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-title",
+          "role": "title",
+          "type": "string",
+          "text": "Tu primer día",
+          "editable": true
+        },
+        {
+          "elementId": "closing-body",
+          "role": "body",
+          "type": "string",
+          "text": "Instalá, arrancá una sesión y pedí el estado de salud del stack. Después elegí un issue chico y dejá que el flujo inline haga el resto: explorar, implementar y verificar en proporción al riesgo.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-ctas",
+          "role": "ctas",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-contacts",
+          "role": "contacts",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-note",
+          "role": "note",
+          "type": "string",
+          "text": "Ante cualquier duda sobre una regla del repositorio, la respuesta esta en AGENTS.md o en el manual de stack.",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

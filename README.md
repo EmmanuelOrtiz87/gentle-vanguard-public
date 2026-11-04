@@ -36,8 +36,13 @@ initializes local data and verifies dependencies; failed phases return errors.
 ```sh
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard-public
-pnpm install --frozen-lockfile
-node --import tsx src/infrastructure/installer-bootstrap.ts
+corepack enable          # pnpm sin instalarlo a mano
+npm run setup            # orquestador idempotente: prereqs -> deps -> doctor -> nexus -> hooks -> graphify -> skills-index
+
+# Post-setup (deja el stack OPERATIVO; sin esto no hay sesiones ni memoria):
+npm run session:autostart:detached   # primera sesion + daemons (token-ingest, metrics-writer)
+engram init && engram doctor         # memoria persistente (requiere binario engram; ver docs/guides/COMPATIBILITY-MATRIX.md)
+npm run watchtower:health -- --full  # 154 checks de verificacion completa
 ```
 
 Dependencies and optional providers may require network access. Credentials are supplied locally by

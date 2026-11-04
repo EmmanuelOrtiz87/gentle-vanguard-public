@@ -78,7 +78,7 @@ export default {
         { label: 'Orchestration', body: 'Model and agent routing, step escalation by complexity, and a learnable routing table with 17 domains and overrides.', accent: '22d3ee' },
         { label: 'Agents', body: '20 definitions with permissions and step limits; 29 mapped roles and 30 model bindings by domain and criticality.', accent: '8b5cf6' },
         { label: 'Capabilities', body: '253 indexed skills, with 28 critical ones under a contract verified in real execution.', accent: 'c4b5fd' },
-        { label: 'Knowledge', body: 'Engram (memory), CodeGraph (incremental index), graphify (deterministic AST graph) and Nexus (38 tables, 22 migrations, WAL).', accent: 'fbbf24' },
+        { label: 'Knowledge', body: 'Engram (memory), CodeGraph (incremental index), graphify (deterministic AST graph) and Nexus (44 tables, 22 migrations, WAL).', accent: 'fbbf24' },
         { label: 'Tools', body: 'Ten MCP servers with uniform access, including two external ones behind a circuit breaker.', accent: 'f4bb4f' },
         { label: 'Infrastructure', body: 'Watchtower watching 35 components, six operating modes and auto-heal.', accent: '4ade80' },
         { label: 'Observability', body: 'Dashboard with real traces, a 7-component health API, OTLP export and configurable alerts.', accent: '22d3ee' },

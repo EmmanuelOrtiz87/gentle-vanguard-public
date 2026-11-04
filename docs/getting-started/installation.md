@@ -22,7 +22,7 @@ Complete guide to set up Gentle-Vanguard on a new machine.
 
 ```TypeScript
 # Clone or download gentle-vanguard
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
+git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard
 
 # Install locked dependencies
@@ -42,7 +42,7 @@ npx tsx src/session/session-autostart.ts
 
 ```bash
 # Clone or download gentle-vanguard
-git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard.git
+git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard
 
 # Install locked dependencies

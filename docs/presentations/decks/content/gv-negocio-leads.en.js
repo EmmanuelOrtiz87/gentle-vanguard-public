@@ -108,7 +108,7 @@ export default {
       items: [
         { value: '28', label: 'Own apps', sub: 'Systems we developed and that run today', accent: '06b6d4' },
         { value: '20', label: 'AI agents', sub: 'Roles with model, permissions and budget assigned', accent: '8b5cf6' },
-        { value: '253', label: 'Skills', sub: 'Reusable capabilities that are not rewritten per project', accent: 'fbbf24' },
+        { value: '256', label: 'Skills', sub: 'Reusable capabilities that are not rewritten per project', accent: 'fbbf24' },
         { value: '35', label: 'Components watched', sub: 'Health checks per component, with auto-heal', accent: '22d3ee' },
       ],
     },

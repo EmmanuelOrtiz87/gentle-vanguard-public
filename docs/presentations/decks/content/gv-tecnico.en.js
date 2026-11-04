@@ -39,7 +39,7 @@ export default {
         { heading: 'Anatomy of a session', body: 'What happens between your prompt and the agent reply.' },
         { heading: 'Agents and skills', body: 'The 20 agents in the roster and how capabilities get invoked.' },
         { heading: 'Commands', body: 'The commands used daily and what each one verifies.' },
-        { heading: 'Nexus', body: 'The operational database: 38 tables, migrations and backup.' },
+        { heading: 'Nexus', body: 'The operational database: 44 tables, migrations and backup.' },
         { heading: 'Development flow', body: 'From request to commit: ODD, slices, gates and the reviewed boundary.' },
         { heading: 'Repo rules', body: 'What is not negotiable and why it exists.' },
         { heading: 'Where to look', body: 'The shortest path to each kind of answer.' },
@@ -155,7 +155,7 @@ export default {
       layout: 'figureLayers',
       eyebrow: 'Data',
       title: 'Nexus: the operational memory of the stack',
-      lead: '38 tables and 22 migrations in SQLite with WAL. Everything the stack learns ends up here.',
+      lead: '44 tables and 22 migrations in SQLite with WAL. Everything the stack learns ends up here.',
       textW: 3.4,
       items: [
         { icon: 'database', heading: 'What it holds', body: 'Metrics, sessions, traces, events, alerts, feedback, cache, skill usage, tokens and routing.' },

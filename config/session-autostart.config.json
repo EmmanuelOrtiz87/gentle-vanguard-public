@@ -1094,7 +1094,27 @@
         "args": "--watch 30",
         "required": false,
         "phase": 90,
-        "description": "Token Ingest AGNÃSTICO â€” lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/cursor) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesiÃ³n hasta el cierre."
+        "description": "Token Ingest AGNOSTICO - lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/codex/zcode/minimax) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesion hasta el cierre."
+      },
+      {
+        "id": "metrics-writer-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/metrics-writer-daemon.ts",
+        "args": "--watch 30",
+        "required": false,
+        "phase": 90,
+        "description": "MetricsWriter daemon - snapshots de metricas a Nexus metric_snapshots + sync de sesiones (context-log) cada 30s SIN depender del dashboard (antes solo corria si websocket-server/vite estaban vivos). Usa el MetricsWriter canonico de src/database/nexus."
+      },
+      {
+        "id": "orphan-native-sessions-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tokens/orphan-native-sessions.ts",
+        "args": "",
+        "required": false,
+        "phase": 90,
+        "description": "Enforcement del autostart por observabilidad - detecta sesiones nativas con tokens ingestados que nunca se mapearon a una sesion del stack (sin alias ni context-log) y persiste .runtime/metrics/orphan-native-sessions.json. Nada escapa en silencio."
       },
       {
         "id": "web-crawler-init",

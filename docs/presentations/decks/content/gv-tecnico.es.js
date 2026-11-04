@@ -39,7 +39,7 @@ export default {
         { heading: 'Anatomía de una sesión', body: 'Qué pasa entre que llegan tu prompt y el agente responde.' },
         { heading: 'Agentes y skills', body: 'Los 20 agentes del roster y cómo se invocan las capacidades.' },
         { heading: 'Comandos', body: 'Los comandos que se usan todos los días y qué verifican.' },
-        { heading: 'Nexus', body: 'La base operacional: 38 tablas, migraciones y respaldo.' },
+        { heading: 'Nexus', body: 'La base operacional: 44 tablas, migraciones y respaldo.' },
         { heading: 'Flujo de desarrollo', body: 'Del pedido al commit: ODD, slices, gates y frontera revisada.' },
         { heading: 'Reglas del repo', body: 'Lo que no se negocia y por qué existe.' },
         { heading: 'Dónde buscar', body: 'La ruta más corta a cada tipo de respuesta.' },
@@ -55,7 +55,7 @@ export default {
       items: [
         { label: 'src/', body: 'más de 800 archivos TypeScript. Código del stack por área: orquestación, seguridad, retrieval, datos, tools, quality y ops.', accent: '06b6d4' },
         { label: 'apps/', body: '28 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.', accent: '8b5cf6' },
-        { label: 'skills/', body: '253 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.', accent: 'fbbf24' },
+        { label: 'skills/', body: '256 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.', accent: 'fbbf24' },
         { label: 'docs/', body: 'Manual de stack por módulos, manual completo, 38 ADRs y registro de decisiones de diseño.', accent: '22d3ee' },
         { label: 'config/', body: 'Fuente única de configuración: router de modelos, mapeo de roles, quality gates, budgets y registro MCP.', accent: '4ade80' },
         { label: 'packages/', body: 'Workspace con el design system oficial y paquetes compartidos que el código importa.', accent: 'c4b5fd' },
@@ -155,7 +155,7 @@ export default {
       layout: 'figureLayers',
       eyebrow: 'Datos',
       title: 'Nexus: la memoria operacional del stack',
-      lead: '38 tablas y 22 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.',
+      lead: '44 tablas y 22 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.',
       textW: 3.4,
       items: [
         { icon: 'database', heading: 'Qué guarda', body: 'Métricas, sesiones, trazas, eventos, alertas, feedback, cache, uso de skills, tokens y routing.' },

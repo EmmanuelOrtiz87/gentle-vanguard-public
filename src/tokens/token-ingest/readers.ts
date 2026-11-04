@@ -453,6 +453,134 @@ export function readMinimaxUsage(sinceMs = 0): {
   }
 }
 
+// ─── Fuente Claude Code (~/.claude/projects/**/<session-uuid>.jsonl) ──────────
+
+export function claudeProjectsDir(): string | null {
+  const p = join(process.env.USERPROFILE || process.env.HOME || '', '.claude', 'projects');
+  return existsSync(p) ? p : null;
+}
+
+/** Walk recursivo de *.jsonl bajo ~/.claude/projects (dirs codifican la ruta del proyecto). */
+export function walkClaudeJsonl(dir: string, acc: string[] = []): string[] {
+  try {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walkClaudeJsonl(p, acc);
+      else if (e.isFile() && e.name.endsWith('.jsonl')) acc.push(p);
+    }
+  } catch {
+    /* non-fatal */
+  }
+  return acc;
+}
+
+/**
+ * Claude Code marca la ejecución de subagentes (Task tool) con `isSidechain:
+ * true` dentro del MISMO sessionId. El nombre del agente no está en el JSONL
+ * real → etiqueta estable 'subagent:sidechain'.
+ */
+export function classifyClaudeAgent(r: { isSidechain?: boolean }): {
+  agent: 'orchestrator' | 'subagent';
+  agentName?: string;
+} {
+  if (r.isSidechain) return { agent: 'subagent', agentName: 'subagent:sidechain' };
+  return { agent: 'orchestrator' };
+}
+
+/**
+ * Lee el usage real por mensaje de los JSONL de Claude Code. Cada línea
+ * assistant trae message.usage (input/cache_read/cache_creation/output) y
+ * timestamp ISO. Sin costo metered en el JSONL → cost=0 (plan suscripción).
+ * `dirOverride` permite testear con fixtures (sin tocar el home real).
+ */
+export function readClaudeProjects(
+  sinceMs = 0,
+  dirOverride?: string,
+): { sessions: SessionUsage[]; txns: TransactionUsage[] } {
+  const dir = dirOverride ?? claudeProjectsDir();
+  if (!dir) return { sessions: [], txns: [] };
+  const bySession = new Map<string, SessionUsage>();
+  const txns: TransactionUsage[] = [];
+  for (const file of walkClaudeJsonl(dir)) {
+    let lines: string[];
+    try {
+      lines = readFileSync(file, 'utf8').trim().split('\n');
+    } catch {
+      continue;
+    }
+    const fileBase = file.split(/[\\/]/).pop() ?? file;
+    let evtIdx = 0;
+    for (const line of lines) {
+      if (!line.includes('"assistant"')) continue;
+      let evt: {
+        type?: string;
+        sessionId?: string;
+        isSidechain?: boolean;
+        timestamp?: string;
+        message?: {
+          id?: string;
+          model?: string;
+          usage?: {
+            input_tokens?: number;
+            output_tokens?: number;
+            cache_read_input_tokens?: number;
+            cache_creation_input_tokens?: number;
+          };
+        };
+      };
+      try {
+        evt = JSON.parse(line) as typeof evt;
+      } catch {
+        continue;
+      }
+      if (evt.type !== 'assistant' || !evt.message?.usage) continue;
+      const u = evt.message.usage;
+      if ((u.input_tokens ?? 0) === 0 && (u.output_tokens ?? 0) === 0) continue;
+      const ts = evt.timestamp ? Date.parse(evt.timestamp) : 0;
+      if (!Number.isFinite(ts) || ts < sinceMs) continue;
+      evtIdx++;
+      const sessionId = evt.sessionId || `claude-${fileBase}`;
+      const { agent, agentName } = classifyClaudeAgent(evt);
+      txns.push({
+        sessionId,
+        messageId: evt.message.id ? `claude:${evt.message.id}` : `claude:${fileBase}:${evtIdx}`,
+        role: 'assistant',
+        agent,
+        agentName,
+        model: evt.message.model || 'unknown',
+        input: u.input_tokens ?? 0,
+        output: u.output_tokens ?? 0,
+        reasoning: 0,
+        cacheRead: u.cache_read_input_tokens ?? 0,
+        cacheWrite: u.cache_creation_input_tokens ?? 0,
+        cost: 0, // plan Claude: sin costo metered en el JSONL
+        timeCreated: ts,
+      });
+      const cur =
+        bySession.get(sessionId) ??
+        ({
+          sessionId,
+          tokensInput: 0,
+          tokensOutput: 0,
+          tokensReasoning: 0,
+          tokensCacheRead: 0,
+          tokensCacheWrite: 0,
+          cost: 0,
+          model: evt.message.model || 'unknown',
+          provider: 'anthropic',
+          timeUpdated: 0,
+        } satisfies SessionUsage);
+      cur.tokensInput += u.input_tokens ?? 0;
+      cur.tokensOutput += u.output_tokens ?? 0;
+      cur.tokensCacheRead += u.cache_read_input_tokens ?? 0;
+      cur.tokensCacheWrite += u.cache_creation_input_tokens ?? 0;
+      cur.timeUpdated = Math.max(cur.timeUpdated, ts);
+      bySession.set(sessionId, cur);
+    }
+  }
+  return { sessions: [...bySession.values()], txns };
+}
+
 /** Pasada de ingesta completa. Devuelve resumen. */
 export interface TransactionUsage {
   sessionId: string;

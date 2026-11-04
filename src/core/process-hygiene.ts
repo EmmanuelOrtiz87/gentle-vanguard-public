@@ -97,6 +97,8 @@ export interface HygieneResult {
   killed: number[];
   cleanedFiles: string[];
   keptHealthy: { classId: string; pid: number; ageHours: number }[];
+  /** core.bare corrupto reparado por el guard (BL-MW2IBHXM-777H) */
+  gitConfigGuard?: boolean;
 }
 
 export const DEFAULT_OPTIONS: HygieneOptions = {
@@ -145,6 +147,15 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Token ingest daemon',
     match: /token-ingest\.ts.*--watch/,
     pidFile: join(RUNTIME_DIR, 'token-ingest.pid'),
+    keep: 'newest',
+    respawn: 'autostart',
+    recycleAged: true,
+  },
+  {
+    id: 'metrics-writer-daemon',
+    label: 'Metrics Writer daemon',
+    match: /metrics-writer-daemon\.ts.*--watch/,
+    pidFile: join(RUNTIME_DIR, 'metrics-writer.pid'),
     keep: 'newest',
     respawn: 'autostart',
     recycleAged: true,
@@ -914,6 +925,35 @@ function killTree(pid: number): boolean {
   }
 }
 
+// ─── Git config guard (BL-MW2IBHXM-777H) ─────────────────────────────────────
+
+const GIT_GUARD_LOG = join(RUNTIME_DIR, 'git-config-guard.log');
+
+/**
+ * El flag core.bare=true reaparece en .git/config sin autor escrito (flip
+ * exógeno, ver BL-MW2IBHXM-777H) y rompe todo status/commit/push con
+ * "fatal: this operation must be run in a work tree". Este guard detecta el
+ * flag corrupto y lo repara en cada pasada de hygiene (autostart + watchtower
+ * autoheal), con registro append-only del incidente.
+ */
+export function guardGitRepoConfig(
+  root = resolve(process.cwd()),
+  log: (m: string) => void = (m) => {
+    try {
+      appendFileSync(GIT_GUARD_LOG, new Date().toISOString() + ' ' + m + String.fromCharCode(10), 'utf-8');
+    } catch { /* best-effort */ }
+  },
+): { flipped: boolean } {
+  const r = runSync('git', ['-C', root, 'config', 'core.bare'], { timeout: 5000 });
+  const val = (r.stdout || '').trim();
+  if (r.status === 0 && val === 'true') {
+    runSync('git', ['-C', root, 'config', 'core.bare', 'false'], { timeout: 5000 });
+    log('REPARADO: core.bare=true detectado y restaurado a false (root: ' + root + ')');
+    return { flipped: true };
+  }
+  return { flipped: false };
+}
+
 export async function runHygiene(opts: Partial<HygieneOptions> = {}): Promise<HygieneResult> {
   const options: HygieneOptions = { ...DEFAULT_OPTIONS, ...opts };
   const snap = await buildSnapshot();
@@ -943,6 +983,8 @@ export async function runHygiene(opts: Partial<HygieneOptions> = {}): Promise<Hy
       }
     }
   }
+
+  const gitGuard = guardGitRepoConfig(resolve(process.cwd()));
 
   persistReport(result);
   return result;
