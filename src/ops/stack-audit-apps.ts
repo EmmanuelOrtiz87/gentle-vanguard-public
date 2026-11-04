@@ -225,36 +225,92 @@ function deferredTestReason(script: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Firmas de fallo que NO son un defecto del codigo bajo prueba.
+ *
+ * El worker de vitest puede morir (el pool se queda sin memoria, el fork
+ * revienta) y el resultado es un "FAIL" que no dice nada del codigo: el
+ * archivo de test PASA si se corre solo. Eso bloqueo un push entero por un
+ * fallo ambiental.
+ *
+ * La regla es estricta a proposito: solo se reintenta cuando la salida
+ * MUESTRA una de estas firmas, y un segundo fallo (de cualquier tipo) es un
+ * fallo real. Un fallo de asercion nunca se reintenta.
+ */
+const FLAKY_FAILURE_SIGNATURES = [
+  'Worker exited unexpectedly',
+  'vitest-pool',
+  'ENOMEM',
+  'heap out of memory',
+  'JavaScript heap out of memory',
+  'ECONNRESET',
+  'EPIPE',
+  'The process was forcibly terminated',
+];
+
 /** Ejecutor de un check individual contra una app. */
-export function runAppCheck(app: string, kind: string, script: string): AppCheck {
+export function runAppCheck(
+  app: string,
+  kind: string,
+  script: string,
+  exec?: (command: string, args: string[]) => { status: number | null; output: string },
+): AppCheck {
   const start = Date.now();
   const appDir = join(APPS_DIR, app);
-  try {
-    const suite = script === 'native-tests' ? readSafeLocalTestContracts(app).nativeSuite : undefined;
-    if (script === 'native-tests' && !suite) throw new Error('Native test suite contract is missing or invalid');
-    const command = suite ? process.execPath : 'npm';
-    const args = suite
-      ? suite.runner === 'node-test'
-        ? ['--import', 'tsx', '--test', ...suite.files.map((file) => join(appDir, file))]
-        : [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run', '--root', appDir, ...suite.files]
-      : ['run', script, '--silent'];
-    const r = runSync(command, args, {
+  const suite = script === 'native-tests' ? readSafeLocalTestContracts(app).nativeSuite : undefined;
+  const command = suite ? process.execPath : 'npm';
+  const args = suite
+    ? suite.runner === 'node-test'
+      ? ['--import', 'tsx', '--test', ...suite.files.map((file) => join(appDir, file))]
+      : [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run', '--root', appDir, ...suite.files]
+    : ['run', script, '--silent'];
+
+  const run = exec ?? ((cmd: string, cmdArgs: string[]): { status: number | null; output: string } => {
+    const r = runSync(cmd, cmdArgs, {
       cwd: suite ? ROOT : appDir,
       stdio: 'pipe',
       timeout: 240_000,
     });
+    const output = [r.stderr, r.stdout, r.error?.message].filter(Boolean).join('\n');
+    return { status: r.status, output };
+  });
+
+  try {
+    if (script === 'native-tests' && !suite) throw new Error('Native test suite contract is missing or invalid');
+    const first = run(command, args);
     const durationMs = Date.now() - start;
-    if (r.status === 0) {
+    if (first.status === 0) {
       return { kind, status: 'PASS', durationMs, message: 'ok' };
     }
-    const failureOutput = [r.stderr, r.stdout, r.error?.message].filter(Boolean).join('\n');
-    const failureDetail = failureOutput.slice(-2_000).replace(/\s+/g, ' ').trim();
+
+    const failureDetail = first.output.slice(-2_000).replace(/\s+/g, ' ').trim();
+    const flaky = FLAKY_FAILURE_SIGNATURES.some((sig) => failureDetail.includes(sig));
+    if (flaky) {
+      const retry = run(command, args);
+      if (retry.status === 0) {
+        return {
+          kind,
+          status: 'PASS',
+          durationMs: Date.now() - start,
+          message: `ok (reintento tras fallo ambiental: ${failureDetail.slice(0, 120)})`,
+        };
+      }
+      const retryDetail = retry.output.slice(-2_000).replace(/\s+/g, ' ').trim();
+      return {
+        kind,
+        status: 'FAIL',
+        durationMs: Date.now() - start,
+        message: retryDetail || `exit ${retry.status}`,
+        exitCode: retry.status ?? undefined,
+      };
+    }
+
     return {
       kind,
       status: 'FAIL',
       durationMs,
-      message: failureDetail || `exit ${r.status}`,
-      exitCode: r.status ?? undefined,
+      message: failureDetail || `exit ${first.status}`,
+      exitCode: first.status ?? undefined,
     };
   } catch (err) {
     return {

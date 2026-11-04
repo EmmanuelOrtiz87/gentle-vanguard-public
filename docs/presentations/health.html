@@ -116,10 +116,10 @@
     <!-- Hero -->
     <section class="hero" id="overview">
       <div>
-        <span class="hero-badge mb-3">✦ v4.0 — 154/154 PASS · 29 componentes</span>
+        <span class="hero-badge mb-3">✦ v4.0 — 35 componentes vigilados</span>
         <h1 class="glow"><i class="bi bi-heart-pulse me-2"></i><span data-i18n="health_h1">Stack Health & Metrics</span></h1>
         <p class="lead" data-i18n="c_health_2">
-          Monitoreo continuo, 154 health checks, 191 tests automatizados, y trazabilidad total del
+          Monitoreo continuo, 35 componentes vigilados, tests automatizados, y trazabilidad total del
           stack Gentle-Vanguard
         </p>
         <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
@@ -234,7 +234,7 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i><span data-i18n="health_h2_watch">Watchtower — 154 checks</span>
+          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i><span data-i18n="health_h2_watch">Watchtower — 35 componentes</span>
         </h2>
         <p data-i18n="c_health_4">26 componentes monitoreados en cada ciclo de health check</p>
       </div>
@@ -455,11 +455,11 @@
               <td><span class="badge-gv badge-ok">PASS</span></td>
               <td>
                 <span data-i18n="c_health_19"
-                  >Nexus DB file, WAL, integrity check, 16 migrations, 23 tables</span
+                  >Nexus DB file, WAL, integrity check, 22 migrations, 38 tables</span
                 ><span
                   class="info-trigger"
                   data-i18n-title="tip_c_health_19"
-                  title="Nexus DB file, WAL, integrity check, 16 migrations, 23 tables"
+                  title="Nexus DB file, WAL, integrity check, 22 migrations, 38 tables"
                   >i</span
                 >
               </td>
@@ -518,7 +518,7 @@
           <i class="bi bi-database me-2" style="color: var(--p)"></i><span data-i18n="health_h2_nexus">Nexus DB — Operational Database</span>
         </h2>
         <p data-i18n="c_health_23">
-          SQLite WAL mode, 16 migrations, 23 tables, monitoreado por watchtower
+          SQLite WAL mode, 22 migrations, 38 tables, monitoreado por watchtower
         </p>
       </div>
       <div class="row g-4">
@@ -990,9 +990,9 @@
                 <code>npm run lint</code> — ESLint with <code>--max-warnings 0</code>. Zero
                 tolerance for warnings.
               </li>
-              <li><code>npm test</code> — 191 Test files, all must pass</li>
+              <li><code>npm test</code> — more than 550 test files, all must pass</li>
               <li>
-                <code>npm run watchtower:health</code> — 154 checks across 29 components, 100% PASS
+                <code>npm run watchtower:health</code> — 35 watched components, each one checked every cycle
                 required
               </li>
               <li>
@@ -1041,7 +1041,7 @@
             <div class="stat-n" style="font-size: 1.6rem">100%</div>
             <div class="stat-l">Health Uptime</div>
             <p class="card-text small mt-2" data-i18n="c_health_62">
-              Watchtower expects 154/154 PASS every cycle
+              Watchtower expects every component to PASS each cycle
             </p>
           </div>
         </div>

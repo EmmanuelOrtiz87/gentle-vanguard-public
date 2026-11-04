@@ -3,7 +3,7 @@ import { cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'nod
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
 export const PUBLIC_SITE = 'https://gentlevanguard.github.io/';
 const extensions = new Set(['.html','.css','.js','.txt','.md','.webmanifest','.svg','.png','.webp','.woff2','.ico','.json','.pdf','.zip','.epub','.jpg','.jpeg','.mp4','.webm']);
-const academyFiles = new Set(['index.html','catalog.json','catalog.css','catalog.js','offers.css','academy.css','academy.js','favicon.ico','favicon.svg','gv-fonts.css','gv-shell.css','gv-tokens.css','logo.svg','manifest.webmanifest','og-cover.png','og-cover.webp']);
+const academyFiles = new Set(['index.html','catalog.json','catalog.css','catalog.js','offers.css','academy.css','academy.js','refinements.css','experience.js','favicon.ico','favicon.svg','gv-fonts.css','gv-shell.css','gv-tokens.css','logo.svg','manifest.webmanifest','og-cover.png','og-cover.webp']);
 const academyFolders = new Set(['covers','data','downloads','fonts','media']);
 
 export function buildPublicSite(root: string, destination: string): void {

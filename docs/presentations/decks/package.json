@@ -1,0 +1,34 @@
+{
+  "name": "@gentle-vanguard/decks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Official GentleVanguard presentation toolkit — brand-aligned decks built on the canon tokens",
+  "scripts": {
+    "build": "node build/build-all.js",
+    "build:preview": "node build/contact-sheet.js",
+    "build:one": "node build/compile.js",
+    "hero": "node build/hero-assets.js",
+    "hero:ai": "node build/hero-generate.js",
+    "icons": "node theme/icons.js",
+    "assets": "node build/assets.js",
+    "template": "node build/template.js",
+    "manual": "node build/manual.js",
+    "export:png": "powershell -NoProfile -ExecutionPolicy Bypass -File build/export-all.ps1",
+    "export:pdf": "node build/export-all-pdf.js",
+    "export:pdf:png": "node build/export-png-pdf.js",
+    "export:pdf:com": "powershell -NoProfile -ExecutionPolicy Bypass -File build/export-all-pdf.ps1",
+    "serve": "node build/serve.js",
+    "lint": "node build/lint-slides.js",
+    "qa": "node build/lint-slides.js && python build/pptx-colors.py --check-all",
+    "qa:contrast": "python build/pptx-colors.py --check-all",
+    "qa:selftest": "python build/contrast-gate-selftest.py"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-icons": "^5.7.0",
+    "sharp": "^0.35.5"
+  }
+}

@@ -52,6 +52,7 @@ import { pathToFileURL } from 'url';
 import { spawnSync } from 'node:child_process';
 
 import { printBanner } from './banner.js';
+import { readDashboardPorts } from '../ops/dashboard-common.js';
 import { StandardWebhooks, generateSecret } from '../webhooks/standard-webhooks.js';
 
 const ROOT = resolve(process.cwd());
@@ -600,13 +601,39 @@ function cmdSession(args: string[]): CommandResult {
   }
 }
 
+/**
+ * Puerto real del WS API del dashboard.
+ *
+ * El dashboard puede estar en un puerto distinto del canonico (8080) si el
+ * canonico esta ocupado por un proceso ajeno. La fuente de verdad es el
+ * archivo de puertos que escribe el propio stack; 8080 es el fallback.
+ */
+function dashboardWsPort(): number {
+  try {
+    const ports = readDashboardPorts();
+    return typeof ports?.wsPort === 'number' && ports.wsPort > 0 ? ports.wsPort : 8080;
+  } catch {
+    return 8080;
+  }
+}
+
 function isDashboardRunning(): boolean {
   // runSync never throws on non-zero exit — it returns {status, error}.
   // Check the status field directly, not via try/catch.
-  const r = runSync('curl', ['-s', 'http://localhost:8080/health'], {
-    timeout: 2000,
-    stdio: 'pipe',
-  });
+  //
+  // `-f` hace que curl falle ante un HTTP >= 400: con `curl -s` a secas un
+  // 404 igual devuelve status 0 y el CLI reportaria "corriendo" contra un
+  // puerto donde no hay dashboard. Y se consulta `/api/health/live` (el
+  // endpoint real), no `/health`.
+  const port = dashboardWsPort();
+  const r = runSync(
+    'curl',
+    ['-sf', '--max-time', '2', `http://127.0.0.1:${port}/api/health/live`],
+    {
+      timeout: 3000,
+      stdio: 'pipe',
+    },
+  );
   return r.status === 0;
 }
 
@@ -657,10 +684,11 @@ function cmdDashboard(args: string[]): CommandResult {
     case 'status':
     default: {
       const running = isDashboardRunning();
+      const port = dashboardWsPort();
       return {
         success: running,
         message: running
-          ? 'Dashboard running: http://localhost:5173 (WS: 8080)'
+          ? `Dashboard running: http://localhost:5173 (WS: ${port})`
           : 'Dashboard not running',
       };
     }
@@ -938,7 +966,7 @@ function cmdStatus(_args: string[]): CommandResult {
     sessionId: session.id,
     dashboard: dashboard ? 'running' : 'stopped',
     dashboardUrl: dashboard ? 'http://localhost:5173' : null,
-    wsApi: dashboard ? 'http://localhost:8080' : null,
+    wsApi: dashboard ? `http://localhost:${dashboardWsPort()}` : null,
   };
   console.log('╔════════════════════════════════════════════════════════╗');
   console.log('║         GENTLE-VANGUARD STACK STATUS                   ║');

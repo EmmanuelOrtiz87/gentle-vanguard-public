@@ -1,0 +1,28 @@
+{
+  "$comment": "Prompts canonicos del arte de portada. El prompt lleva la marca y la composicion: navy #0B1020, cian #06B6D4, violeta #8B5CF6, oro #fbbf24, espacio negativo a la izquierda y sin texto. La imagen es el paso no determinista; el crop y el velo (build/hero-assets.js) son deterministas.",
+  "style": {
+    "background": "#0B1020",
+    "cyan": "#06B6D4",
+    "purple": "#8B5CF6",
+    "gold": "#fbbf24",
+    "negativeSpace": "left",
+    "noText": true
+  },
+  "heroes": {
+    "negocio": {
+      "aspect": "16:9",
+      "resolution": "2K",
+      "prompt": "Abstract corporate hero image for a technology company presentation cover. Deep navy background (#0B1020) with a subtle elevated panel. Elegant flowing ribbons of luminous cyan (#06B6D4) and violet (#8B5CF6) light converging into a soft three-stop gradient glow, forming an abstract network of connected nodes that suggest collaboration and intelligence. Small restrained gold (#fbbf24) accent points. Premium, minimal, cinematic depth of field, clean dark composition with negative space on the left side. No text, no letters, no logos, no people, no UI screenshots."
+    },
+    "enterprise": {
+      "aspect": "16:9",
+      "resolution": "2K",
+      "prompt": "Abstract enterprise platform hero image for a corporate technology presentation cover. Deep navy background (#0B1020) with structured layered translucent planes arranged in depth, like an enterprise architecture stack seen in perspective. Thin luminous cyan (#06B6D4) and violet (#8B5CF6) edge lighting on the layer borders, faint grid lines, subtle gold (#fbbf24) highlight on one active layer. Orderly, engineered, high-end, cinematic, dark and calm with generous negative space on the left. No text, no letters, no logos, no people."
+    },
+    "technical": {
+      "aspect": "16:9",
+      "resolution": "2K",
+      "prompt": "Abstract technical infrastructure hero image for an engineering onboarding presentation cover. Deep navy background (#0B1020) with a precise isometric topology of connected modules and thin luminous cyan (#06B6D4) data conduits, small violet (#8B5CF6) nodes, occasional gold (#fbbf24) pulse points, subtle scanline texture, monospace-like precision feel. Clean, modern, dark, technical, cinematic depth, generous negative space on the left. No text, no letters, no code, no logos, no people."
+    }
+  }
+}

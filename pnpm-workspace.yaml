@@ -8,6 +8,7 @@ packages:
   - 'apps/voice-studio'
   - 'packages/*'
   - 'src/core'
+  - 'docs/presentations/decks'
 
 allowBuilds:
   better-sqlite3: true
@@ -22,6 +23,10 @@ minimumReleaseAgeExclude:
   - '@modelcontextprotocol/sdk@1.30.0'
 
 overrides:
+  # pptxgenjs@4.0.1 (deck toolkit) declara image-size ^1.2.1 pero no lo importa:
+  # la version pineada arrastra dos DoS de severidad alta (GHSA-5p2g-fcmc-qvqq
+  # JXL/HEIF, GHSA-w3rx-r6r6-pgpr ICNS). Parcheado desde 2.0.3.
+  image-size: '>=2.0.3'
   brace-expansion: '>=5.0.12'
   '@hono/node-server': '>=2.1.3'
   # Patched versions verified against the 2026-10-26 production audit.
