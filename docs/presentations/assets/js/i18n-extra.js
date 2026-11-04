@@ -82,7 +82,7 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
       /* index.html — book cards */
       c_index_118: '💻 Commands & CLI',
       c_index_119:
-        '266 npm scripts cataloged in 12 categories — session, tokens, security, research and more, searchable and copyable',
+        '611 npm scripts cataloged in 12 categories — session, tokens, security, research and more, searchable and copyable',
       c_index_120: '🔤 Glossary & Index',
       c_index_121:
         '280 alphabetical stack terms with A-Z navigation — acronyms, concepts, tools, standards and nomenclatures',
@@ -163,7 +163,7 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
       /* index.html — book cards */
       c_index_118: '💻 Comandos y CLI',
       c_index_119:
-        '266 scripts npm catalogados en 12 categorías — sesión, tokens, seguridad, investigación y más, buscables y copiables',
+        'Más de 600 scripts npm catalogados en 12 categorías — sesión, tokens, seguridad, investigación y más, buscables y copiables',
       c_index_120: '🔤 Glosario e Índice',
       c_index_121:
         '280 términos alfabéticos del stack con navegación A-Z — siglas, conceptos, herramientas, estándares y nomenclaturas',
@@ -244,7 +244,7 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
       /* index.html — book cards */
       c_index_118: '💻 Comandos e CLI',
       c_index_119:
-        '266 scripts npm catalogados em 12 categorias — sessão, tokens, segurança, pesquisa e mais, pesquisáveis e copiáveis',
+        'Mais de 600 scripts npm catalogados em 12 categorias — sessão, tokens, segurança, pesquisa e mais, pesquisáveis e copiáveis',
       c_index_120: '🔤 Glossário e Índice',
       c_index_121:
         '280 termos alfabéticos da stack com navegação A-Z — siglas, conceitos, ferramentas, padrões e nomenclaturas',

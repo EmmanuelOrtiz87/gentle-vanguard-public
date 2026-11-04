@@ -28,7 +28,7 @@
 import * as http from 'http';
 import { pathToFileURL } from 'url';
 import * as net from 'net';
-import { isDashboardHtml } from './dashboard-common.js';
+import { isDashboardHtml, DASHBOARD_PROBE_TIMEOUT_MS } from './dashboard-common.js';
 
 export interface DashboardHealthResult {
   status: 'healthy' | 'degraded' | 'down';
@@ -163,12 +163,19 @@ export async function checkDashboardHealth(
   vitePort = 5173,
 ): Promise<DashboardHealthResult> {
   // Run all checks in parallel
+  //
+  // EL TIMEOUT DE PROBE (2026-11-03): antes eran 5s para /api/health/live y
+  // 3s para /api/metrics. El dashboard calcula las metricas de forma
+  // SINCRONA en su event loop, asi que hay ventanas de varios segundos en
+  // las que esta VIVO pero tarda: el check reportaba FAIL con el server
+  // funcionando y el watchdog lo reiniciaba. Ahora los tres probes usan el
+  // mismo timeout que el resto del stack (DASHBOARD_PROBE_TIMEOUT_MS).
   const [healthApi, metricsApi, tcpResult, viteOk, viteHealthApi] = await Promise.all([
-    httpGetJson(wsPort, '/api/health/live', 5000),
-    httpGetJson(wsPort, '/api/metrics', 3000),
+    httpGetJson(wsPort, '/api/health/live', DASHBOARD_PROBE_TIMEOUT_MS),
+    httpGetJson(wsPort, '/api/metrics', DASHBOARD_PROBE_TIMEOUT_MS),
     tcpCheck(wsPort, 2000),
     checkViteHealth(vitePort),
-    httpGetJson(vitePort, '/api/health/live', 5000),
+    httpGetJson(vitePort, '/api/health/live', DASHBOARD_PROBE_TIMEOUT_MS),
   ]);
 
   const httpHealthOk =

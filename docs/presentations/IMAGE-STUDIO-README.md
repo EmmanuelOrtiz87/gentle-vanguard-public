@@ -303,8 +303,8 @@ Hasta 4096×4096 píxeles. Más grande = más lento = más memoria RAM.
 
 **Gentle-Vanguard Stack**
 
-- 294 archivos TypeScript
-- 21 agentes especializados
+- Más de 800 archivos TypeScript
+- 20 agentes especializados
 - 100% Open Source
 
 **Sin dependencias externas**

@@ -28,7 +28,10 @@ import {
   openDashboardServerStderr,
   removeFile,
   isProcessAlive,
+  killRecordedWsProcess,
+  DASHBOARD_PROBE_TIMEOUT_MS,
 } from './dashboard-common';
+import { decideBudget, decidePortAction } from './dashboard-watchdog-policy';
 
 const ROOT = path.resolve(process.cwd());
 const RUNTIME_DIR = path.join(ROOT, '.runtime');
@@ -37,15 +40,32 @@ const WS_SCRIPT = path.join(WS_SERVER_DIR, 'server', 'websocket-server.ts');
 const PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws.pid');
 const WATCHDOG_PID_FILE = path.join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
 
-/** HTTP liveness check against localhost:port/api/health/live — with 1 soft retry.
- *  A cached repository-health refresh can briefly block the server event loop,
- *  so allow headroom before treating it as unavailable. */
+/**
+ * HTTP liveness check against localhost:port/api/health/live — with 1 soft retry.
+ *
+ * EL TIMEOUT ES EL COMPARTIDO DEL STACK (`DASHBOARD_PROBE_TIMEOUT_MS` = 15s),
+ * NO 5s (2026-11-03).
+ *
+ * El server calcula las metricas de forma SINCRONA en su event loop (lectura
+ * de la base, git, caches). Durante esas ventanas el server esta VIVO pero
+ * tarda en responder: con un timeout de 5s el probe caia, el watchdog lo
+ * mataba y lo relanzaba, y el ciclo se repitia — el dashboard "se caia" solo
+ * por tener metricas.
+ *
+ * 15s diferencia "vivo y ocupado" de "colgado": un daemon realmente
+ * wedged (event loop bloqueado para siempre) tampoco responde en 15s, asi
+ * que el umbral sigue distinguiendo los dos casos.
+ */
 function healthCheck(port: number): Promise<boolean> {
   const once = (): Promise<boolean> =>
     new Promise((resolve) => {
-      const req = http.get(`http://127.0.0.1:${port}/api/health/live`, { timeout: 5000 }, (res) => {
-        resolve(res.statusCode === 200);
-      });
+      const req = http.get(
+        `http://127.0.0.1:${port}/api/health/live`,
+        { timeout: DASHBOARD_PROBE_TIMEOUT_MS },
+        (res) => {
+          resolve(res.statusCode === 200);
+        },
+      );
       req.on('error', () => resolve(false));
       req.on('timeout', () => {
         req.destroy();
@@ -76,6 +96,20 @@ function hasFlag(flag: string): boolean {
 }
 
 /**
+ * El puerto esta ocupado por alguien?
+ *
+ * No se usa `netstat` para esto a proposito: en Windows `netstat -ano` no
+ * lista de forma fiable los sockets de los procesos Node en este entorno
+ * (las lineas LISTENING aparecen con PID 0), asi que "el puerto esta libre"
+ * no se puede decidir por netstat. `getFreePort` (que abre y cierra un
+ * socket) si es fiable.
+ */
+async function isPortBusy(port: number): Promise<boolean> {
+  const free = await getFreePort(port);
+  return free !== port;
+}
+
+/**
  * Launch the WS server detached on a free port and wait (up to 20s) for it to
  * become healthy. Returns the port the server was launched on.
  */
@@ -84,7 +118,49 @@ async function launchServer(preferredPort = 0): Promise<number> {
     const ports = readDashboardPorts();
     return ports?.wsPort || 8080;
   })();
-  const selectedPort = await getFreePort(preferredPort > 0 ? preferredPort : defaultPort);
+  const targetPort = preferredPort > 0 ? preferredPort : defaultPort;
+
+  /**
+   * PUERTO OCUPADO + API MUERTA = DAEMON WEDGED (2026-11-03).
+   *
+   * Antes este codigo hacia `getFreePort(targetPort)` y, si el puerto estaba
+   * ocupado, se MUDABA al siguiente (8080 -> 8081) dejando al daemon wedged
+   * ocupando el puerto CANONICO. El dashboard quedaba sirviendo en un puerto
+   * que nadie bekendeia (el Vite proxy y el puerto configurado seguian
+   * apuntando al 8080) y el daemon muerto seguia bloqueando el puerto para
+   * siempre.
+   *
+   * Ahora: si el puerto esta ocupado y NO responde, se mata al proceso
+   * REGISTRADO del dashboard (el del PID file) y se REUSA el mismo puerto.
+   * `taskkill /F /T` es obligatorio: un daemon wedged no atiende SIGKILL de
+   * Node, hay que terminarlo por fuera del proceso.
+   *
+   * Si el puerto esta ocupado y SI responde, no hay nada que hacer aqui: el
+   * llamador ya habria adoptado el server sano.
+   */
+  const portBusy = await isPortBusy(targetPort);
+  if (portBusy && !(await healthCheck(targetPort))) {
+    const killed = killRecordedWsProcess(PID_FILE);
+    const action = decidePortAction({ busy: true, healthy: false, killed });
+    if (action === 'reuse') {
+      logToFile(
+        `[PORT] Port ${targetPort} is busy but the API is dead (wedged dashboard) — ` +
+          `killed the registered process, reusing the same port`,
+      );
+      await sleep(2000);
+      if (!(await isPortBusy(targetPort))) {
+        return launchServer(targetPort);
+      }
+      logToFile(`[PORT] Port ${targetPort} still busy after killing the wedged dashboard`);
+    } else {
+      logToFile(
+        `[PORT] Port ${targetPort} is busy and the API is dead, but there is no registered ` +
+          `dashboard process to kill — looking for a free port`,
+      );
+    }
+  }
+
+  const selectedPort = await getFreePort(targetPort);
 
   logToFile(`[PORT] selected=${selectedPort}`);
   // Preserve existing vitePort instead of overwriting with 0
@@ -155,6 +231,20 @@ async function launchServer(preferredPort = 0): Promise<number> {
 const WATCH_INTERVAL_MS = 5000;
 const WATCH_FAILURE_THRESHOLD = 2; // consecutive failed checks before restart
 const WATCH_MAX_RESTARTS = 10;
+/**
+ * Intervalo del modo DEGRADADO (presupuesto de reinicios agotado).
+ *
+ * El watchdog NO se suicida cuando agota el presupuesto: antes lo hacia
+ * (`return` = el proceso salia) y el dashboard se quedaba SIN SUPERVISOR
+ * para siempre. Nadie lo relanzaba: el autoheal del watchtower lanza el
+ * SERVER, no el watchdog. Resultado: un dashboard que se caia 10 veces
+ * quedaba muerto de forma permanente y silenciosa.
+ *
+ * Ahora el watchdog entra en modo degradado: sigue vigilando (para detectar
+ * la recuperacion y avisar) pero con menos presion, y reactiva el presupuesto
+ * completo en cuanto el server vuelve a estar sano.
+ */
+const WATCH_BACKOFF_MS = 60000;
 const WATCH_HEALTHY_RESET_MS = 300000; // 5 min stable → restart budget resets
 
 /** Check standard candidate ports (excluding one) for an already-running WS. */
@@ -187,6 +277,12 @@ async function watchLoop(initialPort: number): Promise<void> {
   let failures = 0;
   let restarts = 0;
   let lastHealthyAt = Date.now();
+  /**
+   * Modo degradado: el presupuesto de reinicios se agoto. El watchdog sigue
+   * vivo (vigilando) pero reinicia menos seguido, y reactiva el presupuesto
+   * completo en cuanto el server vuelve a estar sano.
+   */
+  let degraded = false;
 
   logToFile(
     `[WATCH] Monitoring WS server on port ${port} every ${WATCH_INTERVAL_MS / 1000}s ` +
@@ -194,10 +290,15 @@ async function watchLoop(initialPort: number): Promise<void> {
   );
 
   for (;;) {
-    await sleep(WATCH_INTERVAL_MS);
+    await sleep(degraded ? WATCH_BACKOFF_MS : WATCH_INTERVAL_MS);
     const ok = await healthCheck(port);
     if (ok) {
       if (failures > 0) logToFile(`[WATCH] WS recovered on port ${port}`);
+      if (degraded) {
+        degraded = false;
+        restarts = 0;
+        logToFile('[WATCH] WS healthy again — restart budget restored');
+      }
       if (restarts > 0 && Date.now() - lastHealthyAt > WATCH_HEALTHY_RESET_MS) {
         restarts = 0;
         logToFile('[WATCH] Restart budget reset after stable period');
@@ -224,12 +325,34 @@ async function watchLoop(initialPort: number): Promise<void> {
 
     if (failures < WATCH_FAILURE_THRESHOLD) continue;
 
-    if (restarts >= WATCH_MAX_RESTARTS) {
-      logToFile(`[WATCH] Max restart attempts (${WATCH_MAX_RESTARTS}) reached — watchdog exiting`);
-      return;
+    /**
+     * Politica del presupuesto (2026-11-03).
+     *
+     * El watchdog NO se suicida cuando agota el presupuesto: antes hacia
+     * `return` (el proceso salia) y el dashboard se quedaba SIN SUPERVISOR
+     * para siempre. El autoheal del watchtower lanza el SERVER, no el
+     * watchdog: nadie lo relanzaba. Un dashboard que fallaba 10 veces quedaba
+     * muerto de forma permanente y silenciosa.
+     *
+     * Ahora: modo degradado. El watchdog sigue vivo y sigue vigilando (con
+     * un intervalo mas largo para no machacar), y el presupuesto completo se
+     * reactiva en cuanto el server vuelve a estar sano.
+     */
+    const decision = decideBudget({ restarts, degraded }, WATCH_MAX_RESTARTS);
+    if (decision.action === 'degrade') {
+      if (decision.enteredDegraded) {
+        logToFile(
+          `[WATCH] Max restart attempts (${WATCH_MAX_RESTARTS}) reached — entering degraded mode ` +
+            `(still monitoring every ${WATCH_BACKOFF_MS / 1000}s; budget restored when the WS recovers)`,
+        );
+      }
+      degraded = decision.degraded;
+      restarts = decision.restarts;
+      failures = 0;
+      continue;
     }
-
-    restarts++;
+    degraded = decision.degraded;
+    restarts = decision.restarts;
     logToFile(`[WATCH] Restarting WS server (attempt ${restarts}/${WATCH_MAX_RESTARTS})`);
     // Kill the unhealthy previous server BEFORE spawning a replacement.
     // Without this, every restart leaks one more websocket-server process

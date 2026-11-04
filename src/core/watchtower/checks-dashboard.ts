@@ -5,8 +5,50 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { addResult, quiet, ROOT, RUNTIME_DIR } from './context';
 import { fileExists, readJson, testHttp, testPort, getPidByPort } from './helpers';
+import { decideRecovery, DEFAULT_FAILURE_THRESHOLD } from './dashboard-liveness.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-DASHBOARD');
 import { log } from '../../utils/logger.js';
+
+/**
+ * Contador de fallos consecutivos del dashboard, persistido entre corridas.
+ *
+ * El watchtower corre cada N minutos: sin persistir el contador, cada corrida
+ * seria "el primer fallo" y el antiflap no tendria memoria. Se reinicia cuando
+ * el daemon vuelve a servir o cuando cambia el dueno del puerto (proceso
+ * nuevo: el contador del proceso viejo no cuenta).
+ */
+const LIVENESS_STATE_FILE = join(RUNTIME_DIR, 'dashboard-ws-liveness.json');
+
+interface LivenessState {
+  consecutiveFailures: number;
+  lastPid: number | null;
+  updatedAt: string;
+}
+
+function readLivenessState(): LivenessState {
+  if (!fileExists(LIVENESS_STATE_FILE)) {
+    return { consecutiveFailures: 0, lastPid: null, updatedAt: '' };
+  }
+  try {
+    const raw = readJson(LIVENESS_STATE_FILE) as Partial<LivenessState> | null;
+    return {
+      consecutiveFailures:
+        typeof raw?.consecutiveFailures === 'number' ? raw.consecutiveFailures : 0,
+      lastPid: typeof raw?.lastPid === 'number' ? raw.lastPid : null,
+      updatedAt: typeof raw?.updatedAt === 'string' ? raw.updatedAt : '',
+    };
+  } catch {
+    return { consecutiveFailures: 0, lastPid: null, updatedAt: '' };
+  }
+}
+
+function writeLivenessState(state: LivenessState): void {
+  try {
+    writeFileSync(LIVENESS_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
+  } catch {
+    /* non-fatal: the counter is an optimisation, not a source of truth */
+  }
+}
 
 // ─── Component: Dashboard WS ────────────────────────────────────────────────
 
@@ -37,18 +79,63 @@ export async function checkDashboardWs() {
   }
   const running = !httpOk && (await testPort(wsPort));
 
+  /**
+   * PUERTO ABIERTO ≠ SERVICIO SIRVIENDO.
+   *
+   * Antes, este check devolvia WARN 'verify' cuando el puerto estaba abierto
+   * pero la API no respondia: el daemon wedged quedaba wedged para siempre
+   * (el autoheal de mas abajo tambien lo daba por vivo). Ahora la decision la
+   * toma `decideRecovery`: puerto abierto + API muerta = wedged = FAIL con
+   * accion 'restart' (matando al dueno del puerto).
+   */
+  const portOwnerPid = httpOk ? null : await getPidByPort(wsPort);
+
+  const state = readLivenessState();
+  const pidChanged =
+    portOwnerPid !== null && state.lastPid !== null && portOwnerPid !== state.lastPid;
+  // Cada corrida fallida suma uno; un proceso nuevo (PID distinto) reinicia
+  // el contador: los fallos del proceso viejo no cuentan para el nuevo.
+  const consecutiveFailures = httpOk ? 0 : pidChanged ? 1 : state.consecutiveFailures + 1;
+
+  const decision = decideRecovery({
+    httpOk,
+    portOpen: running,
+    consecutiveFailures,
+    threshold: DEFAULT_FAILURE_THRESHOLD,
+  });
+
+  writeLivenessState({
+    consecutiveFailures: httpOk ? 0 : consecutiveFailures,
+    lastPid: portOwnerPid ?? state.lastPid,
+    updatedAt: new Date().toISOString(),
+  });
+
   if (httpOk) {
     addResult('dashboard-ws', `HTTP API (port ${respondingPort})`, 'PASS', 'Responding', 'ok');
+  } else if (decision.action === 'restart') {
+    addResult(
+      'dashboard-ws',
+      `HTTP API (port ${wsPort})`,
+      'FAIL',
+      `WEDGED: ${decision.reason}`,
+      'restart',
+    );
   } else if (running) {
     addResult(
       'dashboard-ws',
       `HTTP API (port ${wsPort})`,
       'WARN',
-      'Port open but HTTP not responding',
+      `Port open but HTTP not responding (${decision.reason})`,
       'verify',
     );
   } else {
-    addResult('dashboard-ws', `HTTP API (port ${wsPort})`, 'FAIL', 'Not responding', 'restart');
+    addResult(
+      'dashboard-ws',
+      `HTTP API (port ${wsPort})`,
+      'FAIL',
+      `Not responding (${decision.reason})`,
+      'restart',
+    );
   }
 
   const wPidFile = join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');

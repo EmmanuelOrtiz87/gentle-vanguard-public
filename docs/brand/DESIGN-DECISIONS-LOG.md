@@ -98,3 +98,13 @@ El owner solicita llevar a Academy los fondos, separación editorial y movimient
 ### DD-20261019-04 — Una composición pública para cabecera y footer
 
 Ante diferencias persistentes entre Academy y la web corporativa, el builder sirve una sola capa `public-chrome.css` para ambas rutas: métricas, marca completa en móvil, controles, cierre y footer. Se conserva navegación/contenido específico por propósito, sin modificar tokens oficiales. `web:chrome:verify` compara estilos renderizados en cuatro anchos y ambos temas; el gate público de export comprueba la referencia compartida. Esta adopción se limita a las dos superficies públicas, no migra automáticamente otras apps.
+
+## DD-20261101-01 — Avatar oficial del fundador (Academy/stack)
+
+**Fecha**: 2026-11-01. **Decisión**: el owner aprobó el avatar semi-realista
+cinematográfico generado con Gemini (foto de referencia real) como avatar
+oficial de GentleVanguard. Activos en
+`docs/brand/assets/mascot/` (master, square, 512/128/32, variantes wide y
+búho compañero). Colores y monograma GV estrictamente del canon. El robot 3D
+"Van" queda como alternativa y el SVG flat como icono simple. El avatar
+parlante para videos sigue el flujo HeyGen existente (@gentlevanguard.sj).

@@ -21,6 +21,9 @@ function main(): number {
   if (stagedFiles.length === 0) return 0;
 
   for (const file of stagedFiles) {
+    // Solo JSON: el hook valida sintaxis JSON de archivos .json staged
+    // (el resto de los staged (.ts/.md/...) no es JSON y fallaría falso).
+    if (!file.endsWith('.json')) continue;
     if (!existsSync(file)) continue;
     try {
       const content = readFileSync(file, 'utf-8');
