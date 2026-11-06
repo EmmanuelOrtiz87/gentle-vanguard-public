@@ -18,6 +18,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'fs';
 import { pathToFileURL } from 'url';
+import { dispatchAlert } from '../monitor/alert-dispatcher.js';
 import { join, resolve } from 'path';
 import { run } from '../core/run-command';
 
@@ -28,15 +29,34 @@ const STATE_FILE = join(ROOT, '.runtime', 'token-guard-state.json');
 mkdirSync(LOG_DIR, { recursive: true });
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
+/**
+ * Umbrales CALIBRADOS (2026-11-06) contra el volumen real del stack.
+ *
+ * Metrica: tokens ACUMULADOS DE LA SESION (input + output + reasoning), leidos
+ * de `token_transactions` en Nexus. Antes esta metrica nunca llegaba al guard:
+ * el fallback consultaba la columna `timestamp`, que NO existe en esa tabla
+ * (es `created_at`), asi que SQLite tiraba y el guard reportaba 0 siempre.
+ *
+ * Distribucion medida (680 sesiones reales --<=400 transacciones-- de los
+ * ultimos 60 dias, 99.278 transacciones en total):
+ *
+ *   p50 = 40.526      p75 = 374.026      p90 = 2.610.670
+ *   p95 = 8.088.169   p98 = 45.379.291   p99 = 78.500.612
+ *   max = 106.215.700
+ *
+ * Los umbrales viejos (12M "critical" y 15M "emergency") caian POR DEBAJO del
+ * p99: un 4% de las sesiones reales disparaba "critical" y un 3.5% "emergency
+ * con cierre forzado". Eso es ruido, no proteccion.
+ */
 const CONFIG = {
   thresholds: {
-    warning500k: 500000, // 500K - Informacional
-    warning1M: 1000000, // 1M - Early warning
-    warning3M: 3000000, // 3M - Checkpoint sugerido
-    soft4M: 4000000, // 4M - Soft limit, sugerir nueva sesión
-    hard8M: 8000000, // 8M - Hard limit, checkpoint automático
-    critical12M: 12000000, // 12M - Critical, kill switch
-    emergency15M: 15000000, // 15M - Emergency, force close
+    warning500k: 500000, // p77 - Informacional (21.8% de las sesiones reales)
+    warning1M: 1000000, // p84 - Early warning (15.4%)
+    warning3M: 3000000, // p90 - Checkpoint sugerido (9.0%)
+    soft4M: 4000000, // p91 - Soft limit, sugerir nueva sesion (7.6%)
+    hard8M: 8000000, // p95 - Hard limit, checkpoint automatico (5.0%)
+    critical60M: 60000000, // p98.5 - Critical, kill switch (1.6%)
+    emergency120M: 120000000, // > max observado - Emergency, force close (0.0%)
   },
 
   actions: {
@@ -58,7 +78,7 @@ const CONFIG = {
       suggestNewSession: true,
       warnUser: true,
     },
-    critical12M: {
+    critical60M: {
       alert: true,
       log: true,
       notify: true,
@@ -66,7 +86,7 @@ const CONFIG = {
       forceNewSession: false,
       sendKillSwitch: true,
     },
-    emergency15M: {
+    emergency120M: {
       alert: true,
       log: true,
       notify: true,
@@ -83,6 +103,12 @@ const CONFIG = {
     channels: ['cli', 'dashboard', 'file'],
   },
 };
+
+/** Umbrales exponidos para verificarlos desde tests (contrato de calibracion). */
+export const TOKEN_THRESHOLDS = CONFIG.thresholds;
+
+/** Config completa expuesta (umbrales + acciones) para verificarla desde tests. */
+export const TOKEN_GUARD_CONFIG = CONFIG;
 
 // ─── Logger ─────────────────────────────────────────────────────────────────────
 function log(
@@ -145,55 +171,166 @@ interface TokenMetrics {
   total: number;
 }
 
+/**
+ * SQL del fallback contra Nexus.
+ *
+ * `token_transactions` tiene la columna `created_at` (NO `timestamp`: esa
+ * columna no existe y SQLite tiraba "no such column", el catch devolvia 0 y el
+ * guard jamas midio nada). La metrica es POR SESION, no diaria: los umbrales
+ * estan calibrados sobre tokens acumulados de una sesion.
+ */
+export const NEXUS_TOKEN_SQL = `
+  SELECT
+    SUM(COALESCE(input_tokens, 0))     AS input,
+    SUM(COALESCE(output_tokens, 0))    AS output,
+    SUM(COALESCE(reasoning_tokens, 0)) AS reasoning
+  FROM token_transactions
+  WHERE session_id = ?
+`;
+
+/** Id de la sesion actual: env -> estado -> archivos de sesion. */
+function resolveSessionId(): string | null {
+  const fromEnv = process.env.SESSION_ID?.trim();
+  if (fromEnv && fromEnv !== 'unknown') return fromEnv;
+
+  const fromState = loadState().sessionId?.trim();
+  if (fromState && fromState !== 'unknown') return fromState;
+
+  for (const source of [
+    join(ROOT, '.session', 'token-usage.json'),
+    join(ROOT, '.session', 'session-current.json'),
+  ]) {
+    try {
+      if (!existsSync(source)) continue;
+      const parsed = JSON.parse(readFileSync(source, 'utf-8'));
+      const id = parsed?.sessionId ?? parsed?.id;
+      if (typeof id === 'string' && id && id !== 'unknown') return id;
+    } catch {}
+  }
+  return null;
+}
+
+/** Lectura minima de SQLite que necesita el guard (facilita el test). */
+export interface NexusReader {
+  prepare: (sql: string) => { get: (...args: any[]) => unknown };
+}
+
+/**
+ * Lee los tokens acumulados de UNA sesion desde Nexus.
+ * Si no hay id conocido, usa la sesion mas reciente (la que esta corriendo).
+ */
+export function readSessionTokens(db: NexusReader, sessionId: string | null): TokenMetrics {
+  const row = (
+    sessionId
+      ? db.prepare(NEXUS_TOKEN_SQL).get(sessionId)
+      : db
+          .prepare(
+            `SELECT
+             SUM(COALESCE(input_tokens, 0))     AS input,
+             SUM(COALESCE(output_tokens, 0))    AS output,
+             SUM(COALESCE(reasoning_tokens, 0)) AS reasoning
+           FROM token_transactions
+           WHERE session_id = (
+             SELECT session_id FROM token_transactions
+             WHERE session_id IS NOT NULL AND session_id <> ''
+             ORDER BY created_at DESC LIMIT 1
+           )`,
+          )
+          .get()
+  ) as { input?: number; output?: number; reasoning?: number } | undefined;
+
+  const input = row?.input || 0;
+  const output = row?.output || 0;
+  const reasoning = row?.reasoning || 0;
+  return { input, output, reasoning, total: input + output + reasoning };
+}
+
+/**
+ * Interpreta las tres formas reales que tienen las fuentes de archivo.
+ *
+ * Antes el parser buscaba `input` / `output` en la raiz del JSON, pero los
+ * archivos del stack usan otra forma:
+ *   - `.session/token-usage.json`      -> totalInputTokens / totalOutputTokens / totalTokens
+ *   - `.session/session-current.json`   -> totalInputTokens / totalOutputTokens / totalTokens
+ *   - `reports/stack-live-observability-latest.json` -> token.current_session.{input_tokens,output_tokens}
+ * Como no encontraba ninguna de esas claves, `tokens.input` era `undefined` y el
+ * guard reportaba CERO en las tres fuentes: nunca midio nada.
+ */
+export function parseTokenSource(data: unknown): TokenMetrics | null {
+  if (!data || typeof data !== 'object') return null;
+  const root = data as Record<string, unknown>;
+
+  const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+
+  // Shape 1: tokenMetrics / tokens anidados.
+  const nested = (root.tokenMetrics ?? root.tokens) as Record<string, unknown> | undefined;
+  if (nested && typeof nested === 'object') {
+    const input = num(nested.input ?? nested.input_tokens ?? nested.totalInputTokens);
+    const output = num(nested.output ?? nested.output_tokens ?? nested.totalOutputTokens);
+    const reasoning = num(nested.reasoning ?? nested.reasoning_tokens);
+    const total = num(nested.total ?? nested.totalTokens) || input + output + reasoning;
+    if (input || output || reasoning || total) {
+      return { input, output, reasoning, total };
+    }
+  }
+
+  // Shape 2: contadores en la raiz (token-usage.json / session-current.json).
+  const rootInput = num(root.totalInputTokens ?? root.inputTokens ?? root.input_tokens);
+  const rootOutput = num(root.totalOutputTokens ?? root.outputTokens ?? root.output_tokens);
+  const rootTotal = num(root.totalTokens ?? root.total_tokens) || rootInput + rootOutput;
+  if (rootInput || rootOutput || rootTotal) {
+    return { input: rootInput, output: rootOutput, reasoning: 0, total: rootTotal };
+  }
+
+  // Shape 3: observability -> token.current_session.{input_tokens,output_tokens,total_tokens}
+  const token = root.token as Record<string, unknown> | undefined;
+  const current = token?.current_session as Record<string, unknown> | undefined;
+  if (current && typeof current === 'object') {
+    const input = num(current.input_tokens);
+    const output = num(current.output_tokens);
+    const total = num(current.total_tokens) || input + output;
+    if (input || output || total) {
+      return { input, output, reasoning: 0, total };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Varias fuentes, una metrica: se queda con la MAYOR.
+ * Mismo criterio que `core/metrics-aggregator.ts`: nunca sub-reportar consumo.
+ */
+export function pickMostComplete(candidates: (TokenMetrics | null)[]): TokenMetrics {
+  const valid = candidates.filter((c): c is TokenMetrics => Boolean(c));
+  if (!valid.length) return { input: 0, output: 0, reasoning: 0, total: 0 };
+  return valid.reduce((a, b) => (b.total > a.total ? b : a));
+}
+
 async function getCurrentTokens(): Promise<TokenMetrics> {
-  // Intentar obtener de múltiples fuentes
   const sources = [
     join(ROOT, 'reports', 'stack-live-observability-latest.json'),
     join(ROOT, '.session', 'session-current.json'),
     join(ROOT, '.session', 'token-usage.json'),
   ];
 
+  const candidates: (TokenMetrics | null)[] = [];
   for (const source of sources) {
     try {
-      if (existsSync(source)) {
-        const data = JSON.parse(readFileSync(source, 'utf-8'));
-        const tokens = data.tokenMetrics || data.tokens || data;
-        return {
-          input: tokens.input || 0,
-          output: tokens.output || 0,
-          reasoning: tokens.reasoning || 0,
-          cacheRead: tokens.cacheRead || 0,
-          cacheWrite: tokens.cacheWrite || 0,
-          total: (tokens.input || 0) + (tokens.output || 0) + (tokens.reasoning || 0),
-        };
-      }
+      if (!existsSync(source)) continue;
+      candidates.push(parseTokenSource(JSON.parse(readFileSync(source, 'utf-8'))));
     } catch {}
   }
 
-  // Fallback: intentar desde Nexus
+  // Nexus (tokens acumulados de la sesion actual)
   try {
     const { default: Database } = await import('better-sqlite3');
     const db = new Database(join(ROOT, '.runtime', 'gentle-vanguard.db'), { readonly: true });
-    const result = db
-      .prepare(
-        `
-      SELECT SUM(input_tokens) as input, SUM(output_tokens) as output, SUM(reasoning_tokens) as reasoning
-      FROM token_transactions
-      WHERE date(timestamp) = date('now', 'localtime')
-    `,
-      )
-      .get() as { input?: number; output?: number; reasoning?: number } | undefined;
+    candidates.push(readSessionTokens(db, resolveSessionId()));
     db.close();
+  } catch {}
 
-    return {
-      input: result?.input || 0,
-      output: result?.output || 0,
-      reasoning: result?.reasoning || 0,
-      total: (result?.input || 0) + (result?.output || 0) + (result?.reasoning || 0),
-    };
-  } catch {
-    return { input: 0, output: 0, total: 0 };
-  }
+  return pickMostComplete(candidates);
 }
 
 // ─── Burn Rate Calculation ──────────────────────────────────────────────────────
@@ -307,6 +444,29 @@ ${actionsToString(actions)}
 
   console.log(message);
 
+  // Push al owner vía MCAS (dispatcher central, dedupe por nivel — esta
+  // función ya solo corre en transiciones de nivel, no en cada ciclo).
+  dispatchAlert({
+    severity: level.startsWith('emergency')
+      ? 'emergency'
+      : level.startsWith('critical')
+        ? 'critical'
+        : level.startsWith('hard')
+          ? 'critical'
+          : 'warning',
+    category: 'token-spike',
+    message: `Token spike ${level}: ${tokens.total.toLocaleString()} tokens en la sesión (burn ${burnRate.toFixed(0)}/min)`,
+    details:
+      Object.entries(actions)
+        .filter(([, v]) => v)
+        .map(([k]) => k)
+        .join(', ') || undefined,
+    recommendation: 'Cerrar o compactar la sesión para liberar presupuesto de contexto.',
+    metrics: { level, total: tokens.total, burnRate, projection },
+    dedupeKey: level,
+    dedupeTtlMs: 0,
+  });
+
   // Enviar a cada canal
   for (const channel of CONFIG.alerting.channels) {
     if (channel === 'file') {
@@ -348,10 +508,14 @@ function actionsToString(actions: AlertActions): string {
 }
 
 // ─── Main Guard Logic ─────────────────────────────────────────────────────────────
-async function runGuardLoop(): Promise<void> {
+/** Loop de monitoreo exportado (daemon GB-20261105-c). Corre hasta kill. */
+export async function runGuardLoop(): Promise<void> {
   log('INFO', 'Token Spike Guard v2.0.0 starting...');
 
   const state = loadState();
+  // El id de sesion real (env -> archivos de sesion). Sin esto, el estado
+  // queda en 'unknown' y el guard mide la sesion mas reciente a ciegas.
+  state.sessionId = resolveSessionId() ?? state.sessionId;
   let lastMetrics: TokenMetrics | null = null;
   let lastTime = Date.now();
 
@@ -384,12 +548,12 @@ async function runGuardLoop(): Promise<void> {
       let alertLevel: string | null = null;
       let actions: AlertActions = {};
 
-      if (metrics.total >= CONFIG.thresholds.emergency15M) {
-        alertLevel = 'emergency15M';
-        actions = CONFIG.actions.emergency15M;
-      } else if (metrics.total >= CONFIG.thresholds.critical12M) {
-        alertLevel = 'critical12M';
-        actions = CONFIG.actions.critical12M;
+      if (metrics.total >= CONFIG.thresholds.emergency120M) {
+        alertLevel = 'emergency120M';
+        actions = CONFIG.actions.emergency120M;
+      } else if (metrics.total >= CONFIG.thresholds.critical60M) {
+        alertLevel = 'critical60M';
+        actions = CONFIG.actions.critical60M;
       } else if (metrics.total >= CONFIG.thresholds.hard8M) {
         alertLevel = 'hard8M';
         actions = CONFIG.actions.hard8M;
@@ -467,7 +631,7 @@ async function main(): Promise<void> {
     console.log('\n╔════════════════════════════════════════════════════════════════╗');
     console.log('║           TOKEN SPIKE GUARD STATUS v2.0.0                       ║');
     console.log('╚════════════════════════════════════════════════════════════════╝');
-    console.log(`Session ID:         ${state.sessionId}`);
+    console.log(`Session ID:         ${resolveSessionId() ?? state.sessionId}`);
     console.log(
       `Runtime:            ${((Date.now() - state.startTime) / 1000 / 60).toFixed(1)} minutes`,
     );
@@ -513,6 +677,7 @@ async function main(): Promise<void> {
   }
 }
 
+// Solo CLI cuando es entry-point directo (importar como librería no arranca nada).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     log('ERROR', 'Fatal error', { error: String(err) });

@@ -8,6 +8,7 @@ import {
   readdirSync,
 } from 'fs';
 import { join, resolve } from 'path';
+import { pathToFileURL } from 'url';
 import { randomBytes } from 'crypto';
 
 interface AgentMessage {
@@ -549,4 +550,67 @@ function main(): void {
   }
 }
 
-main();
+// Solo ejecuta el CLI cuando el script es el entry-point directo (importar
+// el módulo como librería NO debe disparar parseArgs del proceso host).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
+
+// ─── Librería (GB-20261105-c): API exportable para procesos del stack ─────
+
+export function busSend(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  payload: unknown;
+  type?: AgentMessage['type'];
+  priority?: AgentMessage['priority'];
+  ttlSeconds?: number;
+  conversationId?: string;
+  correlationId?: string;
+}): AgentMessage {
+  const msg = createMessage(
+    opts.type ?? 'request',
+    opts.from,
+    opts.to,
+    opts.conversationId ?? generateConversationId(),
+    opts.correlationId ?? '',
+    opts.subject,
+    typeof opts.payload === 'string' ? opts.payload : JSON.stringify(opts.payload ?? null),
+    opts.priority ?? 'normal',
+    opts.ttlSeconds ?? 300,
+  );
+  ensureMailboxDir();
+  const mb = removeExpired(readMailbox(msg.recipient));
+  mb.messages.push(msg);
+  mb.lastUpdated = nowISO();
+  writeMailbox(msg.recipient, mb);
+  logEvent(msg.id, msg.sender, msg.recipient, msg.subject, msg.type);
+  return msg;
+}
+
+/** Broadcast: entrega a mailbox 'broadcast' + log del bus (patrón del CLI). */
+export function busBroadcast(opts: {
+  from: string;
+  subject: string;
+  payload: unknown;
+  ttlSeconds?: number;
+}): AgentMessage {
+  return busSend({ ...opts, to: 'broadcast', type: 'broadcast' });
+}
+
+/** Mensajes no expirados del mailbox de un agente (máx `limit`). */
+export function busPoll(agent: string, limit = 20): AgentMessage[] {
+  return removeExpired(readMailbox(agent)).messages.slice(-limit);
+}
+
+/** Marca un mensaje como acked en el mailbox del agente. */
+export function busAck(agent: string, messageId: string): boolean {
+  const mb = readMailbox(agent);
+  const msg = mb.messages.find((m) => m.id === messageId);
+  if (!msg) return false;
+  msg.ack = true;
+  msg.ackedAt = nowISO();
+  writeMailbox(agent, mb);
+  return true;
+}

@@ -289,7 +289,7 @@
       tip_c_health_16: 'Hybrid executor, AWS/Azure delegators',
       tip_c_health_17: 'Tracing spans, OTLP export, span files',
       tip_c_health_18: 'Checkpoint dir, snapshots, rollback readiness',
-      tip_c_health_19: 'Nexus DB file, WAL, integrity check, 22 migrations, 44 tables',
+      tip_c_health_19: 'Nexus DB file, WAL, integrity check, 24 migrations, 45 tables',
       tip_c_health_20: 'Model router, profiles, fallback configuration',
       tip_c_health_21: 'Audit logs, pipeline, archive',
       tip_c_health_22: 'Policy files, rules directory, 60 normatives',
@@ -1087,7 +1087,7 @@
       tip_c_health_17: 'Spans de tracing, exportación OTLP, archivos de spans',
       tip_c_health_18: 'Directorio de checkpoints, snapshots, preparación para rollback',
       tip_c_health_19:
-        'Archivo de Nexus DB, WAL, comprobación de integridad, 22 migrations, 44 tables',
+        'Archivo de Nexus DB, WAL, comprobación de integridad, 24 migrations, 45 tables',
       tip_c_health_20: 'Model router, perfiles, configuración de fallback',
       tip_c_health_21: 'Logs de auditoría, pipeline, archivo',
       tip_c_health_22: 'Archivos de políticas, directorio de reglas, 60 normativas',
@@ -1857,7 +1857,7 @@
       tip_c_health_17: 'Spans de tracing, exportação OTLP, arquivos de spans',
       tip_c_health_18: 'Diretório de checkpoints, snapshots, prontidão para rollback',
       tip_c_health_19:
-        'Arquivo da Nexus DB, WAL, verificação de integridade, 22 migrations, 44 tables',
+        'Arquivo da Nexus DB, WAL, verificação de integridade, 24 migrations, 45 tables',
       tip_c_health_20: 'Model router, perfis, configuração de fallback',
       tip_c_health_21: 'Logs de auditoria, pipeline, arquivo',
       tip_c_health_22: 'Arquivos de políticas, diretório de regras, 60 normativas',

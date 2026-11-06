@@ -122,7 +122,7 @@ export default {
       items: [
         { icon: 'layers', heading: 'Layers', body: 'Surfaces, orchestration, agents, skills, knowledge, tools and infrastructure.' },
         { icon: 'eye', heading: 'Traceability', body: 'Sessions, traces, events and hash-chained audit in the local database.' },
-        { icon: 'shield', heading: 'Governance', body: '36 quality gates, secret scanning and fail-closed policies.' },
+        { icon: 'shield', heading: 'Governance', body: '46 quality gates, secret scanning and fail-closed policies.' },
         { icon: 'cloud', heading: 'Local first', body: 'Runs on your team machine and is exposed to the cloud when needed.' },
       ],
       layers: [

@@ -56,40 +56,68 @@ interface MCASConfig {
   };
 }
 
-const DEFAULT_CONFIG: MCASConfig = {
-  channels: {
-    cli: true,
-    file: true,
-    dashboard: true,
+/**
+ * Canales externos: se activan SOLOS si el owner define la env var.
+ *
+ * Antes eran `enabled: false` FIJOS: setting DISCORD_WEBHOOK_URL no activaba
+ * nada, y el codigo de los docs ("se activan solos si existen las env vars")
+ * era falso. Ademas la URL se guardaba en `webhook` mientras los emisores leen
+ * `config.discord` / `config.slack` — o sea, aunque `enabled` fuera true, el
+ * emisor recibia undefined y salia sin enviar. El canal quedaba muerto por
+ * partida doble.
+ *
+ * La derivacion vive en una funcion pura (`buildExternalChannels`) para que el
+ * contrato sea verificable sin tocar `process.env` global.
+ */
+export function buildExternalChannels(env: Record<string, string | undefined> = process.env): {
+  webhook: AlertConfig;
+  discord: AlertConfig;
+  slack: AlertConfig;
+} {
+  return {
     webhook: {
-      enabled: false,
-      webhook: process.env.ALERT_WEBHOOK_URL,
+      enabled: Boolean(env.ALERT_WEBHOOK_URL),
+      webhook: env.ALERT_WEBHOOK_URL,
     },
     discord: {
-      enabled: false,
-      webhook: process.env.DISCORD_WEBHOOK_URL,
+      enabled: Boolean(env.DISCORD_WEBHOOK_URL),
+      discord: env.DISCORD_WEBHOOK_URL,
       username: 'Gentle-Vanguard',
       avatarUrl: 'https://github.com/opencode-ai.png',
     },
     slack: {
-      enabled: false,
-      webhook: process.env.SLACK_WEBHOOK_URL,
+      enabled: Boolean(env.SLACK_WEBHOOK_URL),
+      slack: env.SLACK_WEBHOOK_URL,
       channel: '#alerts',
       username: 'Gentle-Vanguard',
     },
-  },
-  defaults: {
-    severity: 'info',
-    cooldownSeconds: 5,
-    maxAlertsPerMinute: 20,
-  },
-  severityColors: {
-    info: '#3498db',
-    warning: '#f1c40f',
-    critical: '#e74c3c',
-    emergency: '#8e44ad',
-  },
-};
+  };
+}
+
+/** Config completa derivable de un entorno (puro, testeable). */
+export function buildConfig(env: Record<string, string | undefined> = process.env): MCASConfig {
+  return {
+    channels: {
+      cli: true,
+      file: true,
+      dashboard: true,
+      ...buildExternalChannels(env),
+    },
+    defaults: {
+      severity: 'info',
+      cooldownSeconds: 5,
+      maxAlertsPerMinute: 20,
+    },
+    severityColors: {
+      info: '#3498db',
+      warning: '#f1c40f',
+      critical: '#e74c3c',
+      emergency: '#8e44ad',
+    },
+  };
+}
+
+const DEFAULT_CONFIG: MCASConfig = buildConfig(process.env);
 
 // ─── Logger ─────────────────────────────────────────────────────────────────────
 type Severity = AlertPayload['severity'];
@@ -379,8 +407,8 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
 // ─── Main Alert Handler ─────────────────────────────────────────────────────────
 async function sendAlert(
   payload: Partial<AlertPayload>,
+  config: MCASConfig = DEFAULT_CONFIG,
 ): Promise<{ sent: string[]; failed: string[] }> {
-  const config = DEFAULT_CONFIG;
   const state = loadState();
 
   // Rate limiting check
@@ -643,4 +671,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export { sendAlert };
-export type { AlertPayload };
+export type { AlertPayload, AlertConfig, MCASConfig };

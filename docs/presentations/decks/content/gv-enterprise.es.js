@@ -79,7 +79,7 @@ export default {
         { label: 'Orquestación', body: 'Enrutamiento de modelo y agente, escalado de pasos por complejidad y tabla de ruteo aprendible con 17 dominios y overrides.', accent: '22d3ee' },
         { label: 'Agentes', body: '20 definiciones con permisos y límites de pasos; 29 roles mapeados y 30 bindings de modelo por área y criticalidad.', accent: '8b5cf6' },
         { label: 'Capacidades', body: '256 skills indexadas, con 28 críticas bajo contrato verificado en ejecución real.', accent: 'c4b5fd' },
-        { label: 'Conocimiento', body: 'Engram (memoria), CodeGraph (índice incremental), graphify (grafo AST determinista) y Nexus (44 tablas, 22 migraciones, WAL).', accent: 'fbbf24' },
+        { label: 'Conocimiento', body: 'Engram (memoria), CodeGraph (índice incremental), graphify (grafo AST determinista) y Nexus (45 tablas, 24 migraciones, WAL).', accent: 'fbbf24' },
         { label: 'Herramientas', body: 'Diez servidores MCP con acceso uniforme, incluidos dos externos bajo circuito con control de falla.', accent: 'f4bb4f' },
         { label: 'Infraestructura', body: 'Watchtower con 35 componentes vigilados, 6 modos de operación y autoheal.', accent: '4ade80' },
         { label: 'Observabilidad', body: 'Dashboard con trazas reales, health API de 7 componentes, exportación OTLP y alertas configurables.', accent: '22d3ee' },
@@ -147,7 +147,7 @@ export default {
       title: 'Lo que impide que esto sea un experimento sin control',
       cols: 2,
       items: [
-        { icon: 'shield', heading: '36 quality gates', body: '19 en pre-commit, 2 en commit-msg, 2 en post-commit, 3 en pre-push, 8 en CI, 1 de gobernanza y 1 de despliegue. 33 de 36 aplicados de forma estricta.' },
+        { icon: 'shield', heading: '46 quality gates', body: '19 en pre-commit, 2 en commit-msg, 2 en post-commit, 13 registrados en pre-push, 8 en CI, 1 de gobernanza y 1 de despliegue. 42 de 46 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.' },
         { icon: 'search', heading: 'Escaneo de secretos', body: '80 patrones con filtro de entropía opcional y redacción por defecto, integrado al hook y al watchtower. Tres escáneres independientes conviven.' },
         { icon: 'link', heading: 'Auditoría encadenada', body: 'Event sourcing con prevHash y hash SHA-256 por evento. Detecta mutación accidental o edición inconsistente del registro.' },
         { icon: 'file', heading: 'Trazabilidad de suministro', body: 'SBOM generado y validado, procedencia de artefactos y mapeo documentado contra OWASP Top 10 para agentes.' },

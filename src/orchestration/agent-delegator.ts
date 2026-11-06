@@ -11,7 +11,9 @@
  */
 
 import { createHash, randomUUID } from 'crypto';
-import { runNpxTsx } from '../core/run-command';
+import { runNpxTsx, runSync } from '../core/run-command';
+import { estimateTokens as estimateBudgetTokens, getUsedTokensToday } from '../tokens/token-budget-guard.js';
+import { dispatchAlert } from '../monitor/alert-dispatcher.js';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
@@ -20,7 +22,6 @@ import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js
 import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
 import { registerAttempt, detectLoop } from '../resilience/anti-loop-guard.js';
 import { evaluateFailure } from '../security/guardrail-orchestrator.js';
-import { moderateInputHeuristic } from '../security/guardrails/input-moderation.js';
 import { resolveBudgetAwareModel } from '../tokens/budget-aware-routing.js';
 import { log } from '../utils/logger.js';
 import { nativeResultFailure } from './native-result.js';
@@ -70,9 +71,61 @@ export interface DelegationCompression {
 
 const MAX_DELEGATION_TASK_CHARS = 12_000;
 const MAX_DELEGATION_CONTEXT_CHARS = 32_000;
-const MAX_ACTIVE_DELEGATIONS = 2;
+/**
+ * Concurrencia y timeout de delegación leídos de config/auto-delegation.json
+ * (antes hardcoded): `concurrencyLimits.globalMax` (default 2) y
+ * `delegationTimeoutSeconds` (default 600). Un subagente colgado ya NO retiene
+ * su slot para siempre: al vencer el timeout se mata el árbol de procesos y
+ * el slot se libera con fallo `timeout`.
+ */
+const AUTO_DELEGATION_CONFIG_PATH = join(process.cwd(), 'config', 'auto-delegation.json');
+let autoDelegationCache: { at: number; globalMax: number; timeoutSeconds: number } | null = null;
+
+function loadAutoDelegationLimits(): { globalMax: number; timeoutSeconds: number } {
+  if (autoDelegationCache && Date.now() - autoDelegationCache.at < 60_000) {
+    return autoDelegationCache;
+  }
+  let globalMax = 2;
+  let timeoutSeconds = 600;
+  try {
+    const cfg = JSON.parse(readFileSync(AUTO_DELEGATION_CONFIG_PATH, 'utf-8')) as {
+      delegationTimeoutSeconds?: number;
+      concurrencyLimits?: { globalMax?: number };
+    };
+    if (typeof cfg.concurrencyLimits?.globalMax === 'number' && cfg.concurrencyLimits.globalMax > 0) {
+      globalMax = cfg.concurrencyLimits.globalMax;
+    }
+    if (typeof cfg.delegationTimeoutSeconds === 'number' && cfg.delegationTimeoutSeconds > 0) {
+      timeoutSeconds = cfg.delegationTimeoutSeconds;
+    }
+  } catch {
+    /* defaults */
+  }
+  autoDelegationCache = { at: Date.now(), globalMax, timeoutSeconds };
+  return autoDelegationCache;
+}
+
+const MAX_ACTIVE_DELEGATIONS = loadAutoDelegationLimits().globalMax;
 let activeDelegations = 0;
 const delegationWaiters: Array<() => void> = [];
+
+/** Mata el árbol de procesos del hijo (Windows: taskkill /T /F; fallback kill). */
+function killDelegationTree(pid: number | undefined): void {
+  if (!pid) return;
+  try {
+    if (process.platform === 'win32') {
+      runSync('taskkill', ['/T', '/F', '/PID', String(pid)], { timeout: 5000 });
+    } else {
+      process.kill(pid, 'SIGKILL');
+    }
+  } catch {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {
+      /* ya murió */
+    }
+  }
+}
 
 async function acquireDelegationSlot(): Promise<void> {
   if (activeDelegations < MAX_ACTIVE_DELEGATIONS) {
@@ -462,29 +515,61 @@ function loadAgents(): Record<string, AgentConfig> {
  */
 export async function delegate(request: DelegationRequest): Promise<DelegationResult> {
   const startTime = Date.now();
-  // F3.2 guardrail — input moderation (heuristic, <5ms). softWarn=true → WARN + proceed, false → hard BLOCK.
-  const mod = moderateInputHeuristic(request.task);
-  if (mod.blocked) {
-    try {
-      const cfg = JSON.parse(
-        readFileSync(join(process.cwd(), 'config', 'guardrails.json'), 'utf-8'),
-      );
-      if (cfg.softWarn === false) {
-        logger.error(
-          `[GUARDRAIL:INPUT] hard BLOCK blocked:true reason=${mod.reason} rail=${mod.rail} — rejected (hard block)`,
+  // ── Budget gate (antes declarativo, ahora enforceado): el config define
+  // strict 95% -> block_new_tasks y emergency 100% -> critical_only. Cálculo
+  // local silencioso (runGuard imprime a stdout y contaminaría la salida del
+  // subagente). SOFT/WARN solo degradan modelo — eso ya lo hace
+  // resolveBudgetAwareModel dentro de runNativeAgent.
+  try {
+    const cfgFile = JSON.parse(
+      readFileSync(join(process.cwd(), 'config', 'token-budget-guard.json'), 'utf-8'),
+    ) as {
+      tokenBudget?: {
+        tracking?: { enabled?: boolean };
+        limits?: { daily?: number };
+        enforcement?: {
+          mode?: string;
+          adaptiveModes?: Record<string, { thresholdPct?: number }>;
+        };
+      };
+    };
+    const enabled = cfgFile.tokenBudget?.tracking?.enabled !== false;
+    const daily = cfgFile.tokenBudget?.limits?.daily ?? 10_000_000;
+    const modes = cfgFile.tokenBudget?.enforcement?.adaptiveModes ?? {};
+    const strictPct = modes.strict?.thresholdPct ?? 95;
+    const emergencyPct = modes.emergency?.thresholdPct ?? 100;
+    if (enabled && daily > 0) {
+      const estimated = estimateBudgetTokens('delegation', 'low', request.task.length);
+      const used = getUsedTokensToday();
+      const pct = ((used + estimated) / daily) * 100;
+      if (pct >= strictPct) {
+        const status = pct >= emergencyPct ? 'EMERGENCY' : 'STRICT';
+        logger.warn(
+          `[BUDGET-GATE] delegación a '${request.agent}' bloqueada: status=${status} projected_pct=${pct.toFixed(1)}% (block_new_tasks/critical_only)`,
         );
+        dispatchAlert({
+          severity: status === 'EMERGENCY' ? 'emergency' : 'warning',
+          category: 'budget-gate',
+          message: `Delegaciones bloqueadas: presupuesto diario de tokens al ${pct.toFixed(1)}% (${status})`,
+          details: `Agente solicitado: ${request.agent}. Uso hoy: ${used} tokens de ${daily}.`,
+          recommendation:
+            'Reducir carga de subagentes o esperar el reset diario; el routing downgrade a modelo cheap ya está activo.',
+          metrics: { projectedPct: Number(pct.toFixed(2)), usedToday: used, dailyBudget: daily, agent: request.agent },
+          dedupeKey: 'daily-budget',
+          dedupeTtlMs: 30 * 60_000,
+        });
         return {
           success: false,
-          error: `[GUARDRAIL:INPUT] hard BLOCK reason=${mod.reason} rail=${mod.rail} — human escalation required (ADR-0023)`,
+          error: `[BUDGET-GATE] delegación bloqueada: presupuesto diario al ${pct.toFixed(1)}% (status ${status}) — reduce carga o espera el reset diario`,
           duration: Date.now() - startTime,
           model: 'unknown',
         };
       }
-    } catch {}
-    logger.warn(
-      `[GUARDRAIL:INPUT] soft WARN blocked:true reason=${mod.reason} rail=${mod.rail} — proceeding (soft WARN, ADR-0023)`,
-    );
+    }
+  } catch {
+    /* config/guard no disponible: no bloquea */
   }
+
   const agents = loadAgents();
   const agentConfig = agents[request.agent];
 
@@ -697,6 +782,19 @@ async function runNativeAgent(
       },
     });
 
+    // ── Timeout de delegación (antes sin límite: un subagente colgado
+    // retenía el slot MAX_ACTIVE_DELEGATIONS indefinidamente). Al vencer:
+    // kill del árbol + fallo 'timeout' + slot liberado por el finally.
+    const timeoutSeconds = loadAutoDelegationLimits().timeoutSeconds;
+    let timedOut = false;
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      logger.warn(
+        `[agent-delegator] TIMEOUT ${timeoutSeconds}s para '${request.agent}' — matando árbol de procesos (pid ${child.pid})`,
+      );
+      killDelegationTree(child.pid);
+    }, timeoutSeconds * 1000);
+
     let stdout = '';
     let stderr = '';
 
@@ -709,10 +807,19 @@ async function runNativeAgent(
     });
 
     child.on('close', (code) => {
+      clearTimeout(timeoutTimer);
       const duration = Date.now() - startTime;
       const declaredFailure = nativeResultFailure(stdout);
 
-      if (code === 0 && !declaredFailure) {
+      if (timedOut) {
+        resolve({
+          success: false,
+          output: stdout.trim(),
+          error: `delegation timeout after ${timeoutSeconds}s — process tree killed (pid ${child.pid})`,
+          duration,
+          model,
+        });
+      } else if (code === 0 && !declaredFailure) {
         resolve({
           success: true,
           output: stdout.trim(),
@@ -731,6 +838,7 @@ async function runNativeAgent(
     });
 
     child.on('error', (error) => {
+      clearTimeout(timeoutTimer);
       resolve({
         success: false,
         error: error.message,

@@ -9,6 +9,7 @@
 // reporting and tracing.
 
 import { join, resolve } from 'path';
+import { dispatchAlert } from '../../monitor/alert-dispatcher.js';
 const logger = log('CORE-WATCHTOWER-CONTEXT');
 import { log } from '../../utils/logger.js';
 
@@ -65,4 +66,18 @@ export function addResult(
     );
   }
   if (status === 'FAIL' && critical) exitCode++;
+  // Notificación push al owner vía MCAS (antes el watchtower solo escribía
+  // el reporte a archivo y lo no-auto-reparable quedaba 'manual' sin aviso).
+  // Dedupe 30 min por component+check para no saturar en ciclos seguidos.
+  if (status === 'FAIL' || (status === 'WARN' && action === 'manual')) {
+    dispatchAlert({
+      severity: status === 'FAIL' ? (critical ? 'critical' : 'warning') : 'info',
+      category: 'watchtower',
+      message: `[${component}] ${check}: ${status}${detail ? ' — ' + detail : ''}`,
+      details: action === 'manual' ? 'Requiere intervención manual (remediation: manual).' : undefined,
+      metrics: { component, check, status, action, critical },
+      dedupeKey: `${component}:${check}:${status}`,
+      dedupeTtlMs: 30 * 60_000,
+    });
+  }
 }

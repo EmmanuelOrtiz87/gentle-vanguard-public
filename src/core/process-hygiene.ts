@@ -161,6 +161,15 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: true,
   },
   {
+    id: 'spike-guard-daemon',
+    label: 'Token Spike Guard daemon',
+    match: /token-spike-guard-daemon\.ts/,
+    pidFile: join(RUNTIME_DIR, 'spike-guard.pid'),
+    keep: 'newest',
+    respawn: 'autostart',
+    recycleAged: true,
+  },
+  {
     id: 'command-center',
     label: 'Command Center daemon',
     match: /command-center[\\/]server\.ts/,
@@ -984,7 +993,9 @@ export async function runHygiene(opts: Partial<HygieneOptions> = {}): Promise<Hy
     }
   }
 
-  const gitGuard = guardGitRepoConfig(resolve(process.cwd()));
+  // Side-effect guard: detecta y repara core.bare=true (BL-MW2IBHXM-777H);
+  // el resultado ya queda registrado en git-config-guard.log por el propio guard.
+  guardGitRepoConfig(resolve(process.cwd()));
 
   persistReport(result);
   return result;

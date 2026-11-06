@@ -253,14 +253,22 @@ export function evaluateProviderAlertStatus(
   return modelName === activeModel ? 'WARN' : 'PASS';
 }
 
-export function getWatchtowerComponentStatus(counts: { fails: number; warns: number }): 'ISSUES' | 'WARN' | 'OK' {
+export function getWatchtowerComponentStatus(counts: {
+  fails: number;
+  warns: number;
+}): 'ISSUES' | 'WARN' | 'OK' {
   return counts.fails > 0 ? 'ISSUES' : counts.warns > 0 ? 'WARN' : 'OK';
 }
 
 export function evaluateProviderEvidenceStatus(
   modelName: string,
   activeModel: string,
-  evidence: { status?: string; lastSuccessAt?: string; lastDetectedAt?: string; cooldownUntil?: string },
+  evidence: {
+    status?: string;
+    lastSuccessAt?: string;
+    lastDetectedAt?: string;
+    cooldownUntil?: string;
+  },
   now = Date.now(),
 ): CheckResult['status'] {
   const lastSuccessAt = evidence.lastSuccessAt ? Date.parse(evidence.lastSuccessAt) : NaN;
@@ -271,11 +279,13 @@ export function evaluateProviderEvidenceStatus(
     ageMs >= 0 &&
     ageMs <= 5 * 60_000 &&
     (!Number.isFinite(lastDetectedAt) || lastSuccessAt >= lastDetectedAt)
-  ) return 'PASS';
+  )
+    return 'PASS';
 
   if (evidence.status === 'unhealthy') {
     const cooldownUntil = evidence.cooldownUntil ? Date.parse(evidence.cooldownUntil) : NaN;
-    if (Number.isFinite(cooldownUntil) && cooldownUntil > now && modelName !== activeModel) return 'PASS';
+    if (Number.isFinite(cooldownUntil) && cooldownUntil > now && modelName !== activeModel)
+      return 'PASS';
     return 'WARN';
   }
 
@@ -288,10 +298,12 @@ export function readLatestSuccessfulProviderUsage(
 ): string | undefined {
   const model = modelName.split('/').at(-1)?.trim().toLowerCase();
   if (!model) return undefined;
-  const row = db.prepare(
-    `SELECT MAX(timestamp) AS timestamp FROM token_usage
+  const row = db
+    .prepare(
+      `SELECT MAX(timestamp) AS timestamp FROM token_usage
      WHERE completion_tokens > 0 AND (lower(model) = ? OR lower(model) LIKE ?)`,
-  ).get(model, `%/${model}`) as { timestamp?: string } | undefined;
+    )
+    .get(model, `%/${model}`) as { timestamp?: string } | undefined;
   return row?.timestamp || undefined;
 }
 
@@ -412,11 +424,14 @@ export function evaluateTrackedModelHealth(
   now = Date.now(),
 ): { status: CheckResult['status']; detail: string } {
   const bareActive = (activeModel.split('/').at(-1) ?? activeModel).trim().toLowerCase();
-  const isActive =
-    modelName === activeModel || modelName.trim().toLowerCase() === bareActive;
+  const isActive = modelName === activeModel || modelName.trim().toLowerCase() === bareActive;
   // An empty managed set means the router configs are unreadable: fail open
   // (keep the legacy WARN) instead of silently suppressing provider signal.
-  if (managedModelIds.length > 0 && !isActive && !isRoutedModel(modelName, provider, managedModelIds)) {
+  if (
+    managedModelIds.length > 0 &&
+    !isActive &&
+    !isRoutedModel(modelName, provider, managedModelIds)
+  ) {
     return { status: 'PASS', detail: 'untracked (not in active routing)' };
   }
 
@@ -491,7 +506,9 @@ export async function checkModelHealth() {
     const successes = readModelSuccessEvidence([...Object.keys(models), activeModel]);
     const managedModelIds = readManagedModelIds();
     const latestSuccess = (name: string, recorded?: string): string | undefined => {
-      const candidates = [recorded, successes[name]].filter((value): value is string => Boolean(value));
+      const candidates = [recorded, successes[name]].filter((value): value is string =>
+        Boolean(value),
+      );
       return candidates.sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1);
     };
 
@@ -512,7 +529,11 @@ export async function checkModelHealth() {
           `model ${name}`,
           health.status,
           health.detail,
-          health.status === 'PASS' ? 'ok' : name === activeModel ? 'verify-active-model' : 'verify-provider',
+          health.status === 'PASS'
+            ? 'ok'
+            : name === activeModel
+              ? 'verify-active-model'
+              : 'verify-provider',
         );
       }
     }
@@ -529,11 +550,67 @@ export async function checkModelHealth() {
       'model-provider-health',
       'active model',
       activeStatus,
-      activeModel === 'unknown' ? 'unknown' : activeStatus === 'PASS'
-        ? `${activeModel} has a fresh successful probe`
-        : `${activeModel} has no fresh successful probe`,
+      activeModel === 'unknown'
+        ? 'unknown'
+        : activeStatus === 'PASS'
+          ? `${activeModel} has a fresh successful probe`
+          : `${activeModel} has no fresh successful probe`,
       activeStatus === 'PASS' ? 'ok' : 'verify-active-model',
     );
+
+    // Evidencia de probe por PROVEEDOR (src/tools/model-health-probe.ts).
+    // El estado de `.runtime/model-health.json` lo escribe el healer y solo
+    // registra FALLOS: la ausencia de registros no dice nada sobre si el
+    // proveedor responde. El probe si responde.
+    const probePath = join(RUNTIME_DIR, 'model-health-evidence.json');
+    if (fileExists(probePath)) {
+      try {
+        const probe = JSON.parse(readFileSync(probePath, 'utf-8')) as {
+          generatedAt?: string;
+          providers?: Record<
+            string,
+            { reachable?: boolean; models?: number; error?: string; checkedAt?: string }
+          >;
+        };
+        let activeProvider = '';
+        if (fileExists(activePath)) {
+          try {
+            const active = JSON.parse(readFileSync(activePath, 'utf-8')) as { provider?: string };
+            activeProvider = active.provider ?? '';
+          } catch {
+            /* ignore */
+          }
+        }
+        const candidates = [activeProvider, activeModel.split('/')[0]].filter(Boolean);
+        const evidence =
+          candidates.map((c) => probe.providers?.[c]).find((e) => Boolean(e)) ?? undefined;
+        if (evidence) {
+          const checkedAt = Date.parse(evidence.checkedAt ?? probe.generatedAt ?? '');
+          const ageHours = Number.isFinite(checkedAt)
+            ? (Date.now() - checkedAt) / 3_600_000
+            : Number.NaN;
+          if (evidence.reachable) {
+            addResult(
+              'model-provider-health',
+              'provider probe',
+              ageHours <= 6 ? 'PASS' : 'WARN',
+              `proveedor ${candidates[0]} ALCANZABLE (${evidence.models ?? 0} modelos, probe de hace ${Number.isFinite(ageHours) ? `${ageHours.toFixed(1)}h` : '?'})`,
+              ageHours <= 6 ? 'ok' : 'verify-provider',
+            );
+          } else {
+            addResult(
+              'model-provider-health',
+              'provider probe',
+              ageHours <= 6 ? 'FAIL' : 'WARN',
+              `proveedor ${candidates[0]} INALCANZABLE (${evidence.error ?? 'sin detalle'})`,
+              'verify-provider',
+            );
+          }
+        }
+      } catch {
+        /* evidencia ilegible: no es un hallazgo */
+      }
+    }
   } catch {
     addResult(
       'model-provider-health',

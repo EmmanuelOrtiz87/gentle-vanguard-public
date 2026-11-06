@@ -39,7 +39,7 @@ export default {
         { heading: 'Anatomía de una sesión', body: 'Qué pasa entre que llegan tu prompt y el agente responde.' },
         { heading: 'Agentes y skills', body: 'Los 20 agentes del roster y cómo se invocan las capacidades.' },
         { heading: 'Comandos', body: 'Los comandos que se usan todos los días y qué verifican.' },
-        { heading: 'Nexus', body: 'La base operacional: 44 tablas, migraciones y respaldo.' },
+        { heading: 'Nexus', body: 'La base operacional: 45 tablas, migraciones y respaldo.' },
         { heading: 'Flujo de desarrollo', body: 'Del pedido al commit: ODD, slices, gates y frontera revisada.' },
         { heading: 'Reglas del repo', body: 'Lo que no se negocia y por qué existe.' },
         { heading: 'Dónde buscar', body: 'La ruta más corta a cada tipo de respuesta.' },
@@ -155,7 +155,7 @@ export default {
       layout: 'figureLayers',
       eyebrow: 'Datos',
       title: 'Nexus: la memoria operacional del stack',
-      lead: '44 tablas y 22 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.',
+      lead: '45 tablas y 24 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.',
       textW: 3.4,
       items: [
         { icon: 'database', heading: 'Qué guarda', body: 'Métricas, sesiones, trazas, eventos, alertas, feedback, cache, uso de skills, tokens y routing.' },
@@ -177,7 +177,7 @@ export default {
       lead: 'El stack corre sus propios controles en cada commit, en cada push y en cada ciclo de salud.',
       cols: 4,
       items: [
-        { value: '36', label: 'Quality gates', sub: '33 de 36 aplicados de forma estricta', accent: '06b6d4' },
+        { value: '46', label: 'Quality gates', sub: '42 de 46 aplicados de forma estricta', accent: '06b6d4' },
         { value: '552+', label: 'Archivos de test', sub: 'Unit, e2e, integración, seguridad y skills', accent: '8b5cf6' },
         { value: '21', label: 'Workflows de CI', sub: 'CI, seguridad, release, sync público y etiqueta automática', accent: 'fbbf24' },
         { value: '80', label: 'Patrones de secreto', sub: 'Con entropía opcional y redacción por defecto', accent: '22d3ee' },

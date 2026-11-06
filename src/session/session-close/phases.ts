@@ -9,7 +9,7 @@ import {
 } from 'fs';
 import { join, resolve, relative } from 'path';
 import { runHygiene } from '../../core/process-hygiene.js';
-import { runNpxTsxSync } from '../../core/run-command.js';
+import { runNpxTsxSync, runSync } from '../../core/run-command.js';
 import { sessionEnd } from '../../knowledge/engram-session-bridge.js';
 import {
   ROOT,
@@ -1101,5 +1101,78 @@ export function phaseVerify(): PhaseResult[] {
     detail: backups.length > 0 ? `${backups.length} backup(s) found` : 'No backups',
   });
 
+  return results;
+}
+
+/**
+ * Push real — REGLA "cerrar sesion = push real" (rules/NORMATIVA-VERIFICACIONES-STACK.md §6.1).
+ *
+ * El ciclo de sesion NO termina validado hasta que `git push` sea exitoso con
+ * los hooks activos. Una intencion que termina sin push real deja estado que
+ * el proximo barrido no sabe asignar a nadie (deuda entre sesiones) y por eso
+ * los commits acumulados parecian "flakes" irresistibles.
+ *
+ * La fase es honesta en los tres casos:
+ *   - sin upstream           -> SKIP (no hay a donde publicar)
+ *   - nada pendiente        -> PASS (la rama ya esta al dia)
+ *   - push fallido          -> FAIL con la salida REAL del hook (no un OK)
+ *
+ * Nunca usa --no-verify: un push validado con los hooks saltados no es un
+ * push validado.
+ */
+export function phasePush(): PhaseResult[] {
+  const results: PhaseResult[] = [];
+
+  const upstream = runCmd('git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
+  const branch = upstream.stdout.trim();
+  if (upstream.status !== 0 || !branch) {
+    results.push({
+      phase: 'push',
+      status: 'SKIP',
+      detail: 'sin upstream configurado — no hay rama remota de referencia',
+    });
+    return results;
+  }
+
+  const count = runCmd('git', ['rev-list', '--count', `${branch}..HEAD`]);
+  const pending = Number.parseInt(count.stdout.trim(), 10);
+  if (!Number.isFinite(pending)) {
+    results.push({
+      phase: 'push',
+      status: 'FAIL',
+      detail: `no se pudo contar los commits pendientes vs ${branch}`,
+    });
+    return results;
+  }
+  if (pending === 0) {
+    results.push({
+      phase: 'push',
+      status: 'PASS',
+      detail: `nada que pushear — ${branch} ya esta al dia`,
+    });
+    return results;
+  }
+
+  const pushed = runSync('git', ['push'], {
+    cwd: ROOT,
+    stdio: 'pipe',
+    timeout: 900000,
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  if (pushed.status === 0) {
+    results.push({
+      phase: 'push',
+      status: 'PASS',
+      detail: `${pending} commit(s) publicados en ${branch}`,
+    });
+    return results;
+  }
+
+  const output = (pushed.stderr || pushed.stdout || '').trim();
+  results.push({
+    phase: 'push',
+    status: 'FAIL',
+    detail: `git push fallo (exit ${pushed.status}) con ${pending} commit(s) sin publicar: ${output.slice(0, 300)}`,
+  });
   return results;
 }

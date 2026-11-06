@@ -82,7 +82,13 @@ const CHECKS: GateCheck[] = [
   {
     name: 'npm-audit',
     command: 'node',
-    args: ['--import', 'tsx', 'src/infrastructure/npm-audit-pre-push.ts', '--AuditLevel', 'moderate'],
+    args: [
+      '--import',
+      'tsx',
+      'src/infrastructure/npm-audit-pre-push.ts',
+      '--AuditLevel',
+      'moderate',
+    ],
     timeoutMs: 120_000,
     description: 'npm audit (moderate+)',
   },
@@ -130,16 +136,14 @@ const CHECKS: GateCheck[] = [
     command: 'node',
     args: ['--import', 'tsx', 'src/tools/decks-guion-coverage-gate.ts'],
     timeoutMs: 60_000,
-    description:
-      'Guiones de presentacion: cada deck tiene guion y una seccion por cada slide',
+    description: 'Guiones de presentacion: cada deck tiene guion y una seccion por cada slide',
   },
   {
     name: 'decks-facts-drift',
     command: 'node',
     args: ['--import', 'tsx', 'src/tools/decks-facts-drift-gate.ts'],
     timeoutMs: 60_000,
-    description:
-      'Cifras de los decks: las afirmaciones sobre el repo coinciden con la medicion',
+    description: 'Cifras de los decks: las afirmaciones sobre el repo coinciden con la medicion',
   },
   {
     name: 'glossary-export',
@@ -150,20 +154,14 @@ const CHECKS: GateCheck[] = [
   },
   {
     name: 'gates-selftest',
-    command: 'node',
-    args: [
-      '--import',
-      'tsx',
-      '--test',
-      'src/tools/skills-accessibility-gate.test.ts',
-      'src/tools/gitignore-source-guard.test.ts',
-      'src/tools/app-typecheck-coverage-gate.test.ts',
-      'src/tools/decks-guion-coverage-gate.test.ts',
-      'src/tools/decks-facts-drift-gate.test.ts',
-      'src/tools/glossary-export.test.ts',
-      'src/ops/stack-audit-apps.test.ts',
-    ],
-    timeoutMs: 120_000,
+    // UNA sola fuente de verdad: el script npm `gates:selftest`.
+    // Antes el composite mantenia su propia lista de archivos y ya habia
+    // derivado (7 de 9): los contratos de `dependabot-alerts-gate` y de
+    // `quality-gates-verify` (los dos mas importantes) NO se ejecutaban en
+    // el push. Delegar al script elimina esa clase de drift por construccion.
+    command: 'npm',
+    args: ['run', 'gates:selftest', '--silent'],
+    timeoutMs: 180_000,
     description: 'Test negativo de los gates nuevos: verifica que muerdan',
   },
   {
@@ -178,7 +176,8 @@ const CHECKS: GateCheck[] = [
     command: 'npm',
     args: ['run', 'conformance', '--prefix', 'packages/gv-design-system', '--silent'],
     timeoutMs: 120_000,
-    description: 'Canon visual: shell + marca byte-identica + paleta + fuentes (NORM-DESIGN-SYSTEM rev2)',
+    description:
+      'Canon visual: shell + marca byte-identica + paleta + fuentes (NORM-DESIGN-SYSTEM rev2)',
   },
   {
     name: 'perf-baseline',
@@ -197,7 +196,15 @@ const CHECKS: GateCheck[] = [
   {
     name: 'sbom-generate',
     command: 'node',
-    args: ['--import', 'tsx', 'src/security/generate-sbom.ts', '--output', 'sbom.json', '--format', 'json'],
+    args: [
+      '--import',
+      'tsx',
+      'src/security/generate-sbom.ts',
+      '--output',
+      'sbom.json',
+      '--format',
+      'json',
+    ],
     timeoutMs: 120_000,
     description: 'Regenerate SBOM',
   },
@@ -211,7 +218,15 @@ const CHECKS: GateCheck[] = [
   {
     name: 'container-scan',
     command: 'node',
-    args: ['--import', 'tsx', 'src/security/container-scan.ts', 'scan', '--fail-on', 'high', '--json'],
+    args: [
+      '--import',
+      'tsx',
+      'src/security/container-scan.ts',
+      'scan',
+      '--fail-on',
+      'high',
+      '--json',
+    ],
     timeoutMs: 180_000,
     description: 'Container/artifact vuln scan (self-skips if toolchain absent)',
   },
@@ -278,7 +293,9 @@ function treeFence(before: string): string[] {
     .filter(Boolean)
     .filter((line) => {
       const path = line.slice(3).trim();
-      return !beforeFiles.has(line) && !beforeFiles.has(` M ${path}`) && !beforeFiles.has(`?? ${path}`);
+      return (
+        !beforeFiles.has(line) && !beforeFiles.has(` M ${path}`) && !beforeFiles.has(`?? ${path}`)
+      );
     });
   return newMutations;
 }
@@ -408,9 +425,7 @@ async function main(): Promise<void> {
   const skipApps = args.includes('--skip-apps');
 
   // Effective checks = base CHECKS minus any skipped by flag
-  const checks = skipApps
-    ? CHECKS.filter((c) => c.name !== 'stack-audit-apps')
-    : CHECKS;
+  const checks = skipApps ? CHECKS.filter((c) => c.name !== 'stack-audit-apps') : CHECKS;
 
   if (list) {
     for (const c of checks) console.log(`${c.name}\t${c.description}`);
@@ -461,7 +476,7 @@ async function main(): Promise<void> {
   if (perfBaseline) {
     results.push(await runOne(perfBaseline, buildPerfBaselineArgs(results)));
   }
-  if (appAudit) results.push(...await runChecks([appAudit], 1));
+  if (appAudit) results.push(...(await runChecks([appAudit], 1)));
   const totalMs = Date.now() - start;
   const allPass = results.every((r) => r.status === 'pass');
   const fence = treeFence(before);

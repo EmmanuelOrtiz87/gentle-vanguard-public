@@ -308,7 +308,7 @@
           "elementId": "figureLayers-lead",
           "role": "lead",
           "type": "string",
-          "text": "44 tablas y 22 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.",
+          "text": "45 tablas y 24 migraciones en SQLite con WAL. Todo lo que el stack aprende queda acá.",
           "editable": true
         },
         {
