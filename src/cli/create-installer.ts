@@ -148,7 +148,7 @@ function bootstrapCmd(): string {
     'where node >nul 2>nul || (echo [X] Node.js not found. Install Node 22.18+ from https://nodejs.org & pause & exit /b 1)',
     'where pnpm >nul 2>nul || (echo [X] Install pnpm 11+ before continuing: npm install -g pnpm@11 & pause & exit /b 1)',
     'echo Installing locked dependencies, verifying environment and initializing runtime...',
-    'call npm run install:bootstrap || (echo [X] Bootstrap failed & pause & exit /b 1)',
+    'call npm run install:bootstrap -- --full || (echo [X] Bootstrap failed & pause & exit /b 1)',
     'echo.',
     'echo Bootstrap finished. You can close this window.',
     'pause',

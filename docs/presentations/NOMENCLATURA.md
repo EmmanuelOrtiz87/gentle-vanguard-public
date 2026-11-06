@@ -313,9 +313,9 @@
 | **Image Studio** | App CMS de generación de imágenes del stack. | 📍 docs/presentations/image-studio.html |
 | **Karpathy Guidelines** | Estándares de código: Think First, Simplicity, Surgical Changes, Goal-Driven. | 📍 rules/ · skill |
 | **Maintenance Watchtower** | Orquestador central de health/autoheal: 35 componentes vigilados, 6 modos. | 📍 src/core/maintenance-watchtower.ts |
-| **Migration** | Evolución del esquema de Nexus (22 migraciones). | 📍 apps/web-dashboard/server/database/ |
+| **Migration** | Evolución del esquema de Nexus (24 migraciones). | 📍 apps/web-dashboard/server/database/ |
 | **ML Embeddings** | Índice vectorial para búsqueda semántica sobre skills, normas y docs. | 📍 src/ml-embeddings |
-| **Nexus** | Base de datos operacional SQLite (WAL, FK ON, 38 tablas, 22 migraciones). Cerebro operacional. | 📍 .runtime/gentle-vanguard.db |
+| **Nexus** | Base de datos operacional SQLite (WAL, FK ON, 45 tablas, 24 migraciones). Cerebro operacional. | 📍 .runtime/gentle-vanguard.db |
 | **Pipeline** | Pipeline de sesión: 31 Phase-1 paralelos + 78 lazy background. | 📍 config/session-autostart.config.json |
 | **Retrieval Grader** | Gradúa relevancia de chunks con BM25 y dispara keyword-fallback (CRAG). | 📍 src/retrieval-grader.ts |
 | **Rollback** | Restauración de estado desde checkpoint con validación dry-run. | 📍 src/rollback-orchestrator.ts |

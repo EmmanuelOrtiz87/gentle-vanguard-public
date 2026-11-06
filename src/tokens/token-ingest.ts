@@ -8,8 +8,10 @@
  *   - zcode    : JSONL   ~/.zcode/cli/rollout/model-io-sess_*.jsonl (usage por request)
  *   - codex    : JSONL   ~/.codex/sessions/ (rollout-*.jsonl anidados por fecha, eventos token_count)
  *   - minimax  : SQLite  ~/.minimax/v2/sqlite/runtime-state.sqlite (tabla local_runtime_token_usage)
- *   - Claude   : JSONL   ~/.claude/projects (pendiente)
- *   - Cursor   : SQLite/JSON local (pendiente)
+ *   - claude   : JSONL   ~/.claude/projects/<encoded-proj>/<session-uuid>.jsonl (usage por turno;
+ *                        subagentes via isSidechain) — validado contra fixtures; pendiente
+ *                        revalidar con datos reales cuando la máquina tenga sesiones de Claude
+ *   - Cursor   : NO APLICA (el owner no usa Cursor; implementar lector solo si se adopta)
  *
  * Escribe:
  *   - Nexus DB `token_usage` (persistencia real, vía better-sqlite3 directo)

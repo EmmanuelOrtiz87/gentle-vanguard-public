@@ -25,6 +25,8 @@ import {
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runSyncShell, runNpxTsxSync } from '../core/run-command.js';
+import { recordWorkerOutcome } from './worker-outcome-recorder.js';
+import { dispatchAlert } from '../monitor/alert-dispatcher.js';
 import { randomBytes } from 'crypto';
 
 // ---- Types ----
@@ -323,6 +325,39 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
   const queue = [...subTasks];
   const swarmId = randomBytes(4).toString('hex');
 
+  // Loop guard real (ADR-0022): si batches completos fallan al 100% de forma
+  // consecutiva, abortar con reporte + alerta en vez de quemar el resto de la
+  // cola con el mismo resultado (stalled-progress del orquestador).
+  const LOOP_ABORT_BATCHES = 2;
+  let consecutiveAllFailedBatches = 0;
+  let abortedByLoopGuard = false;
+
+  function trackBatchOutcome(batch: WorkerResult[]): void {
+    if (batch.length === 0) return;
+    if (batch.every((r) => r.status !== 'completed')) {
+      consecutiveAllFailedBatches++;
+      if (consecutiveAllFailedBatches >= LOOP_ABORT_BATCHES) {
+        abortedByLoopGuard = true;
+        queue.length = 0; // corta el while de batches y el fill inicial
+        dispatchAlert({
+          severity: 'warning',
+          category: 'swarm-loop-guard',
+          message: `Swarm abortado: ${consecutiveAllFailedBatches} batches consecutivos con 100% de fallos (skills: ${[...new Set(batch.map((r) => r.skill))].join(', ')})`,
+          details: 'Todos los workers del batch terminan en failed/timeout — cambiar estrategia o skills antes de reintentar.',
+          recommendation: 'Revisar error_memory de los skills involucrados; reintentar con task distinta o agentes alternativos.',
+          dedupeKey: `swarm-${swarmId}`,
+          dedupeTtlMs: 15 * 60_000,
+        });
+        log(
+          `[LOOP-GUARD] ${consecutiveAllFailedBatches} batches consecutivos fallidos — swarm abortado (queue vaciada)`,
+          'ERROR',
+        );
+      }
+    } else {
+      consecutiveAllFailedBatches = 0;
+    }
+  }
+
   // Process tasks in parallel with concurrency limit
   async function processQueue(): Promise<void> {
     const promises: Promise<void>[] = [];
@@ -335,6 +370,20 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
         log(`  [LAUNCH] Worker for ${task.name} (${workerId})`, 'INFO');
         const result = spawnWorker(task.name, task.description, opts.timeoutSeconds, workerId);
         allResults.push(result);
+        // Aprendizaje + observabilidad por worker (Nexus + bus). Best-effort.
+        const startedMs = Date.parse(result.started);
+        recordWorkerOutcome({
+          workerId,
+          skill: task.name,
+          status: result.status,
+          durationMs:
+            Number.isFinite(startedMs) && result.finished
+              ? Date.parse(result.finished) - startedMs
+              : undefined,
+          error: result.error,
+          outputChars: result.output?.length ?? 0,
+          runId: `swarm-${swarmId}`,
+        });
         const level = result.status === 'completed' ? 'SUCCESS' : 'ERROR';
         log(
           `  [DONE] ${task.name}: ${result.status} (exit: ${result.exitCode})`,
@@ -350,14 +399,18 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
     }
 
     await Promise.allSettled(promises);
+    trackBatchOutcome(allResults.slice(-Math.min(opts.maxParallel, allResults.length)));
 
     // Process remaining sequentially (in batches)
     while (queue.length > 0) {
+      const before = allResults.length;
       const batch: Promise<void>[] = [];
       for (let i = 0; i < opts.maxParallel && queue.length > 0; i++) {
         batch.push(runNext());
       }
       await Promise.allSettled(batch);
+      trackBatchOutcome(allResults.slice(before));
+      if (abortedByLoopGuard) break;
     }
   }
 
@@ -501,10 +554,23 @@ function actionClean(): void {
 
 function parseArgs(): OrchestratorOptions {
   const args = process.argv.slice(2);
+  // Default desde config/auto-delegation.json (maxParallelAgents) — antes
+  // hardcoded 3 y la config declarativa no se leía.
+  let configMaxParallel = 3;
+  try {
+    const cfg = JSON.parse(readFileSync(join(process.cwd(), 'config', 'auto-delegation.json'), 'utf-8')) as {
+      maxParallelAgents?: number;
+    };
+    if (typeof cfg.maxParallelAgents === 'number' && cfg.maxParallelAgents > 0) {
+      configMaxParallel = cfg.maxParallelAgents;
+    }
+  } catch {
+    /* default */
+  }
   const opts: OrchestratorOptions = {
     task: '',
     skills: [],
-    maxParallel: 3,
+    maxParallel: configMaxParallel,
     timeoutSeconds: 300,
     dryRun: false,
     quiet: false,

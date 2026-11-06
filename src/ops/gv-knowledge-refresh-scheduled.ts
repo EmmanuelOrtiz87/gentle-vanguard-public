@@ -1,6 +1,8 @@
 /**
  * Ejecuta el refresh online de GV Knowledge Ops desde la tarea programada diaria.
  * Solo agrega evidencia/propuestas; no aplica cambios de contenido.
+ * Ademas: dedup recurrente de Engram (conflicts scan --apply, paginas de 100;
+ * el store acumula miles de observaciones, el scan avanza incremental).
  */
 
 import { appendFileSync, mkdirSync } from 'fs';
@@ -33,6 +35,21 @@ try {
   else log(`refresh: FAIL (exit ${result.status}) ${String(result.stderr).slice(-500)}`);
 } catch (error) {
   log(`refresh: FATAL ${error instanceof Error ? error.message : String(error)}`);
+}
+
+// Dedup recurrente de memoria: vincula relaciones de conflicto/duplicado.
+// Fail-safe: nunca rompe la tarea diaria; el proximo dia continua la pagina.
+try {
+  const engram = process.env.ENGRAM_BIN || 'engram';
+  const dedup = runSync(engram, [
+    'conflicts', 'scan', '--project', 'gentle-vanguard', '--apply', '--yes',
+    '--limit', '100', '--concurrency', '4',
+  ], { cwd: ROOT, windowsHide: true, timeout: 300000 });
+  const out = String(dedup.stdout || '').trim().split(String.fromCharCode(10)).slice(-4).join(' | ');
+  if (dedup.status === 0) log('engram-dedup: OK ' + out);
+  else log('engram-dedup: FAIL (exit ' + dedup.status + ') ' + out);
+} catch (error) {
+  log('engram-dedup: FATAL ' + (error instanceof Error ? error.message : String(error)));
 }
 
 process.exit(0);

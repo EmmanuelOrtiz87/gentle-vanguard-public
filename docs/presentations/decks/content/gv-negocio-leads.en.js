@@ -108,7 +108,7 @@ export default {
       items: [
         { value: '28', label: 'Own apps', sub: 'Systems we developed and that run today', accent: '06b6d4' },
         { value: '20', label: 'AI agents', sub: 'Roles with model, permissions and budget assigned', accent: '8b5cf6' },
-        { value: '253', label: 'Skills', sub: 'Reusable capabilities that are not rewritten per project', accent: 'fbbf24' },
+        { value: '256', label: 'Skills', sub: 'Reusable capabilities that are not rewritten per project', accent: 'fbbf24' },
         { value: '35', label: 'Components watched', sub: 'Health checks per component, with auto-heal', accent: '22d3ee' },
       ],
     },
@@ -122,7 +122,7 @@ export default {
       items: [
         { icon: 'layers', heading: 'Layers', body: 'Surfaces, orchestration, agents, skills, knowledge, tools and infrastructure.' },
         { icon: 'eye', heading: 'Traceability', body: 'Sessions, traces, events and hash-chained audit in the local database.' },
-        { icon: 'shield', heading: 'Governance', body: '36 quality gates, secret scanning and fail-closed policies.' },
+        { icon: 'shield', heading: 'Governance', body: '46 quality gates, secret scanning and fail-closed policies.' },
         { icon: 'cloud', heading: 'Local first', body: 'Runs on your team machine and is exposed to the cloud when needed.' },
       ],
       layers: [

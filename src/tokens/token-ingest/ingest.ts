@@ -9,6 +9,7 @@ import {
   readZcodeRollout,
   readCodexRollout,
   readMinimaxUsage,
+  readClaudeProjects,
   SessionUsage,
   TransactionUsage,
   zcodeRolloutDir,
@@ -73,6 +74,11 @@ export function ingestOnce(): {
       name: 'MiniMax',
       stateKey: 'minimaxLastTs',
       data: readMinimaxUsage(lastIngested('minimaxLastTs')),
+    },
+    {
+      name: 'Claude',
+      stateKey: 'claudeLastTs',
+      data: readClaudeProjects(lastIngested('claudeLastTs')),
     },
   ];
   for (const src of extraSources) {

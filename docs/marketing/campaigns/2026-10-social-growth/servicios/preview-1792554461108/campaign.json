@@ -1,0 +1,97 @@
+{
+  "id": "servicios_consultas_14d",
+  "status": "REVIEW",
+  "audience": "Dueños y responsables de pymes con consultas sin seguimiento",
+  "pieces": [
+    {
+      "id": "s01",
+      "category": "Servicios para pymes",
+      "title": [
+        "Tu consulta.",
+        "Con responsable.",
+        "Con próximo paso."
+      ],
+      "accentLine": 2,
+      "body": "Responder es un paso; hacer seguimiento es otro.",
+      "art": "service-automation.webp",
+      "cta": "Escribinos PROCESO",
+      "action": "Mensaje privado · PROCESO",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GentleVanguard. Tu consulta. Con responsable. Con próximo paso.. Responder es un paso; hacer seguimiento es otro.",
+      "caption": "Una consulta respondida todavía puede quedar sin seguimiento. Antes de automatizar, definí responsable, estado y próximo paso. En nuestra demostración usamos datos ficticios. ¿Dónde se corta el recorrido en tu negocio? Escribinos PROCESO y contanos.",
+      "storySticker": "PROCESO"
+    },
+    {
+      "id": "s02",
+      "category": "Servicios para pymes",
+      "title": [
+        "Después de",
+        "responder…",
+        "¿quién sigue?"
+      ],
+      "accentLine": 2,
+      "body": "Ordenemos el recorrido antes de elegir una herramienta.",
+      "art": "service-automation.webp",
+      "cta": "Escribinos PROCESO",
+      "action": "Mensaje privado · PROCESO",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GentleVanguard. Después de responder… ¿quién sigue?. Ordenemos el recorrido antes de elegir una herramienta.",
+      "caption": "¿Quién sigue la consulta después de responder? Si queda en la memoria, puede perderse el próximo paso. Una ficha simple ayuda a hacer visible quién la toma y qué falta hacer. Escribinos PROCESO y contanos cómo trabajan hoy.",
+      "storySticker": "PROCESO"
+    },
+    {
+      "id": "s03",
+      "category": "Servicios para pymes",
+      "title": [
+        "Un bot también",
+        "necesita saber",
+        "cuándo parar."
+      ],
+      "accentLine": 2,
+      "body": "Definir excepciones es parte de diseñar la atención.",
+      "art": "service-automation.webp",
+      "cta": "Escribinos PROCESO",
+      "action": "Mensaje privado · PROCESO",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GentleVanguard. Un bot también necesita saber cuándo parar.. Definir excepciones es parte de diseñar la atención.",
+      "caption": "No todas las consultas deben resolverse con una respuesta automática. Una excepción, un reclamo o una duda que el sistema no entiende puede necesitar revisión humana. Antes de integrar un bot, definimos esas reglas. Escribinos PROCESO y contanos qué consultas se repiten en tu negocio.",
+      "storySticker": "PROCESO"
+    },
+    {
+      "id": "s04",
+      "category": "Servicios para pymes",
+      "title": [
+        "Primero el",
+        "proceso.",
+        "Después la app."
+      ],
+      "accentLine": 2,
+      "body": "La solución depende de lo que necesitás ordenar.",
+      "art": "service-automation.webp",
+      "cta": "Escribinos PROCESO",
+      "action": "Mensaje privado · PROCESO",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GentleVanguard. Primero el proceso. Después la app.. La solución depende de lo que necesitás ordenar.",
+      "caption": "Una app no siempre es el primer paso. A veces falta acordar quién registra una consulta; otras veces hace falta conectar herramientas o construir un sistema. En GentleVanguard evaluamos el proceso antes de definir una solución. Escribinos PROCESO para describir tu necesidad.",
+      "storySticker": "PROCESO"
+    },
+    {
+      "id": "s05",
+      "category": "Servicios para pymes",
+      "title": [
+        "Responsable.",
+        "Estado.",
+        "Próximo paso."
+      ],
+      "accentLine": 2,
+      "body": "Así se organiza una consulta en nuestro ejemplo ficticio.",
+      "art": "service-automation.webp",
+      "cta": "Escribinos PROCESO",
+      "action": "Mensaje privado · PROCESO",
+      "destination": "https://gentlevanguard.github.io/",
+      "alt": "GentleVanguard. Responsable. Estado. Próximo paso.. Así se organiza una consulta en nuestro ejemplo ficticio.",
+      "caption": "Así queda una consulta cuando definís responsable, estado y próximo paso. El ejemplo es ficticio y sirve para entender el recorrido; no representa resultados de un cliente. Si querés revisar cómo hacerlo en tu negocio, escribinos PROCESO y contanos dónde se pierde el seguimiento.",
+      "storySticker": "PROCESO"
+    }
+  ]
+}

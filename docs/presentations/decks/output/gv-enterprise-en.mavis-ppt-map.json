@@ -1,0 +1,534 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-enterprise-en",
+  "title": "GentleVanguard - An orchestration layer for your company AI",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/content",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "cover",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Internal AI adoption - A governed stack",
+          "editable": true
+        },
+        {
+          "elementId": "cover-title",
+          "role": "title",
+          "type": "string",
+          "text": "An orchestration layer\nfor your company AI",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleSize",
+          "role": "titleSize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleH",
+          "role": "titleH",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-subtitle",
+          "role": "subtitle",
+          "type": "string",
+          "text": "A local-first stack that turns AI assistants into governed capability: defined roles, token budgets, traceability and audit.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-meta",
+          "role": "meta",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "cover-version",
+          "role": "version",
+          "type": "string",
+          "text": "Stack v4.3.0 - November 2026",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "statement",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "statement-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Who builds it",
+          "editable": true
+        },
+        {
+          "elementId": "statement-title",
+          "role": "title",
+          "type": "string",
+          "text": "The person who knows applied AI in large companies has done it before",
+          "editable": true
+        },
+        {
+          "elementId": "statement-body",
+          "role": "body",
+          "type": "string",
+          "text": "Emmanuel Ortiz Gutierrez: software architect, AI integration engineer and founder of GentleVanguard. More than 15 years building and analysing systems for companies: software architecture and AI integration at DIRECTV Latin America, technical consulting at GlobalLogic and Oracle, plus analysis, QA and development team coordination.",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodyW",
+          "role": "bodyW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodySize",
+          "role": "bodySize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-stats",
+          "role": "stats",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "figureLayers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "figureLayers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "What it is",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-title",
+          "role": "title",
+          "type": "string",
+          "text": "The stack is not a chatbot: it is the layer that governs it",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Each layer solves one class of problems and keeps a record of what it did.",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-textW",
+          "role": "textW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-layers",
+          "role": "layers",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "layers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "layers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Anatomy",
+          "editable": true
+        },
+        {
+          "elementId": "layers-title",
+          "role": "title",
+          "type": "string",
+          "text": "Nine layers, each with an explicit boundary",
+          "editable": true
+        },
+        {
+          "elementId": "layers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "The structure is what makes it possible to audit, replace or extend one piece without breaking the rest.",
+          "editable": true
+        },
+        {
+          "elementId": "layers-labelW",
+          "role": "labelW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "layers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Scale",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "Not a prototype: a system under sustained use",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Figures verified against the repository at version 4.3.0.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "cards",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "cards-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Capabilities",
+          "editable": true
+        },
+        {
+          "elementId": "cards-title",
+          "role": "title",
+          "type": "string",
+          "text": "What the company gets when it installs the stack",
+          "editable": true
+        },
+        {
+          "elementId": "cards-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cards-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "layout": "flow",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "flow-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Operation",
+          "editable": true
+        },
+        {
+          "elementId": "flow-title",
+          "role": "title",
+          "type": "string",
+          "text": "How a task actually runs, end to end",
+          "editable": true
+        },
+        {
+          "elementId": "flow-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "The loop does not change between a one-week project and a six-month one.",
+          "editable": true
+        },
+        {
+          "elementId": "flow-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Governance",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "What keeps this from being an uncontrolled experiment",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "layout": "compare",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "compare-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "The decision",
+          "editable": true
+        },
+        {
+          "elementId": "compare-title",
+          "role": "title",
+          "type": "string",
+          "text": "Adopting AI tool by tool, or with an orchestration layer",
+          "editable": true
+        },
+        {
+          "elementId": "compare-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "This is the difference between a software contract and an organisational capability.",
+          "editable": true
+        },
+        {
+          "elementId": "compare-left",
+          "role": "left",
+          "type": "object",
+          "editable": true
+        },
+        {
+          "elementId": "compare-right",
+          "role": "right",
+          "type": "object",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Topology",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Where each part lives, and why it matters",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Operation is local; exposure is optional and reversible.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Economics",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "The cost of AI, measured and bounded",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "The router picks the model by cost, latency and load. Budgets cut before spend becomes a surprise.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "layout": "timeline",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "timeline-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Adoption",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-title",
+          "role": "title",
+          "type": "string",
+          "text": "How to get in without breaking anything",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Four steps, each reversible and each with its own success criterion.",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "layout": "closing",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-title",
+          "role": "title",
+          "type": "string",
+          "text": "The next step is a diagnostic, not a contract",
+          "editable": true
+        },
+        {
+          "elementId": "closing-body",
+          "role": "body",
+          "type": "string",
+          "text": "We propose a working session to audit how AI sits in your organisation today and which part of this platform can be adopted without friction. No cost and no implementation commitment.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-ctas",
+          "role": "ctas",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-contacts",
+          "role": "contacts",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-note",
+          "role": "note",
+          "type": "string",
+          "text": "The stack is open source. Internal adoption happens on top of the repository and your own company policies.",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

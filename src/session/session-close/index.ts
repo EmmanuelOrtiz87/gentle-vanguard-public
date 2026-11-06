@@ -26,6 +26,7 @@ import {
   phasePersist,
   phaseBackup,
   phaseAudit,
+  phasePush,
   phaseCleanup,
   phaseVerify,
 } from './phases.js';
@@ -57,13 +58,21 @@ export interface CloseOptions {
   skipBackup?: boolean;
   skipAudit?: boolean;
   skipVerify?: boolean;
+  /** Skip the "push real" phase (only for closes where the owner publishes manually). */
+  skipPush?: boolean;
 }
 
 export async function runCloseOrchestrator(
   reason = 'session-end',
   options: CloseOptions = {},
 ): Promise<CloseReport> {
-  const { fastClose = false, skipBackup = false, skipAudit = false, skipVerify = false } = options;
+  const {
+    fastClose = false,
+    skipBackup = false,
+    skipAudit = false,
+    skipVerify = false,
+    skipPush = false,
+  } = options;
 
   log('═══════════════════════════════════════════');
   log('  SESSION CLOSE ORCHESTRATOR v2.0');
@@ -86,6 +95,10 @@ export async function runCloseOrchestrator(
     backup: fastClose || skipBackup ? [] : phaseBackup(),
     // FAST CLOSE: Skip audit for quick closes
     audit: fastClose || skipAudit ? [] : phaseAudit(),
+    // Push real: el cierre NO queda validado sin publicar (normativa §6.1).
+    // Se corre antes del cleanup para que los hooks del pre-push tengan el
+    // stack vivo. Los cierres de arranque (startup-cleanup) no publican.
+    push: skipPush || isStartup || fastClose ? [] : phasePush(),
     cleanup: await phaseCleanup(isStartup, isAuthorizedAutomatedClose(reason)),
     // FAST CLOSE: Skip verify for quick closes
     verify: fastClose || skipVerify ? [] : phaseVerify(),
@@ -97,6 +110,7 @@ export async function runCloseOrchestrator(
     ...phases.persist,
     ...phases.backup,
     ...phases.audit,
+    ...phases.push,
     ...phases.cleanup,
     ...phases.verify,
   ];
@@ -289,6 +303,8 @@ export async function main() {
       closeOptions.skipAudit = true;
     } else if (args[i] === '--skip-verify') {
       closeOptions.skipVerify = true;
+    } else if (args[i] === '--skip-push') {
+      closeOptions.skipPush = true;
     }
   }
 

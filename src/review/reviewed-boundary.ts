@@ -115,6 +115,55 @@ export function clearBoundary(opts: BoundaryOptions = {}): boolean {
   return true;
 }
 
+// ─── Clasificación de delta (#5638 stop codes upstream) ─────────────
+
+/**
+ * Rutas de contenido PASIVO (documentación/notas): no crean autoridad de
+ * review. Un delta que SOLO toca rutas pasivas después de un boundary
+ * acknowledged es terminal — no dispara re-review.
+ * Upstream: `acknowledged_predecessor_passive_delta` (PR #5638).
+ */
+export const PASSIVE_PATH_RE = /(^|\/)(docs|\.session|knowledge-base)\//;
+
+export function isPassivePath(p: string): boolean {
+  return PASSIVE_PATH_RE.test(p) || /\.md$/i.test(p);
+}
+
+/** true si hay AL MENOS una ruta y TODAS son pasivas */
+export function isPassiveOnly(paths: string[]): boolean {
+  return paths.length > 0 && paths.every(isPassivePath);
+}
+
+export type DeltaClassification = 'clean' | 'passive-delta' | 'needs-review';
+
+export interface ClassifiedDelta extends BoundaryStatus {
+  classification: DeltaClassification;
+  /** stop code upstream cuando el delta es terminal (no crea autoridad de review) */
+  stopCode?: 'acknowledged_predecessor_passive_delta';
+  changedFiles: string[];
+}
+
+/** Clasifica el delta pendiente desde la base: clean / passive-delta / needs-review. */
+export function classifyDelta(opts: BoundaryOptions = {}): ClassifiedDelta {
+  const root = resolve(opts.root ?? process.cwd());
+  const s = boundaryStatus({ ...opts, root });
+  if (s.deltaCount === null || s.deltaCount === 0) {
+    return { ...s, classification: 'clean', changedFiles: [] };
+  }
+  let files: string[] = [];
+  const diff = git(root, ['diff', '--name-only', `${s.base}..${s.head}`]);
+  if (diff.ok) files = diff.out.split('\n').filter((l): l is string => !!l);
+  if (isPassiveOnly(files)) {
+    return {
+      ...s,
+      classification: 'passive-delta',
+      stopCode: 'acknowledged_predecessor_passive_delta',
+      changedFiles: files,
+    };
+  }
+  return { ...s, classification: 'needs-review', changedFiles: files };
+}
+
 // ─── Delta base (#5635 upstream-first) ──────────────────────────────
 
 /** merge-base con el upstream de la rama actual; null cuando no hay upstream */
@@ -188,9 +237,9 @@ function main(): void {
   const mode = modeArg || 'status';
 
   const emitStatus = () => {
-    let s: BoundaryStatus;
+    let s: ClassifiedDelta;
     try {
-      s = boundaryStatus({ root });
+      s = classifyDelta({ root });
     } catch (e) {
       console.error(`[reviewed-boundary] error: ${e instanceof Error ? e.message : e}`);
       process.exit(1);
@@ -208,7 +257,8 @@ function main(): void {
       console.log('[reviewed-boundary] sin base derivable (shallow/plain state)');
     }
     if (s.deltaCount !== null) {
-      console.log(`[reviewed-boundary] pendientes de review: ${s.deltaCount}`);
+      console.log(`[reviewed-boundary] pendientes de review: ${s.deltaCount} (${s.classification})`);
+      if (s.stopCode) console.log(`[reviewed-boundary] stop code: ${s.stopCode} — terminal, no dispara re-review`);
       for (const c of s.recentCommits) console.log(`  ${c}`);
     }
   };

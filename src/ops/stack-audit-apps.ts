@@ -271,7 +271,13 @@ export function runAppCheck(
       stdio: 'pipe',
       timeout: 240_000,
     });
-    const output = [r.stderr, r.stdout, r.error?.message].filter(Boolean).join('\n');
+    // El MOTIVO del fallo esta al PRINCIPIO del stderr (pnpm y vite imprimen
+    // ahi su codigo y su mensaje) y el stack al final. Con solo la cola, un
+    // fallo de pnpm llegaba al reporte como un stack sin codigo: habia que
+    // adivinar la causa. Se toma la cabeza del stderr y la cola del stdout.
+    const stderr = (r.stderr || '').slice(0, 1_200);
+    const stdout = (r.stdout || '').slice(-1_200);
+    const output = [stderr, stdout, r.error?.message].filter(Boolean).join('\n');
     return { status: r.status, output };
   });
 
@@ -283,7 +289,13 @@ export function runAppCheck(
       return { kind, status: 'PASS', durationMs, message: 'ok' };
     }
 
-    const failureDetail = first.output.slice(-2_000).replace(/\s+/g, ' ').trim();
+    // Detalle = cabeza (codigo/mensaje del error) + cola (stack). Con solo la
+    // cola se perdia el motivo; con solo la cabeza se perdia la firma de fallo
+    // ambiental que dispara el reintento.
+    const detail = (output: string): string =>
+      `${output.slice(0, 700)} ... ${output.slice(-1_300)}`.replace(/\s+/g, ' ').trim();
+
+    const failureDetail = detail(first.output);
     const flaky = FLAKY_FAILURE_SIGNATURES.some((sig) => failureDetail.includes(sig));
     if (flaky) {
       const retry = run(command, args);
@@ -295,7 +307,7 @@ export function runAppCheck(
           message: `ok (reintento tras fallo ambiental: ${failureDetail.slice(0, 120)})`,
         };
       }
-      const retryDetail = retry.output.slice(-2_000).replace(/\s+/g, ' ').trim();
+      const retryDetail = detail(retry.output);
       return {
         kind,
         status: 'FAIL',

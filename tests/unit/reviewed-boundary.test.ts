@@ -10,7 +10,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -20,6 +20,9 @@ import {
   clearBoundary,
   getDeltaBase,
   readBoundary,
+  classifyDelta,
+  isPassiveOnly,
+  isPassivePath,
   shaExists,
   STATE_RELATIVE_PATH,
 } from '../../src/review/reviewed-boundary.ts';
@@ -148,6 +151,69 @@ test('advanceBoundary resuelve HEAD y nombres de rama (ACK por defecto del CLI)'
     // Revisión inexistente: sigue fail-closed.
     assert.throws(() => advanceBoundary('nope-not-a-ref', undefined, { root, stateFile }));
     assert.strictEqual(readBoundary({ root, stateFile })?.sha, head, 'no pisó el boundary válido');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// ─── Clasificación de delta (#5638: acknowledged_predecessor_passive_delta) ───
+
+test('isPassivePath: docs/, .session/, knowledge-base/ y *.md son pasivos; código no', () => {
+  assert.ok(isPassivePath('docs/reference/x.md'));
+  assert.ok(isPassivePath('.session/context-log/s.json'));
+  assert.ok(isPassivePath('knowledge-base/04-sessions/summary.md'));
+  assert.ok(isPassivePath('README.md'));
+  assert.ok(!isPassivePath('src/core/detect-tool.ts'));
+  assert.ok(!isPassivePath('apps/web-dashboard/src/lib.ts'));
+});
+
+test('isPassiveOnly: false con lista vacía; true solo si TODAS son pasivas', () => {
+  assert.strictEqual(isPassiveOnly([]), false);
+  assert.strictEqual(isPassiveOnly(['docs/a.md']), true);
+  assert.strictEqual(isPassiveOnly(['docs/a.md', 'src/b.ts']), false);
+});
+
+test('classifyDelta: delta solo-pasivo tras boundary => passive-delta terminal (#5638)', () => {
+  const root = makeTempRepo();
+  try {
+    const sha1 = spawnGit(root, ['rev-parse', 'HEAD']).stdout.trim();
+    advanceBoundary(sha1, undefined, { root });
+    // commit 2: solo documentación
+    mkdirSync(join(root, 'docs'), { recursive: true });
+    writeFileSync(join(root, 'docs', 'note.md'), 'nota\n', 'utf-8');
+    spawnGit(root, ['add', '.']);
+    spawnGit(root, ['commit', '-m', 'docs: nota']);
+    const c = classifyDelta({ root });
+    assert.strictEqual(c.classification, 'passive-delta');
+    assert.strictEqual(c.stopCode, 'acknowledged_predecessor_passive_delta');
+    assert.ok(c.changedFiles.every((f) => isPassivePath(f)));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('classifyDelta: delta con código => needs-review sin stopCode', () => {
+  const root = makeTempRepo();
+  try {
+    const sha1 = spawnGit(root, ['rev-parse', 'HEAD']).stdout.trim();
+    advanceBoundary(sha1, undefined, { root });
+    writeFileSync(join(root, 'a.txt'), 'v2\n', 'utf-8');
+    spawnGit(root, ['add', '.']);
+    spawnGit(root, ['commit', '-m', 'feat: cambia código']);
+    const c = classifyDelta({ root });
+    assert.strictEqual(c.classification, 'needs-review');
+    assert.strictEqual(c.stopCode, undefined);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('classifyDelta: sin delta => clean', () => {
+  const root = makeTempRepo();
+  try {
+    const sha1 = spawnGit(root, ['rev-parse', 'HEAD']).stdout.trim();
+    advanceBoundary(sha1, undefined, { root });
+    assert.strictEqual(classifyDelta({ root }).classification, 'clean');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

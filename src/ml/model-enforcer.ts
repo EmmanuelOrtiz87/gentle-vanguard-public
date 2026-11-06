@@ -21,22 +21,69 @@ const OPENCODE_CONFIG_PATH = join(ROOT, 'opencode.json');
 const FREE_MODEL = 'opencode-zen-C/big-pickle';
 const FREE_PROVIDER = 'opencode';
 
-function getPreferredModel(): { model: string; provider: string } {
+interface ModelPreference {
+  preferredModel?: string;
+  preferredProvider?: string;
+  fallbackModel?: string;
+}
+
+function readPreference(): ModelPreference {
   try {
-    const preference = JSON.parse(readFileSync(PREFERENCE_PATH, 'utf-8')) as {
-      preferredModel?: string;
-      preferredProvider?: string;
-    };
-    if (preference.preferredModel) {
-      return {
-        model: preference.preferredModel,
-        provider: preference.preferredProvider ?? preference.preferredModel.split('/')[0],
-      };
-    }
+    return JSON.parse(readFileSync(PREFERENCE_PATH, 'utf-8')) as ModelPreference;
   } catch {
-    /* fall through to the free emergency model */
+    return {};
+  }
+}
+
+function getPreferredModel(): { model: string; provider: string } {
+  const preference = readPreference();
+  if (preference.preferredModel) {
+    return {
+      model: preference.preferredModel,
+      provider: preference.preferredProvider ?? preference.preferredModel.split('/')[0],
+    };
   }
   return { model: FREE_MODEL, provider: FREE_PROVIDER };
+}
+
+/**
+ * Resolve the model to enforce. The emergency fallback used to be a hardcoded
+ * constant that was NEVER validated against the healthy list: when the preferred
+ * model was down, the enforcer happily enforced the very model it had just
+ * classified as unhealthy. Order of resolution, every candidate validated:
+ *   1. preferred model        — only if healthy
+ *   2. configured fallback    — only if healthy
+ *   3. first healthy free model in the registry
+ * A model listed as unhealthy/unknown is never enforced.
+ */
+function resolveTargetModel(
+  status: { healthy: string[]; unhealthy: string[] },
+  preferred: { model: string; provider: string },
+): { target: { model: string; provider: string }; reason: string } {
+  if (status.healthy.includes(preferred.model)) {
+    return { target: preferred, reason: 'Preferred subscription model available' };
+  }
+
+  const configuredFallback = readPreference().fallbackModel;
+  if (configuredFallback && status.healthy.includes(configuredFallback)) {
+    return {
+      target: { model: configuredFallback, provider: configuredFallback.split('/')[0] },
+      reason: 'Fallback: preferred model unavailable, configured fallback healthy',
+    };
+  }
+
+  const firstHealthy = status.healthy[0];
+  if (firstHealthy) {
+    return {
+      target: { model: firstHealthy, provider: firstHealthy.split('/')[0] },
+      reason: 'Fallback: preferred and configured fallback unavailable, first healthy free model',
+    };
+  }
+
+  return {
+    target: { model: FREE_MODEL, provider: FREE_PROVIDER },
+    reason: 'Fallback: no healthy model available',
+  };
 }
 
 interface ModelEntry {
@@ -68,16 +115,89 @@ function log(message: string): void {
   console.log(`[${entry.timestamp}] ${message}`);
 }
 
-function checkModelHealth(): { healthy: string[]; unhealthy: string[]; free: string[] } {
+/**
+ * Evidencia FRESCA de disponibilidad de proveedores.
+ *
+ * Lo que dice `config/model-health-registry.json` es `health.status`, pero ese
+ * dato esta escrito a mano y envejece (el ultimo `lastChecked` era de agosto).
+ * La ausencia de evidencia no es evidencia de salud. Este archivo lo escribe
+ * `src/tools/model-health-probe.ts` con un timestamp real.
+ */
+interface ProviderEvidence {
+  reachable: boolean;
+  models: number;
+  error?: string;
+  checkedAt: string;
+}
+
+const EVIDENCE_PATH = join(ROOT, '.runtime', 'model-health-evidence.json');
+/** Evidencia mas vieja que esto se considera ausente (no descalifica). */
+const EVIDENCE_TTL_MS = 6 * 60 * 60 * 1000;
+
+function loadProviderEvidence(): Record<string, ProviderEvidence> {
+  try {
+    const file = JSON.parse(readFileSync(EVIDENCE_PATH, 'utf-8')) as {
+      providers?: Record<string, ProviderEvidence>;
+    };
+    return file.providers ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * El id del modelo puede venir del registry con un provider que no coincide
+ * con el id de OpenCode (`opencode-go` vs `opencode-go-A`). Se prueban los
+ * candidatos y gana el primero que tenga evidencia.
+ */
+function evidenceFor(
+  modelId: string,
+  registryProvider: string,
+  evidence: Record<string, ProviderEvidence>,
+): ProviderEvidence | undefined {
+  const candidates = [
+    registryProvider,
+    modelId.split('/')[0],
+    modelId.split('/').slice(0, 2).join('/'),
+  ];
+  for (const candidate of candidates) {
+    if (candidate && evidence[candidate]) return evidence[candidate];
+  }
+  return undefined;
+}
+
+function checkModelHealth(): {
+  healthy: string[];
+  unhealthy: string[];
+  free: string[];
+  evidenceAgeHours: number | null;
+} {
   const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
+  const evidence = loadProviderEvidence();
+  const cutoff = Date.now() - EVIDENCE_TTL_MS;
 
   const healthy: string[] = [];
   const unhealthy: string[] = [];
   const free: string[] = [];
+  let evidenceAgeHours: number | null = null;
 
   for (const [id, model] of Object.entries(registry.models)) {
     const isHealthy = model.health.status === 'available';
     const isFree = model.costPer1kTokens.input === 0 && model.costPer1kTokens.output === 0;
+
+    // Evidencia fresca e INALCANZABLE descalifica el modelo, aunque el
+    // registry lo declare disponible.
+    const providerEvidence = evidenceFor(id, model.provider, evidence);
+    if (providerEvidence) {
+      const ageHours = (Date.now() - Date.parse(providerEvidence.checkedAt)) / 3_600_000;
+      if (evidenceAgeHours === null || ageHours < evidenceAgeHours) evidenceAgeHours = ageHours;
+      const fresh = Date.parse(providerEvidence.checkedAt) > cutoff;
+      if (fresh && !providerEvidence.reachable) {
+        if (isFree) free.push(id);
+        unhealthy.push(id);
+        continue;
+      }
+    }
 
     if (isFree) free.push(id);
     if (isHealthy && isFree) {
@@ -87,7 +207,7 @@ function checkModelHealth(): { healthy: string[]; unhealthy: string[]; free: str
     }
   }
 
-  return { healthy, unhealthy, free };
+  return { healthy, unhealthy, free, evidenceAgeHours };
 }
 
 function enforceFreeModel(): void {
@@ -97,6 +217,15 @@ function enforceFreeModel(): void {
   const status = checkModelHealth();
   log(`Modelos saludables y gratuitos: ${status.healthy.join(', ')}`);
   log(`Modelos con problemas: ${status.unhealthy.join(', ')}`);
+  if (status.evidenceAgeHours === null) {
+    log(
+      'Evidencia de proveedores: AUSENTE (sin probe) — el registry manda, pero su health.status es estatico',
+    );
+  } else {
+    log(
+      `Evidencia de proveedores: probe de hace ${status.evidenceAgeHours.toFixed(1)}h (un proveedor inalcanzable descalifica sus modelos)`,
+    );
+  }
 
   if (status.healthy.length === 0) {
     log('❌ ERROR: No hay modelos saludables disponibles');
@@ -104,9 +233,11 @@ function enforceFreeModel(): void {
   }
 
   const preferred = getPreferredModel();
-  const preferredHealthy = status.healthy.includes(preferred.model);
-  const target = preferredHealthy ? preferred : { model: FREE_MODEL, provider: FREE_PROVIDER };
+  const { target, reason } = resolveTargetModel(status, preferred);
   log(`Modelo preferido: ${preferred.model}; seleccionado: ${target.model}`);
+  if (target.model === preferred.model && !status.healthy.includes(target.model)) {
+    log(`WARN: ${target.model} no figura como saludable — no hay modelo healthy disponible`);
+  }
 
   // 2. Actualizar registry para que el modelo preferido sea el primario;
   // solo cae al modelo gratuito si el preferido no está disponible.
@@ -150,9 +281,7 @@ function enforceFreeModel(): void {
     model: target.model,
     provider: target.provider,
     enforcedAt: new Date().toISOString(),
-    reason: preferredHealthy
-      ? 'Preferred subscription model available'
-      : 'Fallback: preferred model unavailable',
+    reason,
     previousModel: process.env.GENTLE_VANGUARD_ACTIVE_MODEL || 'unknown',
   };
 

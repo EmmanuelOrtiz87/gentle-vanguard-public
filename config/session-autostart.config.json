@@ -75,6 +75,17 @@
         "description": "Enforce free model (opencode-zen-C/mimo-v2.6-flash-free) when credits exhausted"
       },
       {
+        "id": "model-health-probe",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tools/model-health-probe.ts",
+        "args": "",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "description": "Sondea la disponibilidad real de los proveedores de modelo y escribe evidencia fresca con TTL (.runtime/model-health-evidence.json). El enforcer descalifica los modelos de un proveedor inalcanzable. Exit 2 = indeterminado (sin red), no bloquea."
+      },
+      {
         "id": "tool-detection",
         "enabled": true,
         "script": "src/core/detect-tool.ts",
@@ -167,12 +178,12 @@
         "id": "token-spike-guard",
         "enabled": true,
         "lazy": true,
-        "script": "src/tokens/token-spike-guard.ts",
+        "script": "src/tokens/token-spike-guard-daemon.ts",
         "args": "--attach",
         "required": false,
         "phase": 1,
         "skipOnFailure": true,
-        "description": "Guardian de picos de tokens en tiempo real (monitor cada 10s, alertas progresivas)"
+        "description": "Token spike guard daemon — burn rate continuo, checkpoint y notificación MCAS en umbrales"
       },
       {
         "id": "engram-integrity",
@@ -1094,7 +1105,27 @@
         "args": "--watch 30",
         "required": false,
         "phase": 90,
-        "description": "Token Ingest AGNÃSTICO â€” lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/cursor) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesiÃ³n hasta el cierre."
+        "description": "Token Ingest AGNOSTICO - lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/codex/zcode/minimax) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesion hasta el cierre."
+      },
+      {
+        "id": "metrics-writer-init",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/metrics-writer-daemon.ts",
+        "args": "--watch 30",
+        "required": false,
+        "phase": 90,
+        "description": "MetricsWriter daemon - snapshots de metricas a Nexus metric_snapshots + sync de sesiones (context-log) cada 30s SIN depender del dashboard (antes solo corria si websocket-server/vite estaban vivos). Usa el MetricsWriter canonico de src/database/nexus."
+      },
+      {
+        "id": "orphan-native-sessions-check",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tokens/orphan-native-sessions.ts",
+        "args": "",
+        "required": false,
+        "phase": 90,
+        "description": "Enforcement del autostart por observabilidad - detecta sesiones nativas con tokens ingestados que nunca se mapearon a una sesion del stack (sin alias ni context-log) y persiste .runtime/metrics/orphan-native-sessions.json. Nada escapa en silencio."
       },
       {
         "id": "web-crawler-init",
@@ -1182,11 +1213,7 @@
   "orphanSessionCleanup": {
     "enabled": true,
     "maxAgeHours": 24,
-    "statusesToClean": [
-      "active",
-      "orphaned",
-      "ended"
-    ],
+    "statusesToClean": ["active", "orphaned", "ended"],
     "description": "Clean up sessions left in 'active' status after maxAgeHours (crash recovery)"
   },
   "retention": {

@@ -824,6 +824,23 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
         ON token_transactions(tenant_id, agent_name);
     `,
   },
+
+  // Ack de alertas del dashboard PERSISTENTE (antes vivía en un Map en
+  // memoria del servidor WS y se perdía con cada restart). Semántica por
+  // episodio: el ack se libera cuando la alerta se resuelve (lo hace el
+  // servidor), pero sobrevive restarts mientras el episodio sigue activo.
+  {
+    id: '023_alert_acks',
+    sql: `
+      CREATE TABLE IF NOT EXISTS alert_acks (
+        name TEXT NOT NULL,
+        tenant_id TEXT NOT NULL DEFAULT 'gentle-vanguard',
+        acknowledged_at TEXT NOT NULL DEFAULT (datetime('now')),
+        acked_by TEXT,
+        PRIMARY KEY (name, tenant_id)
+      );
+    `,
+  },
 ];
 
 export class MigrationRunner {

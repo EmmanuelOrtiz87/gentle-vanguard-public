@@ -18,7 +18,7 @@ Complementos:
 ### ¿Qué es GentleVanguard?
 
 Una plataforma de agentes de IA para equipos de producto: un stack local-first
-que incluye 28 apps, 253 skills indexadas, los agentes, la base
+que incluye 28 apps, 256 skills indexadas, los agentes, la base
 operacional y los gates de calidad. Todo corre en la máquina del equipo; la
 promoción a servicios externos es opcional.
 

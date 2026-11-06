@@ -83,7 +83,7 @@ sostenible de una que no se puede sostener:
 2. **No hay certificaciones ni estandares de terceros** que el stack no tenga.
 3. **No hay precios** si no hay una tarifa oficial publicada. Se habla de
    modelo de trabajo, no de numeros inventados.
-4. **Los conteos del repo son reales y se citan como tales** ("253 skills
+4. **Los conteos del repo son reales y se citan como tales** ("256 skills
    indexadas", "33 gates"), nunca como metricas de mercado.
 5. **El "que decir" no repite la slide.** La slide ya esta leida; el guion
    aporta el marco, la relacion con lo anterior y lo que se viene.

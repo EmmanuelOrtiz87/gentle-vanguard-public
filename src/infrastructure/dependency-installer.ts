@@ -227,7 +227,7 @@ async function main(): Promise<void> {
   process.exit(exitCode);
 }
 
-function getDepsInternal(): DepSpec[] {
+export function getDepsInternal(): DepSpec[] {
   // Minimal dep list for standalone usage — avoids importing the full validator
   return [
     {
@@ -378,7 +378,7 @@ function getDepsInternal(): DepSpec[] {
   ];
 }
 
-async function validateInternal(deps: DepSpec[]): Promise<DepResult[]> {
+export async function validateInternal(deps: DepSpec[]): Promise<DepResult[]> {
   const results: DepResult[] = [];
   for (const dep of deps) {
     if (dep.envVar) {

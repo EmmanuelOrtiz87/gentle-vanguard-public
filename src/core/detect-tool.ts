@@ -67,6 +67,63 @@ function getHomeDir(): string {
   return process.env.USERPROFILE || process.env.HOME || '';
 }
 
+const KNOWN_TOOL_NAMES = [
+  'opencode',
+  'claude-code',
+  'cline',
+  'cursor',
+  'windsurf',
+  'codex',
+  'zcode',
+  'minimax',
+  'continue-dev',
+  'copilot',
+  'antigravity',
+  'claude-generic',
+] as const;
+
+const DEFAULT_CONFIG_FILES: Record<string, string> = {
+  opencode: 'opencode.json',
+  'claude-code': '.claude/settings.json',
+  cline: '.clinerules',
+  cursor: '.cursorrules',
+  windsurf: '.windsurf/config.json',
+  codex: '.codex/config.toml',
+  zcode: '.zcode/config.json',
+  minimax: '~/.minimax/config.yaml',
+  'continue-dev': '.continue/config.json',
+  antigravity: '.antigravity/config.json',
+};
+
+const DEFAULT_PROMPT_FILES: Record<string, string> = {
+  opencode: 'CLAUDE.md',
+  'claude-code': 'CLAUDE.md',
+  cline: '.clinerules',
+  cursor: '.cursorrules',
+  windsurf: 'CLAUDE.md',
+  codex: 'AGENTS.md',
+  zcode: 'AGENTS.md',
+  minimax: 'AGENTS.md',
+  'continue-dev': 'CLAUDE.md',
+  copilot: 'CLAUDE.md',
+  antigravity: 'CLAUDE.md',
+  'claude-generic': 'CLAUDE.md',
+};
+
+function setToolFlags(tool: DetectedTool, name: string): void {
+  tool.isClaude = name === 'claude-code' || name === 'claude-generic';
+  tool.isOpenCode = name === 'opencode';
+  tool.isCline = name === 'cline';
+  tool.isCursor = name === 'cursor';
+  tool.isWindsurf = name === 'windsurf';
+  tool.isContinueDev = name === 'continue-dev';
+  tool.isCopilot = name === 'copilot';
+  tool.isAntigravity = name === 'antigravity';
+  tool.isCodex = name === 'codex';
+  tool.isZCode = name === 'zcode';
+  tool.isMiniMax = name === 'minimax';
+}
+
 export function getDetectedTool(): DetectedTool {
   const repoRoot = getRepoRoot();
 
@@ -93,6 +150,20 @@ export function getDetectedTool(): DetectedTool {
   // Explicit runtime signals must win over repository markers. This repository
   // intentionally contains .opencode even when another supported client owns
   // the current session.
+
+  // Owner-level override: any client can declare itself explicitly. Accepted
+  // values match config/orchestrator.json toolProfiles keys.
+  const gvOverride = process.env.GV_ACTIVE_TOOL;
+  if (gvOverride && (KNOWN_TOOL_NAMES as readonly string[]).includes(gvOverride)) {
+    tool.name = gvOverride;
+    tool.source = 'env:GV_ACTIVE_TOOL';
+    setToolFlags(tool, gvOverride);
+    tool.confidence = 100;
+    tool.configFile = DEFAULT_CONFIG_FILES[gvOverride] ?? '';
+    tool.promptFile = DEFAULT_PROMPT_FILES[gvOverride] ?? 'AGENTS.md';
+    return tool;
+  }
+
   if (process.env.CODEX_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_VERSION) {
     tool.name = 'codex';
     tool.source = process.env.CODEX_SESSION_ID ? 'env:CODEX_SESSION_ID' : 'env:CODEX_RUNTIME';
@@ -134,6 +205,40 @@ export function getDetectedTool(): DetectedTool {
     return tool;
   }
 
+  // Claude Code runtime signals (CLI exports CLAUDECODE=1; entrypoint reports origin)
+  if (process.env.CLAUDECODE || process.env.CLAUDE_CODE_ENTRYPOINT) {
+    tool.name = 'claude-code';
+    tool.source = process.env.CLAUDECODE ? 'env:CLAUDECODE' : 'env:CLAUDE_CODE_ENTRYPOINT';
+    tool.isClaude = true;
+    tool.confidence = 100;
+    tool.configFile = '.claude/settings.json';
+    tool.promptFile = 'CLAUDE.md';
+    return tool;
+  }
+
+  // Cursor agent runtime signal
+  if (process.env.CURSOR_AGENT) {
+    tool.name = 'cursor';
+    tool.source = 'env:CURSOR_AGENT';
+    tool.isCursor = true;
+    tool.confidence = 100;
+    tool.configFile = '.cursorrules';
+    tool.promptFile = '.cursorrules';
+    return tool;
+  }
+
+  // Claude Code VS Code extension
+  if (process.env.CLAUDE_VSCODE_VERSION) {
+    tool.name = 'claude-code';
+    tool.source = 'env:CLAUDE_VSCODE_VERSION';
+    tool.isClaude = true;
+    tool.confidence = 90;
+    tool.configFile = '.claude/settings.json';
+    tool.promptFile = 'CLAUDE.md';
+    return tool;
+  }
+
+  // Repository markers — reached only when no runtime signal matched above.
   // 1b. Check for .opencode/ directory
   if (fs.existsSync(path.join(repoRoot, '.opencode'))) {
     tool.name = 'opencode';
@@ -141,17 +246,6 @@ export function getDetectedTool(): DetectedTool {
     tool.isOpenCode = true;
     tool.confidence = 85;
     tool.configFile = 'opencode.json';
-    tool.promptFile = 'CLAUDE.md';
-    return tool;
-  }
-
-  // 2. Check CLAUDE_VSCODE_VERSION (Claude Code extension)
-  if (process.env.CLAUDE_VSCODE_VERSION) {
-    tool.name = 'claude-code';
-    tool.source = 'env:CLAUDE_VSCODE_VERSION';
-    tool.isClaude = true;
-    tool.confidence = 90;
-    tool.configFile = '.claude/settings.json';
     tool.promptFile = 'CLAUDE.md';
     return tool;
   }

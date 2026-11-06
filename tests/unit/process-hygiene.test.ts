@@ -9,9 +9,13 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   analyzeProcesses,
+  guardGitRepoConfig,
   DEFAULT_OPTIONS,
   parseWindowsProcessSnapshot,
   type ProcessSnapshot,
@@ -441,4 +445,40 @@ test('Gentle Music started via pnpm-exec shim path is still classified', () => {
     !findings.some((f) => f.pid === 32692),
     'pnpm-shim instance gets no hung-oneshot finding',
   );
+});
+
+// ─── Guard core.bare (BL-MW2IBHXM-777H) ──────────────────────────────────────
+
+test('guardGitRepoConfig: repara core.bare=true en un repo bare y es idempotente', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'gv-bare-guard-'));
+  const g = (args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf-8' });
+  try {
+    g(['init', '--bare']);
+    assert.strictEqual(g(['config', 'core.bare']).stdout.trim(), 'true');
+    const logs: string[] = [];
+    const first = guardGitRepoConfig(dir, (m) => logs.push(m));
+    assert.strictEqual(first.flipped, true, 'debe reparar un repo bare');
+    assert.strictEqual(g(['config', 'core.bare']).stdout.trim(), 'false');
+    assert.ok(logs[0].includes('REPARADO'), 'registra el incidente');
+    // idempotente: segunda pasada no flipsea
+    const second = guardGitRepoConfig(dir, (m) => logs.push(m));
+    assert.strictEqual(second.flipped, false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('guardGitRepoConfig: repo normal no se toca', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'gv-normal-guard-'));
+  const g = (args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf-8' });
+  try {
+    g(['init']);
+    g(['config', 'user.email', 't@t.local']);
+    g(['config', 'user.name', 'T']);
+    const r = guardGitRepoConfig(dir, () => {});
+    assert.strictEqual(r.flipped, false);
+    assert.strictEqual(g(['config', 'core.bare']).stdout.trim(), 'false');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

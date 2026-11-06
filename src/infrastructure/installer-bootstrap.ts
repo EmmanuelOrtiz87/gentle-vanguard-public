@@ -30,7 +30,7 @@ function command(name: string, args: string[], label: string): boolean {
   return true;
 }
 
-function main(): void {
+async function main(): Promise<void> {
   if (
     !existsSync(join(root, 'package.json')) ||
     !existsSync(join(root, 'config', 'installer-manifest.json'))
@@ -44,6 +44,20 @@ function main(): void {
     if (!existsSync(path) && !dryRun) mkdirSync(path, { recursive: true });
   }
 
+  // Full mode: intentar INSTALAR prereqs faltantes (no solo detectarlos) con el
+  // dependency-installer nativo, antes de pnpm install. Fail-open: el doctor
+  // --strict posterior es el enforcement duro.
+  if (full) {
+    try {
+      const depInstaller = await import('./dependency-installer.ts');
+      const deps = depInstaller.getDepsInternal();
+      const results = await depInstaller.validateInternal(deps);
+      console.log('Install missing prerequisites (best-effort):');
+      await depInstaller.installMissing(deps, results);
+    } catch (e) {
+      console.log('Dependency auto-install skipped:', e instanceof Error ? e.message : String(e));
+    }
+  }
   if (!command('pnpm', ['install', '--frozen-lockfile'], 'Install locked project dependencies'))
     process.exit(1);
   if (
@@ -70,4 +84,4 @@ function main(): void {
   console.log('Bootstrap completed. Next: npm run session:autostart:detached');
 }
 
-main();
+void main();

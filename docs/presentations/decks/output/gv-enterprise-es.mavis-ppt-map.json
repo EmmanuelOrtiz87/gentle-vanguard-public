@@ -1,0 +1,534 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-enterprise-es",
+  "title": "GentleVanguard - Capa de orquestación para la IA de su empresa",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/content",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "cover",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Adopción interna de IA - Stack gobernado",
+          "editable": true
+        },
+        {
+          "elementId": "cover-title",
+          "role": "title",
+          "type": "string",
+          "text": "Una capa de orquestación\npara la IA de su empresa",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleSize",
+          "role": "titleSize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleH",
+          "role": "titleH",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-subtitle",
+          "role": "subtitle",
+          "type": "string",
+          "text": "Un stack local-first que convierte asistentes de IA en capacidad gobernada: con roles definidos, presupuesto de tokens, trazabilidad y auditoría.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-meta",
+          "role": "meta",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "cover-versión",
+          "role": "versión",
+          "type": "string",
+          "text": "Stack v4.3.0 - Noviembre 2026",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "statement",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "statement-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Quién lo construye",
+          "editable": true
+        },
+        {
+          "elementId": "statement-title",
+          "role": "title",
+          "type": "string",
+          "text": "Quien conoce la IA aplicada en empresas grandes ya lo hizo antes",
+          "editable": true
+        },
+        {
+          "elementId": "statement-body",
+          "role": "body",
+          "type": "string",
+          "text": "Emmanuel Ortiz Gutierrez: arquitecto de software, ingeniero de integración de IA y fundador de GentleVanguard. Más de 15 años construyendo y analizando sistemas para empresas: arquitectura de software e integración de IA en DIRECTV Latin America, consultoría técnica en GlobalLogic y Oracle, y análisis, QA y coordinación de equipos de desarrollo.",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodyW",
+          "role": "bodyW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodySize",
+          "role": "bodySize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-stats",
+          "role": "stats",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "figureLayers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "figureLayers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Qué es",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-title",
+          "role": "title",
+          "type": "string",
+          "text": "El stack no es un chatbot: es la capa que lo gobierna",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cada capa resuelve una capa de problemas y deja registro de lo que hizo.",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-textW",
+          "role": "textW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-layers",
+          "role": "layers",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "layers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "layers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Anatomía",
+          "editable": true
+        },
+        {
+          "elementId": "layers-title",
+          "role": "title",
+          "type": "string",
+          "text": "Nueve capas, cada una con un límite explícito",
+          "editable": true
+        },
+        {
+          "elementId": "layers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "La estructura es lo que permite auditar, reemplazar o extender una pieza sin romper el resto.",
+          "editable": true
+        },
+        {
+          "elementId": "layers-labelW",
+          "role": "labelW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "layers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Escala",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "No es un prototipo: es un sistema en uso sostenido",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cifras verificadas contra el repositorio en la versión 4.3.0.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "cards",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "cards-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Capacidades",
+          "editable": true
+        },
+        {
+          "elementId": "cards-title",
+          "role": "title",
+          "type": "string",
+          "text": "Lo que la empresa recibe al instalar el stack",
+          "editable": true
+        },
+        {
+          "elementId": "cards-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cards-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "layout": "flow",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "flow-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Operación",
+          "editable": true
+        },
+        {
+          "elementId": "flow-title",
+          "role": "title",
+          "type": "string",
+          "text": "Cómo se ejecuta una tarea de punta a punta",
+          "editable": true
+        },
+        {
+          "elementId": "flow-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "El loop no cambia entre un proyecto de una semana y uno de seis meses.",
+          "editable": true
+        },
+        {
+          "elementId": "flow-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Gobernanza",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "Lo que impide que esto sea un experimento sin control",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "layout": "compare",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "compare-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "La decisión",
+          "editable": true
+        },
+        {
+          "elementId": "compare-title",
+          "role": "title",
+          "type": "string",
+          "text": "Adoptar IA herramienta por herramienta, o con una capa de orquestación",
+          "editable": true
+        },
+        {
+          "elementId": "compare-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Es la diferencia entre un contrato de software y una capacidad organizacional.",
+          "editable": true
+        },
+        {
+          "elementId": "compare-left",
+          "role": "left",
+          "type": "object",
+          "editable": true
+        },
+        {
+          "elementId": "compare-right",
+          "role": "right",
+          "type": "object",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Topología",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Dónde vive cada parte, y por qué importa",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "La operación es local; la exposición es opcional y reversible.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Economía",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "El costo de la IA, medido y acotado",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "El router decide modelo por costo, latencia y carga. Los presupuestos cortan antes de que el gasto se convierta en sorpresa.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "layout": "timeline",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "timeline-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Adopción",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-title",
+          "role": "title",
+          "type": "string",
+          "text": "Cómo se entra sin romper nada",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cuatro pasos, cada uno reversible y con su propio criterio de éxito.",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "layout": "closing",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-title",
+          "role": "title",
+          "type": "string",
+          "text": "El siguiente paso es un diagnóstico, no un contrato",
+          "editable": true
+        },
+        {
+          "elementId": "closing-body",
+          "role": "body",
+          "type": "string",
+          "text": "Proponemos una sesión de trabajo para auditar cómo está hoy la IA en su organización y qué parte de esta plataforma se puede adoptar sin fricción. Sin costo y sin compromiso de implementación.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-ctas",
+          "role": "ctas",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-contacts",
+          "role": "contacts",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-note",
+          "role": "note",
+          "type": "string",
+          "text": "El stack es open source. La adopción interna se hace sobre el repositorio y las políticas de la propia empresa.",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}
