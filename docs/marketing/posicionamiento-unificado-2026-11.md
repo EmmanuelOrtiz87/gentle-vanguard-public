@@ -50,26 +50,68 @@ Una frase por superficie, misma historia:
 > Software Architect | AI Engineering | Founder @ GentleVanguard — building AI engineering
 > systems: orchestration, persistent memory, governance. 15+ years in architecture & integration.
 
-**Sección Acerca de (borrador v1, primera persona):**
+**Sección Acerca de (v2, primera persona — reemplaza la v1):**
 
-> Después de 15+ años diseñando arquitectura e integraciones, vi el mismo patrón en todos los
-> equipos: el código escala más rápido que la gobernanza. Los asistentes de IA escriben features
-> en horas que antes tomaban semanas — y las decisiones de diseño, el contexto y la calidad se
-> les escapan igual de rápido.
+> Llevo más de 15 años construyendo software para empresas. Y en todo ese tiempo vi repetirse la
+> misma escena: el código avanza, pero lo que lo sostiene —el orden, el contexto, la calidad—
+> se queda atrás. Con la IA eso se aceleró: hoy un asistente escribe en una tarde lo que antes
+> tomaba semanas. Lo que se escapa, también.
 >
-> Por eso construí GentleVanguard: un stack local-first de orquestación, memoria persistente y
-> verificación para desarrollo asistido por IA. 21 agentes especializados, 254 skills bajo
-> demanda, 154 health checks automatizados. No reemplaza Cursor ni Copilot — se monta encima.
+> Por eso fundé GentleVanguard: ayudamos a empresas a construir software y automatizaciones con
+> IA de forma segura, escalable y gobernada. Sin humo ni promesas: mostramos el sistema
+> funcionando.
 >
-> Con ese stack operamos tres cosas:
-> 1. **Software a medida** para pymes y empresas: apps, sistemas, bots, dashboards — con
->    gobernanza incluida, no como afterthought.
-> 2. **GentleVanguard Academy**: 28 cursos que enseñan a operar IA en el trabajo real — el canal
->    por el que equipos y personas llegan al método.
-> 3. **Open source**: el núcleo del stack es público y auditable.
+> Por dentro operamos con un stack propio —orquestación de agentes, memoria persistente y
+> verificación continua— que mantiene a personas e IA trabajando con orden medible. No es un
+> titular: es la razón por la que podemos afirmar cosas que otros solo prometen, como que cada
+> entrega sale revisada por 154 controles automáticos.
 >
-> Lo que publico acá: casos reales con números, arquitectura, y lo que sale mal (también). Sin
-> humo: si no lo corremos en producción, no lo posteo.
+> También enseñamos lo que operamos: 28 cursos en GentleVanguard Academy, y el núcleo del stack
+> es open source — cualquiera puede auditarlo.
+>
+> Acá comparto lo que construyo y lo que aprendo, incluido lo que sale mal. Si tu empresa tiene
+> un proceso que merece mejor software, escribime.
+
+**Regla anti-duplicación (no negociable):** el "Acerca de" del perfil y los posts del feed
+**nunca comparten párrafos ni frases de apertura**. El perfil presenta; el feed cuenta. Un
+visitante que lee el perfil y luego un post no puede encontrar las mismas palabras dos veces.
+
+### 3.1 Puesto nuevo en LinkedIn (sección Experiencia) — copy listo
+
+| Campo | Valor |
+| --- | --- |
+| **Cargo** | Fundador & Arquitecto de Software |
+| **Empresa** | GentleVanguard |
+| **Tipo** | Empresa propia (Self-employed) |
+| **Período** | `[mes/año de inicio]` – Actualidad ← **completar** |
+| **Ubicación** | San Juan, Argentina · Remoto |
+
+**Descripción del puesto (copiar/pegar):**
+
+> Fundé GentleVanguard con una convicción: la IA bien aplicada cambia la ecuación de la
+> ingeniería de software — pero solo si hay orden, contexto y verificación.
+>
+> Qué hago día a día:
+>
+> • Diseño y entrego software a medida para empresas: apps, sistemas, bots y automatizaciones
+> (WhatsApp, pagos, CRMs), con gobernanza incluida desde el diseño, no como agregado.
+>
+> • Opero y evoluciono nuestro stack propio de AI engineering: orquestación de agentes,
+> memoria persistente y verificación continua. Local-first y auditable.
+>
+> • Dirijo GentleVanguard Academy, donde enseñamos el método a equipos y profesionales en 28
+> cursos prácticos.
+>
+> El resultado: entregas medibles, código auditado y clientes que ven el sistema funcionando
+> antes de firmar.
+>
+> ¿Tenés un proceso que merece mejor software? Escribime.
+
+**Skills sugeridas para adjuntar al puesto:** Software Architecture · AI Engineering · AI Agents ·
+Systems Integration · Process Automation · Technical Leadership · Software Delivery.
+
+**Recomendación de credibilidad:** pedir 2-3 recomendaciones (recommendations) a clientes
+actuales que mencionen puntualidad y transparencia — pesan más que cualquier bio.
 
 **Niveles de contenido (del feedback, adoptados):** 1) experiencia/problema, 2) aprendizajes
 (salió mal también), 3) arquitectura (cómo funciona el sistema de memoria, por qué fallan los
@@ -90,6 +132,40 @@ agentes), 4) open source (qué se sumó, límites incluidos). Cadencia: 2-3 post
 
 **Regla de CTA (heredada de POSITIONING §4, no negociable):** el link de bio va al **lead
 magnet / workshop**, nunca al catálogo de cursos. Linkear al catálogo es linkear a una lista.
+
+### 4.1 Descripciones por red — set completo para copiar/pegar (2026-11-07)
+
+Todas cuentan la misma historia con el registro de cada red. Verificadas contra el stack
+(21 agentes, 254 skills, 154 checks, 28 cursos). Firma canónica siempre: **Emmanuel Ortiz —
+Arquitecto de Software · Fundador de GentleVanguard**.
+
+**LinkedIn — página de empresa (Acerca de):**
+
+> Ayudamos a empresas a construir software y automatizaciones con IA de forma segura, escalable
+> y gobernada. Apps, sistemas, bots e integraciones a medida — y detrás de cada entrega, un
+> stack propio de AI engineering que verifica cada cambio: 21 agentes especializados y 154
+> controles automáticos. Enseñamos el método en GentleVanguard Academy (28 cursos) y el núcleo
+> del stack es open source. Mostramos el sistema funcionando: si no lo corremos en producción,
+> no lo prometemos.
+
+**GitHub — profile bio (límite 160 chars):**
+
+> Software Architect · Founder @ GentleVanguard — IA aplicada al trabajo real, con gobernanza.
+> Local-first, open core, evidencia sobre promesas.
+
+**WhatsApp Business — descripción (límite 256 chars):**
+
+> Software y automatizaciones con IA para empresas. Mostramos el sistema funcionando antes de
+> que firmes. Escribinos y coordinamos 20 minutos, sin costo. — Emmanuel Ortiz, Fundador
+
+**X/Twitter (si se activa, límite 160 chars):**
+
+> Software y automatizaciones con IA para empresas — seguras, escalables, gobernadas.
+> El sistema funcionando, no el slide. 🇦🇷
+
+**Nota de consistencia:** la frase de 15 segundos (§8) es la semilla de todas — cada bio es esa
+misma frase adaptada al límite y al registro de la red. Si una bio necesita cambiar, se cambia
+la semilla primero.
 
 ## 5. Academy — rutas (journeys, no catálogo)
 

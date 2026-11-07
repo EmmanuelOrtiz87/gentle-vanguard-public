@@ -9,16 +9,19 @@
 | # | Tarea | Dónde | Copy listo en |
 | --- | --- | --- | --- |
 | 1 | Pegar headline de LinkedIn | Perfil personal | posicionamiento-unificado §3 (ES o EN) |
-| 2 | Pegar sección "Acerca de" | Perfil personal | posicionamiento-unificado §3 |
-| 3 | Aplicar bio nueva de Instagram | @gentlevanguard.sj | posicionamiento-unificado §4 |
-| 4 | Aplicar bio nueva de TikTok | @gentlevanguard.sj | posicionamiento-unificado §4 |
-| 5 | Unificar link de bio (IG/TikTok) → landing con lead magnet / workshop, **no** catálogo | IG + TikTok | regla en POSITIONING §4 |
-| 6 | Firma canónica en todos los perfiles: **Emmanuel Ortiz — Arquitecto de Software · Fundador de GentleVanguard** | Todos | posicionamiento-unificado §9 |
-| 7 | (Opcional, si hay tiempo) Banner de LinkedIn con la narrativa madre | Perfil | §2 frase: "Desarrollamos software inteligente — y construimos nuestras propias plataformas de AI Engineering para hacerlo de forma más segura, más gobernada y más escalable." |
+| 2 | Pegar sección "Acerca de" (v2) | Perfil personal | posicionamiento-unificado §3 |
+| 3 | **Agregar el puesto nuevo** (Fundador & Arquitecto de Software @ GentleVanguard) | Perfil → Experiencia | posicionamiento-unificado **§3.1** (completar fecha de inicio) |
+| 4 | Aplicar bio nueva de Instagram | @gentlevanguard.sj | posicionamiento-unificado §4 |
+| 5 | Aplicar bio nueva de TikTok | @gentlevanguard.sj | posicionamiento-unificado §4 |
+| 6 | Unificar link de bio (IG/TikTok) → landing con lead magnet / workshop, **no** catálogo | IG + TikTok | regla en POSITIONING §4 |
+| 7 | Descripciones restantes: LinkedIn página de empresa, GitHub bio, WhatsApp Business | Cada red | posicionamiento-unificado **§4.1** |
+| 8 | Firma canónica en todos los perfiles: **Emmanuel Ortiz — Arquitecto de Software · Fundador de GentleVanguard** | Todos | posicionamiento-unificado §9 |
+| 9 | (Opcional, si hay tiempo) Banner de LinkedIn con la narrativa madre | Perfil | §2 frase: "Desarrollamos software inteligente — y construimos nuestras propias plataformas de AI Engineering para hacerlo de forma más segura, más gobernada y más escalable." |
 
-**Definición de listo:** las 4 superficies (LinkedIn, IG, TikTok, GitHub README) cuentan la
-misma historia y cualquier visitante puede responder "¿qué es GV?" en 15 segundos con la frase
-de §8.
+**Definición de listo:** las 4 superficies (LinkedIn —perfil + puesto—, IG, TikTok, GitHub) y
+las descripciones de §4.1 cuentan la misma historia; ningún texto del feed repite párrafos del
+perfil (regla anti-duplicación); y cualquier visitante puede responder "¿qué es GV?" en 15
+segundos con la frase de §8.
 
 ## 2. Lunes 2026-11-09 — protocolo de arranque (30 min)
 
@@ -26,14 +29,17 @@ de §8.
    (si no, avisar al stack para re-sincronizar).
 2. **Publicar post 1 de LinkedIn** (redactado abajo — solo copiar/pegar y ajustar detalles
    personales).
+2b. **Verificar que el puesto nuevo esté agregado** (checklist ítem 3) — si el perfil no lo
+   tiene, el post del lunes no tiene ancla de credibilidad.
 3. **Outreach (10 contactos):** retomar la línea de `docs/clientes/` (whatsapp-bot-inmobiliaria,
-   whatsapp-bot-viandas) + 8 contactos propios. Mensaje tipo (ajustar nombre/caso):
+   whatsapp-bot-viandas) + 8 contactos propios. Mensaje tipo (ajustar nombre/caso — siempre con
+   UN detalle real del destinatario, nunca genérico):
 
-   > Hola [nombre], te escribo por algo puntual: estamos ayudando a empresas a construir
-   > software y automatizaciones con IA de forma segura y gobernada (sin promesas de humo —
-   > mostramos el sistema funcionando). [Caso específico: p.ej. el bot de WhatsApp que ordena
-   > pedidos]. ¿Te interesa que te muestre cómo quedaría aplicado a [su proceso]? 20 minutos,
-   > sin costo.
+   > Hola [nombre], te escribo directo: ayudamos a empresas a ordenar y automatizar procesos con
+   > software e IA — y mostramos el sistema funcionando antes de que nadie firme nada. Vi que
+   > [detalle real de su negocio]. Hicimos algo parecido con [caso: p.ej., un bot de WhatsApp que
+   > ordena pedidos solo]. ¿Te muestro en 20 minutos cómo quedaría aplicado a lo tuyo? Sin costo
+   > y sin compromiso.
 
 4. **Registrar todo en el tracker** (§4) — sin registro no hay medición.
 
@@ -41,20 +47,27 @@ de §8.
 
 ### Post 1 — Lunes (nivel: experiencia/problema)
 
-> Después de 15+ años de arquitectura e integración, vi el mismo patrón en todos los equipos:
-> el código escala más rápido que la gobernanza.
+> ⚠️ **Regla previa**: este post NO debe compartir frases con el "Acerca de" del perfil
+> (regla anti-duplicación §3 del doc unificado). La v1 anterior abría igual que el perfil —
+> descuido corregido.
+
+> Hace unos días encontramos un bug que llevaba meses vivo. No en código de un cliente: en
+> nuestro propio sistema de control.
 >
-> Los asistentes de IA escriben en horas lo que antes tomaba semanas. Pero las decisiones de
-> diseño, el contexto y la calidad se escapan igual de rápido.
+> El guardián que vigila el consumo de recursos del stack reportaba siempre lo mismo: cero.
+> Medía nada, así que nunca alertaba. Y todo "funcionaba" — el tablero daba verde.
 >
-> Por eso dejé de pensar en "herramientas de IA" y empecé a construir un sistema de trabajo:
-> orquestación, memoria persistente y verificación para desarrollo asistido por IA. Todo
-> local, todo auditable.
+> El problema no era el bug. Era que le creíamos al verificador sin preguntarle si él mismo
+> estaba verificado. Controlábamos todo... menos a los controles.
 >
-> Esta semana empiezo a mostrar cómo funciona, con casos reales y números. Lo que sale bien y
-> lo que no.
+> Tuvimos que hacerlo en tres capas: una medición real donde antes había un número escrito a
+> mano, un test que obliga a cada control a demostrar que se ejecuta, y una auditoría completa
+> de toda la suite. El tablero volvió a dar verde — pero ahora el verde significa algo.
 >
-> ¿Te pasó? ¿Tu equipo usa IA para programar y siente que la calidad es una lotería?
+> Me quedé pensando en cuántos equipos confían en dashboards verdes que nadie auditó. La IA
+> acelera todo. Inclusive la velocidad con la que un control muerto te hace sentir seguro.
+>
+> ¿Cuándo fue la última vez que verificaste al verificador?
 
 ### Post 2 — Miércoles (nivel: arquitectura/build-log, formato evidencia §10)
 
