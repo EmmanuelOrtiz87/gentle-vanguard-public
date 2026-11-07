@@ -60,3 +60,36 @@ describe('stack-audit-apps: reintento ante fallo ambiental', () => {
     assert.equal(calls, 2, 'un solo reintento, no un bucle');
   });
 });
+
+describe('stack-audit-apps: firmas ambientales de la noche 2026-11-07', () => {
+  const casos: Array<[string, string]> = [
+    ['server de test sin health bajo carga', 'Error: el server no quedó sano en 20000ms'],
+    ['Playwright pisado por recarga del SW', 'Execution context was destroyed'],
+    ['red del browser', 'net::ERR_CONNECTION_REFUSED'],
+    ['timeout de node:test', 'test timed out after 30000ms'],
+    ['timeout de vitest', 'Test timed out in 5000ms'],
+  ];
+
+  for (const [nombre, salida] of casos) {
+    it(`reintenta y pasa: ${nombre}`, () => {
+      let calls = 0;
+      const result = runAppCheck('prompt-studio', 'test', 'test', () => {
+        calls += 1;
+        if (calls === 1) return { status: 1, output: salida };
+        return { status: 0, output: 'ok' };
+      });
+      assert.equal(result.status, 'PASS');
+      assert.equal(calls, 2, 'un solo reintento (contrato existente)');
+    });
+  }
+
+  it('NEGATIVO: MODULE_NOT_FOUND NO es flake — rotura real de paquete debe gritar', () => {
+    let calls = 0;
+    const result = runAppCheck('prompt-studio', 'test', 'test', () => {
+      calls += 1;
+      return { status: 1, output: "Cannot find package 'better-sqlite3'" };
+    });
+    assert.equal(result.status, 'FAIL');
+    assert.equal(calls, 1, 'no se reintenta: es rotura real');
+  });
+});
