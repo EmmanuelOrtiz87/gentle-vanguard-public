@@ -15,6 +15,7 @@ import {
   extractManagedModelIds,
   getWatchtowerComponentStatus,
   readLatestSuccessfulProviderUsage,
+  resolveActiveModelStatus,
 } from '../../src/core/watchtower/checks-data.js';
 import { getEmbeddingFreshnessHours } from '../../src/skills/skill-embedder-incremental.js';
 import { findDuplicateJsonKeys } from '../../src/tools/json-lint.js';
@@ -754,4 +755,45 @@ test('skill auto-archive requires explicit enablement and no confirmation gate',
 test('skill registry parser reads the Skill column without creating header metrics', () => {
   const registry = `| Agent | Skill | Triggers |\n|---|---|---|\n| ops | nexus-database | db |\n| gov | code-review-and-quality | review |`;
   assert.deepEqual(parseSkillRegistry(registry), ['code-review-and-quality', 'nexus-database']);
+});
+
+// ─── Coherencia del veredicto del modelo activo (2026-11-06) ────────────────
+// El watchtower reportaba a la vez "inference probe: PASS - respondio" y
+// "active model: WARN - no fresh successful probe": dos veredictos OPUESTOS
+// para la misma afirmacion, en la misma corrida.
+
+test('la inferencia real PASS hace que el modelo activo sea PASS', () => {
+  const r = resolveActiveModelStatus('ollama/qwen2.5-coder:14b', 'WARN', {
+    verdict: 'PASS',
+    entry: {
+      status: 'OK',
+      responded: true,
+      quota: false,
+      latencyMs: 251,
+      checkedAt: new Date().toISOString(),
+    },
+  });
+  assert.equal(r.status, 'PASS');
+  assert.match(r.detail, /respondio en inferencia real \(251ms\)/);
+});
+
+test('la inferencia real FAIL hace que el modelo activo sea FAIL', () => {
+  const r = resolveActiveModelStatus('opencode-zen-C/mimo-v2.6-flash-free', 'WARN', {
+    verdict: 'FAIL',
+    entry: {
+      status: 'USAGE_LIMIT',
+      responded: true,
+      quota: true,
+      checkedAt: new Date().toISOString(),
+    },
+  });
+  assert.equal(r.status, 'FAIL');
+  assert.match(r.detail, /respondio con error \(USAGE_LIMIT\)/);
+});
+
+test('CONTRATEST: sin veredicto de inferencia se respeta el respaldo', () => {
+  const warn = resolveActiveModelStatus('x/y', 'WARN', { verdict: 'UNKNOWN' });
+  assert.equal(warn.status, 'WARN');
+  const pass = resolveActiveModelStatus('x/y', 'PASS', { verdict: 'UNKNOWN' });
+  assert.equal(pass.status, 'PASS');
 });

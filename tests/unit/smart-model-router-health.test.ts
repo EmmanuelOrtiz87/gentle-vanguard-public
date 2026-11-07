@@ -28,7 +28,21 @@ describe('smart model router local health checks', () => {
     const primary = registry.routingRules.orchestrator.primary;
     assert.ok(registry.models[primary], `primary ${primary} must have a registry entry`);
     assert.equal(registry.models[primary].health.status, 'unknown');
-    assert.equal(registry.models[primary].provider, 'opencode-zen-C');
+    // El TARGET del routing lo decide el enforcer: cambia cuando un proveedor
+    // deja de responder (medido 2026-11-06: quota remota agotada -> reroute a
+    // ollama local). Fijar el provider aca convertia el test en un tripwire
+    // de un reroute legitimo. Lo que NO puede cambiar:
+    //   1) el primary es direccionable (tiene entrada), y
+    //   2) nunca se enruta a un tier de pago.
+    assert.ok(
+      typeof registry.models[primary].provider === 'string' &&
+        registry.models[primary].provider.length > 0,
+      'el primary declara su provider',
+    );
+    assert.ok(
+      ['free', 'local'].includes(registry.models[primary].tier),
+      `el primary debe ser free|local (hoy ${registry.models[primary].tier})`,
+    );
   });
 
   it('classifies HTTP 429 rate-limit responses as quota errors', () => {

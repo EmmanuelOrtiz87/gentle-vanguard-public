@@ -177,7 +177,7 @@ export default {
       lead: 'El stack corre sus propios controles en cada commit, en cada push y en cada ciclo de salud.',
       cols: 4,
       items: [
-        { value: '46', label: 'Quality gates', sub: '42 de 46 aplicados de forma estricta', accent: '06b6d4' },
+        { value: '47', label: 'Quality gates', sub: '43 de 47 aplicados de forma estricta', accent: '06b6d4' },
         { value: '552+', label: 'Archivos de test', sub: 'Unit, e2e, integración, seguridad y skills', accent: '8b5cf6' },
         { value: '21', label: 'Workflows de CI', sub: 'CI, seguridad, release, sync público y etiqueta automática', accent: 'fbbf24' },
         { value: '80', label: 'Patrones de secreto', sub: 'Con entropía opcional y redacción por defecto', accent: '22d3ee' },

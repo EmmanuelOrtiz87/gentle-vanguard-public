@@ -53,45 +53,72 @@ interface CcApp {
   processes: Array<{ name: string; pid: number | null; port: number; alive: boolean }>;
 }
 
-async function ccPort(): Promise<number> {
+/**
+ * Puertos donde puede estar el Command Center, en orden de preferencia.
+ *
+ * `command-center-ports.json` registra el puerto donde CAYO el servidor si el
+ * preferido estaba ocupado, pero el archivo puede quedar VIEJO (medido
+ * 2026-11-06: `ccPort: 8099` de un dia antes mientras el CC escuchaba en
+ * 8090). Sondear solo ese puerto convertia un CC SANO en un FAIL permanente
+ * del gate `apps-registry`. Por eso se sondean los candidatos y gana el que
+ * RESPONDA.
+ */
+const CC_PREFERRED_PORT = 8090;
+
+async function ccPorts(): Promise<number[]> {
   const portsFile = join(RUNTIME_DIR, 'command-center-ports.json');
+  const candidates: number[] = [];
   if (fileExists(portsFile)) {
     try {
       const data = readJson(portsFile);
-      if (typeof data.ccPort === 'number') return data.ccPort;
+      if (typeof data.ccPort === 'number') candidates.push(data.ccPort);
     } catch {
       /* fallback abajo */
     }
   }
-  return 8090;
+  candidates.push(CC_PREFERRED_PORT);
+  return [...new Set(candidates)];
+}
+
+async function fetchCcApps(port: number): Promise<CcApp[] | null> {
+  // Retry idempotente (patrón upstream gentle-ai): dentro del run largo el
+  // fetch a CC puede colgar (pool de undici + event loop bloqueado por checks
+  // sync previos) o fallar instantáneo — 3 intentos cortos lo absorben.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/api/apps`, {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) return (await res.json()) as CcApp[];
+    } catch {
+      /* siguiente intento */
+    }
+    if (attempt < 3) {
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+  }
+  return null;
 }
 
 export async function checkAppsRegistry() {
   if (!quiet) logger.info('  [Apps Registry] Checking via Command Center...');
 
-  const port = await ccPort();
-  // Retry idempotente (patrón upstream gentle-ai): dentro del run largo el
-  // fetch a CC puede colgar (pool de undici + event loop bloqueado por checks
-  // sync previos) o fallar instantáneo — 3 intentos cortos lo absorben.
+  const ports = await ccPorts();
   let apps: CcApp[] | null = null;
-  for (let attempt = 1; attempt <= 3 && !apps; attempt++) {
-    try {
-      const res = await fetch(`http://127.0.0.1:${port}/api/apps`, {
-        signal: AbortSignal.timeout(10000),
-      });
-      if (res.ok) apps = (await res.json()) as CcApp[];
-    } catch {
-      apps = null;
-    }
-    if (!apps && attempt < 3) {
-      await new Promise((r) => setTimeout(r, 1500 * attempt));
+  let livePort = 0;
+  for (const port of ports) {
+    const found = await fetchCcApps(port);
+    if (found) {
+      apps = found;
+      livePort = port;
+      break;
     }
   }
 
   if (!apps) {
     addResult(
       'apps-registry',
-      `command-center API (:${port})`,
+      `command-center API (:${ports.join(', :')})`,
       'FAIL',
       'No responde — CC es daemon persistente: npm run cc:start (PowerShell) o apps/command-center/start.sh (Git Bash)',
       'restart',
@@ -100,7 +127,7 @@ export async function checkAppsRegistry() {
   }
   addResult(
     'apps-registry',
-    `command-center API (:${port})`,
+    `command-center API (:${livePort})`,
     'PASS',
     `${apps.length} apps registradas`,
     'ok',

@@ -123,6 +123,12 @@ interface DaemonClass {
    */
   relativeMatch?: RegExp;
   pidFile?: string;
+  /**
+   * Directorio `apps/<app>` que la clase cubre. Lo usa la clasificacion
+   * GENERICA de servidores de app para no reclamar apps que ya tienen clase
+   * estatica (el pidfile de esa app sigue siendo el que decide).
+   */
+  app?: string;
   /** which dashboard port marks the legit instance */
   port?: 'wsPort' | 'vitePort';
   /** how the keeper instance is chosen */
@@ -268,6 +274,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Gentle-Vanguard Analytics API',
     match: /apps[\\/]gv-analytics[\\/]server[\\/]index\.ts/,
     relativeMatch: /server[\\/]index\.ts/,
+    app: 'gv-analytics',
     pidFile: join(RUNTIME_DIR, 'app-analytics-api.pid'),
     keep: 'pidfile',
     respawn: 'manual',
@@ -281,6 +288,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     match:
       /apps[\\/]gv-analytics[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
     relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    app: 'gv-analytics',
     pidFile: join(RUNTIME_DIR, 'app-analytics-vite.pid'),
     keep: 'pidfile',
     respawn: 'manual',
@@ -290,6 +298,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     id: 'gv-analytics-mcp',
     label: 'Gentle-Vanguard Analytics Atlassian MCP',
     match: /apps[\\/]gv-analytics[\\/]server[\\/]mcp\.ts/,
+    app: 'gv-analytics',
     keep: 'newest',
     respawn: 'client',
     recycleAged: false,
@@ -299,6 +308,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Content Studio API server',
     match: /apps[\\/]content-cms[\\/]server[\\/]server\.ts/,
     relativeMatch: /server[\\/]server\.ts/,
+    app: 'content-cms',
     pidFile: join(RUNTIME_DIR, 'app-cms-api.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -312,6 +322,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     match:
       /apps[\\/]content-cms[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
     relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    app: 'content-cms',
     pidFile: join(RUNTIME_DIR, 'app-cms-vite.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -322,6 +333,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Prompt Studio API server',
     match: /apps[\\/]prompt-studio[\\/]server[\\/]server\.ts/,
     relativeMatch: /server[\\/]server\.ts/,
+    app: 'prompt-studio',
     pidFile: join(RUNTIME_DIR, 'app-prompts-api.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -333,6 +345,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     match:
       /apps[\\/]prompt-studio[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
     relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    app: 'prompt-studio',
     pidFile: join(RUNTIME_DIR, 'app-prompts-vite.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -343,6 +356,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     label: 'Archify API server',
     match: /apps[\\/]archify[\\/]server[\\/]server\.ts/,
     relativeMatch: /server[\\/]server\.ts/,
+    app: 'archify',
     pidFile: join(RUNTIME_DIR, 'app-archify-api.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -354,6 +368,7 @@ const DAEMON_CLASSES: DaemonClass[] = [
     match:
       /apps[\\/]archify[\\/](node_modules[\\/]\.bin[\\/]\.\.[\\/])?node_modules[\\/]vite[\\/]bin[\\/]vite\.js/,
     relativeMatch: /vite[\\/]bin[\\/]vite\.js/,
+    app: 'archify',
     pidFile: join(RUNTIME_DIR, 'app-archify-vite.pid'),
     keep: 'pidfile',
     respawn: 'client',
@@ -475,6 +490,71 @@ const DAEMON_CLASSES: DaemonClass[] = [
   },
 ];
 
+/**
+ * Clasificacion GENERICA de servidor de app.
+ *
+ * Por que existe (medido 2026-11-06): el registro por app (DAEMON_CLASSES)
+ * cubre las apps con pidfile. Las apps que levantan su servidor SIN pidfile
+ * caian en `unclassified` y el barrido las marcaba como `hung-oneshot`: un
+ * FAIL PERMANENTE del gate que no correspondia a un proceso colgado, sino a
+ * servidores legitimos (API de la app, Vite dev server, servidor estatico).
+ * Medido: 11 procesos marcados asi (alexandria, academy-portal,
+ * gv-knowledge-ops, gv-wifikeys, service-desk, gv-english-lab,
+ * design-gallery, corporate-web, voice-studio).
+ *
+ * La FORMA del comando dice que es un servidor:
+ *   apps/<app>/server/index.ts | server/server.ts | server/server.mjs
+ *   apps/<app>/node_modules/vite/bin/vite.js
+ *   tools/serve-static.mjs <port> <root>
+ *
+ * El id de clase se deriva del NOMBRE de la app: dos apps distintas no pueden
+ * caerse la una como duplicado de la otra. Una app con clase estatica NUNCA
+ * es reclamada por la generica (el pidfile de esa app sigue decidiendo).
+ */
+/** Nombre del directorio `apps/<app>` dentro del comando. */
+const APP_DIR_RE = /apps[\\/]([^\\/"'\s]+)/i;
+
+/** Apps con clase estatica: la clasificacion generica no las toca. */
+const REGISTERED_APPS = new Set(
+  DAEMON_CLASSES.map((c) => c.app).filter((a): a is string => Boolean(a)),
+);
+
+/**
+ * La FORMA del comando dice que clase de servidor es:
+ *   api    -> apps/<app>/server/index.ts | server/server.ts | server/server.mjs
+ *   vite   -> apps/<app>/node_modules/vite/bin/vite.js
+ *   static -> tools/serve-static.mjs <port> <root>
+ * El TIPO va en el id: la API y el Vite de la misma app son dos instancias
+ * legitimas, no dos duplicados.
+ */
+function classifyAppServer(cmdline: string): DaemonClass | null {
+  let kind: string;
+  let port = '';
+  if (/apps[\\/][^\\/"'\s]+[\\/]server[\\/](?:index|server)\.(?:ts|mjs|js)/.test(cmdline)) {
+    kind = 'api';
+  } else if (/apps[\\/][^\\/"'\s]+[\\/]node_modules[\\/]vite[\\/]bin[\\/]vite\.js/.test(cmdline)) {
+    kind = 'vite';
+  } else if (/tools[\\/]serve-static\.mjs\b/.test(cmdline)) {
+    kind = 'static';
+    port = /serve-static\.mjs\s+(\d+)/.exec(cmdline)?.[1] ?? '?';
+  } else {
+    return null;
+  }
+  const app = APP_DIR_RE.exec(cmdline)?.[1]?.toLowerCase();
+  if (!app) return null;
+  if (REGISTERED_APPS.has(app)) return null;
+  return {
+    id: `app-server:${app}:${kind}${port ? `:${port}` : ''}`,
+    label: `${app} ${kind} server`,
+    // La forma generica ya se resolvio: este `match` nunca se usa para
+    // clasificar (solo las clases estaticas se evaluan en el bucle).
+    match: /$^/,
+    keep: 'newest',
+    respawn: 'manual',
+    recycleAged: false,
+  };
+}
+
 /** Known PID files (used for stale-file sweeps, not only per-class). */
 const KNOWN_PID_FILES = [
   ...new Set(DAEMON_CLASSES.filter((c) => c.pidFile).map((c) => c.pidFile!)),
@@ -489,6 +569,27 @@ const LONG_RUN_ALLOWLIST: RegExp[] = [
   /graphify/,
   /dashboard-start\.ts/, // spawns watchdogs then exits (short-lived anyway)
 ];
+
+/**
+ * Servidores MCP stdio del repo (`src/integrations/<x>-cli.ts mcp`,
+ * `src/mcp/<x>-mcp-server.ts`).
+ *
+ * Un servidor MCP stdio vive EXACTAMENTE mientras su cliente: no es un daemon
+ * del stack (no se relanza solo) ni un one-shot (no debe morir). Medido
+ * 2026-11-06: el MCP `rea` del repo vivia 6,9 h con su cliente vivo y el
+ * barrido lo reportaba como `unknown-repo-process` — un WARN PERMANENTE que no
+ * describia un problema (el servidor hacia su trabajo).
+ *
+ * Con padre VIVO: servidor conocido y supervisado -> sin hallazgo.
+ * Con padre MUERTO: el huerfano es real -> lo captura la rama de one-shot
+ * colgado (accionable), que es lo que corresponde.
+ */
+const REPO_MCP_SERVER_RE =
+  /src[\\/](?:integrations[\\/][\w-]+-cli|mcp[\\/][\w-]+-mcp-server)\.ts\b/;
+
+function isRepoMcpServer(cmdline: string): boolean {
+  return REPO_MCP_SERVER_RE.test(cmdline);
+}
 
 // ─── Snapshot (impure) ────────────────────────────────────────────────────────
 
@@ -689,7 +790,9 @@ function classifyDaemon(
       if (raw && /^\d+$/.test(raw) && parseInt(raw, 10) === pid) return c;
     }
   }
-  return null;
+  // Sin clase estatica: la FORMA del comando puede decir que es un servidor de
+  // app (ver classifyAppServer). Si no lo es, es un one-shot y sigue su curso.
+  return classifyAppServer(cmdline);
 }
 
 function pickKeeper(
@@ -746,6 +849,8 @@ export function analyzeProcesses(
 
   const daemons = new Map<string, ProcessInfo[]>();
   const unclassified: ProcessInfo[] = [];
+  const dynamicClasses = new Map<string, DaemonClass>();
+  const staticClassIds = new Set(DAEMON_CLASSES.map((c) => c.id));
 
   for (const info of snap.repoProcesses) {
     if (info.pid === selfPid) continue;
@@ -756,13 +861,14 @@ export function analyzeProcesses(
       const list = daemons.get(cls.id) ?? [];
       list.push(info);
       daemons.set(cls.id, list);
+      if (!staticClassIds.has(cls.id)) dynamicClasses.set(cls.id, cls);
     } else {
       unclassified.push(info);
     }
   }
 
   // 1+3. Daemon duplicates and aged daemons
-  for (const cls of DAEMON_CLASSES) {
+  for (const cls of [...DAEMON_CLASSES, ...dynamicClasses.values()]) {
     const instances = daemons.get(cls.id) ?? [];
     if (instances.length === 0) continue;
 
@@ -816,12 +922,18 @@ export function analyzeProcesses(
     }
     for (const inst of chainTops) {
       if (inst === keeper || parallelKeepers.has(inst.pid)) continue;
+      // Una clase GENERICA de app no conoce la politica de la app: se REPORTA
+      // en vez de matar. Matar un servidor legitimo de una app que el owner
+      // quiere arriba es un dano irreversible; un aviso no lo es.
+      const isDynamic = dynamicClasses.has(cls.id);
       findings.push({
         pid: inst.pid,
         name: inst.name,
         kind: 'duplicate-daemon',
-        action: 'kill',
-        reason: `duplicate ${cls.label}; keeper is PID ${keeper?.pid ?? '?'} (pidfile/port owner)`,
+        action: isDynamic ? 'report' : 'kill',
+        reason: `duplicate ${cls.label}; keeper is PID ${keeper?.pid ?? '?'} (pidfile/port owner)${
+          isDynamic ? ' [clase generica: solo aviso, no se mata]' : ''
+        }`,
         ageHours: ageHours(inst, now),
         classId: cls.id,
         cmdline: inst.cmdline.slice(0, 180),
@@ -852,6 +964,9 @@ export function analyzeProcesses(
         });
       }
     } else if (age > 1) {
+      // Servidor MCP stdio del repo con cliente VIVO: conocido y supervisado.
+      // No es un hallazgo: esta haciendo su trabajo mientras el cliente viva.
+      if (isRepoMcpServer(info.cmdline)) continue;
       // unknown but actively supervised by a live non-daemon parent (e.g. an
       // agent running a long task) — report only, never kill
       findings.push({

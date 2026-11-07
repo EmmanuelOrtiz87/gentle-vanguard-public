@@ -1,7 +1,7 @@
 /* GV Academy composition: the same identity, purpose-specific learning imagery and navigation. */
 :root,:root[data-theme="dark"],:root[data-theme="light"] { --bg:var(--gv-bg); --bg-deep:var(--gv-bg-deep); --bg-elevated:var(--gv-bg-elevated); --text:var(--gv-text); --text-2:var(--gv-text-secondary); --muted:var(--gv-text-secondary); --purple:var(--gv-purple); --cyan:var(--gv-cyan); --border:var(--gv-border); --radius:var(--gv-radius-lg); --radius-sm:var(--gv-radius-sm); }
 html { scroll-padding-top:160px; }
-body { overflow-y: visible !important; }
+body { overflow-y: visible !important; overflow-x: clip; }
 body { background:var(--gv-bg); }
 button,input,select,textarea { font-family:var(--gv-font-body); }
 input,textarea { caret-color:var(--gv-cyan); }

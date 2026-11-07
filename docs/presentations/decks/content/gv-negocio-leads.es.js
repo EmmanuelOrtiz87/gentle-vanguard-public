@@ -122,7 +122,7 @@ export default {
       items: [
         { icon: 'layers', heading: 'Capas', body: 'Superficies, orquestación, agentes, skills, conocimiento, herramientas e infraestructura.' },
         { icon: 'eye', heading: 'Trazabilidad', body: 'Sesiones, trazas, eventos y auditoría con cadena de hash en la base local.' },
-        { icon: 'shield', heading: 'Gobernanza', body: '46 quality gates, escaneo de secretos y políticas fail-closed.' },
+        { icon: 'shield', heading: 'Gobernanza', body: '47 quality gates, escaneo de secretos y políticas fail-closed.' },
         { icon: 'cloud', heading: 'Local primero', body: 'Funciona en la máquina del equipo y se expone en la nube cuando hace falta.' },
       ],
       layers: [

@@ -10,6 +10,15 @@ import { runSync } from '../run-command';
 import { getEffectiveProcessTimeout } from '../timeout-config';
 import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR, CheckResult } from './context';
 import { fileExists, getFileAgeHours } from './helpers';
+import {
+  evaluateInferenceEntry,
+  findInferenceEntry,
+  loadInferenceEvidence,
+} from '../../ml/model-inference-evidence.js';
+import type {
+  InferenceEvidenceEntry,
+  InferenceVerdict,
+} from '../../ml/model-inference-evidence.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-DATA');
 const _require = createRequire(import.meta.url);
 import { log } from '../../utils/logger.js';
@@ -450,6 +459,113 @@ export function evaluateTrackedModelHealth(
   return { status, detail };
 }
 
+/**
+ * Evidencia de INFERENCIA REAL del modelo activo.
+ *
+ * El probe de salud (src/tools/model-health-probe.ts) prueba que el CATALOGO
+ * del proveedor es alcanzable (`GET /models`). Eso NO dice si el modelo
+ * RESPONDE: un proveedor puede listar 45 modelos y no servir ninguno (cuota
+ * agotada, sin suscripcion, presupuesto del proxy excedido).
+ *
+ * El probe de inferencia (src/tools/model-inference-probe.ts) hace la llamada
+ * real (`POST /chat/completions`) y deja la evidencia con TTL. Este check la
+ * lee: PASS solo con inferencia real exitosa y vigente; FAIL cuando el
+ * proveedor RESPONDIO con error; WARN cuando no hay veredicto (evidencia
+ * ausente, vencida o sin respuesta).
+ */
+function checkInferenceEvidence(activeModel: string): InferenceVerdict {
+  const inferencePath = join(RUNTIME_DIR, 'model-inference-evidence.json');
+  const file = loadInferenceEvidence(inferencePath);
+  const entry = findInferenceEntry(file, activeModel);
+  const verdict = evaluateInferenceEntry(entry, file?.ttlSeconds);
+
+  if (verdict === 'PASS') {
+    addResult(
+      'model-provider-health',
+      'inference probe',
+      'PASS',
+      `${activeModel} respondio en inferencia real (${entry?.latencyMs ?? 0}ms, ${entry?.status})`,
+      'ok',
+    );
+    return verdict;
+  }
+
+  if (verdict === 'FAIL') {
+    addResult(
+      'model-provider-health',
+      'inference probe',
+      'FAIL',
+      `${activeModel} respondio con error: ${entry?.status}${entry?.detail ? ` — ${entry.detail.slice(0, 100)}` : ''}`,
+      'verify-active-model',
+    );
+    return verdict;
+  }
+
+  addResult(
+    'model-provider-health',
+    'inference probe',
+    'WARN',
+    entry
+      ? `sin veredicto de inferencia (${entry.status}, ${entry.responded ? 'respondio' : 'sin respuesta'})`
+      : 'sin evidencia de inferencia real (probe no ejecutado o evidencia vencida)',
+    'verify-active-model',
+  );
+  return verdict;
+}
+
+/**
+ * Veredicto del MODELO ACTIVO (una sola señal, sin contradicciones).
+ *
+ * Precedencia: la INFERENCIA REAL manda sobre la evidencia de proveedor y
+ * sobre la ventana de 5 minutos de `token_usage`.
+ *
+ * Por que: `token_usage` solo registra un exito si el agente completo una
+ * llamada en los ultimos 5 minutos. Un stack recien arrancado (o con el
+ * probe de inferencia corriendo en fase 0) tiene una inferencia REAL
+ * reciente pero ningun `token_usage` de agente -> la ventana de 5 min
+ * reportaba WARN mientras el probe de inferencia reportaba PASS en la MISMA
+ * corrida. Dos veredictos opuestos para la misma afirmacion.
+ *
+ * La inferencia ES la medicion de "el modelo responde": su TTL (15 min) es el
+ * prazo correcto para la afirmacion. `token_usage` queda como respaldo
+ * cuando no hay veredicto de inferencia.
+ */
+export function resolveActiveModelStatus(
+  activeModel: string,
+  fallback: CheckResult['status'],
+  inference: { verdict: InferenceVerdict; entry?: InferenceEvidenceEntry },
+): { status: CheckResult['status']; detail: string } {
+  if (inference.verdict === 'PASS') {
+    return {
+      status: 'PASS',
+      detail: `${activeModel} respondio en inferencia real (${inference.entry?.latencyMs ?? 0}ms)`,
+    };
+  }
+  if (inference.verdict === 'FAIL') {
+    return {
+      status: 'FAIL',
+      detail: `${activeModel} respondio con error (${inference.entry?.status ?? 'UNKNOWN'})`,
+    };
+  }
+  return {
+    status: fallback,
+    detail:
+      fallback === 'PASS'
+        ? `${activeModel} has a fresh successful probe`
+        : `${activeModel} has no fresh successful probe`,
+  };
+}
+
+/** Veredicto de inferencia del modelo activo, leido de la evidencia vigente. */
+export function readActiveModelInference(activeModel: string): {
+  verdict: InferenceVerdict;
+  entry?: InferenceEvidenceEntry;
+} {
+  const file = loadInferenceEvidence(join(RUNTIME_DIR, 'model-inference-evidence.json'));
+  const entry = findInferenceEntry(file, activeModel);
+  return { verdict: evaluateInferenceEntry(entry, file?.ttlSeconds), entry };
+}
+
 export async function checkModelHealth() {
   if (!quiet) logger.info('  [model-provider-health] Checking...');
 
@@ -481,13 +597,16 @@ export async function checkModelHealth() {
 
   if (!fileExists(statePath)) {
     addResult('model-provider-health', 'state', 'PASS', `No unhealthy models tracked`, 'ok');
+    const inference = readActiveModelInference(activeModel);
+    const resolved = resolveActiveModelStatus(activeModel, 'WARN', inference);
     addResult(
       'model-provider-health',
       'active model',
-      'WARN',
-      `${activeModel} has no tracked provider health or fresh successful probe`,
-      'verify-active-model',
+      resolved.status,
+      resolved.detail,
+      resolved.status === 'PASS' ? 'ok' : 'verify-active-model',
     );
+    checkInferenceEvidence(activeModel);
     return;
   }
 
@@ -513,7 +632,11 @@ export async function checkModelHealth() {
     };
 
     if (Object.keys(models).length === 0) {
-      addResult('model-provider-health', 'state', 'WARN', 'No provider health records', 'verify');
+      // El healer SOLO registra modelos con error: un registro vacio significa
+      // "no hubo fallos", no "no se sabe". La rama de archivo inexistente ya
+      // lo reporta como PASS; que el archivo exista y este vacio no cambia el
+      // hecho (medido 2026-11-06: WARN permanente con el stack sano).
+      addResult('model-provider-health', 'state', 'PASS', 'No unhealthy models tracked', 'ok');
     } else {
       for (const [name, model] of Object.entries(models)) {
         const evidence = { ...model, lastSuccessAt: latestSuccess(name, model.lastSuccessAt) };
@@ -538,7 +661,7 @@ export async function checkModelHealth() {
       }
     }
     const activeEvidence = models[activeModel];
-    const activeStatus = activeEvidence
+    const providerStatus = activeEvidence
       ? evaluateProviderEvidenceStatus(activeModel, activeModel, {
           ...activeEvidence,
           lastSuccessAt: latestSuccess(activeModel, activeEvidence.lastSuccessAt),
@@ -546,16 +669,18 @@ export async function checkModelHealth() {
       : evaluateProviderEvidenceStatus(activeModel, activeModel, {
           lastSuccessAt: latestSuccess(activeModel),
         });
+    const inference = readActiveModelInference(activeModel);
+    const resolved = resolveActiveModelStatus(
+      activeModel,
+      providerStatus,
+      inference,
+    );
     addResult(
       'model-provider-health',
       'active model',
-      activeStatus,
-      activeModel === 'unknown'
-        ? 'unknown'
-        : activeStatus === 'PASS'
-          ? `${activeModel} has a fresh successful probe`
-          : `${activeModel} has no fresh successful probe`,
-      activeStatus === 'PASS' ? 'ok' : 'verify-active-model',
+      resolved.status,
+      activeModel === 'unknown' ? 'unknown' : resolved.detail,
+      resolved.status === 'PASS' ? 'ok' : 'verify-active-model',
     );
 
     // Evidencia de probe por PROVEEDOR (src/tools/model-health-probe.ts).
@@ -611,6 +736,8 @@ export async function checkModelHealth() {
         /* evidencia ilegible: no es un hallazgo */
       }
     }
+
+    checkInferenceEvidence(activeModel);
   } catch {
     addResult(
       'model-provider-health',
@@ -619,6 +746,7 @@ export async function checkModelHealth() {
       'Could not parse model-health.json',
       'verify',
     );
+    checkInferenceEvidence(activeModel);
   }
 }
 

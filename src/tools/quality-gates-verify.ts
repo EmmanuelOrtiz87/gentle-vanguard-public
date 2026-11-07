@@ -261,6 +261,15 @@ function main(): void {
       sources.set('src/git/prepush-gate.ts', readFileSync(composite, 'utf8'));
     }
 
+    // The session-autostart pipeline is ALSO an enforcement surface: every
+    // step declared in config/session-autostart.config.json runs on session
+    // start (some of them lazily, in the background). A gate that only runs
+    // there is still really executed, so the corpus has to know about it.
+    const autostart = join(root, 'config', 'session-autostart.config.json');
+    if (existsSync(autostart)) {
+      sources.set('config/session-autostart.config.json', readFileSync(autostart, 'utf8'));
+    }
+
     // One level of indirection through npm scripts: if the corpus mentions a
     // script name, the implementation of that script runs too.
     let text = [...sources.values()].join('\n');

@@ -35,7 +35,7 @@
     "gates:skills": "node --import tsx src/tools/skills-accessibility-gate.ts",
     "gates:gitignore": "node --import tsx src/tools/gitignore-source-guard.ts",
     "gates:typecheck-coverage": "node --import tsx src/tools/app-typecheck-coverage-gate.ts",
-    "gates:selftest": "node --import tsx --test src/tools/skills-accessibility-gate.test.ts src/tools/gitignore-source-guard.test.ts src/tools/dependabot-alerts-gate.test.ts src/tools/app-typecheck-coverage-gate.test.ts src/tools/decks-guion-coverage-gate.test.ts src/tools/quality-gates-verify.test.ts src/tools/decks-facts-drift-gate.test.ts src/tools/glossary-export.test.ts src/ops/stack-audit-apps.test.ts src/monitor/multi-channel-alert.test.ts src/tokens/token-spike-guard.test.ts",
+    "gates:selftest": "node --import tsx --test src/tools/skills-accessibility-gate.test.ts src/tools/gitignore-source-guard.test.ts src/tools/dependabot-alerts-gate.test.ts src/tools/app-typecheck-coverage-gate.test.ts src/tools/decks-guion-coverage-gate.test.ts src/tools/quality-gates-verify.test.ts src/tools/decks-facts-drift-gate.test.ts src/tools/glossary-export.test.ts src/ops/stack-audit-apps.test.ts src/monitor/multi-channel-alert.test.ts src/tokens/token-spike-guard.test.ts src/tools/model-inference-probe.test.ts",
     "ci:static-gates": "npx tsx src/ci/static-gates.ts",
     "ci:static-gates:strict-images": "npx tsx src/ci/static-gates.ts --strict-images",
     "validate:deployment": "npx tsx src/ci/deployment-prerequisites.ts",
@@ -622,7 +622,9 @@
     "docs:presentations:review": "node --import tsx src/tools/verify-presentation-review.ts",
     "session:feedback": "npx tsx src/session/record-session-feedback.ts",
     "gates:dependabot": "node --import tsx src/tools/dependabot-alerts-gate.ts",
-    "models:probe": "npx tsx src/tools/model-health-probe.ts"
+    "models:probe": "npx tsx src/tools/model-health-probe.ts",
+    "models:infer": "node --import tsx src/tools/model-inference-probe.ts",
+    "models:infer:check": "node --import tsx src/tools/model-inference-probe.ts --check"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "0.8.0",

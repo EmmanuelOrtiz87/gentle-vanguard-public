@@ -177,7 +177,7 @@ export default {
       lead: 'The stack runs its own controls on every commit, every push and every health cycle.',
       cols: 4,
       items: [
-        { value: '46', label: 'Quality gates', sub: '42 of 46 enforced strictly', accent: '06b6d4' },
+        { value: '47', label: 'Quality gates', sub: '43 of 47 enforced strictly', accent: '06b6d4' },
         { value: '552+', label: 'Test files', sub: 'Unit, e2e, integration, security and skills', accent: '8b5cf6' },
         { value: '21', label: 'CI workflows', sub: 'CI, security, release, public sync and automated labelling', accent: 'fbbf24' },
         { value: '80', label: 'Secret patterns', sub: 'With optional entropy and redaction by default', accent: '22d3ee' },
