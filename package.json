@@ -23,6 +23,7 @@
     "harness:rules-audit": "node --import tsx src/tools/harness-rules-audit.ts",
     "harness:mcp": "node --import tsx src/mcp/harness-mcp-server.ts",
     "ollama:serve": "node --import tsx src/tools/ollama-serve.ts",
+    "ollama:stop": "node --import tsx src/tools/ollama-serve.ts --stop",
     "keys:registry": "node --import tsx src/integrations/key-registry-server.ts",
     "keys:registry:start": "node --import tsx src/integrations/key-registry-autostart.ts",
     "keys:registry:status": "node --import tsx src/integrations/key-registry.ts --status",

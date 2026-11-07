@@ -489,8 +489,13 @@ function verdictOf(outcomes: ProbeOutcome[]): 'PASS' | 'FAIL' | 'UNKNOWN' {
   return 'UNKNOWN';
 }
 
-async function main(): Promise<number> {
-  const args = parseArgs(process.argv.slice(2));
+/**
+ * Punto de entrada reutilizable: el wrapper de la tarea programada
+ * (src/tools/refresh-model-inference-evidence.ts) lo invoca con argv propio
+ * para mantener la evidencia del modelo activo fresca entre sesiones.
+ */
+export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
+  const args = parseArgs(argv);
   const targets = resolveTargets(args.models, args.registry);
 
   if (targets.length === 0) {
@@ -599,13 +604,16 @@ async function main(): Promise<number> {
   return 2;
 }
 
-main()
-  .then((code) => {
-    process.exitCode = code;
-  })
-  .catch((error: unknown) => {
-    console.error(
-      `[model-inference-probe] fatal: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    process.exitCode = 2;
-  });
+const invokedDirectly = process.argv[1]?.split(/[\\/]/).pop() === 'model-inference-probe.ts';
+if (invokedDirectly) {
+  main()
+    .then((code) => {
+      process.exitCode = code;
+    })
+    .catch((error: unknown) => {
+      console.error(
+        `[model-inference-probe] fatal: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      process.exitCode = 2;
+    });
+}

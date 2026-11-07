@@ -15,7 +15,7 @@
  *   npx tsx src/tokens/token-spike-guard-daemon.ts            # corre hasta kill
  *   npx tsx src/tokens/token-spike-guard-daemon.ts --once     # un check y sale
  */
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runGuardLoop, getCurrentTokens } from '../tokens/token-spike-guard.js';
@@ -34,6 +34,28 @@ async function main(): Promise<void> {
 
   // Contrato pidfile de process-hygiene (igual que metrics-writer-daemon).
   const pidFile = join(RUNTIME_DIR, 'spike-guard.pid');
+
+  // Dedupe: autostart (lazy step) y la tarea programada del bootstrap pueden
+  // intentar arrancar este daemon en paralelo; solo una instancia es dueña del
+  // pidfile. Un pid vivo en el archivo → esta instancia sale sin tocar nada.
+  if (existsSync(pidFile)) {
+    try {
+      const existing = parseInt(readFileSync(pidFile, 'utf-8').trim(), 10);
+      if (Number.isFinite(existing) && existing > 0 && existing !== process.pid) {
+        process.kill(existing, 0);
+        console.log(`[spike-guard-daemon] ya hay una instancia (PID ${existing}); saliendo`);
+        return;
+      }
+    } catch {
+      // pid muerto o pidfile corrupto: limpiar y tomar posesión
+      try {
+        unlinkSync(pidFile);
+      } catch {
+        /* best-effort */
+      }
+    }
+  }
+
   const removePidFile = (): void => {
     try {
       if (existsSync(pidFile)) unlinkSync(pidFile);

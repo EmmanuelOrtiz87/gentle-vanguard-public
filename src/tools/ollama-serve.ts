@@ -11,11 +11,116 @@
  *
  *   npm run ollama:serve
  */
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
+import { killProcess, runSystem } from '../core/platform-utils.js';
 
 const OLLAMA_URL = 'http://127.0.0.1:11434';
+const PID_FILE = join(process.cwd(), '.runtime', 'ollama.pid');
+
+/**
+ * El runner `llama-server.exe` es hijo del server: matar solo `ollama.exe`
+ * deja el runner huérfano con el modelo cargado (~7 GB medidos el 2026-11-06).
+ * killProcess usa `taskkill /pid /t /f` — baja el árbol completo, la única
+ * forma limpia en Windows. Todo vía runSystem/killProcess de platform-utils
+ * (el ratchet de deadcode cuenta binarios spawn directos por archivo).
+ */
+function killTree(pid: number): boolean {
+  return killProcess(pid);
+}
+
+/** Lista PIDs de un proceso por imagen (PowerShell Get-Process). */
+function findPidsByImage(image: string): number[] {
+  const base = image.replace(/\.exe$/i, '');
+  const r = runSystem(
+    'powershell',
+    [
+      '-NoProfile',
+      '-Command',
+      `Get-Process -Name '${base}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id`,
+    ],
+    { timeoutMs: 15000 },
+  );
+  if (r.status !== 0 || !r.stdout) return [];
+  return r.stdout
+    .split(/\r?\n/)
+    .map((l) => Number(l.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+/**
+ * PIDs de procesos `ollama.exe serve` (el server) por línea de comando —
+ * distingue al server de los clientes `ollama run/ps` (que no deben morir).
+ * netstat queda descartado: el socket LISTEN de ollama no siempre aparece
+ * (medido 2026-11-07: /api/tags responde y netstat no lista el LISTENING).
+ */
+function findServerPids(): number[] {
+  const r = runSystem(
+    'powershell',
+    [
+      '-NoProfile',
+      '-Command',
+      "Get-CimInstance Win32_Process -Filter \"Name='ollama.exe'\" | Where-Object { $_.CommandLine -match '\\bserve\\b' } | Select-Object -ExpandProperty ProcessId",
+    ],
+    { timeoutMs: 15000 },
+  );
+  if (r.status !== 0 || !r.stdout) return [];
+  return r.stdout
+    .split(/\r?\n/)
+    .map((l) => Number(l.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+/**
+ * Cierra el server rastreando el árbol: pid del pidfile + cualquier runner
+ * `llama-server.exe` (solo el server lo produce; el CLI `ollama run` no toca
+ * esta imagen, así que una sesión interactiva del usuario no se corta).
+ */
+export function stopOllama(): { stopped: boolean; killedPids: number[] } {
+  const killedPids: number[] = [];
+  let serverPid: number | null = null;
+  if (existsSync(PID_FILE)) {
+    try {
+      const pid = Number(readFileSync(PID_FILE, 'utf-8').trim());
+      if (Number.isFinite(pid) && pid > 0) serverPid = pid;
+    } catch {
+      /* pidfile corrupto: cae a detección por puerto */
+    }
+    try {
+      unlinkSync(PID_FILE);
+    } catch {
+      /* best-effort */
+    }
+  }
+  // Server arrancado fuera de este script (sin pidfile): detectar por cmdline
+  // `serve` — el cliente `ollama run` no matchea y no se corta.
+  if (serverPid === null) {
+    for (const pid of findServerPids()) {
+      if (killTree(pid)) killedPids.push(pid);
+    }
+  } else if (killTree(serverPid)) {
+    killedPids.push(serverPid);
+  }
+  // Runners supervivientes: matarlos libera la VRAM/RAM sin tocar clientes.
+  for (const pid of findPidsByImage('llama-server.exe')) {
+    if (killTree(pid)) killedPids.push(pid);
+  }
+  return { stopped: killedPids.length > 0, killedPids };
+}
+
+/**
+ * Janitor de arranque: si el server NO responde, cualquier `llama-server.exe`
+ * vivo es huérfano (nada lo está sirviendo) — matarlo libera ~7 GB antes de
+ * levantar un server nuevo. Si el server responde, no toca nada.
+ */
+function reapOrphanRunners(): number[] {
+  const killed: number[] = [];
+  for (const pid of findPidsByImage('llama-server.exe')) {
+    if (killTree(pid)) killed.push(pid);
+  }
+  return killed;
+}
 
 async function serverUp(): Promise<boolean> {
   try {
@@ -41,6 +146,12 @@ function findOllamaExe(): string {
  */
 export async function ensureOllamaUp(): Promise<{ up: boolean; started: boolean }> {
   if (await serverUp()) return { up: true, started: false };
+  const reaped = reapOrphanRunners();
+  if (reaped.length > 0) {
+    process.stdout.write(
+      `ollama-serve: ${reaped.length} runner(s) huerfano(s) liberados (llama-server).\n`
+    );
+  }
   const exe = findOllamaExe();
   if (!exe) return { up: false, started: false };
   const child = spawn(exe, ['serve'], {
@@ -55,6 +166,11 @@ export async function ensureOllamaUp(): Promise<{ up: boolean; started: boolean 
     windowsHide: true,
   });
   child.unref();
+  try {
+    writeFileSync(PID_FILE, String(child.pid), 'utf-8');
+  } catch {
+    /* best-effort: sin pidfile, el stop cae al barrido de runners */
+  }
   for (let i = 0; i < 30; i += 1) {
     await new Promise((r) => setTimeout(r, 1000));
     if (await serverUp()) return { up: true, started: true };
@@ -63,6 +179,15 @@ export async function ensureOllamaUp(): Promise<{ up: boolean; started: boolean 
 }
 
 async function main(): Promise<number> {
+  if (process.argv.includes('--stop')) {
+    const { stopped, killedPids } = stopOllama();
+    process.stdout.write(
+      stopped
+        ? `ollama-serve: servidor detenido (PIDs: ${killedPids.join(', ')}).\n`
+        : 'ollama-serve: no habia servidor (ni runners) que detener.\n'
+    );
+    return 0;
+  }
   const { up, started } = await ensureOllamaUp();
   if (up) {
     process.stdout.write(
