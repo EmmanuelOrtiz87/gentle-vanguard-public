@@ -62,7 +62,22 @@ function registerScheduledTask(
     ...scheduleArgs,
     '/F',
   ]);
-  if (wrapperResult.status === 0) return 'ok';
+  if (wrapperResult.status === 0) {
+    // Post-ajuste de settings (2026-11-07): schtasks /Create deja los defaults
+    // DisallowStartIfOnBatteries=True — en una maquina con UPS reportado como
+    // bateria (medido: ACLine=0 con GD03059XL) TODAS las tareas quedaban en
+    // cola sin ejecutarse jamas, en silencio. Permitir arranque en bateria es
+    // lo correcto para los daemons del stack (token guard, backups, sync).
+    runCmd(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        `Set-ScheduledTask -TaskName '${taskName}' -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew)`,
+      ],
+    );
+    return 'ok';
+  }
 
   // Último recurso VISIBLE (solo si wscript.exe está bloqueado en el sistema):
   // node.exe directo. En un shell interactivo la tarea parpadeará una consola.

@@ -16,7 +16,26 @@
  * programada ignora el código; el veredicto queda en la evidencia que lee el
  * watchtower.
  */
+import { appendFileSync, mkdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { main as runProbe } from './model-inference-probe.js';
 
+const ROOT = resolve(import.meta.dirname, '..', '..');
+const LOG = join(ROOT, '.runtime', 'model-inference-refresh.log');
+function log(line: string): void {
+  try {
+    mkdirSync(join(ROOT, '.runtime'), { recursive: true });
+    appendFileSync(LOG, `[${new Date().toISOString()}] ${line}
+`, 'utf-8');
+  } catch {
+    /* best-effort */
+  }
+}
+
+// El cwd heredado de una tarea programada es System32: anclar el repo para
+// que ROOT (cwd) del probe resuelva siempre al workspace.
+process.chdir(ROOT);
+
 const code = await runProbe(['--local-timeout', '90000']);
+log(`veredicto exit=${code}`);
 process.exitCode = code;
