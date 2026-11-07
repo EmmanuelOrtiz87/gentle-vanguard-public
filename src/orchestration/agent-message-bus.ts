@@ -11,7 +11,7 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { randomBytes } from 'crypto';
 
-interface AgentMessage {
+export interface AgentMessage {
   id: string;
   type: 'request' | 'response' | 'broadcast' | 'event';
   sender: string;
@@ -26,6 +26,9 @@ interface AgentMessage {
   priority: 'normal' | 'high' | 'low';
   ack: boolean;
   ackedAt?: string;
+  /** P2P slice 5: el request fue respondido por este agente. */
+  responded?: boolean;
+  respondedAt?: string;
 }
 
 interface Mailbox {
@@ -613,4 +616,92 @@ export function busAck(agent: string, messageId: string): boolean {
   msg.ackedAt = nowISO();
   writeMailbox(agent, mb);
   return true;
+}
+
+/** Marca el mensaje original como respondido en el mailbox de `agent`. */
+function markResponded(agent: string, messageId: string): boolean {
+  const mb = readMailbox(agent);
+  const msg = mb.messages.find((m) => m.id === messageId);
+  if (!msg) return false;
+  msg.responded = true;
+  msg.respondedAt = nowISO();
+  writeMailbox(agent, mb);
+  return true;
+}
+
+/**
+ * P2P slice 5 (GB-2026-10-24): responde un request recibido. La respuesta va
+ * al mailbox del EMISOR original con correlation_id = id del request y el
+ * mismo conversation_id, de modo que waitForReply la correlacione sin
+ * ambigüedad. El original queda marcado `responded` en el mailbox del
+ * respondedor (no se entrega dos veces al mismo request).
+ */
+export function busReply(opts: {
+  from: string;
+  original: AgentMessage;
+  payload: unknown;
+  ttlSeconds?: number;
+  priority?: AgentMessage['priority'];
+}): AgentMessage {
+  const reply = createMessage(
+    'response',
+    opts.from,
+    opts.original.sender,
+    opts.original.conversation_id,
+    opts.original.id,
+    `RE: ${opts.original.subject}`,
+    typeof opts.payload === 'string' ? opts.payload : JSON.stringify(opts.payload ?? null),
+    opts.priority ?? opts.original.priority,
+    opts.ttlSeconds ?? 300,
+  );
+  ensureMailboxDir();
+  const mb = removeExpired(readMailbox(reply.recipient));
+  mb.messages.push(reply);
+  mb.lastUpdated = nowISO();
+  writeMailbox(reply.recipient, mb);
+  markResponded(opts.from, opts.original.id);
+  logEvent(reply.id, reply.sender, reply.recipient, reply.subject, reply.type);
+  return reply;
+}
+
+/**
+ * Espera (polling activo) la respuesta correlacionada en el mailbox propio.
+ * Devuelve la primera response con correlation_id === requestId, o null si
+ * vence el timeout. No marca ack ni consumed: eso lo decide el llamador.
+ */
+export async function waitForReply(
+  agent: string,
+  requestId: string,
+  opts: { timeoutMs?: number; pollMs?: number } = {},
+): Promise<AgentMessage | null> {
+  const timeoutMs = opts.timeoutMs ?? 5000;
+  const pollMs = opts.pollMs ?? 100;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const hit = removeExpired(readMailbox(agent)).messages.find(
+      (m) => m.type === 'response' && m.correlation_id === requestId,
+    );
+    if (hit) return hit;
+    await new Promise((r) => setTimeout(r, pollMs));
+  }
+  return null;
+}
+
+/** Sugar P2P: request + espera de respuesta en una llamada. */
+export async function busRequestAndWait(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  payload: unknown;
+  timeoutMs?: number;
+  ttlSeconds?: number;
+}): Promise<{ request: AgentMessage; reply: AgentMessage | null }> {
+  const request = busSend({ ...opts, type: 'request' });
+  const reply = await waitForReply(opts.from, request.id, { timeoutMs: opts.timeoutMs });
+  return { request, reply };
+}
+
+/** Lectura cruda del mailbox (para tests y tooling de diagnóstico). */
+export function readMailboxForTest(agent: string): Mailbox {
+  return readMailbox(agent);
 }
