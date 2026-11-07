@@ -178,3 +178,183 @@ describe('mcas: el emisor externo entrega de verdad', () => {
     }
   });
 });
+
+describe('mcas: derivacion de los 4 canales nuevos (telegram/whatsapp/sms/email)', () => {
+  it('POSITIVO: telegram se habilita SOLO con bot token + chat id', () => {
+    const off = buildExternalChannels({});
+    assert.equal(off.telegram.enabled, false);
+    const half = buildExternalChannels({ TELEGRAM_BOT_TOKEN: 'tok' });
+    assert.equal(half.telegram.enabled, false, 'token sin chat id NO habilita');
+    const on = buildExternalChannels({ TELEGRAM_BOT_TOKEN: 'tok', TELEGRAM_CHAT_ID: '123' });
+    assert.equal(on.telegram.enabled, true);
+    assert.equal(on.telegram.telegramToken, 'tok');
+    assert.equal(on.telegram.telegramChatId, '123');
+    assert.equal(on.telegram.telegramApiBase, 'https://api.telegram.org');
+  });
+
+  it('POSITIVO: whatsapp y sms requieren SUS 4 env vars (sin habilitacion cruzada)', () => {
+    const waOnly = buildExternalChannels({
+      WHATSAPP_ACCOUNT_SID: 'AC',
+      WHATSAPP_AUTH_TOKEN: 'pw',
+      WHATSAPP_FROM: 'whatsapp:+14155238886',
+      WHATSAPP_TO: 'whatsapp:+5491100000000',
+    });
+    assert.equal(waOnly.whatsapp.enabled, true);
+    assert.equal(waOnly.sms.enabled, false, 'credenciales de WA no habilitan SMS');
+    assert.equal(waOnly.telegram.enabled, false);
+
+    const smsOnly = buildExternalChannels({
+      SMS_ACCOUNT_SID: 'AC',
+      SMS_AUTH_TOKEN: 'pw',
+      SMS_FROM: '+14155238886',
+      SMS_TO: '+5491100000000',
+    });
+    assert.equal(smsOnly.sms.enabled, true);
+    assert.equal(smsOnly.whatsapp.enabled, false);
+    // apiBase default de Twilio, override posible para tests
+    assert.equal(smsOnly.sms.twilioApiBase, 'https://api.twilio.com');
+  });
+
+  it('POSITIVO: email se habilita con SMTP_HOST + ALERT_EMAIL_TO; PORT default 587', () => {
+    const off = buildExternalChannels({ SMTP_HOST: 'smtp.test' });
+    assert.equal(off.email.enabled, false, 'host sin destinatario NO habilita');
+    const on = buildExternalChannels({ SMTP_HOST: 'smtp.test', ALERT_EMAIL_TO: 'a@b.c' });
+    assert.equal(on.email.enabled, true);
+    assert.equal(on.email.smtpPort, 587);
+  });
+
+  it('NEGATIVO: env var vacia no habilita ninguno de los nuevos', () => {
+    const ch = buildExternalChannels({
+      TELEGRAM_BOT_TOKEN: '',
+      TELEGRAM_CHAT_ID: '',
+      WHATSAPP_ACCOUNT_SID: '',
+      SMS_ACCOUNT_SID: '',
+      SMTP_HOST: '',
+    });
+    assert.equal(ch.telegram.enabled, false);
+    assert.equal(ch.whatsapp.enabled, false);
+    assert.equal(ch.sms.enabled, false);
+    assert.equal(ch.email.enabled, false);
+  });
+});
+
+describe('mcas: emision real por telegram/whatsapp/sms (servidor HTTP local)', () => {
+  it('POSITIVO: telegram hace POST a /bot{token}/sendMessage con chat_id y texto', async () => {
+    const captured: Captured[] = [];
+    const { server, url } = await startCaptureServer(captured);
+    try {
+      const base = url.replace('/hook', '');
+      const cfg = buildConfig({
+        TELEGRAM_BOT_TOKEN: 'ABC123',
+        TELEGRAM_CHAT_ID: '42',
+        TELEGRAM_API_BASE: base,
+      });
+      const result = await sendAlert(
+        { severity: 'critical', category: 'probe', message: 'telegram probe' },
+        cfg,
+      );
+      assert.ok(result.sent.includes('telegram'));
+      assert.equal(captured.length, 1);
+      assert.ok(captured[0].path.includes('/botABC123/sendMessage'), `path real: ${captured[0].path}`);
+      const payload = JSON.parse(captured[0].body);
+      assert.equal(payload.chat_id, '42');
+      assert.ok(payload.text.includes('telegram probe'));
+      assert.ok(payload.text.includes('CRITICAL'));
+    } finally {
+      server.close();
+    }
+  });
+
+  it('POSITIVO: whatsapp hace POST a Messages.json con Basic auth y form-encoded', async () => {
+    const captured: Captured[] = [];
+    const { server, url } = await startCaptureServer(captured);
+    try {
+      const base = url.replace('/hook', '');
+      const cfg = buildConfig({
+        WHATSAPP_ACCOUNT_SID: 'ACxx',
+        WHATSAPP_AUTH_TOKEN: 'secret',
+        WHATSAPP_FROM: 'whatsapp:+14155238886',
+        WHATSAPP_TO: 'whatsapp:+5491100000000',
+        WHATSAPP_API_BASE: base,
+      });
+      const result = await sendAlert(
+        { severity: 'emergency', category: 'probe', message: 'wa probe' },
+        cfg,
+      );
+      assert.ok(result.sent.includes('whatsapp'));
+      assert.equal(captured.length, 1);
+      assert.ok(
+        captured[0].path.includes('/2010-04-01/Accounts/ACxx/Messages.json'),
+        `path real: ${captured[0].path}`,
+      );
+      const params = new URLSearchParams(captured[0].body);
+      assert.equal(params.get('From'), 'whatsapp:+14155238886');
+      assert.equal(params.get('To'), 'whatsapp:+5491100000000');
+      assert.ok((params.get('Body') ?? '').includes('wa probe'));
+    } finally {
+      server.close();
+    }
+  });
+
+  it('POSITIVO: sms usa el mismo REST con sus propios FROM/TO', async () => {
+    const captured: Captured[] = [];
+    const { server, url } = await startCaptureServer(captured);
+    try {
+      const base = url.replace('/hook', '');
+      const cfg = buildConfig({
+        SMS_ACCOUNT_SID: 'ACsms',
+        SMS_AUTH_TOKEN: 'secret2',
+        SMS_FROM: '+14155238886',
+        SMS_TO: '+5491100000001',
+        SMS_API_BASE: base,
+      });
+      const result = await sendAlert(
+        { severity: 'warning', category: 'probe', message: 'sms probe' },
+        cfg,
+      );
+      assert.ok(result.sent.includes('sms'));
+      const params = new URLSearchParams(captured[0].body);
+      assert.equal(params.get('To'), '+5491100000001');
+      assert.ok((params.get('Body') ?? '').includes('sms probe'));
+    } finally {
+      server.close();
+    }
+  });
+
+  it('POSITIVO: email entrega via transporte inyectado (sin SMTP real)', async () => {
+    const sent: Record<string, unknown>[] = [];
+    const cfg = buildConfig({ SMTP_HOST: 'smtp.test', ALERT_EMAIL_TO: 'owner@gv.dev' });
+    cfg.channels.email.transport = {
+      sendMail: async (opts) => {
+        sent.push(opts);
+        return {};
+      },
+    };
+    const result = await sendAlert(
+      { severity: 'critical', category: 'probe', message: 'mail probe', recommendation: 'mirar' },
+      cfg,
+    );
+    assert.ok(result.sent.includes('email'));
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].to, 'owner@gv.dev');
+    assert.ok(String(sent[0].subject).includes('[GV CRITICAL]'));
+    assert.ok(String(sent[0].text).includes('mail probe'));
+  });
+
+  it('NEGATIVO: canales nuevos sin env vars no envian ni reportan `sent`', async () => {
+    const captured: Captured[] = [];
+    const { server } = await startCaptureServer(captured);
+    try {
+      const result = await sendAlert(
+        { severity: 'info', category: 'contract-test', message: 'silence' },
+        buildConfig({}),
+      );
+      assert.equal(captured.length, 0);
+      for (const c of ['telegram', 'whatsapp', 'sms', 'email']) {
+        assert.equal(result.sent.includes(c), false, `${c} no deberia reportarse enviado`);
+      }
+    } finally {
+      server.close();
+    }
+  });
+});

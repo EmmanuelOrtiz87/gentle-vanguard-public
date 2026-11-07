@@ -236,6 +236,14 @@ function deferredTestReason(script: string): string | undefined {
  * La regla es estricta a proposito: solo se reintenta cuando la salida
  * MUESTRA una de estas firmas, y un segundo fallo (de cualquier tipo) es un
  * fallo real. Un fallo de asercion nunca se reintenta.
+ *
+ * Firmas agregadas tras la noche del 2026-11-07 (7 pushes, 6 apps fallando
+ * de a una, todas pasando aisladas — carga de la maquina con ~66 procesos
+ * node): spawn de server de test sin health bajo carga ('server no quedo
+ * sano'), Playwright pisado por la recarga del SW ('Execution context was
+ * destroyed'), red del browser ('net::ERR_') y timeouts de suite (node:test
+ * 'test timed out after' / vitest 'Test timed out'). ERR_MODULE_NOT_FOUND NO
+ * es firma: fue rotura real de paquete (better-sqlite3 gutted), debe gritar.
  */
 const FLAKY_FAILURE_SIGNATURES = [
   'Worker exited unexpectedly',
@@ -246,6 +254,11 @@ const FLAKY_FAILURE_SIGNATURES = [
   'ECONNRESET',
   'EPIPE',
   'The process was forcibly terminated',
+  'server no quedó sano',
+  'Execution context was destroyed',
+  'net::ERR_',
+  'test timed out after',
+  'Test timed out',
 ];
 
 /** Ejecutor de un check individual contra una app. */

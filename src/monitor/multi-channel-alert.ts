@@ -3,7 +3,8 @@
  * Multi-Channel Alert System (MCAS)
  *
  * Sistema de alertas multi-canal para Gentle-Vanguard.
- * Soporta: CLI, Dashboard, File, Webhook, Discord, Slack.
+ * Soporta: CLI, Dashboard, File, Webhook, Discord, Slack,
+ *          Telegram, WhatsApp (Twilio), SMS (Twilio), Email (SMTP).
  *
  * Usage:
  *   npx tsx src/monitor/multi-channel-alert.ts --send "Test message" --severity warning
@@ -32,6 +33,27 @@ interface AlertConfig {
   channel?: string;
   username?: string;
   avatarUrl?: string;
+  /** Telegram: token del bot + chat destino. */
+  telegramToken?: string;
+  telegramChatId?: string;
+  /** Override para tests (default https://api.telegram.org). */
+  telegramApiBase?: string;
+  /** Twilio WhatsApp / SMS: credenciales de la cuenta. */
+  twilioAccountSid?: string;
+  twilioAuthToken?: string;
+  twilioFrom?: string;
+  twilioTo?: string;
+  /** Override para tests (default https://api.twilio.com). */
+  twilioApiBase?: string;
+  /** Email vía SMTP (nodemailer). */
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPass?: string;
+  smtpFrom?: string;
+  emailTo?: string;
+  /** Transporte inyectable para tests (default: nodemailer lazy). */
+  transport?: { sendMail(opts: Record<string, unknown>): Promise<unknown> };
 }
 
 interface MCASConfig {
@@ -42,6 +64,10 @@ interface MCASConfig {
     webhook: AlertConfig;
     discord: AlertConfig;
     slack: AlertConfig;
+    telegram: AlertConfig;
+    whatsapp: AlertConfig;
+    sms: AlertConfig;
+    email: AlertConfig;
   };
   defaults: {
     severity: 'info' | 'warning' | 'critical' | 'emergency';
@@ -73,6 +99,10 @@ export function buildExternalChannels(env: Record<string, string | undefined> = 
   webhook: AlertConfig;
   discord: AlertConfig;
   slack: AlertConfig;
+  telegram: AlertConfig;
+  whatsapp: AlertConfig;
+  sms: AlertConfig;
+  email: AlertConfig;
 } {
   return {
     webhook: {
@@ -90,6 +120,39 @@ export function buildExternalChannels(env: Record<string, string | undefined> = 
       slack: env.SLACK_WEBHOOK_URL,
       channel: '#alerts',
       username: 'Gentle-Vanguard',
+    },
+    telegram: {
+      enabled: Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
+      telegramToken: env.TELEGRAM_BOT_TOKEN,
+      telegramChatId: env.TELEGRAM_CHAT_ID,
+      telegramApiBase: env.TELEGRAM_API_BASE || 'https://api.telegram.org',
+    },
+    whatsapp: {
+      enabled: Boolean(
+        env.WHATSAPP_ACCOUNT_SID && env.WHATSAPP_AUTH_TOKEN && env.WHATSAPP_FROM && env.WHATSAPP_TO,
+      ),
+      twilioAccountSid: env.WHATSAPP_ACCOUNT_SID,
+      twilioAuthToken: env.WHATSAPP_AUTH_TOKEN,
+      twilioFrom: env.WHATSAPP_FROM,
+      twilioTo: env.WHATSAPP_TO,
+      twilioApiBase: env.WHATSAPP_API_BASE || 'https://api.twilio.com',
+    },
+    sms: {
+      enabled: Boolean(env.SMS_ACCOUNT_SID && env.SMS_AUTH_TOKEN && env.SMS_FROM && env.SMS_TO),
+      twilioAccountSid: env.SMS_ACCOUNT_SID,
+      twilioAuthToken: env.SMS_AUTH_TOKEN,
+      twilioFrom: env.SMS_FROM,
+      twilioTo: env.SMS_TO,
+      twilioApiBase: env.SMS_API_BASE || 'https://api.twilio.com',
+    },
+    email: {
+      enabled: Boolean(env.SMTP_HOST && env.ALERT_EMAIL_TO),
+      smtpHost: env.SMTP_HOST,
+      smtpPort: env.SMTP_PORT ? Number(env.SMTP_PORT) : 587,
+      smtpUser: env.SMTP_USER,
+      smtpPass: env.SMTP_PASS,
+      smtpFrom: env.SMTP_FROM || env.SMTP_USER,
+      emailTo: env.ALERT_EMAIL_TO,
     },
   };
 }
@@ -404,6 +467,129 @@ async function sendToSlack(alert: AlertPayload, config: AlertConfig): Promise<bo
   }
 }
 
+/** Telegram Bot API: POST {apiBase}/bot{token}/sendMessage {chat_id, text}. */
+async function sendToTelegram(alert: AlertPayload, config: AlertConfig): Promise<boolean> {
+  if (!config.enabled || !config.telegramToken || !config.telegramChatId) return false;
+
+  const text = [
+    `${alert.severity.toUpperCase()}: ${alert.category}`,
+    alert.message,
+    alert.details ? `\nDetalles: ${alert.details}` : '',
+    alert.recommendation ? `\nAccion: ${alert.recommendation}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    const url = `${config.telegramApiBase}/bot${config.telegramToken}/sendMessage`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: config.telegramChatId,
+        text,
+        parse_mode: 'HTML',
+      }),
+    });
+    return response.ok;
+  } catch (err) {
+    log(`Telegram failed: ${err}`, 'ERROR');
+    return false;
+  }
+}
+
+/**
+ * Twilio Messages.json — mismo REST que usa gv-agenda/wa-reminders (fetch
+ * nativo, cero dependencias). Sirve para WhatsApp (To = 'whatsapp:+...') y
+ * SMS (To = '+549...'); lo decide el FROM/TO configurado, no el codigo.
+ */
+async function sendToTwilio(
+  alert: AlertPayload,
+  config: AlertConfig,
+  channel: 'whatsapp' | 'sms',
+): Promise<boolean> {
+  if (!config.enabled || !config.twilioAccountSid || !config.twilioAuthToken) return false;
+
+  const body = [
+    `${alert.severity.toUpperCase()}: ${alert.category}`,
+    alert.message,
+    alert.details ? `Detalles: ${alert.details}` : '',
+    alert.recommendation ? `Accion: ${alert.recommendation}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    const url = `${config.twilioApiBase}/2010-04-01/Accounts/${config.twilioAccountSid}/Messages.json`;
+    const auth = Buffer.from(`${config.twilioAccountSid}:${config.twilioAuthToken}`).toString(
+      'base64',
+    );
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        From: config.twilioFrom ?? '',
+        To: config.twilioTo ?? '',
+        Body: body,
+      }).toString(),
+    });
+    return response.ok;
+  } catch (err) {
+    log(`${channel} failed: ${err}`, 'ERROR');
+    return false;
+  }
+}
+
+/**
+ * Email vía SMTP. Sin credenciales no hay transporte: el canal queda
+ * deshabilitado por env gating. Para tests el transporte se inyecta en
+ * `config.transport`; en producción se importa nodemailer lazy (solo cuando
+ * el canal está habilitado) para no pagar el require en cada alerta.
+ */
+async function sendToEmail(alert: AlertPayload, config: AlertConfig): Promise<boolean> {
+  if (!config.enabled || !config.smtpHost || !config.emailTo) return false;
+
+  let transport = config.transport;
+  if (!transport) {
+    try {
+      const nodemailer = await import('nodemailer');
+      transport = nodemailer.createTransport({
+        host: config.smtpHost,
+        port: config.smtpPort ?? 587,
+        secure: (config.smtpPort ?? 587) === 465,
+        auth: config.smtpUser ? { user: config.smtpUser, pass: config.smtpPass } : undefined,
+      });
+    } catch (err) {
+      log(`Email transport unavailable: ${err}`, 'ERROR');
+      return false;
+    }
+  }
+
+  try {
+    await transport.sendMail({
+      from: config.smtpFrom ?? 'gentle-vanguard@localhost',
+      to: config.emailTo,
+      subject: `[GV ${alert.severity.toUpperCase()}] ${alert.category}: ${alert.message.slice(0, 80)}`,
+      text: [
+        `${alert.severity.toUpperCase()}: ${alert.category}`,
+        alert.message,
+        alert.details ? `\nDetalles: ${alert.details}` : '',
+        alert.recommendation ? `\nAccion: ${alert.recommendation}` : '',
+        `\nFecha: ${alert.timestamp}`,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    });
+    return true;
+  } catch (err) {
+    log(`Email failed: ${err}`, 'ERROR');
+    return false;
+  }
+}
+
 // ─── Main Alert Handler ─────────────────────────────────────────────────────────
 async function sendAlert(
   payload: Partial<AlertPayload>,
@@ -490,6 +676,30 @@ async function sendAlert(
     else failed.push('slack');
   }
 
+  if (config.channels.telegram.enabled) {
+    const success = await sendToTelegram(alert, config.channels.telegram);
+    if (success) sent.push('telegram');
+    else failed.push('telegram');
+  }
+
+  if (config.channels.whatsapp.enabled) {
+    const success = await sendToTwilio(alert, config.channels.whatsapp, 'whatsapp');
+    if (success) sent.push('whatsapp');
+    else failed.push('whatsapp');
+  }
+
+  if (config.channels.sms.enabled) {
+    const success = await sendToTwilio(alert, config.channels.sms, 'sms');
+    if (success) sent.push('sms');
+    else failed.push('sms');
+  }
+
+  if (config.channels.email.enabled) {
+    const success = await sendToEmail(alert, config.channels.email);
+    if (success) sent.push('email');
+    else failed.push('email');
+  }
+
   // Update state
   state.lastAlertTime = now;
   state.alertCount++;
@@ -559,6 +769,14 @@ async function testAllChannels(): Promise<void> {
       if (channel === 'webhook') console.log('  - Webhook: Set ALERT_WEBHOOK_URL env var');
       if (channel === 'discord') console.log('  - Discord: Set DISCORD_WEBHOOK_URL env var');
       if (channel === 'slack') console.log('  - Slack: Set SLACK_WEBHOOK_URL env var');
+      if (channel === 'telegram')
+        console.log('  - Telegram: Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars');
+      if (channel === 'whatsapp')
+        console.log('  - WhatsApp: Set WHATSAPP_ACCOUNT_SID + WHATSAPP_AUTH_TOKEN + WHATSAPP_FROM + WHATSAPP_TO env vars (Twilio)');
+      if (channel === 'sms')
+        console.log('  - SMS: Set SMS_ACCOUNT_SID + SMS_AUTH_TOKEN + SMS_FROM + SMS_TO env vars (Twilio)');
+      if (channel === 'email')
+        console.log('  - Email: Set SMTP_HOST + ALERT_EMAIL_TO (+ SMTP_USER/PASS/PORT) env vars');
     });
   }
 }
@@ -617,6 +835,18 @@ async function main(): Promise<void> {
     );
     console.log(
       `  Slack:     ${DEFAULT_CONFIG.channels.slack.enabled ? '✅' : '❌'} ${process.env.SLACK_WEBHOOK_URL ? '(configured)' : '(not set)'}`,
+    );
+    console.log(
+      `  Telegram:  ${DEFAULT_CONFIG.channels.telegram.enabled ? '✅' : '❌'} ${process.env.TELEGRAM_BOT_TOKEN ? '(configured)' : '(not set: TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID)'}`,
+    );
+    console.log(
+      `  WhatsApp:  ${DEFAULT_CONFIG.channels.whatsapp.enabled ? '✅' : '❌'} ${process.env.WHATSAPP_ACCOUNT_SID ? '(configured)' : '(not set: WHATSAPP_ACCOUNT_SID/AUTH_TOKEN/FROM/TO — Twilio)'}`,
+    );
+    console.log(
+      `  SMS:       ${DEFAULT_CONFIG.channels.sms.enabled ? '✅' : '❌'} ${process.env.SMS_ACCOUNT_SID ? '(configured)' : '(not set: SMS_ACCOUNT_SID/AUTH_TOKEN/FROM/TO — Twilio)'}`,
+    );
+    console.log(
+      `  Email:     ${DEFAULT_CONFIG.channels.email.enabled ? '✅' : '❌'} ${process.env.SMTP_HOST ? '(configured)' : '(not set: SMTP_HOST + ALERT_EMAIL_TO [+ SMTP_USER/PASS])'}`,
     );
     console.log('');
   } else if (args.includes('--demo')) {
