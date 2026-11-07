@@ -28,6 +28,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { discoverLocalModels } from '../ml/local-provider-discovery.js';
 import { dirname } from 'path';
 import { createRequire } from 'module';
 import type Database from 'better-sqlite3';
@@ -225,20 +226,31 @@ function registryCandidates(): string[] {
     .map(([id]) => id);
 }
 
-function resolveTargets(models: string[], includeRegistry: boolean): Target[] {
+async function resolveTargets(models: string[], includeRegistry: boolean): Promise<Target[]> {
   const config = loadOpenCodeConfig();
   const providers = config?.provider ?? {};
   const active = activeModel();
   const targets: Target[] = [];
 
-  const push = (provider: string, model: string): void => {
-    const bare = bareModelId(model);
+  const push = (provider: string, model: string, raw = false): void => {
+    // raw=true: ids EXACTOS del server (LM Studio sirve ids namespaced como
+    // `prism-ml/bonsai-27b` — recortarlos rompe la llamada).
+    const bare = raw ? model : bareModelId(model);
     const key = provider ? `${provider}/${bare}` : bare;
     if (!targets.some((t) => t.key === key)) targets.push({ provider, model: bare, key });
   };
 
   const requested = [...models];
   const explicit = models.length > 0;
+  // Descubrimiento local (GB-20261107): LM Studio sirve SOLO lo cargado
+  // (cargá cualquier modelo, el probe lo encuentra); ollama aporta su activo.
+  // Con modelos explicitos no descubre: el owner pidio exactamente esos.
+  if (!explicit) {
+    const activeOllama = active?.provider === 'ollama' ? active.model : null;
+    for (const local of await discoverLocalModels(activeOllama)) {
+      push(local.provider, local.modelId, local.provider === 'lm-studio');
+    }
+  }
   if (includeRegistry && !explicit) requested.push(...registryCandidates());
   if (requested.length === 0) {
     if (active) push(active.provider, active.model);
@@ -253,7 +265,7 @@ function resolveTargets(models: string[], includeRegistry: boolean): Target[] {
       const providerPart = value.slice(0, slash);
       const barePart = value.slice(slash + 1);
       if (providers[providerPart]) {
-        push(providerPart, barePart);
+        push(providerPart, barePart, providerPart === 'lm-studio');
         continue;
       }
       // Alias de provider (el registry usa `opencode-go`, el catalogo
@@ -496,7 +508,7 @@ function verdictOf(outcomes: ProbeOutcome[]): 'PASS' | 'FAIL' | 'UNKNOWN' {
  */
 export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
   const args = parseArgs(argv);
-  const targets = resolveTargets(args.models, args.registry);
+  const targets = await resolveTargets(args.models, args.registry);
 
   if (targets.length === 0) {
     if (args.json) {
