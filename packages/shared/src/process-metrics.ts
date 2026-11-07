@@ -56,25 +56,57 @@ function runProcessCommand(command: string, args: string[]): Promise<string | nu
   });
 }
 
-async function parseWindows(pid: number): Promise<{ cpuSeconds: number; memoryMb: number } | null> {
-  const command = `$p=Get-Process -Id ${pid} -ErrorAction Stop; [PSCustomObject]@{cpu=$p.CPU;memory=$p.WorkingSet64}|ConvertTo-Json -Compress`;
-  const stdout = await runProcessCommand('powershell.exe', [
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    command,
-  ]);
-  if (!stdout?.trim()) return null;
+/* Snapshot de TODOS los procesos en UNA llamada de PowerShell, con TTL e
+   inflight-dedupe. Antes: 1 spawn de powershell.exe POR PID en cache-miss —
+   con ~15 procesos vivos del tablero eran 15 spawns concurrentes cada pocos
+   segundos, saturando Windows y degradando cada list() de Command Center
+   (medición 2026-11-06: picos de 1-4s por tick). */
+interface WinProcSample {
+  cpuSeconds: number;
+  memoryMb: number;
+}
+let winSnapshot: { at: number; map: Map<number, WinProcSample> } | null = null;
+let winSnapshotInflight: Promise<Map<number, WinProcSample>> | null = null;
+const WIN_SNAPSHOT_TTL_MS = 4000;
+
+async function parseWindowsAll(): Promise<Map<number, WinProcSample>> {
+  if (winSnapshot && Date.now() - winSnapshot.at < WIN_SNAPSHOT_TTL_MS) return winSnapshot.map;
+  if (winSnapshotInflight) return winSnapshotInflight;
+  winSnapshotInflight = (async () => {
+    const stdout = await runProcessCommand('powershell.exe', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      "Get-Process | Select-Object Id,CPU,WorkingSet64 | ConvertTo-Json -Compress -Depth 2",
+    ]);
+    const map = new Map<number, WinProcSample>();
+    try {
+      const rows = JSON.parse(stdout ?? '[]') as Array<{ Id?: number; CPU?: number; WorkingSet64?: number }>;
+      for (const row of Array.isArray(rows) ? rows : [rows]) {
+        if (!row || !Number.isFinite(row.Id)) continue;
+        map.set(Number(row.Id), {
+          cpuSeconds: Number.isFinite(row.CPU) ? Number(row.CPU) : 0,
+          memoryMb: Number.isFinite(row.WorkingSet64) ? Math.round(Number(row.WorkingSet64) / 1024 / 1024) : 0,
+        });
+      }
+    } catch {
+      /* snapshot vacío: los pids quedan unavailable en esta pasada */
+    }
+    winSnapshot = { at: Date.now(), map };
+    return map;
+  })();
   try {
-    const parsed = JSON.parse(stdout) as { cpu?: number; memory?: number };
-    if (!Number.isFinite(parsed.cpu) || !Number.isFinite(parsed.memory)) return null;
-    return {
-      cpuSeconds: Number(parsed.cpu),
-      memoryMb: Math.round(Number(parsed.memory) / 1024 / 1024),
-    };
-  } catch {
-    return null;
+    return await winSnapshotInflight;
+  } finally {
+    winSnapshotInflight = null;
   }
+}
+
+async function parseWindows(pid: number): Promise<{ cpuSeconds: number; memoryMb: number } | null> {
+  const snapshot = await parseWindowsAll();
+  const sample = snapshot.get(pid);
+  if (!sample) return null;
+  return { cpuSeconds: sample.cpuSeconds, memoryMb: sample.memoryMb };
 }
 
 async function parsePosix(pid: number): Promise<{ cpuPercent: number; memoryMb: number } | null> {

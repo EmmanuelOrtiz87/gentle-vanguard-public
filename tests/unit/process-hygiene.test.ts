@@ -482,3 +482,123 @@ test('guardGitRepoConfig: repo normal no se toca', () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// ─── Clasificacion GENERICA de servidor de app (2026-11-06) ──────────────────
+
+test('servidor de app sin pidfile NO se marca como hung-oneshot', () => {
+  // Medido: 11 servidores legitimos (alexandria, academy-portal, voice-studio,
+  // design-gallery, ...) caian como `hung-oneshot` -> FAIL permanente del gate.
+  const api = proc(34084, 111, `"node.exe" --import tsx ${REPO}\\apps\\alexandria\\server\\index.ts`, 2.0);
+  const vite = proc(
+    34748,
+    112,
+    `"node.exe" ${REPO}\\apps\\alexandria\\node_modules\\vite\\bin\\vite.js --host 127.0.0.1 --port 5180`,
+    2.0,
+  );
+  const s = snap([api, vite], [34084, 34748, 111, 112]);
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(
+    !findings.some((f) => f.kind === 'hung-oneshot'),
+    'un servidor de app no es un one-shot colgado',
+  );
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'app-server:alexandria:api' && k.pid === 34084),
+    'la API de la app queda registrada como sana',
+  );
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'app-server:alexandria:vite' && k.pid === 34748),
+    'el Vite de la app queda registrado como sano',
+  );
+});
+
+test('el servidor estatico se clasifica por app y puerto', () => {
+  const a = proc(
+    38764,
+    111,
+    `"node.exe" ${REPO}\\tools\\serve-static.mjs 8097 ${REPO}\\apps\\design-gallery`,
+    2.0,
+  );
+  const b = proc(
+    8212,
+    111,
+    `"node.exe" ${REPO}\\tools\\serve-static.mjs 4188 ${REPO}\\apps\\corporate-web\\.runtime`,
+    0.4,
+  );
+  const s = snap([a, b], [38764, 8212, 111]);
+  const { findings, keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(!findings.some((f) => f.kind === 'hung-oneshot'), 'servidores estaticos no son one-shots');
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'app-server:design-gallery:static:8097'),
+    'el estatico de design-gallery se distingue por puerto',
+  );
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'app-server:corporate-web:static:4188'),
+    'el estatico de corporate-web NO se cuenta como duplicado del otro',
+  );
+});
+
+test('CONTRATEST: un one-shot de app sigue siendo reapeable', () => {
+  // La clasificacion generica NO debe tragarse los one-shots reales.
+  const oneshot = proc(
+    34084,
+    999,
+    `"node.exe" --import tsx ${REPO}\\apps\\alexandria\\scripts\\seed.ts`,
+    2.0,
+  );
+  const s = snap([oneshot], [34084]);
+  const { findings } = analyzeProcesses(s, OPTS);
+  const hung = findings.filter((f) => f.kind === 'hung-oneshot');
+  assert.strictEqual(hung.length, 1, 'un script de una sola vez sigue colgado');
+  assert.strictEqual(hung[0].action, 'kill');
+});
+
+test('CONTRATEST: app con clase estatica NO la reclama la generica', () => {
+  // gv-analytics tiene clase estatica + pidfile: la generica no debe tocarla.
+  const vite = proc(
+    35740,
+    111,
+    `"node.exe" ${REPO}\\apps\\gv-analytics\\node_modules\\vite\\bin\\vite.js --port 5173`,
+    2.0,
+  );
+  const s = snap([vite], [35740, 111], { '.runtime\\app-analytics-vite.pid': '35740' });
+  const { keptHealthy } = analyzeProcesses(s, OPTS);
+  assert.ok(
+    keptHealthy.some((k) => k.classId === 'gv-analytics-vite'),
+    'la clase estatica de gv-analytics sigue mandando',
+  );
+  assert.ok(
+    !keptHealthy.some((k) => k.classId.startsWith('app-server:')),
+    'la clasificacion generica no reclama apps registradas',
+  );
+});
+
+// ─── Servidores MCP stdio del repo (2026-11-06) ──────────────────────────────
+
+test('servidor MCP stdio del repo con cliente vivo no es un hallazgo', () => {
+  const mcp = proc(
+    18904,
+    24144,
+    `"node.exe" --import tsx ${REPO}\\src\\integrations\\rea-cli.ts mcp`,
+    6.9,
+  );
+  const s = snap([mcp], [18904, 24144]);
+  const { findings } = analyzeProcesses(s, OPTS);
+  assert.ok(
+    !findings.some((f) => f.pid === 18904),
+    'el MCP del repo con su cliente vivo no se reporta',
+  );
+});
+
+test('CONTRATEST: servidor MCP stdio con cliente MUERTO si es un huerfano', () => {
+  const mcp = proc(
+    18904,
+    24144,
+    `"node.exe" --import tsx ${REPO}\\src\\integrations\\rea-cli.ts mcp`,
+    6.9,
+  );
+  const s = snap([mcp], [18904]); // padre 24144 muerto
+  const { findings } = analyzeProcesses(s, OPTS);
+  const hung = findings.filter((f) => f.kind === 'hung-oneshot');
+  assert.strictEqual(hung.length, 1, 'el MCP sin cliente es un huerfano real');
+  assert.strictEqual(hung[0].action, 'kill');
+});

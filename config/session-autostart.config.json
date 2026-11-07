@@ -65,6 +65,30 @@
         "description": "Higiene nativa de procesos (fase 1, ANTES de los lazy daemons): recicla daemons envejecidos (>24h adoptados de sesiones previas), mata duplicados (websocket-server/vite extra), one-shots colgados (padre muerto >15min) y limpia pidfiles stale. Clave: corre antes de los lazy steps, asi token-ingest y vite-watchdog reciclados se re-spawnean frescos."
       },
       {
+        "id": "ollama-serve",
+        "enabled": true,
+        "lazy": false,
+        "script": "src/tools/ollama-serve.ts",
+        "args": "",
+        "required": false,
+        "phase": 0,
+        "skipOnFailure": true,
+        "timeout": 45000,
+        "description": "Levanta el servidor local de Ollama (IGPU + 2 modelos calientes + keep-alive 2h). Idempotente: si ya responde, no toca nada. Corre ANTES del probe de inferencia porque el fallback local (ollama/qwen2.5-coder:14b) es el unico modelo que responde cuando la cuota remota esta agotada. Sin el, el probe local daria INDETERMINADO y el stack se quedaria sin modelo."
+      },
+      {
+        "id": "model-inference-probe",
+        "enabled": true,
+        "lazy": false,
+        "script": "src/tools/model-inference-probe.ts",
+        "args": "--registry --timeout 6000 --local-timeout 90000",
+        "required": false,
+        "phase": 0,
+        "skipOnFailure": true,
+        "timeout": 120000,
+        "description": "Probe de INFERENCIA REAL (POST /chat/completions, max_tokens 1): cierra la brecha entre alcanzable y responde. Corre en la FASE 0, justo ANTES del model-enforcer, para que el enforcer decida con evidencia vigente y no con la de la sesion anterior (TTL 15 min). --registry sondea los candidatos gratuitos que el enforcer podria imponer. Timeout de red 6 s; timeout local 90 s (un modelo local paga la carga desde disco: medido 30,9 s en frio y 456 ms caliente). Los objetivos se sondean en paralelo: el peor caso lo marca el timeout mas largo, no la suma. Exit 1 = el proveedor respondio con error; exit 2 = indeterminado (sin red/config)."
+      },
+      {
         "id": "model-enforcer",
         "enabled": true,
         "script": "src/ml/model-enforcer.ts",
@@ -72,7 +96,7 @@
         "required": true,
         "critical": true,
         "phase": 0,
-        "description": "Enforce free model (opencode-zen-C/mimo-v2.6-flash-free) when credits exhausted"
+        "description": "Enforce free model (opencode-zen-C/mimo-v2.6-flash-free) when credits exhausted. Corre DESPUES de model-inference-probe (fase 0, orden del array) para decidir con inferencia real: un modelo con inferencia probada y fallida queda descalificado; si ninguno califica el routing NO se modifica."
       },
       {
         "id": "model-health-probe",

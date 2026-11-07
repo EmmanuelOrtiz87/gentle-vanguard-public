@@ -147,7 +147,7 @@ export default {
       title: 'Lo que impide que esto sea un experimento sin control',
       cols: 2,
       items: [
-        { icon: 'shield', heading: '46 quality gates', body: '19 en pre-commit, 2 en commit-msg, 2 en post-commit, 13 registrados en pre-push, 8 en CI, 1 de gobernanza y 1 de despliegue. 42 de 46 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.' },
+        { icon: 'shield', heading: '47 quality gates', body: '19 en pre-commit, 2 en commit-msg, 2 en post-commit, 13 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 1 en runtime. 43 de 47 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.' },
         { icon: 'search', heading: 'Escaneo de secretos', body: '80 patrones con filtro de entropía opcional y redacción por defecto, integrado al hook y al watchtower. Tres escáneres independientes conviven.' },
         { icon: 'link', heading: 'Auditoría encadenada', body: 'Event sourcing con prevHash y hash SHA-256 por evento. Detecta mutación accidental o edición inconsistente del registro.' },
         { icon: 'file', heading: 'Trazabilidad de suministro', body: 'SBOM generado y validado, procedencia de artefactos y mapeo documentado contra OWASP Top 10 para agentes.' },

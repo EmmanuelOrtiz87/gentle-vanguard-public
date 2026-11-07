@@ -128,3 +128,45 @@ el inventario.
 | Landing unificada | Slice en `corporate-web`/pages (próxima sesión) |
 | Aplicar bios/headline en LinkedIn/IG/TikTok | **Manual** (las apps no exponen edición de perfil por API estable) |
 | Demo 90s | Grabación de sesión real del stack + `gv-shorts` para social cut |
+
+## 8. Frase de 15 segundos (sin tecnicismos) — respuesta canónica
+
+Feedback del 2026-11-06: "si nadie puede responder *¿qué es GentleVanguard?* en 15 segundos,
+tenés un problema de posicionamiento". La frase canónica (sin agentes, skills, MCP, IA-engineering):
+
+> **Ayudamos a empresas a construir software y automatizaciones con IA de forma segura,
+> escalable y gobernada.**
+
+Uso: primera línea de conversación, elevator pitch, respuesta a "¿qué haces?". Los detalles
+técnicos (orquestación, memoria, 154 checks) entran **solo si preguntan cómo**. El README de
+GitHub es la versión técnica; esta frase es la versión humana. Ambas dicen lo mismo.
+
+## 9. Emmanuel primero (regla de marca, 12 meses)
+
+La confianza la genera la persona; después la empresa. Firma en todo:
+
+> **Emmanuel Ortiz** — Arquitecto de Software · Fundador de GentleVanguard
+
+- Perfil personal de LinkedIn es el activo de autoridad principal; los posts del stack se
+  publican desde el perfil personal, no desde una página corporativa.
+- La cuenta de marca (`@gentlevanguard.sj` en IG/TikTok) distribuye y muestra el método; la
+  voz es de Emmanuel.
+- No esconder a Emmanuel detrás de la marca: la marca hereda la credibilidad, no al revés.
+
+## 10. Formato de evidencia (build-log, no catálogo)
+
+El feedback pide "qué construyeron, qué aprendieron, qué falló, qué midieron". Regla para todo
+contenido de autoridad — estructura fija:
+
+1. **Construimos X.** 2. **Primer intento: fracasó — por qué.** 3. **Segundo intento: qué cambió.**
+4. **Resultado medible + límite honesto.**
+
+Prohibido: "tenemos N agentes" como claim suelto. Las cifras reales (21 agentes, 254 skills,
+154 checks, 28 cursos) se usan como **sustento de una historia**, nunca como titular.
+
+## 11. Resolución del feedback "dejá de construir"
+
+Acogido con un matiz: **freeze de features nuevas** (ni agentes ni apps ni skills) hasta que la
+narrativa alcance al producto. Los 3 slices pendientes del plan (landing unificada, rutas en
+academy-web, demo 90s) **no son features: son superficies de comunicación** — quedan como
+prioridad única de construcción. Todo lo demás es narrativa, evidencia y distribución.

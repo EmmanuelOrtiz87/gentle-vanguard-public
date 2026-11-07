@@ -11,6 +11,12 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import {
+  inferenceEvidencePath,
+  inferenceVerdictFor,
+  loadInferenceEvidence,
+  type InferenceEvidenceFile,
+} from './model-inference-evidence.js';
 
 const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
@@ -55,13 +61,26 @@ function getPreferredModel(): { model: string; provider: string } {
  *   2. configured fallback    — only if healthy
  *   3. first healthy free model in the registry
  * A model listed as unhealthy/unknown is never enforced.
+ *
+ * Adicion (2026-11-06): la evidencia de INFERENCIA REAL manda sobre la
+ * alcanzabilidad. Un modelo con inferencia probada y FALLIDA (cuota, sin
+ * suscripcion, presupuesto excedido) queda DESCALIFICADO aunque el registry
+ * lo declare disponible: "alcanzable" no es "responde". Y si ningun modelo
+ * esta calificado, NO se cambia el routing (no hay un routing mejor: cambiarlo
+ * solo genera churn) — el FAIL queda reportado por el watchtower.
  */
 function resolveTargetModel(
-  status: { healthy: string[]; unhealthy: string[] },
+  status: { healthy: string[]; unhealthy: string[]; qualified: string[] },
   preferred: { model: string; provider: string },
-): { target: { model: string; provider: string }; reason: string } {
+): { target: { model: string; provider: string } | null; reason: string } {
   if (status.healthy.includes(preferred.model)) {
-    return { target: preferred, reason: 'Preferred subscription model available' };
+    const qualified = status.qualified.includes(preferred.model);
+    return {
+      target: preferred,
+      reason: qualified
+        ? 'Preferred model available (calificado por inferencia real)'
+        : 'Preferred subscription model available',
+    };
   }
 
   const configuredFallback = readPreference().fallbackModel;
@@ -69,6 +88,14 @@ function resolveTargetModel(
     return {
       target: { model: configuredFallback, provider: configuredFallback.split('/')[0] },
       reason: 'Fallback: preferred model unavailable, configured fallback healthy',
+    };
+  }
+
+  const firstQualified = status.healthy.find((model) => status.qualified.includes(model));
+  if (firstQualified) {
+    return {
+      target: { model: firstQualified, provider: firstQualified.split('/')[0] },
+      reason: 'Fallback: first model qualified by real inference',
     };
   }
 
@@ -80,10 +107,7 @@ function resolveTargetModel(
     };
   }
 
-  return {
-    target: { model: FREE_MODEL, provider: FREE_PROVIDER },
-    reason: 'Fallback: no healthy model available',
-  };
+  return { target: null, reason: 'No healthy model available' };
 }
 
 interface ModelEntry {
@@ -171,22 +195,61 @@ function checkModelHealth(): {
   unhealthy: string[];
   free: string[];
   evidenceAgeHours: number | null;
+  qualified: string[];
+  disqualified: string[];
 } {
   const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
   const evidence = loadProviderEvidence();
   const cutoff = Date.now() - EVIDENCE_TTL_MS;
 
+  // Evidencia de INFERENCIA REAL (src/tools/model-inference-probe.ts):
+  // un modelo que RESPONDIO con error esta descalificado aunque el registry
+  // lo declare disponible. La ausencia de evidencia NO descalifica: solo la
+  // prueba contraria (inferencia fallida y vigente) lo hace.
+  const inference = loadInferenceEvidence(inferenceEvidencePath(ROOT));
+  const now = Date.now();
+
   const healthy: string[] = [];
   const unhealthy: string[] = [];
   const free: string[] = [];
+  const qualified: string[] = [];
+  const disqualified: string[] = [];
   let evidenceAgeHours: number | null = null;
 
   for (const [id, model] of Object.entries(registry.models)) {
     const isHealthy = model.health.status === 'available';
     const isFree = model.costPer1kTokens.input === 0 && model.costPer1kTokens.output === 0;
 
-    // Evidencia fresca e INALCANZABLE descalifica el modelo, aunque el
-    // registry lo declare disponible.
+    // La INFERENCIA REAL manda sobre la alcanzabilidad del catalogo.
+    // Antes el orden era el inverso: una evidencia de proveedor vieja (por
+    // ejemplo "ollama inalcanzable" de cuando el servidor local estaba caido)
+    // vetaba el modelo y el loop continuaba ANTES de mirar la inferencia.
+    // Un modelo que acaba de responder no puede ser "inalcanzable".
+    const verdict = inferenceVerdictFor(inference, id, now);
+    if (verdict === 'FAIL') {
+      disqualified.push(id);
+      if (isFree) free.push(id);
+      unhealthy.push(id);
+      continue;
+    }
+    if (verdict === 'PASS') {
+      // Una inferencia REAL exitosa es salud. El `health.status` del registry
+      // esta escrito a mano y envejece: no puede vetar una medicion vigente.
+      // Sin esta regla, un modelo local que responde bien seguiria siendo
+      // "unknown" y el stack se quedaria sin modelo mientras la cuota remota
+      // esta agotada.
+      qualified.push(id);
+      if (isFree) {
+        free.push(id);
+        healthy.push(id);
+      } else {
+        unhealthy.push(id);
+      }
+      continue;
+    }
+
+    // Sin veredicto de inferencia: manda la evidencia de proveedor y el
+    // estado estatico del registry.
     const providerEvidence = evidenceFor(id, model.provider, evidence);
     if (providerEvidence) {
       const ageHours = (Date.now() - Date.parse(providerEvidence.checkedAt)) / 3_600_000;
@@ -207,7 +270,7 @@ function checkModelHealth(): {
     }
   }
 
-  return { healthy, unhealthy, free, evidenceAgeHours };
+  return { healthy, unhealthy, free, evidenceAgeHours, qualified, disqualified };
 }
 
 function enforceFreeModel(): void {
@@ -217,6 +280,10 @@ function enforceFreeModel(): void {
   const status = checkModelHealth();
   log(`Modelos saludables y gratuitos: ${status.healthy.join(', ')}`);
   log(`Modelos con problemas: ${status.unhealthy.join(', ')}`);
+  log(
+    `Calificados por inferencia real: ${status.qualified.join(', ') || 'ninguno'}` +
+      ` | Descalificados: ${status.disqualified.join(', ') || 'ninguno'}`,
+  );
   if (status.evidenceAgeHours === null) {
     log(
       'Evidencia de proveedores: AUSENTE (sin probe) — el registry manda, pero su health.status es estatico',
@@ -227,13 +294,22 @@ function enforceFreeModel(): void {
     );
   }
 
-  if (status.healthy.length === 0) {
-    log('❌ ERROR: No hay modelos saludables disponibles');
-    process.exit(1);
-  }
-
   const preferred = getPreferredModel();
   const { target, reason } = resolveTargetModel(status, preferred);
+
+  // Sin ningun modelo disponible NO hay un routing mejor que el actual:
+  // cambiarlo solo genera churn y deja el stack peor. El FAIL queda
+  // reportado por el watchtower (model-provider-health / inference probe).
+  if (!target) {
+    log('❌ ERROR: No hay modelos saludables disponibles');
+    log(
+      `   Descalificados por inferencia real: ${status.disqualified.join(', ') || 'ninguno'}` +
+        ` | Sin calificar: ${status.healthy.length === 0 ? 'todos' : '—'}`,
+    );
+    log('   Routing NO se modifica (no hay modelo alternativo probado)');
+    process.exit(0);
+  }
+
   log(`Modelo preferido: ${preferred.model}; seleccionado: ${target.model}`);
   if (target.model === preferred.model && !status.healthy.includes(target.model)) {
     log(`WARN: ${target.model} no figura como saludable — no hay modelo healthy disponible`);
@@ -301,18 +377,30 @@ function checkCurrentStatus(): void {
   console.log('=== ESTADO ACTUAL DE MODELOS ===\n');
 
   const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
+  const inference: InferenceEvidenceFile | null = loadInferenceEvidence(
+    inferenceEvidencePath(ROOT),
+  );
+  const now = Date.now();
 
   console.log('Modelos en registro:');
   for (const [id, model] of Object.entries(registry.models)) {
     const isHealthy = model.health.status === 'available';
     const isFree = model.costPer1kTokens.input === 0 && model.costPer1kTokens.output === 0;
     const icon = isHealthy && isFree ? '✅' : '⚠️';
+    const verdict = inferenceVerdictFor(inference, id, now);
+    const inferenceLabel =
+      verdict === 'PASS'
+        ? 'calificado (inferencia real OK)'
+        : verdict === 'FAIL'
+          ? 'DESCALIFICADO (la inferencia real fallo)'
+          : 'sin veredicto de inferencia';
     console.log(`  ${icon} ${id}`);
     console.log(`     Estado: ${model.health.status}`);
     console.log(
       `     Costo: $${model.costPer1kTokens.input}/$${model.costPer1kTokens.output} per 1k`,
     );
     console.log(`     Gratis: ${isFree ? 'SÍ ✓' : 'NO'}`);
+    console.log(`     Inferencia real: ${inferenceLabel}`);
     console.log();
   }
 

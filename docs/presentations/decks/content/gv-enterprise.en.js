@@ -146,7 +146,7 @@ export default {
       title: 'What keeps this from being an uncontrolled experiment',
       cols: 2,
       items: [
-        { icon: 'shield', heading: '46 quality gates', body: '19 on pre-commit, 2 on commit-msg, 2 on post-commit, 13 registered on pre-push, 8 in CI, 1 governance and 1 deploy. 42 of 46 enforced strictly; the Dependabot alerts gate runs on every push.' },
+        { icon: 'shield', heading: '47 quality gates', body: '19 on pre-commit, 2 on commit-msg, 2 on post-commit, 13 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 1 runtime. 43 of 47 enforced strictly; the Dependabot alerts gate runs on every push.' },
         { icon: 'search', heading: 'Secret scanning', body: '80 patterns with optional entropy filtering and redaction by default, wired into the hook and the watchtower. Three independent scanners coexist.' },
         { icon: 'link', heading: 'Chained audit', body: 'Event sourcing with prevHash and a SHA-256 hash per event. It detects accidental mutation or inconsistent log editing.' },
         { icon: 'file', heading: 'Supply traceability', body: 'Generated and validated SBOM, artifact provenance and a documented mapping against the OWASP Top 10 for agents.' },

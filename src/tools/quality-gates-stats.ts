@@ -73,6 +73,7 @@ export function computeStats(gates: Gate[], lefthook: string, today: string) {
     totalGates: gates.length,
     enforcedInLefthook: enforced.filter((g) => LEFTHOOK_STAGES.has(g.stage ?? '')).length,
     enforcedInCI: enforced.filter((g) => g.stage === 'ci').length,
+    enforcedInRuntime: enforced.filter((g) => g.stage === 'runtime').length,
     notEnforced: gates.filter((g) => g.enforced !== true).length,
     lefthookVersion: lefthook,
     lastVerified: today,
@@ -108,14 +109,18 @@ function main(): void {
       console.error(`  esperado:${JSON.stringify(next)}`);
       process.exit(1);
     }
-    console.log(`gates:stats -> al dia (${next.totalGates} gates, ${next.enforcedInLefthook + next.enforcedInCI} enforced)`);
+    const enforcedTotal =
+      next.enforcedInLefthook + next.enforcedInCI + next.enforcedInRuntime;
+    console.log(
+      `gates:stats -> al dia (${next.totalGates} gates, ${enforcedTotal} enforced)`
+    );
     return;
   }
 
   parsed.stats = next;
   writeFileSync(file, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
   console.log(
-    `gates:stats -> ${next.totalGates} gates | lefthook ${next.enforcedInLefthook} | ci ${next.enforcedInCI} | sin enforce ${next.notEnforced}`
+    `gates:stats -> ${next.totalGates} gates | lefthook ${next.enforcedInLefthook} | ci ${next.enforcedInCI} | runtime ${next.enforcedInRuntime} | sin enforce ${next.notEnforced}`
   );
 }
 
