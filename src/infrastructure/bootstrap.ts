@@ -463,6 +463,51 @@ function main(): void {
     } else {
       writeInfo(`Task script not found at ${koTaskScript}. Skipping.`);
     }
+
+    writeStep('Step 4b7: Scheduled Task - Token Spike Guard KeepAlive (15 min)...');
+    const sgTaskName = 'Gentle-Vanguard-Spike-Guard-KeepAlive';
+    const sgTaskScript = join(root, 'src', 'tokens', 'start-spike-guard-daemon.ts');
+    if (existsSync(sgTaskScript)) {
+      // 15 min: asegura el daemon de burn-rate de tokens 24/7 (GB-20261105-b).
+      // El script es idempotente: si el pidfile está vivo, sale sin tocar nada.
+      const sgResult = registerScheduledTask(sgTaskName, sgTaskScript, root, 0.25);
+      if (sgResult === 'ok') {
+        writeSuccess(
+          `Scheduled task '${sgTaskName}' registered hidden via wscript wrapper (ensures spike-guard daemon every 15 min).`,
+        );
+      } else if (sgResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${sgTaskName}' registered via node.exe direct (wscript blocked — console flash possible; ensures spike-guard daemon every 15 min).`,
+        );
+      } else {
+        writeInfo('Could not create spike-guard keepalive scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${sgTaskScript}. Skipping.`);
+    }
+
+    writeStep('Step 4b8: Scheduled Task - Model Inference Refresh (30 min)...');
+    const miTaskName = 'Gentle-Vanguard-Model-Inference-Refresh';
+    const miTaskScript = join(root, 'src', 'tools', 'refresh-model-inference-evidence.ts');
+    if (existsSync(miTaskScript)) {
+      // 30 min: mantiene fresca la evidencia de inferencia del modelo activo
+      // (TTL 900s) entre sesiones — cierra el WARN "no fresh successful probe"
+      // del watchtower. Una inferencia local max_tokens=1; sin --registry.
+      const miResult = registerScheduledTask(miTaskName, miTaskScript, root, 0.5);
+      if (miResult === 'ok') {
+        writeSuccess(
+          `Scheduled task '${miTaskName}' registered hidden via wscript wrapper (refreshes inference evidence every 30 min).`,
+        );
+      } else if (miResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${miTaskName}' registered via node.exe direct (wscript blocked — console flash possible; refreshes inference evidence every 30 min).`,
+        );
+      } else {
+        writeInfo('Could not create model inference refresh scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${miTaskScript}. Skipping.`);
+    }
   } else {
     writeInfo('Scheduled tasks not supported on this platform. Hooks handle sync.');
   }
