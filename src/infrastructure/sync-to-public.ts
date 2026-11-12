@@ -634,6 +634,59 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 }
 
 /**
+ * Parsea la salida de `gh auth status` y decide si las credenciales pueden
+ * pushear cambios de GitHub Actions (scope `workflow`). GH013 rechaza el push
+ * completo si falta — y es recurrente con el credential helper de gh/OAuth.
+ * `gh auth status` puede imprimir por stderr aun con exit 0: se lee todo.
+ */
+export function parseWorkflowScope(statusOutput: string): 'granted' | 'missing' | 'unknown' {
+  const out = statusOutput.toLowerCase();
+  if (!/token scopes|scopes:/i.test(out)) return 'unknown';
+  return /(^|[\s,])workflow([\s,]|$)/m.test(out) ? 'granted' : 'missing';
+}
+
+function detectWorkflowScope(): 'granted' | 'missing' | 'unknown' {
+  try {
+    const r = runSync('gh', ['auth', 'status'], { timeout: 15000 });
+    return parseWorkflowScope(`${r.stdout ?? ''}${r.stderr ?? ''}`);
+  } catch {
+    return 'unknown';
+  }
+}
+
+/**
+ * neutralizeWorkflowsWithoutScope — arreglo definitivo del fallo recurrente
+ * `refusing to allow an OAuth App to create or update workflow ... without
+ * workflow scope`. En vez de fallar el push entero (y dejar el mirror
+ * inconsistente): si el scope falta o es indeterminable, se restauran los
+ * workflows al estado de origin/<branch> ANTES del commit. El sync publica
+ * todo lo demás y reporta el drift pendiente con el comando de arreglo.
+ * El cambio de workflows NO se pierde: su fuente es el repo privado y el
+ * próximo sync con scope lo publica.
+ */
+function neutralizeWorkflowsWithoutScope(publicRepo: string, branch: string): void {
+  const scope = detectWorkflowScope();
+  if (scope === 'granted') return;
+  const diff = runSync(
+    'git',
+    ['diff', '--name-only', `origin/${branch}`, '--', '.github/workflows'],
+    { cwd: publicRepo, timeout: 30000 },
+  );
+  if (!(diff.stdout ?? '').toString().trim()) return;
+  runSync('git', ['checkout', `origin/${branch}`, '--', '.github/workflows'], {
+    cwd: publicRepo,
+    timeout: 30000,
+  });
+  console.log(
+    `[WARN] .github/workflows excluido del sync (credenciales sin scope 'workflow'` +
+      `${scope === 'unknown' ? ', indeterminable' : ''}) — el resto publica normal.`,
+  );
+  console.log('[WARN] Drift de workflows pendiente. Arreglo permanente (interactivo, 1 vez):');
+  console.log('         gh auth refresh -s workflow');
+  console.log('       Luego re-ejecutar el sync: publicará los workflows pendientes.');
+}
+
+/**
  * Commit and push to distribution branches (main, develop).
  *
  * Git commands use array form (runSync) — never shell strings — because
@@ -725,6 +778,7 @@ function pushToAllBranches(opts: SyncOptions): string[] {
     }
 
     syncFilesToBranch(opts, publicRepo);
+    neutralizeWorkflowsWithoutScope(publicRepo, branch);
 
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
     const commitMsg = `sync: automated sync from private repo - ${timestamp}`;
