@@ -41,6 +41,7 @@
  *   webhook     Standard Webhooks 2026 tooling (generate|validate|pair|sign|verify|smoke|test)
  *   mp          MercadoPago activate companion (doctor|status|webhook-url|test-webhook|...)
  *   tenant      Multi-tenant index audit (gv tenant audit [--db <path>])
+ *   quickstart  Onboarding con plan firmado (survey + SHA-256; nada escribe sin --accept-plan)
  *   help        Show this help
  */
 
@@ -54,6 +55,7 @@ import { spawnSync } from 'node:child_process';
 import { printBanner } from './banner.js';
 import { readDashboardPorts } from '../ops/dashboard-common.js';
 import { StandardWebhooks, generateSecret } from '../webhooks/standard-webhooks.js';
+import { buildPlan, formatPlan, surveyEnvironment } from '../quickstart/quickstart.js';
 
 const ROOT = resolve(process.cwd());
 const SKILLS_DIR = join(ROOT, 'skills');
@@ -91,6 +93,7 @@ USAGE:
 COMMANDS:
   check       Run system checks (watchtower health)
   validate    Validate stack installation
+  quickstart  Onboarding con plan firmado (survey + plan SHA-256; nada escribe sin --accept-plan)
   info        Show stack information
   list        List available skills
   health      Full stack health (watchtower); --db for Nexus DB only
@@ -347,7 +350,10 @@ function cmdLanding(args: string[]): CommandResult {
       encoding: 'utf8',
     });
     const status = r.status ?? 1;
-    return { success: status === 0, message: `${label} ${status === 0 ? 'OK' : `FAIL (${status})`}` };
+    return {
+      success: status === 0,
+      message: `${label} ${status === 0 ? 'OK' : `FAIL (${status})`}`,
+    };
   };
   switch (sub) {
     case 'setup':
@@ -424,18 +430,27 @@ function cmdWebhook(args: string[]): CommandResult {
       const secretIdx = rest.indexOf('--secret');
       const secret = secretIdx >= 0 ? rest[secretIdx + 1] : process.env.WEBHOOK_SIGNING_SECRET;
       if (!secret) {
-        return { success: false, message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET' };
+        return {
+          success: false,
+          message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET',
+        };
       }
       const idIdx = rest.indexOf('--id');
       const tsIdx = rest.indexOf('--ts');
-      const id = idIdx >= 0 ? rest[idIdx + 1] : `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const id =
+        idIdx >= 0
+          ? rest[idIdx + 1]
+          : `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const ts = tsIdx >= 0 ? Number(rest[tsIdx + 1]) : Math.floor(Date.now() / 1000);
       const chunks: Buffer[] = [];
       try {
         const stdin = readFileSync(0); // synchronous stdin read (works for piped input)
         chunks.push(stdin);
       } catch {
-        return { success: false, message: 'stdin requerido: pasá el body por pipe (echo \'...\' | gv webhook sign ...)' };
+        return {
+          success: false,
+          message: "stdin requerido: pasá el body por pipe (echo '...' | gv webhook sign ...)",
+        };
       }
       const body = Buffer.concat(chunks).toString('utf8') || '{}';
       const sw = new StandardWebhooks(secret);
@@ -455,7 +470,10 @@ function cmdWebhook(args: string[]): CommandResult {
       };
       const secret = get('--secret') || process.env.WEBHOOK_SIGNING_SECRET;
       if (!secret) {
-        return { success: false, message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET' };
+        return {
+          success: false,
+          message: 'secret requerido: --secret <whsec_...> o $WEBHOOK_SIGNING_SECRET',
+        };
       }
       const id = get('--id');
       const tsRaw = get('--ts');
@@ -471,11 +489,9 @@ function cmdWebhook(args: string[]): CommandResult {
       }
       const body = Buffer.concat(chunks).toString('utf8') || '{}';
       const sw = new StandardWebhooks(secret);
-      const result = sw.verify(
-        { id, timestamp: tsRaw, signature: sig },
-        body,
-        { now: Math.floor(Date.now() / 1000) },
-      );
+      const result = sw.verify({ id, timestamp: tsRaw, signature: sig }, body, {
+        now: Math.floor(Date.now() / 1000),
+      });
       if (result.ok) {
         console.log('OK — signature valid');
         return { success: true, message: 'verify OK' };
@@ -492,11 +508,7 @@ function cmdWebhook(args: string[]): CommandResult {
       const ts = Math.floor(Date.now() / 1000);
       const body = '{"event":"smoke","ts":' + ts + '}';
       const sig = sw.sign(id, ts, body);
-      const result = sw.verify(
-        { id, timestamp: ts.toString(), signature: sig },
-        body,
-        { now: ts },
-      );
+      const result = sw.verify({ id, timestamp: ts.toString(), signature: sig }, body, { now: ts });
       if (result.ok) {
         console.log(`OK — signed ${body.length} bytes and verified in-process`);
         return { success: true, message: 'smoke OK' };
@@ -510,7 +522,10 @@ function cmdWebhook(args: string[]): CommandResult {
       const testAbs = resolve(ROOT, 'tests/unit/webhooks/standard-webhooks.test.ts');
       const argv: string[] = ['--import', 'tsx', '--test', testAbs];
       const r = spawnSync(process.execPath, argv, {
-        cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+        cwd: ROOT,
+        stdio: 'inherit',
+        windowsHide: true,
+        encoding: 'utf8',
       });
       return {
         success: (r.status ?? 1) === 0,
@@ -833,7 +848,10 @@ function cmdDemo(args: string[]): CommandResult {
           return { success: false, message: 'Demo Console not running' };
         }
         if (process.platform === 'win32')
-          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], { timeout: 8000, stdio: 'ignore' });
+          runSync('taskkill', ['/pid', String(pid), '/t', '/f'], {
+            timeout: 8000,
+            stdio: 'ignore',
+          });
         else process.kill(pid, 'SIGTERM');
         if (existsSync(pidFile)) unlinkSync(pidFile);
 
@@ -1299,16 +1317,26 @@ async function main(): Promise<void> {
     case 'sync':
     case 'upgrade':
       header();
-      runNpxTsxSync('src/ops/stack-upgrade.ts', args.filter((a) => a !== 'update' && a !== 'sync' && a !== 'upgrade'), {
-        cwd: ROOT, stdio: 'inherit',
-      });
+      runNpxTsxSync(
+        'src/ops/stack-upgrade.ts',
+        args.filter((a) => a !== 'update' && a !== 'sync' && a !== 'upgrade'),
+        {
+          cwd: ROOT,
+          stdio: 'inherit',
+        },
+      );
       break;
 
     case 'update-all':
       header();
-      runNpxTsxSync('src/ops/stack-upgrade.ts', args.filter((a) => a !== 'update-all'), {
-        cwd: ROOT, stdio: 'inherit',
-      });
+      runNpxTsxSync(
+        'src/ops/stack-upgrade.ts',
+        args.filter((a) => a !== 'update-all'),
+        {
+          cwd: ROOT,
+          stdio: 'inherit',
+        },
+      );
       runCommand('npm', ['run', 'db:optimize'], 'NEXUS');
       break;
 
@@ -1422,7 +1450,10 @@ async function main(): Promise<void> {
         const scriptAbs = resolve(ROOT, 'src/ops/tenant-audit.ts');
         const argv: string[] = ['--import', 'tsx', scriptAbs, ...extra];
         const r = spawnSync(process.execPath, argv, {
-          cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+          cwd: ROOT,
+          stdio: 'inherit',
+          windowsHide: true,
+          encoding: 'utf8',
         });
         process.exit(r.status === 0 || r.status === 1 ? (r.status ?? 1) : 1);
       }
@@ -1438,12 +1469,48 @@ Uso:
       break;
     }
 
+    case 'quickstart': {
+      header();
+      const extra = args.slice(1);
+      if (extra[0] === 'bootstrap') {
+        // Máquina limpia: clonar + deps, con su propio plan firmado (slice 2).
+        const scriptAbs = resolve(ROOT, 'src/quickstart/bootstrap.ts');
+        const argv: string[] = ['--import', 'tsx', scriptAbs, ...extra.slice(1)];
+        const r = spawnSync(process.execPath, argv, {
+          cwd: process.cwd(), // el bootstrap opera relativo al caller, no al repo
+          stdio: 'inherit',
+          windowsHide: true,
+          encoding: 'utf8',
+        });
+        process.exit(r.status ?? 1);
+      }
+      if (extra.includes('--accept-plan')) {
+        // Con aceptación se delega al módulo (necesita runners con cwd/root propios).
+        const scriptAbs = resolve(ROOT, 'src/quickstart/quickstart.ts');
+        const argv: string[] = ['--import', 'tsx', scriptAbs, ...extra];
+        const r = spawnSync(process.execPath, argv, {
+          cwd: ROOT,
+          stdio: 'inherit',
+          windowsHide: true,
+          encoding: 'utf8',
+        });
+        process.exit(r.status ?? 1);
+      }
+      // Sin aceptación: plan visible, solo lectura, en este mismo proceso.
+      const plan = buildPlan(surveyEnvironment(ROOT));
+      console.log(formatPlan(plan));
+      break;
+    }
+
     case 'mp': {
       // Forward to src/cli/gv-mp.ts (companion CLI específico para MP activate).
       const scriptAbs = resolve(ROOT, 'src/cli/gv-mp.ts');
       const argv: string[] = ['--import', 'tsx', scriptAbs, ...args.slice(1)];
       const r = spawnSync(process.execPath, argv, {
-        cwd: ROOT, stdio: 'inherit', windowsHide: true, encoding: 'utf8',
+        cwd: ROOT,
+        stdio: 'inherit',
+        windowsHide: true,
+        encoding: 'utf8',
       });
       process.exit(r.status ?? 1);
       break;

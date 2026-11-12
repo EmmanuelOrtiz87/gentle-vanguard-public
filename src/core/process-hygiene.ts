@@ -425,6 +425,23 @@ const DAEMON_CLASSES: DaemonClass[] = [
     recycleAged: false,
   },
   {
+    id: 'malabis-demo-proxy',
+    label: 'Malabis demo proxy (:8218)',
+    match: /apps[\\/]malabis-web[\\/]tests[\\/]checkout-demo\.mjs"?\s*$/,
+    keep: 'newest',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
+    id: 'malabis-demo-upstream',
+    label: 'Malabis demo storefront server',
+    // The demo and the operational instance run the same server entry point.
+    match: /apps[\\/]malabis-web[\\/]server[\\/]server\.mjs"?\s+--malabis-demo-upstream\b/,
+    keep: 'newest',
+    respawn: 'manual',
+    recycleAged: false,
+  },
+  {
     id: 'kairos-agenda',
     label: 'Kairós Agenda daemon (:4195, app de cliente)',
     match: /apps[\\/]kairos-agenda[\\/]server[\\/]server\.mjs/,

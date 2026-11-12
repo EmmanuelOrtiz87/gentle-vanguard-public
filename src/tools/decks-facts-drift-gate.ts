@@ -83,6 +83,7 @@ function trackedFiles(root: string): { files: string[]; source: 'git' | 'filesys
       cwd: root,
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
+      windowsHide: true,
     });
     const files = out.split('\0').filter(Boolean);
     if (files.length > 0) return { files, source: 'git' };

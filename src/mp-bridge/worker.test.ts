@@ -74,6 +74,35 @@ test('OPTIONS responde CORS', async () => {
   assert.ok(res.headers.get('access-control-allow-origin'));
 });
 
+test('preference responde con cabeceras CORS (sin esto el navegador bloquea la respuesta y el checkout nunca llega a MP)', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ id: 'pref-cors', init_point: 'https://mp.test/checkout/1' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })) as typeof globalThis.fetch;
+  try {
+    const origin = 'https://gentlevanguard.github.io';
+    // Camino de error (producto desconocido) y camino de éxito: los DOS deben
+    // bring CORS. Si sólo uno lo tiene, el navegador igual corta el flujo.
+    const rejected = await req('/api/mp/preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin, 'x-bridge-secret': 's3cret' },
+      body: JSON.stringify({ tier: 'ebook-micro', slug: 'no-existe', title: 'T', unitPrice: 20 }),
+    });
+    assert.equal(rejected.headers.get('access-control-allow-origin'), origin);
+
+    const ok = await req('/api/mp/preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin, 'x-bridge-secret': 's3cret' },
+      body: JSON.stringify({ tier: 'ebook-micro', slug: '50-prompts', title: 'T', unitPrice: 20 }),
+    });
+    assert.equal(ok.headers.get('access-control-allow-origin'), origin);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('notification_url apunta al WORKER, no a la landing (regresión)', async () => {
   const originalFetch = globalThis.fetch;
   const calls: Array<{ url: string; body: string }> = [];

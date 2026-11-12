@@ -54,7 +54,7 @@ export default {
       labelW: 1.55,
       items: [
         { label: 'src/', body: 'more than 800 TypeScript files. Stack code by area: orchestration, security, retrieval, data, tools, quality and ops.', accent: '06b6d4' },
-        { label: 'apps/', body: '28 of our own applications running on the stack, validating the architecture in production.', accent: '8b5cf6' },
+        { label: 'apps/', body: '29 of our own applications running on the stack, validating the architecture in production.', accent: '8b5cf6' },
         { label: 'skills/', body: '253 capabilities with contract and frontmatter. Invoked by task description.', accent: 'fbbf24' },
         { label: 'docs/', body: 'Stack manual by module, full manual, 38 ADRs and the design decision log.', accent: '22d3ee' },
         { label: 'config/', body: 'Single source of configuration: model router, role mapping, quality gates, budgets and MCP registry.', accent: '4ade80' },
@@ -177,7 +177,7 @@ export default {
       lead: 'The stack runs its own controls on every commit, every push and every health cycle.',
       cols: 4,
       items: [
-        { value: '47', label: 'Quality gates', sub: '43 of 47 enforced strictly', accent: '06b6d4' },
+        { value: '53', label: 'Quality gates', sub: '49 of 53 enforced strictly', accent: '06b6d4' },
         { value: '552+', label: 'Test files', sub: 'Unit, e2e, integration, security and skills', accent: '8b5cf6' },
         { value: '21', label: 'CI workflows', sub: 'CI, security, release, public sync and automated labelling', accent: 'fbbf24' },
         { value: '80', label: 'Secret patterns', sub: 'With optional entropy and redaction by default', accent: '22d3ee' },

@@ -91,7 +91,12 @@ export function defaultRoot(): string {
 
 function git(root: string, args: string[]): string {
   try {
-    return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    return execFileSync('git', args, {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      windowsHide: true,
+    });
   } catch {
     return '';
   }
@@ -350,6 +355,7 @@ function buildIgnoredMap(root: string): Map<string, string> {
       input,
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
+      windowsHide: true,
     });
   } catch (err) {
     // check-ignore sale 1 cuando NINGUNO de los paths esta ignorado: eso es

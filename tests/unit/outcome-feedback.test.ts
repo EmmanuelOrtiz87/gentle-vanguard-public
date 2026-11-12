@@ -228,3 +228,45 @@ test('capture: token_transactions sum is used as token signal', () => {
   const r = captureOutcomeFeedback(db, 's-tx'); // over 3M default budget → inconclusive
   assert.equal(r.written, false);
 });
+
+/* ── markSessionTerminal: cierra el gap del dataset de eval ────────────── */
+
+import { markSessionTerminal } from '../../src/session/outcome-feedback.js';
+
+test('terminal: idle → completed en cierre limpio', () => {
+  const db = makeDb();
+  seedSession(db, 's-term-ok', 'idle');
+  const changes = markSessionTerminal(db, 's-term-ok', { failedPhaseCount: 0 });
+  assert.equal(changes, 1);
+  const s = db.prepare(`SELECT status FROM sessions WHERE id = 's-term-ok'`).get() as {
+    status: string;
+  };
+  assert.equal(s.status, 'completed');
+});
+
+test('terminal: fases fallidas → failed (mapeo honesto, no infla positivos)', () => {
+  const db = makeDb();
+  seedSession(db, 's-term-fail', 'idle');
+  markSessionTerminal(db, 's-term-fail', { failedPhaseCount: 2 });
+  const s = db.prepare(`SELECT status FROM sessions WHERE id = 's-term-fail'`).get() as {
+    status: string;
+  };
+  assert.equal(s.status, 'failed');
+});
+
+test('terminal: outcome down sin fases fallidas → failed', () => {
+  const db = makeDb();
+  seedSession(db, 's-term-down', 'active');
+  markSessionTerminal(db, 's-term-down', { failedPhaseCount: 0, outcomeType: 'down' });
+  const s = db.prepare(`SELECT status FROM sessions WHERE id = 's-term-down'`).get() as {
+    status: string;
+  };
+  assert.equal(s.status, 'failed');
+});
+
+test('terminal: idempotente — no toca sesiones ya terminales', () => {
+  const db = makeDb();
+  seedSession(db, 's-term-idem', 'completed');
+  const changes = markSessionTerminal(db, 's-term-idem', { failedPhaseCount: 0 });
+  assert.equal(changes, 0);
+});

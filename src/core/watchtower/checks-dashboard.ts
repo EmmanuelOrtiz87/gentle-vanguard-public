@@ -6,8 +6,20 @@ import { join } from 'path';
 import { addResult, quiet, ROOT, RUNTIME_DIR } from './context';
 import { fileExists, readJson, testHttp, testPort, getPidByPort } from './helpers';
 import { decideRecovery, DEFAULT_FAILURE_THRESHOLD } from './dashboard-liveness.js';
+import { isOnDemand } from '../app-keepalive-policy.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-DASHBOARD');
 import { log } from '../../utils/logger.js';
+
+/** `true` solo si el PID existe y el proceso esta vivo. */
+function pidAlive(pid: number | null): boolean {
+  if (pid === null || !Number.isFinite(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Contador de fallos consecutivos del dashboard, persistido entre corridas.
@@ -90,12 +102,30 @@ export async function checkDashboardWs() {
    */
   const portOwnerPid = httpOk ? null : await getPidByPort(wsPort);
 
+  // Politica on-demand (decision owner 2026-10-21): el dashboard NO se
+  // auto-arranca. Estar detenido es su estado correcto, no una averia. Solo se
+  // trata como "detenido a proposito" cuando no hay NINGUN proceso vivo del
+  // dashboard: si hay un PID vivo sin servir el puerto, eso si es un fallo.
+  const onDemand = isOnDemand('dashboard', ROOT);
+  const wsPidPath = join(RUNTIME_DIR, 'dashboard-ws.pid');
+  const pidFilePid = fileExists(wsPidPath)
+    ? Number.parseInt(readFileSync(wsPidPath, 'utf-8').trim(), 10)
+    : null;
+  const intentionallyStopped = onDemand && !httpOk && !running && !pidAlive(pidFilePid);
+
   const state = readLivenessState();
   const pidChanged =
     portOwnerPid !== null && state.lastPid !== null && portOwnerPid !== state.lastPid;
   // Cada corrida fallida suma uno; un proceso nuevo (PID distinto) reinicia
-  // el contador: los fallos del proceso viejo no cuentan para el nuevo.
-  const consecutiveFailures = httpOk ? 0 : pidChanged ? 1 : state.consecutiveFailures + 1;
+  // el contador: los fallos del proceso viejo no cuentan para el nuevo. Un
+  // servicio detenido a proposito no acumula fallos.
+  const consecutiveFailures = intentionallyStopped
+    ? 0
+    : httpOk
+      ? 0
+      : pidChanged
+        ? 1
+        : state.consecutiveFailures + 1;
 
   const decision = decideRecovery({
     httpOk,
@@ -105,13 +135,21 @@ export async function checkDashboardWs() {
   });
 
   writeLivenessState({
-    consecutiveFailures: httpOk ? 0 : consecutiveFailures,
+    consecutiveFailures,
     lastPid: portOwnerPid ?? state.lastPid,
     updatedAt: new Date().toISOString(),
   });
 
   if (httpOk) {
     addResult('dashboard-ws', `HTTP API (port ${respondingPort})`, 'PASS', 'Responding', 'ok');
+  } else if (intentionallyStopped) {
+    addResult(
+      'dashboard-ws',
+      `HTTP API (port ${wsPort})`,
+      'SKIP',
+      'detenido — on-demand (decisión owner 2026-10-21); arrancar: npm run dashboard:start',
+      'ok',
+    );
   } else if (decision.action === 'restart') {
     addResult(
       'dashboard-ws',
@@ -139,7 +177,15 @@ export async function checkDashboardWs() {
   }
 
   const wPidFile = join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid');
-  if (fileExists(wPidFile)) {
+  if (intentionallyStopped) {
+    addResult(
+      'dashboard-ws',
+      'watchdog process',
+      'SKIP',
+      'on-demand: no se espera watchdog mientras está detenido',
+      'ok',
+    );
+  } else if (fileExists(wPidFile)) {
     const watchdogPid = readFileSync(wPidFile, 'utf-8').trim();
     try {
       process.kill(parseInt(watchdogPid, 10), 0);
@@ -170,7 +216,7 @@ export async function checkDashboardWs() {
     addResult('dashboard-ws', 'watchdog process', 'WARN', 'WS down and no watchdog', 'start');
   }
 
-  const pidFile = join(RUNTIME_DIR, 'dashboard-ws.pid');
+  const pidFile = wsPidPath;
   if (httpOk) {
     // WS is alive and responding — the PID file may be stale (points to a dead
     // cmd.exe wrapper). Treat HTTP as source of truth and self-heal the file
@@ -186,6 +232,14 @@ export async function checkDashboardWs() {
       }
     }
     addResult('dashboard-ws', 'WS server process', 'PASS', pidDetail, 'ok');
+  } else if (intentionallyStopped) {
+    addResult(
+      'dashboard-ws',
+      'WS server process',
+      'SKIP',
+      'detenido — on-demand (decisión owner); sin proceso esperado',
+      'ok',
+    );
   } else if (fileExists(pidFile)) {
     const wsPid = readFileSync(pidFile, 'utf-8').trim();
     try {
@@ -217,6 +271,13 @@ export async function checkGvAnalytics() {
   const vitePidFile = join(RUNTIME_DIR, 'app-analytics-vite.pid');
   const appDir = join(ROOT, 'apps/gv-analytics');
 
+  // Politica on-demand (misma regla que el dashboard): detenido no es fallo.
+  const onDemand = isOnDemand('analytics', ROOT);
+  const apiPidValue = fileExists(apiPidFile)
+    ? Number.parseInt(readFileSync(apiPidFile, 'utf-8').trim(), 10)
+    : null;
+  const apiProcessAlive = pidAlive(apiPidValue);
+
   // 1. Build artifact present?
   addResult(
     'gv-analytics',
@@ -230,16 +291,31 @@ export async function checkGvAnalytics() {
 
   // 2. API HTTP health (best-effort, 4 checks: status, connection, reports, mcp config)
   const apiOk = await testHttp(`http://127.0.0.1:${apiPort}/api/connection/status`);
-  addResult(
-    'gv-analytics',
-    `API HTTP (port ${apiPort})`,
-    apiOk ? 'PASS' : 'WARN',
-    apiOk ? 'Responding' : 'Not running — start with: npm run analytics:start',
-    apiOk ? 'ok' : 'start',
-  );
+  const intentionallyStopped = onDemand && !apiOk && !apiProcessAlive;
+  if (apiOk) {
+    addResult('gv-analytics', `API HTTP (port ${apiPort})`, 'PASS', 'Responding', 'ok');
+  } else if (intentionallyStopped) {
+    addResult(
+      'gv-analytics',
+      `API HTTP (port ${apiPort})`,
+      'SKIP',
+      'detenido — on-demand (decisión owner); arrancar: npm run analytics:start',
+      'ok',
+    );
+  } else {
+    addResult(
+      'gv-analytics',
+      `API HTTP (port ${apiPort})`,
+      'WARN',
+      'Not running — start with: npm run analytics:start',
+      'start',
+    );
+  }
 
   // 3. API process via pidfile
-  if (fileExists(apiPidFile)) {
+  if (intentionallyStopped) {
+    addResult('gv-analytics', 'API process', 'SKIP', 'on-demand: sin proceso esperado', 'ok');
+  } else if (fileExists(apiPidFile)) {
     const pid = readFileSync(apiPidFile, 'utf-8').trim();
     try {
       process.kill(parseInt(pid, 10), 0);

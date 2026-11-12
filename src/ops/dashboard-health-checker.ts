@@ -233,33 +233,6 @@ export async function checkDashboardHealth(
   };
 }
 
-/**
- * Quick check (boolean only)
- */
-export async function isDashboardHealthy(): Promise<boolean> {
-  const result = await checkDashboardHealth();
-  return result.status === 'healthy';
-}
-
-/**
- * Check with automatic retry
- */
-export async function checkDashboardHealthWithRetry(
-  retries = 2,
-  delay = 1000,
-): Promise<DashboardHealthResult> {
-  for (let i = 0; i <= retries; i++) {
-    const result = await checkDashboardHealth();
-    if (result.status === 'healthy') {
-      return result;
-    }
-    if (i < retries) {
-      await new Promise((r) => setTimeout(r, delay));
-    }
-  }
-  return checkDashboardHealth();
-}
-
 // CLI usage
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   checkDashboardHealth()

@@ -80,6 +80,7 @@ function runVerifier(root: string): VerifierRun {
     const out = execFileSync(process.execPath, ['--import', tsx, VERIFIER, '--report'], {
       cwd: root,
       encoding: 'utf8',
+      windowsHide: true,
     });
     return { status: 0, out };
   } catch (error) {

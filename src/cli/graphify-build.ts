@@ -55,7 +55,7 @@ interface SymbolInfo {
   line: number;
 }
 
-const DEFAULT_ROOTS = ['src', 'apps/web-dashboard/server', 'packages/shared/src', 'adapters'];
+const DEFAULT_ROOTS = ['src', 'apps/web-dashboard/server', 'packages/shared/src', 'adapters', 'apps/malabis-web'];
 
 function normalizeLabel(value: string): string {
   return value
@@ -71,7 +71,7 @@ function nodeIdForFile(relPath: string): string {
     .replace(/^_/, '');
 }
 
-function listTsFiles(absDir: string, root: string, maxFileKb: number, out: string[]): void {
+function listSourceFiles(absDir: string, root: string, maxFileKb: number, out: string[]): void {
   let entries;
   try {
     entries = readdirSync(absDir, { withFileTypes: true });
@@ -84,8 +84,8 @@ function listTsFiles(absDir: string, root: string, maxFileKb: number, out: strin
     }
     const abs = join(absDir, entry.name);
     if (entry.isDirectory()) {
-      listTsFiles(abs, root, maxFileKb, out);
-    } else if (/\.(ts|tsx)$/.test(entry.name) && !/\.(d|test)\.ts$/.test(entry.name)) {
+      listSourceFiles(abs, root, maxFileKb, out);
+    } else if (/\.(ts|tsx|js|mjs)$/.test(entry.name) && !/\.d\.ts$|\.(test|min)\.(ts|tsx|js|mjs)$/.test(entry.name)) {
       try {
         const kb = statSync(abs).size / 1024;
         if (kb > maxFileKb) continue;
@@ -108,12 +108,12 @@ function collectImports(
     if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue;
     const spec = stmt.moduleSpecifier.text;
     if (!spec.startsWith('.') && !spec.startsWith('@/')) continue;
-    // Resolve specifier against the scan root (never process.cwd — the graph
-    // may be built for a different root, e.g. in tests). ESM-style .js
-    // specifiers map back to their .ts source.
-    const stripped = spec.replace(/^@\//, 'src/').replace(/\.js$/, '');
-    const base = resolve(root, dirname(relFile), stripped);
-    const candidates = [base, `${base}.ts`, `${base}.tsx`, join(base, 'index.ts')];
+    // TypeScript imports may use the emitted .js suffix. JavaScript imports
+    // also need to find their exact source, including explicit .mjs files.
+    const exact = resolve(root, dirname(relFile), spec.replace(/^@\//, 'src/'));
+    const base = exact.replace(/\.js$/, '');
+    const typed = [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')];
+    const candidates = /\.tsx?$/.test(relFile) ? [base, ...typed, exact] : [exact, ...typed];
     const resolvedRel = (
       candidates.find((c) => {
         try {
@@ -290,7 +290,7 @@ export function buildGraph(options: BuildOptions = {}): BuildResult {
 
   const files: string[] = [];
   for (const r of roots) {
-    listTsFiles(join(root, r), root, maxFileKb, files);
+    listSourceFiles(join(root, r), root, maxFileKb, files);
   }
 
   const nodes: GraphNode[] = [];

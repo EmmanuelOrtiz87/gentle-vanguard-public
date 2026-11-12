@@ -10,6 +10,7 @@ import { runNpxTsxSync } from '../core/run-command.js';
 import { createHash } from 'crypto';
 import { pathToFileURL } from 'url';
 import { buildSkillCatalog } from './skill-embedder.js';
+import { ensureSkillRegistry } from './skill-registry-builder.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -124,9 +125,20 @@ function main(): void {
 
   if (!prevMeta || !prevEmbeddings) log('No previous embeddings found, doing full rebuild');
 
+  // El registro es un artefacto DERIVADO: si falta, se reconstruye desde el
+  // catálogo real en vez de abortar. Este script corre en el autostart de cada
+  // sesión (lazy, no bloqueante): antes, un `.atl/` limpio dejaba el índice
+  // semántico sin construir EN SILENCIO y los gates que lo leen fallaban con
+  // ENOENT mucho después, sin causa visible.
   if (!existsSync(registryPath)) {
-    log('Skill registry not found', 'ERROR');
-    process.exit(1);
+    log('Registro de skills ausente: se reconstruye desde el catálogo', 'WARN');
+    const rebuilt = ensureSkillRegistry({
+      projectRoot,
+      delegationConfigPath,
+      registryPath,
+      write: true,
+    });
+    log(`Registro reconstruido con ${rebuilt.skills} skills`, 'OK');
   }
 
   const currentSkills: Record<string, string> = {};

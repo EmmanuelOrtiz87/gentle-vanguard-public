@@ -199,11 +199,13 @@ test('provider health alerts only for models inside the active routing scope', (
   // A routed model without a fresh success keeps the honest WARN (quota case),
   // including a state entry recorded under a stale provider alias.
   assert.equal(
-    evaluateTrackedModelHealth('big-pickle', 'opencode', activeModel, staleEvidence, managed).status,
+    evaluateTrackedModelHealth('big-pickle', 'opencode', activeModel, staleEvidence, managed)
+      .status,
     'WARN',
   );
   assert.equal(
-    evaluateTrackedModelHealth('big-pickle', 'opencode-zen-C', activeModel, staleEvidence, managed).status,
+    evaluateTrackedModelHealth('big-pickle', 'opencode-zen-C', activeModel, staleEvidence, managed)
+      .status,
     'WARN',
   );
 
@@ -215,7 +217,8 @@ test('provider health alerts only for models inside the active routing scope', (
 
   // Unreadable router configs fail open (empty managed set keeps legacy WARN).
   assert.equal(
-    evaluateTrackedModelHealth('kimi-2-5', 'littellmott-nuevo', activeModel, staleEvidence, []).status,
+    evaluateTrackedModelHealth('kimi-2-5', 'littellmott-nuevo', activeModel, staleEvidence, [])
+      .status,
     'WARN',
   );
 
@@ -235,8 +238,16 @@ test('provider health alerts only for models inside the active routing scope', (
 test('uses successful Nexus token completions as provider recovery evidence', () => {
   const db = new Database(':memory:');
   db.exec('CREATE TABLE token_usage (model TEXT, timestamp TEXT, completion_tokens INTEGER);');
-  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('big-pickle', '2026-10-24 21:06:54', 3);
-  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('mimo-v2.6-flash-free', '2026-10-24 21:06:53', 0);
+  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run(
+    'big-pickle',
+    '2026-10-24 21:06:54',
+    3,
+  );
+  db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run(
+    'mimo-v2.6-flash-free',
+    '2026-10-24 21:06:53',
+    0,
+  );
   try {
     assert.equal(
       readLatestSuccessfulProviderUsage(db, 'opencode-zen-C/big-pickle'),
@@ -547,10 +558,16 @@ test('tool audit gate requires all expected clients to pass', () => {
     detail: 'missing tool surfaces: Antigravity',
   });
 
-  assert.deepEqual(evaluateToolAudit([{ ...rows[0], status: 'WARN' as const }, ...rows.slice(1)]), {
-    passed: false,
-    detail: 'non-PASS tools: OpenCode=WARN',
-  });
+  assert.deepEqual(
+    evaluateToolAudit([
+      { ...rows[0], status: 'WARN', detail: '--version excedió 10000 ms' },
+      ...rows.slice(1),
+    ]),
+    {
+      passed: false,
+      detail: 'non-PASS tools: OpenCode=WARN (--version excedió 10000 ms)',
+    },
+  );
 });
 
 test('Watchtower self-tests use the direct hidden TypeScript runner', () => {

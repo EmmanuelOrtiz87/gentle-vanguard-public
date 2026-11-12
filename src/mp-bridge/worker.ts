@@ -105,8 +105,13 @@ function authorized(req: Request, env: Env): boolean {
  *  notification_url debe apuntar al worker, NO a la landing (bug corregido:
  *  antes usaba backUrl=origen de la landing → MP posteaba el webhook a una
  *  página estática 404 y el CRM jamás se enteraba del pago). */
-async function createPreference(env: Env, body: unknown, workerOrigin: string): Promise<Response> {
-  if (!env.MP_ACCESS_TOKEN) return error('MP_ACCESS_TOKEN no configurado', 500);
+async function createPreference(
+  env: Env,
+  body: unknown,
+  workerOrigin: string,
+  cors: Record<string, string> = {},
+): Promise<Response> {
+  if (!env.MP_ACCESS_TOKEN) return error('MP_ACCESS_TOKEN no configurado', 500, cors);
   const b = body as {
     slug?: string;
     tier?: string;
@@ -116,18 +121,18 @@ async function createPreference(env: Env, body: unknown, workerOrigin: string): 
     externalReference?: string;
     backUrl?: string;
   };
-  if (!b || typeof b !== 'object') return error('Producto requerido');
+  if (!b || typeof b !== 'object') return error('Producto requerido', 400, cors);
   const product = (catalog.products as Record<string, { slug: string; tier: string; title: string; price: number; currency: string }>)[`${b.tier}:${b.slug}`];
-  if (!product) return error('Producto no disponible para compra directa');
+  if (!product) return error('Producto no disponible para compra directa', 400, cors);
   const tier = product.tier;
   const title = product.title;
   const unitPrice = Number(b.unitPrice);
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-    return error('unitPrice inválido');
+    return error('unitPrice inválido', 400, cors);
   }
   const currency = b.currency || 'USD';
   if (unitPrice !== product.price || currency !== product.currency) {
-    return error('Precio o moneda distintos del catálogo vigente. Solicita una cotización para otra moneda.');
+    return error('Precio o moneda distintos del catálogo vigente. Solicita una cotización para otra moneda.', 400, cors);
   }
   // La atribución también es del servidor: una referencia del cliente no debe
   // otorgar otro material por un pago de menor importe.
@@ -182,15 +187,20 @@ async function createPreference(env: Env, body: unknown, workerOrigin: string): 
         cause: data.cause ?? null,
       }),
       res.status,
+      cors,
     );
   }
-  return json({
-    ok: true,
-    catalogRevision: catalog.revision,
-    preferenceId: data.id,
-    initPoint: data.init_point || data.sandbox_init_point,
-    externalReference: externalReference,
-  });
+  return json(
+    {
+      ok: true,
+      catalogRevision: catalog.revision,
+      preferenceId: data.id,
+      initPoint: data.init_point || data.sandbox_init_point,
+      externalReference: externalReference,
+    },
+    200,
+    cors,
+  );
 }
 
 /** Verifica un pago contra la API de MercadoPago (idempotente por payment id). */
@@ -526,9 +536,15 @@ async function handleWebhook(req: Request, env: Env): Promise<Response> {
 }
 
 async function handlePreference(req: Request, env: Env): Promise<Response> {
-  if (!authorized(req, env)) return error('no autorizado', 401);
+  // La respuesta de este endpoint la lee el NAVEGADOR de la landing: sin
+  // cabeceras CORS el navegador bloquea la respuesta y el checkout nunca
+  // llega a MercadoPago (el POST sí creaba la preferencia en el servidor,
+  // pero el cliente recibía un error de red). PowerShell/curl no aplican
+  // CORS, por eso el endpoint "funcionaba" en los tests de consola.
+  const cors = corsHeaders(env, req.headers.get('origin'));
+  if (!authorized(req, env)) return error('no autorizado', 401, cors);
   const body = await req.json().catch(() => ({}));
-  return createPreference(env, body, new URL(req.url).origin);
+  return createPreference(env, body, new URL(req.url).origin, cors);
 }
 
 /** Diagnóstico del token MP (sin exponerlo): valida contra /users/me en

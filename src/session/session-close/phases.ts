@@ -30,7 +30,11 @@ import {
 import { KILL_TARGETS, waitForProcess, killProcessByCommandLine } from './process.js';
 import { runArtifactRetention } from '../artifact-retention.js';
 import { generateReview4R, formatReview4R } from '../../rdd/rdd-4r-review.js';
-import { captureOutcomeFeedback, OUTCOME_FEEDBACK_SOURCE } from '../outcome-feedback.js';
+import {
+  captureOutcomeFeedback,
+  markSessionTerminal,
+  OUTCOME_FEEDBACK_SOURCE,
+} from '../outcome-feedback.js';
 import { log as createLogger } from '../../utils/logger.js';
 import { getSessionIntent } from '../session-intent-capture.js';
 import { getInventory } from '../session-validator.js';
@@ -551,6 +555,14 @@ export async function phasePersist(reason: string): Promise<PhaseResult[]> {
     const db = mod.DatabaseManager.getInstance().getDb();
     const failedPhaseCount = results.filter((r) => r.status === 'FAIL').length;
     const fb = captureOutcomeFeedback(db, sessionId, { failedPhaseCount });
+    // 2.6 Mark the session terminal in Nexus (sessions.status quedaba 'idle' para
+    // siempre y continuous-eval etiqueta positivos vía 'completed' / negativos vía
+    // 'failed'). Mapeo honesto: fases fallidas u outcome down → 'failed'; si no,
+    // 'completed'. Best-effort: nunca falla el cierre.
+    const terminalChanges = markSessionTerminal(db, sessionId, {
+      failedPhaseCount,
+      outcomeType: fb.written ? fb.type : null,
+    });
     results.push({
       phase: 'outcome-feedback',
       status: 'PASS',
@@ -558,6 +570,14 @@ export async function phasePersist(reason: string): Promise<PhaseResult[]> {
         ? `Auto feedback '${fb.type}' recorded (${OUTCOME_FEEDBACK_SOURCE}: ${fb.reason})`
         : `Feedback evaluated; no record needed (${fb.reason})`,
     });
+    if (terminalChanges > 0) {
+      results.push({
+        phase: 'session-terminal-status',
+        status: 'PASS',
+        detail: `sessions.status updated (${terminalChanges} row)`,
+      });
+      ok('Session marked terminal in Nexus');
+    }
     if (fb.written) ok(`Outcome feedback recorded: ${fb.type}`);
   } catch (e: unknown) {
     results.push({

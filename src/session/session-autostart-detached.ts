@@ -39,9 +39,19 @@
 import { spawn } from 'node:child_process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { takeSessionReminders } from './session-reminders.js';
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..');
 const LOG_DIR = path.join(ROOT, '.runtime');
+const args = process.argv.slice(2);
+
+if (args.includes('--session-reminders')) {
+  try {
+    for (const reminder of takeSessionReminders(ROOT)) console.log('[SESSION-REMINDER] ' + reminder);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') console.warn('[SESSION-REMINDER] No se pudieron leer los avisos de sesión.');
+  }
+}
 
 // Per-run timestamped log: immune to EBUSY and keeps history.
 fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -64,15 +74,14 @@ try {
   /* ignore prune errors */
 }
 
-const args = process.argv.slice(2);
-
 // The autostart core redirects its own output to AUTOSTART_LOG_FILE natively
 // (see src/core/session-autostart.ts) — no shell needed at all, which avoids
 // both cmd.exe console nesting and the DEP0190 deprecation warning. The lazy
 // daemons never inherit the caller's pipe either.
 const child = spawn(
   process.execPath,
-  ['--import', 'tsx', path.join(ROOT, 'src', 'session', 'session-autostart.ts'), ...args],
+  ['--import', 'tsx', path.join(ROOT, 'src', 'session', 'session-autostart.ts'),
+    ...args.filter((arg) => arg !== '--session-reminders')],
   {
     cwd: ROOT,
     stdio: 'ignore',
@@ -84,7 +93,6 @@ const child = spawn(
 
 child.unref();
 
-// Nothing is printed on purpose — the caller should return immediately and not
-// depend on any output from the detached background process. The pipeline log
+// The caller receives due reminders without waiting for the pipeline. The pipeline log
 // for this run is at .runtime/autostart-detached-<timestamp>.log (the lazy step
 // log lives at logs/session-autostart-lazy.log).

@@ -41,7 +41,9 @@
     "skills/*/scripts/**/*.ts",
     "src/**/*.ts",
     "scripts/apps/**/*.ts",
-    "apps/*/server/**/*.ts"
+    "scripts/alexandria/**/*.ts",
+    "apps/*/server/**/*.ts",
+    "apps/command-center/*.ts"
   ],
   "exclude": [
     "node_modules",

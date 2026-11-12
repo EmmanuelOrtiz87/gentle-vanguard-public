@@ -134,6 +134,7 @@ function repoFromGit(root: string): string | null {
     const url = execFileSync('git', ['remote', 'get-url', 'origin'], {
       cwd: root,
       encoding: 'utf8',
+      windowsHide: true,
     }).trim();
     const https = url.match(/github\.com[:/](.+?)(\.git)?$/i);
     return https?.[1] ?? null;
@@ -150,7 +151,7 @@ function fetchAlerts(repo: string): DependabotAlert[] {
   const out = execFileSync(
     'gh',
     ['api', `repos/${repo}/dependabot/alerts`, '--paginate', '--jq', 'tojson'],
-    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true },
   );
   const alerts: DependabotAlert[] = [];
   for (const line of out.split(/\r?\n/)) {
