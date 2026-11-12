@@ -20,8 +20,11 @@ export function assessBinding(status: number | null, stdout: string): boolean {
     return status === 0 && typeof parsed.session_id === 'string' && parsed.session_id.trim().length > 0;
   } catch { return false; }
 }
-export function assessModelProbe(status: number | null, stdout: string, stderr: string) {
+export function assessModelProbe(status: number | null, stdout: string, stderr: string, errorCode?: string) {
   const scope = 'PIN requirements fixture only; not certification of other SDD agents or tool access';
+  if (errorCode === 'ETIMEDOUT') {
+    return { qualified: false, scope, reason: 'OpenCode fixture timed out' };
+  }
   if (status !== 0 || /falling back|not a primary agent/i.test(stderr)) {
     return { qualified: false, scope, reason: 'Command failed or substituted another agent' };
   }
@@ -81,7 +84,8 @@ function main(): void {
         command: { 'gv-sdd-qualification': { agent: 'sdd-explore', subtask: true, template } },
       }) },
     });
-    probe = assessModelProbe(result.status, result.stdout, result.stderr);
+    const errorCode = (result.error as NodeJS.ErrnoException | null)?.code;
+    probe = assessModelProbe(result.status, result.stdout, result.stderr, errorCode);
     // Preserve operational errors without copying headers, provider config or credentials.
     const failure = /FreeTierError|statusCode.{0,8}403/.test(result.stdout) ? 'Provider denied request (HTTP 403 / FreeTierError)' : probe.reason;
     if (failure !== probe.reason) probe.reason += `; ${failure}`;

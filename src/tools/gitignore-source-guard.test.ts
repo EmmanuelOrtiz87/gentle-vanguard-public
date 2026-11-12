@@ -33,7 +33,7 @@ function makeRepo(files: Record<string, string>): string {
     mkdirSync(join(abs, '..'), { recursive: true });
     writeFileSync(abs, body, 'utf8');
   }
-  execFileSync('git', ['init', '-q'], { cwd: root });
+  execFileSync('git', ['init', '-q'], { cwd: root, windowsHide: true });
   return root;
 }
 
@@ -50,7 +50,7 @@ describe('gitignore-source-guard', () => {
       '.gitignore': 'build/\n',
       'build/compile.js': 'console.log(1);\n',
     });
-    execFileSync('git', ['add', 'package.json', '.gitignore'], { cwd: root });
+    execFileSync('git', ['add', 'package.json', '.gitignore'], { cwd: root, windowsHide: true });
 
     const report = checkIgnoredSource(root);
     assert.equal(report.ok, false, 'el gate deberia fallar');
@@ -65,7 +65,10 @@ describe('gitignore-source-guard', () => {
       '.gitignore': 'build/\n!build/\n!build/**\n',
       'build/compile.js': 'console.log(1);\n',
     });
-    execFileSync('git', ['add', '-f', 'package.json', '.gitignore', 'build/compile.js'], { cwd: root });
+    execFileSync('git', ['add', '-f', 'package.json', '.gitignore', 'build/compile.js'], {
+      cwd: root,
+      windowsHide: true,
+    });
 
     const report = checkIgnoredSource(root);
     assert.equal(report.errors, 0, JSON.stringify(report.findings, null, 2));
@@ -76,7 +79,7 @@ describe('gitignore-source-guard', () => {
       'package.json': JSON.stringify({ name: 'x', scripts: { build: 'node build/compile.js' } }),
       '.gitignore': 'node_modules/\n',
     });
-    execFileSync('git', ['add', 'package.json', '.gitignore'], { cwd: root });
+    execFileSync('git', ['add', 'package.json', '.gitignore'], { cwd: root, windowsHide: true });
 
     const report = checkIgnoredSource(root);
     const finding = report.findings.find((f) => f.rule === 'gitignore/missing-reference');
@@ -99,7 +102,10 @@ describe('gitignore-source-guard', () => {
       '.gitignore': 'node_modules/\n',
       'scripts/lifecycle-lock.test.ts': 'test("lock", () => {});\n',
     });
-    execFileSync('git', ['add', 'package.json', '.gitignore', 'scripts/lifecycle-lock.test.ts'], { cwd: root });
+    execFileSync('git', ['add', 'package.json', '.gitignore', 'scripts/lifecycle-lock.test.ts'], {
+      cwd: root,
+      windowsHide: true,
+    });
 
     const report = checkIgnoredSource(root);
     const missing = report.findings.filter((f) => f.rule === 'gitignore/missing-reference');
@@ -117,7 +123,10 @@ describe('gitignore-source-guard', () => {
       '.gitignore': 'node_modules/\n',
       'scripts/otro.test.ts': 'test("otro", () => {});\n',
     });
-    execFileSync('git', ['add', 'package.json', '.gitignore', 'scripts/otro.test.ts'], { cwd: root });
+    execFileSync('git', ['add', 'package.json', '.gitignore', 'scripts/otro.test.ts'], {
+      cwd: root,
+      windowsHide: true,
+    });
 
     const report = checkIgnoredSource(root);
     const finding = report.findings.find((f) => f.rule === 'gitignore/missing-reference');

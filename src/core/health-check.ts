@@ -398,7 +398,11 @@ async function checkDashboardV3() {
       break;
     }
     case 'down':
-      writeCheck(`dashboard WS server (port ${health.port})`, false, 'Not responding');
+      writeCheck(
+        `dashboard WS server (port ${health.port})`,
+        true,
+        `Not started — on-demand vía command-center (decisión owner 2026-10-21). Arrancar: npm run dashboard:start`,
+      );
       writeCheck('dashboard dev server', true, `Dashboard WS + dev server ${onDemandNote}`);
       break;
   }

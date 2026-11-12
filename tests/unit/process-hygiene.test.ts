@@ -55,6 +55,19 @@ function snap(
 
 const OPTS = { ...DEFAULT_OPTIONS };
 
+test('Malabis operational server, demo proxy and demo upstream are kept independently', () => {
+  const server = `"${join(REPO, 'apps', 'malabis-web', 'server', 'server.mjs')}"`;
+  const proxy = `"${join(REPO, 'apps', 'malabis-web', 'tests', 'checkout-demo.mjs')}"`;
+  const processes = [
+    proc(8100, 1, `node ${server}`, 25),
+    proc(8218, 2, `node ${proxy}`, 25),
+    proc(8219, 8218, `node ${server} --malabis-demo-upstream`, 25),
+  ];
+  const { findings, keptHealthy } = analyzeProcesses(snap(processes, [8100, 8218, 8219]), OPTS);
+  assert.ok(!findings.some((finding) => finding.action === 'kill'));
+  assert.deepStrictEqual(keptHealthy.map(({ pid }) => pid).sort(), [8100, 8218, 8219]);
+});
+
 test('duplicate daemon: non-port-owner websocket-server is killed, owner kept', () => {
   const owner = proc(
     32868,

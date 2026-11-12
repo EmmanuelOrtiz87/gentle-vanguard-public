@@ -51,7 +51,7 @@ html { overflow-x: clip; }
 body {
   background: var(--bg); color: var(--text);
   font-family: var(--gv-font-body);
-  line-height: 1.6; overflow-x: clip;
+  line-height: 1.6; overflow-x: hidden;
 }
 h1,h2,h3 { font-family: var(--gv-font-display); font-weight: 700; }
 .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
@@ -1822,6 +1822,49 @@ function embedWalletBrick(preferenceId) {
   });
 }
 
+// ── Pestaña de pago sin bloqueador de popups ────────────────────────────
+// El flujo real es: crear la preferencia (await) → abrir MercadoPago. Si el
+// window.open viene DESPUÉS del await, el navegador lo bloquea como popup y
+// el cliente nunca ve el checkout (bug P0: "Comprar curso" no llevaba a MP).
+// Fix: se abre la pestaña en blanco de forma SÍNCRONA (dentro del gesto del
+// usuario) y después sólo se la navega al init_point. Si el navegador la
+// bloquea igual, se cae a la MISMA pestaña: el pago llega igual.
+function openPaymentTab() {
+  var w = null;
+  try {
+    w = window.open('', '_blank');
+  } catch (e) {
+    w = null;
+  }
+  if (w) {
+    try {
+      w.document.title = 'Preparando el pago…';
+      w.document.body.innerHTML =
+        '<p style="font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;padding:32px;color:#0B1020">' +
+        'Preparando el pago seguro con MercadoPago…</p>';
+    } catch (e) { /* si no se puede escribir, seguimos igual */ }
+  }
+  return w;
+}
+
+function closePaymentTab(w) {
+  try {
+    if (w && !w.closed) w.close();
+  } catch (e) { /* noop */ }
+}
+
+// Navega la pestaña de pago al checkout. Devuelve 'new-tab' o 'same-tab'.
+function goToPayment(w, url) {
+  if (w && !w.closed) {
+    try {
+      w.location.href = url;
+      return 'new-tab';
+    } catch (e) { /* cae al fallback */ }
+  }
+  window.location.href = url;
+  return 'same-tab';
+}
+
 // Carga el SDK de MercadoPago una sola vez (solo si hay bridge + public key).
 function loadMercadoPagoSDK() {
   if (window.MercadoPago || !MP_PUBLIC_KEY) return Promise.resolve();
@@ -1956,10 +1999,14 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     var goBtn = document.getElementById('checkout-go');
     goBtn.disabled = true;
     goBtn.textContent = 'Creando pago seguro…';
+    // La pestaña se abre ANTES del await (dentro del gesto del usuario): abrirla
+    // después es lo que dispara el bloqueador de popups y deja el checkout muerto.
+    var payTab = openPaymentTab();
     try {
       var pref = await bridgePreference(checkoutCtx.tier, checkoutCtx.product, checkoutCtx.price, checkoutCtx.slug);
       track('payment_bridge', { product: checkoutCtx.product, tier: checkoutCtx.tier, preferenceId: pref.preferenceId });
       if (MP_PUBLIC_KEY) {
+        closePaymentTab(payTab);
         await loadMercadoPagoSDK();
         embedWalletBrick(pref.preferenceId);
         clearAbandonedCart();
@@ -1968,10 +2015,12 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
       // Sin public key: redirect a Checkout Pro hosted (init_point).
       clearAbandonedCart();
       document.getElementById('checkout-overlay').style.display = 'none';
-      window.open(pref.initPoint, '_blank', 'noopener');
-      showGracias(checkoutCtx, bump && bumpTaken ? bump : null);
+      var opened = goToPayment(payTab, pref.initPoint);
+      track('payment_open', { product: checkoutCtx.product, mode: opened });
+      showGracias(checkoutCtx, bump && bumpTaken ? bump : null, 'redirect');
       return;
     } catch (err) {
+      closePaymentTab(payTab);
       track('payment_bridge_fallback', { product: checkoutCtx.product, error: String((err && err.message) || err) });
       goBtn.disabled = false;
       goBtn.textContent = 'Continuar al pago →';
@@ -2098,8 +2147,25 @@ function recommendationsFor(boughtSlug, boughtTier) {
     .filter(function (r) { return Boolean(MPAGO_JS[r.tier]); });
 }
 
-function showGracias(ctx, pendingBump) {
+// ── Estados del retorno de MercadoPago ─────────────────────────────────
+// El bridge define back_urls con ?mp=success|pending|failure. La landing
+// tiene que HONRAR ese retorno: sin esto la persona vuelve del checkout y no
+// ve confirmación de nada (ni de que el pago falló).
+var MP_STATUS_MSG = {
+  redirect:
+    'Te llevamos a MercadoPago en otra pestaña para completar el pago. Si la ventana no se abrió, recargá esta página o escribinos por WhatsApp.',
+  success:
+    '¡Pago confirmado! Gracias por tu compra. Te contactamos por WhatsApp y email con el acceso y los materiales.',
+  pending:
+    'Tu pago está en revisión: MercadoPago todavía lo está procesando. Te avisamos por email cuando se confirme.',
+  failure:
+    'El pago no se completó y no se cobró nada. Podés reintentar desde el botón de compra o escribirnos por WhatsApp para coordinarlo.',
+};
+
+function showGracias(ctx, pendingBump, status) {
   var sec = document.getElementById('gracias');
+  var sub = document.getElementById('gracias-sub');
+  if (status && MP_STATUS_MSG[status] && sub) sub.textContent = MP_STATUS_MSG[status];
   var bumpBox = document.getElementById('gracias-bump');
   if (pendingBump) {
     document.getElementById('gracias-bump-text').textContent = pendingBump.label + ' — ' + pendingBump.why;
@@ -2111,14 +2177,21 @@ function showGracias(ctx, pendingBump) {
         // Bridge mode: preferencia server-side para el bump (fallback al link).
         var btn = this;
         btn.textContent = 'Creando pago…';
+        // Pestaña abierta sincrónicamente (dentro del click): si se abre después
+        // del await, el navegador la bloquea y el complemento nunca se paga.
+        var bumpTab = openPaymentTab();
         bridgePreference(pendingBump.tier, pendingBump.label, PRICE_LABELS[pendingBump.tier] || '')
           .then(function(pref) {
             btn.textContent = 'Pagar complemento';
-            window.open(pref.initPoint, '_blank', 'noopener');
+            goToPayment(bumpTab, pref.initPoint);
           })
           .catch(function() {
             btn.textContent = 'Pagar complemento';
-            window.open(btn.href, '_blank', 'noopener');
+            closePaymentTab(bumpTab);
+            // En modo bridge el href local es '#lead': no sirve como pago.
+            // El camino honesto es que el cliente nos escriba y lo coordinamos.
+            setInterest('Solicito pagar el complemento: ' + pendingBump.label + ' (' + (PRICE_LABELS[pendingBump.tier] || '') + ')');
+            document.getElementById('lead').scrollIntoView({ behavior: 'smooth' });
           });
         return false;
       }
@@ -2189,7 +2262,18 @@ function showGracias(ctx, pendingBump) {
     cards.appendChild(card);
   });
   var wa = document.getElementById('gracias-wa');
-  var msg = 'Hola! Acabo de pagar: ' + ctx.product + ' (' + ctx.price + ')' + (pendingBump ? ' + complemento: ' + pendingBump.label : '') + '. Nombre: ' + (document.getElementById('checkout-name').value.trim() || '-');
+  var buyerName = (document.getElementById('checkout-name').value.trim() || '');
+  var ref = (ctx && ctx.ref) || '';
+  var msg;
+  if (status === 'failure') {
+    msg = 'Hola! No pude completar el pago de ' + ctx.product + (ctx.price ? ' (' + ctx.price + ')' : '') + '. ¿Me ayudás a resolverlo?';
+  } else if (status === 'pending') {
+    msg = 'Hola! Mi pago de ' + ctx.product + ' quedó en revisión' + (ref ? ' (ref. ' + ref + ')' : '') + '. ¿Me confirmás cuando se aclare?';
+  } else if (status === 'success') {
+    msg = 'Hola! Acabo de pagar' + (ref ? ' (ref. ' + ref + ')' : '') + (buyerName ? '. Nombre: ' + buyerName : '') + '. ¿Me confirmás el acceso?';
+  } else {
+    msg = 'Hola! Acabo de pagar: ' + ctx.product + ' (' + ctx.price + ')' + (pendingBump ? ' + complemento: ' + pendingBump.label : '') + '. Nombre: ' + (buyerName || '-');
+  }
   wa.href = CONTACT.whatsappPhone
     ? 'https://wa.me/' + CONTACT.whatsappPhone + '?text=' + encodeURIComponent(msg)
     : CONTACT.whatsappUrl;
@@ -2197,6 +2281,36 @@ function showGracias(ctx, pendingBump) {
   track('upsell_view', { product: ctx.product, bump_pending: Boolean(pendingBump) });
   sec.scrollIntoView({ behavior: 'smooth' });
 }
+
+// ── Retorno de MercadoPago (?mp=success|pending|failure) ────────────────
+// El bridge arma back_urls con estos tres estados. Este handler es lo que
+// convierte "volví del checkout" en "sé lo que pasó": sin él, el cliente
+// vuelve de MP a la landing y no ve confirmación ni error.
+function handleMpReturn() {
+  var params = new URLSearchParams(window.location.search);
+  var mp = params.get('mp');
+  if (!mp || !MP_STATUS_MSG[mp]) return;
+  var ref = params.get('ref') || '';
+  track('payment_return', { status: mp, ref: ref });
+  if (mp === 'success') clearAbandonedCart();
+  // Limpiar la URL: si no, al recargar se vuelve a disparar el handler.
+  try {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } catch (e) { /* noop */ }
+  var ctx = { product: 'tu compra', price: '', slug: '', tier: '', ref: ref };
+  // La referencia trae el slug del producto (gv_<tier>_<slug>_<ts>_<rand>):
+  // sirve para nombrar la compra en el mensaje de WhatsApp.
+  var parts = ref.split('_');
+  if (parts.length >= 3 && parts[0] === 'gv' && parts[2]) ctx.product = parts[2];
+  if (mp === 'success') {
+    var sub = document.getElementById('gracias-sub');
+    if (sub) {
+      sub.textContent = MP_STATUS_MSG.success + (ref ? ' Referencia: ' + ref + '.' : '');
+    }
+  }
+  showGracias(ctx, null, mp);
+}
+handleMpReturn();
 
 // Progressive catalog navigation lives in catalog.js.
 </script>

@@ -11,7 +11,17 @@ import {
 } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { load as loadYaml } from 'js-yaml';
+import {
+  parseSkillDocument,
+  skillRoots,
+  type SkillEntry,
+} from './skill-registry-builder.js';
+import { ensureSkillRegistry } from './skill-registry-builder.js';
+
+// El parser del registro y las raíces canónicas viven en el builder (que sabe
+// REGENERAR el registro). Se re-exportan acá para no romper los importadores
+// históricos que los piden desde este módulo.
+export { parseSkillDocument, skillRoots };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,13 +30,6 @@ interface SkillEmbedderArgs {
   registryPath: string;
   delegationConfigPath: string;
   outputPath: string;
-}
-
-interface SkillEntry {
-  agent: string;
-  triggers: string[];
-  description?: string;
-  aliases?: string[];
 }
 
 interface SkillTextInfo {
@@ -283,49 +286,6 @@ export function parseSkillRegistry(path: string): Record<string, SkillEntry> {
   return skills;
 }
 
-interface SkillFrontmatter {
-  name?: unknown;
-  description?: unknown;
-  triggers?: unknown;
-  aliases?: unknown;
-  metadata?: { trigger?: unknown };
-}
-
-function stringList(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
-  if (typeof value !== 'string') return [];
-  return value
-    .split(',')
-    .map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
-    .filter(Boolean);
-}
-
-export function parseSkillDocument(content: string, fallbackName: string): {
-  name: string;
-  description: string;
-  triggers: string[];
-  aliases: string[];
-} {
-  const block = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/i)?.[1];
-  if (!block) return { name: fallbackName, description: '', triggers: [], aliases: [] };
-  let metadata: SkillFrontmatter = {};
-  try {
-    metadata = (loadYaml(block) as SkillFrontmatter | null) ?? {};
-  } catch {
-    return { name: fallbackName, description: '', triggers: [], aliases: [] };
-  }
-  const triggers = [
-    ...stringList(metadata.triggers),
-    ...stringList(metadata.metadata?.trigger),
-  ];
-  return {
-    name: typeof metadata.name === 'string' && metadata.name.trim() ? metadata.name.trim() : fallbackName,
-    description: typeof metadata.description === 'string' ? metadata.description.trim() : '',
-    triggers: [...new Set(triggers)],
-    aliases: [...new Set(stringList(metadata.aliases))],
-  };
-}
-
 export function discoverSkills(
   roots: string[],
   agentMappings: Record<string, string>,
@@ -418,15 +378,6 @@ function getSkillAgentMappings(delegationConfigPath: string): Record<string, str
     skillToAgentProfile?: Record<string, string>;
   };
   return config.skillToAgentProfile ?? {};
-}
-
-/** Canonical skill roots, in precedence order (later roots win on name collision). */
-export function skillRoots(projectRoot: string): string[] {
-  return [
-    join(projectRoot, '.opencode', 'skills'),
-    join(projectRoot, '.agents', 'skills'),
-    join(projectRoot, 'skills'),
-  ];
 }
 
 /**
@@ -722,9 +673,18 @@ function main(): void {
 
   console.log('=== Skill Embedding Generator ===');
 
+  // El registro es un artefacto DERIVADO: si falta (alguien limpió .atl/) se
+  // reconstruye desde el catálogo real en vez de abortar. Antes esto abortaba
+  // con "Registry not found" y dejaba el índice semántico sin construir en
+  // silencio (el paso del autostart es lazy y no bloquea).
   if (!existsSync(args.registryPath)) {
-    console.error(`Registry not found: ${args.registryPath}`);
-    process.exit(1);
+    const rebuilt = ensureSkillRegistry({
+      projectRoot: findRepoRoot(__dirname),
+      delegationConfigPath: args.delegationConfigPath,
+      registryPath: args.registryPath,
+      write: true,
+    });
+    console.log(`Registro de skills ausente: reconstruido (${rebuilt.skills} skills) en ${rebuilt.registryPath}`);
   }
 
   console.log(`Building skill catalog from registry, config, and SKILL.md roots...`);

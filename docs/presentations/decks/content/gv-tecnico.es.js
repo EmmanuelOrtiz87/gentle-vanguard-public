@@ -54,8 +54,8 @@ export default {
       labelW: 1.55,
       items: [
         { label: 'src/', body: 'más de 800 archivos TypeScript. Código del stack por área: orquestación, seguridad, retrieval, datos, tools, quality y ops.', accent: '06b6d4' },
-        { label: 'apps/', body: '28 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.', accent: '8b5cf6' },
-        { label: 'skills/', body: '256 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.', accent: 'fbbf24' },
+        { label: 'apps/', body: '29 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.', accent: '8b5cf6' },
+        { label: 'skills/', body: '257 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.', accent: 'fbbf24' },
         { label: 'docs/', body: 'Manual de stack por módulos, manual completo, 38 ADRs y registro de decisiones de diseño.', accent: '22d3ee' },
         { label: 'config/', body: 'Fuente única de configuración: router de modelos, mapeo de roles, quality gates, budgets y registro MCP.', accent: '4ade80' },
         { label: 'packages/', body: 'Workspace con el design system oficial y paquetes compartidos que el código importa.', accent: 'c4b5fd' },
@@ -177,7 +177,7 @@ export default {
       lead: 'El stack corre sus propios controles en cada commit, en cada push y en cada ciclo de salud.',
       cols: 4,
       items: [
-        { value: '47', label: 'Quality gates', sub: '43 de 47 aplicados de forma estricta', accent: '06b6d4' },
+        { value: '53', label: 'Quality gates', sub: '49 de 53 aplicados de forma estricta', accent: '06b6d4' },
         { value: '552+', label: 'Archivos de test', sub: 'Unit, e2e, integración, seguridad y skills', accent: '8b5cf6' },
         { value: '21', label: 'Workflows de CI', sub: 'CI, seguridad, release, sync público y etiqueta automática', accent: 'fbbf24' },
         { value: '80', label: 'Patrones de secreto', sub: 'Con entropía opcional y redacción por defecto', accent: '22d3ee' },

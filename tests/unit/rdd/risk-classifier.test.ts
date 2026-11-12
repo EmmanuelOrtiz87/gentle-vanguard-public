@@ -3,14 +3,34 @@
  * Tests for RDD Risk Classifier - Using tsx for TypeScript execution
  */
 
-import { classifyRisk, explainRisk, RiskClassification } from '../../../src/rdd/risk-classifier.ts';
 import assert from 'assert';
+import { execFileSync } from 'child_process';
+import { mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 console.log('Testing RDD Risk Classifier...\n');
 
+// El clasificador lee el diff REAL del repo en el que corre (su ROOT se
+// captura al IMPORTAR el módulo, o sea del cwd de ese momento). Este test
+// decía "sin cambios" pero clasificaba los cambios STAGEADOS de quien
+// estuviera trabajando en el repo: fallaba en cualquier árbol sucio y pasaba
+// sólo en un árbol limpio. Un test que depende del estado del repo no es un
+// test: es una lotería. Acá se importa y clasifica contra un repo temporal
+// vacío.
+const sandbox = mkdtempSync(join(tmpdir(), 'gv-risk-classifier-'));
+execFileSync('git', ['init', '-q'], { cwd: sandbox });
+const previousCwd = process.cwd();
+process.chdir(sandbox);
+
+const { classifyRisk, explainRisk } =
+  (await import('../../../src/rdd/risk-classifier.ts')) as typeof import('../../../src/rdd/risk-classifier.ts');
+type RiskClassification = import('../../../src/rdd/risk-classifier.ts').RiskClassification;
+
 // Test 1: No changes
 console.log('Test 1: No changes');
-const noChanges = classifyRisk(true); // staged only (empty)
+const noChanges = classifyRisk(true); // staged only (repo vacío)
+process.chdir(previousCwd);
 assert.strictEqual(noChanges.tier, 'low', 'Should be low risk with no changes');
 assert.strictEqual(noChanges.reviewLenses, 0, 'Should require 0 lenses');
 console.log('✓ PASS\n');

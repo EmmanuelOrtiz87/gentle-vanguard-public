@@ -1,8 +1,12 @@
 // Command Center apps registry check (apps-registry component).
-// Vigila las 10 apps del stack a través de CC: presencia en el registro,
+// Vigila las apps NATIVAS del stack a través de CC: presencia en el registro,
 // contratos de ciclo de vida (start.sh/stop.sh) y coherencia de estado
 // (proceso vivo sin pid = proceso adoptado/zombie — ver
 // docs/apps/APPS-INDEPENDENCE-AUDIT-2026-09-12.md).
+//
+// 2026-11-11: la lista de apps sale del registro UNICO
+// (config/apps.registry.json, scope `native`). Las apps de cliente
+// (scope `client`) las vigila el Sandbox, no este check.
 
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -10,41 +14,54 @@ import { runNpxTsxSync } from '../run-command';
 import { RUNTIME_DIR, ROOT, addResult, quiet } from './context';
 import { fileExists, readJson } from './helpers';
 import { log } from '../../utils/logger.js';
+import { nativeApps, type AppRegistryEntry } from '../../ops/app-registry.js';
 
 const logger = log('CORE-WATCHTOWER-CHECKS-APPS');
 
-/** Registro canónico de apps (fuente: APPS_REGISTRY de apps/command-center/server.ts). */
-const EXPECTED_APPS: Array<{ id: string; uiPort: number }> = [
-  { id: 'dashboard', uiPort: 5173 },
-  { id: 'analytics', uiPort: 5174 },
-  { id: 'cms', uiPort: 5175 },
-  { id: 'academy', uiPort: 4173 },
-  { id: 'prompts', uiPort: 5176 },
-  { id: 'archify', uiPort: 5181 },
-  { id: 'design-hub', uiPort: 8095 },
-  { id: 'academy-crm', uiPort: 4791 },
-  { id: 'academy-landing', uiPort: 4174 },
-  { id: 'academy-portal', uiPort: 4793 },
-  { id: 'gv-music', uiPort: 1420 },
-];
+/**
+ * Apps que el Command Center debe exponer: las NATIVAS del stack.
+ *
+ * 2026-11-11: la lista sale del registro UNICO (config/apps.registry.json)
+ * en vez de una copia a mano. Las apps de cliente (scope `client`) las
+ * vigila el Sandbox: este check ya no las mira.
+ */
+export interface ExpectedApp {
+  id: string;
+  /** Carpeta de la app, relativa a la raiz del repo. */
+  dir: string;
+  /** Puerto de UI (del `url` del registro; fallback `ports[0]`). */
+  uiPort: number | null;
+}
 
-/** Directorio de la app para ids cuyo directorio no coincide con el id de CC. */
-function appDir(id: string): string {
-  const dir =
-    id === 'dashboard'
-      ? 'web-dashboard'
-      : id === 'gv-music'
-        ? 'gv-music'
-      : id === 'academy'
-        ? 'academy-web'
-        : id === 'prompts'
-          ? 'prompt-studio'
-          : id === 'cms'
-            ? 'content-cms'
-            : id === 'analytics'
-              ? 'gv-analytics'
-              : id;
-  return join(ROOT, 'apps', dir);
+/**
+ * Puerto de UI de una app: el del `url` del registro (la UI es lo que el
+ * operador abre) y, si no hay url, el primer puerto declarado.
+ *
+ * OJO (dashboard): su puerto de websocket es DINAMICO (8080 por defecto,
+ * .runtime/dashboard-ports.json). Por eso el puerto de UI sale del `url` y
+ * nunca de una lista de puertos fija.
+ */
+export function uiPortOf(entry: AppRegistryEntry): number | null {
+  const fromUrl = entry.url?.match(/:(\d{2,5})(?:[/]|$)/);
+  if (fromUrl) return Number(fromUrl[1]);
+  return entry.ports?.[0] ?? null;
+}
+
+/**
+ * Lista de apps esperada, DERIVADA del registro unico (no copiada a mano).
+ * `root` es la raiz del stack: la que contiene `config/apps.registry.json`.
+ */
+export function deriveExpectedApps(root: string): ExpectedApp[] {
+  return nativeApps(root).map((entry) => ({
+    id: entry.id,
+    dir: entry.dir,
+    uiPort: uiPortOf(entry),
+  }));
+}
+
+/** Directorio de la app (del registro: ids y carpetas ya no se duplican). */
+function appDir(dir: string): string {
+  return join(ROOT, dir);
 }
 
 interface CcApp {
@@ -134,7 +151,24 @@ export async function checkAppsRegistry() {
   );
 
   const byId = new Map(apps.map((a) => [a.id, a]));
-  for (const expected of EXPECTED_APPS) {
+
+  // La lista esperada sale del registro unico (scope native). Si el registro
+  // no se puede leer, el check no puede afirmar nada: se reporta el defecto.
+  let expectedApps: ExpectedApp[];
+  try {
+    expectedApps = deriveExpectedApps(ROOT);
+  } catch (err) {
+    addResult(
+      'apps-registry',
+      'registro de apps',
+      'FAIL',
+      `no se pudo leer config/apps.registry.json: ${(err as Error).message}`,
+      'verify',
+    );
+    return;
+  }
+
+  for (const expected of expectedApps) {
     const app = byId.get(expected.id);
     if (!app) {
       addResult(
@@ -149,7 +183,7 @@ export async function checkAppsRegistry() {
     addResult('apps-registry', `registro: ${expected.id}`, 'PASS', `status=${app.status}`, 'ok');
 
     // Contrato de ciclo de vida: start.sh + stop.sh en el directorio de la app.
-    const dir = appDir(expected.id);
+    const dir = appDir(expected.dir);
     for (const script of ['start.sh', 'stop.sh']) {
       if (existsSync(join(dir, script))) {
         addResult('apps-registry', `${expected.id}:${script}`, 'PASS', 'presente', 'ok');
@@ -227,7 +261,9 @@ export async function checkAppsAudit() {
     return;
   }
 
-  let parsed: { audits: Array<{ app: string; status: string; checks: Array<{ kind: string; status: string }> }> };
+  let parsed: {
+    audits: Array<{ app: string; status: string; checks: Array<{ kind: string; status: string }> }>;
+  };
   try {
     parsed = JSON.parse(stdout);
   } catch {
@@ -295,12 +331,6 @@ export async function checkAppsAudit() {
       'ok',
     );
   } else {
-    addResult(
-      'apps-audit',
-      'resumen',
-      'PASS',
-      `${apps.length} apps con scripts auditables`,
-      'ok',
-    );
+    addResult('apps-audit', 'resumen', 'PASS', `${apps.length} apps con scripts auditables`, 'ok');
   }
 }

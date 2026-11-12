@@ -106,9 +106,9 @@ export default {
         'GentleVanguard es un estudio con un stack propio. Esa plataforma es la que sostiene los tiempos, la calidad y la trazabilidad de cada proyecto.',
       cols: 4,
       items: [
-        { value: '28', label: 'Apps propias', sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento', accent: '06b6d4' },
+        { value: '29', label: 'Apps propias', sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento', accent: '06b6d4' },
         { value: '20', label: 'Agentes de IA', sub: 'Roles con modelo, permisos y presupuesto asignados', accent: '8b5cf6' },
-        { value: '256', label: 'Skills', sub: 'Capacidades reutilizables que no se reescriben por proyecto', accent: 'fbbf24' },
+        { value: '257', label: 'Skills', sub: 'Capacidades reutilizables que no se reescriben por proyecto', accent: 'fbbf24' },
         { value: '35', label: 'Componentes vigilados', sub: 'Health checks por componente, con autoheal', accent: '22d3ee' },
       ],
     },
@@ -122,7 +122,7 @@ export default {
       items: [
         { icon: 'layers', heading: 'Capas', body: 'Superficies, orquestación, agentes, skills, conocimiento, herramientas e infraestructura.' },
         { icon: 'eye', heading: 'Trazabilidad', body: 'Sesiones, trazas, eventos y auditoría con cadena de hash en la base local.' },
-        { icon: 'shield', heading: 'Gobernanza', body: '47 quality gates, escaneo de secretos y políticas fail-closed.' },
+        { icon: 'shield', heading: 'Gobernanza', body: '53 quality gates, escaneo de secretos y políticas fail-closed.' },
         { icon: 'cloud', heading: 'Local primero', body: 'Funciona en la máquina del equipo y se expone en la nube cuando hace falta.' },
       ],
       layers: [
@@ -219,7 +219,7 @@ export default {
     {
       layout: 'figure',
       eyebrow: 'Prueba de trabajo',
-      title: 'Esto ya está corriendo: 28 desarrollos propios',
+      title: 'Esto ya está corriendo: 29 desarrollos propios',
       lead: 'No son productos en catálogo ni casos de clientes. Son sistemas que construimos y que hoy funcionan.',
       textW: 3.5,
       image: 'stack-dashboard.png',

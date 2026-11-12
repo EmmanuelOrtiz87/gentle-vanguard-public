@@ -30,6 +30,8 @@ export class Calculator {
 }
 `,
   );
+  writeFileSync(join(fixtureRoot, 'src', 'sample.mjs'), 'export function sample() { return 1; }');
+  writeFileSync(join(fixtureRoot, 'src', 'run.js'), "import { sample } from './sample.mjs'; export function run() { return sample(); }");
 });
 
 after(() => {
@@ -76,6 +78,12 @@ describe('graphify native builder', () => {
     const result = buildGraph({ root: fixtureRoot, roots: ['src'], quiet: true });
     assert.ok(result.nodes.every((n) => n.community >= 0));
     assert.ok(result.communities >= 1);
+  });
+
+  it('indexes JavaScript modules and resolves imports with an explicit .mjs suffix', () => {
+    const result = buildGraph({ root: fixtureRoot, roots: ['src'], quiet: true });
+    assert.ok(result.edges.some((edge) =>
+      edge.type === 'calls' && edge.source === 'src_run_js_run' && edge.target === 'src_sample_mjs_sample'));
   });
 
   it('writeGraph dedupes parallel edges and writes graph.json + report', () => {

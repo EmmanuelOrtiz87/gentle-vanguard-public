@@ -37,7 +37,7 @@ const POLICY_FILE = join(ROOT, 'config', 'apps-keepalive.json');
  */
 const CLOSING_MARKER = join(ROOT, '.session', '.closing');
 
-export type KeepalivePolicyValue = 'always' | 'on-demand';
+type KeepalivePolicyValue = 'always' | 'on-demand';
 
 export interface KeepalivePolicy {
   default: KeepalivePolicyValue;

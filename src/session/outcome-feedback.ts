@@ -178,3 +178,30 @@ export function captureOutcomeFeedback(
     reason: `status=${session.status ?? 'null'} errorTraces=${errorTraceCount} tokens=${tokensUsed} failedPhases=${opts.failedPhaseCount ?? 0}`,
   };
 }
+
+/**
+ * Marks a closed session terminal in Nexus `sessions.status`. Before this, normal
+ * closes left the session 'idle' forever, so continuous-eval (which labels positives
+ * via 'completed' and negatives via 'failed') starved its golden dataset.
+ * Honest mapping: failed close phases or negative outcome → 'failed'; otherwise
+ * 'completed'. Idempotent (skips already-terminal). Returns rows changed.
+ */
+export function markSessionTerminal(
+  db: Database,
+  sessionId: string,
+  opts: {
+    failedPhaseCount?: number;
+    outcomeType?: OutcomeFeedbackType | null;
+    tenantId?: string;
+  } = {},
+): number {
+  const terminalStatus =
+    (opts.failedPhaseCount ?? 0) > 0 || opts.outcomeType === 'down' ? 'failed' : 'completed';
+  const info = db
+    .prepare(
+      `UPDATE sessions SET status = ?, updated_at = datetime('now')
+       WHERE id = ? AND tenant_id = ? AND status NOT IN ('completed','failed')`,
+    )
+    .run(terminalStatus, sessionId, opts.tenantId ?? 'gentle-vanguard');
+  return info.changes;
+}

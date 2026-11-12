@@ -68,14 +68,11 @@ function registerScheduledTask(
     // bateria (medido: ACLine=0 con GD03059XL) TODAS las tareas quedaban en
     // cola sin ejecutarse jamas, en silencio. Permitir arranque en bateria es
     // lo correcto para los daemons del stack (token guard, backups, sync).
-    runCmd(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-Command',
-        `Set-ScheduledTask -TaskName '${taskName}' -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew)`,
-      ],
-    );
+    runCmd('powershell.exe', [
+      '-NoProfile',
+      '-Command',
+      `Set-ScheduledTask -TaskName '${taskName}' -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew)`,
+    ]);
     return 'ok';
   }
 
@@ -522,6 +519,29 @@ function main(): void {
       }
     } else {
       writeInfo(`Task script not found at ${miTaskScript}. Skipping.`);
+    }
+
+    writeStep('Step 4b9: Scheduled Task - Runtime Retention Check (daily)...');
+    const rrTaskName = 'Gentle-Vanguard-Runtime-Retention';
+    const rrTaskScript = join(root, 'src', 'ops', 'runtime-retention-notify.ts');
+    if (existsSync(rrTaskScript)) {
+      // Diario: audita .runtime y AVISA al owner sólo cuando el conjunto de
+      // escalaciones cambia (nuevo, resuelto o distinto). Con autoApply=false
+      // en config/runtime-retention.json NO borra nada: simula y avisa.
+      const rrResult = registerScheduledTask(rrTaskName, rrTaskScript, root, 24);
+      if (rrResult === 'ok') {
+        writeSuccess(
+          `Scheduled task '${rrTaskName}' registered hidden via wscript wrapper (daily .runtime retention audit + notify).`,
+        );
+      } else if (rrResult === 'fallback') {
+        writeSuccess(
+          `Scheduled task '${rrTaskName}' registered via node.exe direct (wscript blocked — console flash possible; daily .runtime retention audit + notify).`,
+        );
+      } else {
+        writeInfo('Could not create runtime retention scheduled task (requires admin).');
+      }
+    } else {
+      writeInfo(`Task script not found at ${rrTaskScript}. Skipping.`);
     }
   } else {
     writeInfo('Scheduled tasks not supported on this platform. Hooks handle sync.');

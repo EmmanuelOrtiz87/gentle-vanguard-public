@@ -2,6 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assessBinding, assessModelProbe, surfaceQualification } from '../../src/integrations/client-qualification.js';
 
+test('model qualification records a subprocess timeout distinctly', () => {
+  const result = assessModelProbe(null, '', '', 'ETIMEDOUT');
+  assert.equal(result.qualified, false);
+  assert.equal(result.reason, 'OpenCode fixture timed out');
+});
+
 test('installation PASS does not certify runtime task execution', () => {
   assert.equal(surfaceQualification('PASS').level, 'declared');
   assert.equal(surfaceQualification('PASS').qualified, false);

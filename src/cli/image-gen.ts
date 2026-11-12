@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname, extname, join } from 'path';
 import { tmpdir } from 'os';
-import { spawnSync } from 'child_process';
+import { runSyncShell } from '../core/run-command.js';
 
 interface GenArgs {
   prompt: string;
@@ -285,11 +285,7 @@ async function callReplicate(prompt: string, model: 'stability' | 'flux'): Promi
  */
 function mcodeToolsAvailable(): boolean {
   try {
-    const probe = spawnSync('mcode-tools --help', {
-      encoding: 'utf8',
-      shell: true,
-      timeout: 20000,
-    });
+    const probe = runSyncShell('mcode-tools --help', { timeout: 20000 });
     return probe.status === 0;
   } catch {
     return false;
@@ -325,9 +321,9 @@ async function callConnector(
   writeFileSync(argsFile, JSON.stringify(payload), 'utf8');
 
   try {
-    const call = spawnSync(
+    const call = runSyncShell(
       `mcode-tools connector call connector__matrix__generate_image --args-file ${shellQuote(argsFile)}`,
-      { encoding: 'utf8', shell: true, timeout: 600000 },
+      { timeout: 600000 },
     );
     if (call.status !== 0) {
       console.error(`[IMAGE-GEN] connector fallo: ${(call.stderr || call.stdout || '').trim()}`);
@@ -346,9 +342,7 @@ async function callConnector(
       return null;
     }
 
-    const urlCall = spawnSync(`mcode-tools get_asset_url ${item.node_id}`, {
-      encoding: 'utf8',
-      shell: true,
+    const urlCall = runSyncShell(`mcode-tools get_asset_url ${item.node_id}`, {
       timeout: 120000,
     });
     if (urlCall.status !== 0) {

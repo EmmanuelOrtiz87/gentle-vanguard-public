@@ -26,6 +26,16 @@ export interface ShortRequest {
    * Mutuamente excluyente con `voice` (uno u otro).
    */
   voiceSampleId?: string;
+  /**
+   * Voz preset de Voicebox (sidecar MIT opcional, jamiepine/voicebox en :17493).
+   * Ej: 'af_bella' (Kokoro). Si está set, el job genera TTS vía Voicebox en vez
+   * de Edge. Mutuamente excluyente con `voice`/`voiceSampleId`.
+   */
+  voiceboxVoice?: string;
+  /** Engine de Voicebox cuando `voiceboxVoice` está set (kokoro, chatterbox, qwen...). */
+  voiceboxEngine?: string;
+  /** Instrucciones de delivery en lenguaje natural (solo engines con soporte, ej. Qwen3-TTS). */
+  ttsInstructions?: string;
   /** Bed musical opcional */
   bgm?: BgmSpec | null;
   /** Branding overlay (tokens del design system) */

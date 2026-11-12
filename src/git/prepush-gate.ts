@@ -28,10 +28,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { run } from '../core/run-command';
+import { inspectAppScope } from './prepush-app-scope.js';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const CACHE_FILE = join(ROOT, '.runtime', 'prepush-cache.json');
-const GATE_VERSION = 4; // bump when check definitions change
+const GATE_VERSION = 8; // bump when check definitions change
 
 // ─── Check definitions (mirrors .lefthook.yml pre-push) ─────────────────────
 
@@ -43,7 +44,35 @@ interface GateCheck {
   description: string;
 }
 
+/**
+ * Base del escaneo de secretos: lo último que el remoto tiene de esta rama.
+ * Si la rama no existe en el remoto (rama nueva) se usa HEAD~1: se escanea el
+ * último commit, que es lo único que se puede saber.
+ */
+function resolveSecretScanBase(): string {
+  const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
+  const remote = branch && !branch.startsWith('HEAD') ? `origin/${branch}` : '';
+  if (remote && runGit(['rev-parse', '--verify', '--quiet', remote])) return remote;
+  return 'HEAD~1';
+}
+
 const CHECKS: GateCheck[] = [
+  {
+    name: 'secret-scan',
+    command: 'node',
+    args: [
+      '--import',
+      'tsx',
+      'src/security/secret-scan-gate.ts',
+      '--base',
+      resolveSecretScanBase(),
+      '--head',
+      'HEAD',
+    ],
+    timeoutMs: 120_000,
+    description:
+      'Escaneo de secretos en las lineas AÑADIDAS del push (espejo local cableado del gate de seguridad del CI: con Actions caido por billing, el escaneo bloqueante no corria en ningun lado)',
+  },
   {
     name: 'models-alignment',
     command: 'node',
@@ -180,6 +209,21 @@ const CHECKS: GateCheck[] = [
       'Canon visual: shell + marca byte-identica + paleta + fuentes (NORM-DESIGN-SYSTEM rev2)',
   },
   {
+    name: 'dashboard-lint',
+    command: 'npm',
+    args: ['run', 'dashboard:lint'],
+    timeoutMs: 180_000,
+    description:
+      'Espejo local de dashboard-ci-lint (Actions caida por billing: el check sigue corriendo)',
+  },
+  {
+    name: 'dashboard-build',
+    command: 'npm',
+    args: ['run', 'dashboard:build'],
+    timeoutMs: 300_000,
+    description: 'Espejo local de dashboard-ci-build: tsc + vite build (Actions caida por billing)',
+  },
+  {
     name: 'perf-baseline',
     command: 'npm',
     args: ['run', 'perf:baseline:check'],
@@ -231,6 +275,13 @@ const CHECKS: GateCheck[] = [
     description: 'Container/artifact vuln scan (self-skips if toolchain absent)',
   },
   {
+    name: 'e2e-real-smoke',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/git/run-e2e-smoke.ts'],
+    timeoutMs: 900_000,
+    description: 'Smoke E2E real de las apps cambiadas en el push (NORM-E2E-001)',
+  },
+  {
     name: 'content-validate',
     command: 'npm',
     args: ['run', 'content:validate'],
@@ -243,6 +294,54 @@ const CHECKS: GateCheck[] = [
     args: ['run', 'ci:static-gates'],
     timeoutMs: 120_000,
     description: 'CI static gates locally',
+  },
+  {
+    name: 'declaration-audit',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/declaration-audit.ts'],
+    timeoutMs: 120_000,
+    description:
+      'Declaraciones: toda ruta derivada leida por el codigo esta declarada, todo gate del catalogo tiene ejecutor real y todo control tiene test de contrato',
+  },
+  {
+    name: 'unit-suite',
+    command: 'npm',
+    args: ['run', 'test:unit:parallel'],
+    timeoutMs: 600_000,
+    description:
+      'Suite unitaria completa en local (33 s, 226 archivos). El CI esta caido por billing de la cuenta: sin este espejo local, un test rojo queda invisible semanas (pasó con el delegador entre el 2026-11-06 y el 2026-11-11)',
+  },
+  {
+    name: 'universal-quality',
+    command: 'npm',
+    args: ['run', 'quality:universal'],
+    timeoutMs: 180_000,
+    description:
+      'Calidad universal (6 s). Espejo local del job universal-quality del CI: con Actions caido, este check no se ejecutaba en absoluto',
+  },
+  {
+    name: 'runtime-retention',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/ops/runtime-retention-notify.ts'],
+    timeoutMs: 300_000,
+    description:
+      'Retencion de .runtime (3 s, 3,9 GB / 53k archivos). Audita, ESCALA lo que no entra en la politica (la decision es del owner, no del gate) y AVISA al owner por MCAS solo cuando el conjunto de escalaciones cambia',
+  },
+  {
+    name: 'app-registry',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/ops/app-registry.ts'],
+    timeoutMs: 60_000,
+    description:
+      'Registro unico de apps: ids unicos, sin puertos repetidos, carpetas y scripts start/stop reales, y los dos centros de comando (Command Center = nativas, Sandbox = clientes) sin pisarse',
+  },
+  {
+    name: 'start-command-audit',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/start-command-audit.ts'],
+    timeoutMs: 120_000,
+    description:
+      'Todo comando de arranque apunta a un archivo real (el start.sh de sandbox-gv llamaba a un modulo inexistente y nadie lo noto)',
   },
 ];
 
@@ -374,7 +473,24 @@ function runOne(check: GateCheck, args = check.args): Promise<CheckResult> {
       stderr += d.toString();
     });
     const finish = (status: CheckResult['status']) => {
-      const tail = (stdout + stderr).split('\n').filter(Boolean).slice(-6).join('\n');
+      const output = stdout + stderr;
+      const tail = output.split('\n').filter(Boolean).slice(-6).join('\n');
+      // Un check que falla deja su output COMPLETO en disco: el tail de 6
+      // líneas no diagnosticó el flake de universal-quality (2026-11-12) y
+      // obligó a re-correr el gate entero a ciegas tres veces.
+      if (status !== 'pass') {
+        try {
+          const dir = join(ROOT, '.runtime', 'prepush-failures');
+          mkdirSync(dir, { recursive: true });
+          const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+          writeFileSync(
+            join(dir, `${check.name}-${stamp}.log`),
+            `[command] ${check.command} ${check.args.join(' ')}\n[exit] ${status}\n\n${output}`,
+          );
+        } catch {
+          /* best-effort: el diagnostico no puede romper el gate */
+        }
+      }
       resolvePromise({ name: check.name, status, durationMs: Date.now() - start, tail });
     };
     child.on('error', (err) => {
@@ -441,6 +557,13 @@ async function main(): Promise<void> {
   }
 
   const start = Date.now();
+  const appScope = inspectAppScope();
+  if (!json) {
+    const selected = appScope.mode === 'apps' ? appScope.apps.join(', ') : appScope.mode;
+    console.log(
+      `[pre-push] Alcance informativo (${appScope.source}): ${selected}. ${appScope.reason}.`,
+    );
+  }
   const treeHash = computeTreeHash();
 
   // --skip-apps implies --force for cache purposes (skip partial-result cache hits).
@@ -452,7 +575,13 @@ async function main(): Promise<void> {
       const elapsed = ((Date.now() - start) / 1000).toFixed(2);
       if (json) {
         console.log(
-          JSON.stringify({ warmCache: true, treeHash, elapsedSec: elapsed, checks: hit.checks }),
+          JSON.stringify({
+            warmCache: true,
+            treeHash,
+            elapsedSec: elapsed,
+            checks: hit.checks,
+            appScope,
+          }),
         );
       } else {
         console.log(
@@ -497,6 +626,7 @@ async function main(): Promise<void> {
         treeHash,
         totalMs,
         allPass,
+        appScope,
         skipped: skipApps ? ['stack-audit-apps'] : [],
         results,
         fence,

@@ -2,11 +2,11 @@
 // Model Provider Health, Audit Pipeline, Governance.
 // Extracted verbatim from src/core/maintenance-watchtower.ts — no logic changes.
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
+import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createRequire } from 'module';
 import type Database from 'better-sqlite3';
-import { runSync } from '../run-command';
+import { runSync, runNpxTsxSync } from '../run-command';
 import { getEffectiveProcessTimeout } from '../timeout-config';
 import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR, CheckResult } from './context';
 import { fileExists, getFileAgeHours } from './helpers';
@@ -23,6 +23,56 @@ const logger = log('CORE-WATCHTOWER-CHECKS-DATA');
 const _require = createRequire(import.meta.url);
 import { log } from '../../utils/logger.js';
 
+// ─── Trace → session correlation helper ─────────────────────────────────────
+
+export interface TraceSessionCorrelation {
+  /** False when Nexus is missing/locked: the corpus could not be measured. */
+  available: boolean;
+  /** Traces started inside the window. */
+  recent: number;
+  /** Traces inside the window written without a session id. */
+  missing: number;
+}
+
+/**
+ * Measures how many traces in the recent window carry no `session_id`.
+ *
+ * Nexus is opened read-only and closed in `finally`; a locked/missing database
+ * is reported as `available: false` so the caller emits SKIP instead of a
+ * false alarm. Never throws.
+ */
+export function readTraceSessionCorrelation(
+  repoRoot: string,
+  windowHours = 24,
+): TraceSessionCorrelation {
+  const dbPath = join(repoRoot, '.runtime', 'gentle-vanguard.db');
+  if (!fileExists(dbPath)) return { available: false, recent: 0, missing: 0 };
+  let db: Database.Database | undefined;
+  try {
+    const DatabaseConstructor = _require('better-sqlite3') as typeof Database;
+    db = new DatabaseConstructor(dbPath, { readonly: true });
+    db.pragma('busy_timeout = 1500');
+    const since = Date.now() - windowHours * 60 * 60 * 1000;
+    const row = db
+      .prepare(
+        `SELECT COUNT(*) AS total,
+                SUM(CASE WHEN session_id IS NULL OR session_id = '' THEN 1 ELSE 0 END) AS missing
+           FROM traces
+          WHERE start_time > ?`,
+      )
+      .get(since) as { total: number | null; missing: number | null } | undefined;
+    return {
+      available: true,
+      recent: row?.total ?? 0,
+      missing: row?.missing ?? 0,
+    };
+  } catch {
+    return { available: false, recent: 0, missing: 0 };
+  } finally {
+    db?.close();
+  }
+}
+
 // ─── Component: Tracing ──────────────────────────────────────────────────────
 
 export async function checkTracing() {
@@ -37,6 +87,39 @@ export async function checkTracing() {
     addResult('tracing', 'trace files', 'PASS', `${traceFiles} trace file(s)`, 'ok');
   } else {
     addResult('tracing', 'trace files', 'WARN', 'No traces directory', 'ok');
+  }
+
+  // Trace → session correlation (BL-MW2SD1LY-BUU1). The write path
+  // (TraceRepo.insertTrace + trace-session-resolver) resolves the id, so a
+  // NULL in the recent window is a regression. Pre-fix history is expected to
+  // contain NULLs and is deliberately outside the window.
+  const correlation = readTraceSessionCorrelation(ROOT, 24);
+  if (!correlation.available) {
+    addResult(
+      'tracing',
+      'session correlation',
+      'SKIP',
+      'Nexus no disponible o bloqueada (no se puede medir)',
+      'ok',
+    );
+  } else if (correlation.recent === 0) {
+    addResult('tracing', 'session correlation', 'SKIP', 'sin trazas en las últimas 24 h', 'ok');
+  } else if (correlation.missing === 0) {
+    addResult(
+      'tracing',
+      'session correlation',
+      'PASS',
+      `${correlation.recent} traza(s) en 24 h con session_id resuelto`,
+      'ok',
+    );
+  } else {
+    addResult(
+      'tracing',
+      'session correlation',
+      'WARN',
+      `${correlation.missing}/${correlation.recent} traza(s) en 24 h sin session_id`,
+      'manual',
+    );
   }
 
   if (fileExists(metricsDir)) {
@@ -566,6 +649,77 @@ export function readActiveModelInference(activeModel: string): {
   return { verdict: evaluateInferenceEntry(entry, file?.ttlSeconds), entry };
 }
 
+// ─── Refresco perezoso de la evidencia de inferencia ─────────────────────────
+//
+// La evidencia del probe tiene TTL 15 min, pero el probe completo (13 targets)
+// corre en el autostart y en su tarea programada. Entre corridas la evidencia
+// vence y el chequeo reportaba WARN "sin probe fresco" para un modelo que
+// responde — un WARN permanente que no describia ningun problema.
+//
+// La cura: si el veredicto es UNKNOWN (ni PASS ni FAIL), sondear SOLO el modelo
+// activo con `--model <id> --no-db`, con cooldown persistido para no martillar
+// en cada ciclo del watchtower. La escritura de evidencia fusiona con la previa
+// (writeEvidence en el probe), asi que no se pierde lo de los demas targets.
+
+const PROBE_ATTEMPT_FILE = join(RUNTIME_DIR, 'model-probe-attempt.json');
+const PROBE_ATTEMPT_COOLDOWN_MS = 10 * 60_000;
+const PROBE_TIMEOUT_MS = 180_000;
+
+function probeAttemptRecent(model: string): boolean {
+  try {
+    if (!fileExists(PROBE_ATTEMPT_FILE)) return false;
+    const raw = JSON.parse(readFileSync(PROBE_ATTEMPT_FILE, 'utf-8')) as {
+      at?: string;
+      model?: string;
+    };
+    if (raw.model !== model) return false;
+    const at = Date.parse(raw.at ?? '');
+    return Number.isFinite(at) && Date.now() - at < PROBE_ATTEMPT_COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function recordProbeAttempt(model: string): void {
+  try {
+    writeFileSync(
+      PROBE_ATTEMPT_FILE,
+      `${JSON.stringify({ at: new Date().toISOString(), model }, null, 2)}\n`,
+      'utf-8',
+    );
+  } catch {
+    /* non-fatal: el cooldown es una optimizacion, no una fuente de verdad */
+  }
+}
+
+/**
+ * Veredicto del modelo activo, re-sondeando solo si la evidencia vencio.
+ * Devuelve `refreshed: true` cuando ejecuto el probe en esta llamada.
+ * Nunca lanza: si el probe falla, se devuelve lo que habia.
+ */
+export function ensureActiveModelInference(activeModel: string): {
+  verdict: InferenceVerdict;
+  entry?: InferenceEvidenceEntry;
+  refreshed: boolean;
+} {
+  const current = readActiveModelInference(activeModel);
+  if (current.verdict !== 'UNKNOWN') return { ...current, refreshed: false };
+  if (!activeModel || activeModel === 'unknown') return { ...current, refreshed: false };
+  if (probeAttemptRecent(activeModel)) return { ...current, refreshed: false };
+
+  recordProbeAttempt(activeModel);
+  try {
+    runNpxTsxSync('src/tools/model-inference-probe.ts', ['--model', activeModel, '--no-db'], {
+      cwd: ROOT,
+      stdio: 'pipe',
+      timeout: PROBE_TIMEOUT_MS,
+    });
+  } catch {
+    /* el probe es best-effort: se reporta lo que diga la evidencia */
+  }
+  return { ...readActiveModelInference(activeModel), refreshed: true };
+}
+
 export async function checkModelHealth() {
   if (!quiet) logger.info('  [model-provider-health] Checking...');
 
@@ -597,7 +751,7 @@ export async function checkModelHealth() {
 
   if (!fileExists(statePath)) {
     addResult('model-provider-health', 'state', 'PASS', `No unhealthy models tracked`, 'ok');
-    const inference = readActiveModelInference(activeModel);
+    const inference = ensureActiveModelInference(activeModel);
     const resolved = resolveActiveModelStatus(activeModel, 'WARN', inference);
     addResult(
       'model-provider-health',
@@ -669,7 +823,7 @@ export async function checkModelHealth() {
       : evaluateProviderEvidenceStatus(activeModel, activeModel, {
           lastSuccessAt: latestSuccess(activeModel),
         });
-    const inference = readActiveModelInference(activeModel);
+    const inference = ensureActiveModelInference(activeModel);
     const resolved = resolveActiveModelStatus(
       activeModel,
       providerStatus,

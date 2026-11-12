@@ -171,14 +171,25 @@ export function parseOpenCodeRuntimeMajor(version: string): 'v1' | 'v2' | 'unsup
   return 'unsupported';
 }
 
-function detectOpenCodeRuntime(command: string | null): { variant: string; supported: boolean } {
-  if (!command) return { variant: 'missing', supported: false };
-  const result = runSync(command, ['--version'], { timeout: 3000, maxBuffer: 4096 });
+function detectOpenCodeRuntime(command: string | null): { variant: string; problem?: string } {
+  if (!command) return { variant: 'missing', problem: 'CLI no encontrada' };
+  const timeoutMs = 10_000;
+  const result = runSync(command, ['--version'], { timeout: timeoutMs, maxBuffer: 4096 });
+  if ((result.error as NodeJS.ErrnoException | null)?.code === 'ETIMEDOUT') {
+    return { variant: 'unsupported', problem: `--version excedió ${timeoutMs} ms` };
+  }
   if (result.status !== 0 || result.stdout.length > 4096 || result.stderr.length > 4096) {
-    return { variant: 'unsupported', supported: false };
+    return {
+      variant: 'unsupported',
+      problem: 'no se pudo ejecutar --version con una salida válida',
+    };
   }
   const major = parseOpenCodeRuntimeMajor(result.stdout);
-  return { variant: major, supported: major === 'v1' };
+  if (major === 'v2')
+    return { variant: major, problem: 'OpenCode V2 requiere calificación nativa' };
+  if (major === 'unsupported')
+    return { variant: major, problem: 'versión de OpenCode no compatible' };
+  return { variant: major };
 }
 
 function countFiles(dir: string, fileName: string): number {
@@ -334,6 +345,14 @@ export function auditTools(
   ]);
   const openCodeSkills = countFiles(join(root, '.opencode', 'skills'), 'SKILL.md');
   const openCodeAssetsFresh = criticalSkillsFresh(root, join(root, '.opencode', 'skills'));
+  const openCodeProblems = [
+    !openCodeProfile && 'perfil ausente',
+    !openCodeRuntime && 'directorio .opencode ausente',
+    openCodeRuntimeVersion.problem,
+    !(openCodePlugin && openCodeMcp) && 'plugin o MCP de Engram ausente',
+    !nativeSkillSurfaceReady(openCodeSkills, expectedSkills, openCodeAssetsFresh) &&
+      `skills nativas ${openCodeSkills}/${expectedSkills} incompletas o desactualizadas`,
+  ].filter(Boolean);
 
   const codexTomlCandidates = [
     join(home, '.codex', 'config.toml'),
@@ -371,16 +390,7 @@ export function auditTools(
   return [
     {
       tool: 'OpenCode',
-      status:
-        openCodeProfile &&
-        openCodeRuntime &&
-        openCodeLauncher &&
-        openCodeRuntimeVersion.supported &&
-        openCodePlugin &&
-        openCodeMcp &&
-        nativeSkillSurfaceReady(openCodeSkills, expectedSkills, openCodeAssetsFresh)
-          ? 'PASS'
-          : 'WARN',
+      status: openCodeProblems.length === 0 ? 'PASS' : 'WARN',
       profile: openCodeProfile,
       runtime: openCodeRuntime,
       launcher: openCodeLauncher,
@@ -392,9 +402,8 @@ export function auditTools(
       assets: openCodeAssetsFresh ? 'fresh' : 'stale',
       runtimeVariant: openCodeRuntimeVersion.variant,
       detail:
-        openCodeRuntimeVersion.variant === 'v2'
-          ? 'OpenCode V2 detectado; MCP/config nativos requieren calificación y review transport no se anuncia'
-          : `CLI real V1, plugin oficial Engram v2 y MCP global; skills nativas ${openCodeSkills}/${expectedSkills}${openCodeAssetsFresh ? ' frescas' : ' ausentes o desactualizadas'}`,
+        openCodeProblems.join('; ') ||
+        `CLI real V1, plugin oficial Engram v2 y MCP global; skills nativas ${openCodeSkills}/${expectedSkills} frescas`,
     },
     {
       tool: 'Codex',
@@ -534,7 +543,7 @@ export function evaluateToolAudit(rows: ToolAudit[]): { passed: boolean; detail:
 
   const nonPassing = EXPECTED_TOOL_SURFACES.map((tool) => byTool.get(tool)!)
     .filter((row) => row.status !== 'PASS')
-    .map((row) => `${row.tool}=${row.status}`);
+    .map((row) => `${row.tool}=${row.status} (${row.detail})`);
   if (nonPassing.length > 0) {
     return { passed: false, detail: `non-PASS tools: ${nonPassing.join(', ')}` };
   }
@@ -571,7 +580,12 @@ function main(): void {
   const generatedAt = new Date().toISOString();
   console.log(
     JSON.stringify(
-      { generatedAt, scope: 'configuration surfaces only; not host model/tool execution', expectedCriticalSkills: CRITICAL_SKILLS.length, tools: rows },
+      {
+        generatedAt,
+        scope: 'configuration surfaces only; not host model/tool execution',
+        expectedCriticalSkills: CRITICAL_SKILLS.length,
+        tools: rows,
+      },
       null,
       2,
     ),
