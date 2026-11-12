@@ -10,9 +10,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
-const mod = await import(
-  pathToFileURL(resolve(ROOT, 'src/infrastructure/sync-to-public.ts')).href
-);
+const mod = await import(pathToFileURL(resolve(ROOT, 'src/infrastructure/sync-to-public.ts')).href);
 const { parseWorkflowScope } = mod as { parseWorkflowScope: (out: string) => string };
 
 describe('parseWorkflowScope (gh auth status)', () => {
