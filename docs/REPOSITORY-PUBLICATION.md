@@ -4,11 +4,11 @@
 
 Gentle-Vanguard uses three publication surfaces with different responsibilities:
 
-| Repository                       | Visibility | Role                                                                       |
-| -------------------------------- | ----------- | -------------------------------------------------------------------------- |
-| `gentle-vanguard`                | Private     | Development, internal operations, telemetry and unreleased work            |
-| `gentle-vanguard-public`         | Public      | Curated distribution, examples, documentation, installer and releases        |
-| `gentlevanguard/gentlevanguard.github.io` | Public | Brand surface: corporate site, Academy catalog and social landing pages |
+| Repository                                | Visibility | Role                                                                    |
+| ----------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| `gentle-vanguard`                         | Private    | Development, internal operations, telemetry and unreleased work         |
+| `gentle-vanguard-public`                  | Public     | Curated distribution, examples, documentation, installer and releases   |
+| `gentlevanguard/gentlevanguard.github.io` | Public     | Brand surface: corporate site, Academy catalog and social landing pages |
 
 The public repository is the product surface for users. The private repository is the engineering
 workspace. Keeping both public creates duplicated sources of truth and increases the chance that
@@ -75,9 +75,9 @@ node --import tsx src/infrastructure/sync-to-public.ts `
 ```
 
 3. Review the diff **before** pushing. Only allowlisted public files may change; no `apps/` outside
-   `apps/academy-landing/`, no `.env`, no `node_modules`. CRLF/LF noise appears as
-   worktree-modified entries but disappears after `git add -A`; the real content diff is what
-   `git diff --cached` reports.
+   `apps/academy-landing/`, no `.env`, no `node_modules`. CRLF/LF noise appears as worktree-modified
+   entries but disappears after `git add -A`; the real content diff is what `git diff --cached`
+   reports.
 
 4. Commit and push with the workflow's message shape:
 
@@ -95,6 +95,42 @@ Verified 2026-10-28: the sync was a no-op except `academy/catalog.json`'s `gener
 the expected result when the site content was already current and only the scheduled sync was
 behind.
 
+## Release and Installer Distribution
+
+When a new version is released:
+
+1. **Verify version alignment**: `npx tsx src/tools/version-sync.ts` verifies that `package.json`,
+   `VERSION`, `apps/web-dashboard/package.json`, `CHANGELOG.md`, and `releases/latest-version.json`
+   match.
+2. **Build Windows Installer**:
+   ```powershell
+   npm run gv:installer
+   ```
+   Compiles NSIS executable `dist/Gentle-Vanguard-Setup-<version>.exe` and produces its checksum
+   `dist/Gentle-Vanguard-Setup-<version>.exe.sha256`.
+3. **Update Manifest**: Ensure `releases/latest-version.json` reflects the new version, SHA256 hash,
+   and download URL
+   (`https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/download/v<version>/Gentle-Vanguard-Setup-<version>.exe`).
+4. **Verify Distribution Integrity**:
+   ```powershell
+   npx tsx src/release/verify-distribution.ts --offline
+   ```
+5. **Synchronize Public Repository**:
+   ```powershell
+   npx tsx src/infrastructure/sync-to-public.ts
+   ```
+   Syncs code, documentation, workflows, and configuration allowlist to
+   `EmmanuelOrtiz87/gentle-vanguard-public` (`main` and `develop` branches).
+6. **Publish GitHub Release on Public Repository**: Upload the compiled installer `.exe` and
+   `.sha256` checksum as release assets:
+   ```powershell
+   gh release create v<version> dist/Gentle-Vanguard-Setup-<version>.exe dist/Gentle-Vanguard-Setup-<version>.exe.sha256 --repo EmmanuelOrtiz87/gentle-vanguard-public --title "Gentle-Vanguard v<version>" --notes-file CHANGELOG.md
+   ```
+7. **Synchronize Brand Landing (if corporate site/Academy was modified)**:
+   ```powershell
+   npx tsx src/infrastructure/sync-to-public.ts --landing --public-repo-slug gentlevanguard/gentlevanguard.github.io
+   ```
+
 ## Release checklist
 
 - [ ] No secrets in the working tree or recent commits.
@@ -102,12 +138,12 @@ behind.
 - [ ] Technical documentation links resolve.
 - [ ] `npm run typecheck`, `npm run lint` and relevant tests pass.
 - [ ] Public sync is dry-run reviewed.
-- [ ] GitHub release points to the public repository.
+- [ ] GitHub release created on `EmmanuelOrtiz87/gentle-vanguard-public` with `.exe` asset.
 
 ## Pushing when the OAuth token lacks the `workflow` scope
 
-GitHub refuses any push that creates or updates a file under `.github/workflows/` when the credential
-is an OAuth token without the `workflow` scope:
+GitHub refuses any push that creates or updates a file under `.github/workflows/` when the
+credential is an OAuth token without the `workflow` scope:
 
 ```
 ! [remote rejected] main -> main (refusing to allow an OAuth App to create or update
@@ -142,11 +178,11 @@ That gives two workable options:
 
 ### Surface-specific facts
 
-| Surface                        | Has `.github/workflows/` | Consequence                                                        |
-| ------------------------------ | ------------------------ | ------------------------------------------------------------------ |
-| `gentle-vanguard` (private)   | Yes (21 files)           | Any workflow change needs the scope or option 1                     |
-| `gentle-vanguard-public`      | Yes (2 files)            | Same; the two files only differ by action SHA-pinning               |
-| `gentlevanguard.github.io`     | No                       | Landing pushes never hit the scope check                            |
+| Surface                     | Has `.github/workflows/` | Consequence                                           |
+| --------------------------- | ------------------------ | ----------------------------------------------------- |
+| `gentle-vanguard` (private) | Yes (21 files)           | Any workflow change needs the scope or option 1       |
+| `gentle-vanguard-public`    | Yes (2 files)            | Same; the two files only differ by action SHA-pinning |
+| `gentlevanguard.github.io`  | No                       | Landing pushes never hit the scope check              |
 
 ### Operating notes
 
@@ -154,11 +190,12 @@ That gives two workable options:
   publishes `src/` and `packages/shared` on purpose ("public distribution is executable source"),
   plus `pnpm-lock.yaml` and `pnpm-workspace.yaml`, so dependency overrides stay consistent between
   the private and the public lockfiles.
-- The sync refuses to run without a current installer: build it with `npm run gv:installer`
-  (NSIS at `C:\Program Files (x86)\NSIS\makensis.exe`) and place both the `.exe` and its `.sha256`
-  in the `dist/` of the sync worktree.
+- The sync refuses to run without a current installer: build it with `npm run gv:installer` (NSIS at
+  `C:\Program Files (x86)\NSIS\makensis.exe`) and place both the `.exe` and its `.sha256` in the
+  `dist/` of the sync worktree.
 - Use a detached worktree of `main` as the sync source, never a feature branch:
-  `git worktree add .tmp/sync-main main --detach`, then create `.tmp/sync-main/dist/` before syncing.
+  `git worktree add .tmp/sync-main main --detach`, then create `.tmp/sync-main/dist/` before
+  syncing.
 - The pre-push gate has a **tree fence**: it compares `git status --porcelain` before and after the
   checks and fails if the working tree mutates during that window. Do not push while another agent
   or process is editing the repository.

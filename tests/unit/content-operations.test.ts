@@ -16,7 +16,10 @@ import {
   type PlatformRegistry,
 } from '../../src/content-operations/engine.js';
 import { preparePublication } from '../../src/content-operations/publication.js';
-import { buildShortQueueIntent, createJobFromShortRequest } from '../../src/content-operations/shorts.js';
+import {
+  buildShortQueueIntent,
+  createJobFromShortRequest,
+} from '../../src/content-operations/shorts.js';
 
 const baseJob: Job = {
   id: 'TEST-001',
@@ -53,7 +56,10 @@ test('content operations preview blocks invalid remote jobs', () => {
     version: '1.0.0',
     platforms: { tiktok: { mode: 'adapter', media: true, approvalRequired: true } },
   };
-  const result = previewJob({ ...baseJob, id: 'TEST-PREVIEW', platform: 'tiktok', approvalRequired: false }, registry);
+  const result = previewJob(
+    { ...baseJob, id: 'TEST-PREVIEW', platform: 'tiktok', approvalRequired: false },
+    registry,
+  );
   assert.equal(result.ok, true);
   if (result.ok) {
     assert.equal(result.data.publishStatus, 'BLOCKED');
@@ -66,7 +72,10 @@ test('publication planning is fail-closed until approval and target are present'
     version: '1.0.0',
     platforms: { tiktok: { mode: 'adapter', media: true, approvalRequired: true } },
   };
-  const blocked = preparePublication({ ...baseJob, platform: 'tiktok', asset: 'video.mp4' }, registry);
+  const blocked = preparePublication(
+    { ...baseJob, platform: 'tiktok', asset: 'video.mp4' },
+    registry,
+  );
   assert.equal(blocked.ok, false);
   if (!blocked.ok) assert.match(blocked.error.message, /APPROVED/);
 
@@ -105,7 +114,12 @@ test('ContentOS creates an auditable draft from gv-shorts-core input', () => {
 });
 
 test('short queue intent is deterministic and idempotent', () => {
-  const request = { brief: 'Crear un short sobre el stack GV', platform: 'tiktok' as const, aspect: '9:16' as const, durationSec: 30 };
+  const request = {
+    brief: 'Crear un short sobre el stack GV',
+    platform: 'tiktok' as const,
+    aspect: '9:16' as const,
+    durationSec: 30,
+  };
   const first = buildShortQueueIntent({ id: 'same-input', request });
   const second = buildShortQueueIntent({ id: 'same-input', request });
   assert.deepEqual(first, second);
@@ -131,13 +145,28 @@ test('content operations rejects unknown platform when registry provided', () =>
   assert.ok(validate(job, registry).some((e) => e.includes('unknown platform')));
 });
 
-test('content operations warns when media platform has no asset', () => {
+test('content operations blocks media job without asset when asset is the input', () => {
   const registry: PlatformRegistry = {
     version: '1.0.0',
     platforms: { linkedin: { mode: 'adapter', media: true, approvalRequired: true } },
   };
   const job = { ...baseJob, id: 'TEST-005', asset: undefined };
-  assert.ok(validate(job, registry).some((e) => e.includes('asset is recommended')));
+  assert.ok(validate(job, registry).some((e) => e.includes('asset is required')));
+});
+
+test('content operations allows generated short-video without asset (run creates it)', () => {
+  const registry: PlatformRegistry = {
+    version: '1.0.0',
+    platforms: { youtube: { mode: 'adapter', media: true, approvalRequired: true } },
+  };
+  const job = { ...baseJob, id: 'TEST-006', platform: 'youtube', contentType: 'short-video' };
+  const assetErrors = validate(job, registry).filter((e) => e.includes('asset'));
+  assert.equal(
+    assetErrors.length,
+    0,
+    `short-video generativo no debe exigir asset en DRAFT: ${JSON.stringify(assetErrors)}`,
+  );
+  // El gate real sigue vigente aguas abajo: publication.ts exige asset para planificar.
 });
 
 test('content operations state machine allows valid transitions', () => {

@@ -163,10 +163,14 @@ function createBlockbuster(version: string): string {
     cwd: ROOT,
   });
 
-  // Backup .runtime state
+  // Backup .runtime state (excluding releases and heavy backups to prevent recursive explosion)
   const runtimeBackup = join(backupPath, '.runtime-backup');
   if (existsSync(join(ROOT, '.runtime'))) {
-    runSync('robocopy', ['.runtime', runtimeBackup, '/E', '/NFL', '/NDL'], { cwd: ROOT });
+    runSync(
+      'robocopy',
+      ['.runtime', runtimeBackup, '/E', '/NFL', '/NDL', '/XD', 'releases', 'backups'],
+      { cwd: ROOT },
+    );
   }
 
   logger.info(`✅ Blockbuster created: ${backupPath}.tar.gz`);

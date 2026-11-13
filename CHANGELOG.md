@@ -1,32 +1,96 @@
+# Changelog
+
+## [4.4.0] - 2026-11-13
+
+### Changes
+
+- docs(presentations): sync presentation pages with current stack facts (9fa3...
+- fix(security): patch hono node server and ratchet deadcode baseline to 806 ...
+- fix(tools): equalize multi-tool token consumption and modernize tool config...
+- docs(marketing): produccion resuelta — Pixabay suficiente, Pexels con emisi...
+- feat(shorts): desbloqueo E2E del pipeline de video — 4 fixes (befabb8d2)
+- feat(marketing): demo 3min de GV — guion + copy pack + fix modelo Gemini (4...
+- fix(content-os): short-video generativo no exige asset en DRAFT (7401e7a06)
+- fix(sync): neutralizar workflows sin scope en vez de fallar el push (GH013)...
+- docs(public): quickstart con plan firmado en el README del mirror (bd8e4770c)
+- fix(session): marcar sessions.status terminal al cierre (alimenta eval) (f8...
+- feat(quickstart): registrar apply en Nexus events (observabilidad) (e6c80a219)
+- docs(absorption): cerrar backlog per-role tiers con medicion Nexus (b9ca91a4e)
+- feat(quickstart): bootstrap de máquina limpia con plan firmado (slice 2) (d...
+- chore(telemetry): snapshot auto-generado del stack (norm-learner, token sum...
+- fix(diagram-design): ruta resolvible de verify-geometry.py en SKILL.md (4a2...
+- feat(cli): gv quickstart con plan firmado (accept gate SHA-256) (d69cd0b7c)
+- docs(absorption): gentle-ai v4.4.0 + rsc-harness v4.1.5 (d6d6978f5)
+- fix(alexandria): verificar la demo por líneas (5e222826c)
+- docs(alexandria): registrar verificación de Kuiper LEO (5158787ea)
+- fix(alexandria): estabilizar evidencia Jira entre consultas (6e79aba44)
+- fix(alexandria): nombrar Descripción a la primera sección (373f9de31)
+- feat(alexandria): seleccionar filas Jira con reglas editoriales (fcd3d9679)
+- feat(alexandria): versionar candidata editorial Rovo v4 (147e40929)
+- feat(gates): informar alcance de apps antes del push (e80be1316)
+- test(gv-agenda): aislar búsqueda de la recarga de la PWA (d743db6a9)
+- docs(alexandria): registrar entrega y normativa documental (2590bfadf)
+- docs(alexandria): definir selección Jira y mantenimiento editorial (585de57df)
+- docs(alexandria): alinear MVP editorial y ficha de Confluence (2ee8c07ab)
+- docs(alexandria): incorporar ficha OTT y criterios de publicación (1098912a3)
+- fix(vanguard-connect): actualizar Rails a 8.1.4.1 (ad7119376)
+- docs(stack): incorporar referencias de frontend y evaluacion (55b9837af)
+- fix(vanguard-connect): versionar fuentes de construccion Docker (e7afbfe1b)
+- fix(tools): diagnosticar timeout de calificacion OpenCode (ac81d17e8)
+- docs(alexandria): preparar sondeo OTT previo al MVP (ca5c43664)
+- fix(gates): tolerar arranque lento de OpenCode en pre-push (f1350823a)
+- docs(alexandria): entrega propuesta gerencial para Khorall (56a2334a5)
+- feat(gates): los checks fallidos del pre-push dejan su output completo en ....
+- feat(ops): el auditor acepta limitaciones declaradas; .atl queda aceptada e...
+- feat(gates): los checks CI del dashboard corren tambien en local (espejos a...
+- fix(vanguard-connect): nokogiri 1.19.7 y omniauth 2.3.1 en el lock (4 alert...
+- chore(session): artefactos pasivos del cierre 2026-11-11 (ef1cf5e53)
+- chore(ops): ignorar lock files de Office (~$*) que disparaban el tree-fence...
+- fix(tests): la regex del acta de rovo-pilot tolera el padding de prettier (...
+- fix(gv-agenda): el test de busqueda global no debe fallar por contencion de...
+- fix(ops): los topes de .runtime están confirmados -> informar, no escalar (...
+- feat(apps): registro unico de apps + dos centros de comando separados (3e5e...
+- fix(ops): aviso de retencion estable + edad no negativa + espejo local del ...
+- feat(ops): la retencion de .runtime AVISA al owner cuando la decision es su...
+- feat(ops): politica de retencion de .runtime + gate de comandos de arranque...
+- fix(tests): el test de provenance no puede ensuciar el árbol (frenaba el pu...
+
+---
+
 # Changelog — Gentle-Vanguard
 
 ## [Unreleased]
 
 ## [4.3.0] — 2026-10-19 — Presencia pública unificada y distribución verificable
 
-- Web corporativa y Academy bajo un mismo sitio, catálogo paginado, chrome compartido e identidad y movimiento accesibles. Una entrada en Command Center.
-- Gate obligatorio de ocho comprobaciones sobre el export exacto; métricas externas desactivadas por defecto y CRM limitado a activación explícita/loopback.
+- Web corporativa y Academy bajo un mismo sitio, catálogo paginado, chrome compartido e identidad y
+  movimiento accesibles. Una entrada en Command Center.
+- Gate obligatorio de ocho comprobaciones sobre el export exacto; métricas externas desactivadas por
+  defecto y CRM limitado a activación explícita/loopback.
 - Canon y documentación HTML actualizados; auditoría por app reproducible.
-- Bootstrapper: shared y adapters incluidos; documentación privada/estado excluidos; procesos ocultos y errores propagados. Node 22.18+ y pnpm 11+.
-- Núcleo público compilable sin apps privadas; generación de video y apps operativas permanecen privadas.
-- CI de Actions no ejecutada por restricción de facturación/límite de cuenta. Las pruebas locales no certifican toda la flota.
+- Bootstrapper: shared y adapters incluidos; documentación privada/estado excluidos; procesos
+  ocultos y errores propagados. Node 22.18+ y pnpm 11+.
+- Núcleo público compilable sin apps privadas; generación de video y apps operativas permanecen
+  privadas.
+- CI de Actions no ejecutada por restricción de facturación/límite de cuenta. Las pruebas locales no
+  certifican toda la flota.
 
 ## [4.2.0] — 2026-10-07 — Release operativo, bots de cliente y distribución pública
 
 ### Nuevas capacidades
 
 - **Bots WhatsApp de cliente**: `apps/wpp-bot` incorpora adaptador WhatsApp Cloud API de Meta como
-  par del adaptador Twilio, con firma `X-Hub-Signature-256`, handshake GET, dedupe de redeliveries
-  y clasificación de errores reintentables vs fatales. La demo de viandas valida 5 flujos de
-  familia, comandos internos del comedor y handoff por área.
+  par del adaptador Twilio, con firma `X-Hub-Signature-256`, handshake GET, dedupe de redeliveries y
+  clasificación de errores reintentables vs fatales. La demo de viandas valida 5 flujos de familia,
+  comandos internos del comedor y handoff por área.
 - **GV Agenda/Kairós**: modo local-first, recurrencia, PWA/Android, auto-recarga controlada en
   `controllerchange`, topbar canónica y operación sin emprendimientos.
 - **Content CMS + gv-shorts**: pipeline de shorts con Whisper, subtítulos quemados, TTS con
   failover, providers de publicación, OAuth/credenciales y cola multi-plataforma.
 - **Voice Studio**: app nativa para storage, integración con shorts y sidecar HTTP.
 - **Stack MCP server**: 6 herramientas nativas para operar el stack desde MCP.
-- **Academy/Portal**: cursos y productos nuevos, certificados verificables server-side,
-  recuperación de contraseña local-first y mejoras de visibilidad en Academy.
+- **Academy/Portal**: cursos y productos nuevos, certificados verificables server-side, recuperación
+  de contraseña local-first y mejoras de visibilidad en Academy.
 
 ### Cambios operativos
 
@@ -55,8 +119,7 @@
   supera en operación completa, apps internas, observabilidad, tokens, delivery y control local.
 - **basdonax-ai-agentkit**: excelente referencia de WhatsApp/Chatwoot, handoff humano, buffers,
   memoria, selector de modelos y manejo de costos Meta. Compatible como benchmark funcional; no se
-  absorbe como dependencia porque la estrategia GV es stack propio, TypeScript-first y
-  determinista.
+  absorbe como dependencia porque la estrategia GV es stack propio, TypeScript-first y determinista.
 
 ### Verificación
 
@@ -69,72 +132,64 @@
 
 ### Nuevas capacidades
 
-- **Portal de Cliente GV** (`apps/academy-portal/`): donde entra quien compró y
-  ve sus cursos, ebooks y toolkits, con historial de compras. Acceso por email
-  (scrypt) + sesión en cookie HttpOnly con el sessionId hasheado en BD; la
-  identidad sale siempre de la cookie, ningún endpoint acepta un `studentId` del
-  cliente. DB propia y multi-tenant (`tenant_id` con índice LEADING), sin
-  compartir con el CRM ni con Nexus. 100 tests.
-- **Fan-out de la cola de ventas de mp-bridge** por consumidor: el ack era
-  destructivo y global, así que un segundo consumidor habría Competido con el
-  CRM y ambos habrían perdido ventas. Ahora cada consumidor tiene su clave y su
-  ack, y el ack rechaza con 400 las claves de otro consumidor. El poller del CRM
-  no cambia ni una línea.
-- **`externalReference` v2** (`gv_<tier>_<slug>_<epochMs>_<rand>`): hasta ahora
-  solo viajaba el tier, y por eso el webhook del CRM grababa
-  `product_type: 'other'` y era imposible responder "¿qué compró esta persona?".
-  Los 95 botones de compra de la landing llevan `data-slug`, generado contra el
-  catálogo real y verificado (0 slugs inventados). El formato legacy convive:
-  las ventas ya hechas siguen importando.
-- **Auditor de contenido duplicado** (`apps/academy-landing/scripts/audit-duplicates.ts`):
-  mide la huella de cada producto (shingles de 5 palabras, Jaccard +
-  containment) excluyendo título y descripción, porque esos campos sí pueden
-  parecerse entre productos del mismo tema. Resultado sobre los 53 productos:
-  máximo 0.0229 de similitud — no hay contenido duplicado, y los pares más
-  cercanos (`ia-estudiantes`~`ia-estudiantes-pro`) son texto genuinamente
-  distinto. Es la regla de negocio del owner verificada por máquina.
-- **Motor de recomendación y upsell** (`recommend.ts`, 22 tests): reemplaza los
-  `UPSELLS` fijos por ofertas derivadas del catálogo real, con motivo trazable en
-  cada sugerencia, filtro de precio razonable y regla de los 3 toques (no
-  insistir a quien ya rechazó dos veces).
+- **Portal de Cliente GV** (`apps/academy-portal/`): donde entra quien compró y ve sus cursos,
+  ebooks y toolkits, con historial de compras. Acceso por email (scrypt) + sesión en cookie HttpOnly
+  con el sessionId hasheado en BD; la identidad sale siempre de la cookie, ningún endpoint acepta un
+  `studentId` del cliente. DB propia y multi-tenant (`tenant_id` con índice LEADING), sin compartir
+  con el CRM ni con Nexus. 100 tests.
+- **Fan-out de la cola de ventas de mp-bridge** por consumidor: el ack era destructivo y global, así
+  que un segundo consumidor habría Competido con el CRM y ambos habrían perdido ventas. Ahora cada
+  consumidor tiene su clave y su ack, y el ack rechaza con 400 las claves de otro consumidor. El
+  poller del CRM no cambia ni una línea.
+- **`externalReference` v2** (`gv_<tier>_<slug>_<epochMs>_<rand>`): hasta ahora solo viajaba el
+  tier, y por eso el webhook del CRM grababa `product_type: 'other'` y era imposible responder "¿qué
+  compró esta persona?". Los 95 botones de compra de la landing llevan `data-slug`, generado contra
+  el catálogo real y verificado (0 slugs inventados). El formato legacy convive: las ventas ya
+  hechas siguen importando.
+- **Auditor de contenido duplicado** (`apps/academy-landing/scripts/audit-duplicates.ts`): mide la
+  huella de cada producto (shingles de 5 palabras, Jaccard + containment) excluyendo título y
+  descripción, porque esos campos sí pueden parecerse entre productos del mismo tema. Resultado
+  sobre los 53 productos: máximo 0.0229 de similitud — no hay contenido duplicado, y los pares más
+  cercanos (`ia-estudiantes`~`ia-estudiantes-pro`) son texto genuinamente distinto. Es la regla de
+  negocio del owner verificada por máquina.
+- **Motor de recomendación y upsell** (`recommend.ts`, 22 tests): reemplaza los `UPSELLS` fijos por
+  ofertas derivadas del catálogo real, con motivo trazable en cada sugerencia, filtro de precio
+  razonable y regla de los 3 toques (no insistir a quien ya rechazó dos veces).
 
 ### Correcciones
 
-- **Wordmark homologado en las 10 apps.** La causa era el shell inyectable de
-  design-hub, que generaba el wordmark sin el espacio: toda app que lo usaba
-  heredaba "GentleVanguard". El commit previo lo había propagado sin
-  verificarlo y dejó 4 variantes circulando. El canon queda fijado en un test
-  que recorre `apps/` y falla si reaparece cualquiera de ellas, si vuelve
-  Space Grotesk, si el peso deja de ser 700, o si dos apps usan marcado distinto.
-- **Flip-flop de marca Poppins/Space Grotesk:** `config/brand.json` es la fuente
-  de `assets/tokens.*` y seguía con la fuente vieja, así que regenerar revertía
-  Poppins en silencio. Además el pipeline descartaba el stop `mid` del gradiente
-  oficial: salían 2 paradas donde el monograma tiene 3.
-- **4 vulnerabilidades transitivas** (2 high en `fast-uri`, 2 moderate en
-  `ip-address`, vía el SDK de MCP): los overrides de `pnpm-workspace.yaml`
-  estaban justo por debajo del parche. Verificado en el árbol real instalado.
-- **`sync-to-public` publicaba al repo equivocado en silencio:**
-  `publicRepoSlug` se parseaba y nunca se usaba; el push iba a `git push
-  origin` a ciegas. Además el flag solo aceptaba `--flag valor`, así que
-  `--public-repo-slug=otro` caía al default. Y al hacer el destino explícito
-  apareció el riesgo de mandar el stack a la landing: ahora hay guardia dura
-  (exit 2) y el default es el repo de distribución.
-- **Dos descargas gratis rotas en producción** (404) y `covers/covers/`
-  duplicado en el repo público.
+- **Wordmark homologado en las 10 apps.** La causa era el shell inyectable de design-hub, que
+  generaba el wordmark sin el espacio: toda app que lo usaba heredaba "GentleVanguard". El commit
+  previo lo había propagado sin verificarlo y dejó 4 variantes circulando. El canon queda fijado en
+  un test que recorre `apps/` y falla si reaparece cualquiera de ellas, si vuelve Space Grotesk, si
+  el peso deja de ser 700, o si dos apps usan marcado distinto.
+- **Flip-flop de marca Poppins/Space Grotesk:** `config/brand.json` es la fuente de
+  `assets/tokens.*` y seguía con la fuente vieja, así que regenerar revertía Poppins en silencio.
+  Además el pipeline descartaba el stop `mid` del gradiente oficial: salían 2 paradas donde el
+  monograma tiene 3.
+- **4 vulnerabilidades transitivas** (2 high en `fast-uri`, 2 moderate en `ip-address`, vía el SDK
+  de MCP): los overrides de `pnpm-workspace.yaml` estaban justo por debajo del parche. Verificado en
+  el árbol real instalado.
+- **`sync-to-public` publicaba al repo equivocado en silencio:** `publicRepoSlug` se parseaba y
+  nunca se usaba; el push iba a `git push origin` a ciegas. Además el flag solo aceptaba
+  `--flag valor`, así que `--public-repo-slug=otro` caía al default. Y al hacer el destino explícito
+  apareció el riesgo de mandar el stack a la landing: ahora hay guardia dura (exit 2) y el default
+  es el repo de distribución.
+- **Dos descargas gratis rotas en producción** (404) y `covers/covers/` duplicado en el repo
+  público.
 
 ### Verificación
 
-typecheck, lint y `prepush:gate` 12/12. Tests: portal 100 · worker 14 · poller
-CRM 3 · landing 38 · design-hub 11. Un test que rompe el wordmark a propósito
-para confirmar que falla (2 de 11) y pasa al restaurarlo (11 de 11).
+typecheck, lint y `prepush:gate` 12/12. Tests: portal 100 · worker 14 · poller CRM 3 · landing 38 ·
+design-hub 11. Un test que rompe el wordmark a propósito para confirmar que falla (2 de 11) y pasa
+al restaurarlo (11 de 11).
 
 ### Pendiente para 4.2.0
 
-Los certificados de la academia siguen siendo inservibles: hash determinista
-generado en el browser y verificado contra el `localStorage` del mismo
-dispositivo, sin registro en servidor ni PDF. El algoritmo es público, así que
-un código se puede fabricar. Y los ebooks/toolkits siguen siendo accesibles sin
-pago, porque son markdown embebido servido sin comprobación.
+Los certificados de la academia siguen siendo inservibles: hash determinista generado en el browser
+y verificado contra el `localStorage` del mismo dispositivo, sin registro en servidor ni PDF. El
+algoritmo es público, así que un código se puede fabricar. Y los ebooks/toolkits siguen siendo
+accesibles sin pago, porque son markdown embebido servido sin comprobación.
 
 ## [4.0.0] — 2026-09-01 — Stack Consolidado
 

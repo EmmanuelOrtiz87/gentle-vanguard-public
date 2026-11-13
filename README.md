@@ -2,7 +2,7 @@
 
 **The local-first governance, memory and verification layer for AI-assisted engineering teams.**
 
-**Version 4.3.0** (MIT) · [Company website](https://gentlevanguard.github.io/) ·
+**Version 4.4.0** (MIT) · [Company website](https://gentlevanguard.github.io/) ·
 [Academy](https://gentlevanguard.github.io/academy/) · [Demo suite](demos/README.md)
 
 ## The problem it solves
