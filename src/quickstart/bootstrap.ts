@@ -209,7 +209,6 @@ export function applyBootstrapPlan(
  */
 export function insideGitRepo(dir: string): boolean {
   let cur = resolve(dir);
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (existsSync(join(cur, '.git'))) return true;
     const parent = resolve(cur, '..');
