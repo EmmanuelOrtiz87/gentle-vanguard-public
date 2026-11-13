@@ -41,7 +41,7 @@ overrides:
   # parcheado en 6.16.1 (publicado 2026-10-14). Subido desde '>=6.15.4' porque
   # el lock seguía resolviendo 6.16.0.
   qs: '>=6.16.1'
-  hono: '>=4.13.13'
+  hono: '>=4.13.16'
   postcss: '>=8.5.23'
   # Mantener Vitest en el primer parche del mocker vulnerable. Pin del paquete
   # COMPLETO: dejar sólo @vitest/mocker en 4.1.12 mezcla internals (runner 4.1.11
