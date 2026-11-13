@@ -138,12 +138,16 @@ export async function evaluateFile(
       reason: 'archivo nuevo: tiene que salir formateado',
     };
   }
-  if (await prettier.check(file.head, options)) {
-    return {
-      path: file.path,
-      status: 'violation',
-      reason: 'estaba formateado y dejó de estarlo',
-    };
+  try {
+    if (await prettier.check(file.head, options)) {
+      return {
+        path: file.path,
+        status: 'violation',
+        reason: 'estaba formateado y dejó de estarlo',
+      };
+    }
+  } catch {
+    // Si head tenía un error de parseo (deuda heredada), no estaba formateado.
   }
   return { path: file.path, status: 'legacy' };
 }

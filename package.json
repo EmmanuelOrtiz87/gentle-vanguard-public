@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "4.3.1",
+  "version": "4.4.0",
   "packageManager": "pnpm@11.15.1",
   "engines": {
     "pnpm": ">=11.0.0",
@@ -562,6 +562,8 @@
     "release:verify-dist:offline": "npx tsx src/release/verify-distribution.ts --offline",
     "rea": "node --import tsx src/integrations/rea-cli.ts",
     "rea:doctor": "node --import tsx src/integrations/rea-cli.ts doctor",
+    "rea:status": "node --import tsx src/integrations/rea-toggle.ts status",
+    "rea:toggle": "node --import tsx src/integrations/rea-toggle.ts toggle",
     "skills:index": "npx tsx src/knowledge/skills-index-generator.ts",
     "skills:registry:rebuild": "node --import tsx scripts/recovery/rebuild-skill-registry.ts",
     "skills:sync:opencode": "node --import tsx src/integrations/zcode-sync.ts --sync --skills-only --tools opencode",

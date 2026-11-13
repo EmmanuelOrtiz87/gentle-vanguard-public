@@ -1,11 +1,11 @@
 {
   "version": "2.3.0",
   "enabled": true,
-  "description": "Model Router: per-agent model/temperature binding. Verificación 2026-10-20: Console/Zen C activo, primario big-pickle y fallback gratuito MiMo. Los modelos de pago usan crédito Console/Zen. Go requiere suscripción, ausente en estas cuentas; no se usa como fallback automático. PARAM_LEAK fix aplicado.",
+  "description": "Model Router: per-agent model/temperature binding. Nivelación 2026-11-13: Primario gratuito glm-5.3-flash-free (mismo motor GLM de ZCode en Zen free tier) para evitar el agotamiento de créditos de pago. Fallback gratuito MiMo. Cero consumo de saldo en uso estándar.",
   "lastModified": "2026-07-31T04:45:00-03:00",
   "modifiedBy": "orchestrator",
   "defaults": {
-    "model": "opencode-zen-C/big-pickle",
+    "model": "opencode-zen-C/glm-5.3-flash-free",
     "provider": "opencode",
     "temperature": 0.3,
     "hallucinationGuard": "medium",
@@ -21,7 +21,7 @@
   },
   "agentBindings": {
     "BA": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.7,
       "hallucinationGuard": "low",
@@ -29,7 +29,7 @@
       "rationale": "BA explora/analiza — modelo nativo disponible"
     },
     "SAD": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -37,7 +37,7 @@
       "rationale": "SAD diseña arquitectura — modelo nativo disponible"
     },
     "DEV": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -45,7 +45,7 @@
       "rationale": "DEV implementa código — modelo nativo disponible"
     },
     "QA": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -53,7 +53,7 @@
       "rationale": "QA valida — modelo nativo disponible"
     },
     "OPS": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -61,7 +61,7 @@
       "rationale": "OPS despliega — modelo nativo disponible"
     },
     "GOV": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -69,7 +69,7 @@
       "rationale": "GOV audita — modelo nativo disponible"
     },
     "DOC": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
@@ -77,7 +77,7 @@
       "rationale": "DOC documenta — modelo nativo disponible"
     },
     "SESSION": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -85,7 +85,7 @@
       "rationale": "SESSION trackea estado — modelo nativo disponible"
     },
     "MKT": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "low",
@@ -93,7 +93,7 @@
       "rationale": "MKT crea contenido — modelo nativo disponible"
     },
     "SALES": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -101,7 +101,7 @@
       "rationale": "SALES sigue metodología — modelo nativo disponible"
     },
     "FINANCE": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -109,7 +109,7 @@
       "rationale": "FINANCE calcula — modelo nativo disponible"
     },
     "HR": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "medium",
@@ -117,7 +117,7 @@
       "rationale": "HR procesa — modelo nativo disponible"
     },
     "LEGAL": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -125,7 +125,7 @@
       "rationale": "LEGAL cumple normativa — modelo nativo disponible"
     },
     "BUS-TELE": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.2,
       "hallucinationGuard": "high",
@@ -133,7 +133,7 @@
       "rationale": "Telemetría — agente específico bus-tele-agent (modelo nativo disponible)"
     },
     "PREMORTEM": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.5,
       "hallucinationGuard": "medium",
@@ -141,7 +141,7 @@
       "rationale": "PREMORTEM analiza riesgos — modelo nativo disponible"
     },
     "SELF-DIAG": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -149,7 +149,7 @@
       "rationale": "SELF-DIAG diagnóstico — agente específico self-diag-agent (modelo nativo disponible)"
     },
     "SCRIPT-GOV": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.15,
       "hallucinationGuard": "high",
@@ -157,7 +157,7 @@
       "rationale": "Script governance — hereda modelo de sdd-verify"
     },
     "GITFLOW-BRANCH": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -165,49 +165,49 @@
       "rationale": "GitFlow — agente específico gitflow-agent (modelo nativo disponible)"
     },
     "GITFLOW-PR": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-HOOKS": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-MERGE": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-WORKFLOW": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-COMMIT": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "GITFLOW-CONFLICT": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
       "subagent": "gitflow-agent"
     },
     "REPORT": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.4,
       "hallucinationGuard": "low",
@@ -215,7 +215,7 @@
       "rationale": "Reportes — hereda modelo de doc-agent"
     },
     "PR-REVIEW": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -223,7 +223,7 @@
       "rationale": "Code review — hereda modelo de sdd-verify"
     },
     "RELEASE": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "critical",
@@ -231,7 +231,7 @@
       "rationale": "Release — modelo nativo disponible"
     },
     "SESSION-CLOSE": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.1,
       "hallucinationGuard": "high",
@@ -239,7 +239,7 @@
       "rationale": "Session close — modelo nativo disponible"
     },
     "DAILY": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "medium",
@@ -247,7 +247,7 @@
       "rationale": "Daily — modelo nativo disponible"
     },
     "ORCHESTRATOR": {
-      "model": "opencode-zen-C/big-pickle",
+      "model": "opencode-zen-C/glm-5.3-flash-free",
       "provider": "opencode",
       "temperature": 0.3,
       "hallucinationGuard": "high",
@@ -303,7 +303,7 @@
     "stateFile": ".runtime/model-fallback-state.json",
     "agentFallbackEnabled": true,
     "notifyOnFallback": true,
-    "description": "FAILOVER ACTIVO — cuando un modelo no está disponible, provider-failover.ts consulta model-fallback.json para cadenas de fallback por agente. El modelo nativo opencode-zen-C/big-pickle es el primario; fallback a opencode-zen-C/mimo-v2.6-flash-free y proveedores locales (ollama/lm-studio2)."
+    "description": "FAILOVER ACTIVO — cuando un modelo no está disponible, provider-failover.ts consulta model-fallback.json para cadenas de fallback por agente. El modelo nativo opencode-zen-C/glm-5.3-flash-free es el primario; fallback a opencode-zen-C/mimo-v2.6-flash-free y proveedores locales (ollama/lm-studio2)."
   },
   "providerPriority": {
     "description": "Ordered list for model selection UI (first = default)",

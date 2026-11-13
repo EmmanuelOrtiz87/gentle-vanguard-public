@@ -1,10 +1,10 @@
 # GentleVanguard · Stack facts de referencia
 
-Generados el 2026-11-03T13:20:14.936Z desde configuración, archivos y SQLite read-only. Fuente: [inventario JSON](../generated/stack-facts.json) y [Markdown](../generated/STACK-FACTS.md). Regenerar con npm run stack:facts y luego npm run docs:presentations:sync.
+Generados el 2026-11-13T12:36:57.619Z desde configuración, archivos y SQLite read-only. Fuente: [inventario JSON](../generated/stack-facts.json) y [Markdown](../generated/STACK-FACTS.md). Regenerar con npm run stack:facts y luego npm run docs:presentations:sync.
 
-- Versión: 4.3.0.
-- Skills indexadas: 253; críticas: 28.
-- Agentes OpenCode: 10.
+- Versión: 4.4.0.
+- Skills indexadas: 257; críticas: 28.
+- Agentes OpenCode: 22.
 - Nexus: 45 tablas, 24 migraciones.
 - Presupuesto configurado: 10000000 diario, 3000000 por sesión. No equivale a consumo ni disponibilidad de un proveedor.
 

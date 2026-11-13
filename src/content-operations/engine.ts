@@ -49,8 +49,7 @@ export type PlatformRegistry = {
 };
 
 export type OperationEnvelope<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: { code: string; message: string } };
+  { ok: true; data: T } | { ok: false; error: { code: string; message: string } };
 
 export type JobPreview = {
   id: string;
@@ -112,8 +111,13 @@ export function validate(job: Job, registry?: PlatformRegistry): string[] {
       if (cap.approvalRequired && !job.approvalRequired) {
         errors.push(`platform ${job.platform} requires approvalRequired=true`);
       }
-      if (cap.media && !job.asset) {
-        errors.push(`platform ${job.platform} supports media — asset is recommended`);
+      // El pipeline generativo (gv-shorts: brief → script → TTS → footage → mp4)
+      // CREA el asset durante el run; exigirlo en DRAFT bloquearía el flujo que
+      // existe precisamente para producirlo. El gate real está aguas abajo:
+      // publication.ts exige asset para planificar publicación. Para jobs donde
+      // el asset es INPUT (no generados), sigue siendo error aquí.
+      if (cap.media && !job.asset && job.contentType !== 'short-video') {
+        errors.push(`platform ${job.platform} supports media — asset is required`);
       }
     }
   }
