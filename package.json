@@ -660,7 +660,7 @@
     "fast-check": "^4.10.2",
     "impeccable": "^3.6.0",
     "js-yaml": "5.4.3",
-    "knip": "6.43.0",
+    "knip": "6.45.0",
     "lefthook": "^2.2.2",
     "playwright": "^1.63.0",
     "postject": "1.0.0-alpha.6",
