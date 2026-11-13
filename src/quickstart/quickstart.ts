@@ -17,7 +17,7 @@
 
 import { createHash } from 'node:crypto';
 import Database from 'better-sqlite3';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { runSync } from '../../adapters/command-runner.js';
 
