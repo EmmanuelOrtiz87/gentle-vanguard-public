@@ -1,174 +1,201 @@
 # GentleVanguard
 
-**The local-first governance, memory and verification layer for AI-assisted engineering teams.**
+<p align="center">
+  <img src="docs/brand/assets/banner-github.svg" alt="GentleVanguard" width="100%"/>
+</p>
 
-**Version 4.4.0** (MIT) · [Company website](https://gentlevanguard.github.io/) ·
-[Academy](https://gentlevanguard.github.io/academy/) · [Demo suite](demos/README.md)
+<p align="center">
+  <img src="https://img.shields.io/badge/Versi%C3%B3n-4.4.0-06B6D4?style=flat-square&labelColor=0B1020" alt="Versión">
+  <img src="https://img.shields.io/badge/Licencia-MIT-06B6D4?style=flat-square&labelColor=0B1020" alt="Licencia">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%20%7C%20macOS%20%7C%20Linux-06B6D4?style=flat-square&labelColor=0B1020" alt="Plataforma">
+</p>
 
-## The problem it solves
+<p align="center"><strong>Capa local-first de orquestación, memoria y verificación para equipos que desarrollan con asistentes de IA.</strong></p>
 
-AI-assisted development scales badly:
+<p align="center">
+  <strong>Versión 4.4.0</strong> (Licencia MIT) · <a href="https://gentlevanguard.github.io/">Sitio institucional</a> · <a href="https://gentlevanguard.github.io/academy/">Academia técnica</a> · <a href="demos/README.md">Guías prácticas</a>
+</p>
 
-- **Context is lost.** Every task starts from zero — decisions, constraints and prior sessions
-  vanish between restarts and tool switches.
-- **Quality is inconsistent.** The same request produces different results depending on the model,
-  the prompt and the day. Nobody re-checks the guardrails while agents write code fast.
-- **Architecture drifts.** Fast AI output makes design decisions that nobody reviewed, and debt
-  accumulates invisibly.
-- **Costs are invisible.** Token spend, retries and rework disappear inside chat scrollback.
+---
 
-Cursor, Claude Code, Codex and Copilot write the code. **GentleVanguard adds what they don't have**:
-orchestration, memory, verification and observability around that work — while it stays completely
-local-first.
+## El problema que resuelve
 
-## What it adds
+El desarrollo con asistentes de código presenta fricciones comunes al escalar en proyectos reales:
 
-| Capability                        | What you get                                                                                                                                                                       |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Work orchestration**            | Each request routes to a specialist agent (analysis, design, build, QA, ops, governance). Inline work is the default; formal spec phases are opt-in for changes that warrant them. |
-| **Persistent engineering memory** | Decisions, context and session history survive restarts and tool switches. A new session resumes where the last one ended.                                                         |
-| **Verification & governance**     | 154 automated health checks, independent review gates, audit trails and delegation rules — quality is enforced, not assumed.                                                       |
-| **Observability**                 | Sessions, tokens, costs, errors and outcomes become visible, measurable data instead of scrollback.                                                                                |
+- **Pérdida de contexto:** cada sesión comienza desde cero; decisiones técnicas, restricciones y
+  acuerdos previos se pierden al reiniciar el entorno o alternar entre herramientas.
+- **Calidad dispar:** la misma instrucción produce resultados dispares según el modelo y el momento,
+  sin validación continua de las reglas del proyecto.
+- **Deriva arquitectónica:** se introducen cambios sin revisión que acumulan deuda técnica invisible
+  en la base de código.
+- **Costos y consumo opacos:** el gasto de tokens, reintentos y tiempo de ejecución queda disperso
+  en el historial del chat.
 
-## See it in action
+Herramientas como Cursor, Claude Code, Codex y Copilot escriben código. **GentleVanguard aporta la
+estructura que les falta:** orquestación de tareas, memoria persistente, puertas de calidad
+independientes y observabilidad en tiempo real, operando de forma 100% local en tu máquina.
 
-The [demo suite](demos/README.md) contains 8 audience-oriented walkthroughs with run steps and
-expected output:
+---
 
-| Demo                                                                          | Audience        | Focus                              |
-| ----------------------------------------------------------------------------- | --------------- | ---------------------------------- |
-| [01 — Developer onboarding](demos/01-dev-developer-onboarding/DEMO.md)        | Dev team        | First session, hooks, CLI basics   |
-| [03 — Memory & continuity](demos/03-dev-engram-memory-and-continuity/DEMO.md) | Dev team        | Persistent memory, context handoff |
-| [04 — Quality gate & review](demos/04-dev-quality-gate-review-audit/DEMO.md)  | Dev / Tech lead | Gates, audit, independent review   |
-| [06 — Executive overview](demos/06-exec-executive-overview/DEMO.md)           | Executives      | Business impact, KPIs, dashboards  |
+## Qué aporta al flujo de trabajo
 
-For the full index (including end-to-end and enterprise hardening demos), see
-[demos/README.md](demos/README.md).
+| Capacidad                         | Beneficio concreto                                                                                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Orquestación de tareas**        | Cada requerimiento se asigna a un agente especialista (análisis, arquitectura, desarrollo, calidad, operaciones o gobernanza). El trabajo directo en línea (inline-first) es la vía habitual; las especificaciones formales (SDD) se activan a demanda en cambios estructurales. |
+| **Memoria técnica persistente**   | Decisiones, contexto del proyecto e historial técnico persisten entre sesiones y herramientas. Una sesión nueva retoma con precisión donde cerró la anterior.                                                                                                                    |
+| **Gobernanza y verificación**     | 154 controles automáticos de salud, puertas independientes de revisión, auditoría de dependencias y contratos explícitos entre fases. La calidad se verifica con evidencia, no se presupone.                                                                                     |
+| **Observabilidad en tiempo real** | Sesiones, consumo de tokens, tiempos de respuesta, costos estimados y tasas de éxito se registran en una base local como datos medibles.                                                                                                                                         |
 
-## How it works
+---
 
-The normal flow is deliberately simple: understand, design, build, verify.
+## Demostraciones prácticas
+
+El directorio [`demos/`](demos/README.md) contiene 8 recorridos paso a paso orientados a diferentes
+roles, con comandos reales y salidas esperadas:
+
+| Demostración                                                                          | Audiencia        | Enfoque principal                                               |
+| ------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------- |
+| [01 — Incorporación al equipo](demos/01-dev-developer-onboarding/DEMO.md)             | Desarrolladores  | Primera sesión, hooks de Git y comandos básicos de CLI          |
+| [03 — Memoria y continuidad](demos/03-dev-engram-memory-and-continuity/DEMO.md)       | Desarrolladores  | Memoria persistente y traspaso de contexto entre sesiones       |
+| [04 — Puertas de calidad y auditoría](demos/04-dev-quality-gate-review-audit/DEMO.md) | Líderes técnicos | Puertas de control, auditorías y revisión técnica independiente |
+| [06 — Visión ejecutiva](demos/06-exec-executive-overview/DEMO.md)                     | Dirección        | Impacto operativo, indicadores de rendimiento y tableros        |
+
+Para acceder al catálogo completo, consulte [`demos/README.md`](demos/README.md).
+
+---
+
+## Cómo funciona
+
+El ciclo de ejecución es directo y estructurado: entender, diseñar, construir y comprobar.
 
 ```mermaid
 flowchart LR
-  U[Request] --> O[Orchestrator]
-  O --> B[BA: understand]
-  B --> S[SAD: design]
-  S --> D[DEV: build]
-  D --> Q[QA: verify]
-  Q --> R[Verifiable result]
+  U[Solicitud inicial] --> O[Orquestador]
+  O --> B[Análisis: requisitos]
+  B --> S[Arquitectura: diseño]
+  S --> D[Desarrollo: construcción]
+  D --> Q[Calidad: comprobación]
+  Q --> R[Resultado verificable]
 ```
 
-Under the hood, a layered architecture connects orchestration, specialist agents, on-demand skills,
-persistent memory and health monitoring:
+A nivel interno, una arquitectura modular conecta los componentes clave del sistema:
 
 ```mermaid
 flowchart TB
-  A[User or IDE] --> O[Orchestration]
-  O --> G[Specialist agents]
-  G --> K[On-demand skills]
-  G --> M[Engram: persistent memory]
-  O --> H[Watchtower & health controls]
-  H --> W[Dashboards & logs]
+  A[Operador o IDE] --> O[Orquestación central]
+  O --> G[Agentes especializados]
+  G --> K[Habilidades bajo demanda]
+  G --> M[Memoria persistente: Engram]
+  O --> H[Monitoreo de salud: Watchtower]
+  H --> W[Tableros y registros: Nexus]
 ```
 
-Full architecture, contracts and expanded diagrams:
+La documentación técnica ampliada, esquemas y contratos están disponibles en
 [`docs/technical/STACK-DOCUMENTATION.md`](docs/technical/STACK-DOCUMENTATION.md).
 
-## Quickstart
+---
 
-Requirements: Node.js 22.18+, pnpm 11+ and Git. Windows, macOS and Linux.
+## Inicio rápido
 
-**Windows installer:** download **Gentle-Vanguard-Setup-4.3.0.exe** and its `.sha256` from the
-[4.3.0 release](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/tag/v4.3.0). It
-is a bootstrapper (not an offline runtime) and unsigned by default — Windows may show a SmartScreen
-prompt. Verify the checksum first:
+Requisitos: Node.js 22.18+ (24 LTS recomendado), pnpm 11+ y Git. Compatible con Windows, macOS y
+Linux.
+
+### Instalador para Windows
+
+Descargue **Gentle-Vanguard-Setup-4.4.0.exe** y su archivo de comprobación `.sha256` desde el
+[Release oficial v4.4.0](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/tag/v4.4.0).
+
+El instalador es un preparador de entorno (bootstrapper) de código abierto; no incluye binarios
+firmados comercialmente, por lo que Windows SmartScreen puede solicitar confirmación al ejecutar.
+
+Para verificar la integridad del archivo antes de instalar:
 
 ```powershell
-Get-FileHash .\Gentle-Vanguard-Setup-4.3.0.exe -Algorithm SHA256
+Get-FileHash .\Gentle-Vanguard-Setup-4.4.0.exe -Algorithm SHA256
+# Suma esperada: 7e8eb0b1cbb61839350858bed8a51b2474f0917112d4175273b4771a9c00444c
 ```
 
-**From source** — one idempotent setup command, then activate the runtime:
+### Instalación desde el código fuente
 
 ```sh
 git clone https://github.com/EmmanuelOrtiz87/gentle-vanguard-public.git
 cd gentle-vanguard-public
-corepack enable          # gets pnpm without installing it manually
-npm run setup            # idempotent: prereqs -> deps -> doctor -> nexus -> hooks -> graphify -> skills-index
+corepack enable          # Habilita pnpm de forma nativa sin instalaciones globales
+npm run setup            # Inicializa prerrequisitos, dependencias, base Nexus y validadores
 ```
 
-**Signed-plan onboarding** — see exactly what the stack would do BEFORE anything writes. The
-quickstart surveys your environment (read-only), prints a visible plan
-(`selected / deferred / excluded` components) and signs it with a SHA-256 id. Nothing is written
-until you accept the current plan's id:
+### Inicialización guiada con plan firmado
+
+Permite auditar exactamente qué cambios realizará el sistema antes de escribir en disco. El
+asistente realiza un relevamiento en modo sólo lectura, presenta los componentes seleccionados y
+firma el plan con un identificador SHA-256:
 
 ```sh
-npx tsx src/quickstart/quickstart.ts                          # read-only survey + signed plan
-npx tsx src/quickstart/quickstart.ts --accept-plan <plan-id>  # apply only what you accepted
+npx tsx src/quickstart/quickstart.ts                          # Relevamiento y emisión del plan firmado
+npx tsx src/quickstart/quickstart.ts --accept-plan <id-plan>  # Aplica únicamente los cambios aprobados
 ```
 
-**Post-setup** (leaves the stack OPERATIONAL; without this there are no sessions or memory):
+### Puesta en marcha de la sesión
 
 ```sh
-npm run session:autostart:detached   # first session + daemons (token-ingest, metrics-writer)
-engram init && engram doctor         # persistent memory (requires engram binary; see docs/guides/COMPATIBILITY-MATRIX.md)
-npm run watchtower:health -- --full  # 154 verification checks
+npm run session:autostart:detached   # Inicia la sesión de trabajo y los procesos de fondo
+npm run watchtower:health -- --full  # Ejecuta los 154 controles de salud del entorno
 ```
 
-`npm run setup` detects prerequisites, installs locked dependencies, initializes local data and
-verifies everything. Re-running it is safe. Dependencies and optional providers may require network
-access; credentials are supplied locally by the operator. Cloud services and operational apps are
-separate integrations.
+---
 
-## AI tool integrations
+## Compatibilidad con herramientas de IA
 
-Configuration is audited for **OpenCode, Codex, ZCode, MiniMax Code, GitHub Copilot and
-Antigravity**. The audit checks profiles, instructions, skills and MCP presence; it does not certify
-model execution or full feature parity. The latest matrix and host-specific evidence are in
-[Compatibility Matrix](docs/guides/COMPATIBILITY-MATRIX.md). OpenCode and Codex have recorded
-execution evidence; the other four integrations remain configuration-qualified until bounded
-host-specific tasks pass.
+La configuración del stack está formalmente auditada para:
 
-## Evidence
+- **OpenCode**
+- **Codex**
+- **ZCode**
+- **MiniMax Code**
+- **GitHub Copilot**
+- **Antigravity**
 
-- **Verification:** the public snapshot `4ded74e7` passed
-  [Public Distribution Smoke](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/actions/runs/40330557696):
-  frozen install, TypeScript and strict doctor. Local private pre-push for `f7b78d3b3` passed 16/16.
-  Public-core checks do not certify the private app fleet, client deployments or payment/fulfilment
-  flows.
-- **Health:** `npm run watchtower:health -- --full` runs 154 automated checks against the installed
-  stack.
-- **Honest scope statement:** the website has its own export/browser/identity gate; what each
-  integration is certified for is documented per host in the compatibility matrix. Claims here are
-  limited to what is verifiable — the rest is labeled as such.
+El proceso de auditoría valida perfiles de ejecución, instrucciones de sistema, habilidades cargadas
+y servidores MCP configurados. Para conocer el detalle por plataforma, consulte la
+[matriz de compatibilidad](docs/guides/COMPATIBILITY-MATRIX.md).
 
-## Glossary
+---
 
-| Term                              | What it means                                                                                                                       |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Engram**                        | Persistent engineering memory: observations, decisions and session context stored locally and recalled across sessions and tools.   |
-| **Nexus**                         | Local operational database (SQLite) for metrics, sessions, traces, events and alerts.                                               |
-| **Watchtower**                    | The automated health system: 154 checks that verify the installed stack end to end.                                                 |
-| **Session autostart**             | One command that boots the full runtime: session ID, memory, health controls, dashboards and daemons.                               |
-| **Review gate / Judgment Day**    | Independent review pass that audits a change's evidence before it counts as done.                                                   |
-| **SDD (Spec-Driven Development)** | Opt-in formal workflow (requirements → design → build → verify) for large or high-risk changes; small work stays inline by default. |
-| **Graphify**                      | Knowledge-graph builder over the codebase and docs, used for navigation and impact analysis.                                        |
+## Glosario de conceptos
 
-## Distribution scope
+| Concepto                                | Definición técnica                                                                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Engram**                              | Sistema de memoria persistente para ingeniería: observaciones, decisiones y contexto operativo almacenados localmente que sobreviven entre sesiones y herramientas. |
+| **Nexus**                               | Base de datos operacional local (SQLite) para métricas de consumo, trazas de ejecución, eventos y alertas del sistema.                                              |
+| **Watchtower**                          | Monitor de salud continuo: conjunto de 154 controles automatizados que verifican la integridad funcional del stack.                                                 |
+| **Autostart de sesión**                 | Comando único que inicializa el entorno operativo: asignación de ID de sesión, memoria, verificadores y servicios en segundo plano.                                 |
+| **Puertas de revisión (RDD)**           | Evaluación independiente que audita la evidencia técnica y el nivel de riesgo antes de dar por completado un cambio.                                                |
+| **SDD (Desarrollo por especificación)** | Flujo formal optativo (requisitos → diseño → construcción → verificación) para cambios de alto impacto; las tareas habituales operan en modo directo.               |
+| **Graphify**                            | Constructor de grafos de conocimiento sobre la base de código y la documentación técnica, utilizado para navegación y análisis de impacto.                          |
 
-This repository provides the TypeScript core, shared runtime primitives, setup tools and curated
-documentation. Operational apps, client projects, private skill content, databases, credentials and
-internal session reports are excluded from the distribution export. The company website and Academy
-have a separate public deployment; the installer does not bundle those apps.
+---
 
-## Documentation
+## Alcance de la distribución pública
 
-- [Getting started](docs/getting-started/README.md)
-- [Architecture](docs/architecture/README.md)
-- [Demo suite](demos/README.md)
-- [Changelog](CHANGELOG.md)
-- [Release process](docs/guides/RELEASE-PROCESS.md)
+Este repositorio contiene el núcleo en TypeScript, las primitivas compartidas de ejecución, los
+asistentes de instalación y la documentación técnica curada. Las aplicaciones operativas internas,
+proyectos de clientes, contenidos propietarios y registros confidenciales de sesión permanecen
+excluidos de la distribución pública. El sitio web institucional y la Academia cuentan con un
+despliegue web independiente.
 
-## License
+---
 
-MIT © 2026 Emmanuel Ortiz. See [LICENSE](LICENSE).
+## Documentación de referencia
+
+- [Guía de inicio](docs/getting-started/README.md)
+- [Arquitectura del sistema](docs/architecture/README.md)
+- [Catálogo de demostraciones](demos/README.md)
+- [Historial de versiones](CHANGELOG.md)
+- [Proceso de publicación](docs/guides/RELEASE-PROCESS.md)
+
+---
+
+## Licencia
+
+Distribuido bajo licencia MIT © 2026 Emmanuel Ortiz. Consulte el archivo [LICENSE](LICENSE) para más
+información.
