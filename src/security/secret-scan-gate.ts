@@ -22,7 +22,10 @@ function parseArgs(argv: string[]): CliArgs {
 }
 
 function gitDiff(args: CliArgs): string {
-  const diffArgs = ['diff', '--no-ext-diff', '--unified=0'];
+  // --no-textconv: el textconv global (astextplain) muere con "unsupported
+  // filetype" en entregables binarios (.doc/.docx) y mata el diff entero
+  // (incidente 2026-11-14: bloqueó todo push con los ejemplos de migración).
+  const diffArgs = ['diff', '--no-ext-diff', '--no-textconv', '--unified=0'];
   if (args.base) {
     if (/^0+$/.test(args.base)) {
       diffArgs.push('--root', args.head ?? 'HEAD');
