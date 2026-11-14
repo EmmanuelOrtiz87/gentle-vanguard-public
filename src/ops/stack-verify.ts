@@ -666,6 +666,38 @@ async function autoFix(results: CheckResult[]): Promise<number> {
 
 // ─── Layer 5: Apps Audit ──────────────────────────────────────────────
 
+/**
+ * Comando de arreglo derivado del check que fallo.
+ *
+ * El fixCmd anterior era `npm run typecheck` para CUALQUIER fallo de la app:
+ * con un test rojo te mandaba a correr el typecheck (que puede estar verde y no
+ * te dice nada), y en apps sin `package.json` (command-center) el comando ni
+ * existe. Un hint que no reproduce el fallo es peor que ninguno: manda a mirar
+ * el lugar equivocado.
+ */
+export function appFixCommand(
+  app: string,
+  failedKinds: string[],
+  hasPackageJson: boolean,
+): string | undefined {
+  if (failedKinds.length === 0) return undefined;
+  const kinds = [...new Set(failedKinds)];
+  if (!hasPackageJson) {
+    // Sin package.json no hay script que correr: el runner real esta declarado
+    // en el contrato de la app (nativeTestSuites).
+    return `cd apps/${app} && runner declarado en config/app-validation-contracts.json (nativeTestSuites["${app}"])`;
+  }
+  const SCRIPT: Record<string, string> = {
+    typecheck: 'npm run typecheck',
+    test: 'npm test',
+    lint: 'npm run lint',
+    build: 'npm run build',
+  };
+  const cmds = kinds.map((k) => SCRIPT[k]).filter((v): v is string => Boolean(v));
+  if (cmds.length === 0) return undefined;
+  return `cd apps/${app} && ${cmds.join(' && ')}`;
+}
+
 async function checkApps(results: CheckResult[]): Promise<void> {
   // Lazy import para no acoplar el modulo al startup del orquestador.
   const { auditApps } = await import('./stack-audit-apps.js');
@@ -703,7 +735,14 @@ async function checkApps(results: CheckResult[]): Promise<void> {
         failDetail ||
         [checkDetail, omissionDetail].filter(Boolean).join(' | ') ||
         a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
-      fixCmd: a.status === 'FAIL' ? `cd apps/${a.app} && npm run typecheck` : undefined,
+      fixCmd:
+        a.status === 'FAIL'
+          ? appFixCommand(
+              a.app,
+              a.checks.filter((c) => c.status === 'FAIL').map((c) => c.kind),
+              existsSync(join(ROOT, 'apps', a.app, 'package.json')),
+            )
+          : undefined,
     });
   }
 }
