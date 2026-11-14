@@ -89,13 +89,17 @@ export function parseArgString(raw: unknown): string[] {
  * El token nunca vive en el archivo de config: vive en el entorno del usuario.
  */
 export function expandEnvValue(raw: string): string {
-  return raw.replace(/\{env:([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, name: string) => process.env[name] ?? '');
+  return raw.replace(
+    /\{env:([A-Za-z_][A-Za-z0-9_]*)\}/g,
+    (_, name: string) => process.env[name] ?? '',
+  );
 }
 
 function remoteHeaders(raw: unknown): Record<string, string> | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) out[k] = expandEnvValue(String(v));
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>))
+    out[k] = expandEnvValue(String(v));
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
@@ -103,16 +107,29 @@ export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec
   const specs: ServerSpec[] = [];
   const regPath = join(root, 'config', 'mcp-registry.json');
   if (existsSync(regPath)) {
-    const reg = JSON.parse(readFileSync(regPath, 'utf-8')) as { servers: Array<Record<string, unknown>> };
+    const reg = JSON.parse(readFileSync(regPath, 'utf-8')) as {
+      servers: Array<Record<string, unknown>>;
+    };
     for (const s of reg.servers) {
       if (!s.enabled || s.transport !== 'stdio') continue;
-      specs.push({ name: String(s.name), source: 'mcp-registry', command: String(s.command), args: (s.args as string[]) ?? [] });
+      specs.push({
+        name: String(s.name),
+        source: 'mcp-registry',
+        command: String(s.command),
+        args: (s.args as string[]) ?? [],
+      });
     }
   }
   const ocPath = join(root, 'opencode.json');
   if (existsSync(ocPath)) {
-    const oc = JSON.parse(readFileSync(ocPath, 'utf-8')) as { mcp?: Record<string, Record<string, unknown>> };
-    for (const [name, s] of Object.entries(oc.mcp ?? {})) {
+    const oc = JSON.parse(readFileSync(ocPath, 'utf-8')) as {
+      mcp?: Record<string, Record<string, unknown>>;
+    };
+    // El formato actual anida los servers en `mcp.servers` (reestructuración
+    // 2026-11-13, commit 568c70ee7); el formato viejo los colgaba de `mcp` —
+    // soportar ambos para que el inventario no quede silenciosamente vacío.
+    const ocMcp = (oc.mcp?.servers ?? oc.mcp ?? {}) as Record<string, Record<string, unknown>>;
+    for (const [name, s] of Object.entries(ocMcp)) {
       if (!s.enabled) continue;
       if (s.type === 'remote') {
         // Remote con headers configurados (auth bearer) SÍ se inventaría vía HTTP;
@@ -131,16 +148,29 @@ export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec
       }
       const heavy = name === 'chrome-devtools';
       if (heavy && !includeHeavy) continue;
-      let command = String(s.command);
-      // opencode.json declara args como string ("codegraph serve --mcp") o array
-      // (["--import","tsx",...]); normalizar ambos formatos.
-      const rawArgs: unknown = s.args;
-      let args = Array.isArray(rawArgs) ? (rawArgs as unknown[]).map((v) => String(v)) : parseArgString(rawArgs);
-      if (args.length === 0 && command.includes(' ')) {
-        // opencode.json declara comando compuesto ("codegraph serve --mcp") como string
-        const parts = command.split(/\s+/);
-        command = parts[0];
+      // opencode.json (formato 2026-11-13) puede declarar `command` como array
+      // (["codegraph","serve","--mcp"]) o como string compuesto
+      const cmdRaw: unknown = s.command;
+      let command: string;
+      let args: string[];
+      if (Array.isArray(cmdRaw)) {
+        const parts = cmdRaw.map((v) => String(v));
+        command = parts[0] ?? '';
         args = parts.slice(1);
+      } else {
+        command = String(cmdRaw);
+        // opencode.json declara args como string ("codegraph serve --mcp") o array
+        // (["--import","tsx",...]); normalizar ambos formatos.
+        const rawArgs: unknown = s.args;
+        args = Array.isArray(rawArgs)
+          ? (rawArgs as unknown[]).map((v) => String(v))
+          : parseArgString(rawArgs);
+        if (args.length === 0 && command.includes(' ')) {
+          // opencode.json declara comando compuesto ("codegraph serve --mcp") como string
+          const parts = command.split(/\s+/);
+          command = parts[0];
+          args = parts.slice(1);
+        }
       }
       specs.push({ name, source: 'opencode', command, args, heavy });
     }
@@ -162,7 +192,9 @@ export function signatureOf(spec: ServerSpec): string {
   return `${cmd}|${spec.args.join(' ')}`;
 }
 
-export function dedupeServerSpecs(specs: readonly ServerSpec[]): Array<{ spec: ServerSpec; isPrimary: boolean; primaryName: string }> {
+export function dedupeServerSpecs(
+  specs: readonly ServerSpec[],
+): Array<{ spec: ServerSpec; isPrimary: boolean; primaryName: string }> {
   const bySignature = new Map<string, { spec: ServerSpec; index: number }>();
   const out: Array<{ spec: ServerSpec; isPrimary: boolean; primaryName: string }> = [];
   for (const spec of specs) {
@@ -180,7 +212,10 @@ export function dedupeServerSpecs(specs: readonly ServerSpec[]): Array<{ spec: S
 
 // ----------------------------------------------------------------- diff logic
 
-export function diffToolsets(baseline: string[], current: string[]): { added: string[]; removed: string[] } {
+export function diffToolsets(
+  baseline: string[],
+  current: string[],
+): { added: string[]; removed: string[] } {
   const b = new Set(baseline);
   const c = new Set(current);
   return {
@@ -257,7 +292,11 @@ export async function resolveRemoteOAuthToken(serverName: string): Promise<strin
       signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return undefined;
-    const payload = (await res.json()) as { access_token?: string; refresh_token?: string; expires_in?: number };
+    const payload = (await res.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
     if (!payload.access_token) return undefined;
     // El refresh puede ROTAR el refresh_token: persistir el nuevo par en el
     // store de OpenCode (misma estructura) para no invalidar su próxima sesión.
@@ -268,7 +307,8 @@ export async function resolveRemoteOAuthToken(serverName: string): Promise<strin
       if (e?.tokens) {
         e.tokens.accessToken = payload.access_token;
         if (payload.refresh_token) e.tokens.refreshToken = payload.refresh_token;
-        if (typeof payload.expires_in === 'number') e.tokens.expiresAt = Date.now() / 1000 + payload.expires_in;
+        if (typeof payload.expires_in === 'number')
+          e.tokens.expiresAt = Date.now() / 1000 + payload.expires_in;
         writeFileSync(path, JSON.stringify(store, null, 2), 'utf-8');
       }
     } catch {
@@ -281,15 +321,22 @@ export async function resolveRemoteOAuthToken(serverName: string): Promise<strin
 }
 
 async function listToolsFor(spec: ServerSpec): Promise<InventoryServer> {
-  const base: InventoryServer = { name: spec.name, source: spec.source, command: `${spec.command} ${spec.args.join(' ')}`.trim(), tools: [] };
+  const base: InventoryServer = {
+    name: spec.name,
+    source: spec.source,
+    command: `${spec.command} ${spec.args.join(' ')}`.trim(),
+    tools: [],
+  };
   // Remote: con headers declarados (bearer) o con token OAuth de OpenCode se
   // inventaría vía HTTP streamable; sin credencial queda diferido (no es fallo).
   if (spec.url && !spec.headers) {
     const oauthToken = await resolveRemoteOAuthToken(spec.name);
-    if (!oauthToken) return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
+    if (!oauthToken)
+      return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
     spec = { ...spec, headers: { Authorization: `Bearer ${oauthToken}` } };
   }
-  if (spec.remoteOauth && !spec.url) return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
+  if (spec.remoteOauth && !spec.url)
+    return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
   try {
     if (spec.url) {
       // Remote MCP con auth vía headers (p.ej. mercadopago bearer): transporte
@@ -311,7 +358,11 @@ async function listToolsFor(spec: ServerSpec): Promise<InventoryServer> {
       }
       return base;
     }
-    const transport = new StdioClientTransport({ command: spec.command, args: spec.args, stderr: 'ignore' });
+    const transport = new StdioClientTransport({
+      command: spec.command,
+      args: spec.args,
+      stderr: 'ignore',
+    });
     const client = new Client({ name: 'gv-mcp-inventory', version: '1.0.0' });
     const timeout = setTimeout(() => transport.close(), CONNECT_TIMEOUT_MS);
     try {
@@ -346,9 +397,16 @@ async function main(argv: readonly string[]): Promise<number> {
     if (!isPrimary) {
       const shared = resolvedByName.get(primaryName);
       if (!shared) continue; // defensa: primary omitido por filtro heavy
-      const inv: InventoryServer = { name: spec.name, source: spec.source, command: shared.command, tools: [...shared.tools] };
+      const inv: InventoryServer = {
+        name: spec.name,
+        source: spec.source,
+        command: shared.command,
+        tools: [...shared.tools],
+      };
       servers.push(inv);
-      console.error(`  ✔ ${inv.name} — ${inv.tools.length} tools (instancia compartida de ${primaryName})`);
+      console.error(
+        `  ✔ ${inv.name} — ${inv.tools.length} tools (instancia compartida de ${primaryName})`,
+      );
       continue;
     }
     const inv = await listToolsFor(spec);
@@ -356,7 +414,8 @@ async function main(argv: readonly string[]): Promise<number> {
     servers.push(inv);
     // El estado lo define el RESULTADO, no la declaración: un remote-oauth con
     // credencial resuelta es un server verificado más.
-    if (inv.error?.startsWith('remote-oauth')) console.error(`  ∼ ${inv.name} — requiere OAuth; inventario diferido`);
+    if (inv.error?.startsWith('remote-oauth'))
+      console.error(`  ∼ ${inv.name} — requiere OAuth; inventario diferido`);
     else if (inv.error) console.error(`  ∅ ${inv.name} — error: ${inv.error}`);
     else console.error(`  ✔ ${inv.name} — ${inv.tools.length} tools${spec.url ? ' (remoto)' : ''}`);
   }
@@ -364,7 +423,11 @@ async function main(argv: readonly string[]): Promise<number> {
   const capturedAt = new Date().toISOString();
   const deferred = servers.filter((s) => s.error?.startsWith('remote-oauth')).length;
   const failed = servers.filter((s) => s.error && !s.error.startsWith('remote-oauth'));
-  const coverage = { verified: servers.filter((s) => !s.error).length, deferred, failed: failed.length };
+  const coverage = {
+    verified: servers.filter((s) => !s.error).length,
+    deferred,
+    failed: failed.length,
+  };
   const payload = { capturedAt, servers, coverage };
   mkdirSync(OUT_DIR, { recursive: true });
   writeFileSync(LATEST, JSON.stringify(payload, null, 2), 'utf-8');
@@ -375,8 +438,12 @@ async function main(argv: readonly string[]): Promise<number> {
   }
 
   let code = failed.length > 0 ? 1 : 0;
-  if (failed.length > 0) console.error(`[mcp-inventory] captura incompleta: ${failed.length} servidor(es) no disponibles`);
-  if (deferred > 0) console.error(`[mcp-inventory] cobertura diferida: ${deferred} conexión(es) requieren OAuth`);
+  if (failed.length > 0)
+    console.error(
+      `[mcp-inventory] captura incompleta: ${failed.length} servidor(es) no disponibles`,
+    );
+  if (deferred > 0)
+    console.error(`[mcp-inventory] cobertura diferida: ${deferred} conexión(es) requieren OAuth`);
   if (flags.has('diff')) {
     if (!existsSync(BASELINE)) {
       if (code !== 0) {
@@ -407,7 +474,9 @@ async function main(argv: readonly string[]): Promise<number> {
       }
       const d = diffToolsets(prev, s.tools);
       if (d.added.length > 0 || d.removed.length > 0) {
-        console.error(`[mcp-inventory] DRIFT ${s.source}:${s.name} added=[${d.added.join(', ')}] removed=[${d.removed.join(', ')}]`);
+        console.error(
+          `[mcp-inventory] DRIFT ${s.source}:${s.name} added=[${d.added.join(', ')}] removed=[${d.removed.join(', ')}]`,
+        );
         code = 1;
       }
     }
@@ -426,10 +495,14 @@ async function main(argv: readonly string[]): Promise<number> {
   return code;
 }
 
-const invoked = ['mcp-inventory.ts', 'mcp-inventory.js'].includes(process.argv[1]?.split(/[\\/]/).pop() ?? '');
+const invoked = ['mcp-inventory.ts', 'mcp-inventory.js'].includes(
+  process.argv[1]?.split(/[\\/]/).pop() ?? '',
+);
 if (invoked) {
   main(process.argv.slice(2))
-    .then((c) => { process.exitCode = c; })
+    .then((c) => {
+      process.exitCode = c;
+    })
     .catch((e: unknown) => {
       console.error(`[mcp-inventory] fatal: ${e instanceof Error ? e.message : String(e)}`);
       process.exitCode = 1;
