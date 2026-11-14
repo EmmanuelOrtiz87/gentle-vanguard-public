@@ -36,6 +36,15 @@ export interface SessionValidation {
   sessionFileExists: boolean;
   nexusHasActive: boolean;
   isSameAgent: boolean;
+  /**
+   * Tres estados, no dos. `isSameAgent` solo puede ser true cuando este proceso
+   * TRAE la env var que creo la sesion; un CLI aparte (el autostart detached, un
+   * `npm run session:validate`, un doctor) no la tiene nunca. Colapsar "no puedo
+   * probarlo" en "es otro agente" hacia que todo autostart se autodiagnosticara
+   * como distinto y corriera cleanup sobre la sesion viva (medido 2026-11-14:
+   * sessionAge 0, status active, isSameAgent false, cleanup-first).
+   */
+  ownership: 'proven-same' | 'proven-different' | 'unknown';
   isNestedSession: boolean;
   sessionAge: number; // minutes
   sessionId: string | null;
@@ -85,6 +94,40 @@ function checkNexusActiveSession(): boolean {
 }
 
 /**
+ * Decide el destino de la sesion a partir de EVIDENCIA, no de la ausencia de ella.
+ *
+ * Contrato (medido 2026-11-14):
+ *   - Hay sesion activa + propiedad desconocida -> 'reuse'. No se puede probar que
+ *     sea de otro agente, y cleanup borra archivos: borrar sin evidencia destruye
+ *     la sesion viva. Un diagnostico inventado es peor que un no-diagnostico.
+ *   - Hay sesion activa + propiedad probada de OTRO agente -> 'cleanup-first'.
+ *   - Hay sesion activa + propiedad probada de este proceso -> 'reuse'.
+ *   - Archivo con status active/otro pero fuera de la ventana de 120 min -> 'cleanup-first'
+ *     (es bookkeeping regenerable, no datos irrecuperables).
+ *   - Archivo ya cerrado/completado -> 'proceed'.
+ *
+ * Funcion pura para poder testearla sin tocar `.session/`.
+ */
+export function decideRecommendation(input: {
+  hasActiveSession: boolean;
+  ownership: SessionValidation['ownership'];
+  isNestedSession: boolean;
+  sessionFileExists: boolean;
+  status: string | null;
+}): ValidationResult['recommendation'] {
+  if (input.hasActiveSession) {
+    if (input.ownership === 'proven-different') return 'cleanup-first';
+    // proven-same y unknown comparten destino: se adopta la sesion existente.
+    return 'reuse';
+  }
+  if (input.isNestedSession) return 'reuse';
+  if (input.sessionFileExists && !['closed', 'completed'].includes(input.status ?? '')) {
+    return 'cleanup-first';
+  }
+  return 'proceed';
+}
+
+/**
  * Valida el estado actual de la sesión
  */
 export async function validateSession(): Promise<ValidationResult> {
@@ -95,6 +138,7 @@ export async function validateSession(): Promise<ValidationResult> {
     sessionFileExists: false,
     nexusHasActive: false,
     isSameAgent: false,
+    ownership: 'unknown',
     isNestedSession: false,
     sessionAge: 0,
     sessionId: null,
@@ -118,10 +162,16 @@ export async function validateSession(): Promise<ValidationResult> {
       validation.hasActiveSession = true;
     }
 
-    // Check if same agent (check environment or tool)
+    // Propiedad de la sesion: tres estados. La env var solo existe en el proceso
+    // que creo la sesion; su AUSENCIA no es evidencia de otro agente.
     const currentAgent = process.env.GENTLE_VANGUARD_SESSION_ID;
     if (currentAgent && currentAgent === validation.sessionId) {
+      validation.ownership = 'proven-same';
       validation.isSameAgent = true;
+    } else if (currentAgent) {
+      validation.ownership = 'proven-different';
+    } else {
+      validation.ownership = 'unknown';
     }
 
     // Check if nested (started within existing session)
@@ -135,22 +185,30 @@ export async function validateSession(): Promise<ValidationResult> {
   validation.nexusHasActive = checkNexusActiveSession();
 
   // 3. Determine recommendation
-  let recommendation: ValidationResult['recommendation'] = 'proceed';
-  let message = '';
+  const recommendation: ValidationResult['recommendation'] = decideRecommendation({
+    hasActiveSession: validation.hasActiveSession,
+    ownership: validation.ownership,
+    isNestedSession: validation.isNestedSession,
+    sessionFileExists: validation.sessionFileExists,
+    status: validation.status,
+  });
 
-  if (validation.hasActiveSession && validation.isSameAgent) {
-    recommendation = 'reuse';
+  let message = '';
+  if (validation.hasActiveSession && validation.ownership === 'proven-same') {
     message = `Active session exists (${validation.sessionId}), same agent detected - reusing`;
-  } else if (validation.hasActiveSession && !validation.isSameAgent) {
-    recommendation = 'cleanup-first';
+  } else if (validation.hasActiveSession && validation.ownership === 'proven-different') {
     message = `Active session exists from different agent - cleanup required first`;
+  } else if (validation.hasActiveSession) {
+    // Sin env var no se puede probar la propiedad: se adopta, nunca se borra.
+    message = `Active session exists (${validation.sessionId}); ownership not provable from this process - reusing`;
   } else if (validation.isNestedSession) {
-    recommendation = 'reuse';
     message = 'Nested session detected - using parent session';
-  } else if (validation.sessionFileExists && !validation.hasActiveSession && !['closed', 'completed'].includes(validation.status ?? '')) {
-    recommendation = 'cleanup-first';
+  } else if (recommendation === 'cleanup-first') {
     message = 'Stale session file exists - cleanup required';
-  } else if (validation.sessionFileExists && ['closed', 'completed'].includes(validation.status ?? '')) {
+  } else if (
+    validation.sessionFileExists &&
+    ['closed', 'completed'].includes(validation.status ?? '')
+  ) {
     message = `Session already ${validation.status} - no cleanup required`;
   } else {
     message = 'No active session - proceeding with new session';

@@ -2,18 +2,15 @@
 <html lang="en" class="gv-document-page" data-bs-theme="dark">
   <head>
     <meta name="theme-color" content="#0b1020" />
-    <meta name="description" content="📊 Stack Health & Metrics — GentleVanguard — GentleVanguard documentation" />
+    <meta
+      name="description"
+      content="📊 Stack Health & Metrics — GentleVanguard — GentleVanguard documentation"
+    />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>📊 Stack Health & Metrics — GentleVanguard</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="assets/vendor/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de health.html (complementan el design system) --- */
@@ -68,7 +65,9 @@
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
     <script src="assets/js/i18n.js?v=3.0"></script>
     <script src="assets/js/theme-toggle.js?v=2.0"></script>
-<link rel="icon" href="assets/canon/icon.svg"><link rel="stylesheet" href="assets/css/presentation-shell.css?v=1"></head>
+    <link rel="icon" href="assets/canon/icon.svg" />
+    <link rel="stylesheet" href="assets/css/presentation-shell.css?v=1" />
+  </head>
   <body>
     <div class="scroll-progress"></div>
     <div class="gv-grid-bg"></div>
@@ -80,7 +79,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -100,27 +107,85 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
     </header>
-<!-- GV-EVIDENCE-NOTE:START --><aside class="gv-evidence-note" role="note" data-i18n="presentation_evidence_note">Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada y ejecuta el comando indicado antes de tratarlas como vigentes.</aside><!-- GV-EVIDENCE-NOTE:END -->
+    <!-- GV-EVIDENCE-NOTE:START -->
+    <aside class="gv-evidence-note" role="note" data-i18n="presentation_evidence_note">
+      Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados
+      PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada
+      y ejecuta el comando indicado antes de tratarlas como vigentes.
+    </aside>
+    <!-- GV-EVIDENCE-NOTE:END -->
 
     <!-- Hero -->
     <section class="hero" id="overview">
       <div>
-        <span class="hero-badge mb-3">✦ v4.0 — 35 componentes vigilados</span>
-        <h1 class="glow"><i class="bi bi-heart-pulse me-2"></i><span data-i18n="health_h1">Stack Health & Metrics</span></h1>
+        <span class="hero-badge mb-3">✦ v4.0 — 36 componentes vigilados</span>
+        <h1 class="glow">
+          <i class="bi bi-heart-pulse me-2"></i
+          ><span data-i18n="health_h1">Stack Health & Metrics</span>
+        </h1>
         <p class="lead" data-i18n="c_health_2">
-          Monitoreo continuo, 35 componentes vigilados, tests automatizados, y trazabilidad total del
-          stack Gentle-Vanguard
+          Monitoreo continuo, 36 componentes vigilados, tests automatizados, y trazabilidad total
+          del stack Gentle-Vanguard
         </p>
         <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center z-1">
           <a href="index.html" class="btn-gv"><i class="bi bi-book me-1"></i>The Book</a>
@@ -132,11 +197,7 @@
           >
         </div>
       </div>
-    
-        
-      
-        
-      </section>
+    </section>
 
     <!-- 1. Health Dashboard Overview -->
     <section class="fade-in">
@@ -234,7 +295,8 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i><span data-i18n="health_h2_watch">Watchtower — 35 componentes</span>
+          <i class="bi bi-shield-check me-2" style="color: var(--ok)"></i
+          ><span data-i18n="health_h2_watch">Watchtower — 35 componentes</span>
         </h2>
         <p data-i18n="c_health_4">26 componentes monitoreados en cada ciclo de health check</p>
       </div>
@@ -515,7 +577,8 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-database me-2" style="color: var(--p)"></i><span data-i18n="health_h2_nexus">Nexus DB — Operational Database</span>
+          <i class="bi bi-database me-2" style="color: var(--p)"></i
+          ><span data-i18n="health_h2_nexus">Nexus DB — Operational Database</span>
         </h2>
         <p data-i18n="c_health_23">
           SQLite WAL mode, 24 migrations, 45 tables, monitoreado por watchtower
@@ -550,7 +613,8 @@
         <div class="col-12">
           <div class="section-card">
             <h3 class="card-title">
-              <i class="bi bi-list-check me-2" style="color: var(--ok)"></i><span data-i18n="health_h2_cmds">Nexus Commands</span>
+              <i class="bi bi-list-check me-2" style="color: var(--ok)"></i
+              ><span data-i18n="health_h2_cmds">Nexus Commands</span>
             </h3>
             <div class="table-responsive">
               <table class="table-health">
@@ -670,7 +734,8 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-clipboard-data me-2" style="color: var(--wn)"></i><span data-i18n="health_h2_backlog">Backlog & Incident Tracking</span>
+          <i class="bi bi-clipboard-data me-2" style="color: var(--wn)"></i
+          ><span data-i18n="health_h2_backlog">Backlog & Incident Tracking</span>
         </h2>
         <p data-i18n="c_health_35">Sistema completo de trazabilidad en Nexus DB</p>
       </div>
@@ -678,7 +743,8 @@
         <div class="col-lg-6">
           <div class="section-card">
             <h3 class="card-title">
-              <i class="bi bi-bookmark me-2" style="color: var(--p)"></i><span data-i18n="health_h3_fields">Item Fields</span>
+              <i class="bi bi-bookmark me-2" style="color: var(--p)"></i
+              ><span data-i18n="health_h3_fields">Item Fields</span>
             </h3>
             <table class="table-health mt-2">
               <thead>
@@ -792,7 +858,8 @@
         <div class="col-lg-6">
           <div class="section-card">
             <h3 class="card-title">
-              <i class="bi bi-diagram-2 me-2" style="color: var(--a)"></i><span data-i18n="health_h3_relations">Relations & History</span>
+              <i class="bi bi-diagram-2 me-2" style="color: var(--a)"></i
+              ><span data-i18n="health_h3_relations">Relations & History</span>
             </h3>
             <table class="table-health mt-2">
               <thead>
@@ -941,7 +1008,8 @@
     <section class="fade-in">
       <div class="section-title">
         <h2>
-          <i class="bi bi-check2-circle me-2" style="color: var(--ok)"></i><span data-i18n="health_h2_testing">Testing & Quality Gates</span>
+          <i class="bi bi-check2-circle me-2" style="color: var(--ok)"></i
+          ><span data-i18n="health_h2_testing">Testing & Quality Gates</span>
         </h2>
         <p data-i18n="c_health_58">Múltiples capas de verificación antes de cada cambio</p>
       </div>
@@ -979,7 +1047,8 @@
         <div class="col-12">
           <div class="section-card">
             <h3 class="card-title">
-              <i class="bi bi-shield me-2" style="color: var(--p)"></i><span data-i18n="health_h3_gates">Quality Gate Pipeline</span>
+              <i class="bi bi-shield me-2" style="color: var(--p)"></i
+              ><span data-i18n="health_h3_gates">Quality Gate Pipeline</span>
             </h3>
             <ol class="card-text mb-0" style="line-height: 2">
               <li>
@@ -992,8 +1061,8 @@
               </li>
               <li><code>npm test</code> — more than 550 test files, all must pass</li>
               <li>
-                <code>npm run watchtower:health</code> — 35 watched components, each one checked every cycle
-                required
+                <code>npm run watchtower:health</code> — 35 watched components, each one checked
+                every cycle required
               </li>
               <li>
                 <strong>DOCUMENTATION-SYNC-POLICY</strong> — Every change must update all relevant
@@ -1048,9 +1117,16 @@
       </div>
     </section>
 
-<!-- Footer -->
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <!-- Footer -->
+    <footer class="gv-document-footer">
+      <p><strong>GentleVanguard</strong> · v4.4.0</p>
+      <nav aria-label="Documentación">
+        <a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a
+        ><a href="public-presence.html">Estado vigente</a>
+      </nav>
+    </footer>
 
     <script src="assets/js/gv.js?v=2.1"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

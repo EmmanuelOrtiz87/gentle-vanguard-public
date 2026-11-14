@@ -34,14 +34,25 @@ export default {
       layout: 'statement',
       eyebrow: 'Quiénes somos',
       title: 'Un estudio de software que escucha antes de construir',
-      body:
-        'GentleVanguard diseña y construye apps a medida y sistemas empresariales para pymes y empresas que necesitan ordenar procesos, automatizar operaciones y crecer con software confiable. Trabajamos por proyecto, con contratación independiente, desde San Juan, Argentina.',
+      body: 'GentleVanguard diseña y construye apps a medida y sistemas empresariales para pymes y empresas que necesitan ordenar procesos, automatizar operaciones y crecer con software confiable. Trabajamos por proyecto, con contratación independiente, desde San Juan, Argentina.',
       bodyW: 8.2,
       bodySize: 12.5,
       stats: [
-        { value: '15+', label: 'Años de trayectoria', sub: 'Arquitectura de software e IA aplicada en empresas' },
-        { value: '3', label: 'Líneas de servicio', sub: 'Software a medida, automatización e IA aplicada' },
-        { value: '1', label: 'Responsable real', sub: 'El mismo diseño, la misma construcción y la misma entrega' },
+        {
+          value: '15+',
+          label: 'Años de trayectoria',
+          sub: 'Arquitectura de software e IA aplicada en empresas',
+        },
+        {
+          value: '3',
+          label: 'Líneas de servicio',
+          sub: 'Software a medida, automatización e IA aplicada',
+        },
+        {
+          value: '1',
+          label: 'Responsable real',
+          sub: 'El mismo diseño, la misma construcción y la misma entrega',
+        },
       ],
     },
 
@@ -102,14 +113,33 @@ export default {
       layout: 'metrics',
       eyebrow: 'La diferencia',
       title: 'No vendemos horas: operamos sobre una plataforma ya construida',
-      lead:
-        'GentleVanguard es un estudio con un stack propio. Esa plataforma es la que sostiene los tiempos, la calidad y la trazabilidad de cada proyecto.',
+      lead: 'GentleVanguard es un estudio con un stack propio. Esa plataforma es la que sostiene los tiempos, la calidad y la trazabilidad de cada proyecto.',
       cols: 4,
       items: [
-        { value: '29', label: 'Apps propias', sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento', accent: '06b6d4' },
-        { value: '20', label: 'Agentes de IA', sub: 'Roles con modelo, permisos y presupuesto asignados', accent: '8b5cf6' },
-        { value: '257', label: 'Skills', sub: 'Capacidades reutilizables que no se reescriben por proyecto', accent: 'fbbf24' },
-        { value: '35', label: 'Componentes vigilados', sub: 'Health checks por componente, con autoheal', accent: '22d3ee' },
+        {
+          value: '30',
+          label: 'Apps propias',
+          sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento',
+          accent: '06b6d4',
+        },
+        {
+          value: '20',
+          label: 'Agentes de IA',
+          sub: 'Roles con modelo, permisos y presupuesto asignados',
+          accent: '8b5cf6',
+        },
+        {
+          value: '257',
+          label: 'Skills',
+          sub: 'Capacidades reutilizables que no se reescriben por proyecto',
+          accent: 'fbbf24',
+        },
+        {
+          value: '36',
+          label: 'Componentes vigilados',
+          sub: 'Health checks por componente, con autoheal',
+          accent: '22d3ee',
+        },
       ],
     },
 
@@ -120,10 +150,26 @@ export default {
       lead: 'Cada capa resuelve una capa de problemas y deja registro de lo que hizo.',
       textW: 3.3,
       items: [
-        { icon: 'layers', heading: 'Capas', body: 'Superficies, orquestación, agentes, skills, conocimiento, herramientas e infraestructura.' },
-        { icon: 'eye', heading: 'Trazabilidad', body: 'Sesiones, trazas, eventos y auditoría con cadena de hash en la base local.' },
-        { icon: 'shield', heading: 'Gobernanza', body: '53 quality gates, escaneo de secretos y políticas fail-closed.' },
-        { icon: 'cloud', heading: 'Local primero', body: 'Funciona en la máquina del equipo y se expone en la nube cuando hace falta.' },
+        {
+          icon: 'layers',
+          heading: 'Capas',
+          body: 'Superficies, orquestación, agentes, skills, conocimiento, herramientas e infraestructura.',
+        },
+        {
+          icon: 'eye',
+          heading: 'Trazabilidad',
+          body: 'Sesiones, trazas, eventos y auditoría con cadena de hash en la base local.',
+        },
+        {
+          icon: 'shield',
+          heading: 'Gobernanza',
+          body: '55 quality gates, escaneo de secretos y políticas fail-closed.',
+        },
+        {
+          icon: 'cloud',
+          heading: 'Local primero',
+          body: 'Funciona en la máquina del equipo y se expone en la nube cuando hace falta.',
+        },
       ],
       layers: [
         { label: 'Herramientas', body: 'CLI, IDEs y superficies de producto', accent: '06b6d4' },
@@ -141,10 +187,26 @@ export default {
       title: 'De la primera conversación a la operación',
       lead: 'Etapas con entregables verificables, no fases indefinidas.',
       items: [
-        { step: '01', heading: 'Entender', body: 'Mapeamos el proceso, los roles y las herramientas actuales.' },
-        { step: '02', heading: 'Definir', body: 'Alcance, etapas, entregables y criterios de aceptación acordados.' },
-        { step: '03', heading: 'Construir', body: 'Primera versión útil, probada y revisada con quienes la van a usar.' },
-        { step: '04', heading: 'Operar', body: 'Puesta en marcha, documentación, capacitación y evolución.' },
+        {
+          step: '01',
+          heading: 'Entender',
+          body: 'Mapeamos el proceso, los roles y las herramientas actuales.',
+        },
+        {
+          step: '02',
+          heading: 'Definir',
+          body: 'Alcance, etapas, entregables y criterios de aceptación acordados.',
+        },
+        {
+          step: '03',
+          heading: 'Construir',
+          body: 'Primera versión útil, probada y revisada con quienes la van a usar.',
+        },
+        {
+          step: '04',
+          heading: 'Operar',
+          body: 'Puesta en marcha, documentación, capacitación y evolución.',
+        },
       ],
     },
 
@@ -156,14 +218,38 @@ export default {
       headers: ['Servicio', 'Rango de referencia (USD)', 'Cuándo tiene sentido'],
       colW: [2.9, 2.3, 3.6],
       rows: [
-        ['Análisis y propuesta', '200 - 400', 'No tenés claro qué construir. Es descontable al firmar.'],
-        ['Landing page / Web corporativa', '350 - 700 / 900 - 1.800', 'Necesitás presencia propia y una forma simple de recibir consultas.'],
-        ['App web con integraciones', '3.500 - 8.000', 'El proceso ya vive en varias herramientas y hay que conectarlas.'],
+        [
+          'Análisis y propuesta',
+          '200 - 400',
+          'No tenés claro qué construir. Es descontable al firmar.',
+        ],
+        [
+          'Landing page / Web corporativa',
+          '350 - 700 / 900 - 1.800',
+          'Necesitás presencia propia y una forma simple de recibir consultas.',
+        ],
+        [
+          'App web con integraciones',
+          '3.500 - 8.000',
+          'El proceso ya vive en varias herramientas y hay que conectarlas.',
+        ],
         ['App móvil MVP', '3.000 - 6.000', 'El equipo necesita operar fuera del escritorio.'],
-        ['Bot de WhatsApp simple / híbrido con IA', '1.500 - 2.500 / 3.500 - 5.000', 'Hay atención repetitiva que se puede automatizar.'],
-        ['Agente de IA con RAG', '4.000 - 8.000', 'La consulta necesita responder sobre documentación propia.'],
+        [
+          'Bot de WhatsApp simple / híbrido con IA',
+          '1.500 - 2.500 / 3.500 - 5.000',
+          'Hay atención repetitiva que se puede automatizar.',
+        ],
+        [
+          'Agente de IA con RAG',
+          '4.000 - 8.000',
+          'La consulta necesita responder sobre documentación propia.',
+        ],
         ['CRM a medida', '5.000 - 15.000', 'El seguimiento comercial vive disperso.'],
-        ['Mantenimiento y soporte', '90 - 250 por mes', 'Ya hay un sistema y hace falta sostenerlo y evolucionarlo.'],
+        [
+          'Mantenimiento y soporte',
+          '90 - 250 por mes',
+          'Ya hay un sistema y hace falta sostenerlo y evolucionarlo.',
+        ],
       ],
     },
 
@@ -180,8 +266,12 @@ export default {
         items: [
           { text: 'Precios cerrados por hito y alcance acotado antes de empezar.' },
           { text: 'Diagnóstico documentado: mapa de procesos, riesgos y roadmap por etapas.' },
-          { text: 'Código, documentación y criterios de entrega bajo un único criterio de calidad.' },
-          { text: 'Capacidades reutilizadas entre proyectos: lo que ya se resolvió no se vuelve a pagar.' },
+          {
+            text: 'Código, documentación y criterios de entrega bajo un único criterio de calidad.',
+          },
+          {
+            text: 'Capacidades reutilizadas entre proyectos: lo que ya se resolvió no se vuelve a pagar.',
+          },
           { text: 'Continuidad después de la entrega: soporte, mejoras y nuevas integraciones.' },
           { text: 'Formación propia: GV Academy para que el equipo adopte el sistema.' },
         ],
@@ -192,11 +282,23 @@ export default {
         icon: 'cross',
         accent: '8b95a8',
         items: [
-          { text: 'Alcance difuso que se ajusta sobre la marcha, con el costo como variable.', mark: 'warn' },
-          { text: 'Entrega de un software sin proceso documentado ni operación transferida.', mark: 'warn' },
+          {
+            text: 'Alcance difuso que se ajusta sobre la marcha, con el costo como variable.',
+            mark: 'warn',
+          },
+          {
+            text: 'Entrega de un software sin proceso documentado ni operación transferida.',
+            mark: 'warn',
+          },
           { text: 'Cada proyecto vuelve a resolver los mismos problemas de base.', mark: 'warn' },
-          { text: 'Sin transferencia de conocimiento: el sistema depende de una sola persona.', mark: 'cross' },
-          { text: 'Sin continuidad acordada: el sistema envejece sin ruta de evolución.', mark: 'cross' },
+          {
+            text: 'Sin transferencia de conocimiento: el sistema depende de una sola persona.',
+            mark: 'cross',
+          },
+          {
+            text: 'Sin continuidad acordada: el sistema envejece sin ruta de evolución.',
+            mark: 'cross',
+          },
           { text: 'Sin formación: la adopción queda en manos del proveedor.', mark: 'cross' },
         ],
       },
@@ -209,27 +311,63 @@ export default {
       lead: 'Catálogo abierto y en funcionamiento: 89 productos sobre IA aplicada, software y negocio.',
       cols: 4,
       items: [
-        { value: '30', label: 'Cursos', sub: 'Con 429 horas de contenido en video', accent: '06b6d4' },
-        { value: '33', label: 'Ebooks', sub: '2.634 páginas, 18 de ellos en edición premium', accent: '8b5cf6' },
-        { value: '26', label: 'Toolkits', sub: 'Prompts y flujos listos para aplicar', accent: 'fbbf24' },
-        { value: '89', label: 'Productos', sub: 'Publicados y vendibles de forma individual', accent: '22d3ee' },
+        {
+          value: '30',
+          label: 'Cursos',
+          sub: 'Con 429 horas de contenido en video',
+          accent: '06b6d4',
+        },
+        {
+          value: '33',
+          label: 'Ebooks',
+          sub: '2.634 páginas, 18 de ellos en edición premium',
+          accent: '8b5cf6',
+        },
+        {
+          value: '26',
+          label: 'Toolkits',
+          sub: 'Prompts y flujos listos para aplicar',
+          accent: 'fbbf24',
+        },
+        {
+          value: '89',
+          label: 'Productos',
+          sub: 'Publicados y vendibles de forma individual',
+          accent: '22d3ee',
+        },
       ],
     },
 
     {
       layout: 'figure',
       eyebrow: 'Prueba de trabajo',
-      title: 'Esto ya está corriendo: 29 desarrollos propios',
+      title: 'Esto ya está corriendo: 30 desarrollos propios',
       lead: 'No son productos en catálogo ni casos de clientes. Son sistemas que construimos y que hoy funcionan.',
       textW: 3.5,
       image: 'stack-dashboard.png',
       imageAlt: 'Arquitectura del dashboard de observabilidad del stack',
       caption: 'Dashboard de observabilidad del stack, alimentado con trazas reales',
       items: [
-        { icon: 'academy', heading: 'GV Academy', body: 'Plataforma de estudio, portal, CRM y catálogo de 89 productos.' },
-        { icon: 'mobile', heading: 'Bot de WhatsApp', body: 'Atención conversacional determinista con entrega en producción.' },
-        { icon: 'chart', heading: 'Observabilidad', body: 'Dashboard con métricas, trazas, alertas y feedback en vivo.' },
-        { icon: 'boxes', heading: 'Centro de comandos', body: 'Ciclo de vida de las apps: arranque, estado y logs.' },
+        {
+          icon: 'academy',
+          heading: 'GV Academy',
+          body: 'Plataforma de estudio, portal, CRM y catálogo de 89 productos.',
+        },
+        {
+          icon: 'mobile',
+          heading: 'Bot de WhatsApp',
+          body: 'Atención conversacional determinista con entrega en producción.',
+        },
+        {
+          icon: 'chart',
+          heading: 'Observabilidad',
+          body: 'Dashboard con métricas, trazas, alertas y feedback en vivo.',
+        },
+        {
+          icon: 'boxes',
+          heading: 'Centro de comandos',
+          body: 'Ciclo de vida de las apps: arranque, estado y logs.',
+        },
       ],
     },
 
@@ -237,14 +375,25 @@ export default {
       layout: 'statement',
       eyebrow: 'El primer paso',
       title: 'La primera consulta es sin cargo',
-      body:
-        'Nos juntamos, entendemos tu operación y te llevás un análisis claro con una propuesta por etapas y precios cerrados por hito. Después decidís si avanzamos. Si no avanzamos, igual te queda el diagnóstico.',
+      body: 'Nos juntamos, entendemos tu operación y te llevás un análisis claro con una propuesta por etapas y precios cerrados por hito. Después decidís si avanzamos. Si no avanzamos, igual te queda el diagnóstico.',
       bodyW: 8.2,
       bodySize: 13,
       stats: [
-        { value: 'Sin cargo', label: 'Diagnóstico inicial', sub: 'Incluye mapa de procesos y roadmap por etapas' },
-        { value: '50/40/10', label: 'Hitos de pago', sub: 'Precio fijo cerrado por hito, con pagos adelantados' },
-        { value: '30 días', label: 'Garantía', sub: 'Garantía por producto al cierre de la entrega' },
+        {
+          value: 'Sin cargo',
+          label: 'Diagnóstico inicial',
+          sub: 'Incluye mapa de procesos y roadmap por etapas',
+        },
+        {
+          value: '50/40/10',
+          label: 'Hitos de pago',
+          sub: 'Precio fijo cerrado por hito, con pagos adelantados',
+        },
+        {
+          value: '30 días',
+          label: 'Garantía',
+          sub: 'Garantía por producto al cierre de la entrega',
+        },
       ],
     },
 
@@ -252,10 +401,7 @@ export default {
       layout: 'closing',
       title: 'Empecemos por entender tu operación',
       body: 'Una conversación de diagnóstico alcanza para saber si hay un proyecto acá, y cuánto vale. Sin compromiso.',
-      ctas: [
-        { label: 'Quiero mi diagnóstico sin cargo' },
-        { label: 'Ver el catálogo' },
-      ],
+      ctas: [{ label: 'Quiero mi diagnóstico sin cargo' }, { label: 'Ver el catálogo' }],
       contacts: [
         'WhatsApp: +54 9 264 545-2221',
         'Correo: gentlevanguard@gmail.com',

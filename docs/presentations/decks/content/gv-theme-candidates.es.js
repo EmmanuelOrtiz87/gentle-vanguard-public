@@ -32,8 +32,7 @@ export default {
       layout: 'statement',
       eyebrow: 'Registro de decisión',
       title: 'La dirección visual ya está decidida: canon oscuro, superficie por layout',
-      body:
-        'Este deck comparó tres direcciones visuales antes de construir los decks reales. La comparación se hizo y el resultado no fue un ganador único: el canon oscuro se adoptó como base, la regla de superficie por layout se quedó y el deck enteramente claro quedó descartado. Los tres decks de producción se construyen con esa combinación.',
+      body: 'Este deck comparó tres direcciones visuales antes de construir los decks reales. La comparación se hizo y el resultado no fue un ganador único: el canon oscuro se adoptó como base, la regla de superficie por layout se quedó y el deck enteramente claro quedó descartado. Los tres decks de producción se construyen con esa combinación.',
       bodyW: 8.6,
       bodySize: 12,
       stats: [
@@ -65,7 +64,12 @@ export default {
       rows: [
         ['Fondo en sala con luz', 'Se pierde', 'Correcto', 'Portadas fuertes, contenido claro'],
         ['Impresión', 'No sirve', 'La opción fuerte', 'Parcial'],
-        ['Acento como texto', 'Legible sobre fondo oscuro', 'Exige variante clara', 'Exige variante por superficie'],
+        [
+          'Acento como texto',
+          'Legible sobre fondo oscuro',
+          'Exige variante clara',
+          'Exige variante por superficie',
+        ],
         ['Arte de portada', 'Integrado', 'No', 'Integrado en portadas'],
         ['Estado final', 'Base del canon', 'Descartado', 'Regla de superficie'],
       ],
@@ -160,8 +164,7 @@ export default {
     {
       layout: 'closing',
       title: 'Una base, una regla, un juego de layouts',
-      body:
-        'Todo deck nuevo sale del mismo canon: los mismos tokens, la misma regla de superficie y los mismos gates. Si el canon cambia, se cambia una vez y todos los decks lo siguen.',
+      body: 'Todo deck nuevo sale del mismo canon: los mismos tokens, la misma regla de superficie y los mismos gates. Si el canon cambia, se cambia una vez y todos los decks lo siguen.',
       ctas: [{ label: 'Toolkit de presentaciones' }, { label: 'Skill gv-presentations' }],
       note: 'Este deck es un registro interno de decisión de diseño, no material de venta.',
     },

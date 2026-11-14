@@ -108,8 +108,7 @@ window.__GV_CONTENT.en = {
   c_autonomy_13: 'Protocol: full system halt, human override required, post-mortem trigger',
   c_autonomy_14:
     'Experiments are evaluated with statistical rigor. Negative results trigger automatic\n              rollback to the control variant.',
-  c_autonomy_15:
-    '35 watched components with 6 operational modes. Auto-heal on failure.',
+  c_autonomy_15: '35 watched components with 6 operational modes. Auto-heal on failure.',
   c_autonomy_16:
     'Detection → Evaluation → Decision → Execution → Verification → Learning — el ciclo\n          continuo del Executive Layer. Pasa el cursor sobre los nodos para explorar cada etapa.',
   c_dashboard_2:
@@ -132,7 +131,7 @@ window.__GV_CONTENT.en = {
   c_dashboard_18:
     'Arquitectura del dashboard de observabilidad — WS + REST, 7 secciones, i18n, alertas',
   c_health_2:
-    'Monitoreo continuo, 35 componentes vigilados, tests automatizados, y trazabilidad total del\n          stack Gentle-Vanguard',
+    'Monitoreo continuo, 36 componentes vigilados, tests automatizados, y trazabilidad total del\n          stack Gentle-Vanguard',
   c_health_3: 'Estado actual del stack en tiempo real',
   c_health_4: '35 componentes monitoreados en cada ciclo de health check',
   c_health_5: 'Dashboard WS server, API 200, watchdog PID',
@@ -211,10 +210,12 @@ window.__GV_CONTENT.en = {
   c_index_11: '3-tier escalation (3→5→10 failures) with audit trail and findings ledger',
   c_index_12: 'createExperiment, assignVariant, evaluateExperiment, auto-rollback on degradation',
   c_index_13: 'Auto-compare scores, detect regression >15%, anomaly detection',
-  c_index_14: 'Watchtower runs health checks and repair/report modes; current results require a fresh run.',
+  c_index_14:
+    'Watchtower runs health checks and repair/report modes; current results require a fresh run.',
   c_index_15:
     'Local operational database; schema counts are installation-specific. Check live health before reporting status.',
-  c_index_16: 'Risk-based automation with verification and human approval for consequential changes',
+  c_index_16:
+    'Risk-based automation with verification and human approval for consequential changes',
   c_index_17:
     '3 trigger sources: predictive-governor (budget), skill-evolution (deprecation),\n              auto-norm-learner (norms)',
   c_index_18:
@@ -289,7 +290,7 @@ window.__GV_CONTENT.en = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: 'More than 550 Test Files',
-  c_index_89: '35 components watched by the watchtower',
+  c_index_89: '36 components watched by the watchtower',
   c_index_90: 'Code Review Standards (multi-axis)',
   c_index_91: 'Karpathy Guidelines (coding standards)',
   c_index_92: 'SDD (Spec-Driven Development) workflow',
@@ -297,7 +298,8 @@ window.__GV_CONTENT.en = {
   c_index_94: 'Real-time health and performance data — every watched component reported live',
   c_index_95: '10 chapters covering the complete Gentle-Vanguard stack',
   c_index_96: '🏗️ Architecture',
-  c_index_97: 'Deep architecture, 6 layers, current operational state, pipeline topology, system design decisions',
+  c_index_97:
+    'Deep architecture, 6 layers, current operational state, pipeline topology, system design decisions',
   c_index_98: '🤖 Autonomy',
   c_index_99: 'Auto-apply safe, circuit breaker, auto-escalation, AB testing, session scoring',
   c_index_100: '📊 Dashboard',
@@ -554,7 +556,8 @@ window.__GV_CONTENT.en = {
   nav_study: 'Study',
   c_cmd_hero: 'Complete catalog of',
   sec_cmd_intro: 'How to use this catalog',
-  c_cmd_intro_text: 'All commands run from the repo root with npm run <script>. They require no AI involvement: they are direct tools to operate, verify and maintain the stack. Use the search box to filter by name, description or reference.',
+  c_cmd_intro_text:
+    'All commands run from the repo root with npm run <script>. They require no AI involvement: they are direct tools to operate, verify and maintain the stack. Use the search box to filter by name, description or reference.',
   sec_cmd_session: 'Session & Stack',
   c_cmd_session_intro: '22 commands — all manually executable without depending on the AI.',
   sec_cmd_health: 'Health & Maintenance',
@@ -582,29 +585,46 @@ window.__GV_CONTENT.en = {
   tip_dashboard_budget: 'Daily 5M tokens, per-session 3M. Soft 70%, hard 90% thresholds.',
   tip_dashboard_watchdog: 'Auto-restart on failure (10 attempts). Port health check every 5s.',
   sec_gloss_intro: 'Alphabetical Index',
-  c_gloss_intro_text: 'Words, acronyms, synonyms, meanings, concepts and nomenclatures of the stack, sorted alphabetically. Use the A-Z bar to jump to a letter.',
-  tip_backlogrepo: 'backlog — pending work items and feature requests tracked for autonomous execution planning.',
-  tip_authsessionrepo: 'auth_sessions — session authentication state, tokens and expiry for the stack\'s own services.',
-  tip_tokenrepo: 'token_usage + token_transactions + token_savings — real token accounting per message/agent with cache and compression savings.',
-  tip_principalrepo: 'principals — identity and permission records for agents and services in the stack.',
-  tip_contentosrepo: 'content_os — content operations state for the CMS and content pipeline (academy, marketing, docs).',
-  tip_fm_124: 'Class-based reaper: duplicate daemons (pidfile/port keeper), hung one-shots, aged daemons >24h, stale PID files and headless-chrome residue — wired into autostart (phase 1), watchtower (check + autoheal) and session-close.',
-  tip_fm_125: 'gentle-vanguard.sdd-research/v1 artifact per SDD case: deterministic search + CRAG BM25 grading, claim-to-source mapping scaffolds, fail-closed without a case; PROPOSE cites the evidence automatically.',
-  tip_fm_126: 'Evidence-based risk tiers (0/1/4 lenses), 4R review (Risk, Readability, Reliability, Resilience), receipts bound to the frozen Git SHA, 5 delivery gates, kill-switch with 24h expiry, retention prune.',
-  c_index_121: '280 alphabetical stack terms with A-Z navigation — acronyms, concepts, tools, standards and nomenclatures',
+  c_gloss_intro_text:
+    'Words, acronyms, synonyms, meanings, concepts and nomenclatures of the stack, sorted alphabetically. Use the A-Z bar to jump to a letter.',
+  tip_backlogrepo:
+    'backlog — pending work items and feature requests tracked for autonomous execution planning.',
+  tip_authsessionrepo:
+    "auth_sessions — session authentication state, tokens and expiry for the stack's own services.",
+  tip_tokenrepo:
+    'token_usage + token_transactions + token_savings — real token accounting per message/agent with cache and compression savings.',
+  tip_principalrepo:
+    'principals — identity and permission records for agents and services in the stack.',
+  tip_contentosrepo:
+    'content_os — content operations state for the CMS and content pipeline (academy, marketing, docs).',
+  tip_fm_124:
+    'Class-based reaper: duplicate daemons (pidfile/port keeper), hung one-shots, aged daemons >24h, stale PID files and headless-chrome residue — wired into autostart (phase 1), watchtower (check + autoheal) and session-close.',
+  tip_fm_125:
+    'gentle-vanguard.sdd-research/v1 artifact per SDD case: deterministic search + CRAG BM25 grading, claim-to-source mapping scaffolds, fail-closed without a case; PROPOSE cites the evidence automatically.',
+  tip_fm_126:
+    'Evidence-based risk tiers (0/1/4 lenses), 4R review (Risk, Readability, Reliability, Resilience), receipts bound to the frozen Git SHA, 5 delivery gates, kill-switch with 24h expiry, retention prune.',
+  c_index_121:
+    '280 alphabetical stack terms with A-Z navigation — acronyms, concepts, tools, standards and nomenclatures',
   c_index_122: '🎓 Study Material',
-  c_index_123: '42 concepts across 7 domains — engineering, AI/LLM, infra, databases, protocols, testing and UX, each with exercises',
+  c_index_123:
+    '42 concepts across 7 domains — engineering, AI/LLM, infra, databases, protocols, testing and UX, each with exercises',
   sec_optimization: 'Consumption Optimization',
-  c_optimization_intro: 'Token optimization on 4 fronts: session start, session close, delegation and cache. Real savings from stack compression and routing.',
-  tip_memory_engram: 'Persistent memory: 3,600+ observations, 398+ sessions. SHA256 integrity, survives compactions.',
-  tip_memory_codegraph: 'Knowledge graph: 10,000+ nodes, 20,000+ edges. Sub-millisecond symbol queries.',
-  tip_memory_graphify: 'Community detection, god nodes, cross-file relationships. GraphML + visualizations.',
+  c_optimization_intro:
+    'Token optimization on 4 fronts: session start, session close, delegation and cache. Real savings from stack compression and routing.',
+  tip_memory_engram:
+    'Persistent memory: 3,600+ observations, 398+ sessions. SHA256 integrity, survives compactions.',
+  tip_memory_codegraph:
+    'Knowledge graph: 10,000+ nodes, 20,000+ edges. Sub-millisecond symbol queries.',
+  tip_memory_graphify:
+    'Community detection, god nodes, cross-file relationships. GraphML + visualizations.',
   tip_memory_nexus: 'SQLite WAL mode, 45 tables, 24 migrations. Auto-init, prune, backup.',
   tip_memory_ml: 'Embeddings for semantic search, skill matching, pattern recognition.',
   tip_memory_vault: 'Structured knowledge: skills, patterns, decisions, conventions, standards.',
-  tip_patterns_brand: 'Voice: warm, direct, collaborative. Visual: glassmorphism, aurora gradients.',
+  tip_patterns_brand:
+    'Voice: warm, direct, collaborative. Visual: glassmorphism, aurora gradients.',
   sec_study_intro: 'How to use this material',
-  c_study_intro_text: 'Each concept explains the theory and how it was applied in the stack, with references to real files in src/, config/ and docs/.',
+  c_study_intro_text:
+    'Each concept explains the theory and how it was applied in the stack, with references to real files in src/, config/ and docs/.',
   sec_study_se: 'Software Engineering Fundamentals',
   sec_study_ai: 'AI / LLM Fundamentals',
   sec_study_infra: 'Infrastructure & Operations',
@@ -723,8 +743,7 @@ window.__GV_CONTENT.es = {
     'Protocolo: detención completa del sistema, se requiere intervención humana,\n              activación del post-mortem',
   c_autonomy_14:
     'Los experimentos se evalúan con rigor estadístico. Los resultados negativos\n              activan un rollback automático a la variante de control.',
-  c_autonomy_15:
-    '35 componentes vigilados con 6 modos operativos, con autoheal.',
+  c_autonomy_15: '36 componentes vigilados con 6 modos operativos, con autoheal.',
   c_autonomy_16:
     'Detección → Evaluación → Decisión → Ejecución → Verificación → Aprendizaje — el\n          ciclo continuo del Executive Layer. Pasa el cursor sobre los nodos para explorar cada\n          etapa.',
   c_dashboard_2:
@@ -750,7 +769,7 @@ window.__GV_CONTENT.es = {
   c_dashboard_18:
     'Arquitectura del dashboard de observabilidad — WS + REST, 7 secciones, i18n, alertas',
   c_health_2:
-    'Monitoreo continuo, 35 componentes vigilados, tests automatizados y trazabilidad total del\n          stack Gentle-Vanguard',
+    'Monitoreo continuo, 36 componentes vigilados, tests automatizados y trazabilidad total del\n          stack Gentle-Vanguard',
   c_health_3: 'Estado actual del stack en tiempo real',
   c_health_4: '35 componentes monitoreados en cada ciclo de health check',
   c_health_5: 'Servidor WS del Dashboard, API 200, PID del watchdog',
@@ -813,7 +832,8 @@ window.__GV_CONTENT.es = {
   c_health_62: 'Watchtower espera que cada componente pase en cada ciclo',
   c_health_63: 'Arquitectura y observabilidad del stack en un vistazo',
   c_health_64: 'Gentle-Vanguard — Stack Autónomo de Desarrollo de IA',
-  c_index_2: 'Vista general de la arquitectura de seis capas; el estado operativo varía por instalación',
+  c_index_2:
+    'Vista general de la arquitectura de seis capas; el estado operativo varía por instalación',
   c_index_3: 'Los subsistemas integrados apoyan el ciclo de vida de desarrollo',
   c_index_4:
     'Inicio de sesión paralelo y tareas diferidas seleccionadas; los pasos exactos dependen de la configuración.',
@@ -836,7 +856,8 @@ window.__GV_CONTENT.es = {
     'Watchtower ejecuta verificaciones de salud y modos de reparación/reporte; los resultados requieren una ejecución actual.',
   c_index_15:
     'Base de datos operacional local; las cifras del esquema dependen de la instalación. Verifica la salud actual antes de informar el estado.',
-  c_index_16: 'Automatización basada en riesgo, con verificaciones y aprobación humana para cambios sensibles',
+  c_index_16:
+    'Automatización basada en riesgo, con verificaciones y aprobación humana para cambios sensibles',
   c_index_17:
     '3 fuentes de trigger: predictive-governor (presupuesto), skill-evolution (obsolescencia),\n              auto-norm-learner (normas)',
   c_index_18:
@@ -916,12 +937,13 @@ window.__GV_CONTENT.es = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: 'Más de 550 archivos de test',
-  c_index_89: '35 componentes vigilados por el watchtower',
+  c_index_89: '36 componentes vigilados por el watchtower',
   c_index_90: 'Estándares de Revisión de Código (multieje)',
   c_index_91: 'Pautas de Karpathy (estándares de codificación)',
   c_index_92: 'Flujo de trabajo SDD (Spec-Driven Development)',
   c_index_93: '257 skills · 60+ normativas — inteligencia organizada en 9 categorías',
-  c_index_94: 'Datos de salud y rendimiento en tiempo real — cada componente vigilado reportado en vivo',
+  c_index_94:
+    'Datos de salud y rendimiento en tiempo real — cada componente vigilado reportado en vivo',
   c_index_95: '10 capítulos que cubren el stack completo de Gentle-Vanguard',
   c_index_96: '🏗️ Arquitectura',
   c_index_97:
@@ -949,7 +971,7 @@ window.__GV_CONTENT.es = {
     'Pautas de Karpathy, patrones de diseño, contratos SDD, convenciones de codificación',
   c_index_114: '📈 Salud y Métricas del Stack',
   c_index_115:
-    '35 componentes vigilados, watchtower, KPIs de rendimiento, observabilidad del sistema, seguimiento del backlog',
+    '36 componentes vigilados, watchtower, KPIs de rendimiento, observabilidad del sistema, seguimiento del backlog',
   c_index_116:
     'Arquitectura, estructura y funcionalidad — de lo simple a lo complejo. Pasa el cursor\n          sobre los nodos para explorar cada capa.',
   c_index_117: 'Herramientas compatibles para un flujo de trabajo local-first',
@@ -971,7 +993,8 @@ window.__GV_CONTENT.es = {
   c_memoryknowledge_12: 'Memoria entre sesiones y entre proyectos con resolución de conflictos',
   c_memoryknowledge_13: 'Grafo de código a nivel de AST con resolución entre archivos',
   c_memoryknowledge_14: 'Relaciones extraídas con LLM con estructura de comunidades y god nodes',
-  c_memoryknowledge_15: 'Sistema nervioso central en modo WAL de SQLite con 45 tables y 24 migrations',
+  c_memoryknowledge_15:
+    'Sistema nervioso central en modo WAL de SQLite con 45 tables y 24 migrations',
   c_memoryknowledge_16: 'DAOs modulares para cada preocupación operacional',
   c_memoryknowledge_17:
     'Snapshots de métricas en serie temporal — tokens, latencia, health cada 30s',
@@ -1142,7 +1165,7 @@ window.__GV_CONTENT.es = {
     'Recuperación ante desastres, estrategias de respaldo, definiciones de RPO/RTO',
   c_securitygovernance_42:
     'Cada archivo de reglas se monitoriza, versiona y aplica a través del pipeline.\r\n              Los controles automatizados verifican el cumplimiento de políticas al inicio de sesión y durante las operaciones.',
-  c_securitygovernance_43: '35 componentes vigilados, cada uno verificado en cada ciclo',
+  c_securitygovernance_43: '36 componentes vigilados, cada uno verificado en cada ciclo',
   c_securitygovernance_44: 'Defensa en profundidad multicapa para la preparación de producción',
   c_securitygovernance_45: 'Bloqueo de Dependencias',
   c_securitygovernance_46:
@@ -1208,7 +1231,8 @@ window.__GV_CONTENT.es = {
   nav_study: 'Estudio',
   c_cmd_hero: 'Catálogo completo de',
   sec_cmd_intro: 'Cómo usar este catálogo',
-  c_cmd_intro_text: 'Todos los comandos se ejecutan desde la raíz del repo con npm run &lt;script&gt;. No requieren intervención de la IA: son herramientas directas para operar, verificar y mantener el stack. Usa el buscador para filtrar por nombre, descripción o referencia.',
+  c_cmd_intro_text:
+    'Todos los comandos se ejecutan desde la raíz del repo con npm run &lt;script&gt;. No requieren intervención de la IA: son herramientas directas para operar, verificar y mantener el stack. Usa el buscador para filtrar por nombre, descripción o referencia.',
   sec_cmd_session: 'Sesión y Stack',
   c_cmd_session_intro: '22 comandos — todos ejecutables manualmente sin depender de la IA.',
   sec_cmd_health: 'Salud y Mantenimiento',
@@ -1234,31 +1258,51 @@ window.__GV_CONTENT.es = {
   sec_cmd_utils: 'Utilidades',
   c_cmd_utils_intro: '61 comandos — todos ejecutables manualmente sin depender de la IA.',
   tip_dashboard_budget: '5M tokens diarios, 3M por sesión. Umbrales suaves 70%, duros 90%.',
-  tip_dashboard_watchdog: 'Auto-reinicio ante fallos (10 intentos). Health check de puerto cada 5s.',
+  tip_dashboard_watchdog:
+    'Auto-reinicio ante fallos (10 intentos). Health check de puerto cada 5s.',
   sec_gloss_intro: 'Índice alfabético',
-  c_gloss_intro_text: 'Palabras, siglas, sinónimos, significados, conceptos y nomenclaturas del stack, ordenados alfabéticamente. Usa la barra A-Z para saltar a una letra.',
-  tip_backlogrepo: 'backlog — ítems de trabajo pendientes y feature requests seguidos para planificación de ejecución autónoma.',
-  tip_authsessionrepo: 'auth_sessions — estado de autenticación de sesiones, tokens y expiración de los servicios propios del stack.',
-  tip_tokenrepo: 'token_usage + token_transactions + token_savings — contabilidad real de tokens por mensaje/agente con ahorros de caché y compresión.',
-  tip_principalrepo: 'principals — registros de identidad y permisos de agentes y servicios del stack.',
-  tip_contentosrepo: 'content_os — estado de operaciones de contenido para el CMS y el pipeline de contenido (academy, marketing, docs).',
-  tip_fm_124: 'Reaper basado en clases: daemons duplicados (pidfile/puerto), one-shots colgados, daemons envejecidos >24h, pidfiles stale y residuo de chrome headless — integrado a autostart (fase 1), watchtower (check + autoheal) y session-close.',
-  tip_fm_125: 'Artefacto gentle-vanguard.sdd-research/v1 por caso SDD: búsqueda determinista + grading CRAG BM25, scaffolds de mapeo claim-to-source, fail-closed sin caso; PROPOSE cita la evidencia automáticamente.',
-  tip_fm_126: 'Niveles de riesgo basados en evidencia (0/1/4 lentes), revisión 4R (Riesgo, Legibilidad, Fiabilidad, Resiliencia), recibos ligados al Git SHA congelado, 5 gates de entrega, kill-switch con expiración 24h, prune de retención.',
-  c_index_121: '280 términos del stack en orden alfabético con navegación A-Z — siglas, conceptos, herramientas, estándares y nomenclaturas',
+  c_gloss_intro_text:
+    'Palabras, siglas, sinónimos, significados, conceptos y nomenclaturas del stack, ordenados alfabéticamente. Usa la barra A-Z para saltar a una letra.',
+  tip_backlogrepo:
+    'backlog — ítems de trabajo pendientes y feature requests seguidos para planificación de ejecución autónoma.',
+  tip_authsessionrepo:
+    'auth_sessions — estado de autenticación de sesiones, tokens y expiración de los servicios propios del stack.',
+  tip_tokenrepo:
+    'token_usage + token_transactions + token_savings — contabilidad real de tokens por mensaje/agente con ahorros de caché y compresión.',
+  tip_principalrepo:
+    'principals — registros de identidad y permisos de agentes y servicios del stack.',
+  tip_contentosrepo:
+    'content_os — estado de operaciones de contenido para el CMS y el pipeline de contenido (academy, marketing, docs).',
+  tip_fm_124:
+    'Reaper basado en clases: daemons duplicados (pidfile/puerto), one-shots colgados, daemons envejecidos >24h, pidfiles stale y residuo de chrome headless — integrado a autostart (fase 1), watchtower (check + autoheal) y session-close.',
+  tip_fm_125:
+    'Artefacto gentle-vanguard.sdd-research/v1 por caso SDD: búsqueda determinista + grading CRAG BM25, scaffolds de mapeo claim-to-source, fail-closed sin caso; PROPOSE cita la evidencia automáticamente.',
+  tip_fm_126:
+    'Niveles de riesgo basados en evidencia (0/1/4 lentes), revisión 4R (Riesgo, Legibilidad, Fiabilidad, Resiliencia), recibos ligados al Git SHA congelado, 5 gates de entrega, kill-switch con expiración 24h, prune de retención.',
+  c_index_121:
+    '280 términos del stack en orden alfabético con navegación A-Z — siglas, conceptos, herramientas, estándares y nomenclaturas',
   c_index_122: '🎓 Material de Estudio',
-  c_index_123: '42 conceptos en 7 dominios — ingeniería, IA/LLM, infra, bases de datos, protocolos, testing y UX, cada uno con ejercicios',
+  c_index_123:
+    '42 conceptos en 7 dominios — ingeniería, IA/LLM, infra, bases de datos, protocolos, testing y UX, cada uno con ejercicios',
   sec_optimization: 'Optimización de Consumo',
-  c_optimization_intro: 'Optimización de tokens en los 4 frentes: inicio de sesión, cierre de sesión, delegación y caché. Ahorros reales por la compresión del stack y el ruteo.',
-  tip_memory_engram: 'Memoria persistente: 3,600+ observaciones, 398+ sesiones. Integridad SHA256, sobrevive a compactaciones.',
-  tip_memory_codegraph: 'Grafo de conocimiento: 10,000+ nodos, 20,000+ aristas. Consultas de símbolos en sub-milisegundos.',
-  tip_memory_graphify: 'Detección de comunidades, god nodes, relaciones entre archivos. GraphML + visualizaciones.',
+  c_optimization_intro:
+    'Optimización de tokens en los 4 frentes: inicio de sesión, cierre de sesión, delegación y caché. Ahorros reales por la compresión del stack y el ruteo.',
+  tip_memory_engram:
+    'Memoria persistente: 3,600+ observaciones, 398+ sesiones. Integridad SHA256, sobrevive a compactaciones.',
+  tip_memory_codegraph:
+    'Grafo de conocimiento: 10,000+ nodos, 20,000+ aristas. Consultas de símbolos en sub-milisegundos.',
+  tip_memory_graphify:
+    'Detección de comunidades, god nodes, relaciones entre archivos. GraphML + visualizaciones.',
   tip_memory_nexus: 'SQLite modo WAL, 45 tablas, 24 migrations. Auto-init, prune, backup.',
-  tip_memory_ml: 'Embeddings para búsqueda semántica, matching de skills, reconocimiento de patrones.',
-  tip_memory_vault: 'Conocimiento estructurado: skills, patrones, decisiones, convenciones, estándares.',
-  tip_patterns_brand: 'Voz: cálida, directa, colaborativa. Visual: glassmorphism, gradientes aurora.',
+  tip_memory_ml:
+    'Embeddings para búsqueda semántica, matching de skills, reconocimiento de patrones.',
+  tip_memory_vault:
+    'Conocimiento estructurado: skills, patrones, decisiones, convenciones, estándares.',
+  tip_patterns_brand:
+    'Voz: cálida, directa, colaborativa. Visual: glassmorphism, gradientes aurora.',
   sec_study_intro: 'Cómo usar este material',
-  c_study_intro_text: 'Cada concepto explica la teoría y cómo se aplicó en el stack, con referencias a archivos reales en src/, config/ y docs/.',
+  c_study_intro_text:
+    'Cada concepto explica la teoría y cómo se aplicó en el stack, con referencias a archivos reales en src/, config/ y docs/.',
   sec_study_se: 'Fundamentos de Ingeniería de Software',
   sec_study_ai: 'Fundamentos de IA / LLM',
   sec_study_infra: 'Infraestructura y Operaciones',
@@ -1376,8 +1420,7 @@ window.__GV_CONTENT['pt-BR'] = {
     'Protocolo: parada total do sistema, intervenção humana necessária, acionamento\n              do post-mortem',
   c_autonomy_14:
     'Os experimentos são avaliados com rigor estatístico. Resultados negativos acionam\n              rollback automático para a variante de controle.',
-  c_autonomy_15:
-    '35 componentes vigiados com 6 modos operacionais, com autoheal.',
+  c_autonomy_15: '35 componentes vigiados com 6 modos operacionais, com autoheal.',
   c_autonomy_16:
     'Detecção → Avaliação → Decisão → Execução → Verificação → Aprendizado — o\n          ciclo contínuo do Executive Layer. Passe o cursor sobre os nós para explorar cada\n          etapa.',
   c_dashboard_2:
@@ -1466,7 +1509,8 @@ window.__GV_CONTENT['pt-BR'] = {
   c_health_62: 'O Watchtower espera que cada componente passe em cada ciclo',
   c_health_63: 'Arquitetura e observabilidade do stack num relance',
   c_health_64: 'Gentle-Vanguard — Stack Autônomo de Desenvolvimento de IA',
-  c_index_2: 'Visão geral da arquitetura de seis camadas; o estado operacional varia por instalação',
+  c_index_2:
+    'Visão geral da arquitetura de seis camadas; o estado operacional varia por instalação',
   c_index_3: 'Os subsistemas integrados apoiam o ciclo de vida de desenvolvimento',
   c_index_4:
     'Inicialização de sessão paralela e tarefas adiadas selecionadas; as etapas exatas dependem da configuração.',
@@ -1490,7 +1534,8 @@ window.__GV_CONTENT['pt-BR'] = {
     'Watchtower executa verificações de saúde e modos de reparo/relatório; os resultados exigem uma execução atual.',
   c_index_15:
     'Banco operacional local; as contagens do esquema dependem da instalação. Verifique a saúde atual antes de informar o estado.',
-  c_index_16: 'Automação baseada em risco, com verificações e aprovação humana para mudanças sensíveis',
+  c_index_16:
+    'Automação baseada em risco, com verificações e aprovação humana para mudanças sensíveis',
   c_index_17:
     '3 fontes de trigger: predictive-governor (orçamento), skill-evolution (obsolescência),\n              auto-norm-learner (normas)',
   c_index_18:
@@ -1570,12 +1615,13 @@ window.__GV_CONTENT['pt-BR'] = {
   c_index_86: 'State Persistence (checkpoint/snapshot)',
   c_index_87: 'Event Sourcing + Saga Orchestrator',
   c_index_88: 'Mais de 550 arquivos de teste',
-  c_index_89: '35 componentes vigilados por el watchtower',
+  c_index_89: '36 componentes vigilados por el watchtower',
   c_index_90: 'Padrões de Revisão de Código (multieixo)',
   c_index_91: 'Diretrizes de Karpathy (padrões de codificação)',
   c_index_92: 'Fluxo de trabalho SDD (Spec-Driven Development)',
   c_index_93: '257 skills · 60+ normativas — inteligência organizada em 9 categorias',
-  c_index_94: 'Dados de saúde e desempenho em tempo real — cada componente vigiado reportado ao vivo',
+  c_index_94:
+    'Dados de saúde e desempenho em tempo real — cada componente vigiado reportado ao vivo',
   c_index_95: '10 capítulos cobrindo o stack completo do Gentle-Vanguard',
   c_index_96: '🏗️ Arquitetura',
   c_index_97:
@@ -1625,7 +1671,8 @@ window.__GV_CONTENT['pt-BR'] = {
   c_memoryknowledge_13: 'Grafo de código em nível de AST com resolução entre arquivos',
   c_memoryknowledge_14:
     'Relacionamentos extraídos com LLM com estrutura de comunidades e god nodes',
-  c_memoryknowledge_15: 'Sistema nervoso central em modo WAL de SQLite com 45 tables e 24 migrations',
+  c_memoryknowledge_15:
+    'Sistema nervoso central em modo WAL de SQLite com 45 tables e 24 migrations',
   c_memoryknowledge_16: 'DAOs modulares para cada preocupação operacional',
   c_memoryknowledge_17:
     'Snapshots de métricas em série temporal — tokens, latência, health a cada 30s',
@@ -1859,7 +1906,8 @@ window.__GV_CONTENT['pt-BR'] = {
   nav_study: 'Estudo',
   c_cmd_hero: 'Catálogo completo de',
   sec_cmd_intro: 'Como usar este catálogo',
-  c_cmd_intro_text: 'Todos os comandos são executados a partir da raiz do repo com npm run &lt;script&gt;. Não requerem intervenção da IA: são ferramentas diretas para operar, verificar e manter o stack. Use o buscador para filtrar por nome, descrição ou referência.',
+  c_cmd_intro_text:
+    'Todos os comandos são executados a partir da raiz do repo com npm run &lt;script&gt;. Não requerem intervenção da IA: são ferramentas diretas para operar, verificar e manter o stack. Use o buscador para filtrar por nome, descrição ou referência.',
   sec_cmd_session: 'Sessão e Stack',
   c_cmd_session_intro: '22 comandos — todos executáveis manualmente sem depender da IA.',
   sec_cmd_health: 'Saúde e Manutenção',
@@ -1885,31 +1933,49 @@ window.__GV_CONTENT['pt-BR'] = {
   sec_cmd_utils: 'Utilitários',
   c_cmd_utils_intro: '61 comandos — todos executáveis manualmente sem depender da IA.',
   tip_dashboard_budget: '5M tokens diários, 3M por sessão. Limites suaves 70%, duros 90%.',
-  tip_dashboard_watchdog: 'Reinício automático em falhas (10 tentativas). Health check de porta a cada 5s.',
+  tip_dashboard_watchdog:
+    'Reinício automático em falhas (10 tentativas). Health check de porta a cada 5s.',
   sec_gloss_intro: 'Índice Alfabético',
-  c_gloss_intro_text: 'Palavras, siglas, sinônimos, significados, conceitos e nomenclaturas do stack, ordenados alfabeticamente. Use a barra A-Z para pular para uma letra.',
-  tip_backlogrepo: 'backlog — itens de trabalho pendentes e feature requests acompanhados para planejamento de execução autônoma.',
-  tip_authsessionrepo: 'auth_sessions — estado de autenticação de sessões, tokens e expiração dos serviços próprios do stack.',
-  tip_tokenrepo: 'token_usage + token_transactions + token_savings — contabilidade real de tokens por mensagem/agente com economia de cache e compressão.',
-  tip_principalrepo: 'principals — registros de identidade e permissões de agentes e serviços do stack.',
-  tip_contentosrepo: 'content_os — estado de operações de conteúdo para o CMS e o pipeline de conteúdo (academy, marketing, docs).',
-  tip_fm_124: 'Reaper baseado em classes: daemons duplicados (pidfile/porta), one-shots travados, daemons envelhecidos >24h, pidfiles stale e resíduo de chrome headless — integrado ao autostart (fase 1), watchtower (check + autoheal) e session-close.',
-  tip_fm_125: 'Artefato gentle-vanguard.sdd-research/v1 por caso SDD: busca determinística + grading CRAG BM25, scaffolds de mapeamento claim-to-source, fail-closed sem caso; PROPOSE cita a evidência automaticamente.',
-  tip_fm_126: 'Níveis de risco baseados em evidência (0/1/4 lentes), revisão 4R (Risco, Legibilidade, Confiabilidade, Resiliência), recibos ligados ao Git SHA congelado, 5 gates de entrega, kill-switch com expiração 24h, prune de retenção.',
-  c_index_121: '280 termos do stack em ordem alfabética com navegação A-Z — siglas, conceitos, ferramentas, padrões e nomenclaturas',
+  c_gloss_intro_text:
+    'Palavras, siglas, sinônimos, significados, conceitos e nomenclaturas do stack, ordenados alfabeticamente. Use a barra A-Z para pular para uma letra.',
+  tip_backlogrepo:
+    'backlog — itens de trabalho pendentes e feature requests acompanhados para planejamento de execução autônoma.',
+  tip_authsessionrepo:
+    'auth_sessions — estado de autenticação de sessões, tokens e expiração dos serviços próprios do stack.',
+  tip_tokenrepo:
+    'token_usage + token_transactions + token_savings — contabilidade real de tokens por mensagem/agente com economia de cache e compressão.',
+  tip_principalrepo:
+    'principals — registros de identidade e permissões de agentes e serviços do stack.',
+  tip_contentosrepo:
+    'content_os — estado de operações de conteúdo para o CMS e o pipeline de conteúdo (academy, marketing, docs).',
+  tip_fm_124:
+    'Reaper baseado em classes: daemons duplicados (pidfile/porta), one-shots travados, daemons envelhecidos >24h, pidfiles stale e resíduo de chrome headless — integrado ao autostart (fase 1), watchtower (check + autoheal) e session-close.',
+  tip_fm_125:
+    'Artefato gentle-vanguard.sdd-research/v1 por caso SDD: busca determinística + grading CRAG BM25, scaffolds de mapeamento claim-to-source, fail-closed sem caso; PROPOSE cita a evidência automaticamente.',
+  tip_fm_126:
+    'Níveis de risco baseados em evidência (0/1/4 lentes), revisão 4R (Risco, Legibilidade, Confiabilidade, Resiliência), recibos ligados ao Git SHA congelado, 5 gates de entrega, kill-switch com expiração 24h, prune de retenção.',
+  c_index_121:
+    '280 termos do stack em ordem alfabética com navegação A-Z — siglas, conceitos, ferramentas, padrões e nomenclaturas',
   c_index_122: '🎓 Material de Estudo',
-  c_index_123: '42 conceitos em 7 domínios — engenharia, IA/LLM, infra, bancos de dados, protocolos, testes e UX, cada um com exercícios',
+  c_index_123:
+    '42 conceitos em 7 domínios — engenharia, IA/LLM, infra, bancos de dados, protocolos, testes e UX, cada um com exercícios',
   sec_optimization: 'Otimização de Consumo',
-  c_optimization_intro: 'Otimização de tokens em 4 frentes: início de sessão, fechamento de sessão, delegação e cache. Economias reais pela compressão do stack e o roteamento.',
-  tip_memory_engram: 'Memória persistente: 3.600+ observações, 398+ sessões. Integridade SHA256, sobrevive a compactações.',
-  tip_memory_codegraph: 'Grafo de conhecimento: 10.000+ nós, 20.000+ arestas. Consultas de símbolos em sub-milissegundos.',
-  tip_memory_graphify: 'Detecção de comunidades, god nodes, relações entre arquivos. GraphML + visualizações.',
+  c_optimization_intro:
+    'Otimização de tokens em 4 frentes: início de sessão, fechamento de sessão, delegação e cache. Economias reais pela compressão do stack e o roteamento.',
+  tip_memory_engram:
+    'Memória persistente: 3.600+ observações, 398+ sessões. Integridade SHA256, sobrevive a compactações.',
+  tip_memory_codegraph:
+    'Grafo de conhecimento: 10.000+ nós, 20.000+ arestas. Consultas de símbolos em sub-milissegundos.',
+  tip_memory_graphify:
+    'Detecção de comunidades, god nodes, relações entre arquivos. GraphML + visualizações.',
   tip_memory_nexus: 'SQLite modo WAL, 38 tabelas, 24 migrations. Auto-init, prune, backup.',
   tip_memory_ml: 'Embeddings para busca semântica, matching de skills, reconhecimento de padrões.',
   tip_memory_vault: 'Conhecimento estruturado: skills, padrões, decisões, convenções, padrões.',
-  tip_patterns_brand: 'Voz: calorosa, direta, colaborativa. Visual: glassmorphism, gradientes aurora.',
+  tip_patterns_brand:
+    'Voz: calorosa, direta, colaborativa. Visual: glassmorphism, gradientes aurora.',
   sec_study_intro: 'Como usar este material',
-  c_study_intro_text: 'Cada conceito explica a teoria e como foi aplicado no stack, com referências a arquivos reais em src/, config/ e docs/.',
+  c_study_intro_text:
+    'Cada conceito explica a teoria e como foi aplicado no stack, com referências a arquivos reais em src/, config/ e docs/.',
   sec_study_se: 'Fundamentos de Engenharia de Software',
   sec_study_ai: 'Fundamentos de IA / LLM',
   sec_study_infra: 'Infraestrutura e Operações',

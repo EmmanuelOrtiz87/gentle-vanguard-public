@@ -312,7 +312,7 @@
 | **Idea Refine** | Pensamiento divergente→convergente para afinar ideas. | 📍 .opencode/skills/idea-refine |
 | **Image Studio** | App CMS de generación de imágenes del stack. | 📍 docs/presentations/image-studio.html |
 | **Karpathy Guidelines** | Estándares de código: Think First, Simplicity, Surgical Changes, Goal-Driven. | 📍 rules/ · skill |
-| **Maintenance Watchtower** | Orquestador central de health/autoheal: 35 componentes vigilados, 6 modos. | 📍 src/core/maintenance-watchtower.ts |
+| **Maintenance Watchtower** | Orquestador central de health/autoheal: 36 componentes vigilados, 6 modos. | 📍 src/core/maintenance-watchtower.ts |
 | **Migration** | Evolución del esquema de Nexus (24 migraciones). | 📍 apps/web-dashboard/server/database/ |
 | **ML Embeddings** | Índice vectorial para búsqueda semántica sobre skills, normas y docs. | 📍 src/ml-embeddings |
 | **Nexus** | Base de datos operacional SQLite (WAL, FK ON, 45 tablas, 24 migraciones). Cerebro operacional. | 📍 .runtime/gentle-vanguard.db |
