@@ -393,6 +393,32 @@ export async function checkMcp() {
     'manual',
   );
   payloadFileOk('mcp', 'mcp-templates.json', join(ROOT, 'config/mcp-templates.json'), 'config');
+
+  // Deriva politica<->config. Barato (dos JSON, cero procesos) y cubre la clase de
+  // bug que ya paso: `memory` declarado `disabled-by-policy` con el server `enabled`,
+  // invisible porque nada comparaba las dos fuentes. Fuente de verdad: npm run mcp:policy.
+  try {
+    const { checkPolicy } = await import('../../tools/mcp-doctor.js');
+    const drift = checkPolicy(ROOT);
+    addResult(
+      'mcp',
+      'policy drift',
+      drift.ok ? 'PASS' : 'FAIL',
+      drift.ok
+        ? `${drift.policyServers} en la politica, ${drift.configServers.length} configurados, sin deriva`
+        : `${drift.problems.length} problema(s): ${drift.problems.slice(0, 2).join(' | ')}`,
+      drift.ok ? 'ok' : 'fix',
+      !drift.ok,
+    );
+  } catch (e: unknown) {
+    addResult(
+      'mcp',
+      'policy drift',
+      'WARN',
+      `no se pudo evaluar: ${(e as Error)?.message ?? String(e)}`,
+      'verify',
+    );
+  }
 }
 
 // ─── Component: Orchestrator Loop Guard ────────────────────────────────────────
@@ -506,5 +532,44 @@ export async function checkGuardrails() {
     );
   } catch {
     addResult('guardrails', 'self-test jailbreak', 'WARN', 'self-test failed to run', 'verify');
+  }
+}
+
+// ─── Component: Ollama Substrate ──────────────────────────────────────────────
+
+/**
+ * Deriva del substrato local (Ollama): un auto-update de la app puede dejar la
+ * GPU corriendo en CPU (ICD de Vulkan desregistrado), y un agente que apunta a
+ * un modelo no instalado simplemente no arranca. Ambas fallan en silencio, asi
+ * que se miden cada sesion. Barato: sin inferencia (3 GET + 2 lecturas de
+ * registro). La fuente de verdad de cada check es `npm run ollama:doctor`.
+ */
+export async function checkOllamaSubstrate() {
+  if (!quiet) logger.info('  [Ollama Substrate] Checking...');
+  const { diagnoseOllama } = await import('../../tools/ollama-doctor.js');
+  const report = await diagnoseOllama({ inference: false });
+  if (report.checks.find((c) => c.id === 'server')?.status === 'fail') {
+    // Sin Ollama no hay substrato local: no es una falla del stack de nube.
+    addResult('ollama', 'local substrate', 'SKIP', 'server not running', 'manual');
+    return;
+  }
+  for (const check of report.checks) {
+    if (check.id === 'server') continue;
+    const status =
+      check.status === 'fail'
+        ? 'FAIL'
+        : check.status === 'warn'
+          ? 'WARN'
+          : check.status === 'skip'
+            ? 'SKIP'
+            : 'PASS';
+    addResult(
+      'ollama',
+      check.id,
+      status,
+      check.detail,
+      check.fix ? 'fix' : 'ok',
+      check.status === 'fail',
+    );
   }
 }

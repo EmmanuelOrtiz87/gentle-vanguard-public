@@ -51,6 +51,18 @@
         "description": "Gobernacion MCP (BL-MVI6ZNMA-P8GM): inventario REAL de tools de cada server MCP activo (SDK client, tools/list, sin adivinar) + drift-gate vs baseline .runtime/mcp-inventory/baseline.json — exit 1 si una tool aparece o desaparece (permisos/policy desfenestrados). Detector log-based (skipOnFailure); actualiza baseline con npm run mcp:inventory:diff tras cambios de MCP intencionales. Hallazgo conocido: engram-mcp del registry falla stdio (npx engram@0.0.1); el engram de opencode.json responde 19 tools."
       },
       {
+        "id": "mcp-policy-drift",
+        "enabled": true,
+        "lazy": false,
+        "script": "src/tools/mcp-doctor.ts",
+        "args": "--policy",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 30000,
+        "description": "Deriva politica<->config de MCP (NORMATIVA-MCP-LIFECYCLE): compara config/mcp-lifecycle-policy.json con la config real (global + proyecto). Barato: dos JSON, cero procesos. Caso real que lo origino: `memory` declarado disabled-by-policy con el server enabled, invisible porque nada comparaba las dos fuentes. FAIL = una capacidad opera sin politica o la politica contradice la config."
+      },
+      {
         "id": "process-hygiene",
         "enabled": true,
         "script": "src/core/process-hygiene.ts",

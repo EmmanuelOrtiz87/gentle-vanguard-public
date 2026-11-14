@@ -30,18 +30,30 @@ import {
   ROOT,
   RUNTIME_DIR,
 } from './watchtower/context';
-import { fileExists, readJson, testPort, testHttp, isCodeGraphProcessRunning } from './watchtower/helpers';
+import {
+  fileExists,
+  readJson,
+  testPort,
+  testHttp,
+  isCodeGraphProcessRunning,
+} from './watchtower/helpers';
 import { killRecordedWsProcess, ensureWatchdog } from '../ops/dashboard-common';
 import { watchdogIsAlive, decidePortAction } from '../ops/dashboard-watchdog-policy';
 import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard';
 import { checkAppsRegistry, checkAppsAudit } from './watchtower/checks-apps';
 import { checkBgTasks } from './watchtower/checks-bg-tasks';
-import { checkDesignCanon, checkDesignSurfacesDrift, checkRepoOrganization, checkUndefinedClasses } from './watchtower/checks-design-canon';
+import {
+  checkDesignCanon,
+  checkDesignSurfacesDrift,
+  checkRepoOrganization,
+  checkUndefinedClasses,
+} from './watchtower/checks-design-canon';
 import {
   checkCodeGraph,
   checkTimeoutDaemon,
   checkProcessHygiene,
   checkMlEmbeddings,
+  checkOllamaSubstrate,
   checkEngram,
   checkMcp,
   checkLoopGuard,
@@ -196,202 +208,198 @@ async function autoHeal() {
       );
       healed++;
     } else {
-    let wsPort = 8080;
-    const portsFile = join(RUNTIME_DIR, 'dashboard-ports.json');
-    if (fileExists(portsFile)) {
-      try {
-        const ports = readJson(portsFile);
-        wsPort = typeof ports.wsPort === 'number' ? ports.wsPort : 8080;
-      } catch {
-        /* port file parse error, use default */
-      }
-    }
-
-    const wsPortOpen = await testPort(wsPort);
-    /**
-     * PUERTO ABIERTO ≠ SERVICIO SIRVIENDO (2026-11-02).
-     *
-     * Este autoheal usaba `testPort()` como si eso probara que el dashboard
-     * estaba sano, y por eso un daemon WEDGED (puerto abierto, API HTTP
-     * bloqueada) se.reportaba como "WS alive, watchdog skipped": nadie lo
-     * mataba, nadie lo reiniciaba y el dashboard quedaba inutilizable
-     * indefinidamente. Ahora la liveness se decide por la API HTTP.
-     */
-    const wsHttpOk = await testHttp(`http://127.0.0.1:${wsPort}/api/health/live`);
-    const wsRunning = wsHttpOk;
-    const wsAutostart = join(ROOT, 'src', 'ops', 'dashboard-ws-autostart.ts');
-
-    if (wsRunning) {
-      if (!quiet)
-        console.log(`  [Heal] WS alive on port ${wsPort}, no action needed (watchdog optional)`);
-      /**
-       * Un dashboard sano pero SIN watchdog es un dashboard sin supervisor:
-       * si se cuelga, nadie lo reinicia. Se comprueba y se relanza.
-       */
-      const watchdogAlive = watchdogIsAlive(
-        join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid'),
-        (pid) => {
-          process.kill(pid, 0);
-          return true;
-        },
-        (p) => {
-          try {
-            // El PID file es texto plano, no JSON: `readJson` no sirve.
-            return existsSync(p) ? readFileSync(p, 'utf-8') : null;
-          } catch {
-            return null;
-          }
-        },
-      );
-      if (!watchdogAlive) {
-        const ensured = ensureWatchdog(wsPort);
-        if (ensured.spawned) {
-          if (!quiet) console.log(`  [Heal] ${ensured.reason}`);
-          addResult(
-            'dashboard-ws',
-            'autoheal',
-            'PASS',
-            `WS alive; ${ensured.reason}`,
-            'ok',
-          );
-        } else {
-          addResult('dashboard-ws', 'autoheal', 'WARN', `WS alive; ${ensured.reason}`, 'verify');
+      let wsPort = 8080;
+      const portsFile = join(RUNTIME_DIR, 'dashboard-ports.json');
+      if (fileExists(portsFile)) {
+        try {
+          const ports = readJson(portsFile);
+          wsPort = typeof ports.wsPort === 'number' ? ports.wsPort : 8080;
+        } catch {
+          /* port file parse error, use default */
         }
-      } else {
-        addResult('dashboard-ws', 'autoheal', 'PASS', 'WS alive, watchdog skipped', 'ok');
       }
-      healed++;
-    } else if (wsPortOpen) {
+
+      const wsPortOpen = await testPort(wsPort);
       /**
-       * WEDGED: el puerto esta tomado por un proceso que no responde. Hay que
-       * MATARLO: el event loop esta bloqueado, asi que relanzar encima del
-       * puerto ocupado no funciona (el launcher se negaba: "port in use").
+       * PUERTO ABIERTO ≠ SERVICIO SIRVIENDO (2026-11-02).
        *
-       * COMO SE MATA (2026-11-03): el PID file del propio stack es la fuente
-       * autoritativa. `getPidByPort()` no sirve en Windows: `netstat -ano` no
-       * lista los sockets de los procesos Node (las lineas LISTENING salen con
-       * PID 0) y `Get-NetTCPConnection` tampoco, asi que devolvia null y el
-       * wedged NO se mataba. Y el tree kill (`taskkill /F /T`) es
-       * obligatorio: un daemon wedged no atiende SIGKILL de Node.
+       * Este autoheal usaba `testPort()` como si eso probara que el dashboard
+       * estaba sano, y por eso un daemon WEDGED (puerto abierto, API HTTP
+       * bloqueada) se.reportaba como "WS alive, watchdog skipped": nadie lo
+       * mataba, nadie lo reiniciaba y el dashboard quedaba inutilizable
+       * indefinidamente. Ahora la liveness se decide por la API HTTP.
        */
-      if (!quiet)
-        console.log(`  [Heal] WS wedged on port ${wsPort} (port open, HTTP dead) — killing the owner...`);
-      const killed = killRecordedWsProcess(join(RUNTIME_DIR, 'dashboard-ws.pid'));
-      const action = decidePortAction({ busy: true, healthy: false, killed });
-      if (killed) {
-        if (!quiet) console.log(`  [Heal] Killed the wedged WS process registered by the stack`);
-        addResult(
-          'dashboard-ws',
-          'autoheal',
-          'PASS',
-          `Killed the wedged WS process (port open, HTTP dead); action=${action}`,
-          'ok',
+      const wsHttpOk = await testHttp(`http://127.0.0.1:${wsPort}/api/health/live`);
+      const wsRunning = wsHttpOk;
+      const wsAutostart = join(ROOT, 'src', 'ops', 'dashboard-ws-autostart.ts');
+
+      if (wsRunning) {
+        if (!quiet)
+          console.log(`  [Heal] WS alive on port ${wsPort}, no action needed (watchdog optional)`);
+        /**
+         * Un dashboard sano pero SIN watchdog es un dashboard sin supervisor:
+         * si se cuelga, nadie lo reinicia. Se comprueba y se relanza.
+         */
+        const watchdogAlive = watchdogIsAlive(
+          join(RUNTIME_DIR, 'dashboard-ws-watchdog.pid'),
+          (pid) => {
+            process.kill(pid, 0);
+            return true;
+          },
+          (p) => {
+            try {
+              // El PID file es texto plano, no JSON: `readJson` no sirve.
+              return existsSync(p) ? readFileSync(p, 'utf-8') : null;
+            } catch {
+              return null;
+            }
+          },
         );
+        if (!watchdogAlive) {
+          const ensured = ensureWatchdog(wsPort);
+          if (ensured.spawned) {
+            if (!quiet) console.log(`  [Heal] ${ensured.reason}`);
+            addResult('dashboard-ws', 'autoheal', 'PASS', `WS alive; ${ensured.reason}`, 'ok');
+          } else {
+            addResult('dashboard-ws', 'autoheal', 'WARN', `WS alive; ${ensured.reason}`, 'verify');
+          }
+        } else {
+          addResult('dashboard-ws', 'autoheal', 'PASS', 'WS alive, watchdog skipped', 'ok');
+        }
         healed++;
-      } else {
-        addResult(
-          'dashboard-ws',
-          'autoheal',
-          'WARN',
-          `Port ${wsPort} open but the API is dead and there is no registered WS process to kill ` +
-            `(action=${action})`,
-          'verify',
-        );
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    /**
-     * Liveness por API HTTP (no por puerto): el puerto abierto solo prueba que
-     * ALGUIEN tiene el socket. Con reintentos cortos porque el servidor puede
-     * tardar unos segundos en levantar su API.
-     */
-    const wsApiAlive = async (): Promise<boolean> => {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (await testHttp(`http://127.0.0.1:${wsPort}/api/health/live`)) return true;
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      }
-      return false;
-    };
-
-    if (!wsRunning && wsAutostart.endsWith('.ts')) {
-      // Use TS wrapper for reliable Windows process launching
-      const wrapperTs = join(ROOT, 'src', 'ops', 'dashboard-ws-launcher.ts');
-      if (!quiet) console.log('  [Heal] Restarting Dashboard WS server via wrapper...');
-      try {
-        // Launch via TS wrapper - creates truly detached process
-        const child = runNpxTsx(wrapperTs, ['--quiet'], {
-          cwd: ROOT,
-          stdio: 'ignore',
-          windowsHide: true,
-          detached: true,
-        });
-        child.unref();
-
-        // Wait for process to start and check if the API answers
-        await new Promise((resolve) => setTimeout(resolve, 8000));
-
-        // Verify by checking the HTTP API (the port alone proved nothing)
-        const isPortUp = await wsApiAlive();
-        if (isPortUp) {
+      } else if (wsPortOpen) {
+        /**
+         * WEDGED: el puerto esta tomado por un proceso que no responde. Hay que
+         * MATARLO: el event loop esta bloqueado, asi que relanzar encima del
+         * puerto ocupado no funciona (el launcher se negaba: "port in use").
+         *
+         * COMO SE MATA (2026-11-03): el PID file del propio stack es la fuente
+         * autoritativa. `getPidByPort()` no sirve en Windows: `netstat -ano` no
+         * lista los sockets de los procesos Node (las lineas LISTENING salen con
+         * PID 0) y `Get-NetTCPConnection` tampoco, asi que devolvia null y el
+         * wedged NO se mataba. Y el tree kill (`taskkill /F /T`) es
+         * obligatorio: un daemon wedged no atiende SIGKILL de Node.
+         */
+        if (!quiet)
+          console.log(
+            `  [Heal] WS wedged on port ${wsPort} (port open, HTTP dead) — killing the owner...`,
+          );
+        const killed = killRecordedWsProcess(join(RUNTIME_DIR, 'dashboard-ws.pid'));
+        const action = decidePortAction({ busy: true, healthy: false, killed });
+        if (killed) {
+          if (!quiet) console.log(`  [Heal] Killed the wedged WS process registered by the stack`);
           addResult(
             'dashboard-ws',
             'autoheal',
             'PASS',
-            `Restarted (HTTP API responding on port ${wsPort})`,
+            `Killed the wedged WS process (port open, HTTP dead); action=${action}`,
             'ok',
           );
           healed++;
         } else {
-          // Try fallback to direct tsx launch
-          if (!quiet) console.log('  [Heal] Wrapper launch incomplete, trying direct spawn...');
-          const fallback = runNpxTsx(wsAutostart, ['--quiet'], {
+          addResult(
+            'dashboard-ws',
+            'autoheal',
+            'WARN',
+            `Port ${wsPort} open but the API is dead and there is no registered WS process to kill ` +
+              `(action=${action})`,
+            'verify',
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      /**
+       * Liveness por API HTTP (no por puerto): el puerto abierto solo prueba que
+       * ALGUIEN tiene el socket. Con reintentos cortos porque el servidor puede
+       * tardar unos segundos en levantar su API.
+       */
+      const wsApiAlive = async (): Promise<boolean> => {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (await testHttp(`http://127.0.0.1:${wsPort}/api/health/live`)) return true;
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+        return false;
+      };
+
+      if (!wsRunning && wsAutostart.endsWith('.ts')) {
+        // Use TS wrapper for reliable Windows process launching
+        const wrapperTs = join(ROOT, 'src', 'ops', 'dashboard-ws-launcher.ts');
+        if (!quiet) console.log('  [Heal] Restarting Dashboard WS server via wrapper...');
+        try {
+          // Launch via TS wrapper - creates truly detached process
+          const child = runNpxTsx(wrapperTs, ['--quiet'], {
             cwd: ROOT,
             stdio: 'ignore',
-            detached: true,
             windowsHide: true,
+            detached: true,
           });
-          fallback.unref();
-          await new Promise((resolve) => setTimeout(resolve, 10000));
+          child.unref();
 
-          const fallbackCheck = await wsApiAlive();
-          if (fallbackCheck) {
+          // Wait for process to start and check if the API answers
+          await new Promise((resolve) => setTimeout(resolve, 8000));
+
+          // Verify by checking the HTTP API (the port alone proved nothing)
+          const isPortUp = await wsApiAlive();
+          if (isPortUp) {
             addResult(
               'dashboard-ws',
               'autoheal',
               'PASS',
-              `Restarted via fallback (HTTP API responding on port ${wsPort})`,
+              `Restarted (HTTP API responding on port ${wsPort})`,
               'ok',
             );
             healed++;
           } else {
-            addResult(
-              'dashboard-ws',
-              'autoheal',
-              'FAIL',
-              'Restart failed - port not responding',
-              'manual',
-              true,
-            );
-            failed++;
+            // Try fallback to direct tsx launch
+            if (!quiet) console.log('  [Heal] Wrapper launch incomplete, trying direct spawn...');
+            const fallback = runNpxTsx(wsAutostart, ['--quiet'], {
+              cwd: ROOT,
+              stdio: 'ignore',
+              detached: true,
+              windowsHide: true,
+            });
+            fallback.unref();
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+
+            const fallbackCheck = await wsApiAlive();
+            if (fallbackCheck) {
+              addResult(
+                'dashboard-ws',
+                'autoheal',
+                'PASS',
+                `Restarted via fallback (HTTP API responding on port ${wsPort})`,
+                'ok',
+              );
+              healed++;
+            } else {
+              addResult(
+                'dashboard-ws',
+                'autoheal',
+                'FAIL',
+                'Restart failed - port not responding',
+                'manual',
+                true,
+              );
+              failed++;
+            }
           }
+        } catch (e: unknown) {
+          addResult(
+            'dashboard-ws',
+            'autoheal',
+            'FAIL',
+            `Error: ${e instanceof Error ? e.message : String(e)}`,
+            'manual',
+            true,
+          );
+          failed++;
         }
-      } catch (e: unknown) {
-        addResult(
-          'dashboard-ws',
-          'autoheal',
-          'FAIL',
-          `Error: ${e instanceof Error ? e.message : String(e)}`,
-          'manual',
-          true,
-        );
+      } else {
+        if (!quiet) console.log('    No dashboard-ws-autostart script found');
+        addResult('dashboard-ws', 'autoheal', 'FAIL', 'No autostart script found', 'manual', true);
         failed++;
       }
-    } else {
-      if (!quiet) console.log('    No dashboard-ws-autostart script found');
-      addResult('dashboard-ws', 'autoheal', 'FAIL', 'No autostart script found', 'manual', true);
-      failed++;
-    }
     }
   }
 
@@ -569,6 +577,7 @@ async function runAllChecks() {
     checkTimeoutDaemon,
     checkProcessHygiene,
     checkMlEmbeddings,
+    checkOllamaSubstrate,
     checkEngram,
     checkMcp,
     checkSessionPipeline,

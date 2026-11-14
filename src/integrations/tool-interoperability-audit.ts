@@ -340,7 +340,11 @@ export function auditTools(
   const openCodeLauncher = openCodeCommand !== null;
   const openCodeRuntimeVersion = detectOpenCodeRuntime(openCodeCommand);
   const openCodePlugin = existsSync(join(home, '.config', 'opencode', 'plugins', 'engram.ts'));
+  // OpenCode V2 movio los servers a `mcp.servers.<name>`; el shape V1 (`mcp.<name>`)
+  // se descarta en silencio. Mirar solo V1 reportaba "engram ausente" con Engram
+  // conectado y 23 tools vivas (medido 2026-11-14). Se aceptan ambos por compatibilidad.
   const openCodeMcp = hasEngramJsonServer(join(home, '.config', 'opencode', 'opencode.json'), [
+    ['mcp', 'servers'],
     ['mcp'],
   ]);
   const openCodeSkills = countFiles(join(root, '.opencode', 'skills'), 'SKILL.md');
@@ -349,7 +353,7 @@ export function auditTools(
     !openCodeProfile && 'perfil ausente',
     !openCodeRuntime && 'directorio .opencode ausente',
     openCodeRuntimeVersion.problem,
-    !(openCodePlugin && openCodeMcp) && 'plugin o MCP de Engram ausente',
+    !(openCodePlugin || openCodeMcp) && 'ni plugin ni MCP de Engram (cualquiera de los dos basta)',
     !nativeSkillSurfaceReady(openCodeSkills, expectedSkills, openCodeAssetsFresh) &&
       `skills nativas ${openCodeSkills}/${expectedSkills} incompletas o desactualizadas`,
   ].filter(Boolean);

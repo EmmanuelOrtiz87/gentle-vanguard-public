@@ -18,12 +18,12 @@
  */
 
 import { runSync } from '../core/run-command.js';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
-interface CheckResult {
+export interface CheckResult {
   name: string;
   layer: 'deps' | 'platform' | 'services' | 'integrity' | 'apps';
   status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP';
@@ -263,6 +263,18 @@ function checkPlatform(results: CheckResult[]): void {
           if (r.status === 0 && r.stdout) message = r.stdout;
         } catch {}
       }
+      // The autostart step count is a FACT: hardcoding "53-step" made a PASS
+      // assert a false number (the config has 131 steps). Derived, never typed —
+      // a PASS with a stale figure is the same lie the decks gate punishes.
+      if (check.name === 'Session Pipeline' && found) {
+        try {
+          const cfg = JSON.parse(readFileSync(absPath, 'utf8')) as {
+            pipeline?: { steps?: unknown[] };
+          };
+          const steps = cfg.pipeline?.steps?.length;
+          if (typeof steps === 'number') message = `${steps}-step autostart config`;
+        } catch {}
+      }
       results.push({ name: check.name, layer: 'platform', status: 'PASS', message });
     } else {
       const fixMsg = check.fix ? `Try: ${check.fix}` : 'File/directory missing';
@@ -497,6 +509,36 @@ async function checkIntegrity(results: CheckResult[], quick = false): Promise<vo
 
 // ─── Reporter ─────────────────────────────────────────────────────────
 
+/**
+ * Plan de capas a imprimir, derivado de los results.
+ *
+ * Por que existe como funcion pura: la version anterior tenia la lista hardcodeada
+ * con 4 capas mientras `CheckResult.layer` admitia 5. Los FAIL de `apps` se
+ * contaban en el resumen y nunca se imprimian — el footer decia "Some checks
+ * failed" sin decir cuales. Un FAIL invisible es indistinguible de un flake
+ * (NORMATIVA-VERIFICACIONES-STACK §2 causa 2 y §4.2: todo gate imprime su
+ * resultado legible). `tests/unit/stack-verify-layer-plan.test.ts` la cubre con
+ * contratest: si vuelve a faltar una capa, el test falla.
+ */
+export function layerPlan(results: CheckResult[]): { key: CheckResult['layer']; label: string }[] {
+  const knownLayers: { key: CheckResult['layer']; label: string }[] = [
+    { key: 'deps', label: 'MACHINE DEPENDENCIES' },
+    { key: 'platform', label: 'STACK PLATFORM' },
+    { key: 'services', label: 'RUNNING SERVICES' },
+    { key: 'integrity', label: 'INTEGRITY CHECKS' },
+    { key: 'apps', label: 'APPS (typecheck / test / build)' },
+  ];
+  const presentLayers = [...new Set(results.map((r) => r.layer))];
+  return [
+    ...knownLayers.filter((l) => presentLayers.includes(l.key)),
+    // Capa que el dia de mañana agregue otro modulo: se imprime igual, con su key
+    // como label. Nunca se descarta un result por no estar en la lista conocida.
+    ...presentLayers
+      .filter((key) => !knownLayers.some((l) => l.key === key))
+      .map((key) => ({ key, label: String(key).toUpperCase() })),
+  ];
+}
+
 function printReport(results: CheckResult[], json: boolean): VerificationReport {
   const report: VerificationReport = {
     timestamp: new Date().toISOString(),
@@ -530,12 +572,7 @@ function printReport(results: CheckResult[], json: boolean): VerificationReport 
   console.log('');
 
   // ── LAYERS ──
-  const layers: { key: CheckResult['layer']; label: string }[] = [
-    { key: 'deps', label: 'MACHINE DEPENDENCIES' },
-    { key: 'platform', label: 'STACK PLATFORM' },
-    { key: 'services', label: 'RUNNING SERVICES' },
-    { key: 'integrity', label: 'INTEGRITY CHECKS' },
-  ];
+  const layers = layerPlan(results);
 
   for (const layer of layers) {
     const items = results.filter((r) => r.layer === layer.key);
@@ -561,6 +598,18 @@ function printReport(results: CheckResult[], json: boolean): VerificationReport 
   }
 
   // ── SUMMARY ──
+  // Bloque de fallos explicito: el footer nunca puede decir "algo fallo" sin decir
+  // QUE fallo. Es la garantia que el conteo por capas no da si una capa nueva
+  // aparece sin label.
+  if (report.failed > 0) {
+    console.log(C.bold(C.red('  ── FALLOS ──')));
+    for (const item of results.filter((r) => r.status === 'FAIL')) {
+      console.log(`  ${C.red('✘')} ${item.name}: ${item.message}`);
+      if (item.fixCmd) console.log(`     ${C.yellow('→')} ${C.dim(item.fixCmd)}`);
+    }
+    console.log('');
+  }
+
   console.log(
     C.bold(
       `  ${C.cyan('═══')} ${C.green(`${report.passed} PASS`)} | ${C.yellow(`${report.warned} WARN`)} | ${report.failed > 0 ? C.red(`${report.failed} FAIL`) : `${report.failed} FAIL`} | ${C.dim(`${report.skipped} SKIP`)} | ${report.total} total ${C.cyan('═══')}`,
@@ -650,7 +699,10 @@ async function checkApps(results: CheckResult[]): Promise<void> {
       name: `app:${a.app}`,
       layer: 'apps',
       status: a.status,
-      message: failDetail || [checkDetail, omissionDetail].filter(Boolean).join(' | ') || a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
+      message:
+        failDetail ||
+        [checkDetail, omissionDetail].filter(Boolean).join(' | ') ||
+        a.checks.map((c) => `${c.kind}=${c.status}`).join(' '),
       fixCmd: a.status === 'FAIL' ? `cd apps/${a.app} && npm run typecheck` : undefined,
     });
   }
@@ -700,7 +752,13 @@ async function main(): Promise<void> {
   process.exit(remainingFailures > 0 ? 1 : 0);
 }
 
-main().catch((err) => {
-  console.error(C.red(`\n  FATAL: ${err.message}`));
-  process.exit(2);
-});
+// Guard de invocacion directa: sin esto, CUALQUIER import del modulo dispara la
+// verificacion completa (medido: 329 s de suite por importar `layerPlan` en un test).
+// Mismo patron que mcp-doctor/ollama-doctor.
+const invokedDirectly = process.argv[1]?.replace(/\\/g, '/').endsWith('stack-verify.ts') ?? false;
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error(C.red(`\n  FATAL: ${err.message}`));
+    process.exit(2);
+  });
+}

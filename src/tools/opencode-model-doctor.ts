@@ -158,6 +158,41 @@ function warn(msg: string): string {
   return `${COLOR.yellow}${msg}${COLOR.reset}`;
 }
 
+/**
+ * Ollama publica `name:latest` para modelos sin tag explicito; los demas
+ * catalogs OpenAI-compatibles devuelven el id exacto (nunca tienen `:latest`),
+ * asi que normalizar es seguro para todos. Se usa SOLO para comparar.
+ */
+export const normalizeModelId = (id: string): string => id.replace(/:latest$/, '');
+
+/**
+ * Diferencia config vs catalogo upstream.
+ *
+ * Exportada y pura porque la version inline del 2026-11-14 reportaba como
+ * "stale config" un modelo instalado: el catalogo de Ollama devuelve
+ * `qwen3-14b-32k:latest` y la config dice `qwen3-14b-32k`, asi que la
+ * comparacion exacta de ids inventaba deriva e invitaba a un cleanup que
+ * borraria una config que funciona.
+ *
+ * `catalogOk=false` (401/403/timeout) NO es evidencia de que un modelo falte:
+ * se devuelve vacio y el reporte lo marca `unverified`, nunca `stale`.
+ */
+export function compareCatalog(
+  configured: string[],
+  upstream: string[],
+  catalogOk: boolean,
+): { missingInUpstream: string[]; extrasInUpstream: string[] } {
+  if (!catalogOk) return { missingInUpstream: [], extrasInUpstream: [] };
+  const upstreamSet = new Set(upstream.map(normalizeModelId));
+  const configuredSet = new Set(configured.map(normalizeModelId));
+  return {
+    // Se reporta el id configurado TAL COMO SE ESCRIBE: el mensaje tiene que
+    // coincidir con lo que el usuario edita en opencode.json.
+    missingInUpstream: configured.filter((m) => !upstreamSet.has(normalizeModelId(m))),
+    extrasInUpstream: upstream.filter((m) => !configuredSet.has(normalizeModelId(m))),
+  };
+}
+
 function detectAuthKey(
   providerId: string,
   provider: ProviderConfig,
@@ -392,12 +427,9 @@ async function main() {
 
     const configured = Object.keys(provider.models || {});
     const upstream = probe.models;
-    const upstreamSet = new Set(upstream);
-    const configuredSet = new Set(configured);
-    // An inaccessible catalog is not evidence that configured models are stale.
-    // Keep the distinction explicit so 401/403/timeouts do not create false cleanup work.
-    const missingInUpstream = probe.ok ? configured.filter((m) => !upstreamSet.has(m)) : [];
-    const extrasInUpstream = probe.ok ? upstream.filter((m) => !configuredSet.has(m)) : [];
+    // Comparacion normalizada (`:latest`) y con la distincion "catalogo
+    // inaccesible != modelo stale" encapsulada en la funcion pura.
+    const { missingInUpstream, extrasInUpstream } = compareCatalog(configured, upstream, probe.ok);
 
     const providerReport: ProviderReport = {
       id,
@@ -436,11 +468,20 @@ async function main() {
         );
         for (const m of missingInUpstream) log(`    ${err('✗')} ${m}`, 'reset');
       } else if (!probe.ok) {
-        log(`  ${warn('unverified')}: catalog inaccessible; configured models were not marked stale`, 'reset');
+        log(
+          `  ${warn('unverified')}: catalog inaccessible; configured models were not marked stale`,
+          'reset',
+        );
       }
     } else {
-      log(`  configured: ${warn('empty custom-provider catalog — hidden from the model selector')}`, 'reset');
-      log(`  available upstream: ${upstream.length}; run models:sync -- --add-missing --provider ${id}`, 'reset');
+      log(
+        `  configured: ${warn('empty custom-provider catalog — hidden from the model selector')}`,
+        'reset',
+      );
+      log(
+        `  available upstream: ${upstream.length}; run models:sync -- --add-missing --provider ${id}`,
+        'reset',
+      );
     }
   }
 
@@ -461,8 +502,9 @@ async function main() {
       const paidSample = prov.upstreamCatalog
         .filter((m) => !FREE_PATTERNS.some((p) => m.includes(p)))
         .slice(0, 3);
-      const toProbe = modelFilter ? [modelFilter] :
-        prov.configuredCatalog.length > 0
+      const toProbe = modelFilter
+        ? [modelFilter]
+        : prov.configuredCatalog.length > 0
           ? prov.configuredCatalog
           : [...freeSample, ...paidSample].slice(0, 5);
       log(`\n  Probing ${toProbe.length} model(s) on ${prov.id}…`, 'dim');
@@ -500,6 +542,18 @@ async function main() {
     if (probeModels) {
       log(`  broken probes:   ${report.summary.brokenModelProbes}`, 'reset');
     }
+    // Exit code legible (normativa §4.2): 2 es "no pude verificar", NO "hay
+    // deriva". Sin esta linea, un exit 2 por providers on-demand/offline es
+    // indistinguible de un modelo stale y se persigue como si fuera un bug.
+    const unverified = report.providers.filter((p) => !p.catalogOK);
+    if (unverified.length > 0) {
+      log(
+        `  exit 2:          ${unverified.length} provider(s) sin catalogo verificable (${unverified
+          .map((p) => p.id)
+          .join(', ')}) — no es deriva de modelos`,
+        'reset',
+      );
+    }
     log('', 'reset');
   }
 
@@ -511,12 +565,20 @@ async function main() {
 
   process.exitCode = report.providers.some((provider) => !provider.catalogOK)
     ? 2
-    : report.summary.missingInUpstream > 0 || report.summary.brokenModelProbes > 0 || report.providers.some(provider => provider.selectorReady === false)
+    : report.summary.missingInUpstream > 0 ||
+        report.summary.brokenModelProbes > 0 ||
+        report.providers.some((provider) => provider.selectorReady === false)
       ? 1
       : 0;
 }
 
-main().catch((e) => {
-  log(err(`Doctor crashed: ${e.message}`), 'reset');
-  process.exitCode = 2;
-});
+// Guard de invocacion directa: sin esto, importar `compareCatalog` en un test
+// dispararia el doctor completo (probes HTTP a 8 providers, ~7 s y red).
+const invokedDirectly =
+  process.argv[1]?.replace(/\\/g, '/').endsWith('opencode-model-doctor.ts') ?? false;
+if (invokedDirectly) {
+  main().catch((e) => {
+    log(err(`Doctor crashed: ${e.message}`), 'reset');
+    process.exitCode = 2;
+  });
+}
