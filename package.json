@@ -647,7 +647,12 @@
     "runtime:retention:apply": "node --import tsx src/ops/runtime-retention.ts --apply",
     "runtime:retention:notify": "node --import tsx src/ops/runtime-retention-notify.ts",
     "apps:registry": "node --import tsx src/ops/app-registry.ts",
-    "alexandria:pilot:evidence": "node --import tsx scripts/alexandria/pilot-local-evidence.ts"
+    "alexandria:pilot:evidence": "node --import tsx scripts/alexandria/pilot-local-evidence.ts",
+    "opencode:guard": "node --import tsx src/tools/opencode-agent-model-guard.ts",
+    "opencode:session:heal": "node --import tsx src/tools/opencode-session-scope.ts --heal",
+    "opencode:session:start": "node --import tsx src/tools/opencode-session-scope.ts --session-start",
+    "opencode:session:end": "node --import tsx src/tools/opencode-session-scope.ts --session-end",
+    "opencode:session": "node --import tsx src/tools/opencode-session-launch.ts"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "0.8.0",

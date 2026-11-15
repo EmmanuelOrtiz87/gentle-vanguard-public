@@ -74,23 +74,23 @@ test('uno CONTIENE al otro (version corta vs extendida): alerta por containment'
 });
 
 test('mismo contenido y mismo tier: el motivo NO acusa de cobrar distinto', () => {
-  const pair = compare(fp('a', 'ebook', 'ebook-micro', TEXTO_A), fp('b', 'ebook', 'ebook-micro', TEXTO_A));
+  const pair = compare(fp('a', 'ebook', 'ebook-micro', TEXTO_A), fp('b', 'ebook', 'ebook-micro', TEXTO_A))!;
   assert.match(pair.reason, /mismo tier \(ebook-micro\)/);
   assert.doesNotMatch(pair.reason, /DISTINTO/, 'con el mismo tier no hay accuse de cobrar distinto');
 });
 
 test('mismo contenido pero TIER DISTINTO: acusa cobrar distinto por el mismo texto', () => {
-  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'course', 'course-mentor', TEXTO_A));
+  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'course', 'course-mentor', TEXTO_A))!;
   assert.match(pair.reason, /tier\/precio DISTINTO \(course-base vs course-mentor\)/);
 });
 
 test('mismo contenido entre tipos distintos: acusa el cruce curso/ebook/toolkit', () => {
-  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'toolkit', 'toolkit', TEXTO_A));
+  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'toolkit', 'toolkit', TEXTO_A))!;
   assert.match(pair.reason, /tipos distintos \(course vs toolkit\)/);
 });
 
 test('tipo y tier distintos a la vez: el motivo reporta AMBOS hechos', () => {
-  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'toolkit', 'toolkit', TEXTO_A));
+  const pair = compare(fp('a', 'course', 'course-base', TEXTO_A), fp('b', 'toolkit', 'toolkit', TEXTO_A))!;
   assert.match(pair.reason, /tipos distintos/, 'informa el cruce de tipo');
   assert.match(pair.reason, /tier\/precio DISTINTO/, 'informa el cruce de precio');
 });
@@ -98,7 +98,7 @@ test('tipo y tier distintos a la vez: el motivo reporta AMBOS hechos', () => {
 test('version corta contenida en la extendida: el motivo lo dice explicitamente', () => {
   const corto = 'aprende machine learning con python desde cero construyendo proyectos';
   const largo = `${corto} reales que puedas mostrar en tu portafolio profesional como ingeniero de datos`;
-  const pair = compare(fp('mini', 'ebook', 'ebook-micro', corto), fp('full', 'ebook', 'ebook-premium', largo));
+  const pair = compare(fp('mini', 'ebook', 'ebook-micro', corto), fp('full', 'ebook', 'ebook-premium', largo))!;
   assert.match(pair.reason, /casi totalmente contenido/);
   assert.equal(pair.sharedShingles > 0, true, 'sharedShingles mide el bloque comun');
 });

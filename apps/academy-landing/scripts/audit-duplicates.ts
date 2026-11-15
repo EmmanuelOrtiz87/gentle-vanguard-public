@@ -59,7 +59,7 @@ export interface DuplicatePair {
 }
 
 const STOPWORDS = new Set(
-  ('de la que el en y a los del se las por un para con no una su al lo como mas pero sus le ya este si porque esta entre cuando muy sin sobre tambien me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto mi antes algunos que unos yo otro otras otra tanto esa estos mucho quienes nada muchos cual sea poco ella estar haber estas estaba estamos algunas algo nosotros',
+  ('de la que el en y a los del se las por un para con no una su al lo como mas pero sus le ya este si porque esta entre cuando muy sin sobre tambien me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto mi antes algunos que unos yo otro otras otra tanto esa estos mucho quienes nada muchos cual sea poco ella estar haber estas estaba estamos algunas algo nosotros'
   ).split(' '),
 );
 

@@ -30,7 +30,17 @@
  */
 
 import { spawn } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import {
@@ -58,10 +68,7 @@ import {
   type JudgeSpec,
   type JudgeVerdict,
 } from '../eval/harness-judge.js';
-import {
-  createSemanticJudge,
-  type SemanticVerdict,
-} from '../eval/harness-semantic-judge.js';
+import { createSemanticJudge, type SemanticVerdict } from '../eval/harness-semantic-judge.js';
 import {
   addExperience,
   saveHarnessSnapshot,
@@ -169,7 +176,7 @@ export function proposalFromEdits(
   label: string,
   kind: 'invariant' | 'domain',
   description: string,
-  edits: Record<string, string>
+  edits: Record<string, string>,
 ): HarnessProposal {
   return {
     label,
@@ -190,7 +197,7 @@ export function proposalFromDirectory(
   label: string,
   kind: 'invariant' | 'domain',
   description: string,
-  dir: string
+  dir: string,
 ): HarnessProposal {
   return {
     label,
@@ -247,7 +254,7 @@ function walkFiles(dir: string, prefix = '', out: string[] = []): string[] {
 export function composeTrees(
   base: HarnessTree,
   first: HarnessTree,
-  second: HarnessTree
+  second: HarnessTree,
 ): { tree: HarnessTree; conflicts: string[] } {
   const conflicts: string[] = [];
   const tree: HarnessTree = { ...base };
@@ -394,6 +401,14 @@ export function createOpencodeSubstrate(options: OpencodeSubstrateOptions = {}):
       }
       const configContent = JSON.stringify(config);
 
+      // NORM-OPENCODE-001 (GB-2026-11-14 §2.5): la config viaja como COPIA
+      // temporal en el tmpdir. Si opencode persiste su selección de modelo al
+      // cerrar la sesión headless, escribe la copia — el canon del repo
+      // (opencode.json, compartido con guards y validadores) queda intacto.
+      const tempDir = mkdtempSync(join(tmpdir(), 'gv-opencode-'));
+      const configCopy = join(tempDir, 'opencode.json');
+      copyFileSync(configPath, configCopy);
+
       const result = await runProcess(
         bin,
         [
@@ -406,11 +421,23 @@ export function createOpencodeSubstrate(options: OpencodeSubstrateOptions = {}):
           options.projectDir ?? request.workDir,
           request.task,
         ],
-        { OPENCODE_CONFIG: configPath, OPENCODE_CONFIG_CONTENT: configContent },
-        request.timeoutMs ?? options.timeoutMs ?? timeoutMs
+        { OPENCODE_CONFIG: configCopy, OPENCODE_CONFIG_CONTENT: configContent },
+        request.timeoutMs ?? options.timeoutMs ?? timeoutMs,
       );
 
-      return parseOpencodeOutput(result.stdout, result.stderr, result.status === 0, request.variantName);
+      // La corrida terminó: la copia temporal ya no sirve (mejor esfuerzo).
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        /* limpieza de tmpdir — no bloquea el resultado */
+      }
+
+      return parseOpencodeOutput(
+        result.stdout,
+        result.stderr,
+        result.status === 0,
+        request.variantName,
+      );
     },
   };
 }
@@ -425,7 +452,7 @@ function runProcess(
   bin: string,
   args: string[],
   extraEnv: Record<string, string>,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<ProcessResult> {
   return new Promise((resolvePromise) => {
     let settled = false;
@@ -496,7 +523,7 @@ export function parseOpencodeOutput(
   stdout: string,
   stderr: string,
   ok: boolean,
-  variantName = ''
+  variantName = '',
 ): SubstrateRunResult {
   const events: Array<Record<string, unknown>> = [];
   for (const line of stdout.split(/\r?\n/)) {
@@ -545,8 +572,7 @@ export function parseOpencodeOutput(
     // vacia aunque el modelo hubiera respondido.
     for (const event of events) {
       const part = (event.part ?? {}) as Record<string, unknown>;
-      const isText =
-        (event.type === 'message' && part.type === 'text') || event.type === 'text';
+      const isText = (event.type === 'message' && part.type === 'text') || event.type === 'text';
       if (isText && typeof part.text === 'string' && part.text.trim()) {
         render = part.text;
       }
@@ -561,7 +587,10 @@ export function parseOpencodeOutput(
   // "free tier can only be used from within OpenCode". Sin esto, el bucle
   // veria una corrida vacia sin saber por que.
   let error: string | undefined;
-  if (/FreeTierError|statusCode.{0,8}403/i.test(stdout) || /free tier can only be used/i.test(stdout)) {
+  if (
+    /FreeTierError|statusCode.{0,8}403/i.test(stdout) ||
+    /free tier can only be used/i.test(stdout)
+  ) {
     error =
       'El proveedor de opencode rechazo la llamada desde el CLI (free tier: solo dentro de la app OpenCode). ' +
       'Usar el substrate scriptado para iterar la mecanica, o un proveedor que acepte la CLI.';
@@ -575,7 +604,11 @@ export function parseOpencodeOutput(
     // Salida no cero sin un error reconocible: la causa esta en la ultima
     // linea de la salida. Sin esto, el fallo aparecia como "not-ok" sin
     // motivo, que es un fallo silencioso.
-    const tail = (stdout.trim() || stderr.trim()).split(/\r?\n/).filter(Boolean).slice(-3).join(' | ');
+    const tail = (stdout.trim() || stderr.trim())
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .slice(-3)
+      .join(' | ');
     error = `opencode termino con codigo distinto de 0: ${tail.slice(0, 400)}`;
   }
 
@@ -649,9 +682,7 @@ export interface ScriptedResponse {
  * sin llamadas de modelo. Es la misma razon por la que Harness^2 separa el
  * metodo del substrate.
  */
-export function createScriptedSubstrate(
-  responses: Record<string, ScriptedResponse>
-): Substrate {
+export function createScriptedSubstrate(responses: Record<string, ScriptedResponse>): Substrate {
   return {
     name: 'scripted',
     async run(request) {
@@ -726,13 +757,18 @@ export interface ModelSelectorOptions {
  * Recibe el pool y devuelve el texto crudo de su decision; el parseo lo hace
  * `parseSelection` y, si no es parseable, el llamador aplica el fallback.
  */
-export function createModelSelector(options: ModelSelectorOptions): (pool: SelectionPool) => Promise<string> {
+export function createModelSelector(
+  options: ModelSelectorOptions,
+): (pool: SelectionPool) => Promise<string> {
   const variantName = options.variantName ?? 'selector';
   return async (pool: SelectionPool) => {
     // Solo los ARTEFACTOS: la trayectoria es ruido de transporte y multiplica
     // el contexto del selector por diez. El archivo del pool conserva todo.
     const task = pool.candidates
-      .map((candidate) => `## Candidata ${candidate.id}\n\n${(candidate.render ?? candidate.content).trim()}`)
+      .map(
+        (candidate) =>
+          `## Candidata ${candidate.id}\n\n${(candidate.render ?? candidate.content).trim()}`,
+      )
       .join('\n\n---\n\n');
     const result = await options.substrate.run({
       variantName,
@@ -883,9 +919,7 @@ export interface HarnessLoopResult {
  * k=1 produce: 1 base + 2 candidatas (inv + dom) + 1 composicion = 4 rollouts
  * y 3 sesiones, que es exactamente la identidad del presupuesto (4k / 3k).
  */
-export async function runHarnessLoop(
-  options: HarnessLoopOptions
-): Promise<HarnessLoopResult> {
+export async function runHarnessLoop(options: HarnessLoopOptions): Promise<HarnessLoopResult> {
   const k = options.k ?? 1;
   const mode = options.mode ?? 'agg';
   const repoRoot = options.repoRoot ?? process.cwd();
@@ -937,7 +971,7 @@ export async function runHarnessLoop(
   if (!invariant || !domainScoped) {
     throw new Error(
       'El bucle requiere al menos una propuesta invariante y una especifica del dominio ' +
-        `(se recibieron ${proposals.length}: ${proposals.map((p) => `${p.label}(${p.kind})`).join(', ')}).`
+        `(se recibieron ${proposals.length}: ${proposals.map((p) => `${p.label}(${p.kind})`).join(', ')}).`,
     );
   }
 
@@ -952,7 +986,7 @@ export async function runHarnessLoop(
    */
   const composeRound = async (
     round: number,
-    baseForRound: HarnessTree
+    baseForRound: HarnessTree,
   ): Promise<{ run: ProbeRun; tree: HarnessTree; description: string }> => {
     const first = candidateRuns.find((run) => run.label === `inv-${round}`) as ProbeRun;
     const second = candidateRuns.find((run) => run.label === `dom-${round}`) as ProbeRun;
@@ -968,7 +1002,7 @@ export async function runHarnessLoop(
       },
       composed.tree,
       // Igual que las candidatas: el diff contra la base original.
-      options.baseTree
+      options.baseTree,
     );
     const run = await probe(
       options,
@@ -977,7 +1011,7 @@ export async function runHarnessLoop(
       'composition',
       composePrompt,
       composed.tree,
-      `sess-${runId}-agg-${round}`
+      `sess-${runId}-agg-${round}`,
     );
     return { run, tree: composed.tree, description };
   };
@@ -993,7 +1027,7 @@ export async function runHarnessLoop(
       'base',
       options.basePrompt,
       baseTree,
-      baseSession
+      baseSession,
     );
     baseRuns.push(baseRun);
     descriptions.set(`base-${round}`, 'Estado base del harness, sin cambios');
@@ -1010,18 +1044,16 @@ export async function runHarnessLoop(
             allowedPaths: options.proposer.allowedPaths,
             context: options.proposer.context,
           },
-          options.task
+          options.task,
         )
       : null;
     if (options.proposer) supportCalls.proposer += 1;
-    const invariantTree = proposed
-      ? { ...baseTree, ...proposed.edits }
-      : invariant.build(baseTree);
+    const invariantTree = proposed ? { ...baseTree, ...proposed.edits } : invariant.build(baseTree);
     descriptions.set(
       `inv-${round}`,
       proposed
         ? `Propuesta automatica (${proposed.path}): ${proposed.rationale || 'sin rationale'}`
-        : invariant.description
+        : invariant.description,
     );
     const invariantRun = await probe(
       options,
@@ -1035,13 +1067,18 @@ export async function runHarnessLoop(
       buildVariantPrompt(
         options.basePrompt,
         proposed
-          ? { label: 'inv', kind: 'invariant', description: descriptions.get(`inv-${round}`) as string, build: () => invariantTree }
+          ? {
+              label: 'inv',
+              kind: 'invariant',
+              description: descriptions.get(`inv-${round}`) as string,
+              build: () => invariantTree,
+            }
           : invariant,
         invariantTree,
-        options.baseTree
+        options.baseTree,
       ),
       invariantTree,
-      baseSession
+      baseSession,
     );
     candidateRuns.push(invariantRun);
 
@@ -1054,7 +1091,7 @@ export async function runHarnessLoop(
             allowedPaths: options.proposer.allowedPaths,
             context: options.proposer.context,
           },
-          options.task
+          options.task,
         )
       : null;
     if (options.proposer) supportCalls.proposer += 1;
@@ -1065,7 +1102,7 @@ export async function runHarnessLoop(
       `dom-${round}`,
       domainProposal
         ? `Propuesta automatica (${domainProposal.path}): ${domainProposal.rationale || 'sin rationale'}`
-        : domainScoped.description
+        : domainScoped.description,
     );
     const domainRun = await probe(
       options,
@@ -1083,10 +1120,10 @@ export async function runHarnessLoop(
             }
           : domainScoped,
         domainTree,
-        options.baseTree
+        options.baseTree,
       ),
       domainTree,
-      `sess-${runId}-dom-${round}`
+      `sess-${runId}-dom-${round}`,
     );
     candidateRuns.push(domainRun);
     descriptions.set(`dom-${round}`, domainScoped.description);
@@ -1151,7 +1188,8 @@ export async function runHarnessLoop(
 
   const selector =
     options.selector ??
-    (() => '```choice\nA\n```\n<why>Sin selector configurado: se elige la primera candidata por defecto.</why>');
+    (() =>
+      '```choice\nA\n```\n<why>Sin selector configurado: se elige la primera candidata por defecto.</why>');
 
   // Sin fallback de base: el pool son las FINALES (regla 1 del metodo), la
   // base no esta en el pool y por lo tanto no puede ser el fallback.
@@ -1170,19 +1208,17 @@ export async function runHarnessLoop(
     const diff = diffSurface(GV_SURFACE, options.baseTree, run.tree);
     const parts: string[] = [];
     for (const rel of [...diff.modified, ...diff.added]) {
-      parts.push(
-        `### ${rel}\n${diffLines(options.baseTree[rel] ?? '', run.tree[rel] ?? '')}`
-      );
+      parts.push(`### ${rel}\n${diffLines(options.baseTree[rel] ?? '', run.tree[rel] ?? '')}`);
     }
     editTexts[run.label] = parts.join('\n');
   }
   const diversity = {
     ediciones: textDiversity(editTexts),
     arboles: surfaceDiversity(
-      Object.fromEntries([...candidateRuns, ...finalRuns].map((run) => [run.label, run.tree]))
+      Object.fromEntries([...candidateRuns, ...finalRuns].map((run) => [run.label, run.tree])),
     ),
     artefactos: textDiversity(
-      Object.fromEntries([...candidateRuns, ...finalRuns].map((run) => [run.label, run.render]))
+      Object.fromEntries([...candidateRuns, ...finalRuns].map((run) => [run.label, run.render])),
     ),
   };
 
@@ -1223,7 +1259,7 @@ export async function runHarnessLoop(
           options.judge as JudgeSpec,
           // La tarea entra al juez: un mustNotContain de la base que la tarea
           // ya menciona es dato, no fuga (bitacora §4.18).
-          options.task
+          options.task,
         );
         return { verdicts, resumen: summarizeJudge(verdicts) };
       })()
@@ -1254,7 +1290,7 @@ export async function runHarnessLoop(
             kind: run.stage,
             rule: ruleTexts[run.label] ?? '',
             artifact: run.render,
-          }))
+          })),
       )
     : null;
   if (semanticVerdicts) supportCalls.semanticJudge += semanticVerdicts.length;
@@ -1288,24 +1324,20 @@ export async function runHarnessLoop(
   let experience: ExperienceEntry | undefined;
 
   const winner = [...candidateRuns, ...finalRuns].find(
-    (run) => run.label === selection.selectedLabel
+    (run) => run.label === selection.selectedLabel,
   );
   if (selection.via !== 'fallback-base' && winner) {
     adopted = true;
     adoptedTree = winner.tree;
     const diff = diffSurface(GV_SURFACE, options.baseTree, winner.tree);
-    const snapshotPath = saveHarnessSnapshot(
-      options.domain,
-      options.taskId,
-      winner.tree,
-      repoRoot
-    );
+    const snapshotPath = saveHarnessSnapshot(options.domain, options.taskId, winner.tree, repoRoot);
     // La EXPERIENCIA tiene que transferir a otra corrida: para eso el cue
     // nombra QUE se toco y la lesson QUE seAprendio. Un texto generico
     // ("cuando se propone editar el harness") cumple el contrato y no
     // enseña nada, asi que el contrato ahora lo rechaza.
     const touched = [...diff.modified, ...diff.added];
-    const touchedText = touched.length > 0 ? touched.slice(0, 6).join(', ') : 'la superficie completa';
+    const touchedText =
+      touched.length > 0 ? touched.slice(0, 6).join(', ') : 'la superficie completa';
     const winnerWhat = descriptions.get(winner.label) ?? winner.label;
     const compared = pool.candidates.map((c) => c.id).join(', ');
     experience = {
@@ -1326,7 +1358,7 @@ export async function runHarnessLoop(
       writeDomainIndex(
         options.domain,
         listExperiences(options.db, { domain: options.domain }),
-        repoRoot
+        repoRoot,
       );
     }
   }
@@ -1342,7 +1374,6 @@ export async function runHarnessLoop(
   //   - ARBOLES: el estado completo de cada variante.
   //   - ARTEFACTOS: si las respuestas colapsaron a la misma prosa.
 
-
   writeFileSync(
     join(options.outDir, 'selection.md'),
     [
@@ -1357,7 +1388,7 @@ export async function runHarnessLoop(
       selection.raw?.trim() || '(sin respuesta cruda)',
       '',
     ].join('\n'),
-    'utf-8'
+    'utf-8',
   );
 
   writeFileSync(
@@ -1367,7 +1398,11 @@ export async function runHarnessLoop(
         runId,
         taskId: options.taskId,
         summary: ledger.summary(),
-        tripwire: { violations: pool.violations, warnings: pool.warnings, exempted: tripwireTrees.exempted },
+        tripwire: {
+          violations: pool.violations,
+          warnings: pool.warnings,
+          exempted: tripwireTrees.exempted,
+        },
         seleccion: {
           elegida: selection.selectedLabel,
           via: selection.via,
@@ -1376,9 +1411,9 @@ export async function runHarnessLoop(
         },
       },
       null,
-      2
+      2,
     ),
-    'utf-8'
+    'utf-8',
   );
 
   return {
@@ -1396,7 +1431,11 @@ export async function runHarnessLoop(
     adoptedTree,
     experience,
     ledger: ledger.summary(),
-    tripwire: { violations: pool.violations, warnings: pool.warnings, exempted: tripwireTrees.exempted },
+    tripwire: {
+      violations: pool.violations,
+      warnings: pool.warnings,
+      exempted: tripwireTrees.exempted,
+    },
     judge,
     juezSemantico: semanticVerdicts,
     supportCalls,
@@ -1413,7 +1452,7 @@ async function probe(
   stage: 'base' | 'candidate' | 'composition',
   systemPrompt: string,
   tree: HarnessTree,
-  attributedSessionId: string
+  attributedSessionId: string,
 ): Promise<ProbeRun> {
   const result = await options.substrate.run({
     variantName: label,
@@ -1470,7 +1509,7 @@ export function buildVariantPrompt(
   basePrompt: string,
   proposal: HarnessProposal,
   edited: HarnessTree,
-  base: HarnessTree
+  base: HarnessTree,
 ): string {
   const diff = diffSurface(GV_SURFACE, base, edited);
   const touched = [...diff.modified, ...diff.added];
@@ -1482,20 +1521,11 @@ export function buildVariantPrompt(
       // Lo que se inyecta es el CAMBIO, no el archivo entero: el modelo
       // sigue lo que es saliente, y una regla al final de un archivo largo
       // se pierde. Los archivos NUEVOS van completos (todo es cambio).
-      const body =
-        before === undefined ? after : diffLines(before, after) || after;
+      const body = before === undefined ? after : diffLines(before, after) || after;
       return `### ${rel}\n\n${body}`;
     })
     .join('\n\n');
-  return [
-    basePrompt,
-    '',
-    '## Ajuste de trabajo',
-    '',
-    proposal.description,
-    '',
-    changes,
-  ].join('\n');
+  return [basePrompt, '', '## Ajuste de trabajo', '', proposal.description, '', changes].join('\n');
 }
 
 /** Reexporta la superficie para consumidores del bucle. */

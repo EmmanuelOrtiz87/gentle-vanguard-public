@@ -54,22 +54,32 @@ const VALIDATION_CONTRACT_PATH = join(ROOT, 'config', 'app-validation-contracts.
 
 /** Keep failed checks at the end so bounded pre-push output retains the cause. */
 export function failureSummary(audits: AppAudit[]): string[] {
-  return audits.flatMap((app) => app.checks
-    .filter((check) => check.status === 'FAIL')
-    .map((check) => `FAIL ${app.app} ${check.kind}: ${check.message}`));
+  return audits.flatMap((app) =>
+    app.checks
+      .filter((check) => check.status === 'FAIL')
+      .map((check) => `FAIL ${app.app} ${check.kind}: ${check.message}`),
+  );
 }
 const APPS_DIR = join(ROOT, 'apps');
 
 type NativeTestSuite = { runner: 'node-test' | 'vitest'; files: string[] };
 
-function readSafeLocalTestContracts(app: string): { scripts: Record<string, string>; nativeSuite?: NativeTestSuite; error?: string } {
+function readSafeLocalTestContracts(app: string): {
+  scripts: Record<string, string>;
+  nativeSuite?: NativeTestSuite;
+  error?: string;
+} {
   try {
     const config = JSON.parse(readFileSync(VALIDATION_CONTRACT_PATH, 'utf8')) as {
       version?: number;
       safeLocalTestScripts?: Record<string, Record<string, string>>;
       nativeTestSuites?: Record<string, NativeTestSuite>;
     };
-    if (config.version !== 1 || !config.safeLocalTestScripts || typeof config.safeLocalTestScripts !== 'object') {
+    if (
+      config.version !== 1 ||
+      !config.safeLocalTestScripts ||
+      typeof config.safeLocalTestScripts !== 'object'
+    ) {
       return { scripts: {}, error: 'Invalid version or safeLocalTestScripts shape' };
     }
     const scripts = config.safeLocalTestScripts[app] ?? {};
@@ -78,13 +88,26 @@ function readSafeLocalTestContracts(app: string): { scripts: Record<string, stri
     }
     const nativeSuite = config.nativeTestSuites?.[app];
     if (nativeSuite) {
-      if (!['node-test', 'vitest'].includes(nativeSuite.runner) || !Array.isArray(nativeSuite.files) || nativeSuite.files.length === 0) {
+      if (
+        !['node-test', 'vitest'].includes(nativeSuite.runner) ||
+        !Array.isArray(nativeSuite.files) ||
+        nativeSuite.files.length === 0
+      ) {
         return { scripts: {}, error: `Invalid native test suite contract for ${app}` };
       }
       const appDir = join(APPS_DIR, app);
       for (const file of nativeSuite.files) {
-        if (typeof file !== 'string' || file.includes('..') || file.startsWith('/') || file.startsWith('\\') || !existsSync(join(appDir, file))) {
-          return { scripts: {}, error: `Invalid or missing native test file for ${app}: ${String(file)}` };
+        if (
+          typeof file !== 'string' ||
+          file.includes('..') ||
+          file.startsWith('/') ||
+          file.startsWith('\\') ||
+          !existsSync(join(appDir, file))
+        ) {
+          return {
+            scripts: {},
+            error: `Invalid or missing native test file for ${app}: ${String(file)}`,
+          };
         }
       }
     }
@@ -122,7 +145,12 @@ export function readAppScripts(app: string): Partial<Record<AppCheckKind, string
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageJsonScripts;
     const out: Partial<Record<AppCheckKind, string>> = {};
     for (const kind of Object.keys(CHECK_KIND_TO_SCRIPT) as AppCheckKind[]) {
-      const scriptName = kind === 'build' ? (pkg.scripts?.build ? 'build' : 'static:build') : CHECK_KIND_TO_SCRIPT[kind];
+      const scriptName =
+        kind === 'build'
+          ? pkg.scripts?.build
+            ? 'build'
+            : 'static:build'
+          : CHECK_KIND_TO_SCRIPT[kind];
       if (typeof pkg.scripts?.[scriptName] === 'string') {
         out[kind] = pkg.scripts[scriptName] as string;
       }
@@ -164,7 +192,9 @@ export function planAppAudits(
         if (script) plan.push({ kind: 'test', script: 'test' });
         const namedTests = readNamedTestScripts(app);
         const contract = readSafeLocalTestContracts(app);
-        const safeTests = namedTests.filter((name) => contract.scripts[name] || !deferredTestReason(name));
+        const safeTests = namedTests.filter(
+          (name) => contract.scripts[name] || !deferredTestReason(name),
+        );
         plan.push(...safeTests.map((name) => ({ kind: name, script: name })));
         if (contract.nativeSuite) plan.push({ kind: 'test:native', script: 'native-tests' });
         for (const name of namedTests) {
@@ -172,23 +202,45 @@ export function planAppAudits(
           if (reason) omissions.push({ script: name, reason });
         }
         for (const name of Object.keys(contract.scripts)) {
-          if (!namedTests.includes(name)) omissions.push({ script: name, reason: 'Contract references a script absent from package.json' });
+          if (!namedTests.includes(name))
+            omissions.push({
+              script: name,
+              reason: 'Contract references a script absent from package.json',
+            });
         }
-        if (contract.error) omissions.push({ script: 'config/app-validation-contracts.json', reason: `Could not load safe local test contracts: ${contract.error}` });
+        if (contract.error)
+          omissions.push({
+            script: 'config/app-validation-contracts.json',
+            reason: `Could not load safe local test contracts: ${contract.error}`,
+          });
         if (!script && safeTests.length === 0 && !contract.nativeSuite) {
           omissions.push({
             script: 'test',
-            reason: namedTests.length === 0
-              ? (pkgExists ? 'No test or test:* scripts are declared' : 'package.json is missing')
-              : 'No bounded, non-interactive test script is declared',
+            reason:
+              namedTests.length === 0
+                ? pkgExists
+                  ? 'No test or test:* scripts are declared'
+                  : 'package.json is missing'
+                : 'No bounded, non-interactive test script is declared',
           });
         }
         continue;
       }
       if (script) {
-        plan.push({ kind, script: kind === 'build' && !hasPackageScript(app, 'build') ? 'static:build' : kind });
+        plan.push({
+          kind,
+          script: kind === 'build' && !hasPackageScript(app, 'build') ? 'static:build' : kind,
+        });
       } else {
-        omissions.push({ script: kind, reason: pkgExists ? `package.json does not define "${kind}"` : 'package.json is missing' });
+        const naReason = readNaDeclarations(app)[kind];
+        omissions.push({
+          script: kind,
+          reason: naReason
+            ? `N/A: ${naReason}`
+            : pkgExists
+              ? `package.json does not define "${kind}"`
+              : 'package.json is missing',
+        });
       }
     }
     out.push({ app, packageJsonExists: pkgExists, plan, omissions });
@@ -198,18 +250,118 @@ export function planAppAudits(
 
 function hasPackageScript(app: string, name: string): boolean {
   try {
-    const pkg = JSON.parse(readFileSync(join(APPS_DIR, app, 'package.json'), 'utf8')) as PackageJsonScripts;
+    const pkg = JSON.parse(
+      readFileSync(join(APPS_DIR, app, 'package.json'), 'utf8'),
+    ) as PackageJsonScripts;
     return typeof pkg.scripts?.[name] === 'string';
   } catch {
     return false;
   }
 }
 
+/**
+ * Declaraciones de "no aplica" del contrato de apps. La razón vive en
+ * config/app-validation-contracts.json, pero la declaración SOLO se honra si
+ * la evidencia se mide: para typecheck, contar los .ts reales de la app debe
+ * dar 0; para build, no puede haber ni config de bundler ni dependencia de
+ * bundler. Un waiver que no se verifica contra el disco es un silenciamiento.
+ *
+ * Los motivos se reportan como omission con prefijo `N/A:` — siguen siendo
+ * visibles en el audit (JSON y texto), pero no fuerzan WARN en
+ * buildAppAudit: una app sin nada que tipar/buildar no está en deuda por no
+ * tipar/buildar.
+ */
+export function readNaDeclarations(app: string): Partial<Record<AppCheckKind, string>> {
+  try {
+    const config = JSON.parse(readFileSync(VALIDATION_CONTRACT_PATH, 'utf8')) as {
+      naDeclarations?: Record<string, Record<string, string>>;
+    };
+    const declared = config.naDeclarations?.[app];
+    if (!declared || typeof declared !== 'object') return {};
+    const out: Partial<Record<AppCheckKind, string>> = {};
+    for (const [kind, reason] of Object.entries(declared)) {
+      if (!(CHECK_KIND_TO_SCRIPT as Record<string, string>)[kind]) continue;
+      if (typeof reason !== 'string' || !reason.trim()) continue;
+      // Evidencia medida: typecheck exige 0 archivos .ts; build exige no-bundler.
+      if (kind === 'typecheck' && countTsFiles(app) > 0) continue;
+      if (kind === 'build' && hasBundlerMarkers(app)) continue;
+      out[kind as AppCheckKind] = reason;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+const BUNDLER_CONFIG_FILES = [
+  'vite.config.ts',
+  'vite.config.js',
+  'vite.config.mts',
+  'next.config.js',
+  'next.config.mjs',
+  'next.config.ts',
+  'webpack.config.js',
+  'webpack.config.mjs',
+  'webpack.config.ts',
+  'rollup.config.js',
+  'rollup.config.ts',
+  'tsup.config.ts',
+  'svelte.config.js',
+  'angular.json',
+];
+
+const BUNDLER_DEP_RE = /^(vite|webpack|rollup|parcel|next|esbuild|tsup|@angular\/cli|svelte)$/;
+
+/** Evidencia de bundler: config en la raíz de la app o dependencia bundler. */
+function hasBundlerMarkers(app: string): boolean {
+  const dir = join(APPS_DIR, app);
+  if (BUNDLER_CONFIG_FILES.some((file) => existsSync(join(dir, file)))) return true;
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    return Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).some((dep) =>
+      BUNDLER_DEP_RE.test(dep),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function countTsFiles(app: string): number {
+  const skip = new Set(['node_modules', '.runtime', 'dist', 'upstream', 'vendor']);
+  let count = 0;
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (skip.has(entry.name)) continue;
+        walk(join(dir, entry.name));
+      } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+        count++;
+      }
+    }
+  };
+  try {
+    walk(join(APPS_DIR, app));
+  } catch {
+    return count;
+  }
+  return count;
+}
+
+/** Una omission `N/A: ...` es declarada y verificada: no bloquea el PASS. */
+export function isBlockingOmission(reason: string): boolean {
+  return !reason.startsWith('N/A:');
+}
+
 function readNamedTestScripts(app: string): string[] {
   try {
     const pkgPath = join(APPS_DIR, app, 'package.json');
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageJsonScripts;
-    return Object.keys(pkg.scripts ?? {}).filter((name) => name.startsWith('test:')).sort();
+    return Object.keys(pkg.scripts ?? {})
+      .filter((name) => name.startsWith('test:'))
+      .sort();
   } catch {
     return [];
   }
@@ -217,8 +369,10 @@ function readNamedTestScripts(app: string): string[] {
 
 function deferredTestReason(script: string): string | undefined {
   const suffix = script.slice('test:'.length).toLowerCase();
-  if (/watch|coverage/.test(suffix)) return 'Watch/coverage mode is not a bounded deterministic suite';
-  if (/quality/.test(suffix)) return 'Composite quality script duplicates typecheck/lint/test checks';
+  if (/watch|coverage/.test(suffix))
+    return 'Watch/coverage mode is not a bounded deterministic suite';
+  if (/quality/.test(suffix))
+    return 'Composite quality script duplicates typecheck/lint/test checks';
   if (/e2e|browser|gui|visual|autoplay|journey|bot-manager|smoke/.test(suffix)) {
     return 'Dedicated integration/browser/service run; requires an explicit environment contract';
   }
@@ -257,6 +411,10 @@ const FLAKY_FAILURE_SIGNATURES = [
   'server no quedó sano',
   'Execution context was destroyed',
   'net::ERR_',
+  // Playwright: locator timeout bajo carga (elemento que tarda >30s cuando el
+  // audit corre suites con servers spawneados en paralelo al sistema). El
+  // reintento mantiene la honestidad: una regresión real falla dos veces.
+  'ms exceeded',
   'test timed out after',
   'Test timed out',
 ];
@@ -275,27 +433,36 @@ export function runAppCheck(
   const args = suite
     ? suite.runner === 'node-test'
       ? ['--import', 'tsx', '--test', ...suite.files.map((file) => join(appDir, file))]
-      : [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run', '--root', appDir, ...suite.files]
+      : [
+          join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'),
+          'run',
+          '--root',
+          appDir,
+          ...suite.files,
+        ]
     : ['run', script, '--silent'];
 
-  const run = exec ?? ((cmd: string, cmdArgs: string[]): { status: number | null; output: string } => {
-    const r = runSync(cmd, cmdArgs, {
-      cwd: suite ? ROOT : appDir,
-      stdio: 'pipe',
-      timeout: 240_000,
+  const run =
+    exec ??
+    ((cmd: string, cmdArgs: string[]): { status: number | null; output: string } => {
+      const r = runSync(cmd, cmdArgs, {
+        cwd: suite ? ROOT : appDir,
+        stdio: 'pipe',
+        timeout: 240_000,
+      });
+      // El MOTIVO del fallo esta al PRINCIPIO del stderr (pnpm y vite imprimen
+      // ahi su codigo y su mensaje) y el stack al final. Con solo la cola, un
+      // fallo de pnpm llegaba al reporte como un stack sin codigo: habia que
+      // adivinar la causa. Se toma la cabeza del stderr y la cola del stdout.
+      const stderr = (r.stderr || '').slice(0, 1_200);
+      const stdout = (r.stdout || '').slice(-1_200);
+      const output = [stderr, stdout, r.error?.message].filter(Boolean).join('\n');
+      return { status: r.status, output };
     });
-    // El MOTIVO del fallo esta al PRINCIPIO del stderr (pnpm y vite imprimen
-    // ahi su codigo y su mensaje) y el stack al final. Con solo la cola, un
-    // fallo de pnpm llegaba al reporte como un stack sin codigo: habia que
-    // adivinar la causa. Se toma la cabeza del stderr y la cola del stdout.
-    const stderr = (r.stderr || '').slice(0, 1_200);
-    const stdout = (r.stdout || '').slice(-1_200);
-    const output = [stderr, stdout, r.error?.message].filter(Boolean).join('\n');
-    return { status: r.status, output };
-  });
 
   try {
-    if (script === 'native-tests' && !suite) throw new Error('Native test suite contract is missing or invalid');
+    if (script === 'native-tests' && !suite)
+      throw new Error('Native test suite contract is missing or invalid');
     const first = run(command, args);
     const durationMs = Date.now() - start;
     if (first.status === 0) {
@@ -374,11 +541,16 @@ export function buildAppAudit(
   // - WARN si package.json no existe (raro: app listada pero sin manifest)
   // - PASS si todos los checks planeados pasaron
   let status: AppAudit['status'] = 'PASS';
+  const blockingOmissions = omissions.filter((o) => isBlockingOmission(o.reason));
   if (anyFail) {
     status = 'FAIL';
   } else if (!packageJsonExists && checks.length === 0) {
     status = 'WARN';
-  } else if (checks.length === 0 || checks.every((c) => c.status === 'SKIP') || omissions.length > 0) {
+  } else if (
+    checks.length === 0 ||
+    checks.every((c) => c.status === 'SKIP') ||
+    blockingOmissions.length > 0
+  ) {
     status = 'WARN';
   } else if (anyPass) {
     status = 'PASS';
@@ -434,11 +606,12 @@ export async function auditApps(
  */
 export function filterAffectedApps(allApps: string[], ref: string): string[] {
   try {
-    const out = execFileSync(
-      'git',
-      ['diff', '--name-only', `${ref}...HEAD`],
-      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true },
-    );
+    const out = execFileSync('git', ['diff', '--name-only', `${ref}...HEAD`], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      windowsHide: true,
+    });
     const changed = out.split('\n').filter(Boolean);
     if (changed.length === 0) return []; // sin cambios -> audit vacio (cache hit)
     const out2 = new Set<string>();
@@ -484,9 +657,7 @@ async function main(): Promise<void> {
   const failed = audits.filter((a) => a.status === 'FAIL').length;
 
   if (json) {
-    console.log(
-      JSON.stringify({ only, affected, passed, warned, failed, audits }, null, 2),
-    );
+    console.log(JSON.stringify({ only, affected, passed, warned, failed, audits }, null, 2));
   } else {
     const title = listOnly
       ? 'Layer 5: Apps discovery (--check none -> plan only)'
@@ -500,7 +671,10 @@ async function main(): Promise<void> {
     for (const a of audits) {
       const icon = a.status === 'PASS' ? '✓' : a.status === 'WARN' ? '!' : '✗';
       const detail = a.checks
-        .map((c) => `${c.kind}=${c.status}(${c.durationMs}ms)${c.status === 'SKIP' ? `:${c.message}` : ''}`)
+        .map(
+          (c) =>
+            `${c.kind}=${c.status}(${c.durationMs}ms)${c.status === 'SKIP' ? `:${c.message}` : ''}`,
+        )
         .join(' ');
       console.log(`  ${icon} ${a.app.padEnd(20)} ${detail}`);
       if (a.status === 'FAIL') {
