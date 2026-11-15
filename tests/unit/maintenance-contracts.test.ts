@@ -544,18 +544,25 @@ test('tool audit gate requires all expected clients to pass', () => {
     runtimeVariant: 'native',
     detail: 'ok',
   };
-  const rows = ['OpenCode', 'Codex', 'ZCode', 'MiniMax Code', 'GitHub Copilot', 'Antigravity'].map(
-    (tool) => ({ ...base, tool, status: 'PASS' as const }),
-  );
+  const rows = [
+    'OpenCode',
+    'Codex',
+    'ZCode',
+    'MiniMax Code',
+    'GitHub Copilot',
+    'Antigravity',
+    'Kimi',
+    'Qoder',
+  ].map((tool) => ({ ...base, tool, status: 'PASS' as const }));
 
   assert.deepEqual(evaluateToolAudit(rows), {
     passed: true,
-    detail: '6/6 tool configuration surfaces PASS (not runtime task qualification)',
+    detail: '8/8 tool configuration surfaces PASS (not runtime task qualification)',
   });
 
   assert.deepEqual(evaluateToolAudit(rows.slice(0, 5)), {
     passed: false,
-    detail: 'missing tool surfaces: Antigravity',
+    detail: 'missing tool surfaces: Antigravity, Kimi, Qoder',
   });
 
   assert.deepEqual(

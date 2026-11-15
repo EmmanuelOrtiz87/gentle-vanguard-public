@@ -510,6 +510,17 @@
         "description": "Verifica que el validador JSON esta operativo al inicio de sesion (TS)"
       },
       {
+        "id": "opencode-drift-heal",
+        "enabled": true,
+        "script": "src/tools/opencode-session-scope.ts",
+        "args": "--heal",
+        "required": false,
+        "description": "NORM-OPENCODE-001: si OpenCode dejó la flota en deriva (modelo sin capability tools), restaura el canon desde HEAD con snapshot forense (TS)",
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 30000
+      },
+      {
         "id": "opencode-config-validate",
         "enabled": true,
         "script": "src/tools/validate-opencode-config.ts",
@@ -542,6 +553,17 @@
         "retries": 1,
         "retryDelay": 1500,
         "description": "Sincroniza agentes, skills críticas y hooks entre OpenCode, Codex, ZCode, MiniMax, Copilot y Antigravity. Repara drift al iniciar sesión sin bloquear el arranque."
+      },
+      {
+        "id": "tool-interoperability-audit",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/integrations/tool-interoperability-audit.ts",
+        "args": "",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 120000,
+        "description": "NORM-MULTI-TOOL-002: verifica vigencia de las 8 superficies multi-tool (OpenCode, Codex, ZCode, MiniMax, Copilot, Antigravity, Kimi, Qoder) al iniciar cada sesión — reporta, no bloquea."
       },
       {
         "id": "client-runtime-observation",

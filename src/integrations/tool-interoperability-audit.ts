@@ -38,6 +38,8 @@ const EXPECTED_TOOL_SURFACES = [
   'MiniMax Code',
   'GitHub Copilot',
   'Antigravity',
+  'Kimi',
+  'Qoder',
 ];
 
 function listRelativeFiles(root: string, current = root): string[] {
@@ -535,7 +537,80 @@ export function auditTools(
       runtimeVariant: 'desktop',
       detail: 'Desktop runtime, workspace skills, MCP compartido y Memory Protocol',
     },
+    {
+      // GB-2026-11-15: superficies identificadas en disco (zondeo medido).
+      // El PASS de Kimi/Qoder es el CONTRATO DE IDENTIFICACIÓN (perfil declarado
+      // + runtime en home + bridge MCP presente) — NO califica ejecución ni
+      // skills/engram: eso queda pendiente de decisión en HOMOLOGACION-MULTI-TOOL.
+      tool: 'Kimi',
+      status:
+        existsSync(join(root, 'config', 'tool-kimi.json')) &&
+        existsSync(join(home, '.kimi-code', 'mcp.json')) &&
+        jsonHasServers(join(home, '.kimi-code', 'mcp.json'))
+          ? 'PASS'
+          : 'WARN',
+      profile: existsSync(join(root, 'config', 'tool-kimi.json')),
+      runtime: existsSync(join(home, '.kimi-code')),
+      launcher: commandAvailable('kimi', pathValue),
+      agents: null,
+      skills: 0,
+      hooks: 'n/a',
+      engram: 'missing',
+      instructions: existsSync(join(root, 'AGENTS.md')),
+      assets: 'n/a',
+      runtimeVariant: 'desktop',
+      detail:
+        'Superficie identificada (mcpServers.rea stdio en ~/.kimi-code/mcp.json); integración engram/skills pendiente de decisión — no califica ejecución',
+    },
+    {
+      tool: 'Qoder',
+      status:
+        existsSync(join(root, 'config', 'tool-qoder.json')) &&
+        existsSync(join(home, '.qoder')) &&
+        jsonHasRuntimeBridge(join(home, '.qoder', 'mcp-router.json'))
+          ? 'PASS'
+          : 'WARN',
+      profile: existsSync(join(root, 'config', 'tool-qoder.json')),
+      runtime: existsSync(join(home, '.qoder')),
+      launcher: commandAvailable('qoder', pathValue),
+      agents: null,
+      skills: 0,
+      hooks: 'n/a',
+      engram: 'missing',
+      instructions: existsSync(join(root, 'AGENTS.md')),
+      assets: 'n/a',
+      runtimeVariant: 'ide',
+      detail:
+        'IDE con router MCP de runtime (bridge efímero en ~/.qoder/mcp-router.json — presencia verificada, credenciales NUNCA leídas); integración pendiente de decisión',
+    },
   ];
+}
+
+/**
+ * Verifica que un JSON de config MCP sea parseable y declare al menos un
+ * server (mcpServers o servers). NO lee valores — solo estructura.
+ */
+export function jsonHasServers(path: string): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8')) as {
+      mcpServers?: Record<string, unknown>;
+      servers?: Record<string, unknown>;
+    };
+    const servers = parsed.mcpServers ?? parsed.servers ?? {};
+    return Object.keys(servers).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** Bridge de runtime de Qoder: JSON con schemaVersion — sin leer credenciales. */
+export function jsonHasRuntimeBridge(path: string): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8')) as { schemaVersion?: number };
+    return typeof parsed.schemaVersion === 'number';
+  } catch {
+    return false;
+  }
 }
 
 export function evaluateToolAudit(rows: ToolAudit[]): { passed: boolean; detail: string } {
