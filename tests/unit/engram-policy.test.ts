@@ -3,9 +3,16 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { runNpxTsxSync } from '../../src/core/run-command.ts';
 import { assessEngramDoctor, getDoctorArgs } from '../../src/knowledge/engram-policy.ts';
+import { usesHostOwnedEngramSession } from '../../src/knowledge/engram-session-bridge.ts';
 import { getExternalApiTimeouts } from '../../src/core/timeout-config.ts';
 
 const script = resolve('src/knowledge/engram-policy.ts');
+
+test('Codex owns Engram registration even when its host session is unconfirmed', () => {
+  assert.equal(usesHostOwnedEngramSession({ CODEX_SESSION_ID: 'host-test-fixture' }), true);
+  assert.equal(usesHostOwnedEngramSession({ CODEX_THREAD_ID: 'host-test-fixture' }), true);
+  assert.equal(usesHostOwnedEngramSession({ SESSION_ID: 'stack-test-fixture' }), false);
+});
 
 test('startup probes SQLite availability; a full history audit requires an explicit mode', () => {
   const startup = getDoctorArgs(false);
@@ -26,17 +33,40 @@ for (const [label, binary] of [
   ['failing doctor', process.execPath],
 ]) {
   test(`critical Engram policy reports ${label} instead of a false success`, () => {
-    const result = runNpxTsxSync(script, [], { env: { ...process.env, ENGRAM_BIN: binary }, timeout: 15000 });
+    const result = runNpxTsxSync(script, [], {
+      env: { ...process.env, ENGRAM_BIN: binary },
+      timeout: 15000,
+    });
     assert.equal(result.status, 1, result.stdout);
     assert.doesNotMatch(result.stdout, /Memory integrity verified|completed successfully/);
   });
 }
 
 for (const [label, output, code, expected] of [
-  ['healthy', JSON.stringify({ status: 'ok', summary: { warnings: 0, errors: 0, blocked: 0 } }), 0, 'pass'],
-  ['reviewable warning', JSON.stringify({ status: 'warning', summary: { warnings: 1, errors: 0, blocked: 0 } }), 0, 'warn'],
-  ['blocked report', JSON.stringify({ status: 'warning', summary: { warnings: 1, errors: 0, blocked: 1 } }), 0, 'fail'],
-  ['nonzero exit', JSON.stringify({ status: 'ok', summary: { warnings: 0, errors: 0, blocked: 0 } }), 1, 'fail'],
+  [
+    'healthy',
+    JSON.stringify({ status: 'ok', summary: { warnings: 0, errors: 0, blocked: 0 } }),
+    0,
+    'pass',
+  ],
+  [
+    'reviewable warning',
+    JSON.stringify({ status: 'warning', summary: { warnings: 1, errors: 0, blocked: 0 } }),
+    0,
+    'warn',
+  ],
+  [
+    'blocked report',
+    JSON.stringify({ status: 'warning', summary: { warnings: 1, errors: 0, blocked: 1 } }),
+    0,
+    'fail',
+  ],
+  [
+    'nonzero exit',
+    JSON.stringify({ status: 'ok', summary: { warnings: 0, errors: 0, blocked: 0 } }),
+    1,
+    'fail',
+  ],
   ['malformed JSON', '{broken', 0, 'fail'],
   ['unstructured success', JSON.stringify({ status: 'ok' }), 0, 'fail'],
 ] as const) {

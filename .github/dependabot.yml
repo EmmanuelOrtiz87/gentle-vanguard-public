@@ -1,43 +1,12 @@
 version: 2
-
 updates:
-  # Keep GitHub Actions pinned to latest patch/minor versions automatically.
-  # This prevents supply-chain attacks from unpinned action references.
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-      timezone: 'America/Argentina/Buenos_Aires'
-    commit-message:
-      prefix: 'chore(deps)'
-      include: 'scope'
-    labels:
-      - 'dependencies'
-      - 'github-actions'
-    # Limit open PRs to keep the queue manageable.
+      interval: monthly
     open-pull-requests-limit: 5
-    # Group patch + minor updates together; major updates get individual PRs.
-    groups:
-      minor-and-patch:
-        update-types:
-          - 'minor'
-          - 'patch'
-
-  # Keep npm dependencies (lefthook) updated
-  - package-ecosystem: 'npm'
-    directory: '/'
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-      timezone: 'America/Argentina/Buenos_Aires'
-    commit-message:
-      prefix: 'chore(deps)'
-      include: 'scope'
-    labels:
-      - 'dependencies'
-      - 'npm'
-    open-pull-requests-limit: 3
-    versioning-strategy: increase
+      interval: monthly
+    open-pull-requests-limit: 10

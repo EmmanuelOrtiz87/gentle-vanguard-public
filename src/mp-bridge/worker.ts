@@ -644,7 +644,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
     SALES_POLL_SECRET: process.env.SALES_POLL_SECRET,
   };
-  const handler = (await import('./worker')).default;
+  const handler = (await import('./worker.js')).default;
   const server = createServer(async (req, res) => {
     const body = await new Promise<string>((resolve) => {
       let data = '';

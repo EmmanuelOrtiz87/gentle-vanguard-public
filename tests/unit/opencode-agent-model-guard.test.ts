@@ -12,7 +12,11 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { classifyAgentModels, type Registry } from '../../src/tools/opencode-agent-model-guard.ts';
+import {
+  classifyAgentModels,
+  validateFallbackChains,
+  type Registry,
+} from '../../src/tools/opencode-agent-model-guard.ts';
 
 const registry: Registry = {
   'opencode-zen-C/big-pickle': { capabilities: ['code', 'chat', 'reasoning', 'tools'] },
@@ -50,4 +54,29 @@ test('agente sin modelo declarado es FAIL', () => {
   const r = classifyAgentModels({ ghost: {} }, registry);
   assert.equal(r.ok, false);
   assert.match(r.problems[0].reason, /sin modelo declarado/);
+});
+
+test('fallback sin tools es FAIL: el agente perderia tool calling al caer', () => {
+  const r = validateFallbackChains({
+    ...registry,
+    'opencode-zen-C/big-pickle': {
+      capabilities: ['code', 'tools'],
+      fallbackChain: ['ollama/qwen2.5-coder:14b'],
+    },
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.problems.length, 1);
+  assert.match(r.problems[0].reason, /pierde tool calling/);
+});
+
+test('fallback registrado con tools pasa', () => {
+  const r = validateFallbackChains({
+    ...registry,
+    'opencode-zen-C/big-pickle': {
+      capabilities: ['code', 'tools'],
+      fallbackChain: ['ollama/qwen3-14b-32k'],
+    },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.checked, 1);
 });

@@ -64,12 +64,12 @@ export default {
       items: [
         {
           label: 'src/',
-          body: 'more than 800 TypeScript files. Stack code by area: orchestration, security, retrieval, data, tools, quality and ops.',
+          body: 'more than 889 TypeScript files. Stack code by area: orchestration, security, retrieval, data, tools, quality and ops.',
           accent: '06b6d4',
         },
         {
           label: 'apps/',
-          body: '30 of our own applications running on the stack, validating the architecture in production.',
+          body: '31 of our own applications running on the stack, validating the architecture in production.',
           accent: '8b5cf6',
         },
         {
@@ -94,7 +94,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: 'more than 550 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
+          body: '619 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
           accent: 'f4bb4f',
         },
         {
@@ -202,7 +202,7 @@ export default {
         {
           icon: 'lock',
           heading: 'What is not copied',
-          body: 'Only 28 critical skills propagate to the five external surfaces. The rest are not copied so host metadata does not degrade.',
+          body: 'Only 29 critical skills propagate to the five external surfaces. The rest are not copied so host metadata does not degrade.',
         },
         {
           icon: 'boxes',
@@ -304,13 +304,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '55',
+          value: '68',
           label: 'Quality gates',
-          sub: '50 of 55 enforced strictly',
+          sub: '63 of 68 enforced strictly',
           accent: '06b6d4',
         },
         {
-          value: '552+',
+          value: '619',
           label: 'Test files',
           sub: 'Unit, e2e, integration, security and skills',
           accent: '8b5cf6',

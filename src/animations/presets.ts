@@ -7,7 +7,7 @@
  * maps them onto classes; the React hooks feed them to the Web Animations API.
  */
 
-import type { EasingName } from './utils';
+import type { EasingName } from './utils.js';
 
 export interface AnimationPreset {
   name: string;

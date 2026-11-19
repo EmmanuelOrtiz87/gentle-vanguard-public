@@ -14,8 +14,8 @@ import {
   sqliteGet,
   sqliteSet,
   sqliteTouch,
-} from './sqlite';
-import { recordHit, recordMiss } from './telemetry';
+} from './sqlite.js';
+import { recordHit, recordMiss } from './telemetry.js';
 const logger = log('RESILIENCE-RESPONSE-CACHE-CACHE');
 import { log } from '../../utils/logger.js';
 

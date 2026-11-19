@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { ContractResultRecord } from '../manager';
+import type { ContractResultRecord } from '../manager.js';
 
 export class ContractRepo {
   constructor(private db: Database.Database) {}

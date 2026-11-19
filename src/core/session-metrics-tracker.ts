@@ -5,7 +5,7 @@
  * No guarda en disco constantemente, solo acumula en memoria y sincroniza periódicamente.
  *
  * Ejemplo de uso en el pipeline:
- *   import { SessionMetricsTracker } from './session-metrics-tracker';
+ *   import { SessionMetricsTracker } from './session-metrics-tracker.js';
  *   const tracker = SessionMetricsTracker.getInstance(sessionId);
  *   tracker.addTokenUsage(150, 75); // input, output
  *   tracker.addFeedback('thumbs_up');
@@ -13,8 +13,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { ROOT } from './repo-root';
-import { SessionContextLog } from './session-context-log';
+import { ROOT } from './repo-root.js';
+import { SessionContextLog } from './session-context-log.js';
 const logger = log('CORE-SESSION-METRICS-TRACKER');
 import { log } from '../utils/logger.js';
 

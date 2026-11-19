@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { runSync } from '../core/run-command.js';
+import { collectLazyStatus } from '../core/lazy-status.js';
 
 interface Args {
   TimeZone?: string;
@@ -99,6 +100,7 @@ function main(): Record<string, any> {
   const sessionId = sessionInfo.sessionId;
   const branch = gitCmd(root, 'rev-parse --abbrev-ref HEAD');
   const lastCommit = gitCmd(root, 'log -1 --format="%H"');
+  const lazy = collectLazyStatus(root);
 
   // Use session file values first, then args, then use defaults from notifications config
   const notifications = {
@@ -129,6 +131,17 @@ function main(): Record<string, any> {
       branch,
       lastCommit,
     },
+    lazy: {
+      total: lazy.total,
+      ok: lazy.ok,
+      running: lazy.running,
+      failed: lazy.failed,
+      timeout: lazy.timeout,
+      stale: lazy.stale,
+      failures: lazy.results
+        .filter((r) => r.status === 'failed' || r.status === 'timeout' || r.status === 'stale')
+        .map((r) => ({ id: r.id, status: r.status, exitCode: r.exitCode ?? null })),
+    },
   };
 
   const outDir = join(root, 'reports');
@@ -145,6 +158,10 @@ function main(): Record<string, any> {
   console.log(`  peakStart : ${summary.peakStart}`);
   console.log(`  peakEnd   : ${summary.peakEnd}`);
   console.log(`  region    : ${summary.region}`);
+  console.log(
+    `  lazy      : ${lazy.total} total, ${lazy.ok} ok, ${lazy.running} running, ` +
+      `${lazy.failed} failed, ${lazy.timeout} timeout, ${lazy.stale} stale`,
+  );
 
   // Return success without process.exit to avoid breaking pipeline
   return summary;

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /** Audita disponibilidad real y contratos cross-tool sin leer credenciales. */
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { delimiter, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { CRITICAL_SKILLS } from './zcode-sync.js';
-import { runSync } from '../core/run-command.js';
+import { codexTokenSafetyProblems, parseTomlScalars } from '../tokens/token-safety.js';
 
 type Status = 'PASS' | 'WARN' | 'FAIL';
 
@@ -14,15 +14,14 @@ export interface ToolAudit {
   tool: string;
   status: Status;
   profile: boolean;
-  runtime: boolean;
-  launcher: boolean;
+  hostConfig: boolean;
   agents: number | null;
   skills: number;
   hooks: 'safe' | 'unsafe' | 'n/a';
-  engram: 'mcp' | 'cli-fallback' | 'missing';
+  engram: 'mcp' | 'missing' | 'unverified';
   instructions: boolean;
   assets: 'fresh' | 'stale' | 'n/a';
-  runtimeVariant: string;
+  hostType: string;
   detail: string;
 }
 
@@ -42,6 +41,68 @@ const EXPECTED_TOOL_SURFACES = [
   'Qoder',
 ];
 
+/**
+ * Perfiles de referencia para herramientas fuera del roster operativo de 9
+ * (audit 2026-11-17 F10). Existen como especificacion y como superficies de
+ * instrucciones generadas por el watchtower, pero NO tienen contrato de
+ * identificacion ni auditoria de skills/MCP: declararlos evita que queden
+ * como perfiles mudos.
+ */
+export interface ReferenceProfile {
+  tool: string;
+  profile: string;
+  surface: string;
+  surfacePaths: readonly string[];
+  reason: string;
+}
+
+export const REFERENCE_PROFILES: readonly ReferenceProfile[] = [
+  {
+    tool: 'Claude Code',
+    profile: 'config/tool-claude-code.json',
+    surface:
+      'CLAUDE.md (puntero a AGENTS.md) + .claude/ gitignored (settings stale, decision del owner)',
+    surfacePaths: ['CLAUDE.md', '.claude'],
+    reason: 'fuera del roster de 9; sin contrato de identificacion ni host config auditado',
+  },
+  {
+    tool: 'Cline',
+    profile: 'config/tool-cline.json',
+    surface: '.clinerules + .cline/config.json (instrucciones auto-managed por watchtower)',
+    surfacePaths: ['.clinerules', '.cline'],
+    reason:
+      'fuera del roster de 9; superficie de instrucciones generada, sin auditoria de skills/MCP',
+  },
+  {
+    tool: 'Cursor',
+    profile: 'config/tool-cursor.json',
+    surface: '.cursorrules + .cursor/{commands,hooks,rules} (auto-managed por watchtower)',
+    surfacePaths: ['.cursorrules', '.cursor'],
+    reason: 'fuera del roster de 9; sin host instalado ni contrato de identificacion',
+  },
+  {
+    tool: 'Windsurf',
+    profile: 'config/tool-windsurf.json',
+    surface: '.windsurf/{config.json,plugins}',
+    surfacePaths: ['.windsurf'],
+    reason: 'fuera del roster de 9; superficie de proyecto minima, sin auditoria de skills/MCP',
+  },
+];
+
+export interface ReferenceProfileReport extends ReferenceProfile {
+  profilePresent: boolean;
+  surfacePresent: boolean;
+}
+
+/** Reporta presencia real de cada perfil/superficie de referencia declarada. */
+export function referenceProfileReports(root: string): ReferenceProfileReport[] {
+  return REFERENCE_PROFILES.map((profile) => ({
+    ...profile,
+    profilePresent: existsSync(join(root, profile.profile)),
+    surfacePresent: profile.surfacePaths.some((path) => existsSync(join(root, path))),
+  }));
+}
+
 function listRelativeFiles(root: string, current = root): string[] {
   if (!existsSync(current)) return [];
   const files: string[] = [];
@@ -53,8 +114,15 @@ function listRelativeFiles(root: string, current = root): string[] {
   return files.sort();
 }
 
-function sha256(path: string): string {
-  return createHash('sha256').update(readFileSync(path)).digest('hex');
+/** null = archivo ilegible (p. ej. race con tool-interoperability-sync que lo
+ *  reescribe en paralelo durante el autostart). Degradamos con gracia en vez
+ *  de crashear el audit entero. */
+function sha256(path: string): string | null {
+  try {
+    return createHash('sha256').update(readFileSync(path)).digest('hex');
+  } catch {
+    return null;
+  }
 }
 
 export function compareSkillTrees(source: string, target: string): SkillTreeComparison {
@@ -69,8 +137,13 @@ export function compareSkillTrees(source: string, target: string): SkillTreeComp
 
   for (const file of sourceFiles) {
     if (!targetSet.has(file)) differences.push(`missing:${file}`);
-    else if (sha256(join(source, file)) !== sha256(join(target, file))) {
-      differences.push(`changed:${file}`);
+    else {
+      const sourceHash = sha256(join(source, file));
+      const targetHash = sha256(join(target, file));
+      if (sourceHash === null || targetHash === null) differences.push(`unreadable:${file}`);
+      else if (sourceHash !== targetHash) {
+        differences.push(`changed:${file}`);
+      }
     }
   }
   for (const file of targetFiles) {
@@ -87,32 +160,12 @@ export function nativeSkillSurfaceReady(
   return expectedCount > 0 && skillCount >= expectedCount && fresh;
 }
 
-export function copilotRuntimeVariant(
-  copilotCliAvailable: boolean,
-  vscodeAgentModeConfigured: boolean,
-): string {
-  if (copilotCliAvailable) return 'copilot-cli';
-  if (vscodeAgentModeConfigured) return 'vscode-agent-mode';
-  return 'configured-only';
-}
-
-export function zcodeEngramMode(
-  mcpAvailable: boolean,
-  cliAvailable: boolean,
-): 'mcp' | 'cli-fallback' | 'missing' {
-  return mcpAvailable ? 'mcp' : cliAvailable ? 'cli-fallback' : 'missing';
+export function zcodeEngramMode(mcpAvailable: boolean): 'mcp' | 'missing' {
+  return mcpAvailable ? 'mcp' : 'missing';
 }
 
 export function hasAgentCoverage(actual: number, expected: number): boolean {
   return actual >= expected;
-}
-
-export function copilotRuntimeReady(
-  copilotCliAvailable: boolean,
-  workspaceSettingsPresent: boolean,
-  vscodeAgentModeAvailable: boolean,
-): boolean {
-  return copilotCliAvailable || (workspaceSettingsPresent && vscodeAgentModeAvailable);
 }
 
 const CODEX_MANAGED_IMPECCABLE_EXTRAS = new Set([
@@ -141,6 +194,14 @@ const CODEX_MANAGED_IMPECCABLE_EXTRAS = new Set([
   'scripts/lib/impeccable-config.mjs',
 ]);
 
+// Guardrail de gasto: un perfil sin límites de contexto deja que el thread crezca
+// hasta (>300k tokens/request) y quema la cuota 5h sin compactar (medido 2026-11-17).
+function codexTokenProblemsFor(root: string): string[] {
+  const configPath = join(root, '.codex', 'config.toml');
+  if (!existsSync(configPath)) return ['perfil .codex/config.toml ausente'];
+  return codexTokenSafetyProblems(parseTomlScalars(readFileSync(configPath, 'utf8')));
+}
+
 function criticalSkillsFresh(
   root: string,
   targetRoot: string,
@@ -159,41 +220,6 @@ function criticalSkillsFresh(
   });
 }
 
-export function parseOpenCodeRuntimeMajor(version: string): 'v1' | 'v2' | 'unsupported' {
-  // Regex-free parse (ReDoS-safe): "opencode 1.2.3", "OpenCode v2.0.0", "v1.0.0".
-  const normalized = version
-    .trim()
-    .toLowerCase()
-    .replace(/^opencode\s+/, '')
-    .replace(/^v/, '');
-  const parts = normalized.split('.');
-  if (parts.length !== 3 || !parts.every((part) => /^\d+$/.test(part))) return 'unsupported';
-  if (parts[0] === '1') return 'v1';
-  if (parts[0] === '2') return 'v2';
-  return 'unsupported';
-}
-
-function detectOpenCodeRuntime(command: string | null): { variant: string; problem?: string } {
-  if (!command) return { variant: 'missing', problem: 'CLI no encontrada' };
-  const timeoutMs = 10_000;
-  const result = runSync(command, ['--version'], { timeout: timeoutMs, maxBuffer: 4096 });
-  if ((result.error as NodeJS.ErrnoException | null)?.code === 'ETIMEDOUT') {
-    return { variant: 'unsupported', problem: `--version excedió ${timeoutMs} ms` };
-  }
-  if (result.status !== 0 || result.stdout.length > 4096 || result.stderr.length > 4096) {
-    return {
-      variant: 'unsupported',
-      problem: 'no se pudo ejecutar --version con una salida válida',
-    };
-  }
-  const major = parseOpenCodeRuntimeMajor(result.stdout);
-  if (major === 'v2')
-    return { variant: major, problem: 'OpenCode V2 requiere calificación nativa' };
-  if (major === 'unsupported')
-    return { variant: major, problem: 'versión de OpenCode no compatible' };
-  return { variant: major };
-}
-
 function countFiles(dir: string, fileName: string): number {
   if (!existsSync(dir)) return 0;
   return readdirSync(dir, { recursive: true, withFileTypes: true }).filter(
@@ -206,34 +232,6 @@ function countMarkdown(dir: string): number {
   return readdirSync(dir, { withFileTypes: true }).filter(
     (entry) => entry.isFile() && entry.name.endsWith('.md'),
   ).length;
-}
-
-export function isUsableLauncherFile(path: string): boolean {
-  if (!existsSync(path)) return false;
-  try {
-    const stat = statSync(path);
-    if (!stat.isFile()) return false;
-    if (/\.exe$/i.test(path) || stat.size > 64 * 1024) return true;
-    const content = readFileSync(path, 'utf8');
-    return !/demo mode|temporary solution until proper|simulat(?:e|ed|ion)/i.test(content);
-  } catch {
-    return false;
-  }
-}
-
-function findUsableCommand(name: string, pathValue = process.env.PATH ?? ''): string | null {
-  const extensions = process.platform === 'win32' ? ['', '.exe', '.cmd', '.bat', '.ps1'] : [''];
-  for (const dir of pathValue.split(delimiter)) {
-    for (const extension of extensions) {
-      const candidate = join(dir, `${name}${extension}`);
-      if (isUsableLauncherFile(candidate)) return candidate;
-    }
-  }
-  return null;
-}
-
-function commandAvailable(name: string, pathValue = process.env.PATH ?? ''): boolean {
-  return findUsableCommand(name, pathValue) !== null;
 }
 
 function zcodeHooksSafe(configPath: string): boolean {
@@ -271,10 +269,11 @@ function hasEngramJsonServer(path: string, containers: string[][]): boolean {
   const config = readJson(path);
   if (!config) return false;
   return containers.some((container) => {
-    const server = nestedValue(config, [...container, 'engram']);
-    if (!server || typeof server !== 'object') return false;
-    const serialized = JSON.stringify(server).toLowerCase();
-    return serialized.includes('engram') && serialized.includes('mcp');
+    const servers = nestedValue(config, container);
+    if (!servers || typeof servers !== 'object' || Array.isArray(servers)) return false;
+    const server = (servers as Record<string, unknown>).engram;
+    // Check declaration and shape only; never inspect or serialize server values.
+    return Boolean(server && typeof server === 'object' && !Array.isArray(server));
   });
 }
 
@@ -310,7 +309,6 @@ export function hasMiniMaxEngramMcpRuntime(path: string): boolean {
 export function auditTools(
   root = process.cwd(),
   home = homedir(),
-  pathValue = process.env.PATH ?? '',
   appData = process.env.APPDATA ?? join(home, 'AppData', 'Roaming'),
 ): ToolAudit[] {
   const sourceAgents = countMarkdown(join(root, '.opencode', 'agents'));
@@ -320,9 +318,10 @@ export function auditTools(
   const minimaxSkills = countFiles(join(home, '.minimax', 'agents', 'mavis', 'skills'), 'SKILL.md');
   const copilotSkills = countFiles(join(root, '.github', 'skills'), 'SKILL.md');
   const antigravitySkills = countFiles(join(root, '.antigravity', 'skills'), 'SKILL.md');
+  const kimiSkills = countFiles(join(root, '.kimi-code', 'skills'), 'SKILL.md');
+  const qoderSkills = countFiles(join(root, '.qoder', 'skills'), 'SKILL.md');
   const zcodeAgents = countMarkdown(join(home, '.zcode', 'agents'));
   const hookSafe = zcodeHooksSafe(join(home, '.zcode', 'cli', 'config.json'));
-  const engramAvailable = commandAvailable('engram', pathValue);
   const zcodeAssetsFresh = criticalSkillsFresh(root, join(home, '.zcode', 'skills'));
   const codexAssetsFresh = criticalSkillsFresh(
     root,
@@ -335,12 +334,11 @@ export function auditTools(
   );
   const copilotAssetsFresh = criticalSkillsFresh(root, join(root, '.github', 'skills'));
   const antigravityAssetsFresh = criticalSkillsFresh(root, join(root, '.antigravity', 'skills'));
+  const kimiAssetsFresh = criticalSkillsFresh(root, join(root, '.kimi-code', 'skills'));
+  const qoderAssetsFresh = criticalSkillsFresh(root, join(root, '.qoder', 'skills'));
 
   const openCodeProfile = existsSync(join(root, 'config', 'tool-opencode.json'));
-  const openCodeRuntime = existsSync(join(root, '.opencode'));
-  const openCodeCommand = findUsableCommand('opencode', pathValue);
-  const openCodeLauncher = openCodeCommand !== null;
-  const openCodeRuntimeVersion = detectOpenCodeRuntime(openCodeCommand);
+  const openCodeHostConfig = existsSync(join(root, '.opencode'));
   const openCodePlugin = existsSync(join(home, '.config', 'opencode', 'plugins', 'engram.ts'));
   // OpenCode V2 movio los servers a `mcp.servers.<name>`; el shape V1 (`mcp.<name>`)
   // se descarta en silencio. Mirar solo V1 reportaba "engram ausente" con Engram
@@ -353,8 +351,7 @@ export function auditTools(
   const openCodeAssetsFresh = criticalSkillsFresh(root, join(root, '.opencode', 'skills'));
   const openCodeProblems = [
     !openCodeProfile && 'perfil ausente',
-    !openCodeRuntime && 'directorio .opencode ausente',
-    openCodeRuntimeVersion.problem,
+    !openCodeHostConfig && 'directorio .opencode ausente',
     !(openCodePlugin || openCodeMcp) && 'ni plugin ni MCP de Engram (cualquiera de los dos basta)',
     !nativeSkillSurfaceReady(openCodeSkills, expectedSkills, openCodeAssetsFresh) &&
       `skills nativas ${openCodeSkills}/${expectedSkills} incompletas o desactualizadas`,
@@ -371,18 +368,21 @@ export function auditTools(
     join(home, '.codex', 'engram-instructions.md'),
     join(appData, 'codex', 'engram-instructions.md'),
   ].some((path) => existsSync(path));
+  const codexTokenProblems = codexTokenProblemsFor(root);
 
   const zcodeMcp = hasEngramJsonServer(join(root, '.zcode', 'config.json'), [
     ['mcp', 'servers'],
     ['mcpServers'],
   ]);
-  const copilotMcp = hasEngramJsonServer(join(appData, 'Code', 'User', 'mcp.json'), [['servers']]);
-  const copilotCli = findUsableCommand('copilot', pathValue);
-  const vscodeAgentMode = commandAvailable('code', pathValue);
-  const copilotRuntime = existsSync(join(root, '.vscode', 'settings.json')) || copilotCli !== null;
-  const copilotInstructions = existsSync(
-    join(appData, 'Code', 'User', 'prompts', 'engram.instructions.md'),
-  );
+  const copilotWorkspaceMcp = hasEngramJsonServer(join(root, '.vscode', 'mcp.json'), [['servers']]);
+  const copilotUserMcp = hasEngramJsonServer(join(appData, 'Code', 'User', 'mcp.json'), [
+    ['servers'],
+  ]);
+  const copilotMcp = copilotWorkspaceMcp || copilotUserMcp;
+  const copilotHostConfig =
+    existsSync(join(root, '.vscode', 'settings.json')) ||
+    existsSync(join(root, '.vscode', 'mcp.json'));
+  const copilotInstructions = existsSync(join(root, '.github', 'copilot-instructions.md'));
   const antigravityMcp = hasEngramJsonServer(join(home, '.gemini', 'config', 'mcp_config.json'), [
     ['mcpServers'],
     ['servers'],
@@ -392,47 +392,61 @@ export function auditTools(
     /Engram|Memory Protocol/i,
   );
   const minimaxMcp = hasMiniMaxEngramMcpRuntime(join(home, '.minimax', 'mcp-runtime-names.json'));
+  const kimiProjectMcp = hasEngramJsonServer(join(root, '.kimi-code', 'mcp.json'), [
+    ['mcpServers'],
+  ]);
+  const kimiUserMcp = hasEngramJsonServer(join(home, '.kimi-code', 'mcp.json'), [['mcpServers']]);
+  const kimiEngram = kimiProjectMcp || kimiUserMcp;
+  const kimiEngramMode = kimiEngram ? 'mcp' : 'missing';
+  const qoderRuntimeBridgeActive = jsonHasRuntimeBridge(join(home, '.qoder', 'mcp-router.json'));
+  const qoderMcpConfigurationVerified = hasEngramJsonServer(join(home, '.qoder', 'settings.json'), [
+    ['mcpServers'],
+  ]);
+  const qoderEngramConfiguration: ToolAudit['engram'] = qoderMcpConfigurationVerified
+    ? 'mcp'
+    : 'unverified';
 
   return [
     {
       tool: 'OpenCode',
       status: openCodeProblems.length === 0 ? 'PASS' : 'WARN',
       profile: openCodeProfile,
-      runtime: openCodeRuntime,
-      launcher: openCodeLauncher,
+      hostConfig: openCodeHostConfig,
       agents: sourceAgents,
       skills: openCodeSkills,
       hooks: 'n/a',
-      engram: openCodeMcp && openCodePlugin ? 'mcp' : 'missing',
+      engram: openCodeMcp || openCodePlugin ? 'mcp' : 'missing',
       instructions: openCodePlugin && existsSync(join(root, 'AGENTS.md')),
       assets: openCodeAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: openCodeRuntimeVersion.variant,
+      hostType: 'desktop',
       detail:
         openCodeProblems.join('; ') ||
-        `CLI real V1, plugin oficial Engram v2 y MCP global; skills nativas ${openCodeSkills}/${expectedSkills} frescas`,
+        `Desktop workspace, Engram MCP/plugin y skills nativas ${openCodeSkills}/${expectedSkills} frescas`,
     },
     {
       tool: 'Codex',
       status:
-        commandAvailable('codex', pathValue) &&
+        existsSync(join(home, '.codex')) &&
         codexSkills >= expectedSkills &&
         codexAssetsFresh &&
         existsSync(join(root, 'AGENTS.md')) &&
         codexMcp &&
-        codexInstructions
+        codexInstructions &&
+        codexTokenProblems.length === 0
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-codex.json')),
-      runtime: existsSync(join(home, '.codex')),
-      launcher: commandAvailable('codex', pathValue),
+      hostConfig: existsSync(join(home, '.codex')),
       agents: sourceAgents,
       skills: codexSkills,
       hooks: 'n/a',
       engram: codexMcp ? 'mcp' : 'missing',
       instructions: codexInstructions,
       assets: codexAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: 'native',
-      detail: 'AGENTS.md, skills nativas, plugin y MCP Engram v2',
+      hostType: 'desktop IDE',
+      detail:
+        codexTokenProblems.join('; ') ||
+        'AGENTS.md, skills nativas, MCP Engram y configuración de Codex Desktop',
     },
     {
       tool: 'ZCode',
@@ -441,20 +455,19 @@ export function auditTools(
         zcodeSkills >= expectedSkills &&
         zcodeAssetsFresh &&
         hookSafe &&
-        (zcodeMcp || engramAvailable)
+        zcodeMcp
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-zcode.json')),
-      runtime: existsSync(join(home, '.zcode', 'v2')),
-      launcher: commandAvailable('zcode', pathValue),
+      hostConfig: existsSync(join(home, '.zcode', 'v2')),
       agents: zcodeAgents,
       skills: zcodeSkills,
       hooks: hookSafe ? 'safe' : 'unsafe',
-      engram: zcodeEngramMode(zcodeMcp, engramAvailable),
+      engram: zcodeEngramMode(zcodeMcp),
       instructions: existsSync(join(root, 'AGENTS.md')) && zcodeSkills >= expectedSkills,
       assets: zcodeAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: 'desktop',
-      detail: 'Desktop runtime; MCP, agentes, skills y hooks seguros',
+      hostType: 'desktop IDE',
+      detail: 'Workspace desktop; MCP, agentes, skills y hooks seguros',
     },
     {
       tool: 'MiniMax Code',
@@ -462,33 +475,28 @@ export function auditTools(
         existsSync(join(home, '.minimax', 'config.yaml')) &&
         minimaxSkills >= expectedSkills &&
         minimaxAssetsFresh &&
-        (minimaxMcp || engramAvailable) &&
+        minimaxMcp &&
         existsSync(join(root, 'AGENTS.md'))
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-minimax.json')),
-      runtime: existsSync(join(home, '.minimax', 'v2')),
-      launcher: commandAvailable('minimax', pathValue),
+      hostConfig: existsSync(join(home, '.minimax', 'config.yaml')),
       agents: null,
       skills: minimaxSkills,
       hooks: 'n/a',
-      engram: minimaxMcp ? 'mcp' : engramAvailable ? 'cli-fallback' : 'missing',
+      engram: minimaxMcp ? 'mcp' : 'missing',
       instructions: minimaxSkills >= expectedSkills && existsSync(join(root, 'AGENTS.md')),
       assets: minimaxAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: 'desktop/pi-agent',
+      hostType: 'desktop IDE/pi-agent',
       detail: minimaxMcp
-        ? 'Runtime desktop/pi-agent; Engram MCP detectado en mcp-runtime-names.json'
-        : 'Runtime desktop/pi-agent; Engram CLI es fallback hasta configurar MCP desde /mcp',
+        ? 'Desktop IDE/pi-agent; Engram MCP detectado en mcp-runtime-names.json'
+        : 'Desktop IDE/pi-agent; Engram MCP no configurado',
     },
     {
       tool: 'GitHub Copilot',
       status:
         existsSync(join(root, 'config', 'tool-vscode.json')) &&
-        copilotRuntimeReady(
-          copilotCli !== null,
-          existsSync(join(root, '.vscode', 'settings.json')),
-          vscodeAgentMode,
-        ) &&
+        copilotHostConfig &&
         copilotSkills >= expectedSkills &&
         copilotAssetsFresh &&
         copilotMcp &&
@@ -496,8 +504,7 @@ export function auditTools(
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-vscode.json')),
-      runtime: copilotRuntime,
-      launcher: copilotCli !== null || vscodeAgentMode,
+      hostConfig: copilotHostConfig,
       agents: null,
       skills: copilotSkills,
       hooks: 'n/a',
@@ -505,14 +512,8 @@ export function auditTools(
       instructions:
         copilotInstructions && existsSync(join(root, '.github', 'copilot-instructions.md')),
       assets: copilotAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: copilotRuntimeVariant(
-        copilotCli !== null,
-        existsSync(join(root, '.vscode', 'settings.json')) && vscodeAgentMode,
-      ),
-      detail:
-        copilotCli !== null
-          ? 'Copilot CLI, workspace skills, MCP e instrucciones oficiales'
-          : 'VS Code Agent Mode, workspace skills, MCP e instrucciones oficiales',
+      hostType: 'desktop IDE',
+      detail: 'GitHub Copilot en IDE de escritorio; workspace skills, MCP e instrucciones',
     },
     {
       tool: 'Antigravity',
@@ -526,69 +527,66 @@ export function auditTools(
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-antigravity.json')),
-      runtime: existsSync(join(root, '.antigravity', 'config.json')),
-      launcher: commandAvailable('antigravity', pathValue),
+      hostConfig: existsSync(join(root, '.antigravity', 'config.json')),
       agents: null,
       skills: antigravitySkills,
       hooks: 'n/a',
       engram: antigravityMcp ? 'mcp' : 'missing',
       instructions: antigravityInstructions,
       assets: antigravityAssetsFresh ? 'fresh' : 'stale',
-      runtimeVariant: 'desktop',
-      detail: 'Desktop runtime, workspace skills, MCP compartido y Memory Protocol',
+      hostType: 'desktop IDE',
+      detail: 'Workspace skills, MCP compartido y Memory Protocol',
     },
     {
       // GB-2026-11-15: superficies identificadas en disco (zondeo medido).
-      // El PASS de Kimi/Qoder es el CONTRATO DE IDENTIFICACIÓN (perfil declarado
-      // + runtime en home + bridge MCP presente) — NO califica ejecución ni
-      // skills/engram: eso queda pendiente de decisión en HOMOLOGACION-MULTI-TOOL.
+      // Sus skills de proyecto se comparan contra el canon; el PASS no califica
+      // inferencia ni ejecución real del host.
       tool: 'Kimi',
       status:
         existsSync(join(root, 'config', 'tool-kimi.json')) &&
         existsSync(join(home, '.kimi-code', 'mcp.json')) &&
-        jsonHasServers(join(home, '.kimi-code', 'mcp.json'))
+        jsonHasServers(join(home, '.kimi-code', 'mcp.json')) &&
+        nativeSkillSurfaceReady(kimiSkills, expectedSkills, kimiAssetsFresh) &&
+        kimiEngramMode !== 'missing'
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-kimi.json')),
-      runtime: existsSync(join(home, '.kimi-code')),
-      launcher: commandAvailable('kimi', pathValue),
+      hostConfig: existsSync(join(home, '.kimi-code')),
       agents: null,
-      skills: 0,
+      skills: kimiSkills,
       hooks: 'n/a',
-      engram: 'missing',
+      engram: kimiEngramMode,
       instructions: existsSync(join(root, 'AGENTS.md')),
-      assets: 'n/a',
-      runtimeVariant: 'desktop',
-      detail:
-        'Superficie identificada (mcpServers.rea stdio en ~/.kimi-code/mcp.json); integración engram/skills pendiente de decisión — no califica ejecución',
+      assets: kimiAssetsFresh ? 'fresh' : 'stale',
+      hostType: 'desktop IDE',
+      detail: `Project skills ${kimiSkills}/${expectedSkills}; Engram ${kimiEngramMode}; host execution not qualified`,
     },
     {
       tool: 'Qoder',
       status:
         existsSync(join(root, 'config', 'tool-qoder.json')) &&
         existsSync(join(home, '.qoder')) &&
-        jsonHasRuntimeBridge(join(home, '.qoder', 'mcp-router.json'))
+        nativeSkillSurfaceReady(qoderSkills, expectedSkills, qoderAssetsFresh) &&
+        qoderMcpConfigurationVerified
           ? 'PASS'
           : 'WARN',
       profile: existsSync(join(root, 'config', 'tool-qoder.json')),
-      runtime: existsSync(join(home, '.qoder')),
-      launcher: commandAvailable('qoder', pathValue),
+      hostConfig: existsSync(join(home, '.qoder')),
       agents: null,
-      skills: 0,
+      skills: qoderSkills,
       hooks: 'n/a',
-      engram: 'missing',
+      engram: qoderEngramConfiguration,
       instructions: existsSync(join(root, 'AGENTS.md')),
-      assets: 'n/a',
-      runtimeVariant: 'ide',
-      detail:
-        'IDE con router MCP de runtime (bridge efímero en ~/.qoder/mcp-router.json — presencia verificada, credenciales NUNCA leídas); integración pendiente de decisión',
+      assets: qoderAssetsFresh ? 'fresh' : 'stale',
+      hostType: 'desktop IDE',
+      detail: `Project skills ${qoderSkills}/${expectedSkills}; persistent Engram MCP ${qoderMcpConfigurationVerified ? 'configured in IDE settings' : 'not verified'}; runtime bridge ${qoderRuntimeBridgeActive ? 'active' : 'not active'} (ephemeral; no credentials inspected); host execution not qualified`,
     },
   ];
 }
 
 /**
  * Verifica que un JSON de config MCP sea parseable y declare al menos un
- * server (mcpServers o servers). NO lee valores — solo estructura.
+ * server (mcpServers o servers). No inspecciona valores de servidores.
  */
 export function jsonHasServers(path: string): boolean {
   try {
@@ -629,41 +627,67 @@ export function evaluateToolAudit(rows: ToolAudit[]): { passed: boolean; detail:
 
   return {
     passed: true,
-    detail: `${EXPECTED_TOOL_SURFACES.length}/${EXPECTED_TOOL_SURFACES.length} tool configuration surfaces PASS (not runtime task qualification)`,
+    detail: `${EXPECTED_TOOL_SURFACES.length}/${EXPECTED_TOOL_SURFACES.length} desktop IDE configuration surfaces PASS (not runtime task qualification)`,
   };
 }
 
-function markdown(rows: ToolAudit[], generatedAt: string): string {
+function markdown(rows: ToolAudit[], generatedAt: string, root: string): string {
+  const reference = referenceProfileReports(root);
   const lines = [
     '# Auditoría de interoperabilidad de herramientas',
     '',
     `Generado: ${generatedAt}`,
     '',
-    '| Herramienta | Estado | Variante | Perfil | Runtime | Launcher | Agentes | Skills | Assets | Hooks | Engram | Instrucciones |',
-    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
+    '| IDE | Estado | Tipo | Perfil | Configuración IDE | Agentes | Skills | Assets | Hooks | Engram MCP | Instrucciones |',
+    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
     ...rows.map(
       (row) =>
-        `| ${row.tool} | ${row.status} | ${row.runtimeVariant} | ${row.profile ? 'sí' : 'no'} | ${row.runtime ? 'sí' : 'no'} | ${row.launcher ? 'sí' : 'no'} | ${row.agents ?? 'n/a'} | ${row.skills} | ${row.assets} | ${row.hooks} | ${row.engram} | ${row.instructions ? 'sí' : 'no'} |`,
+        `| ${row.tool} | ${row.status} | ${row.hostType} | ${row.profile ? 'sí' : 'no'} | ${row.hostConfig ? 'sí' : 'no'} | ${row.agents ?? 'n/a'} | ${row.skills} | ${row.assets} | ${row.hooks} | ${row.engram} | ${row.instructions ? 'sí' : 'no'} |`,
     ),
     '',
-    '## Criterio — configuración, no calificación de tareas ejecutadas',
+    'Alcance: configuración de proyecto/perfil IDE únicamente; sin probes de comandos de productos ni ejecución de tareas en hosts.',
     '',
-    'Un runtime desktop puede estar operativo sin una CLI global. PASS exige el contrato nativo de cada herramienta: perfil, instrucciones, skills con árboles y hashes frescos, Engram por MCP o fallback explícito y, cuando aplica, agentes y hooks seguros. OpenCode se clasifica por la versión reportada por el ejecutable; una major desconocida o V2 todavía no calificada nunca hereda capacidades V1.',
+    '## Perfiles de referencia sin auditoría (fuera del roster de 9)',
+    '',
+    '| Herramienta | Perfil | Superficie presente | Por qué no se audita |',
+    '|---|---|---:|---|',
+    ...reference.map(
+      (profile) =>
+        `| ${profile.tool} | ${profile.profile} | ${profile.profilePresent && profile.surfacePresent ? 'sí' : 'no'} | ${profile.reason} |`,
+    ),
+    '',
+    'Estos perfiles existen como especificación y como instrucciones generadas por el watchtower; no tienen contrato de identificación ni auditoría de skills/MCP. Un perfil sin superficie deja de ser una promesa muda porque está declarado acá.',
+    '',
+    '## Criterio — configuración de IDE, no calificación de tareas ejecutadas',
+    '',
+    'Este reporte verifica archivos de proyecto/perfil, skills, instrucciones, MCP y hooks declarados. No busca ni ejecuta comandos de productos, no inspecciona versiones instaladas y no prueba una sesión de IDE. Un PASS no acredita inferencia, invocación real de herramientas ni uso de memoria.',
     '',
   ];
   return lines.join('\n');
 }
 
-function main(): void {
-  const rows = auditTools();
+async function main(): Promise<void> {
+  let rows = auditTools();
+  // CARRERA con el sync: `tool-interoperability-sync` regenera las superficies
+  // en paralelo y el audit puede verlas a medio copiar (medido 2026-11-18:
+  // exit 1 dentro del autostart, exit 0 standalone). Un re-intento con espera
+  // corta distingue "desactualizado" de "a medio regenerar".
+  if (rows.some((row) => row.status !== 'PASS' && row.assets === 'stale')) {
+    await new Promise((resolve) => setTimeout(resolve, 15000));
+    rows = auditTools();
+  }
   const generatedAt = new Date().toISOString();
+  const scope =
+    'desktop IDE project/configuration surfaces only; no product command probes or host task execution';
+  const declaredProfiles = referenceProfileReports(process.cwd());
   console.log(
     JSON.stringify(
       {
         generatedAt,
-        scope: 'configuration surfaces only; not host model/tool execution',
+        scope,
         expectedCriticalSkills: CRITICAL_SKILLS.length,
         tools: rows,
+        declaredProfiles,
       },
       null,
       2,
@@ -675,11 +699,26 @@ function main(): void {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, `tool-interoperability-${day}.json`),
-      `${JSON.stringify({ generatedAt, tools: rows }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          generatedAt,
+          scope,
+          expectedCriticalSkills: CRITICAL_SKILLS.length,
+          tools: rows,
+          declaredProfiles,
+        },
+        null,
+        2,
+      )}\n`,
     );
-    writeFileSync(join(dir, `tool-interoperability-${day}.md`), markdown(rows, generatedAt));
+    writeFileSync(
+      join(dir, `tool-interoperability-${day}.md`),
+      markdown(rows, generatedAt, process.cwd()),
+    );
   }
   if (rows.some((row) => row.status !== 'PASS')) process.exitCode = 1;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  void main();
+}

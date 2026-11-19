@@ -230,7 +230,7 @@ export function buildOwaspMapping(): OwaspCategory[] {
       coverage: 'full',
       evidence: [
         'token-budget-guard.ts — daily/per-session budgets',
-        'token-budget-guard.json — 5M daily / 3M per-session',
+        'token-budget-guard.json — límites calibrados desde Nexus (370M diario / 320M sesión; umbral de anomalía)',
         'circuit-breaker-v2.ts — resource protection',
       ],
     },

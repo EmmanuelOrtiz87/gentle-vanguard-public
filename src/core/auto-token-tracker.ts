@@ -5,14 +5,14 @@
  * comenzar a trackear tokens automáticamente.
  *
  * Ejemplo de integración en el código principal:
- *   import './auto-token-tracker'; // Al inicio de tu app
+ *   import './auto-token-tracker.js'; // Al inicio de tu app
  *
  * O de forma más explícita:
- *   import { enableAutoTracking } from './auto-token-tracker';
+ *   import { enableAutoTracking } from './auto-token-tracker.js';
  *   enableAutoTracking();
  */
 
-import { trackTokenUsage, trackFeedback } from './session-metrics-tracker';
+import { trackTokenUsage, trackFeedback } from './session-metrics-tracker.js';
 
 // Session ID actual (obtenido del environment o generado)
 const SESSION_ID =

@@ -113,7 +113,7 @@ export default {
       cols: 4,
       items: [
         {
-          value: '30',
+          value: '31',
           label: 'Own apps',
           sub: 'Systems we developed and that run today',
           accent: '06b6d4',
@@ -125,7 +125,7 @@ export default {
           accent: '8b5cf6',
         },
         {
-          value: '257',
+          value: '258',
           label: 'Skills',
           sub: 'Reusable capabilities that are not rewritten per project',
           accent: 'fbbf24',
@@ -159,7 +159,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Governance',
-          body: '55 quality gates, secret scanning and fail-closed policies.',
+          body: '68 quality gates, secret scanning and fail-closed policies.',
         },
         {
           icon: 'cloud',

@@ -4,18 +4,21 @@
 
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
-import { runNpxTsxSync, runSync } from '../run-command';
-import { buildSnapshot, analyzeProcesses, DEFAULT_OPTIONS } from '../process-hygiene';
-import { getEffectiveProcessTimeout, getExternalApiTimeouts } from '../timeout-config';
-import { addResult, quiet, ROOT, RUNTIME_DIR, CheckResult } from './context';
+import { runNpxTsxSync, runSync } from '../run-command.js';
+import { buildSnapshot, analyzeProcesses, DEFAULT_OPTIONS } from '../process-hygiene.js';
+import { getEffectiveProcessTimeout, getExternalApiTimeouts } from '../timeout-config.js';
+import { addResult, quiet, ROOT, RUNTIME_DIR, CheckResult } from './context.js';
 import {
   fileExists,
+  hasOpenCodeStdioMcpServer,
+  hasRepoCanonStdioMcpServer,
   readJson,
   getFileAgeHours,
   isCodeGraphProcessRunning,
   payloadFileOk,
-} from './helpers';
+} from './helpers.js';
 import { getEmbeddingFreshnessHours } from '../../skills/skill-embedder-incremental.js';
+import { readState as readCodegraphState } from '../../ops/codegraph-toggle.js';
 import { log } from '../../utils/logger.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-INFRA');
 
@@ -40,9 +43,53 @@ export function evaluateCodeGraphAvailability(input: {
 export async function checkCodeGraph() {
   if (!quiet) logger.info('  [CodeGraph] Checking...');
 
+  // Capacidad apagada por decision DECLARADA (config/codegraph.config.json):
+  // no es un FAIL, es un SKIP con el motivo leido del config. Un check que
+  // ignora la decision reporta un fallo inexistente (medido 2026-11-18: 2 FAIL
+  // falsos y un autoheal que resucitaba la capacidad apagada).
+  const cgState = readCodegraphState(ROOT);
+  if (cgState.enabled === false) {
+    const reason = cgState.reason ?? 'sin motivo declarado';
+    addResult('codegraph', 'index database', 'SKIP', `apagado por politica - ${reason}`, 'ok');
+    addResult('codegraph', 'MCP availability', 'SKIP', 'apagado por politica', 'ok');
+    return;
+  }
+
   const cgDir = join(ROOT, '.codegraph');
   const indexOk = fileExists(join(cgDir, 'codegraph.db'));
   addResult('codegraph', 'index database', indexOk ? 'PASS' : 'FAIL', '', 'rebuild');
+
+  // Frescura RELATIVA: el índice debe ser más nuevo que el último commit.
+  // Existencia no basta — si el sync post-commit se rompe en silencio, el índice
+  // queda stale y un check de existencia reporta PASS (el fallo que el owner
+  // teme: volver a trabajar sobre índice desactualizado). Tolerancia de 60s por
+  // el orden hook->sync dentro del propio commit.
+  if (indexOk) {
+    let lastCommitAt: number | null = null;
+    try {
+      const r = runSync('git', ['log', '-1', '--format=%ct'], {
+        cwd: ROOT,
+        timeout: getEffectiveProcessTimeout('default'),
+      });
+      const parsed = parseInt((r.stdout ?? '').trim(), 10);
+      lastCommitAt = Number.isFinite(parsed) ? parsed * 1000 : null;
+    } catch {
+      lastCommitAt = null; // sin git accesible: la frescura se SKIPea, no se inventa
+    }
+    if (lastCommitAt !== null) {
+      const dbAge = statSync(join(cgDir, 'codegraph.db')).mtimeMs;
+      const stale = dbAge + 60_000 < lastCommitAt;
+      addResult(
+        'codegraph',
+        'index freshness',
+        stale ? 'WARN' : 'PASS',
+        stale
+          ? 'hay commits más nuevos que el índice: sync post-commit roto — correr `codegraph index .`'
+          : 'índice más nuevo que el último commit',
+        stale ? 'rebuild' : 'ok',
+      );
+    }
+  }
 
   // stdio MCP servers are client-owned and start on demand. A persistent
   // process is an optional warm signal, not a health requirement.
@@ -67,13 +114,30 @@ export async function checkCodeGraph() {
   const procRunning = isCodeGraphProcessRunning();
 
   let mcpConfigured = false;
+  let mcpConfiguredWhere = '';
   try {
     const oc = readJson(join(ROOT, 'opencode.json'));
-    const cg = (oc.mcp as Record<string, unknown> | undefined)?.['codegraph'] as
-      { enabled?: boolean; command?: string } | undefined;
-    mcpConfigured = !!cg && cg.enabled !== false && typeof cg.command === 'string';
+    if (hasOpenCodeStdioMcpServer(oc, 'codegraph')) {
+      mcpConfigured = true;
+      mcpConfiguredWhere = 'opencode.json';
+    }
   } catch {
     mcpConfigured = false;
+  }
+  // El canon del repo (.mcp.json) es la superficie que cargan MiniMax Code y
+  // Claude Code. Mirar solo opencode.json es medir UNA superficie y declarar
+  // el sistema entero (medido 2026-11-18: codegraph reactivado y el check
+  // reportaba "MCP stdio configuration missing" con el server en pie).
+  if (!mcpConfigured) {
+    try {
+      const canon = readJson(join(ROOT, '.mcp.json'));
+      if (hasRepoCanonStdioMcpServer(canon, 'codegraph')) {
+        mcpConfigured = true;
+        mcpConfiguredWhere = '.mcp.json (canon del repo)';
+      }
+    } catch {
+      /* sin canon legible */
+    }
   }
 
   const availability = evaluateCodeGraphAvailability({
@@ -82,8 +146,44 @@ export async function checkCodeGraph() {
     pidAlive,
     processRunning: procRunning,
   });
-  const detail = pidAlive ? `${availability.detail} (${pidDetail})` : availability.detail;
+  const detail = `${availability.detail}${mcpConfiguredWhere ? ` (declarado en ${mcpConfiguredWhere})` : ''}${
+    pidAlive ? ` (${pidDetail})` : ''
+  }`;
   addResult('codegraph', 'MCP availability', availability.status, detail, availability.action);
+
+  // Compromiso de re-medición (reactivación 2026-11-18): si la decisión está
+  // vencida y sin resolver, WARN — un experimento comprometido no puede quedarse
+  // sin veredicto. Se resuelve con `npm run codegraph:remeasure --record`.
+  const reMeasureAt = typeof cgState.reMeasureAt === 'string' ? cgState.reMeasureAt : null;
+  if (reMeasureAt) {
+    const due = Date.now() >= Date.parse(reMeasureAt);
+    const resolved = typeof cgState.remeasureResolvedAt === 'string';
+    if (due && !resolved) {
+      addResult(
+        'codegraph',
+        'remeasure commitment',
+        'WARN',
+        `decisión vencida (${reMeasureAt}) sin resolver: npm run codegraph:remeasure --record`,
+        'manual',
+      );
+    } else if (resolved) {
+      addResult(
+        'codegraph',
+        'remeasure commitment',
+        'PASS',
+        `resuelta ${String(cgState.remeasureResolvedAt)}: ${String(cgState.remeasureVerdict ?? 'sin veredicto')}`,
+        'ok',
+      );
+    } else {
+      addResult(
+        'codegraph',
+        'remeasure commitment',
+        'PASS',
+        `decisión comprometida el ${reMeasureAt}`,
+        'ok',
+      );
+    }
+  }
 }
 
 // ─── Component: Timeout Daemon ────────────────────────────────────────────────
@@ -160,11 +260,25 @@ export async function checkProcessHygiene() {
 
   const opts = { ...DEFAULT_OPTIONS, apply: false };
   const snap = await buildSnapshot();
-  const { findings } = analyzeProcesses(snap, opts);
+  // El autoheal aplica con `recycleAged: false`: reciclar un daemon en
+  // caliente lo deja CAIDO hasta la proxima sesion (el respawn es al inicio
+  // de sesion, no continuo). El check tiene que medir lo que el stack HACE,
+  // no lo que podria hacer: medir con otras opciones daba un FAIL que nadie
+  // podia resolver (medido 2026-11-18: los mismos 2 daemons con 24,9h y
+  // 26,8h reportados en dos corridas separadas).
+  const healOpts = { ...opts, recycleAged: false };
+  const { findings } = analyzeProcesses(snap, healOpts);
   const actionable = findings.filter((f) => f.action !== 'report');
   const reportsOnly = findings.filter((f) => f.action === 'report');
 
-  if (actionable.length === 0 && reportsOnly.length === 0) {
+  // Los daemons envejecidos SI se reciclan, pero al inicio de la proxima
+  // sesion (session-autostart, fase 1, antes de los lazy daemons). Se
+  // declaran como aviso, no como fallo.
+  const aged = analyzeProcesses(snap, { ...opts, recycleAged: true }).findings.filter(
+    (f) => f.kind === 'aged-daemon',
+  );
+
+  if (actionable.length === 0 && reportsOnly.length === 0 && aged.length === 0) {
     addResult(
       'process-hygiene',
       'orphan/duplicate sweep',
@@ -175,20 +289,34 @@ export async function checkProcessHygiene() {
     return;
   }
 
-  const summary =
-    actionable.length > 0
-      ? actionable.map((f) => `${f.kind} PID ${f.pid} (${f.ageHours.toFixed(1)}h)`).join('; ')
-      : reportsOnly.map((f) => `${f.kind} PID ${f.pid} (report-only)`).join('; ');
+  const parts: string[] = [];
+  if (actionable.length > 0)
+    parts.push(
+      `${actionable.length} actionable — ${actionable
+        .map((f) => `${f.kind} PID ${f.pid} (${f.ageHours.toFixed(1)}h)`)
+        .join('; ')}`,
+    );
+  if (reportsOnly.length > 0)
+    parts.push(
+      `${reportsOnly.length} report-only — ${reportsOnly
+        .map((f) => `${f.kind} PID ${f.pid}`)
+        .join('; ')}`,
+    );
+  if (aged.length > 0)
+    parts.push(
+      `${aged.length} daemon(s) envejecido(s) (>${DEFAULT_OPTIONS.maxAgeHours}h): se reciclan al inicio de la proxima sesion — ${aged
+        .map((f) => `${f.classId ?? 'daemon'} PID ${f.pid} (${f.ageHours.toFixed(1)}h)`)
+        .join('; ')}`,
+    );
 
   addResult(
     'process-hygiene',
     'orphan/duplicate sweep',
     actionable.length > 0 ? 'FAIL' : 'WARN',
-    `${actionable.length} actionable, ${reportsOnly.length} report-only — ${summary}`,
-    'cleanup',
+    parts.join(' | '),
+    actionable.length > 0 ? 'cleanup' : 'ok',
   );
 }
-
 // ─── Component: ML Embeddings ────────────────────────────────────────────────
 
 export async function checkMlEmbeddings() {
@@ -418,6 +546,77 @@ export async function checkMcp() {
       `no se pudo evaluar: ${(e as Error)?.message ?? String(e)}`,
       'verify',
     );
+  }
+
+  // Alcance + descubribilidad. El check de arriba compara la POLITICA contra
+  // las configs; este compara la politica contra el REGISTRO (comandos) y el
+  // MAPA DE DEMANDA (task -> servidor). Medido 2026-11-18: 5 de 16 capacidades
+  // declaradas no tenian comando en el registro -> inalcanzables, y el
+  // policy drift daba verde igual. Presencia de archivo no es alcanzabilidad.
+  try {
+    const { checkDemandMap } = await import('../../tools/mcp-suggest.js');
+    const demand = checkDemandMap(ROOT);
+    addResult(
+      'mcp',
+      'demand map',
+      demand.ok ? 'PASS' : 'FAIL',
+      demand.ok
+        ? `${demand.intents} intenciones, todas lanzables`
+        : `${demand.problems.length} problema(s): ${demand.problems.slice(0, 2).join(' | ')}`,
+      demand.ok ? 'ok' : 'fix',
+      !demand.ok,
+    );
+  } catch (e: unknown) {
+    addResult(
+      'mcp',
+      'demand map',
+      'WARN',
+      `no se pudo evaluar: ${(e as Error)?.message ?? String(e)}`,
+      'verify',
+    );
+  }
+
+  // OPERABILIDAD: el cuarto eje. Declarada, alcanzable y descubrible no
+  // garantizan que la capacidad SIRVA: hace falta una llamada real. Este
+  // check ejecuta la sonda declarada de cada capacidad (tool inocua de solo
+  // lectura) y clasifica: ok / ok-sin-dato / requiere-config (credencial
+  // del owner: no bloquea) / dependencia-caida (el stack lo arregla) / roto.
+  // Es caro (levanta servers), asi que se puede apagar con
+  // GV_SKIP_MCP_OPERABILITY=1 cuando compite por CPU con otra cosa.
+  if (process.env.GV_SKIP_MCP_OPERABILITY === '1') {
+    addResult('mcp', 'operability', 'SKIP', 'omitido por GV_SKIP_MCP_OPERABILITY=1', 'skip');
+  } else {
+    try {
+      const { probeAll } = await import('../../tools/mcp-operability.js');
+      const report = await probeAll(undefined, ROOT);
+      const roto = report.byStatus.roto ?? 0;
+      const caida = report.byStatus['dependencia-caida'] ?? 0;
+      const config = report.byStatus['requiere-config'] ?? 0;
+      const ok = report.byStatus.ok ?? 0;
+      const vacio = report.byStatus['ok-sin-dato'] ?? 0;
+      const intermitente = report.byStatus.intermitente ?? 0;
+      const timeout = report.byStatus.timeout ?? 0;
+      const blocking = roto + caida;
+      // Un fallo unico que no se reproduce NO bloquea: se reporta como WARN
+      // (medido: FAIL a las 22:18 y PASS a las 22:22 sin ningun cambio).
+      const status = blocking > 0 ? 'FAIL' : intermitente + timeout > 0 ? 'WARN' : 'PASS';
+      addResult(
+        'mcp',
+        'operability',
+        status,
+        `${ok} ok · ${vacio} sin-dato · ${config} requiere-config · ${caida} dependencia-caida · ${roto} roto · ${intermitente} intermitente · ${timeout} timeout`,
+        blocking > 0 ? 'fix' : intermitente + timeout > 0 ? 'verify' : 'ok',
+        blocking > 0,
+      );
+    } catch (e: unknown) {
+      addResult(
+        'mcp',
+        'operability',
+        'WARN',
+        `no se pudo evaluar: ${(e as Error)?.message ?? String(e)}`,
+        'verify',
+      );
+    }
   }
 }
 

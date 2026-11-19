@@ -29,7 +29,7 @@ import {
   saveDashboardPorts,
   readDashboardPorts,
   isProcessAlive,
-} from './dashboard-common';
+} from './dashboard-common.js';
 
 const ROOT = path.resolve(process.cwd());
 const RUNTIME_DIR = path.join(ROOT, '.runtime');

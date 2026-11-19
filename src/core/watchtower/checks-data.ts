@@ -6,10 +6,10 @@ import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from '
 import { join } from 'path';
 import { createRequire } from 'module';
 import type Database from 'better-sqlite3';
-import { runSync, runNpxTsxSync } from '../run-command';
-import { getEffectiveProcessTimeout } from '../timeout-config';
-import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR, CheckResult } from './context';
-import { fileExists, getFileAgeHours } from './helpers';
+import { runSync, runNpxTsxSync } from '../run-command.js';
+import { getEffectiveProcessTimeout } from '../timeout-config.js';
+import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR, CheckResult } from './context.js';
+import { fileExists, getFileAgeHours } from './helpers.js';
 import {
   evaluateInferenceEntry,
   findInferenceEntry,

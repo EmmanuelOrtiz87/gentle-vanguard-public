@@ -107,10 +107,7 @@ interface RunResult {
  * proceso de test, asi que con spawnSync el event loop queda bloqueado y el
  * hijo se queda esperando una respuesta que nunca llega (20 s de timeout).
  */
-function runProbe(
-  args: string[],
-  env: Record<string, string> = {},
-): Promise<RunResult> {
+function runProbe(args: string[], env: Record<string, string> = {}): Promise<RunResult> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, ['--import', 'tsx', PROBE, ...args], {
       cwd: ROOT,
@@ -151,7 +148,11 @@ function makeProviderEnv(dir: string, providerId = 'test-provider'): Record<stri
     }),
     'utf-8',
   );
-  writeFileSync(authPath, JSON.stringify({ [providerId]: { type: 'api', key: 'test-key' } }), 'utf-8');
+  writeFileSync(
+    authPath,
+    JSON.stringify({ [providerId]: { type: 'api', key: 'test-key' } }),
+    'utf-8',
+  );
   return { OPENCODE_CONFIG: configPath, OPENCODE_AUTH_FILE: authPath };
 }
 
@@ -212,7 +213,10 @@ describe('model-inference-probe: contrato de exit codes', () => {
     );
 
     assert.equal(result.code, 1, `esperaba exit 1, obtuve ${result.code}: ${result.stdout}`);
-    const json = result.json as { overall: string; results: Array<{ status: string; quota: boolean }> };
+    const json = result.json as {
+      overall: string;
+      results: Array<{ status: string; quota: boolean }>;
+    };
     assert.equal(json.overall, 'FAIL');
     // El CUERPO manda sobre el codigo HTTP: 402 no es "error de permisos".
     assert.equal(json.results[0].status, 'INSUFFICIENT_BALANCE');
@@ -225,10 +229,21 @@ describe('model-inference-probe: contrato de exit codes', () => {
   });
 
   it('NEGATIVO: el tier que exige sesion sin el header -> NO se puede inferir', async () => {
-    scenario = { status: 400, body: '{"error":{"type":"MissingSessionID"}}', requireSessionHeader: true };
+    scenario = {
+      status: 400,
+      body: '{"error":{"type":"MissingSessionID"}}',
+      requireSessionHeader: true,
+    };
     const env = makeProviderEnv(workDir);
     const result = await runProbe(
-      ['--json', '--no-db', '--model', 'test-provider/probe-model', '--evidence', join(workDir, 'e2.json')],
+      [
+        '--json',
+        '--no-db',
+        '--model',
+        'test-provider/probe-model',
+        '--evidence',
+        join(workDir, 'e2.json'),
+      ],
       env,
     );
     assert.equal(result.code, 1, 'un 400 del proveedor es un fallo comprobado');
@@ -244,7 +259,10 @@ describe('model-inference-probe: contrato de exit codes', () => {
     // "sin veredicto" (TTL vencido) tapea un exito reciente.
     scenario = {
       status: 200,
-      body: JSON.stringify({ choices: [{ message: { content: 'P' } }], usage: { completion_tokens: 1 } }),
+      body: JSON.stringify({
+        choices: [{ message: { content: 'P' } }],
+        usage: { completion_tokens: 1 },
+      }),
     };
     const dir = join(workDir, 'slot');
     mkdirSync(dir, { recursive: true });
@@ -253,8 +271,16 @@ describe('model-inference-probe: contrato de exit codes', () => {
       configPath,
       JSON.stringify({
         provider: {
-          'slot-A': { npm: '@ai-sdk/openai-compatible', options: { baseURL: baseUrl }, models: { 'm': {} } },
-          'slot-B': { npm: '@ai-sdk/openai-compatible', options: { baseURL: baseUrl }, models: { 'm': {} } },
+          'slot-A': {
+            npm: '@ai-sdk/openai-compatible',
+            options: { baseURL: baseUrl },
+            models: { m: {} },
+          },
+          'slot-B': {
+            npm: '@ai-sdk/openai-compatible',
+            options: { baseURL: baseUrl },
+            models: { m: {} },
+          },
         },
       }),
       'utf-8',
@@ -274,7 +300,11 @@ describe('model-inference-probe: contrato de exit codes', () => {
     const file = loadInferenceEvidence(evidencePath);
     assert.ok(file, 'no se escribio evidencia');
     const keys = Object.keys(file.results);
-    assert.equal(keys.length, 1, `se esperaba 1 entrada por slot, hay ${keys.length}: ${keys.join(', ')}`);
+    assert.equal(
+      keys.length,
+      1,
+      `se esperaba 1 entrada por slot, hay ${keys.length}: ${keys.join(', ')}`,
+    );
     assert.ok(keys[0].endsWith('/m'));
   });
 
@@ -284,7 +314,10 @@ describe('model-inference-probe: contrato de exit codes', () => {
     // evidencia local seria siempre INDETERMINADA.
     scenario = {
       status: 200,
-      body: JSON.stringify({ choices: [{ message: { content: 'P' } }], usage: { completion_tokens: 1 } }),
+      body: JSON.stringify({
+        choices: [{ message: { content: 'P' } }],
+        usage: { completion_tokens: 1 },
+      }),
       delayMs: 1200,
     };
     const env = makeProviderEnv(workDir);
@@ -307,7 +340,7 @@ describe('model-inference-probe: contrato de exit codes', () => {
     assert.equal(result.code, 0, `esperaba exit 0, obtuve ${result.code}: ${result.stdout}`);
   });
 
-it('NEGATIVO: un destino REMOTO usa el presupuesto de red', async () => {
+  it('NEGATIVO: un destino REMOTO usa el presupuesto de red', async () => {
     // 192.0.2.0/24 es TEST-NET-1 (no enrutable): el probe debe agotar el
     // presupuesto de RED (300 ms), no el local (15 s).
     const dir = join(workDir, 'remote');
@@ -327,7 +360,11 @@ it('NEGATIVO: un destino REMOTO usa el presupuesto de red', async () => {
       'utf-8',
     );
     const authPath = join(dir, 'auth.json');
-    writeFileSync(authPath, JSON.stringify({ 'remote-provider': { type: 'api', key: 'k' } }), 'utf-8');
+    writeFileSync(
+      authPath,
+      JSON.stringify({ 'remote-provider': { type: 'api', key: 'k' } }),
+      'utf-8',
+    );
 
     const started = Date.now();
     const result = await runProbe(
@@ -350,7 +387,7 @@ it('NEGATIVO: un destino REMOTO usa el presupuesto de red', async () => {
     assert.ok(elapsed < 10_000, `el probe tardo ${elapsed}ms: no aplico el presupuesto de red`);
   });
 
-it('NEGATIVO: fallo de TRANSPORTE no es un FAIL del modelo -> exit 2', async () => {
+  it('NEGATIVO: fallo de TRANSPORTE no es un FAIL del modelo -> exit 2', async () => {
     const dir = join(workDir, 'closed');
     mkdirSync(dir, { recursive: true });
     const configPath = join(dir, 'opencode.json');
@@ -368,7 +405,11 @@ it('NEGATIVO: fallo de TRANSPORTE no es un FAIL del modelo -> exit 2', async () 
       'utf-8',
     );
     const authPath = join(dir, 'auth.json');
-    writeFileSync(authPath, JSON.stringify({ 'dead-provider': { type: 'api', key: 'k' } }), 'utf-8');
+    writeFileSync(
+      authPath,
+      JSON.stringify({ 'dead-provider': { type: 'api', key: 'k' } }),
+      'utf-8',
+    );
 
     const evidencePath = join(dir, 'evidence.json');
     const result = await runProbe(
@@ -586,5 +627,53 @@ describe('model-inference-evidence: la ausencia de evidencia no es PASS', () => 
     assert.ok(entry, 'debe resolver');
     assert.equal(entry.status, 'OK', 'gana la entrada fresca, no la primera');
     assert.equal(evaluateInferenceEntry(entry, 900), 'PASS');
+  });
+});
+
+describe('model-inference-probe: veredicto agregado multi-objetivo', () => {
+  // Contrato fijado el 2026-11-18: con cuota remota agotada y fallback local
+  // sano, el arranque NO debe reportar un corte que no existe. Un objetivo OK
+  // alcanza para PASS; los fallos por modelo quedan en la evidencia.
+  it('POSITIVO: un objetivo OK + uno con cuota agotada -> PASS degradado', async () => {
+    const { verdictOf } = await import('./model-inference-probe.js');
+    const result = verdictOf([
+      { status: 'USAGE_LIMIT', responded: true },
+      { status: 'OK', responded: true },
+    ]);
+    assert.equal(result.verdict, 'PASS');
+    assert.equal(result.degraded, true);
+    assert.equal(result.okTargets, 1);
+    assert.equal(result.failedTargets, 1);
+  });
+
+  it('NEGATIVO: ningun objetivo OK y al menos uno respondio con error -> FAIL', async () => {
+    const { verdictOf } = await import('./model-inference-probe.js');
+    const result = verdictOf([
+      { status: 'USAGE_LIMIT', responded: true },
+      { status: 'AUTH_FAILED', responded: true },
+    ]);
+    assert.equal(result.verdict, 'FAIL');
+    assert.equal(result.degraded, false);
+  });
+
+  it('NEGATIVO: solo fallos de transporte -> UNKNOWN (no se fabrica FAIL)', async () => {
+    const { verdictOf } = await import('./model-inference-probe.js');
+    const result = verdictOf([
+      { status: 'TIMEOUT', responded: false },
+      { status: 'NETWORK_ERROR', responded: false },
+    ]);
+    assert.equal(result.verdict, 'UNKNOWN');
+    assert.equal(result.degraded, false);
+  });
+
+  it('POSITIVO: todos OK -> PASS sin degradacion', async () => {
+    const { verdictOf } = await import('./model-inference-probe.js');
+    const result = verdictOf([
+      { status: 'OK', responded: true },
+      { status: 'OK', responded: true },
+    ]);
+    assert.equal(result.verdict, 'PASS');
+    assert.equal(result.degraded, false);
+    assert.equal(result.okTargets, 2);
   });
 });

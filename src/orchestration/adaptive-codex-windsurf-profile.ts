@@ -31,12 +31,15 @@ function resolve(dir: string): string {
   return path.resolve(dir);
 }
 
-const CODEX_OPTIMIZED = `model = "gpt-5.5"
+const CODEX_OPTIMIZED = `model = "gpt-6.1-sol"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 allow_login_shell = false
 web_search = "disabled"
-project_doc_max_bytes = 16384
+project_doc_max_bytes = 32768
+model_context_window = 272000
+model_auto_compact_token_limit = 180000
+model_post_turn_compact_threshold_percent = 60
 file_opener = "vscode"
 [sandbox_workspace_write]
 network_access = false

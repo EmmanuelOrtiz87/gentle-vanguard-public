@@ -3,9 +3,17 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { addResult, quiet, ROOT, RUNTIME_DIR } from './context';
-import { fileExists, readJson, testHttp, testPort, getPidByPort } from './helpers';
+import { addResult, quiet, ROOT, RUNTIME_DIR } from './context.js';
+import {
+  fileExists,
+  getOpenCodeMcpServerConfig,
+  readJson,
+  testHttp,
+  testPort,
+  getPidByPort,
+} from './helpers.js';
 import { decideRecovery, DEFAULT_FAILURE_THRESHOLD } from './dashboard-liveness.js';
+import { activationFor, loadPolicy } from '../../mcp/mcp-policy.js';
 import { isOnDemand } from '../app-keepalive-policy.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-DASHBOARD');
 import { log } from '../../utils/logger.js';
@@ -387,16 +395,32 @@ export async function checkGvAnalytics() {
   if (fileExists(opencodeCfg)) {
     try {
       const cfg = JSON.parse(readFileSync(opencodeCfg, 'utf-8'));
-      const found = Boolean(cfg?.mcp?.['gv-analytics-atlassian']);
-      addResult(
-        'gv-analytics',
-        'OpenCode MCP wire (opencode.json)',
-        found ? 'PASS' : 'WARN',
-        found
-          ? 'gv-analytics-atlassian enabled'
-          : 'Add gv-analytics-atlassian to opencode.json#mcp',
-        found ? 'ok' : 'verify',
-      );
+      const found = Boolean(getOpenCodeMcpServerConfig(cfg, 'gv-analytics-atlassian'));
+      // La POLITICA manda: si el server esta declarado a demanda, que no este
+      // cableado en opencode.json es la DECISION, no un aviso (medido
+      // 2026-11-18: el check exigia lo que la politica prohibia, y daba un
+      // WARN permanente).
+      const activation = activationFor(loadPolicy(ROOT), 'gv-analytics-atlassian', 'opencode-repo');
+      const onDemand = activation === 'on-demand' || activation === 'disabled-by-policy';
+      if (!found && onDemand) {
+        addResult(
+          'gv-analytics',
+          'OpenCode MCP wire (opencode.json)',
+          'SKIP',
+          'gv-analytics-atlassian a demanda por politica; se activa con npm run mcp:on-demand -- gv-analytics-atlassian',
+          'ok',
+        );
+      } else {
+        addResult(
+          'gv-analytics',
+          'OpenCode MCP wire (opencode.json)',
+          found ? 'PASS' : 'WARN',
+          found
+            ? 'gv-analytics-atlassian enabled'
+            : 'Add gv-analytics-atlassian to opencode.json#mcp',
+          found ? 'ok' : 'verify',
+        );
+      }
     } catch {
       addResult(
         'gv-analytics',

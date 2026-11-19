@@ -2,6 +2,7 @@
 /** Structural audit for canonical skills: metadata, trigger collisions and local references. */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { compareGovernance, type GovernanceBaseline } from './governance-ratchet.js';
 
 type SkillRecord = {
   directory: string;
@@ -39,6 +40,15 @@ const root = resolve(process.env.GENTLE_VANGUARD_BASE_DIR ?? process.cwd());
 const skillsRoot = join(root, 'skills');
 const outputDir = join(root, '.session', 'audit');
 const outputPath = join(outputDir, 'skills-governance.json');
+const baselinePath = join(root, 'config', 'skill-governance-baseline.json');
+
+function loadBaseline(): GovernanceBaseline | null {
+  try {
+    return JSON.parse(readFileSync(baselinePath, 'utf8')) as GovernanceBaseline;
+  } catch {
+    return null;
+  }
+}
 
 function parseSkill(file: string, directory: string): SkillRecord {
   const text = readFileSync(file, 'utf8');
@@ -133,9 +143,50 @@ function main(): void {
     sourceCounts,
     skills,
   };
-  mkdirSync(outputDir, { recursive: true });
-  writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-  console.log(JSON.stringify({ outputPath, ...report.summary, topActionableTriggerCollisions: actionableTriggerCollisions.slice(0, 12) }, null, 2));
+  const args = process.argv.slice(2);
+  const check = args.includes('--check');
+  const updateBaseline = args.includes('--update-baseline');
+
+  if (!check) {
+    mkdirSync(outputDir, { recursive: true });
+    writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  }
+
+  if (updateBaseline) {
+    const baseline: GovernanceBaseline = {
+      capturedAt: new Date().toISOString(),
+      skills: report.summary.skills,
+      duplicateNames: report.summary.duplicateNames,
+      actionableTriggerCollisions: report.summary.actionableTriggerCollisions,
+      brokenReferences: report.summary.brokenReferences,
+      skillsWithoutTriggers: report.summary.skillsWithoutTriggers,
+    };
+    writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`, 'utf8');
+    console.log(`[BASELINE] ${baselinePath} actualizado: ${JSON.stringify(baseline)}`);
+    return;
+  }
+
+  if (check) {
+    const baseline = loadBaseline();
+    const { regressions, improvements } = compareGovernance(report.summary, baseline);
+    const label = baseline ? `baseline ${baseline.capturedAt}` : 'sin baseline';
+    if (regressions.length > 0) {
+      console.error(`[FAIL] gobernanza de skills: deuda creció vs ${label}`);
+      for (const r of regressions) console.error(`  ${r}`);
+      process.exitCode = 1;
+      return;
+    }
+    if (improvements.length > 0) {
+      console.log(`[PROGRESS] mejoras vs ${label} — correr --update-baseline para ajustar:`);
+      for (const i of improvements) console.log(`  ${i}`);
+    }
+    console.log(`[OK] gobernanza de skills: sin regresiones vs ${label}`);
+    return;
+  }
+
+  console.log(
+    JSON.stringify({ outputPath, ...report.summary, topActionableTriggerCollisions: actionableTriggerCollisions.slice(0, 12) }, null, 2),
+  );
 }
 
 main();

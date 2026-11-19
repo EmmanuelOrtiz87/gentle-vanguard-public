@@ -285,6 +285,8 @@ export async function runPipeline(
     skipCache?: boolean;
     skipPreProcess?: boolean;
     skipPostProcess?: boolean;
+    /** Tests pass false: benchmark runs must not reach the production stats file. */
+    recordMetrics?: boolean;
   } = {},
 ): Promise<PipelineResult> {
   const startTime = Date.now();
@@ -292,6 +294,8 @@ export async function runPipeline(
   const stages: PipelineStageResult[] = [];
   const originalPrompt = input.prompt;
   const originalContext = input.context ?? '';
+  const simulated = input.simulated ?? true;
+  const recordMetrics = options.recordMetrics ?? true;
 
   // Initialize cache (lazy singleton)
   const cache = new ResponseCache({
@@ -325,9 +329,10 @@ export async function runPipeline(
         estimatedCostSaved: cacheCheck.savings * 0.001, // Arbitrary unit
       },
       durationMs: Date.now() - startTime,
+      simulated,
     };
 
-    saveMetrics(result);
+    if (recordMetrics) saveMetrics(result);
     return result;
   }
 
@@ -383,9 +388,10 @@ export async function runPipeline(
       estimatedCostSaved: totalSavings * 0.001,
     },
     durationMs: Date.now() - startTime,
+    simulated,
   };
 
-  saveMetrics(result);
+  if (recordMetrics) saveMetrics(result);
   return result;
 }
 

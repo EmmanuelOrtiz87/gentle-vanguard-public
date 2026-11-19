@@ -320,6 +320,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: testResults.allPassed,
+          executionKind: 'deterministic-verification',
+          llmCalled: false,
           verificationScope: 'configured-test-suites-only',
           securityChecksExecuted: false,
           agent: AGENT_CONFIG.name,

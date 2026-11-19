@@ -17,7 +17,7 @@
  *   });
  */
 
-import { runNpxTsx } from '../core/run-command';
+import { runNpxTsx } from '../core/run-command.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 

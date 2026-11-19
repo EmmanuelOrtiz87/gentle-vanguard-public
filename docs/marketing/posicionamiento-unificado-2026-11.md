@@ -13,7 +13,7 @@
 | LinkedIn como canal principal del fundador (60%) | ✅ Adoptar | El perfil personal es el activo de autoridad más barato; ningún doc previo lo trabajaba |
 | "Publish: experiencia → aprendizajes → arquitectura → open source" | ✅ Adoptar como los 4 niveles de contenido | §4, calendario piloto |
 | IG/TikTok secundarios | ⚠️ Matizar | La cadencia 4 piezas/semana en TikTok/IG ya estaba decidida (POSITIONING §7) y la automatiza `gv-social-studio` — el costo marginal es bajo. El feedback acierta en que **no llevan la carga de autoridad**: llevan prueba de criterio y alcance |
-| "Lo que aprendí creando 135 skills" | ❌ Números desactualizados | Usar cifras reales verificadas: 21 agentes, 254 skills, 154 checks, 28 cursos. Nunca publicar cifras sin verificar contra el stack |
+| "Lo que aprendí creando 135 skills" | ❌ Números desactualizados | Usar cifras reales verificadas: 22 agentes, 255 skills canónicas, más de 200 sub-checks, 30 cursos. Nunca publicar cifras sin verificar contra el stack |
 | Academia: faltan journeys, sobra catálogo | ✅ Correcto | Rutas mapeadas a cursos reales (§5) |
 | "6 meses: LinkedIn, GitHub, casos, academia como embudo, sitio unido" | ✅ Converge con el plan de 90 días existente | Fusionado en §6 |
 
@@ -26,7 +26,7 @@
 > trabajo para la próxima generación de equipos de ingeniería asistidos por IA.**
 >
 > Consultoría (apps y sistemas a medida) es la **prueba**. El stack GentleVanguard
-> (orquestación, memoria, gobernanza, 154 checks) es la **fábrica** con la que esa prueba se
+> (orquestación, memoria, gobernanza, más de 200 sub-checks) es la **fábrica** con la que esa prueba se
 > construye segura y medible. Academy es el **canal** que enseña a operar así y baja objeciones.
 
 Una frase por superficie, misma historia:
@@ -64,9 +64,9 @@ Una frase por superficie, misma historia:
 > Por dentro operamos con un stack propio —orquestación de agentes, memoria persistente y
 > verificación continua— que mantiene a personas e IA trabajando con orden medible. No es un
 > titular: es la razón por la que podemos afirmar cosas que otros solo prometen, como que cada
-> entrega sale revisada por 154 controles automáticos.
+> entrega sale revisada por más de 200 sub-checks automáticos.
 >
-> También enseñamos lo que operamos: 28 cursos en GentleVanguard Academy, y el núcleo del stack
+> También enseñamos lo que operamos: 30 cursos en GentleVanguard Academy, y el núcleo del stack
 > es open source — cualquiera puede auditarlo.
 >
 > Acá comparto lo que construyo y lo que aprendo, incluido lo que sale mal. Si tu empresa tiene
@@ -136,15 +136,15 @@ magnet / workshop**, nunca al catálogo de cursos. Linkear al catálogo es linke
 ### 4.1 Descripciones por red — set completo para copiar/pegar (2026-11-07)
 
 Todas cuentan la misma historia con el registro de cada red. Verificadas contra el stack
-(21 agentes, 254 skills, 154 checks, 28 cursos). Firma canónica siempre: **Emmanuel Ortiz —
+(22 agentes, 255 skills canónicas, más de 200 sub-checks, 30 cursos). Firma canónica siempre: **Emmanuel Ortiz —
 Arquitecto de Software · Fundador de GentleVanguard**.
 
 **LinkedIn — página de empresa (Acerca de):**
 
 > Ayudamos a empresas a construir software y automatizaciones con IA de forma segura, escalable
 > y gobernada. Apps, sistemas, bots e integraciones a medida — y detrás de cada entrega, un
-> stack propio de AI engineering que verifica cada cambio: 21 agentes especializados y 154
-> controles automáticos. Enseñamos el método en GentleVanguard Academy (28 cursos) y el núcleo
+> stack propio de AI engineering que verifica cada cambio: 22 agentes especializados y más de 200
+> sub-checks automáticos. Enseñamos el método en GentleVanguard Academy (30 cursos) y el núcleo
 > del stack es open source. Mostramos el sistema funcionando: si no lo corremos en producción,
 > no lo prometemos.
 
@@ -214,7 +214,7 @@ tenés un problema de posicionamiento". La frase canónica (sin agentes, skills,
 > escalable y gobernada.**
 
 Uso: primera línea de conversación, elevator pitch, respuesta a "¿qué haces?". Los detalles
-técnicos (orquestación, memoria, 154 checks) entran **solo si preguntan cómo**. El README de
+técnicos (orquestación, memoria, más de 200 sub-checks) entran **solo si preguntan cómo**. El README de
 GitHub es la versión técnica; esta frase es la versión humana. Ambas dicen lo mismo.
 
 ## 9. Emmanuel primero (regla de marca, 12 meses)
@@ -237,8 +237,8 @@ contenido de autoridad — estructura fija:
 1. **Construimos X.** 2. **Primer intento: fracasó — por qué.** 3. **Segundo intento: qué cambió.**
 4. **Resultado medible + límite honesto.**
 
-Prohibido: "tenemos N agentes" como claim suelto. Las cifras reales (21 agentes, 254 skills,
-154 checks, 28 cursos) se usan como **sustento de una historia**, nunca como titular.
+Prohibido: "tenemos N agentes" como claim suelto. Las cifras reales (22 agentes, 255 skills canónicas,
+más de 200 sub-checks, 30 cursos) se usan como **sustento de una historia**, nunca como titular.
 
 ## 11. Resolución del feedback "dejá de construir"
 

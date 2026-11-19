@@ -21,8 +21,10 @@ import { pathToFileURL } from 'url';
 
 const ROOT = resolve(process.cwd());
 
-// Configuration
-const CONFIG = {
+// Configuration — policy lives in config/session-autostart.config.json
+// (`retention`). The values below are only the fallback used when the file is
+// missing or a key is absent, so behavior is unchanged for exotic contexts.
+const DEFAULT_CONFIG = {
   maxSessionFiles: 10,
   maxCheckpointsPerSession: 5,
   maxBackups: 14,
@@ -31,6 +33,37 @@ const CONFIG = {
   highScoreThreshold: 80, // Keep 5 extra sessions with score > 80
   extraHighScoreSessions: 5,
 };
+
+export function loadRetentionConfig(root = ROOT): typeof DEFAULT_CONFIG {
+  try {
+    const cfgPath = join(root, 'config', 'session-autostart.config.json');
+    if (!existsSync(cfgPath)) return DEFAULT_CONFIG;
+    const retention = JSON.parse(readFileSync(cfgPath, 'utf-8')).retention;
+    if (!retention || typeof retention !== 'object') return DEFAULT_CONFIG;
+    const merged = { ...DEFAULT_CONFIG };
+    for (const key of Object.keys(DEFAULT_CONFIG) as Array<keyof typeof DEFAULT_CONFIG>) {
+      const value = retention[key];
+      if (typeof value === 'number' && value > 0) merged[key] = value;
+    }
+    return merged;
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+}
+
+const CONFIG = loadRetentionConfig();
+
+/** `retention.enabled: false` in the autostart config disables prune entirely. */
+export function retentionEnabled(root = ROOT): boolean {
+  try {
+    const cfgPath = join(root, 'config', 'session-autostart.config.json');
+    if (!existsSync(cfgPath)) return true;
+    const retention = JSON.parse(readFileSync(cfgPath, 'utf-8')).retention;
+    return retention?.enabled !== false;
+  } catch {
+    return true;
+  }
+}
 
 interface SessionInfo {
   filename: string;
@@ -387,6 +420,13 @@ function printStatus() {
  * Full prune operation
  */
 function runPrune(dryRun: boolean = false) {
+  if (!retentionEnabled()) {
+    log(
+      'Retention disabled in config/session-autostart.config.json (retention.enabled=false) — nothing pruned',
+      'warn',
+    );
+    return null;
+  }
   if (dryRun) {
     log('Running in DRY-RUN mode - no files will be deleted');
   }

@@ -21,7 +21,7 @@
  */
 
 import { pathToFileURL } from 'node:url';
-import { queryCorrelation } from './correlation-query';
+import { queryCorrelation } from './correlation-query.js';
 
 interface CliArgs {
   session?: string;

@@ -33,6 +33,11 @@ assets/tokens.json
 config/installer-manifest.json
 content/operations/master-manifest.json
 docs/sessions/
+# Reescritos completos por generadores (JSON.stringify sin prettier / markdown plano):
+opencode.json
+config/model-health-registry.json
+rules/adaptive/
+apps/academy-web/data/shared/files.js
 # Fixtures de test con formato intencionalmente roto:
 test-opcode-broken.json
 test-agent-broken2.json

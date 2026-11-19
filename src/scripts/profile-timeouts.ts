@@ -16,8 +16,8 @@ import {
   getPerformanceMetrics,
   getActiveAlerts,
   startMonitorDaemon,
-} from '../core/timeout-monitor';
-import { getTimeout, getActiveEnvironment } from '../core/timeout-config';
+} from '../core/timeout-monitor.js';
+import { getTimeout, getActiveEnvironment } from '../core/timeout-config.js';
 import { runSync } from '../core/run-command.js';
 import * as fs from 'fs';
 import * as pathModule from 'path';
@@ -63,7 +63,7 @@ async function benchmarkOperation(
 async function benchmarkConfigLoad(): Promise<void> {
   console.log(`\n\x1b[36m  ── Config Load ──\x1b[0m`);
   const result = await benchmarkOperation('config-load', 'process_execution', 5000, async () => {
-    const config = await import('../core/timeout-config');
+    const config = await import('../core/timeout-config.js');
     config.getTimeoutConfig();
   });
   console.log(

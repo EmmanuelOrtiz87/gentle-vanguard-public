@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import type { TraceRecord, FeedbackRecord } from '../manager';
+import type { TraceRecord, FeedbackRecord } from '../manager.js';
 import {
   resolveTraceSessionId,
   readCurrentRepoSessionId,

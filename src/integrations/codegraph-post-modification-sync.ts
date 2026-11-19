@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runSync } from '../core/run-command.js';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 interface CodegraphSyncArgs {
@@ -62,10 +62,42 @@ function writeResult(
   }
 }
 
+interface CodegraphState {
+  enabled: boolean;
+  reason?: string;
+}
+
+/** Estado declarado del codegraph (`config/codegraph.config.json`). */
+function readCodegraphState(repoRoot: string): CodegraphState {
+  const path = join(repoRoot, 'config', 'codegraph.config.json');
+  if (!existsSync(path)) return { enabled: true };
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf-8')) as Partial<CodegraphState>;
+    return { enabled: parsed.enabled !== false, reason: parsed.reason };
+  } catch {
+    return { enabled: true };
+  }
+}
+
 function main(): void {
   const args = parseArgs();
   const repoRoot = findRepoRoot(args.workspaceRoot);
   const dbPath = join(repoRoot, '.codegraph', 'codegraph.db');
+
+  // Decision DECLARADA (2026-11-18): el MCP codegraph se desactivo por uso
+  // medido (5 invocaciones en 365 dias, 0 semanticas). El hook sigue
+  // cableado, pero no hace trabajo: lo que no se ejecuta se declara.
+  const codegraphState = readCodegraphState(repoRoot);
+  if (!codegraphState.enabled) {
+    writeResult(
+      'SKIP',
+      `CodeGraph desactivado por config (${codegraphState.reason ?? 'sin motivo declarado'}). ` +
+        'Reactivar con: npm run codegraph:enable',
+      args.asJson,
+      { disabled: true },
+    );
+    process.exit(0);
+  }
 
   if (!existsSync(dbPath)) {
     writeResult('WARN', 'CodeGraph database not found. Skipping sync.', args.asJson);

@@ -10,7 +10,8 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { pathToFileURL } from 'node:url';
 import {
   inferenceEvidencePath,
   inferenceVerdictFor,
@@ -69,11 +70,20 @@ function getPreferredModel(): { model: string; provider: string } {
  * esta calificado, NO se cambia el routing (no hay un routing mejor: cambiarlo
  * solo genera churn) — el FAIL queda reportado por el watchtower.
  */
-function resolveTargetModel(
+export function resolveTargetModel(
   status: { healthy: string[]; unhealthy: string[]; qualified: string[] },
   preferred: { model: string; provider: string },
+  registry: ModelRegistry,
 ): { target: { model: string; provider: string } | null; reason: string } {
-  if (status.healthy.includes(preferred.model)) {
+  // La flota de agentes del stack USA HERRAMIENTAS: imponer un modelo sin la
+  // capability "tools" deja a los agentes sin poder leer archivos ni ejecutar
+  // nada (medido 2026-11-18: el enforcer Swanson al fleet a
+  // ollama/qwen2.5-coder:14b, que solo declara "code", y el guard
+  // opencode-agent-model-guard quedo en rojo). Un modelo solo sirve para
+  // routing de agentes si declara la capacidad que los agentes necesitan.
+  const usable = (model: string) => declaresTools(registry, model);
+
+  if (status.healthy.includes(preferred.model) && usable(preferred.model)) {
     const qualified = status.qualified.includes(preferred.model);
     return {
       target: preferred,
@@ -84,36 +94,57 @@ function resolveTargetModel(
   }
 
   const configuredFallback = readPreference().fallbackModel;
-  if (configuredFallback && status.healthy.includes(configuredFallback)) {
+  if (
+    configuredFallback &&
+    status.healthy.includes(configuredFallback) &&
+    usable(configuredFallback)
+  ) {
     return {
       target: { model: configuredFallback, provider: configuredFallback.split('/')[0] },
       reason: 'Fallback: preferred model unavailable, configured fallback healthy',
     };
   }
 
-  const firstQualified = status.healthy.find((model) => status.qualified.includes(model));
+  const firstQualified = status.healthy.find(
+    (model) => status.qualified.includes(model) && usable(model),
+  );
   if (firstQualified) {
     return {
       target: { model: firstQualified, provider: firstQualified.split('/')[0] },
-      reason: 'Fallback: first model qualified by real inference',
+      reason: 'Fallback: first model qualified by real inference (with tools)',
     };
   }
 
-  const firstHealthy = status.healthy[0];
+  const firstHealthy = status.healthy.find(usable);
   if (firstHealthy) {
     return {
       target: { model: firstHealthy, provider: firstHealthy.split('/')[0] },
-      reason: 'Fallback: preferred and configured fallback unavailable, first healthy free model',
+      reason:
+        'Fallback: preferred and configured fallback unavailable, first healthy free model with tools',
     };
   }
 
-  return { target: null, reason: 'No healthy model available' };
+  return { target: null, reason: 'No healthy model with the "tools" capability available' };
 }
 
 interface ModelEntry {
   provider: string;
   health: { status: string };
   costPer1kTokens: { input: number; output: number };
+  capabilities?: string[];
+  fallbackChain?: string[];
+}
+
+/**
+ * Capacidad que la flota de agentes necesita: sin "tools" el agente no puede
+ * trabajar (no lee archivos, no ejecuta comandos).
+ */
+export const REQUIRED_AGENT_CAPABILITY = 'tools';
+
+/** ¿El modelo declara la capability que necesitan los agentes? */
+export function declaresTools(registry: ModelRegistry, modelId: string): boolean {
+  const caps = registry.models[modelId]?.capabilities;
+  return Array.isArray(caps) && caps.includes(REQUIRED_AGENT_CAPABILITY);
 }
 
 interface ModelRegistry {
@@ -295,7 +326,10 @@ function enforceFreeModel(): void {
   }
 
   const preferred = getPreferredModel();
-  const { target, reason } = resolveTargetModel(status, preferred);
+  // El registry se lee ANTES de resolver el objetivo: la seleccion depende de
+  // las capacidades declaradas, no solo de la salud.
+  const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
+  const { target, reason } = resolveTargetModel(status, preferred, registry);
 
   // Sin ningun modelo disponible NO hay un routing mejor que el actual:
   // cambiarlo solo genera churn y deja el stack peor. El FAIL queda
@@ -317,7 +351,6 @@ function enforceFreeModel(): void {
 
   // 2. Actualizar registry para que el modelo preferido sea el primario;
   // solo cae al modelo gratuito si el preferido no está disponible.
-  const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
 
   // Keep the native OpenCode agent definitions aligned with routing. Otherwise
   // the registry can select the subscription model while static subagents
@@ -339,8 +372,23 @@ function enforceFreeModel(): void {
   }
 
   if (registry.routingRules.orchestrator.primary !== target.model) {
-    log(`Cambiando primary: ${registry.routingRules.orchestrator.primary} → ${target.model}`);
+    const previous = registry.routingRules.orchestrator.primary;
+    log(`Cambiando primary: ${previous} → ${target.model}`);
     registry.routingRules.orchestrator.primary = target.model;
+    // La cadena canonica se deriva como [primary, ...models[primary].fallbackChain].
+    // Si el primary cambia y el nuevo no arrastra al anterior, la cadena pierde
+    // cobertura y los agentes configurados con el modelo viejo quedan fuera
+    // (medido 2026-11-18: el delegator quedo sin modelo valido en su cadena).
+    const entry = registry.models[target.model];
+    if (
+      entry &&
+      previous &&
+      previous !== target.model &&
+      !(entry.fallbackChain ?? []).includes(previous)
+    ) {
+      entry.fallbackChain = [previous, ...(entry.fallbackChain ?? [])];
+      log(`Cadena canonica: ${previous} agregado al fallback de ${target.model}`);
+    }
   }
 
   if (registry.routingRules.subagents.default !== target.model) {
@@ -453,4 +501,10 @@ Descripción:
   }
 }
 
-void main();
+// CLI Guard: importar el modulo NO debe imponer el modelo. Un `import` en un
+// test o en otro modulo ejecutaba el enforcement como efecto secundario
+// (medido 2026-11-18: el test del filtro de capabilities imprimia el banner
+// del enforcer al importarlo).
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  void main();
+}

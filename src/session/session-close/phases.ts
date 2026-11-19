@@ -9,6 +9,7 @@ import {
 } from 'fs';
 import { join, resolve, relative } from 'path';
 import { runHygiene } from '../../core/process-hygiene.js';
+import { findOpenSpan } from '../../monitor/span-files.js';
 import { runNpxTsxSync, runSync } from '../../core/run-command.js';
 import { sessionEnd } from '../../knowledge/engram-session-bridge.js';
 import {
@@ -147,55 +148,40 @@ export function phasePreClose(reason: string): PhaseResult[] {
     });
   }
 
-  // 1.3 Close tracing span (resilient — find any .jsonl span file)
+  // 1.3 Close tracing span: el span VIVO, no el primer archivo del directorio
   const spanDir = join(ROOT, '.telemetry', 'spans');
   if (existsSync(spanDir)) {
     try {
-      // Find all JSONL span files in the directory
-      const spanFiles = readdirSync(spanDir).filter((f) => f.endsWith('.jsonl'));
-      if (spanFiles.length > 0) {
-        // Use the first available span file
-        const spanFile = join(spanDir, spanFiles[0]);
-        const spanContent = readFileSync(spanFile, 'utf-8');
-        const spans = spanContent.split('\n').filter((l) => l.trim());
-        for (const line of spans.reverse()) {
-          try {
-            const span = JSON.parse(line);
-            if (span.name === 'session-start') {
-              const r = runScript(
-                'src/monitor/tracing-instrument.ts',
-                [
-                  '-Action',
-                  'end',
-                  '-TraceId',
-                  span.traceId,
-                  '-SpanId',
-                  span.spanId,
-                  '-SpanName',
-                  'session-start',
-                  '-Attributes',
-                  JSON.stringify({ closeReason: reason, closeTime: new Date().toISOString() }),
-                  '-Quiet',
-                ],
-                15000,
-              );
-              const st = r.status === 0 ? 'PASS' : 'FAIL';
-              results.push({
-                phase: 'tracing-close',
-                status: st,
-                detail: st === 'PASS' ? 'Span closed' : 'Span close returned non-zero',
-              });
-              break;
-            }
-          } catch {
-            /* skip malformed lines */
-          }
-        }
+      const span = findOpenSpan(spanDir);
+      if (span) {
+        const r = runScript(
+          'src/monitor/tracing-instrument.ts',
+          [
+            '-Action',
+            'end',
+            '-TraceId',
+            String(span.traceId),
+            '-SpanId',
+            String(span.spanId),
+            '-SpanName',
+            'session-start',
+            '-Attributes',
+            JSON.stringify({ closeReason: reason, closeTime: new Date().toISOString() }),
+            '-Quiet',
+          ],
+          15000,
+        );
+        const st = r.status === 0 ? 'PASS' : 'FAIL';
+        results.push({
+          phase: 'tracing-close',
+          status: st,
+          detail: st === 'PASS' ? 'Span closed' : 'Span close returned non-zero',
+        });
       } else {
         results.push({
           phase: 'tracing-close',
           status: 'SKIP',
-          detail: 'No span files found in .telemetry/spans/',
+          detail: 'No open session-start span to close',
         });
       }
     } catch (e: unknown) {
@@ -423,7 +409,15 @@ export async function phasePersist(reason: string): Promise<PhaseResult[]> {
     // Usar bridge unificado que intenta MCP primero, luego HTTP fallback
     const engramResult = await sessionEnd(sessionId, summary);
 
-    if (engramResult.mcpSuccess) {
+    if (engramResult.hostOwned) {
+      results.push({
+        phase: 'engram-summary',
+        status: engramResult.localClosed ? 'SKIP' : 'FAIL',
+        detail: engramResult.localClosed
+          ? 'Codex conserva la atribución y el cierre en Engram.'
+          : 'Falló la persistencia del cierre local de GV.',
+      });
+    } else if (engramResult.mcpSuccess) {
       results.push({
         phase: 'engram-summary',
         status: 'PASS',
@@ -635,7 +629,7 @@ export function phaseBackup(): PhaseResult[] {
   }
 
   // 3.3 Backup Engram
-  const eb = runScript('src/ops/backup-engram.ts', ['--mode', 'backup', '--quiet'], 30000);
+  const eb = runScript('src/ops/backup-engram.ts', ['--mode', 'backup', '--quiet'], 120000);
   results.push({
     phase: 'engram-backup',
     status: eb.status === 0 ? 'PASS' : 'SKIP',
@@ -772,9 +766,11 @@ export async function phaseCleanup(
       try {
         // Wait for the daemon to be up (it's started lazily at session start and
         // may still be booting if the session closed quickly).
-        const appeared = waitForProcess(target.matcher, DAEMON_WAIT_MS);
+        // Workspace-scoped (BL-2026-11-16): nunca matar daemons de otro
+        // worktree/sesión que matchee el mismo matcher global.
+        const appeared = waitForProcess(target.matcher, DAEMON_WAIT_MS, { workspaceScoped: true });
         if (appeared) {
-          const killed = killProcessByCommandLine(target.matcher);
+          const killed = killProcessByCommandLine(target.matcher, { workspaceScoped: true });
           results.push({
             phase,
             status: killed ? 'PASS' : 'FAIL',
@@ -848,6 +844,7 @@ export async function phaseCleanup(
   try {
     const orphanKilled = killProcessByCommandLine(
       'session-(metrics-tracker|cleanup-start|metrics-memory)',
+      { workspaceScoped: true },
     );
     if (orphanKilled) {
       results.push({

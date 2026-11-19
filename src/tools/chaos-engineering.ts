@@ -21,7 +21,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'fs';
 import { resolve, join } from 'path';
 import { spawnSync } from 'child_process';
-import { runSync } from '../core/run-command';
+import { runSync } from '../core/run-command.js';
 
 // ---------------------------------------------------------------------------
 // Types

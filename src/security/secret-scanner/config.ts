@@ -25,6 +25,20 @@ export interface SecretScannerConfig {
 const ROOT = resolve(process.env.GENTLE_VANGUARD_BASE_DIR ?? process.cwd());
 const CONFIG_PATH = join(ROOT, 'config', 'secret-scanner.json');
 
+/**
+ * `ignoreFiles` es una excepcion DECLARADA (placeholders canonicos: docs
+ * embebidos en academy-web, runbook con credenciales de ejemplo). Cualquier
+ * consumidor del scanner debe aplicarla igual: un gate que la ignora bloquea
+ * por contenido que la politica ya aprobo.
+ */
+export function isIgnoredFile(relPath: string, ignoreFiles: string[]): boolean {
+  const rel = relPath.replace(/\\/g, '/').toLowerCase();
+  return ignoreFiles.some((ig) => {
+    const needle = ig.replace(/\\/g, '/').toLowerCase();
+    return rel === needle || rel.endsWith(`/${needle}`);
+  });
+}
+
 const DEFAULT_CONFIG: SecretScannerConfig = {
   version: '1.0.0',
   name: 'secret-scanner-config',

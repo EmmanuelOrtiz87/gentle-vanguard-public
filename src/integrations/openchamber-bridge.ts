@@ -202,7 +202,7 @@ export async function getStatus(): Promise<StackStatus> {
   const components: Record<string, boolean> = {
     stackRoot: existsSync(STACK_ROOT),
     config: existsSync(join(STACK_ROOT, 'config', 'orchestrator.json')),
-    healthCheck: existsSync(join(STACK_ROOT, 'src', 'health-check.ts')),
+    healthCheck: existsSync(join(STACK_ROOT, 'src', 'core', 'health-check.ts')),
     cacheHook: existsSync(join(STACK_ROOT, 'src', 'core', 'cache-hook-system.ts')),
     responseCache: existsSync(join(STACK_ROOT, 'src', 'resilience', 'response-cache.ts')),
     nexusDb: existsSync(join(STACK_ROOT, '.runtime', 'gentle-vanguard.db')),

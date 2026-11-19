@@ -12,13 +12,13 @@
  *   const wave = staggerSequences(fadeIn(), 5, { stagger: 60 });
  */
 
-export * from './utils';
-export * from './presets';
-export * from './fade';
-export * from './slide';
-export * from './scale';
-export * from './stagger';
-export * from './spring';
-export * from './morph';
-export * from './css';
-export * from './hooks';
+export * from './utils.js';
+export * from './presets.js';
+export * from './fade.js';
+export * from './slide.js';
+export * from './scale.js';
+export * from './stagger.js';
+export * from './spring.js';
+export * from './morph.js';
+export * from './css.js';
+export * from './hooks.js';

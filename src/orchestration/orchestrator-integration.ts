@@ -6,7 +6,7 @@
 
 import { ModelBroker } from '../ml/model-broker.js';
 import { pathToFileURL } from 'url';
-import { runNpxTsxSync } from '../core/run-command';
+import { runNpxTsxSync } from '../core/run-command.js';
 
 class OrchestratorWithModelBroker {
   private broker: ModelBroker;

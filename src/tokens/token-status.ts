@@ -15,7 +15,7 @@ import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import type Database from 'better-sqlite3';
-import { getLocalDayKey } from './local-day.js';
+import { getLocalDayKey, readDailyTokenTotal } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -38,6 +38,8 @@ interface CompactionRecord {
 interface StatusData {
   generated_at: string;
   session_id: string;
+  source: 'nexus-transactions' | 'nexus-usage' | 'session-file' | 'none';
+  active_tool_session?: string | null;
   session: { used: number; limit: number; remaining: number; pct: number };
   daily: { used: number; limit: number; remaining: number; pct: number };
   breakdown: { input: number; output: number; total: number };
@@ -89,52 +91,136 @@ function readSessionId(): string {
   return 'unknown';
 }
 
-function queryNexus(sql: string, params: unknown[] = []): unknown {
-  try {
-    const Database = _require('better-sqlite3');
-    if (!fs.existsSync(NEXUS_DB_PATH)) return null;
-    const db = new Database(NEXUS_DB_PATH, { readonly: true });
-    try {
-      return db.prepare(sql).get(...params);
-    } finally {
-      db.close();
-    }
-  } catch {
-    return null;
-  }
-}
-
 /** Aggregate a stack session with tool runtime IDs mapped to it by the session bridge. */
 export function readSessionTokenTotals(
   db: Database.Database,
   sessionId: string,
 ): { input: number; output: number } {
-  const hasAliases = Boolean(db.prepare(
-    `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session_id_aliases'`,
-  ).get());
+  const hasAliases = Boolean(
+    db
+      .prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session_id_aliases'`)
+      .get(),
+  );
   const where = hasAliases
     ? 'session_id = ? OR session_id IN (SELECT alias_id FROM session_id_aliases WHERE session_id = ?)'
     : 'session_id = ?';
   const params = hasAliases ? [sessionId, sessionId] : [sessionId];
-  const row = db.prepare(
-    `SELECT COALESCE(SUM(prompt_tokens), 0) AS p, COALESCE(SUM(completion_tokens), 0) AS c
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(prompt_tokens), 0) AS p, COALESCE(SUM(completion_tokens), 0) AS c
      FROM token_usage WHERE ${where}`,
-  ).get(...params) as { p?: number; c?: number };
+    )
+    .get(...params) as { p?: number; c?: number };
   return { input: Number(row.p ?? 0) || 0, output: Number(row.c ?? 0) || 0 };
 }
 
-function readSessionTokenTotalsFromNexus(sessionId: string): { input: number; output: number } {
+function readSessionTokenTotalsFromNexus(sessionId: string): {
+  input: number;
+  output: number;
+  source: StatusData['source'];
+} {
   try {
     const DatabaseConstructor = _require('better-sqlite3');
-    if (!fs.existsSync(NEXUS_DB_PATH)) return { input: 0, output: 0 };
+    if (!fs.existsSync(NEXUS_DB_PATH)) return { input: 0, output: 0, source: 'none' };
     const db = new DatabaseConstructor(NEXUS_DB_PATH, { readonly: true }) as Database.Database;
     try {
-      return readSessionTokenTotals(db, sessionId);
+      const hasAliases = Boolean(
+        db
+          .prepare(
+            `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session_id_aliases'`,
+          )
+          .get(),
+      );
+      const usage = readSessionTokenTotals(db, sessionId);
+
+      let transactions = { input: 0, output: 0 };
+      try {
+        const hasTx = db
+          .prepare(
+            `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'token_transactions'`,
+          )
+          .get();
+        if (hasTx) {
+          const where = hasAliases
+            ? 'session_id = ? OR session_id IN (SELECT alias_id FROM session_id_aliases WHERE session_id = ?)'
+            : 'session_id = ?';
+          const params = hasAliases ? [sessionId, sessionId] : [sessionId];
+          const row = db
+            .prepare(
+              `SELECT COALESCE(SUM(input_tokens), 0) AS i, COALESCE(SUM(output_tokens), 0) AS o
+               FROM token_transactions WHERE ${where}`,
+            )
+            .get(...params) as { i?: number; o?: number };
+          transactions = { input: Number(row.i ?? 0) || 0, output: Number(row.o ?? 0) || 0 };
+        }
+      } catch {
+        /* older schema: token_usage remains authoritative */
+      }
+
+      const txTotal = transactions.input + transactions.output;
+      const usageTotal = usage.input + usage.output;
+      if (txTotal >= usageTotal && txTotal > 0) {
+        return { ...transactions, source: 'nexus-transactions' };
+      }
+      if (usageTotal > 0) return { ...usage, source: 'nexus-usage' };
+      return { input: 0, output: 0, source: 'none' };
     } finally {
       db.close();
     }
   } catch {
-    return { input: 0, output: 0 };
+    return { input: 0, output: 0, source: 'none' };
+  }
+}
+
+/** Fallback when no tool has written usage to Nexus yet (e.g. Qoder has no reader). */
+function readSessionFileTotals(preferredId: string): {
+  input: number;
+  output: number;
+  activeToolSession?: string | null;
+  measuredAt?: string | null;
+} | null {
+  const candidates = [
+    path.join(SESSION_DIR, 'session-current.json'),
+    path.join(SESSION_DIR, 'token-usage.json'),
+  ];
+  for (const fp of candidates) {
+    try {
+      if (!fs.existsSync(fp)) continue;
+      const data = JSON.parse(fs.readFileSync(fp, 'utf-8')) as Record<string, unknown>;
+      const input = Number(data.totalInputTokens ?? data.inputTokens ?? 0) || 0;
+      const output = Number(data.totalOutputTokens ?? data.outputTokens ?? 0) || 0;
+      if (input + output === 0) continue;
+      const id = String(data.sessionId ?? data.id ?? '').trim();
+      // A file for another stack session is not this session's measurement.
+      if (preferredId && id && id !== preferredId && !String(id).startsWith('session-')) continue;
+      return {
+        input,
+        output,
+        activeToolSession:
+          String(data.activeToolSessionId ?? data.active_tool_session ?? '').trim() || null,
+        measuredAt:
+          String(data.updatedAt ?? data.timestamp ?? data.startTime ?? data.startedAt ?? '') ||
+          null,
+      };
+    } catch {
+      /* try the next file */
+    }
+  }
+  return null;
+}
+
+function readDailyFromNexus(): number {
+  try {
+    const DatabaseConstructor = _require('better-sqlite3');
+    if (!fs.existsSync(NEXUS_DB_PATH)) return 0;
+    const db = new DatabaseConstructor(NEXUS_DB_PATH, { readonly: true }) as Database.Database;
+    try {
+      return readDailyTokenTotal(db, getLocalDayKey());
+    } finally {
+      db.close();
+    }
+  } catch {
+    return 0;
   }
 }
 
@@ -163,18 +249,24 @@ function buildStatus(): StatusData {
   const budget = loadBudget();
   const sessionId = readSessionId();
 
-  // Session usage from Nexus
-  const sessionTotals = readSessionTokenTotalsFromNexus(sessionId);
-  const input = sessionTotals.input;
-  const output = sessionTotals.output;
+  // Session usage: Nexus (transactions > usage) → session state file fallback.
+  const nexusTotals = readSessionTokenTotalsFromNexus(sessionId);
+  let input = nexusTotals.input;
+  let output = nexusTotals.output;
+  let source: StatusData['source'] = nexusTotals.source;
+  let activeToolSession: string | null | undefined;
+  if (input + output === 0) {
+    const fileTotals = readSessionFileTotals(sessionId);
+    if (fileTotals) {
+      input = fileTotals.input;
+      output = fileTotals.output;
+      activeToolSession = fileTotals.activeToolSession;
+      source = 'session-file';
+    }
+  }
   const total = input + output;
 
-  // Daily usage from Nexus
-  const dailyRow = queryNexus(
-    `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t FROM token_usage WHERE date(timestamp) = ?`,
-    [getLocalDayKey()],
-  ) as { t?: number } | null;
-  const dailyUsed = Number(dailyRow?.t ?? 0) || 0;
+  const dailyUsed = readDailyFromNexus();
 
   const compactions = readCompactions();
   const latest = compactions[0];
@@ -182,6 +274,8 @@ function buildStatus(): StatusData {
   return {
     generated_at: new Date().toISOString(),
     session_id: sessionId,
+    source,
+    active_tool_session: activeToolSession,
     session: {
       used: total,
       limit: budget.perSession,
@@ -205,10 +299,17 @@ function buildStatus(): StatusData {
   };
 }
 
-function readResponseCache(): { rows: number; hitCount: number; tokensSaved: number; latest: string | null } {
+function readResponseCache(): {
+  rows: number;
+  hitCount: number;
+  tokensSaved: number;
+  latest: string | null;
+} {
   try {
     const db = _require('better-sqlite3')(NEXUS_DB_PATH, { readonly: true }) as {
-      prepare: (sql: string) => { get: (...args: unknown[]) => Record<string, unknown> | undefined };
+      prepare: (sql: string) => {
+        get: (...args: unknown[]) => Record<string, unknown> | undefined;
+      };
     };
     const row = db
       .prepare(
@@ -216,7 +317,12 @@ function readResponseCache(): { rows: number; hitCount: number; tokensSaved: num
          FROM response_cache`,
       )
       .get() as { rows: number; hits: number; saved: number; latest: string | null } | undefined;
-    return { rows: row?.rows ?? 0, hitCount: row?.hits ?? 0, tokensSaved: row?.saved ?? 0, latest: row?.latest ?? null };
+    return {
+      rows: row?.rows ?? 0,
+      hitCount: row?.hits ?? 0,
+      tokensSaved: row?.saved ?? 0,
+      latest: row?.latest ?? null,
+    };
   } catch {
     return { rows: 0, hitCount: 0, tokensSaved: 0, latest: null };
   }
@@ -229,6 +335,8 @@ function render(s: StatusData): string {
   lines.push('  TOKEN STATUS (a demanda)');
   lines.push('══════════════════════════════════════════════════════');
   lines.push(`  Session:      ${s.session_id}`);
+  lines.push(`  Fuente:       ${s.source}`);
+  if (s.active_tool_session) lines.push(`  Tool session: ${s.active_tool_session}`);
   lines.push('');
   lines.push('  ── Desglose de sesión ──');
   lines.push(`    Input:       ${s.breakdown.input.toLocaleString()} tokens`);
@@ -260,7 +368,7 @@ function render(s: StatusData): string {
     lines.push('    (sin eventos de compactación registrados)');
   }
   lines.push('══════════════════════════════════════════════════════');
-    const cache = readResponseCache();
+  const cache = readResponseCache();
   lines.push('');
   lines.push('  ── Response cache (Nexus) ──');
   lines.push(`  Entradas:     ${cache.rows}`);

@@ -29,6 +29,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { homedir } from 'os';
+import { normalizeModelId } from './model-catalog-sync.js';
 
 interface ProviderConfig {
   name?: string;
@@ -162,8 +163,11 @@ function warn(msg: string): string {
  * Ollama publica `name:latest` para modelos sin tag explicito; los demas
  * catalogs OpenAI-compatibles devuelven el id exacto (nunca tienen `:latest`),
  * asi que normalizar es seguro para todos. Se usa SOLO para comparar.
+ *
+ * La definicion vive en `model-catalog-sync.ts` (una sola regla para el doctor
+ * y para el sync: si difieren, el sync poda configs que funcionan).
  */
-export const normalizeModelId = (id: string): string => id.replace(/:latest$/, '');
+export { normalizeModelId };
 
 /**
  * Diferencia config vs catalogo upstream.
@@ -191,6 +195,12 @@ export function compareCatalog(
     missingInUpstream: configured.filter((m) => !upstreamSet.has(normalizeModelId(m))),
     extrasInUpstream: upstream.filter((m) => !configuredSet.has(normalizeModelId(m))),
   };
+}
+
+export function canProbeInference(baseURL: string, hasCredentials: boolean): boolean {
+  if (hasCredentials) return true;
+  if (!URL.canParse(baseURL)) return false;
+  return ['127.0.0.1', 'localhost', '[::1]'].includes(new URL(baseURL).hostname);
 }
 
 function detectAuthKey(
@@ -270,7 +280,7 @@ async function probeCatalog(
 async function probeModel(
   baseURL: string,
   modelId: string,
-  key: string,
+  key: string | null,
   _providerId: string,
 ): Promise<ModelProbeResult> {
   const url = `${baseURL.replace(/\/+$/, '')}/chat/completions`;
@@ -287,7 +297,7 @@ async function probeModel(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
+        ...(key ? { Authorization: `Bearer ${key}` } : {}),
         'User-Agent': 'GentleVanguard-ModelDoctor/1.0',
       },
       body: JSON.stringify(body),
@@ -418,7 +428,7 @@ async function main() {
     log(`\n${COLOR.bold}━━━ ${provider.name || id} (${id}) ━━━${COLOR.reset}`, 'reset');
     log(`  baseURL: ${baseURL}`, 'dim');
     log(
-      `  auth:    ${authInfo ? `${ok('OK')} (${authInfo.source})` : err('NONE — provider will reject all calls')}`,
+      `  auth:    ${authInfo ? `${ok('OK')} (${authInfo.source})` : canProbeInference(baseURL, false) ? 'NONE (loopback)' : warn('NONE — inference probe requires credentials')}`,
       'reset',
     );
 
@@ -492,7 +502,7 @@ async function main() {
       if (!prov.catalogOK) continue;
       const providerCfg = config.provider![prov.id];
       const authInfo = detectAuthKey(prov.id, providerCfg, auth);
-      if (!authInfo) continue;
+      if (!canProbeInference(prov.baseURL, Boolean(authInfo))) continue;
       // When auto-discovery, pick models to probe. Prefer free, but always sample at least
       // a few so the user gets a real signal on paid-only providers (like opencode-go).
       const FREE_PATTERNS = ['-free', 'big-pickle', 'contributor-free'];
@@ -510,7 +520,7 @@ async function main() {
       log(`\n  Probing ${toProbe.length} model(s) on ${prov.id}…`, 'dim');
       const results: ModelProbeResult[] = [];
       for (const m of toProbe) {
-        const r = await probeModel(prov.baseURL, m, authInfo.key, prov.id);
+        const r = await probeModel(prov.baseURL, m, authInfo?.key ?? null, prov.id);
         results.push(r);
         const colorFn = r.status === 'OK' ? ok : err;
         log(

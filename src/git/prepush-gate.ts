@@ -5,34 +5,50 @@
  * Replaces the 12 sequential lefthook pre-push commands with a single parallel
  * gate. Runs all checks concurrently (bounded pool) via Promise.allSettled and
  * caches green results keyed by a tree hash: if nothing changed since the last
- * green run, the gate skips everything (<5s warm). Cold runs target <60s.
+ * green run, the gate skips everything (<5s warm). The full app audit runs serially.
  *
  * Usage:
  *   npx tsx src/git/prepush-gate.ts                # run gate (cache-aware)
  *   npx tsx src/git/prepush-gate.ts --force        # bypass cache
  *   npx tsx src/git/prepush-gate.ts --json         # machine-readable output
  *   npx tsx src/git/prepush-gate.ts --list         # list checks and exit
+ *   npx tsx src/git/prepush-gate.ts --audit-apps   # exigir el barrido COMPLETO de apps (a demanda)
  *   npx tsx src/git/prepush-gate.ts --skip-apps    # hotfixes: skip Layer 5 stack-audit-apps
- *                                                  #   (saves 3-6 min, BOTH warm cache and check)
  *
  * Exit codes: 0 = all checks passed (or warm cache hit), 1 = any check failed.
  *
- * NOTE: --skip-apps is for HOTFIXES ONLY (security patch, typo, ci-only). It bypasses
- * the Layer 5 per-app audit (typecheck+test on all 14 apps) which costs 3-6 min. The
- * tree hash for the cache is intentionally NOT stored under --skip-apps, so the next
- * full push still validates the apps. Use sparingly.
+ * POLITICA DE LA AUDITORIA DE APPS (2026-11-18, decision del owner)
+ * ------------------------------------------------------------------------
+ * "stack-audit-apps deberia ser a demanda, no parte del cierre": el barrido
+ * completo es O(catalogo de apps) y crece con cada app nueva. Ponerlo en el
+ * camino del push no da senal proporcional: un push de docs pagaba 20 minutos.
+ * Regla: EL PUSH VALIDA EL CAMBIO, NO EL CATALOGO.
+ *
+ *   - diff acotado a apps concretas  -> se auditan ESAS apps y BLOQUEA (rapido, senal alta)
+ *   - diff en superficie compartida    -> NO se barren todas las apps en el push; lo hace la
+ *                                         cadencia programada (src/ops/stack-apps-audit-scheduled.ts).
+ *                                         El push lo declara, no lo esconde.
+ *   - --audit-apps                     -> el owner exige el barrido completo y BLOQUEA
+ *
+ * --skip-apps se mantiene por compatibilidad (hotfixes).
  */
 import { createHash } from 'crypto';
 import { spawnSync } from 'child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { run } from '../core/run-command';
-import { inspectAppScope } from './prepush-app-scope.js';
+import { run, runSync } from '../core/run-command.js';
+import {
+  assertKnownAppScope,
+  inspectAppScope,
+  readWorkingFile,
+  type AppScope,
+} from './prepush-app-scope.js';
+import { appAuditEnvironment } from './app-audit-receipts.js';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const CACHE_FILE = join(ROOT, '.runtime', 'prepush-cache.json');
-const GATE_VERSION = 8; // bump when check definitions change
+const GATE_VERSION = 13; // scope unknown blocks; per-app evidence is checked separately
 
 // ─── Check definitions (mirrors .lefthook.yml pre-push) ─────────────────────
 
@@ -137,12 +153,50 @@ const CHECKS: GateCheck[] = [
       'Calidad de gates: cada gate declarado "enforced" en config/quality-gates.json tiene ejecucion real (hook o workflow)',
   },
   {
+    name: 'token-safety-audit',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tokens/token-safety.ts', '--strict'],
+    timeoutMs: 60_000,
+    description:
+      'Token safety config-local de las 8 herramientas desktop (exit 1 solo con WARN de una superficie reproducible; not-applied es hallazgo, no falla)',
+  },
+  {
     name: 'skills-accessibility',
     command: 'node',
     args: ['--import', 'tsx', 'src/tools/skills-accessibility-gate.ts'],
     timeoutMs: 120_000,
     description:
       'Accesibilidad de skills: toda skill cargable es alcanzable por el router (indice semantico + description)',
+  },
+  {
+    name: 'skills-size',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/check-skill-sizes.ts'],
+    timeoutMs: 60_000,
+    description: 'Tamaño de skills: ninguna skill supera el ratchet de tokens/lineas vs baseline',
+  },
+  {
+    name: 'skills-refs',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/check-skill-references.ts'],
+    timeoutMs: 60_000,
+    description: 'Referencias de skills: 0 links locales rotos nuevos respecto del baseline',
+  },
+  {
+    name: 'skills-quality-gate',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/skills/skill-quality-audit.ts', '--gate'],
+    timeoutMs: 60_000,
+    description:
+      'Calidad de skills: routing EN/ES, metadata de criticas y nombres unicos (gate de rutas)',
+  },
+  {
+    name: 'skills-governance-ratchet',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/skills/skill-governance-audit.ts', '--check'],
+    timeoutMs: 60_000,
+    description:
+      'Gobernanza de skills: colisiones de triggers, skills sin triggers y refs rotas no crecen vs baseline',
   },
   {
     name: 'gitignore-source-guard',
@@ -175,11 +229,34 @@ const CHECKS: GateCheck[] = [
     description: 'Cifras de los decks: las afirmaciones sobre el repo coinciden con la medicion',
   },
   {
+    name: 'orphans',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/orphan-module-gate.ts', '--strict'],
+    timeoutMs: 60_000,
+    description:
+      'Modulos sin consumidores: src/ sin muertos (owner 2026-11-19: promovido a enforced)',
+  },
+  {
+    name: 'script-policy',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/script-policy-gate.ts', '--check'],
+    timeoutMs: 60_000,
+    description:
+      'NORM-TS-001 con alcance declarado (.ps1 fuera de la superficie) + wiring del guardrail de destruccion',
+  },
+  {
     name: 'glossary-export',
     command: 'node',
     args: ['--import', 'tsx', 'src/tools/glossary-export.ts', '--check'],
     timeoutMs: 60_000,
     description: 'Nomenclatura portable sin drift respecto del glosario del sitio',
+  },
+  {
+    name: 'claude-surface',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/claude-surface-sync.ts', '--check'],
+    timeoutMs: 60_000,
+    description: 'Superficie .claude (Claude Code): sin rutas muertas, sin junctions rotos',
   },
   {
     name: 'gates-selftest',
@@ -245,7 +322,7 @@ const CHECKS: GateCheck[] = [
       'tsx',
       'src/security/generate-sbom.ts',
       '--output',
-      'sbom.json',
+      'sbom/gentle-vanguard-sbom.json',
       '--format',
       'json',
     ],
@@ -256,8 +333,9 @@ const CHECKS: GateCheck[] = [
     name: 'stack-audit-apps',
     command: 'node',
     args: ['--import', 'tsx', 'src/ops/stack-audit-apps.ts'],
-    timeoutMs: 900_000, // Sequential app checks exceeded 6 min on Windows; each app step remains bounded.
-    description: 'Layer 5 stack-verify: typecheck + test en apps/* (14 apps)',
+    timeoutMs: 1_200_000, // The 15-minute run reached the penultimate app; each app step remains bounded.
+    description:
+      'Layer 5 stack-verify: typecheck + test en apps afectadas (o todas si el cambio es compartido)',
   },
   {
     name: 'container-scan',
@@ -267,6 +345,8 @@ const CHECKS: GateCheck[] = [
       'tsx',
       'src/security/container-scan.ts',
       'scan',
+      '--sbom',
+      'sbom/gentle-vanguard-sbom.json',
       '--fail-on',
       'high',
       '--json',
@@ -343,6 +423,22 @@ const CHECKS: GateCheck[] = [
     description:
       'Todo comando de arranque apunta a un archivo real (el start.sh de sandbox-gv llamaba a un modulo inexistente y nadie lo noto)',
   },
+  {
+    name: 'sh-launcher-audit',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/sh-launcher-audit.ts'],
+    timeoutMs: 60_000,
+    description:
+      'Los start.sh de apps lanzan node directo con pidfile: sin pnpm/npx/npm como CLI intermedio (nieto con consola, PID no atribuible) y sin wait desnudo que bloquee la terminal',
+  },
+  {
+    name: 'app-design-gate',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/app-design-gate.ts'],
+    timeoutMs: 60_000,
+    description:
+      'NORM-APP-001 con gate real: waiver de cliente, declaracion nativa (ratchet sobre baseline), manifiesto en superficies web y evidencia visual cuando la declaracion dice homologada',
+  },
 ];
 
 // ─── Tree hash ───────────────────────────────────────────────────────────────
@@ -350,6 +446,18 @@ const CHECKS: GateCheck[] = [
 function runGit(args: string[]): string {
   const result = spawnSync('git', args, { cwd: ROOT, encoding: 'utf-8', windowsHide: true });
   return (result.stdout ?? '').toString().trim();
+}
+
+function runGitBuffer(args: string[]): Buffer {
+  const result = spawnSync('git', args, {
+    cwd: ROOT,
+    encoding: 'buffer',
+    maxBuffer: 64 * 1024 * 1024,
+    windowsHide: true,
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`git ${args.join(' ')} failed (${result.status})`);
+  return result.stdout ?? Buffer.alloc(0);
 }
 
 function fileHash(path: string): string {
@@ -360,18 +468,54 @@ function fileHash(path: string): string {
   }
 }
 
+export function hashWorkingTreeChanges(
+  trackedDiff: Buffer,
+  untrackedFiles: Array<{ path: string; contents: Buffer }>,
+): string {
+  const hash = createHash('sha256').update(trackedDiff);
+  for (const file of [...untrackedFiles].sort((a, b) => a.path.localeCompare(b.path))) {
+    hash.update('\0').update(file.path).update('\0').update(file.contents);
+  }
+  return hash.digest('hex');
+}
+
 /**
- * Tree hash = sha256(HEAD + working-tree status + dependency manifests).
- * Captures committed state, staged/unstaged/untracked changes, and dependency
- * changes (package.json / lockfile) that `git status` alone would miss.
+ * Tree hash includes actual tracked and untracked file contents so repeated
+ * edits to an already-dirty path cannot reuse a stale green result.
  */
 function computeTreeHash(): string {
   const head = runGit(['rev-parse', 'HEAD']);
   const status = runGit(['status', '--porcelain']);
   const pkg = fileHash(join(ROOT, 'package.json'));
   const lock = fileHash(join(ROOT, 'pnpm-lock.yaml'));
+  const trackedDiff = runGitBuffer([
+    'diff',
+    '--binary',
+    '--no-ext-diff',
+    '--no-textconv',
+    'HEAD',
+    '--',
+  ]);
+  const untrackedPaths = runGitBuffer(['ls-files', '--others', '--exclude-standard', '-z'])
+    .toString('utf8')
+    .split('\0')
+    .filter(Boolean);
+  const untrackedFiles = untrackedPaths.map((path) => {
+    const absolutePath = join(ROOT, path);
+    const stat = lstatSync(absolutePath);
+    return {
+      path,
+      contents: stat.isSymbolicLink()
+        ? Buffer.from(`symlink:${readlinkSync(absolutePath)}`)
+        : readFileSync(absolutePath),
+    };
+  });
+  const workingTreeChanges = hashWorkingTreeChanges(trackedDiff, untrackedFiles);
   return createHash('sha256')
-    .update(`${head}\n${status}\n${pkg}\n${lock}`)
+    .update(`${head}\n${status}\n${pkg}\n${lock}\n${workingTreeChanges}`)
+    .update(appAuditEnvironment())
+    .update(fileHash(join(ROOT, 'node_modules', '.package-lock.json')))
+    .update(fileHash(join(ROOT, 'node_modules', '.modules.yaml')))
     .digest('hex')
     .slice(0, 16);
 }
@@ -460,19 +604,85 @@ export function buildPerfBaselineArgs(results: CheckResult[]): string[] {
   ];
 }
 
-function runOne(check: GateCheck, args = check.args): Promise<CheckResult> {
+export function buildAppAuditArgs(
+  args: string[],
+  appScope: { mode: AppScope['mode']; base: string | null; reason?: string },
+): string[] {
+  assertKnownAppScope({ ...appScope, reason: appScope.reason ?? 'rango no verificable' });
+  if (!appScope.base) throw new Error('Base Git de apps no verificable');
+  if (appScope.mode === 'full') return [...args, '--reuse-evidence'];
+  return [...args, '--affected', appScope.base, '--include-worktree', '--reuse-evidence'];
+}
+
+/**
+ * ¿La auditoria de apps corre en el push, y bloquea?
+ *
+ * - `apps`  : el diff toca apps concretas. Auditoria acotada, barata y de senal
+ *             alta -> corre y BLOQUEA.
+ * - `full`  : el diff toca superficie compartida (src/**, scripts/**, config/**).
+ *             Barrer TODAS las apps aqui es O(catalogo) y no escala; el push no
+ *             paga eso. NO se corre en el push (la cadencia lo hace) y el gate
+ *             lo DECLARA.
+ * - `none`  : no hay apps afectadas -> nada que auditar.
+ *
+ * `--audit-apps` (a demanda) fuerza el barrido completo y bloqueante.
+ */
+export function isAppAuditBlocking(
+  appScope: { mode: AppScope['mode'] },
+  options: { auditApps: boolean },
+): boolean {
+  if (options.auditApps) return true;
+  return appScope.mode === 'apps';
+}
+
+/** ¿La auditoria de apps debe ejecutarse en este push? */
+export function shouldRunAppAudit(
+  appScope: { mode: AppScope['mode'] },
+  options: { auditApps: boolean },
+): boolean {
+  if (options.auditApps) return true;
+  return appScope.mode === 'apps' || appScope.mode === 'none';
+}
+
+/**
+ * Veredicto del gate: los checks no bloqueantes (advisory) informan pero no
+ * bloquean el push. Un FAIL bloqueante sigue bloqueando.
+ */
+export function evaluateGate(
+  results: CheckResult[],
+  nonBlocking: Set<string>,
+): { allPass: boolean; blockingFailures: CheckResult[]; allGreen: boolean } {
+  const blockingFailures = results.filter((r) => r.status !== 'pass' && !nonBlocking.has(r.name));
+  return {
+    allPass: blockingFailures.length === 0,
+    blockingFailures,
+    allGreen: results.every((r) => r.status === 'pass'),
+  };
+}
+
+export function runOne(
+  check: GateCheck,
+  args = check.args,
+  onStderr?: (chunk: Buffer) => void,
+): Promise<CheckResult> {
   return new Promise((resolvePromise) => {
     const start = Date.now();
-    const child = run(check.command, args, { cwd: ROOT, timeout: check.timeoutMs });
+    const windows = process.platform === 'win32';
+    const child = run(check.command, args, { cwd: ROOT, detached: !windows });
     let stdout = '';
     let stderr = '';
+    let finished = false;
     child.stdout?.on('data', (d: Buffer) => {
       stdout += d.toString();
     });
     child.stderr?.on('data', (d: Buffer) => {
       stderr += d.toString();
+      onStderr?.(d);
     });
     const finish = (status: CheckResult['status']) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
       const output = stdout + stderr;
       const tail = output.split('\n').filter(Boolean).slice(-6).join('\n');
       // Un check que falla deja su output COMPLETO en disco: el tail de 6
@@ -485,7 +695,7 @@ function runOne(check: GateCheck, args = check.args): Promise<CheckResult> {
           const stamp = new Date().toISOString().replace(/[:.]/g, '-');
           writeFileSync(
             join(dir, `${check.name}-${stamp}.log`),
-            `[command] ${check.command} ${check.args.join(' ')}\n[exit] ${status}\n\n${output}`,
+            `[command] ${check.command} ${args.join(' ')}\n[exit] ${status}\n\n${output}`,
           );
         } catch {
           /* best-effort: el diagnostico no puede romper el gate */
@@ -493,11 +703,33 @@ function runOne(check: GateCheck, args = check.args): Promise<CheckResult> {
       }
       resolvePromise({ name: check.name, status, durationMs: Date.now() - start, tail });
     };
+    // spawn() has no timeout option. Terminate the check and its npm/test workers.
+    const timer = setTimeout(() => {
+      stderr += `\n[timeout] ${check.name} exceeded ${check.timeoutMs}ms.\n`;
+      if (child.pid && child.exitCode === null && child.signalCode === null) {
+        if (windows) {
+          const killed = runSync('taskkill.exe', ['/T', '/F', '/PID', String(child.pid)], {
+            timeout: 8000,
+          });
+          if (killed.status !== 0) child.kill('SIGKILL');
+        } else {
+          try {
+            process.kill(-child.pid, 'SIGKILL');
+          } catch {
+            child.kill('SIGKILL');
+          }
+        }
+      }
+      child.stdout?.destroy();
+      child.stderr?.destroy();
+      finish('error');
+    }, check.timeoutMs);
     child.on('error', (err) => {
       stderr += `\n[spawn error] ${err.message}`;
       finish('error');
     });
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
+      if (signal) stderr += `\n[signal] ${signal}\n`;
       finish(code === 0 ? 'pass' : 'fail');
     });
   });
@@ -519,14 +751,16 @@ async function runChecks(checks: GateCheck[], concurrency = 4): Promise<CheckRes
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
-function printSummary(results: CheckResult[], totalMs: number): void {
+function printSummary(results: CheckResult[], totalMs: number, nonBlocking: Set<string>): void {
   const passed = results.filter((r) => r.status === 'pass').length;
   console.log(
     `\n=== Pre-push gate: ${passed}/${results.length} passed in ${(totalMs / 1000).toFixed(1)}s ===`,
   );
   for (const r of results) {
     const icon = r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⚠️';
-    console.log(`${icon} ${r.name} (${(r.durationMs / 1000).toFixed(1)}s)`);
+    const advisory =
+      nonBlocking.has(r.name) && r.status !== 'pass' ? ' (advisory: no bloquea)' : '';
+    console.log(`${icon} ${r.name} (${(r.durationMs / 1000).toFixed(1)}s)${advisory}`);
     if (r.status !== 'pass' && r.tail) {
       console.log(`   └─ ${r.tail.split('\n').join('\n      ')}`);
     }
@@ -539,39 +773,59 @@ async function main(): Promise<void> {
   const json = args.includes('--json');
   const list = args.includes('--list');
   const skipApps = args.includes('--skip-apps');
-
-  // Effective checks = base CHECKS minus any skipped by flag
-  const checks = skipApps ? CHECKS.filter((c) => c.name !== 'stack-audit-apps') : CHECKS;
+  const auditApps = args.includes('--audit-apps');
 
   if (list) {
-    for (const c of checks) console.log(`${c.name}\t${c.description}`);
+    for (const c of skipApps ? CHECKS.filter((x) => x.name !== 'stack-audit-apps') : CHECKS) {
+      console.log(`${c.name}\t${c.description}`);
+    }
     return;
   }
 
-  if (skipApps && !json) {
-    console.log(
-      '[prepush-gate] ⚠ --skip-apps: skipping stack-audit-apps (Layer 5, 3-6 min). ' +
-        'For HOTFIXES only. Next full push will re-validate apps.',
-    );
-    console.log('');
-  }
-
   const start = Date.now();
-  const appScope = inspectAppScope();
+  const appScope = inspectAppScope(undefined, 'HEAD', undefined, readWorkingFile);
+  assertKnownAppScope(appScope);
+
+  // Politica de la auditoria de apps: el push valida el CAMBIO, no el CATALOGO.
+  const appAuditRuns = !skipApps && shouldRunAppAudit(appScope, { auditApps });
+  const appAuditBlocking = appAuditRuns && isAppAuditBlocking(appScope, { auditApps });
+  const checks = appAuditRuns ? CHECKS : CHECKS.filter((c) => c.name !== 'stack-audit-apps');
+  const nonBlocking = new Set<string>();
+  if (appAuditRuns && !appAuditBlocking) nonBlocking.add('stack-audit-apps');
+
   if (!json) {
-    const selected = appScope.mode === 'apps' ? appScope.apps.join(', ') : appScope.mode;
-    console.log(
-      `[pre-push] Alcance informativo (${appScope.source}): ${selected}. ${appScope.reason}.`,
-    );
+    if (skipApps) {
+      console.log(
+        '[prepush-gate] --skip-apps: skipping stack-audit-apps (Layer 5). ' +
+          'For HOTFIXES only. Next full push will re-validate apps.',
+      );
+      console.log('');
+    } else if (appAuditRuns) {
+      const selected =
+        appScope.mode === 'full'
+          ? 'todas (dependencias compartidas identificadas)'
+          : appScope.mode === 'apps'
+            ? appScope.apps.join(', ')
+            : 'ninguna';
+      console.log(`[pre-push] Auditoría de apps: ${selected}. ${appScope.reason}.`);
+    } else {
+      console.log(
+        '[pre-push] Auditoría de apps: NO se ejecuta en este push (el diff toca superficie ' +
+          'compartida: src/**, scripts/** o config/** -> barrido completo en la cadencia ' +
+          'programada). Exigible con --audit-apps.',
+      );
+    }
   }
   const treeHash = computeTreeHash();
 
   // --skip-apps implies --force for cache purposes (skip partial-result cache hits).
   // We never STORE to cache under --skip-apps because the gate is intentionally incomplete.
-  if (!force && !skipApps) {
+  // A global receipt never substitutes per-app input/environment checks.
+  if (!force && !skipApps && appScope.mode === 'none') {
     const cache = loadCache();
     const hit = cache.entries[treeHash];
-    if (hit) {
+    const age = hit ? Date.now() - Date.parse(hit.timestamp) : Infinity;
+    if (hit && age >= 0 && age <= 24 * 60 * 60 * 1000) {
       const elapsed = ((Date.now() - start) / 1000).toFixed(2);
       if (json) {
         console.log(
@@ -585,7 +839,7 @@ async function main(): Promise<void> {
         );
       } else {
         console.log(
-          `[prepush-gate] Warm cache hit (${elapsed}s) — tree unchanged since green run at ${hit.timestamp}. Skipping ${CHECKS.length} checks.`,
+          `[prepush-gate] Warm cache hit (${elapsed}s) — tree unchanged since green run at ${hit.timestamp}. Skipping ${checks.length} checks.`,
         );
       }
       process.exit(0);
@@ -593,10 +847,11 @@ async function main(): Promise<void> {
   }
 
   const before = runGit(['status', '--porcelain']);
+  const appAudit = checks.find((check) => check.name === 'stack-audit-apps');
+  const appAuditArgs = appAudit ? buildAppAuditArgs(appAudit.args, appScope) : undefined;
   // The app audit runs installer and backup suites that apply Windows ACLs.
   // Let the other resource-heavy gates finish first so icacls is not competing
   // with four concurrent builds/test runners for process, disk, and AV locks.
-  const appAudit = checks.find((check) => check.name === 'stack-audit-apps');
   const perfBaseline = checks.find((check) => check.name === 'perf-baseline');
   const parallelChecks = checks.filter(
     (check) => check.name !== 'stack-audit-apps' && check.name !== 'perf-baseline',
@@ -605,12 +860,21 @@ async function main(): Promise<void> {
   if (perfBaseline) {
     results.push(await runOne(perfBaseline, buildPerfBaselineArgs(results)));
   }
-  if (appAudit) results.push(...(await runChecks([appAudit], 1)));
+  if (appAudit && appAuditArgs) {
+    const progress = json ? undefined : (chunk: Buffer) => process.stderr.write(chunk);
+    results.push(await runOne(appAudit, appAuditArgs, progress));
+  }
   const totalMs = Date.now() - start;
-  const allPass = results.every((r) => r.status === 'pass');
+  const { allPass, allGreen } = evaluateGate(results, nonBlocking);
   const fence = treeFence(before);
 
-  if (allPass && !skipApps) {
+  if (
+    allGreen &&
+    !skipApps &&
+    appScope.mode === 'none' &&
+    fence.length === 0 &&
+    computeTreeHash() === treeHash
+  ) {
     const cache = loadCache();
     cache.entries[treeHash] = {
       timestamp: new Date().toISOString(),
@@ -626,14 +890,17 @@ async function main(): Promise<void> {
         treeHash,
         totalMs,
         allPass,
+        allGreen,
         appScope,
-        skipped: skipApps ? ['stack-audit-apps'] : [],
+        appAudit: { runs: appAuditRuns, blocking: appAuditBlocking, mode: appScope.mode },
+        skipped: appAuditRuns ? [] : ['stack-audit-apps'],
+        nonBlocking: [...nonBlocking],
         results,
         fence,
       }),
     );
   } else {
-    printSummary(results, totalMs);
+    printSummary(results, totalMs, nonBlocking);
     printFence(fence);
   }
 

@@ -19,7 +19,7 @@ import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { spawnSync } from 'child_process';
 import * as https from 'https';
-import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
+import { executeWithCircuit } from '../resilience/circuit-breaker-v2.js';
 
 const ROOT = resolve(process.cwd());
 const LOG_FILE = join(ROOT, '.session', 'aws-delegator.log');

@@ -23,7 +23,7 @@
  *   }
  *
  * USO en pipeline:
- *   import { SessionContextLog } from './session-context-log';
+ *   import { SessionContextLog } from './session-context-log.js';
  *   const log = new SessionContextLog(sessionData);
  *   log.save();
  *
@@ -36,7 +36,7 @@
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
 import * as path from 'path';
-import { ROOT } from './repo-root';
+import { ROOT } from './repo-root.js';
 const logger = log('CORE-SESSION-CONTEXT-LOG');
 import { log } from '../utils/logger.js';
 

@@ -153,19 +153,19 @@ export default {
       cols: 4,
       items: [
         {
-          value: '800+',
+          value: '889+',
           label: 'TypeScript files in src/',
           sub: 'Own stack code, organised by area',
           accent: '06b6d4',
         },
         {
-          value: '552+',
+          value: '653',
           label: 'Test files',
           sub: 'Unit, e2e, integration, security and skills',
           accent: '8b5cf6',
         },
         {
-          value: '611+',
+          value: '673',
           label: 'npm scripts',
           sub: 'Every stack operation is an auditable command',
           accent: 'fbbf24',
@@ -243,8 +243,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '55 quality gates',
-          body: '19 on pre-commit, 2 on commit-msg, 2 on post-commit, 19 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 1 runtime. 50 of 55 enforced strictly; the Dependabot alerts gate runs on every push.',
+          heading: '68 quality gates',
+          body: '22 on pre-commit, 2 on commit-msg, 2 on post-commit, 28 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 4 runtime. 63 of 68 enforced strictly; the Dependabot alerts gate runs on every push.',
         },
         {
           icon: 'search',

@@ -1,11 +1,24 @@
 name: Public Windows Installer Qualification
 
+# Califica el instalador PUBLICADO del release mas reciente.
+#
+# Antes este workflow clavaba version + sha256 (`4.3.0`), asi que quedaba
+# desactualizado en cada release y el pin dejaba de describir la realidad.
+# Ahora resuelve el release mas reciente y verifica TRES cosas con el contrato
+# `src/release/installer-release-contract.ts`:
+#   1. hay exactamente UN instalador (nunca un launcher SEA junto al Setup),
+#   2. su `.sha256` viaja en el mismo release,
+#   3. el binario descargado coincide con ese checksum.
+# Cualquier violacion aborta: un release ambiguo no se califica.
+
 on:
   push:
     branches: [main, codex/installer-qualification]
     paths:
       - .github/workflows/public-installer-windows.yml
       - src/cli/verify-installer.ts
+      - src/release/installer-release-contract.ts
+      - src/release/verify-published-installer.ts
   workflow_dispatch:
 
 permissions:
@@ -15,31 +28,46 @@ jobs:
   installer:
     if: github.repository == 'EmmanuelOrtiz87/gentle-vanguard-public'
     runs-on: windows-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-      - name: Download immutable public release and verify pinned digest
+      - name: Resolve latest published installer
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '[.assets[] | {name: .name, size: .size}]' > release-assets.json
+          name="$(node -e "const a=require('./release-assets.json');const re=/^Gentle-Vanguard-Setup-\\d+\\.\\d+\\.\\d+\\.exe$/;const hits=a.filter(x=>re.test(x.name));process.stdout.write(hits.map(h=>h.name).join('\\n'))")"
+          if [ -z "$name" ]; then
+            echo "::error::El release mas reciente no publica Gentle-Vanguard-Setup-<semver>.exe"
+            exit 1
+          fi
+          if [ "$(echo "$name" | wc -l)" -ne 1 ]; then
+            echo "::error::El release publica varios instaladores: $name"
+            exit 1
+          fi
+          echo "INSTALLER_NAME=$name" >> "$GITHUB_ENV"
+          url="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.assets[] | select(.name == env.INSTALLER_NAME) | .browser_download_url')"
+          echo "INSTALLER_URL=$url" >> "$GITHUB_ENV"
+      - name: Download installer and published checksum
         shell: bash
         run: |
-          node --input-type=module <<'NODE'
-          import { mkdirSync, writeFileSync } from 'node:fs';
-          import { createHash } from 'node:crypto';
-          const file = 'Gentle-Vanguard-Setup-4.3.0.exe';
-          const expected = '4bd77252a64577efc7de802de4c184c99488409dbbafa4e3c5dc2ad57f9d7e07';
-          const base = 'https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/download/v4.3.0/';
-          mkdirSync('dist', { recursive: true });
-          for (const name of [file, `${file}.sha256`]) {
-            const response = await fetch(base + name);
-            if (!response.ok) throw new Error(`Download failed: ${response.status}`);
-            const bytes = Buffer.from(await response.arrayBuffer());
-            if (name === file && createHash('sha256').update(bytes).digest('hex') !== expected)
-              throw new Error('Published executable does not match the reviewed release');
-            writeFileSync(`dist/${name}`, bytes);
-          }
-          NODE
+          set -euo pipefail
+          mkdir -p dist
+          curl -fsSL "$INSTALLER_URL" -o "dist/$INSTALLER_NAME"
+          curl -fsSL "$INSTALLER_URL.sha256" -o "dist/$INSTALLER_NAME.sha256"
+      - name: Enforce single-product contract and published digest
+        shell: bash
+        run: |
+          node --experimental-strip-types src/release/verify-published-installer.ts \
+            --assets release-assets.json \
+            --exe "dist/$INSTALLER_NAME" \
+            --sha "dist/$INSTALLER_NAME.sha256" \
+            --json | tee installer-contract.json
       - name: Install, inspect registry and shortcuts, uninstall and verify cleanup
         shell: bash
         run: node --experimental-strip-types src/cli/verify-installer.ts --json > installer-qualification.json
@@ -47,6 +75,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
         with:
-          name: installer-qualification-4.3.0
-          path: installer-qualification.json
+          name: installer-qualification
+          path: |
+            installer-qualification.json
+            installer-contract.json
           if-no-files-found: warn

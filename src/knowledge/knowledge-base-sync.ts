@@ -23,6 +23,7 @@ import { tmpdir } from 'os';
 import { runSync } from '../core/run-command.js';
 import { createHash } from 'crypto';
 import { z } from 'zod';
+import { buildSessionSummaryParts } from './kb-session-summary.js';
 
 function findRoot(dir: string): string {
   let current = resolve(dir);
@@ -293,30 +294,27 @@ async function importToEngram(
 }
 
 /**
- * Genera resumen de sesión actual
+ * Genera resumen de sesión actual.
+ *
+ * The old generator wrote a 337-byte placeholder on every run (wrong default id,
+ * `.md`-only reads over a `.state.json` store, and an empty result still written
+ * to disk). Now the note is written only when there is real data: session state
+ * with activity, legacy context-log markdown, or the last close report. With no
+ * data the run reports the reason and writes nothing.
  */
 async function generateSessionSummary(
   sessionId?: string,
   dryRun = false,
 ): Promise<{ path?: string; error?: string }> {
-  const sid = sessionId || `session-${getToday().replace(/-/g, '')}`;
-  log(`Generating session summary: ${sid}...`, 'INFO');
+  const { sessionId: sid, parts } = buildSessionSummaryParts(ROOT, sessionId);
 
   try {
-    if (!dryRun) ensureDir(SESSIONS_DIR);
-
-    // Buscar contexto de sesión actual
-    const sessionDir = join(ROOT, '.session', 'context-log', sid);
-    let sessionData = '';
-
-    if (existsSync(sessionDir)) {
-      const files = readdirSync(sessionDir).filter((f) => f.endsWith('.md'));
-      for (const file of files) {
-        sessionData += readFileSync(join(sessionDir, file), 'utf-8') + '\n\n';
-      }
+    if (parts.length === 0) {
+      log(`No real session data for ${sid} — summary not written (placeholder avoided)`, 'WARN');
+      return { error: `no session data for ${sid}` };
     }
 
-    // Crear resumen
+    if (!dryRun) ensureDir(SESSIONS_DIR);
     const summaryPath = join(SESSIONS_DIR, `${sid}-summary.md`);
     const summaryContent = `---
 created: ${getToday()}
@@ -328,13 +326,7 @@ session_id: ${sid}
 
 **Generated**: ${getTimestamp()}
 
-## Overview
-
-Session context and artifacts archived from Gentle-Vanguard.
-
-## Session Data
-
-${sessionData || '*No session data available*'}
+${parts.join('\n\n')}
 
 ---
 

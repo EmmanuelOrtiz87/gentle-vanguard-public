@@ -13,7 +13,7 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync, readFileSync } from
 import { basename, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runSync } from '../core/run-command.js';
-import { getExternalApiTimeouts } from '../core/timeout-config';
+import { getExternalApiTimeouts } from '../core/timeout-config.js';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 

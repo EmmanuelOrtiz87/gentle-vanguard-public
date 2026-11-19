@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { recordExternalUsage } from '../../core/session-metrics-tracker';
+import { recordExternalUsage } from '../../core/session-metrics-tracker.js';
 import {
   opencodeDbPath,
   readOpencodeSessions,
@@ -16,6 +16,7 @@ import {
   codexSessionsDir,
   minimaxDbPath,
 } from './readers.js';
+import { writeContextLogStates } from './context-log-writer.js';
 import {
   lastIngested,
   saveLastIngested,
@@ -26,6 +27,7 @@ import {
   updateStackSession,
   writeObservabilityReport,
   writeForwardAliases,
+  reconcileTokenUsage,
   log,
   RUNTIME_DIR,
   NEXUS_DB,
@@ -40,7 +42,10 @@ export function ingestOnce(): {
   const dbPath = opencodeDbPath();
   if (!dbPath) {
     log('No se encontró la DB de opencode en rutas conocidas');
-    return { source: null, sessions: 0, inserted: 0, updated: 0 };
+    // Aun sin opencode, las demás fuentes ya ingeridas siguen siendo la fuente
+    // de verdad del estado de sesión: no se deja de escribir por eso.
+    const ctx = writeContextLogStates('ingest');
+    return { source: null, sessions: ctx.sessions, inserted: 0, updated: ctx.written };
   }
   const since = lastIngested();
   const rows = readOpencodeSessions(dbPath, since);
@@ -166,8 +171,13 @@ export function ingestOnce(): {
   const savRes = writeSavingsToNexus(savings);
   // Ahorros por compresión del stack (prompt/output/structural).
   const compRes = writeCompressionSavings();
+  reconcileTokenUsage();
   updateStackSession(rows);
   writeObservabilityReport(rows);
+  // El estado de sesión (.session/context-log/<id>/.state.json) se deriva de la
+  // misma fuente real que acaba de ingerirse: sin esto, el dashboard de
+  // observabilidad y el resumen de KB siguen viendo sesiones vacías.
+  writeContextLogStates('ingest');
   const maxT = rows[rows.length - 1].timeUpdated;
   saveLastIngested(maxT);
   log(
@@ -328,7 +338,9 @@ export function generateTraceabilityReport(): string {
     if (subagents.length > 0) {
       out += `\nSubagentes (iteraciones individuales):\n`;
       for (const a of subagents) {
-        const label = a.agent_name ? `${a.agent_name} @ ${a.session_id?.slice(0, 14)}` : a.session_id?.slice(0, 18);
+        const label = a.agent_name
+          ? `${a.agent_name} @ ${a.session_id?.slice(0, 14)}`
+          : a.session_id?.slice(0, 18);
         out += `  ${label} txns=${a.txns} in=${L(a.i)} out=${L(a.o)} cost=$${(a.cost ?? 0).toFixed(4)}\n`;
       }
     }

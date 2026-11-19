@@ -1,11 +1,11 @@
-import { ResponseCache } from './cache';
-import { DEFAULT_CONFIG, sqliteEvictLru } from './sqlite';
+import { ResponseCache } from './cache.js';
+import { DEFAULT_CONFIG, sqliteEvictLru } from './sqlite.js';
 import {
   getCacheTelemetry,
   getLifetimeSavings,
   isCacheHitRateBelow,
   recordCacheTelemetry,
-} from './telemetry';
+} from './telemetry.js';
 
 // ─── CLI Interface ──────────────────────────────────────────────────────────────
 

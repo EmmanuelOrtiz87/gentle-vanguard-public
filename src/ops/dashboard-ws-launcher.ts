@@ -16,7 +16,7 @@ import { spawn } from 'node:child_process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as net from 'node:net';
-import { killRecordedWsProcess, ensureWatchdog } from './dashboard-common';
+import { killRecordedWsProcess, ensureWatchdog } from './dashboard-common.js';
 
 const QUIET = process.argv.includes('--quiet');
 const ROOT = path.resolve(process.cwd());

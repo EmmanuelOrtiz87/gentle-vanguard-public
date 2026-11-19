@@ -13,7 +13,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { ResponseCache } from '../resilience/response-cache';
+import { ResponseCache } from '../resilience/response-cache.js';
 
 const ROOT = resolve(process.cwd());
 const REPORTS_DIR = join(ROOT, 'reports', 'optimization');

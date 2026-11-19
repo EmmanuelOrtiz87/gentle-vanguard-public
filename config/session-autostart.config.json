@@ -63,6 +63,18 @@
         "description": "Deriva politica<->config de MCP (NORMATIVA-MCP-LIFECYCLE): compara config/mcp-lifecycle-policy.json con la config real (global + proyecto). Barato: dos JSON, cero procesos. Caso real que lo origino: `memory` declarado disabled-by-policy con el server enabled, invisible porque nada comparaba las dos fuentes. FAIL = una capacidad opera sin politica o la politica contradice la config."
       },
       {
+        "id": "mcp-operability",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tools/mcp-operability.ts",
+        "args": "",
+        "required": false,
+        "phase": 1,
+        "skipOnFailure": true,
+        "timeout": 300000,
+        "description": "Cuarto eje MCP (OPERABLE): una llamada REAL de solo lectura por capacidad (la sonda que cada intencion del mapa de demanda declara) y clasificacion ok / ok-sin-dato / requiere-config / dependencia-caida / intermitente / timeout / roto. Medido: 48s en reposo para las 16 capacidades, asi que 300s deja margen con carga. FAIL solo con `roto` REPRODUCIBLE o `dependencia-caida`: un fallo unico que no se reproduce no bloquea (medido: FAIL a las 22:18 y PASS a las 22:22 sin cambios). Requiere-config (credencial del owner) nunca bloquea."
+      },
+      {
         "id": "process-hygiene",
         "enabled": true,
         "script": "src/core/process-hygiene.ts",
@@ -98,7 +110,7 @@
         "phase": 0,
         "skipOnFailure": true,
         "timeout": 120000,
-        "description": "Probe de INFERENCIA REAL (POST /chat/completions, max_tokens 1): cierra la brecha entre alcanzable y responde. Corre en la FASE 0, justo ANTES del model-enforcer, para que el enforcer decida con evidencia vigente y no con la de la sesion anterior (TTL 15 min). --registry sondea los candidatos gratuitos que el enforcer podria imponer. Timeout de red 6 s; timeout local 90 s (un modelo local paga la carga desde disco: medido 30,9 s en frio y 456 ms caliente). Los objetivos se sondean en paralelo: el peor caso lo marca el timeout mas largo, no la suma. Exit 1 = el proveedor respondio con error; exit 2 = indeterminado (sin red/config)."
+        "description": "Probe de INFERENCIA REAL (POST /chat/completions, max_tokens 1): cierra la brecha entre alcanzable y responde. Corre en la FASE 0, justo ANTES del model-enforcer, para que el enforcer decida con evidencia vigente y no con la de la sesion anterior (TTL 15 min). --registry sondea los candidatos gratuitos que el enforcer podria imponer. Timeout de red 6 s; timeout local 90 s (un modelo local paga la carga desde disco: medido 30,9 s en frio y 456 ms caliente). Los objetivos se sondean en paralelo: el peor caso lo marca el timeout mas largo, no la suma. Exit 0 = al menos un modelo responde OK (DEGRADED si otros fallaron: cada fallo queda en la evidencia y el enforcer enruta a los que responden); exit 1 = ningun modelo responde y al menos uno respondio con error; exit 2 = indeterminado (sin red/config)."
       },
       {
         "id": "model-enforcer",
@@ -206,20 +218,21 @@
         "id": "token-budget",
         "enabled": true,
         "script": "src/tokens/token-budget-guard.ts",
-        "args": "-Task session-start -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
+        "args": "-Task session-start -Risk low",
         "required": false,
-        "description": "Record session start for token budget tracking"
+        "description": "Chequeo de presupuesto diario contra el uso real de Nexus (sin escribir filas estimadas en el CSV legacy)"
       },
       {
         "id": "token-spike-guard",
         "enabled": true,
         "lazy": true,
+        "daemon": true,
         "script": "src/tokens/token-spike-guard-daemon.ts",
         "args": "--attach",
         "required": false,
         "phase": 1,
         "skipOnFailure": true,
-        "description": "Token spike guard daemon — burn rate continuo, checkpoint y notificación MCAS en umbrales"
+        "description": "Token spike guard daemon — burn rate continuo, checkpoint y notificación MCAS en umbrales. `daemon: true` porque el watcher NO termina: medido 2026-11-18, sin esta marca el runner lo esperaba hasta el timeout (FAIL del watchtower) y lo mataba al nacer"
       },
       {
         "id": "engram-integrity",
@@ -236,7 +249,7 @@
         "script": "src/ops/backup-engram.ts",
         "args": "--mode backup --quiet",
         "required": false,
-        "description": "Auto-backup Engram (DB + sessions + SHA256 checksums)"
+        "description": "Backup online de la DB real de Engram (SQLite WAL-safe) + integrity_check + export de chunks + SHA256"
       },
       {
         "id": "cross-workspace-validation",
@@ -367,7 +380,18 @@
         "script": "src/integrations/codegraph-sync-autostart.ts",
         "args": "",
         "required": false,
-        "description": "Verify CodeGraph index freshness and sync if stale (>30min old) (TS)"
+        "description": "Verify CodeGraph index freshness and sync if stale (>30min old) (TS). Ademas hace PRAGMA wal_checkpoint(TRUNCATE) si el WAL supera 100 MB (2026-11-18: estaba en 552 MB sin checkpoint)."
+      },
+      {
+        "id": "graphify-refresh",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/integrations/graphify-refresh-autostart.ts",
+        "args": "",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 180000,
+        "description": "Refresh semanal del grafo AST de graphify (umbral 7 dias): reconstruye graphify-out/ solo si graph.json esta viejo o ausente. Antes solo el hook PostToolUse de ZCode lo actualizaba y el grafo quedo congelado 8 dias mientras config/agent-prompts/CODEGRAPH.md lo declaraba fuente de verdad."
       },
       {
         "id": "key-registry",
@@ -393,19 +417,21 @@
         "id": "dashboard-ws-start",
         "enabled": false,
         "lazy": true,
+        "daemon": true,
         "script": "src/ops/dashboard-ws-autostart.ts",
         "args": "--quiet --watch",
         "required": false,
-        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. WebSocket metrics server ONLY (port 8080) with persistent watchdog auto-recovery (5s health loop, up to 10 restarts). Does NOT serve the Vite UI — see dashboard-ui-start (TS)"
+        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. WebSocket metrics server ONLY (port 8080) with persistent watchdog auto-recovery (5s health loop, up to 10 restarts). Does NOT serve the Vite UI — see dashboard-ui-start (TS). `daemon: true` declarado aunque hoy esté deshabilitado: el watchdog con --watch no termina, y sin la marca el runner lo mataría al timeout"
       },
       {
         "id": "dashboard-ui-start",
         "enabled": false,
         "lazy": true,
+        "daemon": true,
         "script": "src/ops/dashboard-vite-watchdog.ts",
         "args": "--watch",
         "required": false,
-        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. Vite dev server (dashboard UI on port 5173) with the same auto-recovery watchdog contract as the WS server (5s health loop, 2-failure threshold, up to 10 restarts, budget reset after 5min stable). Idempotent: adopts an already-serving Vite instead of spawning a duplicate"
+        "description": "DISABLED: Dashboard is on-demand only. Start manually from command-center. Vite dev server (dashboard UI on port 5173) with the same auto-recovery watchdog contract as the WS server (5s health loop, 2-failure threshold, up to 10 restarts, budget reset after 5min stable). Idempotent: adopts an already-serving Vite instead of spawning a duplicate. `daemon: true` declarado aunque hoy esté deshabilitado: el watchdog con --watch no termina, y sin la marca el runner lo mataría al timeout"
       },
       {
         "id": "dashboard-operational-metrics",
@@ -468,15 +494,6 @@
         "description": "Audita skills que exceden limites de tokens/lineas y recomienda split a references/ (TS)"
       },
       {
-        "id": "post-autostart-consistency-check",
-        "enabled": true,
-        "lazy": true,
-        "script": "src/orchestration/post-autostart-summary.ts",
-        "args": "",
-        "required": false,
-        "description": "Refresca startup-summary.json como ultimo paso para asegurar datos actuales post-pipeline (lazy)"
-      },
-      {
         "id": "document-analysis-init",
         "enabled": true,
         "lazy": true,
@@ -513,9 +530,9 @@
         "id": "opencode-drift-heal",
         "enabled": true,
         "script": "src/tools/opencode-session-scope.ts",
-        "args": "--heal",
+        "args": "--detect",
         "required": false,
-        "description": "NORM-OPENCODE-001: si OpenCode dejó la flota en deriva (modelo sin capability tools), restaura el canon desde HEAD con snapshot forense (TS)",
+        "description": "NORM-OPENCODE-001: detecta deriva de la flota (modelo sin capability tools) y falla visible; el heal solo corre al cerrar opencode:session, nunca en autostart (TS)",
         "phase": 1,
         "skipOnFailure": true,
         "timeout": 30000
@@ -552,7 +569,7 @@
         "timeout": 120000,
         "retries": 1,
         "retryDelay": 1500,
-        "description": "Sincroniza agentes, skills críticas y hooks entre OpenCode, Codex, ZCode, MiniMax, Copilot y Antigravity. Repara drift al iniciar sesión sin bloquear el arranque."
+        "description": "Sincroniza agentes, skills críticas y hooks entre OpenCode, Codex, ZCode, MiniMax, Copilot, Antigravity, Kimi y Qoder (destinos en src/integrations/zcode-sync.ts SKILL_TARGETS). Repara drift al iniciar sesión sin bloquear el arranque."
       },
       {
         "id": "tool-interoperability-audit",
@@ -573,8 +590,8 @@
         "args": "--observe",
         "required": false,
         "skipOnFailure": true,
-        "timeout": 30000,
-        "description": "Diagnóstico local acotado por capacidad: versión OpenCode, evidencia previa vigente, MCP lectura real, binding host y cobertura inventariada. Publica latest.json y evento Nexus sin inferencias LLM automáticas; collector exit 0 no significa calificación completa."
+        "timeout": 120000,
+        "description": "Diagnóstico local acotado por capacidad: versión OpenCode, evidencia previa vigente, MCP lectura real, binding host y cobertura inventariada. Publica latest.json y evento Nexus sin inferencias LLM automáticas; collector exit 0 no significa calificación completa. Timeout 120s: medido 18s en reposo pero >30s con los 89 steps de la sesion compitiendo (el 30s lo cortaba siempre: medido timeout a los 30,1s el 2026-11-18)."
       },
       {
         "id": "maintenance-watchtower",
@@ -635,9 +652,9 @@
         "enabled": true,
         "lazy": true,
         "script": "src/tokens/token-budget-guard.ts",
-        "args": "-Task session-metrics -Risk low -Record -ActualPromptTokens 0 -ActualCompletionTokens 0",
+        "args": "-Task session-metrics -Risk low",
         "required": false,
-        "description": "Initialize token budget tracking for session metrics (consolidated from cloud-connectors)"
+        "description": "Chequeo lazy de presupuesto para session metrics contra Nexus (sin filas estimadas)"
       },
       {
         "id": "tracing-init",
@@ -685,15 +702,6 @@
         "description": "Auto-learn norms from session patterns and update LEARNED-NORMS.md (meta-cognitive learning)"
       },
       {
-        "id": "post-session-learning",
-        "enabled": true,
-        "lazy": true,
-        "script": "src/orchestration/post-autostart-summary.ts",
-        "args": "-FinalReportMode",
-        "required": false,
-        "description": "Generate final session report + auto-learned patterns for next session"
-      },
-      {
         "id": "cost-tracker-init",
         "enabled": true,
         "script": "src/monitor/cost-tracker.ts",
@@ -735,7 +743,28 @@
         "script": "src/knowledge/engram-auto-compact.ts",
         "args": "--quiet",
         "required": false,
-        "description": "Auto-compact old engram observations (>90 days) (TS)"
+        "description": "Diagnóstico Engram read-only (doctor + conflictos pendientes + títulos duplicados), sin self-log ni mutaciones (TS)"
+      },
+      {
+        "id": "engram-wal-checkpoint",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tools/engram-maintenance.ts",
+        "args": "--checkpoint",
+        "required": false,
+        "skipOnFailure": true,
+        "description": "Checkpoint del WAL de Engram cuando supera 20% del DB (un lector long-lived impide el autocheckpoint de SQLite; medido 61.6 MB de WAL sobre 92 MB)"
+      },
+      {
+        "id": "engram-judge-semantic",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/engram-judge-semantic.ts",
+        "args": "--apply --limit 30 --concurrency 2",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 900000,
+        "description": "Cierra relaciones `pending` de Engram con un JUICIO SEMANTICO de un modelo LOCAL (ollama qwen3-14b-32k), sin CLI de agente externo ni cuota remota. 2026-11-18: la via oficial (engram conflicts scan --semantic) exige ENGRAM_AGENT_CLI y con la cuota remota agotada no era una via. Lote acotado por sesion (30 pares) para que la deuda se drene sola; cada corrida deja recibo en .session/snapshots/engram-judge-semantic/."
       },
       {
         "id": "engram-auto-update",
@@ -828,15 +857,6 @@
         "description": "Check staged review session status â€” supports staged index review (Gentle AI alignment)"
       },
       {
-        "id": "mcp-gateway-init",
-        "enabled": true,
-        "lazy": true,
-        "script": "src/mcp-native/mcp-gateway.ts",
-        "args": "-Action start -Quiet",
-        "required": false,
-        "description": "Start MCP Native gateway at session start (v6.4)"
-      },
-      {
         "id": "db-health-check",
         "enabled": true,
         "lazy": true,
@@ -877,11 +897,12 @@
         "id": "self-reflection",
         "enabled": true,
         "lazy": true,
+        "allowExitCodes": [1],
         "script": "src/resilience/self-reflection-loop.ts",
         "args": "--quiet",
         "required": false,
         "phase": 99,
-        "description": "Self-reflection loop â€” analyze patterns, generate insights, suggest improvements (meta-cognitive)"
+        "description": "Self-reflection loop â€” analyze patterns, generate insights, suggest improvements (meta-cognitive). allowExitCodes [1]: el codigo 1 significa 'hay patrones criticos' (el step lo pide al autoheal del watchtower), no 'el step fallo'."
       },
       {
         "id": "knowledge-synthesizer",
@@ -892,16 +913,6 @@
         "required": false,
         "phase": 99,
         "description": "Knowledge Synthesizer â€” cross-session knowledge distillation, concept mapping, trend and gap analysis"
-      },
-      {
-        "id": "adaptive-router",
-        "enabled": true,
-        "lazy": true,
-        "script": "src/orchestration/adaptive-router.ts",
-        "args": "--build --quiet",
-        "required": false,
-        "phase": 99,
-        "description": "Adaptive Router DinÃ¡mico â€” dynamic routing from historical performance data"
       },
       {
         "id": "adaptive-steps",
@@ -1017,10 +1028,11 @@
         "id": "rdd-initializer",
         "enabled": true,
         "lazy": true,
+        "allowExitCodes": [1],
         "script": "src/rdd/rdd-core.ts",
         "args": "status --json",
         "required": false,
-        "description": "RDD Initializer â€” Receipt-Driven Development system initialization (native, no gentle-ai CLI dependency)"
+        "description": "RDD Initializer â€” Receipt-Driven Development system initialization (native, no gentle-ai CLI dependency). allowExitCodes [1]: `status` sale con 1 cuando hay un workflow en estado 'failed' (hoy uno del 2026-10-30); el step REPORTA el estado, no falla."
       },
       {
         "id": "rdd-risk-classifier-verify",
@@ -1159,21 +1171,23 @@
         "id": "token-ingest-init",
         "enabled": true,
         "lazy": true,
+        "daemon": true,
         "script": "src/tokens/token-ingest.ts",
         "args": "--watch 30",
         "required": false,
         "phase": 90,
-        "description": "Token Ingest AGNOSTICO - lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/codex/zcode/minimax) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesion hasta el cierre."
+        "description": "Token Ingest AGNOSTICO - lee los tokens reales de las sesiones persistidas por la herramienta en uso (opencode/claude/codex/zcode/minimax) y los consolida en Nexus token_usage + session files + report observability. Corre cada 30s desde el inicio de sesion hasta el cierre. `daemon: true`: es un watcher que NO termina; antes el runner lo esperaba, lo mataba al timeout y dejaba el pidfile apuntando a un PID muerto (medido 2026-11-18: el daemon moria al minuto de arrancar)."
       },
       {
         "id": "metrics-writer-init",
         "enabled": true,
         "lazy": true,
+        "daemon": true,
         "script": "src/ops/metrics-writer-daemon.ts",
         "args": "--watch 30",
         "required": false,
         "phase": 90,
-        "description": "MetricsWriter daemon - snapshots de metricas a Nexus metric_snapshots + sync de sesiones (context-log) cada 30s SIN depender del dashboard (antes solo corria si websocket-server/vite estaban vivos). Usa el MetricsWriter canonico de src/database/nexus."
+        "description": "MetricsWriter daemon - snapshots de metricas a Nexus metric_snapshots + sync de sesiones (context-log) cada 30s SIN depender del dashboard (antes solo corria si websocket-server/vite estaban vivos). Usa el MetricsWriter canonico de src/database/nexus. `daemon: true`: watcher que no termina (mismo motivo que token-ingest-init)."
       },
       {
         "id": "orphan-native-sessions-check",
@@ -1246,6 +1260,66 @@
         "script": "src/ops/auto-update-check.ts",
         "required": false,
         "description": "Detecta actualizaciones en los 3 repos y notifica al inicio de sesion: (1) commits nuevos en origin/develop (repo privado emmanuel), (2) nuevo tag/release en public (emmanuel-public, .exe del stack), (3) commits nuevos en gentlevanguard/gentlevanguard.github.io (landing oficial URL de marca). State persistente en .runtime/auto-update-state.json — idempotente, no spamea. Best-effort: silencioso si esta offline."
+      },
+      {
+        "id": "worktree-hygiene",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/worktree-hygiene.ts",
+        "args": "",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 60000,
+        "description": "BL-2026-11-16 (patron recurrente Copilot): clasifica worktrees no-primarios (homologado/candidato-pendiente/stale) y recuerda la norma — el candidato se homologa desde el worktree principal, nunca se publica desde el worktree de origen. Limpieza solo con --clean y worktree homologado."
+      },
+      {
+        "id": "apps-health-report",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/apps-health-report.ts",
+        "args": "",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 20000,
+        "description": "BL-2026-11-16 (caso censor fetch_failed): salud PASIVA de las apps registradas en apps.registry.json (TCP probe de puertos + pidfile stale/zombie). Informar, NUNCA revivir — keepalive fail-safe por decision owner 2026-09-26. Evidencia en .runtime/apps-health-last.json; on-demand: npm run apps:health."
+      },
+      {
+        "id": "pidfile-reaper-report",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/pidfile-reaper.ts",
+        "args": "",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 10000,
+        "description": "2026-11-18: reporta .runtime/*.pid cuyo proceso ya no existe (stale/corrupt). PASIVO: no elimina nada en autostart; la limpieza es explicita con npm run apps:pidfiles:apply (live nunca se toca)."
+      },
+      {
+        "id": "upstream-drift-triage",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/upstream-drift-triage.ts",
+        "args": "",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 20000,
+        "description": "BL-2026-11-16 (gap de follow-through): si upstream-watch detecto drifts posteriores al ultimo triage, lo recuerda al abrir sesion. Cerrar el ciclo: triage -> --mark. No bloquea."
+      },
+      {
+        "id": "token-safety-audit",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/tokens/token-safety.ts",
+        "args": "--autostart",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 30000,
+        "description": "Clase D de la normativa de verificaciones: audita config LOCAL reproducible de las 5 herramientas con palancas (Codex, Kimi CLI — INFO si no existe su config, MiniMax, ZCode, OpenCode) y reporta INFO honesto de las server-managed (Qoder, Copilot, Antigravity, Kimi desktop). Ademas mide EFECTIVIDAD: si la ultima sesion real de cada herramienta tiene evidencia local de workspace (session_meta.cwd incl. archived_sessions/.jsonl.zst, session.directory, local_runtime_sessions, tasks.workspace_path). Emite lineas [TOKEN-SAFETY] solo para WARN config-local y not-applied warn; exit 0 normal, 1 solo con --strict y WARN config-local, 2 si no puede determinar. Corre tambien en el composite pre-push. Gate registrado: token-safety-audit (runtime)."
       }
     ],
     "onStepFailure": "continue",
@@ -1260,14 +1334,6 @@
   "sessionDirectory": ".session",
   "sessionFilePattern": "session-{date}-{number:D2}.json",
   "sessionExpiryHours": 8,
-  "auth": {
-    "integrateWithAutostart": false,
-    "requireAuthForRestrictedOps": true,
-    "sessionAuthFile": ".workspace/config/session-auth.json",
-    "ownerAuthFile": "config/owner-auth.json",
-    "lockoutFile": "config/owner-auth.json.lock",
-    "encryptedAuthFile": "config/owner-auth.json.enc"
-  },
   "orphanSessionCleanup": {
     "enabled": true,
     "maxAgeHours": 24,
@@ -1277,7 +1343,7 @@
   "retention": {
     "enabled": true,
     "maxSessionFiles": 10,
-    "maxCheckpointsPerSession": 5,
+    "maxCheckpointsPerSession": 3,
     "maxBackups": 14,
     "maxCloseReports": 20,
     "sessionAgeThresholdDays": 30,

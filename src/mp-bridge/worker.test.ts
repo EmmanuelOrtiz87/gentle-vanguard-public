@@ -2,7 +2,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import worker from './worker';
+import worker from './worker.js';
 
 const env = {
   MP_ACCESS_TOKEN: 'TEST-123',

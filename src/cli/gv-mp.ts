@@ -15,6 +15,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { runNpxTsxSync, runSync } from '../core/run-command.js';
 import { resolve } from 'node:path';
 import { generateSecret } from '../webhooks/standard-webhooks.js';
 
@@ -51,12 +52,9 @@ function detectWranglerState(_verbose = false): WranglerState {
   let subdomain: string | null = null;
   let workerDeployed = false;
   let workerUrl: string | null = null;
-  const rawWhoami = (spawnSync('npx', ['wrangler', 'whoami'], {
-    cwd: ROOT, encoding: 'utf8', windowsHide: true,
-  }).stdout || '').trim()
-    + '\n' + (spawnSync('npx', ['wrangler', 'whoami'], {
-      cwd: ROOT, encoding: 'utf8', windowsHide: true,
-    }).stderr || '').trim();
+  const whoami = runSync('npx', ['wrangler', 'whoami'], { cwd: ROOT, encoding: 'utf8' });
+  const rawWhoami = (whoami.stdout || '').trim()
+    + '\n' + (whoami.stderr || '').trim();
 
   // Buscar subdomain en cualquier formato conocido
   const m = rawWhoami.match(/subdomain\s*[:=]\s*["']?([a-z0-9_-]+)/i);
@@ -64,19 +62,18 @@ function detectWranglerState(_verbose = false): WranglerState {
 
   // Fallback: comando `wrangler subdomain get`
   if (!subdomain) {
-    const subOut = (spawnSync('npx', ['wrangler', 'subdomain', 'get'], {
-      cwd: ROOT, encoding: 'utf8', windowsHide: true,
+    const subOut = (runSync('npx', ['wrangler', 'subdomain', 'get'], {
+      cwd: ROOT, encoding: 'utf8',
     }).stdout || '').trim();
     const sm = subOut.match(/["']?([a-z0-9_-]+)["']?\s*$/);
     if (sm) subdomain = sm[1];
   }
 
   // Detectar deploy via `wrangler deployments list`
-  const listOut = (spawnSync('npx', ['wrangler', 'deployments', 'list', WORKER_NAME], {
-    cwd: ROOT, encoding: 'utf8', windowsHide: true,
-  }).stdout || '') + (spawnSync('npx', ['wrangler', 'deployments', 'list', WORKER_NAME], {
-    cwd: ROOT, encoding: 'utf8', windowsHide: true,
-  }).stderr || '');
+  const deployments = runSync('npx', ['wrangler', 'deployments', 'list', WORKER_NAME], {
+    cwd: ROOT, encoding: 'utf8',
+  });
+  const listOut = (deployments.stdout || '') + (deployments.stderr || '');
   const hasDeployRecord = /deployed|active|created|2026|2025/i.test(listOut);
   workerDeployed = hasDeployRecord && !/error/i.test(listOut);
   if (workerDeployed && subdomain) {
@@ -247,8 +244,8 @@ async function cmdRun(): Promise<void> {
   process.stdout.write(c(C.dim, '  5. Confirmación final (y/N)\n\n'));
   process.stdout.write(c(C.yellow, '↑ Pegá Access Token y Public Key cuando los pida (entrada oculta = normal).\n\n'));
   // Spawn interactivo (no `inherit` porque queremos que el usuario pueda ver nuestro mensaje)
-  const proc = spawnSync('npx', ['tsx', 'src/mp-bridge/activate.ts'], {
-    cwd: ROOT, stdio: 'inherit', windowsHide: true,
+  const proc = runNpxTsxSync('src/mp-bridge/activate.ts', [], {
+    cwd: ROOT, stdio: 'inherit',
   });
   process.exit(proc.status ?? 1);
 }

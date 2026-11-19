@@ -12,7 +12,9 @@
  * cost-per-session metrics.
  *
  * Heuristics (deterministic, no LLM):
- *   candidate : status='active' AND updated_at older than --stale-hours (24h).
+ *   candidate : status='active' AND updated_at older than --stale-hours.
+ *               El umbral por defecto sale de `sessionExpiryHours` del config
+ *               de autostart (8 h); `--stale-hours` lo overridea.
  *   hard floor: sessions updated in the last 2h are NEVER touched, even if a
  *               smaller --stale-hours is passed (protects live sessions).
  *   idle      : has traces or token activity within 7 days (recent work — the
@@ -36,6 +38,10 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import Database from 'better-sqlite3';
+import { resolveSessionExpiryHours } from './session-expiry.js';
+
+/** Reexportado: el sweeper es el consumidor de la politica de expiracion. */
+export { resolveSessionExpiryHours };
 
 /* ── Options ── */
 
@@ -75,6 +81,10 @@ export interface SweepSummary {
   syncedContextLogs?: number;
 }
 
+/**
+ * Ultimo fallback si el config no declara `sessionExpiryHours`.
+ * El valor por defecto REAL lo toma `resolveSessionExpiryHours()` (config).
+ */
 export const DEFAULT_STALE_HOURS = 24;
 export const DEFAULT_PROTECT_HOURS = 2;
 export const DEFAULT_IDLE_WINDOW_DAYS = 7;
@@ -299,12 +309,16 @@ export function sweepStaleSessions(
 
 async function main(): Promise<number> {
   const parsed = parseSweepArgs(process.argv);
+  const repoRoot = resolve(import.meta.dirname ?? '.', '..', '..');
+  // La politica de expiracion vive en el config (sessionExpiryHours). El flag
+  // explicito manda por encima; la constante es el ultimo fallback.
+  const staleHours = resolveSessionExpiryHours(repoRoot, parsed.staleHours);
   if (parsed.help) {
     console.log(`Usage: stale-session-sweeper [--apply] [--dry-run] [--stale-hours N] [--db path]
 
   --dry-run            report only (default)
   --apply              write terminal statuses
-  --stale-hours N      candidate threshold, default ${DEFAULT_STALE_HOURS}
+  --stale-hours N      candidate threshold, default ${staleHours} (config sessionExpiryHours)
   --protect-hours N    never touch sessions newer than this, default ${DEFAULT_PROTECT_HOURS} (min 2)
   --idle-window-days N recent-activity window for 'idle', default ${DEFAULT_IDLE_WINDOW_DAYS}
 `);
@@ -312,12 +326,12 @@ async function main(): Promise<number> {
   }
 
   const opts: SweepOptions = {
-    staleHours: parsed.staleHours ?? DEFAULT_STALE_HOURS,
+    staleHours,
     protectHours: parsed.protectHours ?? DEFAULT_PROTECT_HOURS,
     idleWindowDays: parsed.idleWindowDays ?? DEFAULT_IDLE_WINDOW_DAYS,
     apply: parsed.apply ?? false,
     syncContextLog: true,
-    repoRoot: resolve(import.meta.dirname ?? '.', '..', '..'),
+    repoRoot,
     dbPath: resolveSweepDbPath(parsed.dbPath),
   };
 

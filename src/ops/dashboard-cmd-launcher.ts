@@ -14,7 +14,7 @@ import { spawn } from 'child_process';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import * as http from 'http';
-import { getFreePort, readDashboardPorts, saveDashboardPorts } from './dashboard-common';
+import { getFreePort, readDashboardPorts, saveDashboardPorts } from './dashboard-common.js';
 
 const ROOT = resolve(process.cwd());
 const RUNTIME_DIR = join(ROOT, '.runtime');

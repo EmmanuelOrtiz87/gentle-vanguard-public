@@ -15,7 +15,7 @@
 import { existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { runSync } from '../core/run-command.js';
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
+import { getEffectiveProcessTimeout } from '../core/timeout-config.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 
 const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));

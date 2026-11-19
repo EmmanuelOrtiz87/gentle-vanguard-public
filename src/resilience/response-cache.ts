@@ -17,14 +17,14 @@
  */
 
 import { pathToFileURL } from 'url';
-import { runCLI } from './response-cache/cli';
+import { runCLI } from './response-cache/cli.js';
 
-export * from './response-cache/semantic';
-export * from './response-cache/sqlite';
-export * from './response-cache/telemetry';
-export * from './response-cache/cache';
-export * from './response-cache/cached';
-export * from './response-cache/cli';
+export * from './response-cache/semantic.js';
+export * from './response-cache/sqlite.js';
+export * from './response-cache/telemetry.js';
+export * from './response-cache/cache.js';
+export * from './response-cache/cached.js';
+export * from './response-cache/cli.js';
 
 // Run CLI if called directly
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

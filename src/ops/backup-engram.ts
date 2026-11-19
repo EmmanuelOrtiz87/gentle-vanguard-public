@@ -1,25 +1,37 @@
 #!/usr/bin/env node
 /**
- * Backup, restore, verify y status de memoria persistente Engram.
- * TS migration of scripts/utilities/ops/BACKUP-RESTORE/backup-engram.ps1
+ * Backup, verify y status de la memoria persistente Engram.
+ *
+ * Contexto (auditoría 2026-11-18, P0-1): el backup histórico copiaba `.engram/`
+ * — el export de chunks, ~6 MB — y nunca tocaba la base real (`~/.engram/
+ * engram.db`, ~150 MB + WAL). Los 125 snapshots diarios en `.backups/engram/`
+ * no contenían una sola observación: se reportaba "Backup complete" sin haber
+ * respaldado la memoria. Este script hace un backup online del SQLite
+ * (WAL-safe, con el daemon escribiendo), verifica `integrity_check` sobre la
+ * copia y guarda el export de chunks como artefacto secundario.
+ *
+ * Modos: backup (default), verify, status.
  */
-
+import Database from 'better-sqlite3';
+import { createHash } from 'node:crypto';
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
-  copyFileSync,
-  writeFileSync,
+  renameSync,
+  rmSync,
   statSync,
-} from 'fs';
-import { join, resolve } from 'path';
-import { runNpxTsxSync } from '../core/run-command.js';
-import { createHash } from 'crypto';
-import { pathToFileURL } from 'url';
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
+  writeFileSync,
+} from 'node:fs';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { resolveEngramDbPath } from '../knowledge/engram-paths.js';
+import { runSync } from '../core/run-command.js';
 
 const ROOT = resolve(process.cwd());
+const FORMAT = 'sqlite-online-v1';
 
 function findRepoRoot(dir: string): string {
   let current = resolve(dir);
@@ -36,10 +48,13 @@ const root =
   process.env.GENTLE_VANGUARD_BASE_DIR && existsSync(process.env.GENTLE_VANGUARD_BASE_DIR)
     ? process.env.GENTLE_VANGUARD_BASE_DIR
     : findRepoRoot(ROOT);
-const engramDir = join(root, '.engram');
+const engramExportDir = join(root, '.engram');
 const backupLogFile = join(root, 'logs', 'engram-backup.log');
+const markerFile = join(root, '.runtime', 'engram-last-backup.json');
 
-function log(msg: string, level: string, quiet: boolean): void {
+let quiet = false;
+
+function log(msg: string, level: string): void {
   if (quiet && level !== 'ERR') return;
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   try {
@@ -59,21 +74,23 @@ function log(msg: string, level: string, quiet: boolean): void {
   console.log(`${color[level] || ''}[BACKUP::${level}] ${msg}${color.RESET || ''}`);
 }
 
-function sha256File(filePath: string): string {
-  const content = readFileSync(filePath);
-  return createHash('sha256').update(content).digest('hex');
+function localDateStr(d = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
 }
 
-function newChecksumFile(dir: string): number {
+function sha256File(filePath: string): string {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
+}
+
+function writeChecksums(dir: string): number {
   const lines: string[] = [];
   function walk(current: string): void {
     for (const e of readdirSync(current, { withFileTypes: true })) {
       const full = join(current, e.name);
       if (e.isDirectory()) walk(full);
-      else if (e.isFile()) {
-        const hash = sha256File(full);
-        const rel = full.slice(dir.length + 1);
-        lines.push(`${hash} *${rel}`);
+      else if (e.isFile() && e.name !== 'checksums.sha256') {
+        lines.push(`${sha256File(full)} *${full.slice(dir.length + 1)}`);
       }
     }
   }
@@ -82,199 +99,311 @@ function newChecksumFile(dir: string): number {
   return lines.length;
 }
 
-function invokeBackup(
-  date: string,
-  outputDir: string,
-  integrityCheck: boolean,
-  quiet: boolean,
-): boolean {
-  log('Starting Engram backup...', 'INFO', quiet);
-  if (!existsSync(engramDir)) {
-    log(`Engram directory not found: ${engramDir}`, 'ERR', quiet);
+function readCounts(dbPath: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+  try {
+    counts.observations = (
+      db.prepare('SELECT count(*) c FROM observations WHERE deleted_at IS NULL').get() as {
+        c: number;
+      }
+    ).c;
+    counts.sessions = (db.prepare('SELECT count(*) c FROM sessions').get() as { c: number }).c;
+    for (const [key, sql] of [
+      ['relations', 'SELECT count(*) c FROM memory_relations'],
+      ['prompts', 'SELECT count(*) c FROM user_prompts'],
+    ] as const) {
+      try {
+        counts[key] = (db.prepare(sql).get() as { c: number }).c;
+      } catch {
+        /* tabla opcional según versión */
+      }
+    }
+  } finally {
+    db.close();
+  }
+  return counts;
+}
+
+function integrityCheck(dbPath: string): { ok: boolean; result: string } {
+  const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+  try {
+    const rows = db.prepare('PRAGMA integrity_check').all() as Array<Record<string, unknown>>;
+    const messages = rows.map((r) => String(Object.values(r)[0]));
+    return { ok: messages.length === 1 && messages[0] === 'ok', result: messages.join('; ') };
+  } finally {
+    db.close();
+  }
+}
+
+function copyTree(src: string, dest: string): { files: number; bytes: number } {
+  let files = 0;
+  let bytes = 0;
+  mkdirSync(dest, { recursive: true });
+  for (const e of readdirSync(src, { withFileTypes: true })) {
+    const s = join(src, e.name);
+    const d = join(dest, e.name);
+    if (e.isDirectory()) {
+      const sub = copyTree(s, d);
+      files += sub.files;
+      bytes += sub.bytes;
+    } else {
+      copyFileSync(s, d);
+      files++;
+      bytes += statSync(d).size;
+    }
+  }
+  return { files, bytes };
+}
+
+function writeMarker(data: Record<string, unknown>): void {
+  try {
+    mkdirSync(join(root, '.runtime'), { recursive: true });
+    writeFileSync(markerFile, JSON.stringify(data, null, 2), 'utf-8');
+  } catch {
+    /* marker is telemetry, not the backup */
+  }
+}
+
+async function backupDatabase(dbPath: string, dest: string): Promise<void> {
+  const tmp = `${dest}.tmp`;
+  if (existsSync(tmp)) rmSync(tmp, { force: true });
+  const source = new Database(dbPath, { readonly: true, fileMustExist: true });
+  try {
+    await source.backup(tmp);
+  } finally {
+    source.close();
+  }
+  if (existsSync(dest)) rmSync(dest, { force: true });
+  renameSync(tmp, dest);
+}
+
+async function invokeBackup(dateArg: string, outputDir: string): Promise<boolean> {
+  const dbPath = resolveEngramDbPath();
+  if (!existsSync(dbPath)) {
+    log(`Engram DB not found: ${dbPath} (ENGRAM_DATA_DIR/engram.db)`, 'ERR');
+    writeMarker({ timestamp: new Date().toISOString(), status: 'FAILED', reason: 'db-not-found' });
     return false;
   }
+  const sizeMB = Math.round(statSync(dbPath).size / 1024 / 1024);
+  log(`Starting online backup of ${dbPath} (${sizeMB}MB, WAL included)...`, 'INFO');
 
-  const integrityScriptTs = join(root, 'src', 'knowledge', 'engram-integrity-check.ts');
-  const integrityScript = integrityScriptTs;
-
-  if (integrityCheck && existsSync(integrityScript)) {
-    const icChecksumPath = join(root, '.engram', 'checksums.sha256');
-    if (!existsSync(icChecksumPath)) {
-      log('Generating initial SHA256 checksums...', 'INFO', quiet);
-      try {
-        runNpxTsxSync(integrityScript, ['-Mode', 'checksums', '-Quiet'], {
-          cwd: root,
-          timeout: getEffectiveProcessTimeout('long_running'),
-        });
-      } catch {
-        /* ignore */
-      }
-    }
-    log('Pre-backup integrity check...', 'INFO', quiet);
-    try {
-      runNpxTsxSync(integrityScript, ['-Mode', 'check', '-Quiet'], {
-        cwd: root,
-        timeout: getEffectiveProcessTimeout('long_running'),
-      });
-      log('Pre-backup integrity PASSED', 'OK', quiet);
-    } catch {
-      log(
-        `Integrity check FAILED — run repair first: ${integrityScript} -Mode repair`,
-        'ERR',
-        quiet,
-      );
-      return false;
-    }
-  }
-
-  const dateStr = date || new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const dateStr = dateArg || localDateStr();
   const backupDir = join(outputDir, dateStr);
   mkdirSync(backupDir, { recursive: true });
+  const destDb = join(backupDir, 'engram.db');
 
-  // Engram v1.19+ uses chunks format (jsonl.gz) under .engram/
-  let totalSizeKB = 0;
-  let fileCount = 0;
-  let chunksCount = 0;
+  const started = Date.now();
+  await backupDatabase(dbPath, destDb);
+  const dbBytes = statSync(destDb).size;
+  log(`SQLite online backup written (${Math.round(dbBytes / 1024 / 1024)}MB)`, 'OK');
 
-  function countAndSize(d: string): void {
-    for (const e of readdirSync(d, { withFileTypes: true })) {
-      const full = join(d, e.name);
-      if (e.isDirectory()) {
-        countAndSize(full);
-        continue;
-      }
-      fileCount++;
-      totalSizeKB += Math.round((statSync(full).size / 1024) * 10) / 10;
-      if (e.name.endsWith('.jsonl.gz')) chunksCount++;
-    }
+  const integrity = integrityCheck(destDb);
+  if (!integrity.ok) {
+    log(`Backup integrity_check FAILED: ${integrity.result}`, 'ERR');
+    writeMarker({
+      timestamp: new Date().toISOString(),
+      status: 'FAILED',
+      reason: 'integrity-check',
+      detail: integrity.result,
+      dateDir: dateStr,
+    });
+    return false;
   }
-  countAndSize(engramDir);
+  log('Backup integrity_check PASSED', 'OK');
 
-  // Copy all files recursively
-  function copyDir(src: string, dest: string): void {
-    mkdirSync(dest, { recursive: true });
-    for (const e of readdirSync(src, { withFileTypes: true })) {
-      const s = join(src, e.name);
-      const d = join(dest, e.name);
-      if (e.isDirectory()) copyDir(s, d);
-      else copyFileSync(s, d);
-    }
+  const counts = readCounts(destDb);
+  const sha256 = sha256File(destDb);
+
+  let syncExport = { files: 0, bytes: 0 };
+  if (existsSync(engramExportDir)) {
+    syncExport = copyTree(engramExportDir, join(backupDir, 'sync-export'));
+    log(
+      `Sync export copied (${syncExport.files} files, ${Math.round(syncExport.bytes / 1024)}KB)`,
+      'OK',
+    );
   }
-  copyDir(engramDir, backupDir);
-
-  log(
-    `Engram data backed up (${fileCount} files, ${chunksCount} chunks, ${Math.round(totalSizeKB)}KB total)`,
-    'OK',
-    quiet,
-  );
-
-  const csCount = newChecksumFile(backupDir);
-  log(`SHA256 checksums generated (${csCount} files)`, 'OK', quiet);
 
   const manifest = {
+    format: FORMAT,
     date: dateStr,
-    totalFiles: fileCount,
-    totalSizeKB: Math.round(totalSizeKB),
-    chunksCount,
-    checksumFiles: csCount,
-    integrityCheckPassed: integrityCheck,
-    engramVersion: '1.19.0',
-    timestamp: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    source: dbPath,
+    dbBytes,
+    dbSha256: sha256,
+    integrity: 'ok',
+    counts,
+    syncExport,
+    engramVersion: readEngramVersion(),
+    durationMs: Date.now() - started,
   };
   writeFileSync(join(backupDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8');
+  const checksums = writeChecksums(backupDir);
 
+  writeMarker({
+    timestamp: new Date().toISOString(),
+    status: 'SUCCESS',
+    dateDir: dateStr,
+    dbBytes,
+    dbSha256: sha256,
+    counts,
+  });
   log(
-    `Backup complete: ${fileCount} files, ${chunksCount} chunks, ${Math.round(totalSizeKB)}KB total, ${csCount} checksums`,
+    `Backup complete: ${Math.round(dbBytes / 1024 / 1024)}MB DB, ${counts.observations ?? '?'} observaciones, ${checksums} checksums (${dateStr})`,
     'OK',
-    quiet,
   );
   return true;
 }
 
-function main(): void {
-  const args = process.argv.slice(2);
-  const mode = args.includes('--mode') ? args[args.indexOf('--mode') + 1] : 'backup';
-  const date = args.includes('--date') ? args[args.indexOf('--date') + 1] : '';
-  let outputDir = args.includes('--output-dir') ? args[args.indexOf('--output-dir') + 1] : '';
-  const integrityCheck = !args.includes('--no-integrity-check');
-  const quiet = args.includes('--quiet');
-
-  if (!outputDir) outputDir = join(root, '.backups', 'engram');
-
-  function countEngramFiles(dir: string): {
-    fileCount: number;
-    chunksCount: number;
-    totalSizeKB: number;
-  } {
-    let fileCount = 0,
-      chunksCount = 0,
-      totalSizeKB = 0;
-    function walk(d: string): void {
-      for (const e of readdirSync(d, { withFileTypes: true })) {
-        const full = join(d, e.name);
-        if (e.isDirectory()) {
-          walk(full);
-          continue;
-        }
-        fileCount++;
-        totalSizeKB += Math.round((statSync(full).size / 1024) * 10) / 10;
-        if (e.name.endsWith('.jsonl.gz')) chunksCount++;
-      }
-    }
-    if (existsSync(dir)) walk(dir);
-    return { fileCount, chunksCount, totalSizeKB };
-  }
-
-  switch (mode) {
-    case 'backup': {
-      process.exit(invokeBackup(date, outputDir, integrityCheck, quiet) ? 0 : 1);
-      break;
-    }
-    case 'status': {
-      const backupDirs = existsSync(outputDir)
-        ? readdirSync(outputDir, { withFileTypes: true })
-            .filter((d) => d.isDirectory())
-            .map((d) => d.name)
-            .sort()
-            .reverse()
-        : [];
-      const srcStats = countEngramFiles(engramDir);
-      if (quiet) {
-        const latest = backupDirs[0] || 'none';
-        const integrityOk =
-          latest !== 'none' ? existsSync(join(outputDir, latest, 'checksums.sha256')) : false;
-        console.log(
-          `Backups:${backupDirs.length} Files:${srcStats.fileCount} Chunks:${srcStats.chunksCount} Integrity:${integrityOk}`,
-        );
-      } else {
-        console.log(`\n=== Engram Backup Status ===`);
-        console.log(
-          `Source: ${engramDir} (${srcStats.fileCount} files, ${srcStats.chunksCount} chunks, ${Math.round(srcStats.totalSizeKB)}KB)`,
-        );
-        console.log(`Backups found: ${backupDirs.length}`);
-        for (const d of backupDirs.slice(0, 10)) {
-          const mPath = join(outputDir, d, 'manifest.json');
-          if (existsSync(mPath)) {
-            try {
-              const m = JSON.parse(readFileSync(mPath, 'utf-8'));
-              console.log(
-                `  ${d}: ${m.totalSizeKB || '?'}KB, ${m.totalFiles || 0} files, ${m.chunksCount || 0} chunks`,
-              );
-            } catch {
-              console.log(`  ${d}: manifest parse error`);
-            }
-          } else console.log(`  ${d}: no manifest`);
-        }
-      }
-      process.exit(0);
-      break;
-    }
-    default:
-      console.error(`Unknown mode: ${mode}`);
-      process.exit(1);
+function readEngramVersion(): string {
+  try {
+    const r = runSync('engram', ['--version'], { timeout: 15_000, stdio: 'pipe' });
+    return (r.stdout || '').trim().replace(/^engram\s+v?/, '') || 'unknown';
+  } catch {
+    return 'unknown';
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main();
+function latestBackups(outputDir: string): string[] {
+  if (!existsSync(outputDir)) return [];
+  return readdirSync(outputDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && /^\d{8}$/.test(d.name))
+    .map((d) => d.name)
+    .sort()
+    .reverse();
+}
+
+function verifyLatest(outputDir: string, dirArg: string): boolean {
+  const dir = dirArg || latestBackups(outputDir)[0];
+  if (!dir) {
+    log('No dated backup to verify', 'ERR');
+    return false;
+  }
+  const backupDir = join(outputDir, dir);
+  const dbPath = join(backupDir, 'engram.db');
+  const manifestPath = join(backupDir, 'manifest.json');
+  if (!existsSync(dbPath) || !existsSync(manifestPath)) {
+    log(`${dir}: missing engram.db or manifest.json`, 'ERR');
+    return false;
+  }
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
+    dbSha256?: string;
+    counts?: Record<string, number>;
+  };
+  const integrity = integrityCheck(dbPath);
+  if (!integrity.ok) {
+    log(`${dir}: integrity_check FAILED (${integrity.result})`, 'ERR');
+    return false;
+  }
+  const sha256 = sha256File(dbPath);
+  if (manifest.dbSha256 && manifest.dbSha256 !== sha256) {
+    log(
+      `${dir}: sha256 mismatch (manifest ${manifest.dbSha256.slice(0, 12)}…, file ${sha256.slice(0, 12)}…)`,
+      'ERR',
+    );
+    return false;
+  }
+  log(
+    `${dir}: OK (integrity ok, sha256 match, ${manifest.counts?.observations ?? '?'} observaciones)`,
+    'OK',
+  );
+  return true;
+}
+
+function pruneBackups(outputDir: string, keep: number): void {
+  const dirs = latestBackups(outputDir);
+  for (const dir of dirs.slice(keep)) {
+    const manifestPath = join(outputDir, dir, 'manifest.json');
+    if (!existsSync(manifestPath)) continue;
+    try {
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as { format?: string };
+      if (manifest.format !== FORMAT) continue;
+      rmSync(join(outputDir, dir), { recursive: true, force: true });
+      log(`Pruned old backup ${dir}`, 'INFO');
+    } catch {
+      /* unreadable manifest: keep the directory */
+    }
+  }
+}
+
+function invokeStatus(outputDir: string): void {
+  const dbPath = resolveEngramDbPath();
+  const dbOk = existsSync(dbPath);
+  const dirs = latestBackups(outputDir);
+  const latest = dirs[0];
+  const legacy = existsSync(outputDir)
+    ? readdirSync(outputDir, { withFileTypes: true }).filter((d) => {
+        if (!d.isDirectory() || /^\d{8}$/.test(d.name)) return false;
+        return !existsSync(join(outputDir, d.name, 'engram.db'));
+      }).length
+    : 0;
+
+  console.log('\n=== Engram Backup Status ===');
+  console.log(
+    `Source: ${dbPath} (${dbOk ? `${Math.round(statSync(dbPath).size / 1024 / 1024)}MB` : 'NOT FOUND'})`,
+  );
+  console.log(`Dated SQLite backups: ${dirs.length}${latest ? ` (latest ${latest})` : ''}`);
+  for (const dir of dirs.slice(0, 5)) {
+    const manifestPath = join(outputDir, dir, 'manifest.json');
+    if (!existsSync(manifestPath)) {
+      console.log(`  ${dir}: no manifest`);
+      continue;
+    }
+    try {
+      const m = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
+        dbBytes?: number;
+        counts?: Record<string, number>;
+        createdAt?: string;
+        format?: string;
+      };
+      if (m.format !== FORMAT) {
+        console.log(`  ${dir}: legacy manifest (no DB snapshot)`);
+        continue;
+      }
+      const ageDays = Math.floor((Date.now() - Date.parse(m.createdAt ?? '')) / 86_400_000);
+      console.log(
+        `  ${dir}: ${Math.round((m.dbBytes ?? 0) / 1024 / 1024)}MB, ${m.counts?.observations ?? '?'} observaciones, hace ${ageDays}d`,
+      );
+    } catch {
+      console.log(`  ${dir}: manifest parse error`);
+    }
+  }
+  if (legacy > 0) {
+    console.log(
+      `Legacy chunk-only backups (sin DB, no verificables): ${legacy} — candidatos a limpieza manual`,
+    );
+  }
+}
+
+async function main(): Promise<number> {
+  const args = process.argv.slice(2);
+  const flag = (name: string, fallback = '') => {
+    const i = args.indexOf(name);
+    return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : fallback;
+  };
+  const mode = flag('--mode', 'backup');
+  quiet = args.includes('--quiet');
+  const outputDir = resolve(flag('--output-dir', join(root, '.backups', 'engram')));
+
+  switch (mode) {
+    case 'backup': {
+      const ok = await invokeBackup(flag('--date', ''), outputDir);
+      if (ok && args.includes('--prune')) {
+        pruneBackups(outputDir, Number(flag('--keep', '7')) || 7);
+      }
+      return ok ? 0 : 1;
+    }
+    case 'verify':
+      return verifyLatest(outputDir, flag('--dir', '')) ? 0 : 1;
+    case 'status':
+      invokeStatus(outputDir);
+      return 0;
+    default:
+      console.error(`Unknown mode: ${mode}`);
+      return 1;
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  void main().then((code) => process.exit(code));
 }

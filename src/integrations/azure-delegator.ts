@@ -18,8 +18,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
-import { spawnSync } from 'child_process';
+import { executeWithCircuit } from '../resilience/circuit-breaker-v2.js';
+import { runNpxTsxSync, runSync } from '../core/run-command.js';
 import * as https from 'https';
 
 const ROOT = resolve(process.cwd());
@@ -56,7 +56,7 @@ function writeLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' 
 export function startTracingSpan(name: string): void {
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (existsSync(tracer)) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'start', '-SpanName', name, '-Quiet'], {
+    runNpxTsxSync(tracer, ['-Action', 'start', '-SpanName', name, '-Quiet'], {
       cwd: ROOT,
       stdio: 'pipe',
       timeout: 10000,
@@ -69,26 +69,16 @@ export function stopTracingSpan(name: string, success: boolean, error?: string):
   const tracer = join(ROOT, 'src', 'tracing-instrument.ts');
   if (!existsSync(tracer)) return;
   if (success) {
-    spawnSync('npx', ['tsx', tracer, '-Action', 'end', '-SpanName', name, '-Quiet'], {
+    runNpxTsxSync(tracer, ['-Action', 'end', '-SpanName', name, '-Quiet'], {
       cwd: ROOT,
       stdio: 'pipe',
       timeout: 10000,
       windowsHide: true,
     });
   } else {
-    spawnSync(
-      'npx',
-      [
-        'tsx',
-        tracer,
-        '-Action',
-        'error',
-        '-SpanName',
-        name,
-        '-ErrorMessage',
-        error ?? '',
-        '-Quiet',
-      ],
+    runNpxTsxSync(
+      tracer,
+      ['-Action', 'error', '-SpanName', name, '-ErrorMessage', error ?? '', '-Quiet'],
       { cwd: ROOT, stdio: 'pipe', timeout: 10000, windowsHide: true },
     );
   }
@@ -99,11 +89,9 @@ export function logAudit(status: string, detail: string): void {
   const auditLegacy = join(ROOT, 'src', 'audit-pipeline.ts');
   const auditPath = existsSync(audit) ? audit : auditLegacy;
   if (existsSync(auditPath)) {
-    spawnSync(
-      'npx',
+    runNpxTsxSync(
+      auditPath,
       [
-        'tsx',
-        auditPath,
         '-Action',
         'log',
         '-EventType',
@@ -160,7 +148,7 @@ function getAuthorizationHeaders(): Record<string, string> {
     return { Authorization: `Bearer ${process.env.AZURE_ACCESS_TOKEN}` };
   }
   try {
-    const result = spawnSync(
+    const result = runSync(
       'az',
       [
         'account',

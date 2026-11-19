@@ -12,11 +12,20 @@ const script = resolve('src/tools/auto-norm-learner.ts');
 const lesson = 'Recurring lesson must preserve the latest observation timestamp';
 const id = 'inbox:recurring lesson must preserve the latest observation timestamp';
 
+// Fechas relativas: pruneStaleNorms descarta normas con occurrences<3 y lastSeen >30d.
+// Fechas fijas de octubre convertian el test en una bomba de tiempo al cruzar la ventana.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const BASE = new Date(Date.now() - 10 * DAY_MS);
+BASE.setUTCHours(0, 0, 0, 0);
+const BASE_ISO = BASE.toISOString();
+const NEWER_ISO = new Date(BASE.getTime() + DAY_MS + 10.5 * 60 * 60 * 1000).toISOString();
+const OLDER_ISO = new Date(BASE.getTime() - DAY_MS + 10.5 * 60 * 60 * 1000).toISOString();
+
 function norm(overrides: Partial<Norm> = {}): Norm {
   return {
     id, category: 'pattern', description: lesson, trigger: 'recurring lesson',
-    confidence: 55, occurrences: 1, firstSeen: '2026-10-20T00:00:00Z',
-    lastSeen: '2026-10-20T00:00:00Z', status: 'proposed', source: 'test', ...overrides,
+    confidence: 55, occurrences: 1, firstSeen: BASE_ISO,
+    lastSeen: BASE_ISO, status: 'proposed', source: 'test', ...overrides,
   };
 }
 
@@ -111,7 +120,7 @@ test('new session evidence updates optimization norms so they can reach promotio
   }
 });
 
-for (const created of ['2026-10-21T10:30:00Z', '2026-10-19T10:30:00Z', 'invalid']) {
+for (const created of [NEWER_ISO, OLDER_ISO, 'invalid']) {
   test(`inbox recurrence keeps the latest valid date (incoming ${created})`, (t) => {
     const dir = fixture(t, [norm()]);
     writeFileSync(join(dir, 'knowledge-base/00-inbox/engram-99999-pattern.md'),
@@ -119,7 +128,7 @@ for (const created of ['2026-10-21T10:30:00Z', '2026-10-19T10:30:00Z', 'invalid'
     const learned = run(dir).find((n) => n.id === id)!;
     assert.equal(learned.occurrences, 2);
     assert.equal(new Date(learned.lastSeen).getTime(), new Date(
-      created.startsWith('2026-10-21') ? created : '2026-10-20T00:00:00Z',
+      created === NEWER_ISO ? created : BASE_ISO,
     ).getTime());
     assert.equal(run(dir).find((n) => n.id === id)!.occurrences, 2, 'reread is idempotent');
   });

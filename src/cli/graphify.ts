@@ -1,33 +1,9 @@
 #!/usr/bin/env node
+import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, statSync } from 'fs';
 import { resolve } from 'path';
 import { runBuild } from './graphify-build.js';
-
-interface GraphNode {
-  id: string;
-  label?: string;
-  norm_label?: string;
-  source_file?: string;
-  source_location?: string;
-  file_type?: string;
-  community?: number;
-  [key: string]: unknown;
-}
-
-interface GraphEdge {
-  source: string;
-  target: string;
-  key?: string;
-  type?: string;
-  label?: string;
-  [key: string]: unknown;
-}
-
-interface Graph {
-  nodes: GraphNode[];
-  links?: GraphEdge[];
-  edges?: GraphEdge[];
-}
+import { computeDiffImpact, type Graph, type GraphEdge, type GraphNode } from './graphify-diff.js';
 
 const ROOT = resolve(process.cwd());
 const GRAPH_PATH = resolve(ROOT, 'graphify-out', 'graph.json');
@@ -38,6 +14,7 @@ function usage(): never {
   graphify query "<text>" [--max N] [--json]
   graphify explain "<node_id>" [--json]
   graphify affected "<node_id-or-file>" [--max N] [--json]
+  graphify diff [--staged] [paths...] [--max N] [--json]  # diff-impact pre-commit: símbolos tocados + callers impactados
   graphify path "<from_node>" "<to_node>" [--json]
   graphify update .                                 # rebuild (same as build)
   graphify status [--json]`);
@@ -52,6 +29,7 @@ function parseArgs() {
   const command = args[0] ?? 'status';
   let max = 20;
   let json = false;
+  let staged = false;
   const positional: string[] = [];
 
   for (let i = 1; i < args.length; i++) {
@@ -60,12 +38,14 @@ function parseArgs() {
       json = true;
     } else if (arg === '--max' || arg === '--max-results') {
       max = Number.parseInt(args[++i] ?? '', 10) || max;
+    } else if (arg === '--staged') {
+      staged = true;
     } else {
       positional.push(arg);
     }
   }
 
-  return { command, positional, max, json };
+  return { command, positional, max, json, staged };
 }
 
 function loadGraph(): Graph {
@@ -221,6 +201,80 @@ function pathBetween(from: string, to: string, json: boolean): void {
   print({ found: false, path: [] }, json);
 }
 
+function diffCommand(positional: string[], max: number, json: boolean, staged: boolean): void {
+  let files = positional;
+  if (files.length === 0) {
+    const gitArgs = staged ? ['diff', '--cached', '--name-only'] : ['diff', '--name-only', 'HEAD'];
+    const out = execFileSync('git', gitArgs, { encoding: 'utf-8', cwd: ROOT });
+    files = out
+      .split(/\r?\n/)
+      .map((file) => file.trim())
+      .filter(Boolean);
+  }
+  if (files.length === 0) {
+    print(
+      {
+        files: [],
+        impact: { callers: [], callees: [] },
+        notInGraph: [],
+        note: 'sin cambios respecto a HEAD',
+      },
+      json,
+    );
+    return;
+  }
+  const graph = loadGraph();
+  const report = computeDiffImpact(graph, files, max);
+  const stat = statSync(GRAPH_PATH);
+  const ageDays = Math.floor((Date.now() - stat.mtime.getTime()) / 86_400_000);
+  const stale = ageDays > 7;
+  const result = {
+    staged,
+    graphAgeDays: ageDays,
+    stale,
+    hint: stale
+      ? 'grafo stale (>7 dias): correr `npm run graphify -- build` antes de confiar en el impacto'
+      : undefined,
+    ...report,
+  };
+  if (json) {
+    print(result, true);
+    return;
+  }
+  console.log(
+    `graphify diff — ${files.length} archivo(s)${staged ? ' (staged)' : ''} · grafo ${ageDays}d${stale ? ' STALE' : ''}`,
+  );
+  for (const touched of report.files) {
+    console.log(`\n${touched.file}`);
+    console.log(
+      `  tocados: ${touched.matchedSymbols.length} símbolos · ${touched.fileNodes.length} file-nodes`,
+    );
+    for (const symbol of touched.matchedSymbols.slice(0, 10)) {
+      console.log(
+        `    · ${symbol.label ?? symbol.id}${symbol.source_location ? `:${symbol.source_location}` : ''}`,
+      );
+    }
+    if (touched.matchedSymbols.length > 10)
+      console.log(`    · … +${touched.matchedSymbols.length - 10} más`);
+  }
+  console.log(`\ncallers impactados (${report.impact.callers.length}):`);
+  for (const caller of report.impact.callers.slice(0, max)) {
+    console.log(
+      `  → ${caller.id} (${caller.calls} llamada(s)) ${caller.source_file ?? ''}:${caller.source_location ?? ''}`,
+    );
+  }
+  console.log(`callees del cambio (${report.impact.callees.length}):`);
+  for (const callee of report.impact.callees.slice(0, max)) {
+    console.log(`  ← ${callee.id} ${callee.source_file ?? ''}:${callee.source_location ?? ''}`);
+  }
+  if (report.notInGraph.length) {
+    console.log(
+      `\n⚠ ${report.notInGraph.length} archivo(s) fuera del grafo: ${report.notInGraph.join(', ')}`,
+    );
+    console.log('  (nuevos o grafo stale — `npm run graphify -- build` refresca)');
+  }
+}
+
 function update(target: string, json: boolean): void {
   if (target !== '.' && target !== ROOT) usage();
   // Native rebuild — the graph snapshot is no longer external state
@@ -234,7 +288,7 @@ function update(target: string, json: boolean): void {
 }
 
 function main(): void {
-  const { command, positional, max, json } = parseArgs();
+  const { command, positional, max, json, staged } = parseArgs();
   try {
     switch (command) {
       case 'status':
@@ -252,6 +306,9 @@ function main(): void {
         break;
       case 'affected':
         affected(positional[0] ?? '', max, json);
+        break;
+      case 'diff':
+        diffCommand(positional, max, json, staged);
         break;
       case 'path':
         pathBetween(positional[0] ?? '', positional[1] ?? '', json);

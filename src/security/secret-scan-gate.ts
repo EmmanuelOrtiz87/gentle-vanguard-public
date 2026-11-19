@@ -3,6 +3,7 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { scanText, type SecretMatch } from './secret-scanner.js';
+import { isIgnoredFile, loadConfig } from './secret-scanner/config.js';
 
 interface CliArgs {
   base?: string;
@@ -63,6 +64,30 @@ function formatFinding(file: string, match: SecretMatch): string {
   return `- ${file}:${match.line} ${match.pattern.name} [${match.pattern.risk}]`;
 }
 
+/**
+ * Escanea el contenido agregado del push aplicando las excepciones DECLARADAS
+ * en `config/secret-scanner.json` (`ignoreFiles`: placeholders canonicos de
+ * docs embebidos). Sin esto el gate bloquea por contenido que la politica ya
+ * aprobo — el espejo bloqueante no puede ser mas estricto que el canon.
+ */
+export function scanAddedContent(
+  files: Map<string, string>,
+  ignoreFiles: string[] = [],
+): { findings: string[]; skipped: string[] } {
+  const findings: string[] = [];
+  const skipped: string[] = [];
+  for (const [file, content] of files) {
+    if (isIgnoredFile(file, ignoreFiles)) {
+      skipped.push(file);
+      continue;
+    }
+    for (const match of scanText(content, { patterns: 'all' })) {
+      findings.push(formatFinding(file, match));
+    }
+  }
+  return { findings, skipped };
+}
+
 function main(): number {
   const args = parseArgs(process.argv.slice(2));
   let diff: string;
@@ -74,11 +99,11 @@ function main(): number {
     return 2;
   }
 
-  const findings: string[] = [];
-  for (const [file, content] of addedContent(diff)) {
-    for (const match of scanText(content, { patterns: 'all' })) {
-      findings.push(formatFinding(file, match));
-    }
+  const { findings, skipped } = scanAddedContent(addedContent(diff), loadConfig().ignoreFiles);
+  if (skipped.length > 0) {
+    console.log(
+      `[secret-scan-gate] omitidos por excepcion declarada (config/secret-scanner.json → ignoreFiles): ${skipped.join(', ')}`,
+    );
   }
 
   if (findings.length > 0) {

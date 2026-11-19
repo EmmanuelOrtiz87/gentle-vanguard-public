@@ -593,6 +593,26 @@ async function runMonitor(analyzeRelease = false): Promise<MonitorResult> {
 
 // ─── CLI Entry ─────────────────────────────────────────────────────────────────
 
+/**
+ * Cierra el pool de conexiones HTTP antes de salir.
+ *
+ * El `fetch` global de Node mantiene el socket en keep-alive. Con el socket
+ * abierto, `process.exit()` dispara el teardown de libuv en Windows y el
+ * proceso aborta con 3221226505 (STATUS_STACK_BUFFER_OVERRUN) DESPUES de haber
+ * impreso su salida valida (medido 2026-11-18: el step `gentle-ai-monitor`
+ * fallaba siempre por esto y su salida era correcta).
+ */
+async function closeHttpPool(): Promise<void> {
+  const dispatcher = (globalThis as unknown as Record<symbol, unknown>)[
+    Symbol.for('undici.globalDispatcher.1')
+  ] as { close?: () => Promise<void> } | undefined;
+  try {
+    await dispatcher?.close?.();
+  } catch {
+    /* el pool ya estaba cerrado: no hay nada que hacer */
+  }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   void (async () => {
     const args = process.argv.slice(2);
@@ -601,9 +621,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     try {
       const result = await runMonitor(analyzeRelease);
       console.log(JSON.stringify(result, null, 2));
-      process.exit(0);
+      await closeHttpPool();
+      // NO usar `process.exit()` aca: con stdout siendo un pipe y la escritura
+      // pendiente, el teardown de libuv aborta el proceso con
+      // 3221226505 (STATUS_STACK_BUFFER_OVERRUN) despues de imprimir la
+      // salida valida (medido 2026-11-18). Se deja que el loop drene y, si
+      // algun handle queda vivo, un watchdog de 3s fuerza la salida.
+      process.exitCode = 0;
+      const watchdog = setTimeout(() => process.exit(0), 3000);
+      watchdog.unref?.();
     } catch (err) {
       log(`Fatal error: ${err instanceof Error ? err.message : String(err)}`, 'ERROR');
+      await closeHttpPool();
       process.exit(1);
     }
   })();

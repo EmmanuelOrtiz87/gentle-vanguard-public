@@ -32,7 +32,7 @@ function verifyMCPBridge(): boolean {
   const checks: string[] = [];
 
   // Check 1: mcp-bridge.ts exists
-  const bridgePath = join(ROOT, 'src/mcp/mcp-bridge.ts');
+  const bridgePath = join(ROOT, 'src/integrations/mcp-bridge.ts');
   if (existsSync(bridgePath)) {
     checks.push('  [OK] mcp-bridge.ts');
   } else {

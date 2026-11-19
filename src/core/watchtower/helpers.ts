@@ -5,9 +5,9 @@ import { readFileSync, existsSync, statSync } from 'fs';
 import { join } from 'path';
 import { execFileSync } from 'child_process';
 import { createConnection } from 'net';
-import { runSync } from '../run-command';
-import { getEffectiveProcessTimeout, getHttpServerTimeouts } from '../timeout-config';
-import { addResult, RUNTIME_DIR, SESSION_DIR } from './context';
+import { runSync } from '../run-command.js';
+import { getEffectiveProcessTimeout, getHttpServerTimeouts } from '../timeout-config.js';
+import { addResult, RUNTIME_DIR, SESSION_DIR } from './context.js';
 
 export function getFileAgeHours(filePath: string): number {
   try {
@@ -123,6 +123,57 @@ export function fileExists(p: string): boolean {
 
 export function readJson(p: string): Record<string, unknown> {
   return JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>;
+}
+
+export function getOpenCodeMcpServerConfig(
+  config: unknown,
+  name: string,
+): Record<string, unknown> | undefined {
+  const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : undefined;
+  const server = asRecord(asRecord(asRecord(config)?.mcp)?.servers)?.[name];
+  const serverConfig = asRecord(server);
+  return serverConfig?.enabled === false ? undefined : serverConfig;
+}
+
+export function hasOpenCodeStdioMcpServer(config: unknown, name: string): boolean {
+  const command = getOpenCodeMcpServerConfig(config, name)?.command;
+  return typeof command === 'string'
+    ? command.trim().length > 0
+    : Array.isArray(command) &&
+        command.length > 0 &&
+        command.every((arg) => typeof arg === 'string' && arg.trim().length > 0);
+}
+
+/**
+ * Servidor declarado en el `.mcp.json` canon del repo (shape `mcpServers`).
+ * Es la superficie que cargan MiniMax Code y Claude Code: medir solo
+ * `opencode.json` es medir UNA superficie y declarar el sistema entero.
+ */
+export function getRepoCanonMcpServer(
+  config: unknown,
+  name: string,
+): Record<string, unknown> | undefined {
+  const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : undefined;
+  const serverConfig = asRecord(asRecord(asRecord(config)?.mcpServers)?.[name]);
+  return serverConfig?.enabled === false ? undefined : serverConfig;
+}
+
+export function hasRepoCanonStdioMcpServer(config: unknown, name: string): boolean {
+  const server = getRepoCanonMcpServer(config, name);
+  const command = server?.command;
+  if (typeof command === 'string') return command.trim().length > 0;
+  if (Array.isArray(command)) {
+    return (
+      command.length > 0 && command.every((arg) => typeof arg === 'string' && arg.trim().length > 0)
+    );
+  }
+  return Array.isArray(server?.args);
 }
 
 export function payloadFileOk(

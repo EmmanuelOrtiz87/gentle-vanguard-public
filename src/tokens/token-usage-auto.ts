@@ -182,6 +182,10 @@ function main() {
     }
     const prev = readSessionState(SessionId);
     const now = new Date().toISOString();
+    // El dato real manda: si la ingesta ya escribió este estado con uso real
+    // (turnos de modelo, no estimaciones del largo de los argumentos), el hook
+    // no lo pisa — solo enrich.
+    const ingestIsAuthority = prev?.metadata?.usageAuthority === 'ingest-real';
     const newState = {
       sessionId: SessionId,
       agent: Model || 'auto-detected',
@@ -203,8 +207,11 @@ function main() {
           toolCalls: ToolCalls || undefined,
         },
       ],
+      metadata: { ...(prev?.metadata ?? {}) },
     };
-    saveSessionState(newState);
+    if (!ingestIsAuthority) {
+      saveSessionState(newState);
+    }
   } catch {
     // Non-blocking by design
   }

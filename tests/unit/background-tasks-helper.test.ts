@@ -95,8 +95,10 @@ describe('background-tasks helper CLI', () => {
     // src/core/bg-os-leaks.ts (single source of truth shared with the
     // watchtower check), renaming the local listOsBgCandidates helper away.
     const src = readFileSync(SCRIPT, 'utf-8');
+    // La extension `.js` es la forma canónica del stack (imports relativos ESM);
+    // el test acepta ambas para no atarse a la convención de import extensions.
     assert.ok(
-      src.includes("from '../../src/core/bg-os-leaks'"),
+      /from '\.\.\/\.\.\/src\/core\/bg-os-leaks(\.js)?'/.test(src),
       'must delegate OS-level candidates to the shared classifier',
     );
     assert.ok(src.includes('listOsLeakCandidates'), 'must list OS-level candidates');

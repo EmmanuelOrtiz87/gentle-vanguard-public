@@ -7,7 +7,49 @@ export class HousekeepingRepo {
     this.runHousekeeping(true);
   }
 
+  /**
+   * Rellena `end_time` de spans cerrados que quedaron sin el (2026-11-18: 472
+   * trazas `completed` con `end_time` NULL y `duration` valida). Sin esto,
+   * cualquier query de spans por ventana temporal pierde esas filas para
+   * siempre. No borra ni pisa datos: solo completa el campo faltante.
+   */
+  backfillTraceEndTimes(): number {
+    const res = this.db
+      .prepare(
+        `UPDATE traces SET end_time = start_time + duration
+         WHERE end_time IS NULL AND duration > 0 AND status IN ('completed', 'error')`,
+      )
+      .run();
+    if (res.changes > 0) console.log(`[DB] backfilled end_time on ${res.changes} traces`);
+    return res.changes;
+  }
+
+  /**
+   * Poda stubs de span que nunca se cerraron y no llevan informacion:
+   * `end_time`/`duration` NULL, cero tokens y cero costo, mas antiguos que
+   * `retentionDays`. Medido 2026-11-18: 472 filas asi (todas con 0 tokens/0
+   * costo, del writer historico; ninguna nueva en 7 dias). No es un reaper de
+   * spans vivos: si la fila lleva tokens o costo, NUNCA califica.
+   */
+  pruneIncompleteSpans(retentionDays = 90): number {
+    const cutoff = Date.now() - retentionDays * 86_400_000;
+    const res = this.db
+      .prepare(
+        `DELETE FROM traces
+         WHERE end_time IS NULL AND duration IS NULL
+           AND COALESCE(input_tokens, 0) = 0 AND COALESCE(output_tokens, 0) = 0
+           AND COALESCE(cost, 0) = 0 AND start_time < ?`,
+      )
+      .run(cutoff);
+    if (res.changes > 0) {
+      console.log(`[DB] pruned ${res.changes} empty never-closed spans (>${retentionDays}d)`);
+    }
+    return res.changes;
+  }
+
   private runHousekeeping(vacuum: boolean): void {
+    this.backfillTraceEndTimes();
+    this.pruneIncompleteSpans();
     this.db.exec("DELETE FROM events WHERE created_at < datetime('now', '-7 days')");
     this.db.exec(
       `DELETE FROM metric_snapshots WHERE id NOT IN (SELECT id FROM metric_snapshots ORDER BY timestamp DESC LIMIT 1000)`,

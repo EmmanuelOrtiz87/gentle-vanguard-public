@@ -14,9 +14,9 @@
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
 import * as path from 'path';
-import { ROOT } from './repo-root';
-import { getAllSessionStates, SessionState } from './session-context-log';
-import { getAllLiveMetrics } from './session-metrics-tracker';
+import { ROOT } from './repo-root.js';
+import { getAllSessionStates, SessionState } from './session-context-log.js';
+import { getAllLiveMetrics } from './session-metrics-tracker.js';
 import { log } from '../utils/logger.js';
 
 const logger = log('METRICS-AGGREGATOR');

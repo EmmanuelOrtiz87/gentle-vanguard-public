@@ -146,11 +146,18 @@ function validateStackCritical(config: Record<string, unknown>): string[] {
   if ('tools' in config && config.tools && typeof config.tools === 'object') {
     const tools = config.tools as Record<string, unknown>;
     // Verify essential tools are enabled for Gabriel's workflow
-    const essentialTools = ['bash', 'readFile', 'writeFile', 'editFile', 'listFiles'];
-    for (const tool of essentialTools) {
-      if (typeof tools[tool] !== 'boolean') {
+    const essentialTools = [
+      ['bash'],
+      ['read', 'readFile'],
+      ['write', 'writeFile'],
+      ['edit', 'editFile'],
+      ['list', 'listFiles'],
+    ];
+    for (const [tool, legacy] of essentialTools) {
+      const enabled = tools[tool] ?? (legacy ? tools[legacy] : undefined);
+      if (typeof enabled !== 'boolean') {
         errors.push(`WARN: tools.${tool} should be explicitly set (true/false)`);
-      } else if (tools[tool] !== true) {
+      } else if (enabled !== true) {
         errors.push(`CRITICAL: tools.${tool} must be true for Gabriel's automation pipeline`);
       }
     }
@@ -210,7 +217,12 @@ function validateMCP(mcp: unknown): string[] {
     return ['Invalid MCP structure'];
   }
 
-  for (const [name, service] of Object.entries(mcp)) {
+  const servers = 'servers' in mcp ? mcp.servers : mcp;
+  if (!servers || typeof servers !== 'object' || Array.isArray(servers)) {
+    return ['Invalid MCP servers structure'];
+  }
+
+  for (const [name, service] of Object.entries(servers)) {
     if (typeof service !== 'object' || service === null) {
       errors.push(`MCP service ${name} has invalid configuration`);
       continue;
@@ -229,16 +241,21 @@ function validateMCP(mcp: unknown): string[] {
     if ('type' in service) {
       const validTypes = ['local', 'stdio', 'remote'];
       const typeValue = serviceConfig.type;
-      if (typeof typeValue === 'string' && !validTypes.includes(typeValue)) {
+      if (typeof typeValue !== 'string' || !validTypes.includes(typeValue)) {
         errors.push(`MCP service ${name} has invalid type: ${typeValue}`);
       }
       if (typeValue === 'remote' && typeof serviceConfig.url !== 'string') {
         errors.push(`MCP service ${name} with type remote requires url`);
       }
-      if (
-        (typeValue === 'local' || typeValue === 'stdio') &&
-        typeof serviceConfig.command !== 'string'
-      ) {
+      const { command } = serviceConfig;
+      const hasCommand =
+        typeof command === 'string'
+          ? Boolean(command.trim())
+          : Array.isArray(command) &&
+            typeof command[0] === 'string' &&
+            Boolean(command[0].trim()) &&
+            command.every((arg) => typeof arg === 'string');
+      if ((typeValue === 'local' || typeValue === 'stdio') && !hasCommand) {
         errors.push(`MCP service ${name} with type ${typeValue} requires command`);
       }
     }

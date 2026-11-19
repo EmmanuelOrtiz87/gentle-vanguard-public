@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { db as getDbSingleton } from '../../database/db';
+import { db as getDbSingleton } from '../../database/db.js';
 
 // ─── Semantic Search Helpers (reused from skill-router) ──────────────────────
 

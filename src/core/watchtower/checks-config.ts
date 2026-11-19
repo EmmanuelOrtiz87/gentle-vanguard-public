@@ -3,10 +3,10 @@
 
 import { readdirSync, existsSync } from 'fs';
 import { join, basename } from 'path';
-import { runSync } from '../run-command';
-import { getEffectiveProcessTimeout } from '../timeout-config';
-import { addResult, quiet, ROOT, RUNTIME_DIR } from './context';
-import { fileExists, payloadFileOk, readJson } from './helpers';
+import { runSync } from '../run-command.js';
+import { getEffectiveProcessTimeout } from '../timeout-config.js';
+import { addResult, quiet, ROOT, RUNTIME_DIR } from './context.js';
+import { fileExists, payloadFileOk, readJson } from './helpers.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-CONFIG');
 import { log } from '../../utils/logger.js';
 
@@ -90,7 +90,7 @@ export async function checkConfigs() {
   // Schema validation via the unified config-loader (validates every
   // config/*.json that has a sibling .schema.json — currently 8 configs).
   try {
-    const { loadConfigFile } = await import('../config-loader');
+    const { loadConfigFile } = await import('../config-loader.js');
     const schemaDir = join(ROOT, 'config');
     const schemas = existsSync(schemaDir)
       ? readdirSync(schemaDir).filter((f) => f.endsWith('.schema.json'))

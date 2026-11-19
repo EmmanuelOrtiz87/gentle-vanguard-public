@@ -86,7 +86,7 @@ function readNexusToday(): { used: number; budget: number; source: string } | nu
         .prepare(
           `SELECT COALESCE(SUM(prompt_tokens),0) + COALESCE(SUM(completion_tokens),0) AS used
            FROM token_usage
-           WHERE date(timestamp) = ?`,
+           WHERE date(timestamp) = ? AND session_id NOT LIKE 'probe:%'`,
         )
         .get(getLocalDayKey()) as { used: number };
       if (row && row.used > 0) {

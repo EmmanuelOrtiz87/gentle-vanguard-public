@@ -4,26 +4,33 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: gv-mcp
-    ports:
-      - '3001:3001'
-    volumes:
-      - .:/workspace
-      - node_modules:/workspace/node_modules
-    working_dir: /workspace
+    # El servidor MCP de skills habla por STDIO: sin stdin abierto el proceso
+    # termina al instante (medido: el contenedor salia con codigo 0 y quedaba
+    # "unhealthy"). Con stdin_open vive y el healthcheck real lo declara sano.
+    stdin_open: true
+    # El server corre el artefacto COMPILADO de la imagen (/app/dist) con el
+    # catalogo de la imagen (/app/skills + /app/.atl). Antes se ejecutaba
+    # desde /workspace (bind mount del host): ahi no hay dist compilado ni
+    # .atl/skill-registry.md (gitignored) -> el server veia 0 skills.
+    # Sin `ports`: es un servidor stdio, no HTTP (no escucha en 3001).
+    working_dir: /app
     command: node dist/scripts/mcp/skill-server.js
     environment:
       - NODE_ENV=development
-      - GENTLE_VANGUARD_BASE_DIR=/workspace
+      - GENTLE_VANGUARD_BASE_DIR=/app
     healthcheck:
       test:
         [
           'CMD',
           'node',
-          '-e',
-          "require('http').get('http://localhost:3001/health',r=>{process.exit(r.statusCode===200?0:1)})",
+          'dist/src/tools/mcp-healthcheck.js',
+          '--command',
+          'node',
+          '--args',
+          'dist/scripts/mcp/skill-server.js',
         ]
       interval: 30s
-      timeout: 10s
+      timeout: 20s
       start_period: 15s
       retries: 3
     networks:
@@ -90,7 +97,6 @@ services:
       - gv-network
 
 volumes:
-  node_modules:
   prometheus-data:
 
 networks:

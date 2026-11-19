@@ -1,7 +1,17 @@
 import Database from 'better-sqlite3';
-import { MigrationRunner } from '../../database/nexus//repositories/MigrationRunner';
-import { TokenRepo } from '../../database/nexus//repositories/TokenRepo';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, renameSync, readdirSync, rmSync, statSync } from 'fs';
+import { MigrationRunner } from '../../database/nexus//repositories/MigrationRunner.js';
+import { TokenRepo } from '../../database/nexus//repositories/TokenRepo.js';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+  renameSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from 'fs';
 import { join, resolve } from 'path';
 import { SessionUsage, TransactionUsage } from './readers.js';
 import { recordForwardAliases } from '../../session/session-id-bridge.js';
@@ -123,14 +133,60 @@ export function writeToNexus(rows: SessionUsage[]): { inserted: number; updated:
   return { inserted, updated };
 }
 
-/** Actualiza el session file del stack con la sesión activa (la más reciente). */
+/**
+ * Reconcilia los agregados `token_usage` con `token_transactions` reales.
+ * Idempotente: una segunda corrida no cambia valores. Repara históricos
+ * sub-reportados por el ingest incremental (ver TokenRepo.reconcileUsageFromTransactions).
+ */
+export function reconcileTokenUsage(): { sessions: number; updated: number } {
+  if (!existsSync(NEXUS_DB)) return { sessions: 0, updated: 0 };
+  try {
+    const db = new Database(NEXUS_DB);
+    try {
+      new MigrationRunner(db).runMigrations();
+      const result = new TokenRepo(db).reconcileUsageFromTransactions(
+        process.env.GENTLE_TENANT_ID || 'gentle-vanguard',
+      );
+      if (result.updated > 0) {
+        log(
+          `Reconcile token_usage: ${result.updated}/${result.sessions} sesiones corregidas desde token_transactions`,
+        );
+      }
+      return result;
+    } finally {
+      db.close();
+    }
+  } catch (e) {
+    log(`Reconcile error: ${e instanceof Error ? e.message : String(e)}`);
+    return { sessions: 0, updated: 0 };
+  }
+}
+
+/**
+ * Actualiza el session file del stack con la sesión activa (la más reciente).
+ * The stack session id is canonical: a tool session id must never overwrite it,
+ * otherwise token-status reads a tool id with no Nexus rows and reports 0.
+ */
 export function updateStackSession(rows: SessionUsage[]): void {
   try {
     if (rows.length === 0) return;
     const active = rows.reduce((a, b) => (b.timeUpdated > a.timeUpdated ? b : a));
     mkdirSync(SESSION_DIR, { recursive: true });
-    const data = {
+
+    const cur = join(SESSION_DIR, 'session-current.json');
+    let stackState: Record<string, unknown> | null = null;
+    if (existsSync(cur)) {
+      try {
+        stackState = JSON.parse(readFileSync(cur, 'utf-8')) as Record<string, unknown>;
+      } catch {
+        stackState = null;
+      }
+    }
+    const stackId = stackState ? String(stackState.sessionId ?? stackState.id ?? '').trim() : '';
+
+    const toolData = {
       sessionId: active.sessionId,
+      stackSessionId: stackId || null,
       totalInputTokens: active.tokensInput,
       totalOutputTokens: active.tokensOutput,
       totalTokens: active.tokensInput + active.tokensOutput,
@@ -140,20 +196,52 @@ export function updateStackSession(rows: SessionUsage[]): void {
       source: 'token-ingest (tool-agnostic)',
       updatedAt: new Date().toISOString(),
     };
-    writeFileSync(join(SESSION_DIR, 'token-usage.json'), JSON.stringify(data, null, 2));
+    writeFileSync(join(SESSION_DIR, 'token-usage.json'), JSON.stringify(toolData, null, 2));
 
-    // actualiza session-current.json si existe
-    const cur = join(SESSION_DIR, 'session-current.json');
-    if (existsSync(cur)) {
-      try {
-        const s = JSON.parse(readFileSync(cur, 'utf-8')) as Record<string, unknown>;
-        s.totalInputTokens = active.tokensInput;
-        s.totalOutputTokens = active.tokensOutput;
-        s.totalTokens = active.tokensInput + active.tokensOutput;
-        s.cost = active.cost;
-        writeFileSync(cur, JSON.stringify(s, null, 2));
-      } catch {
-        /* non-fatal */
+    if (stackState) {
+      const startedRaw = String(
+        stackState.startedAt ?? stackState.startTime ?? stackState.timestamp ?? '',
+      );
+      const startedMs = Date.parse(startedRaw) || 0;
+      // Only attribute totals when this tool session began after the stack
+      // session (or is already the canonical id); older rows belong to a
+      // previous session.
+      const belongsToStack =
+        !stackId ||
+        stackId === active.sessionId ||
+        (startedMs > 0 && active.timeUpdated >= startedMs - 60_000);
+      stackState.activeToolSessionId = active.sessionId;
+      stackState.activeToolUpdatedAt =
+        active.timeUpdated > 0 ? new Date(active.timeUpdated).toISOString() : null;
+      if (belongsToStack) {
+        stackState.totalInputTokens = active.tokensInput;
+        stackState.totalOutputTokens = active.tokensOutput;
+        stackState.totalTokens = active.tokensInput + active.tokensOutput;
+        stackState.cost = active.cost;
+      }
+      writeFileSync(cur, JSON.stringify(stackState, null, 2));
+
+      if (stackId && active.sessionId !== stackId) {
+        try {
+          const db = new Database(NEXUS_DB);
+          try {
+            recordForwardAliases(
+              db,
+              [
+                {
+                  aliasId: active.sessionId,
+                  lastActivityMs: active.timeUpdated || Date.now(),
+                  source: 'token-ingest',
+                },
+              ],
+              { repoSessionId: stackId, recencyMs: 60 * 60_000, apply: true },
+            );
+          } finally {
+            db.close();
+          }
+        } catch {
+          /* alias is best-effort attribution */
+        }
       }
     }
   } catch {

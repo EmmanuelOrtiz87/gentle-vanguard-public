@@ -18,7 +18,9 @@ operational details are published accidentally.
 
 1. Keep the development repository private after confirming that no public workflow depends on its
    visibility.
-2. Publish only through `src/sync-to-public.ts` and `.github/workflows/sync-public.yml`.
+2. Publish through `src/infrastructure/sync-to-public.ts`. The product distribution uses
+   `.github/workflows/sync-product-public.yml`; the brand website keeps
+   `.github/workflows/sync-public.yml` and its separate landing boundary.
 3. Prefer an allowlist of files over a full repository mirror.
 4. Never publish `.runtime/`, `.session/`, `.telemetry/`, local databases, keys, logs, or local
    provider credentials.
@@ -36,6 +38,17 @@ performed in GitHub after the working tree changes have been reviewed.
 The workflow publishes `build/`, example configuration, selected `docs/`, demos, skills index,
 license, changelog, bootstrap/setup files and `README-PUBLIC.md`. The sync script is the source of
 truth for the exact allowlist; update it when adding a new public component.
+
+The private `main` branch is authoritative for the public product. Its dedicated workflow exports
+the curated tree, installs the public lockfile without changes, runs TypeScript and the strict
+installer doctor, and pushes public `main` only if all checks pass. `PAT_SYNC` must grant access to
+both repositories and permission to update workflows. Missing credentials or failed checks stop
+publication. GitHub Actions billing must also permit jobs to start.
+
+Dependabot configuration is exported from the private repository, keeping monthly version proposals
+in both repositories. An open update proposal does not require every feature PR to adopt the newest
+dependency. Review updates in the private source first and export their validated result; do not
+merge public lockfile changes that remove private workspace entries. Security alerts remain enabled.
 
 ## Manual sync when GitHub Actions is blocked (billing)
 

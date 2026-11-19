@@ -55,13 +55,20 @@ function loadDefaultModelChain(): ModelInfo[] {
   const registry = JSON.parse(readFileSync(MODEL_REGISTRY_FILE, 'utf8')) as CanonicalModelRegistry;
   const primary = registry.routingRules.orchestrator.primary;
   const primaryEntry = registry.models[primary];
-  if (!primaryEntry) throw new Error(`Primary model ${primary} is absent from ${MODEL_REGISTRY_FILE}`);
+  if (!primaryEntry)
+    throw new Error(`Primary model ${primary} is absent from ${MODEL_REGISTRY_FILE}`);
   const ids = [...new Set([primary, ...(primaryEntry.fallbackChain ?? [])])];
   return ids.map((id) => {
     const entry = registry.models[id];
     if (!entry) throw new Error(`Fallback model ${id} is absent from ${MODEL_REGISTRY_FILE}`);
-    const tier: ModelInfo['tier'] = entry.tier === 'local' ? 'local' : entry.tier === 'premium' ? 'premium' : 'standard';
-    const cost: ModelInfo['cost'] = tier === 'local' ? 'local' : entry.costPer1kTokens.input === 0 && entry.costPer1kTokens.output === 0 ? 'free' : 'paid';
+    const tier: ModelInfo['tier'] =
+      entry.tier === 'local' ? 'local' : entry.tier === 'premium' ? 'premium' : 'standard';
+    const cost: ModelInfo['cost'] =
+      tier === 'local'
+        ? 'local'
+        : entry.costPer1kTokens.input === 0 && entry.costPer1kTokens.output === 0
+          ? 'free'
+          : 'paid';
     return { id, provider: entry.provider, tier, cost };
   });
 }
@@ -79,13 +86,38 @@ const AGENT_MODEL_PREFERENCES: Record<string, string[]> = {
   SAD: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   DEV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   QA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
-  OPS: ['opencode-zen-C/big-pickle', 'ollama/qwen2.5-coder:14b'],
+  OPS: ['opencode-zen-C/big-pickle', 'ollama/qwen3-14b-32k'],
   GOV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   DOC: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
 };
 
 export function getConfiguredAgentModelIds(): string[] {
   return [...new Set(Object.values(AGENT_MODEL_PREFERENCES).flat())];
+}
+
+let registryCapabilities: Record<string, string[]> | null = null;
+
+/**
+ * Un `.runtime/model-active.json` viejo puede apuntar a un modelo sin tool
+ * calling (pasó con qwen2.5-coder tras un fallback anterior). El registry es
+ * la verdad: si el modelo no está registrado o no declara "tools", no se usa
+ * como modelo del orquestador por archivo de estado.
+ */
+export function isRegistryToolCapable(model: string): boolean {
+  if (!registryCapabilities) {
+    try {
+      const raw = JSON.parse(readFileSync(MODEL_REGISTRY_FILE, 'utf8')) as {
+        models?: Record<string, { capabilities?: string[] }>;
+      };
+      registryCapabilities = {};
+      for (const [id, entry] of Object.entries(raw.models ?? {})) {
+        registryCapabilities[id] = Array.isArray(entry.capabilities) ? entry.capabilities : [];
+      }
+    } catch {
+      registryCapabilities = {};
+    }
+  }
+  return (registryCapabilities[model] ?? []).includes('tools');
 }
 
 // =============================================================================
@@ -124,6 +156,10 @@ interface DelegationResult {
   fallbackUsed: boolean;
   modelsTried: string[];
   modelsFailed: { model: string; error: string }[];
+  /** true solo si el helper declaró una llamada real al modelo. */
+  llmCalled?: boolean;
+  /** Envelope del helper (deterministic-*, llm, unverified). */
+  executionKind?: string;
   /** Para depuración y aprendizaje */
   executionLog: string[];
 }
@@ -141,6 +177,8 @@ interface RuntimeState {
   metrics: {
     totalDelegations: number;
     successfulDelegations: number;
+    /** Salidas de helpers deterministas: trabajo real, pero sin LLM. */
+    deterministicDelegations?: number;
     fallbackCount: number;
     averageAttempts: number;
   };
@@ -190,6 +228,7 @@ function createFreshState(): RuntimeState {
     metrics: {
       totalDelegations: 0,
       successfulDelegations: 0,
+      deterministicDelegations: 0,
       fallbackCount: 0,
       averageAttempts: 0,
     },
@@ -221,18 +260,28 @@ function detectOrchestratorModel(): string {
   const envModel =
     process.env.ORCHESTRATOR_MODEL || process.env.AGENT_MODEL || process.env.SESSION_MODEL;
   if (envModel) {
+    if (!isRegistryToolCapable(envModel)) {
+      logger.warn(
+        `Env orchestrator model ${envModel} no declara "tools" en el registry (se respeta el override)`,
+      );
+    }
     logger.info(`Using orchestrator model from env: ${envModel}`);
     return envModel;
   }
 
-  // 2. Archivo de estado activo
+  // 2. Archivo de estado activo (solo si el modelo sigue siendo tool-capable)
   const activeModelFile = join(ROOT, '.runtime', 'model-active.json');
   try {
     if (existsSync(activeModelFile)) {
       const content = JSON.parse(readFileSync(activeModelFile, 'utf-8'));
       if (content.model) {
-        logger.info(`Using orchestrator model from active file: ${content.model}`);
-        return content.model;
+        if (isRegistryToolCapable(content.model)) {
+          logger.info(`Using orchestrator model from active file: ${content.model}`);
+          return content.model;
+        }
+        logger.warn(
+          `Ignoring stale model-active.json entry ${content.model}: no declara "tools" en el registry`,
+        );
       }
     }
   } catch {
@@ -242,19 +291,24 @@ function detectOrchestratorModel(): string {
   // 3. Leer de opencode.json (current config)
   try {
     const opencodeConfig = JSON.parse(readFileSync(join(ROOT, 'opencode.json'), 'utf-8'));
-    if (opencodeConfig.agent?.orchestrator?.model) {
-      logger.info(
-        `Using orchestrator model from opencode.json: ${opencodeConfig.agent.orchestrator.model}`,
+    const configured = opencodeConfig.agent?.orchestrator?.model as string | undefined;
+    if (configured && isRegistryToolCapable(configured)) {
+      logger.info(`Using orchestrator model from opencode.json: ${configured}`);
+      return configured;
+    }
+    if (configured) {
+      logger.warn(
+        `Ignoring opencode orchestrator model ${configured}: no declara "tools" en el registry`,
       );
-      return opencodeConfig.agent.orchestrator.model;
     }
   } catch {
     // Fall through
   }
 
-  // 4. Default fallback
-  logger.info('Using default model: opencode-zen-C/big-pickle');
-  return 'opencode-zen-C/big-pickle';
+  // 4. Default: el primario canónico del registry, no un literal
+  const fallback = DEFAULT_MODEL_CHAIN[0]?.id ?? 'opencode-zen-C/big-pickle';
+  logger.info(`Using default model: ${fallback}`);
+  return fallback;
 }
 
 // =============================================================================
@@ -349,13 +403,44 @@ function buildModelChain(
 // EJECUCIÓN CON MODELO ESPECÍFICO
 // =============================================================================
 
+interface DeclaredDelegationResult {
+  success?: boolean;
+  error?: string;
+  executionKind?: string;
+  llmCalled?: boolean;
+}
+
+/**
+ * agent-delegator prints `=== Delegation Result ===` + JSON. Its exit code is
+ * always 0, so exit alone cannot tell success from a declared helper failure:
+ * without this parse every failed delegation counted as successful.
+ */
+export function parseDelegationResult(stdout: string): DeclaredDelegationResult | null {
+  const marker = [...stdout.matchAll(/^=== Delegation Result ===\r?$/gm)].at(-1);
+  if (!marker) return null;
+  try {
+    const parsed = JSON.parse(stdout.slice(marker.index! + marker[0].length).trim()) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+    return parsed as DeclaredDelegationResult;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Ejecuta la delegación usando el model-fallback-orchestrator existente
  */
 async function executeWithModel(
   request: DelegationRequest,
   model: string,
-): Promise<{ success: boolean; output?: string; error?: string; model: string }> {
+): Promise<{
+  success: boolean;
+  output?: string;
+  error?: string;
+  model: string;
+  executionKind?: string;
+  llmCalled?: boolean;
+}> {
   // Comprimir task si es muy largo
   let task = request.task;
   if (request.compression !== false && task.length > 1000) {
@@ -414,10 +499,20 @@ async function executeWithModel(
     });
 
     if (exitCode === 0) {
+      const declared = parseDelegationResult(stdout);
+      if (declared && declared.success === false) {
+        return {
+          success: false,
+          error: declared.error || 'agent-delegator reported unsuccessful execution',
+          model,
+        };
+      }
       return {
         success: true,
         output: stdout.trim(),
         model,
+        executionKind: declared?.executionKind,
+        llmCalled: declared?.llmCalled,
       };
     } else {
       return {
@@ -542,8 +637,15 @@ export async function intelligentDelegate(request: DelegationRequest): Promise<D
         // Guardar preferencia para este agente
         state.agentModelPreferences[request.agent] = model;
 
-        // Actualizar métricas
-        state.metrics.successfulDelegations++;
+        // Honestidad de métricas: un helper determinista (src/agents no llama
+        // APIs de modelo) no es una delegación LLM exitosa aunque salga 0.
+        const llmCalled = result.llmCalled === true;
+        if (llmCalled) {
+          state.metrics.successfulDelegations++;
+        } else {
+          state.metrics.deterministicDelegations =
+            (state.metrics.deterministicDelegations ?? 0) + 1;
+        }
         const avgAttempts =
           state.metrics.totalDelegations > 0
             ? (state.metrics.averageAttempts * (state.metrics.totalDelegations - 1) +
@@ -562,6 +664,8 @@ export async function intelligentDelegate(request: DelegationRequest): Promise<D
           provider: model.split('/')[0] || 'unknown',
           attempts: attempt + 1,
           fallbackUsed: !isFirstAttempt,
+          llmCalled,
+          executionKind: result.executionKind ?? 'unverified',
           modelsTried,
           modelsFailed,
           executionLog,
@@ -764,7 +868,10 @@ function cli(): void {
       }
       console.log(`\nMetrics:`);
       console.log(`  Total: ${status.metrics.totalDelegations}`);
-      console.log(`  Successful: ${status.metrics.successfulDelegations}`);
+      console.log(`  Successful (LLM verificado): ${status.metrics.successfulDelegations}`);
+      console.log(
+        `  Deterministic (helper sin LLM): ${status.metrics.deterministicDelegations ?? 0}`,
+      );
       console.log(`  Fallbacks: ${status.metrics.fallbackCount}`);
       console.log(`  Avg Attempts: ${status.metrics.averageAttempts.toFixed(2)}`);
       break;

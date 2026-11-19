@@ -1,10 +1,31 @@
 import { runSync } from '../../core/run-command.js';
+import { resolve } from 'node:path';
 
 export interface KillTarget {
   name: string;
   matcher: string;
   /** Required daemons are started by session-autostart and MUST be running at close. */
   required: boolean;
+}
+
+export interface KillScope {
+  /**
+   * Restrict the kill to processes whose command line references THIS
+   * workspace root. BL-2026-11-16: un close de un worktree (Copilot) mataba
+   * con matchers globales el CodeGraph MCP de otra sesión porque el matcher
+   * no distingue propiedad. El fallo seguro ahora es un daemon sobreviviente
+   * (inofensivo; lo recoge process-hygiene), nunca matar la sesión ajena.
+   */
+  workspaceScoped?: boolean;
+}
+
+/** Matches the workspace path with either Windows separator and excludes sibling prefixes. */
+export function workspaceRootFilter(root: string = resolve(process.cwd())): string {
+  const pathPattern = root
+    .split(/[\\/]/)
+    .map((part) => part.replace(/[.*+?${}()|[\]\\]/g, '\\$&'))
+    .join(String.raw`[\\/]`);
+  return pathPattern + String.raw`(?=[\\/]|["\s]|$)`;
 }
 
 /**
@@ -105,7 +126,8 @@ export const KILL_TARGETS: KillTarget[] = [
   },
   {
     name: 'Apps Vite HMR',
-    matcher: 'gentle-vanguard[\\\\/]apps[\\\\/][^\\\\/]+[\\\\/]node_modules[\\\\/]vite[\\\\/]bin[\\\\/]vite',
+    matcher:
+      'gentle-vanguard[\\\\/]apps[\\\\/][^\\\\/]+[\\\\/]node_modules[\\\\/]vite[\\\\/]bin[\\\\/]vite',
     required: false,
   },
   // ─── Sandbox de demos (apps/sandbox-gv) — added 2026-09-25 ────────────
@@ -121,17 +143,21 @@ export const KILL_TARGETS: KillTarget[] = [
   },
   {
     name: 'Sandbox wpp-bot',
-    matcher: 'gentle-vanguard[\\\\/]apps[\\\\/]wpp-bot[\\\\/](dist[\\\\/]index\\.js|src[\\\\/]index\\.ts)',
+    matcher:
+      'gentle-vanguard[\\\\/]apps[\\\\/]wpp-bot[\\\\/](dist[\\\\/]index\\.js|src[\\\\/]index\\.ts)',
     required: false,
   },
 ];
 
 /** True if at least one process (node/tsx) matches the command-line matcher. */
-export function isProcessRunning(matcher: string): boolean {
+export function isProcessRunning(matcher: string, scope: KillScope = {}): boolean {
   const isWin = process.platform === 'win32';
   try {
     if (isWin) {
-      const psCmd = `@(@(Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='tsx.exe'" | Where-Object { $_.CommandLine -match '${matcher}' -and $_.ProcessId -ne ${process.pid} -and $_.CommandLine -notmatch 'session-close-orchestrator' })).Count`;
+      const rootFilter = scope.workspaceScoped
+        ? ` -and $_.CommandLine -match '${workspaceRootFilter().replaceAll("'", "''")}'`
+        : '';
+      const psCmd = `@(@(Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='tsx.exe'" | Where-Object { $_.CommandLine -match '${matcher}'${rootFilter} -and $_.ProcessId -ne ${process.pid} -and $_.CommandLine -notmatch 'session-close-orchestrator' })).Count`;
       const r = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
         timeout: 10000,
         stdio: 'pipe',
@@ -163,17 +189,17 @@ export function isStartupClose(reason: string): boolean {
   return reason === 'autostart-close' || reason === 'startup-cleanup';
 }
 
-export function waitForProcess(matcher: string, timeoutMs: number): boolean {
+export function waitForProcess(matcher: string, timeoutMs: number, scope: KillScope = {}): boolean {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (isProcessRunning(matcher)) return true;
+    if (isProcessRunning(matcher, scope)) return true;
     // Synchronous ~500ms sleep (Atomics.wait on a shared buffer).
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
   }
-  return isProcessRunning(matcher);
+  return isProcessRunning(matcher, scope);
 }
 
-export function killProcessByCommandLine(matcher: string): boolean {
+export function killProcessByCommandLine(matcher: string, scope: KillScope = {}): boolean {
   const isWin = process.platform === 'win32';
   try {
     if (isWin) {
@@ -183,8 +209,13 @@ export function killProcessByCommandLine(matcher: string): boolean {
       //   - the parent PID (npx/cmd wrapper that spawned tsx)
       //   - any process whose CommandLine references this script by name
       //     (protects the whole process tree: npx → tsx → orchestrator)
+      //   - (workspaceScoped) processes whose command line does NOT reference
+      //     this workspace root: otra sesión/worktree tiene sus propios daemons.
       const selfName = 'session-close-orchestrator';
-      const psCmd = `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='tsx.exe'" | Where-Object { $_.CommandLine -match '${matcher}' -and $_.ProcessId -ne ${process.pid} -and $_.ProcessId -ne ${process.ppid ?? -1} -and $_.CommandLine -notmatch '${selfName}' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force; Write-Output "Killed PID $($_.ProcessId)" }`;
+      const rootFilter = scope.workspaceScoped
+        ? ` -and $_.CommandLine -match '${workspaceRootFilter().replaceAll("'", "''")}'`
+        : '';
+      const psCmd = `Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='tsx.exe'" | Where-Object { $_.CommandLine -match '${matcher}'${rootFilter} -and $_.ProcessId -ne ${process.pid} -and $_.ProcessId -ne ${process.ppid ?? -1} -and $_.CommandLine -notmatch '${selfName}' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force; Write-Output "Killed PID $($_.ProcessId)" }`;
       const r = runSync('powershell', ['-NoProfile', '-Command', psCmd], {
         timeout: 15000,
         stdio: 'pipe',

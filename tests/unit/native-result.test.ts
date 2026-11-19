@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { nativeResultFailure } from '../../src/orchestration/native-result.js';
+import { nativeResultFailure, parseNativeResult } from '../../src/orchestration/native-result.js';
 
 const envelope = (result: unknown) =>
   `diagnostic log\n=== JSON OUTPUT ===\n${JSON.stringify(result)}`;
@@ -20,4 +20,17 @@ test('malformed envelopes fail while real success and legacy output remain compa
   assert.match(nativeResultFailure(envelope(null))!, /invalid/);
   assert.equal(nativeResultFailure(envelope({ success: true })), undefined);
   assert.equal(nativeResultFailure('legacy helper output'), undefined);
+});
+test('parseNativeResult exposes executionKind/llmCalled so metrics do not call helpers LLM work', () => {
+  const parsed = parseNativeResult(
+    envelope({
+      success: true,
+      executionKind: 'deterministic-domain-analysis',
+      llmCalled: false,
+    }),
+  );
+  assert.equal(parsed.error, undefined);
+  assert.equal(parsed.envelope?.executionKind, 'deterministic-domain-analysis');
+  assert.equal(parsed.envelope?.llmCalled, false);
+  assert.deepEqual(parseNativeResult('legacy helper output'), {});
 });

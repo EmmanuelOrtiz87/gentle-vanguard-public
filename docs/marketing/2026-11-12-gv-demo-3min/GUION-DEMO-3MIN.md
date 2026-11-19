@@ -1,9 +1,9 @@
 # Demo 3 min — GentleVanguard (guion para video + copy pack)
 
 > Campaña: lanzamiento del onboarding con plan firmado. Datos reales de Nexus al 2026-11-12. Fuente
-> de números: `token_transactions` (5.06B tokens/60d, 48.166 calls), watchtower (154 checks),
-> quickstart (survey → SHA-256 → apply). Producción: pipeline gv-shorts (job #3 en cola; requiere
-> key de stock — ver "Producción" al final).
+> de números: `token_transactions` (5.06B tokens/60d, 48.166 calls), watchtower (más de 200
+> sub-checks), quickstart (survey → SHA-256 → apply). Producción: pipeline gv-shorts (job #3 en
+> cola; requiere key de stock — ver "Producción" al final).
 
 ## Guion (180s, inglés, tono directo, sin hype)
 
@@ -33,11 +33,11 @@ you didn't see."
 
 ### [1:30–2:15] Observability — measure everything
 
-**Visual**: dashboard con métricas de sesión; números reales: 154 checks, tokens por modelo, costo
-por sesión. **VO**: "Once it's running, everything becomes data. This stack processed five billion
-tokens in sixty days — every session, every token, every dollar measured in a local SQLite database.
-154 automated health checks verify the stack against its own declared quality gates. Your AI output
-stops being scrollback and starts being evidence."
+**Visual**: dashboard con métricas de sesión; números reales: más de 200 sub-checks, tokens por
+modelo, costo por sesión. **VO**: "Once it's running, everything becomes data. This stack processed
+five billion tokens in sixty days — every session, every token, every dollar measured in a local
+SQLite database. 154 automated health checks verify the stack against its own declared quality
+gates. Your AI output stops being scrollback and starts being evidence."
 
 ### [2:15–2:45] Memory — continuity between sessions
 

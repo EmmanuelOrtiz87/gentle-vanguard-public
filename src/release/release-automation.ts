@@ -110,6 +110,20 @@ async function runPreReleaseValidation(skipTests: boolean): Promise<boolean> {
       return false;
     }
 
+    // Mutation score de los módulos de contrato (NORMATIVAS-TESTING §7, cableado
+    // 2026-11-18): pre-release exige que los tests MATEN mutantes conocidos de los
+    // módulos declarados en stryker.config.json — que pasen no basta. El umbral
+    // `thresholds.break` del config decide el exit code de stryker.
+    try {
+      runSync('npm', ['run', 'test:mutation'], { cwd: ROOT, timeout: 900000 });
+      logger.info('✅ Mutation score gate passed (NORMATIVAS-TESTING §7)');
+    } catch {
+      logger.error(
+        '❌ Mutation score bajo el umbral (stryker thresholds.break) — ver .runtime/mutation/index.html',
+      );
+      return false;
+    }
+
     // Verify the public download chain BEFORE tagging. The delivery gate can
     // pass while the installer is unreachable for anyone without a session:
     // on 2026-09-29 the manifest pointed at the PRIVATE repo, so every public

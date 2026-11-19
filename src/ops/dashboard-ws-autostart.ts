@@ -30,8 +30,8 @@ import {
   isProcessAlive,
   killRecordedWsProcess,
   DASHBOARD_PROBE_TIMEOUT_MS,
-} from './dashboard-common';
-import { decideBudget, decidePortAction } from './dashboard-watchdog-policy';
+} from './dashboard-common.js';
+import { decideBudget, decidePortAction } from './dashboard-watchdog-policy.js';
 
 const ROOT = path.resolve(process.cwd());
 const RUNTIME_DIR = path.join(ROOT, '.runtime');

@@ -270,7 +270,9 @@ async function main(): Promise<void> {
     };
 
     // Run actual quality checks
-    console.log(dryRun ? 'Preview only; quality gates not executed.\n' : 'Running quality gates...\n');
+    console.log(
+      dryRun ? 'Preview only; quality gates not executed.\n' : 'Running quality gates...\n',
+    );
     const qualityResults = dryRun
       ? { typecheck: false, lint: false, errors: [] as string[] }
       : await runQualityChecks();
@@ -310,6 +312,7 @@ async function main(): Promise<void> {
           success: false,
           implementationPerformed: false,
           executionKind: 'deterministic-plan-and-checks',
+          llmCalled: false,
           checksExecuted: !dryRun,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,

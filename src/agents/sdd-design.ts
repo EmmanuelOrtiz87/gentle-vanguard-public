@@ -161,6 +161,7 @@ async function main(): Promise<void> {
         {
           success: true,
           executionKind: 'deterministic-design-template',
+          llmCalled: false,
           phaseComplete: false,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,

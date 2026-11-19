@@ -13,17 +13,22 @@
  * (ADR-0017: never break local startup).
  */
 
-export type { StoragePort, StorageEntry, SqliteDiskStorageOptions } from './storage-port';
-export { InMemoryStorage, SqliteDiskStorage } from './storage-port';
-export type { QueuePort, QueueMessage } from './queue-port';
-export { InProcessQueue } from './queue-port';
-export type { TracingPort, SpanHandle, SpanOptions, OtelTracingPortOptions } from './tracing-port';
-export { NoopTracingPort, OtelTracingPort } from './tracing-port';
+export type { StoragePort, StorageEntry, SqliteDiskStorageOptions } from './storage-port.js';
+export { InMemoryStorage, SqliteDiskStorage } from './storage-port.js';
+export type { QueuePort, QueueMessage } from './queue-port.js';
+export { InProcessQueue } from './queue-port.js';
+export type {
+  TracingPort,
+  SpanHandle,
+  SpanOptions,
+  OtelTracingPortOptions,
+} from './tracing-port.js';
+export { NoopTracingPort, OtelTracingPort } from './tracing-port.js';
 
 import { join } from 'path';
-import { InMemoryStorage, SqliteDiskStorage, type StoragePort } from './storage-port';
-import { InProcessQueue, type QueuePort } from './queue-port';
-import { NoopTracingPort, OtelTracingPort, type TracingPort } from './tracing-port';
+import { InMemoryStorage, SqliteDiskStorage, type StoragePort } from './storage-port.js';
+import { InProcessQueue, type QueuePort } from './queue-port.js';
+import { NoopTracingPort, OtelTracingPort, type TracingPort } from './tracing-port.js';
 
 export interface Ports {
   storage: StoragePort;

@@ -14,6 +14,12 @@
  * Uso:
  *   npx tsx src/tokens/token-spike-guard-daemon.ts            # corre hasta kill
  *   npx tsx src/tokens/token-spike-guard-daemon.ts --once     # un check y sale
+ *   npx tsx src/tokens/token-spike-guard-daemon.ts --attach   # asegura el daemon
+ *
+ * `--attach` (el modo del lazy step del autostart) significa: si ya hay una
+ * instancia viva, esta sale sin tocar nada; si no, esta toma posesion del
+ * pidfile y corre el loop. Es el comportamiento por defecto, pero el flag se
+ * acepta explicito para que la config y el script hablen el mismo idioma.
  */
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
@@ -25,6 +31,7 @@ const RUNTIME_DIR = join(ROOT, '.runtime');
 
 async function main(): Promise<void> {
   const once = process.argv.includes('--once');
+  const attach = process.argv.includes('--attach');
 
   if (once) {
     const metrics = await getCurrentTokens();
@@ -77,12 +84,13 @@ async function main(): Promise<void> {
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 
-  console.log(`[spike-guard-daemon] corriendo (PID ${process.pid}, pidfile ${pidFile})`);
+  console.log(
+    `[spike-guard-daemon] corriendo (PID ${process.pid}, pidfile ${pidFile}${attach ? ', attach' : ''})`,
+  );
   await runGuardLoop();
 }
 
-const invokedDirectly =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
   main().catch((err: unknown) => {
     console.error('[spike-guard-daemon] fatal:', String(err));

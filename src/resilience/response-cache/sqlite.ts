@@ -1,10 +1,15 @@
 import { createHash } from 'crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { db as getDbSingleton } from '../../database/db';
-import { resolveDeploymentTenantContext } from '../../integrations/deployment-tenant-context';
-import type { CacheEntry, CacheConfig } from './cache';
-import { computeTfIdfVector, getSemEmbeddings, semanticCacheLookup, semTokenize } from './semantic';
+import { db as getDbSingleton } from '../../database/db.js';
+import { resolveDeploymentTenantContext } from '../../integrations/deployment-tenant-context.js';
+import type { CacheEntry, CacheConfig } from './cache.js';
+import {
+  computeTfIdfVector,
+  getSemEmbeddings,
+  semanticCacheLookup,
+  semTokenize,
+} from './semantic.js';
 const logger = log('RESILIENCE-RESPONSE-CACHE-SQLITE');
 import { log } from '../../utils/logger.js';
 

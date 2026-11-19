@@ -11,20 +11,23 @@
  */
 
 import { createHash, randomUUID } from 'crypto';
-import { runNpxTsx, runSync } from '../core/run-command';
-import { estimateTokens as estimateBudgetTokens, getUsedTokensToday } from '../tokens/token-budget-guard.js';
+import { runNpxTsx, runSync } from '../core/run-command.js';
+import {
+  estimateTokens as estimateBudgetTokens,
+  getUsedTokensToday,
+} from '../tokens/token-budget-guard.js';
 import { dispatchAlert } from '../monitor/alert-dispatcher.js';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { compressStructural, estimateTokens } from '../compression/structural-compression.js';
 import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js';
-import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
+import { executeWithCircuit } from '../resilience/circuit-breaker-v2.js';
 import { registerAttempt, detectLoop } from '../resilience/anti-loop-guard.js';
 import { evaluateFailure } from '../security/guardrail-orchestrator.js';
 import { resolveBudgetAwareModel } from '../tokens/budget-aware-routing.js';
 import { log } from '../utils/logger.js';
-import { nativeResultFailure } from './native-result.js';
+import { nativeResultFailure, parseNativeResult } from './native-result.js';
 
 const logger = log('AGENT-DELEGATOR');
 
@@ -52,6 +55,10 @@ interface DelegationResult {
   error?: string;
   duration: number;
   model: string;
+  /** Envelope marker from the native helper (e.g. deterministic-domain-analysis). */
+  executionKind?: string;
+  /** true only when the helper proves it called a model; helpers do not. */
+  llmCalled?: boolean;
 }
 
 /**
@@ -92,7 +99,10 @@ function loadAutoDelegationLimits(): { globalMax: number; timeoutSeconds: number
       delegationTimeoutSeconds?: number;
       concurrencyLimits?: { globalMax?: number };
     };
-    if (typeof cfg.concurrencyLimits?.globalMax === 'number' && cfg.concurrencyLimits.globalMax > 0) {
+    if (
+      typeof cfg.concurrencyLimits?.globalMax === 'number' &&
+      cfg.concurrencyLimits.globalMax > 0
+    ) {
       globalMax = cfg.concurrencyLimits.globalMax;
     }
     if (typeof cfg.delegationTimeoutSeconds === 'number' && cfg.delegationTimeoutSeconds > 0) {
@@ -554,7 +564,12 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
           details: `Agente solicitado: ${request.agent}. Uso hoy: ${used} tokens de ${daily}.`,
           recommendation:
             'Reducir carga de subagentes o esperar el reset diario; el routing downgrade a modelo cheap ya está activo.',
-          metrics: { projectedPct: Number(pct.toFixed(2)), usedToday: used, dailyBudget: daily, agent: request.agent },
+          metrics: {
+            projectedPct: Number(pct.toFixed(2)),
+            usedToday: used,
+            dailyBudget: daily,
+            agent: request.agent,
+          },
           dedupeKey: 'daily-budget',
           dedupeTtlMs: 30 * 60_000,
         });
@@ -810,6 +825,7 @@ async function runNativeAgent(
       clearTimeout(timeoutTimer);
       const duration = Date.now() - startTime;
       const declaredFailure = nativeResultFailure(stdout);
+      const envelope = parseNativeResult(stdout).envelope;
 
       if (timedOut) {
         resolve({
@@ -825,6 +841,8 @@ async function runNativeAgent(
           output: stdout.trim(),
           duration,
           model,
+          executionKind: envelope?.executionKind,
+          llmCalled: envelope?.llmCalled,
         });
       } else {
         resolve({
@@ -983,6 +1001,9 @@ function main(): void {
         const result = await delegateWithGuardrail({ agent: agentName, task });
         console.log('\n=== Delegation Result ===\n');
         console.log(JSON.stringify(result, null, 2));
+        // Exit code must mirror the declared result: consumers that only look
+        // at the process status were seeing 0 for template/plan helpers.
+        if (!result.success) process.exitCode = 1;
       })();
       break;
 

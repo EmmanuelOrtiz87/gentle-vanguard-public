@@ -5,7 +5,7 @@
  * from anywhere in the stack.
  *
  * Usage:
- *   import { db, DatabaseManager } from '../database/db';
+ *   import { db, DatabaseManager } from '../database/db.js';
  *
  *   // Get manager singleton
  *   const mgr = db();

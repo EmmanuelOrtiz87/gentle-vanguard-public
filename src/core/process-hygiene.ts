@@ -617,22 +617,8 @@ function repoRootPattern(): RegExp {
   return new RegExp(root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 }
 
-const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-
-/**
- * Repo scope test. Many stack spawns use a RELATIVE script path
- * (`node --import tsx src/tokens/token-ingest.ts --watch` with cwd=repo),
- * so besides the absolute-root match we resolve any relative .ts path in the
- * command line against the repo root — if the file exists there, the process
- * belongs to this repo.
- */
 function isRepoScoped(cmdline: string): boolean {
-  if (repoRootPatternCache.test(cmdline)) return true;
-  for (const m of cmdline.matchAll(/(?:^|["'\s=])([\w.@-]+[\\/][\w.\\/-]*\.ts)\b/g)) {
-    const p = m[1];
-    if (!/^[A-Za-z]:/.test(p) && existsSync(join(REPO_ROOT, p))) return true;
-  }
-  return false;
+  return repoRootPatternCache.test(cmdline) && !hasExternalAbsoluteScriptPath(cmdline);
 }
 
 const repoRootPatternCache = repoRootPattern();
@@ -799,14 +785,21 @@ function classifyDaemon(
   pidFiles: Map<string, string> = new Map(),
 ): DaemonClass | null {
   if (hasExternalAbsoluteScriptPath(cmdline)) return null;
+  const hasAbsoluteRepoPath = repoRootPatternCache.test(cmdline);
   for (const c of DAEMON_CLASSES) {
-    if (c.match.test(cmdline)) return c;
+    if (c.match.test(cmdline)) {
+      if (hasAbsoluteRepoPath || !c.pidFile) return c;
+      const raw = c.pidFile ? pidValueFor(pidFiles, c.pidFile) : undefined;
+      if (raw && /^\d+$/.test(raw) && parseInt(raw, 10) === pid) return c;
+      continue;
+    }
     // Ambiguous relative shape: only the pidfile owner may claim the class.
     if (c.relativeMatch?.test(cmdline) && c.pidFile) {
       const raw = pidValueFor(pidFiles, c.pidFile);
       if (raw && /^\d+$/.test(raw) && parseInt(raw, 10) === pid) return c;
     }
   }
+  if (!hasAbsoluteRepoPath) return null;
   // Sin clase estatica: la FORMA del comando puede decir que es un servidor de
   // app (ver classifyAppServer). Si no lo es, es un one-shot y sigue su curso.
   return classifyAppServer(cmdline);
@@ -1085,10 +1078,26 @@ export function guardGitRepoConfig(
     } catch { /* best-effort */ }
   },
 ): { flipped: boolean } {
-  const r = runSync('git', ['-C', root, 'config', 'core.bare'], { timeout: 5000 });
+  const isBareRepository =
+    !existsSync(join(root, '.git')) &&
+    existsSync(join(root, 'HEAD')) &&
+    existsSync(join(root, 'config')) &&
+    existsSync(join(root, 'objects'));
+  const gitArgs = isBareRepository
+    ? ['--git-dir', root, 'config', 'core.bare']
+    : ['-C', root, 'config', 'core.bare'];
+  const r = runSync('git', gitArgs, { timeout: 5000 });
   const val = (r.stdout || '').trim();
   if (r.status === 0 && val === 'true') {
-    runSync('git', ['-C', root, 'config', 'core.bare', 'false'], { timeout: 5000 });
+    const repairArgs = isBareRepository
+      ? ['--git-dir', root, 'config', 'core.bare', 'false']
+      : ['-C', root, 'config', 'core.bare', 'false'];
+    const repair = runSync('git', repairArgs, { timeout: 5000 });
+    if (repair.status !== 0) {
+      throw new Error(
+        `Failed to restore core.bare=false for ${root}: ${repair.stderr || repair.stdout}`,
+      );
+    }
     log('REPARADO: core.bare=true detectado y restaurado a false (root: ' + root + ')');
     return { flipped: true };
   }

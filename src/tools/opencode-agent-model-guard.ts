@@ -29,7 +29,7 @@ export interface AgentModelClassification {
   checked: number;
 }
 
-type RegistryEntry = { capabilities?: string[] };
+type RegistryEntry = { capabilities?: string[]; fallbackChain?: string[] };
 type Registry = Record<string, RegistryEntry>;
 type AgentConfig = { model?: string };
 
@@ -72,6 +72,39 @@ export function classifyAgentModels(
   return { ok: problems.length === 0, problems, checked };
 }
 
+/**
+ * Fallback chains are used mid-task when a model fails; a tool-less target
+ * silently disables tool calling for the agent that fell back to it.
+ */
+export function validateFallbackChains(registry: Registry): AgentModelClassification {
+  const problems: AgentModelClassification['problems'] = [];
+  let checked = 0;
+  for (const [model, entry] of Object.entries(registry)) {
+    const chain = Array.isArray(entry.fallbackChain) ? entry.fallbackChain : [];
+    for (const fallback of chain) {
+      checked++;
+      const target = registry[fallback];
+      if (!target) {
+        problems.push({
+          agent: `fallback:${model}`,
+          model: fallback,
+          reason: 'fallback no registrado en config/model-health-registry.json',
+        });
+        continue;
+      }
+      const caps = Array.isArray(target.capabilities) ? target.capabilities : [];
+      if (!caps.includes('tools')) {
+        problems.push({
+          agent: `fallback:${model}`,
+          model: fallback,
+          reason: `el fallback declara capabilities ${JSON.stringify(caps)} sin "tools": si el primario falla, el agente pierde tool calling`,
+        });
+      }
+    }
+  }
+  return { ok: problems.length === 0, problems, checked };
+}
+
 function main(): number {
   const root = resolve(process.cwd());
   let agents: Record<string, AgentConfig> = {};
@@ -95,10 +128,13 @@ function main(): number {
     return 2;
   }
 
-  const { ok, problems, checked } = classifyAgentModels(agents, registry);
+  const fleet = classifyAgentModels(agents, registry);
+  const chains = validateFallbackChains(registry);
+  const problems = [...fleet.problems, ...chains.problems];
+  const checked = fleet.checked + chains.checked;
   if (problems.length === 0) {
     console.log(
-      `✓ opencode-agent-model-guard: ${checked} agente(s) sobre modelos con capability tools`,
+      `✓ opencode-agent-model-guard: ${fleet.checked} agente(s) y ${chains.checked} fallback(s) con capability tools`,
     );
     return 0;
   }

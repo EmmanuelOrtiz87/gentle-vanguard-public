@@ -32,7 +32,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { runNpxTsxSync, runSync } from '../core/run-command';
+import { runNpxTsxSync, runSync } from '../core/run-command.js';
 import { loadPlatformRegistry, validate } from '../content-operations/engine.js';
 import { buildShortQueueIntent, createJobFromShortRequest } from '../content-operations/shorts.js';
 

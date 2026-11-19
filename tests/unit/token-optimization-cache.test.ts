@@ -25,11 +25,11 @@ test('runPipeline stores the original prompt key before compression', async () =
   const prompt = `pipeline-cycle-${Date.now()}-${'original prompt '.repeat(40)}`;
   const first = await runPipeline(
     { prompt, context: 'pipeline-cycle-test', cacheEnabled: true },
-    { skipPreProcess: false, skipPostProcess: true },
+    { skipPreProcess: false, skipPostProcess: true, recordMetrics: false },
   );
   const second = await runPipeline(
     { prompt, context: 'pipeline-cycle-test', cacheEnabled: true },
-    { skipPreProcess: false, skipPostProcess: true },
+    { skipPreProcess: false, skipPostProcess: true, recordMetrics: false },
   );
 
   assert.equal(first.output.fromCache, false);
@@ -64,7 +64,7 @@ test('runPipeline can load session history into pre-process stage', async () => 
       sessionId,
       historyTurns: 28,
     },
-    { skipPreProcess: false, skipPostProcess: true },
+    { skipPreProcess: false, skipPostProcess: true, recordMetrics: false },
   );
 
   const preProcess = result.stages.find((stage) => stage.stage === 'pre-process');

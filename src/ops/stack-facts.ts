@@ -19,7 +19,7 @@ interface StackFacts {
     hardThreshold: number;
   };
   agents: { opencode: number };
-  skills: { indexed: number; critical: number };
+  skills: { canonical: number; indexed: number; mirrors: string[]; critical: number };
   tools: string[];
 }
 
@@ -35,13 +35,25 @@ export function collectStackFacts(root = process.cwd()): StackFacts {
   const budget = readJson<{
     tokenBudget: { limits: StackFacts['budgets'] };
   }>(join(resolved, 'config', 'token-budget-guard.json'));
-  const embedding = readJson<{ metadata: { totalSkills: number } }>(
-    join(resolved, '.atl', 'skill-embeddings.json'),
-  );
+  const embedding = readJson<{
+    metadata: { totalSkills: number };
+    skills: Array<{ name: string }>;
+  }>(join(resolved, '.atl', 'skill-embeddings.json'));
   const agentDir = join(resolved, '.opencode', 'agents');
   const tools = readdirSync(join(resolved, 'config'))
     .filter((name) => /^tool-.+\.json$/.test(name))
     .map((name) => name.slice(5, -5))
+    .sort();
+  const canonicalSkills = readdirSync(join(resolved, 'skills'), { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isDirectory() && existsSync(join(resolved, 'skills', entry.name, 'SKILL.md')),
+    )
+    .map((entry) => entry.name);
+  const canonicalSet = new Set(canonicalSkills);
+  const mirrorSkills = embedding.skills
+    .map((skill) => skill.name)
+    .filter((name) => !canonicalSet.has(name))
     .sort();
 
   const db = new Database(join(resolved, '.runtime', 'gentle-vanguard.db'), {
@@ -73,7 +85,12 @@ export function collectStackFacts(root = process.cwd()): StackFacts {
           ? readdirSync(agentDir).filter((name) => name.endsWith('.md')).length
           : 0,
       },
-      skills: { indexed: embedding.metadata.totalSkills, critical: CRITICAL_SKILLS.length },
+      skills: {
+        canonical: canonicalSkills.length,
+        indexed: embedding.metadata.totalSkills,
+        mirrors: mirrorSkills,
+        critical: CRITICAL_SKILLS.length,
+      },
       tools,
     };
   } finally {
@@ -108,7 +125,7 @@ function renderMarkdown(facts: StackFacts): string {
 - Nexus: \`${facts.nexus.tables}\` tables, \`${facts.nexus.migrations}\` migrations, \`${facts.nexus.rows}\` rows, \`${facts.nexus.journalMode}\`
 - Token budgets: daily \`${facts.budgets.daily}\`, session \`${facts.budgets.perSession}\`, agent \`${facts.budgets.perAgent}\`
 - OpenCode agents: \`${facts.agents.opencode}\`
-- Skills: \`${facts.skills.indexed}\` indexed, \`${facts.skills.critical}\` critical
+- Skills: \`${facts.skills.canonical}\` canonical, \`${facts.skills.indexed}\` indexed, \`${facts.skills.critical}\` critical${facts.skills.mirrors.length > 0 ? ` (indexed-only: ${facts.skills.mirrors.map((mirror) => `\`${mirror}\``).join(', ')})` : ''}
 - Tool profiles: ${facts.tools.map((tool) => `\`${tool}\``).join(', ')}
 `;
 }

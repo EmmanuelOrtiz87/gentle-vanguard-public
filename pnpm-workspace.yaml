@@ -43,6 +43,13 @@ overrides:
   qs: '>=6.16.1'
   hono: '>=4.13.16'
   postcss: '>=8.5.23'
+  # GHSA-g3hv-75wg-m249 (minimatch >=7.0.0 <11.0.1, moderate, DoS por
+  # amplificacion de globparts). El lock resolvia 10.2.6 (vulnerable) via
+  # @fast-csv/parse -> lodash.groupby. Parcheado desde 11.0.1; la API CJS de
+  # v11 es identica a la de v10 (exports.minimatch + named exports), asi que el
+  # bump no rompe a los consumidores. Ademas lodash.groupby@4.6.0 no declara
+  # ni usa minimatch: la dependencia era vestigial.
+  minimatch: '>=11.0.1'
   # Mantener Vitest en el primer parche del mocker vulnerable. Pin del paquete
   # COMPLETO: dejar sólo @vitest/mocker en 4.1.12 mezcla internals (runner 4.1.11
   # vs mocker 4.1.12) y rompe los tests public-web-* con "Cannot read properties

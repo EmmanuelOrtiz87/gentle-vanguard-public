@@ -13,9 +13,9 @@
  */
 
 import { runSyncShell } from '../core/run-command.js';
-import { getTimeoutConfig, getTimeout } from '../core/timeout-config';
-import { trackExecution, getPerformanceMetrics } from '../core/timeout-monitor';
-import { getResilienceConfig } from '../core/resilience-bridge';
+import { getTimeoutConfig, getTimeout } from '../core/timeout-config.js';
+import { trackExecution, getPerformanceMetrics } from '../core/timeout-monitor.js';
+import { getResilienceConfig } from '../core/resilience-bridge.js';
 
 let passed = 0;
 let failed = 0;

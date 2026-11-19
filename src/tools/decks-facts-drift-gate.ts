@@ -57,7 +57,7 @@ import { collectStackFacts } from '../ops/stack-facts.js';
 
 export interface DeckFacts {
   qualityGates: { total: number; enforced: number; preCommit: number };
-  skills: { indexed: number; critical: number };
+  skills: { canonical: number; indexed: number; critical: number };
   nexus: { tables: number; migrations: number };
   agents: { definitions: number; openCode: number; roles: number; bindings: number };
   scale: { tsFiles: number; testFiles: number; npmScripts: number; apps: number };
@@ -93,7 +93,15 @@ function trackedFiles(root: string): { files: string[]; source: 'git' | 'filesys
   return { files: walkFiles(root), source: 'filesystem' };
 }
 
-const IGNORED_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'coverage', '.runtime']);
+const IGNORED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  'coverage',
+  '.runtime',
+]);
 
 function walkFiles(dir: string, out: string[] = []): string[] {
   let entries: string[] = [];
@@ -163,7 +171,9 @@ function readAcademyCatalog(root: string): DeckFacts['academy'] {
 
   // El catalogo es un archivo de navegador: se evalua con un `window` falso
   // para leer la estructura real y no un conteo de texto.
-  const sandbox: { GV_RECO?: { products?: Array<{ slug?: string; kind?: string; tier?: string }> } } = {};
+  const sandbox: {
+    GV_RECO?: { products?: Array<{ slug?: string; kind?: string; tier?: string }> };
+  } = {};
   try {
     const source = readFileSync(catalogPath, 'utf8');
     new Function('window', source)(sandbox);
@@ -240,14 +250,14 @@ export function measureFacts(root: string): { facts: DeckFacts; source: 'git' | 
   ) as { agentBindings?: Record<string, unknown> };
   const bindings = Object.keys(modelRouter.agentBindings ?? {}).length;
 
-  const agentConfig = JSON.parse(
-    readFileSync(join(root, 'config', 'agents.json'), 'utf8'),
-  ) as { agents?: Record<string, unknown> };
+  const agentConfig = JSON.parse(readFileSync(join(root, 'config', 'agents.json'), 'utf8')) as {
+    agents?: Record<string, unknown>;
+  };
 
   let workflows = 0;
   try {
-    workflows = readdirSync(join(root, '.github', 'workflows')).filter((f) =>
-      f.endsWith('.yml') || f.endsWith('.yaml'),
+    workflows = readdirSync(join(root, '.github', 'workflows')).filter(
+      (f) => f.endsWith('.yml') || f.endsWith('.yaml'),
     ).length;
   } catch {
     workflows = 0;
@@ -261,7 +271,11 @@ export function measureFacts(root: string): { facts: DeckFacts; source: 'git' | 
       enforced: gates.filter((g) => g.enforced).length,
       preCommit: gates.filter((g) => g.stage === 'pre-commit').length,
     },
-    skills: { indexed: stack.skills.indexed, critical: stack.skills.critical },
+    skills: {
+      canonical: stack.skills.canonical,
+      indexed: stack.skills.indexed,
+      critical: stack.skills.critical,
+    },
     nexus: { tables: stack.nexus.tables, migrations: stack.nexus.migrations },
     agents: {
       definitions: Object.keys(agentConfig.agents ?? {}).length,
@@ -360,13 +374,23 @@ export const CLAIM_SPECS: readonly ClaimSpec[] = [
     label: 'skills indexadas',
     expected: [0],
     patterns: [
-      // El total indexado. Las skills CRITICAS tienen su propia afirmacion:
-      // "28 skills criticas" no es el total, es un subconjunto.
+      // El total indexado. Las skills CRITICAS y las CANONICAS tienen su
+      // propia afirmacion: "28 skills criticas" / "255 skills canonicas" son
+      // subconjuntos, no el total indexado.
       {
-        re: /(\d+)\s+skills(?!\s+cr[ií]t)(?!\s+de\s+ciberseguridad)/gi,
+        re: /(\d+)\s+skills(?!\s+cr[ií]t)(?!\s+can[oó]nic)(?!\s+de\s+ciberseguridad)/gi,
         groups: [1],
       },
       { re: /(\d+)\s+capacidades\b/gi, groups: [1] },
+    ],
+  },
+  {
+    id: 'skills-canonical',
+    label: 'skills canonicas',
+    expected: [0],
+    patterns: [
+      { re: /(\d+)\s+skills\s+can[oó]nicas/gi, groups: [1] },
+      { re: /(\d+)\s+canonical\s+skills/gi, groups: [1] },
     ],
   },
   {
@@ -645,6 +669,7 @@ export function expectedValues(facts: DeckFacts): Record<string, number[]> {
     'quality-gates-enforced': [facts.qualityGates.enforced, facts.qualityGates.total],
     'quality-gates-pre-commit': [facts.qualityGates.preCommit],
     skills: [facts.skills.indexed],
+    'skills-canonical': [facts.skills.canonical],
     'skills-critical': [facts.skills.critical],
     'nexus-tables': [facts.nexus.tables],
     'nexus-migrations': [facts.nexus.migrations],
@@ -729,9 +754,7 @@ export function checkDeckFacts(files: DeckFile[], facts: DeckFacts): FactsReport
         rule: 'facts/drift',
         severity: 'error',
         file,
-        message:
-          `el deck afirma "${where}" pero el repo mide ` +
-          `${measured} (${factId})`,
+        message: `el deck afirma "${where}" pero el repo mide ` + `${measured} (${factId})`,
         fix: `actualizar la cifra a ${measured} (o regenerar el deck si el hecho cambio)`,
       };
     }
@@ -757,9 +780,7 @@ export function checkDeckFacts(files: DeckFile[], facts: DeckFacts): FactsReport
           }
           claims += 1;
           const claimed = pattern.groups.map((g) => parseNumber(match?.[g] ?? ''));
-          const ok = claimed.every(
-            (value, index) => value === expectedForSpec[index],
-          );
+          const ok = claimed.every((value, index) => value === expectedForSpec[index]);
           if (!ok) {
             // Modo floor: el primer grupo es la cifra minima; el resto tiene
             // que coincidir exacto.
@@ -872,7 +893,10 @@ export function collectDeckFiles(root: string): DeckFile[] {
     for (const name of names.sort()) {
       if (!accepts(name)) continue;
       const full = join(dir, name);
-      files.push({ path: relative(root, full).split('\\').join('/'), text: readFileSync(full, 'utf8') });
+      files.push({
+        path: relative(root, full).split('\\').join('/'),
+        text: readFileSync(full, 'utf8'),
+      });
     }
   }
   const manualDeck = join(root, 'docs', 'presentations', 'decks', 'build', 'manual.js');
@@ -913,7 +937,9 @@ function main(): void {
         `${report.errors} errores (medicion: ${source})`,
     );
     for (const f of report.findings) {
-      console.log(`  ${f.severity === 'error' ? 'ERR ' : 'WARN'} ${f.rule} ${f.file}: ${f.message}`);
+      console.log(
+        `  ${f.severity === 'error' ? 'ERR ' : 'WARN'} ${f.rule} ${f.file}: ${f.message}`,
+      );
       console.log(`       fix: ${f.fix}`);
     }
     if (report.ok) console.log('  OK: las cifras de los decks coinciden con el repo');

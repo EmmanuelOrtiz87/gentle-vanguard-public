@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
+import { getEffectiveProcessTimeout } from '../core/timeout-config.js';
 import { runSyncShell } from '../core/run-command.js';
 
 const ROOT = resolve(process.cwd());

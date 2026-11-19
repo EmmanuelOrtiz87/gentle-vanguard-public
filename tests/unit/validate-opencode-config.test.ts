@@ -75,3 +75,25 @@ test('validate-opencode-config rejects remote MCP services without a URL', () =>
   assert.notEqual(result.status, 0);
   assert.match(result.stdout, /MCP service broken with type remote requires url/);
 });
+
+test('validate-opencode-config accepts nested OpenCode MCP servers with argv commands', () => {
+  const result = runValidator({
+    ...baseConfig({
+      servers: {
+        harness: { type: 'local', command: ['node', '--import', 'tsx', 'server.ts'] },
+      },
+    }),
+    tools: { bash: true, read: true, write: true, edit: true, list: true },
+  });
+  assert.equal(result.status, 0, result.stdout);
+});
+
+test('validate-opencode-config rejects invalid argv in a nested MCP server', () => {
+  const result = runValidator(
+    baseConfig({
+      servers: { broken: { type: 'local', command: ['node', 3] } },
+    }),
+  );
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /MCP service broken with type local requires command/);
+});

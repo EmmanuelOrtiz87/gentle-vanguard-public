@@ -5,7 +5,7 @@
  * desde otros módulos del stack.
  */
 
-import { runNpxTsx } from '../core/run-command';
+import { runNpxTsx } from '../core/run-command.js';
 const logger = log('TOOLS-EVENT-SOURCING-API');
 import { log } from '../utils/logger.js';
 

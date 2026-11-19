@@ -17,7 +17,7 @@ import {
   isDashboardHtml,
   readDashboardPorts,
   saveDashboardPorts,
-} from './dashboard-common';
+} from './dashboard-common.js';
 
 const ROOT = path.resolve(process.cwd());
 const WEB_APP_DIR = path.join(ROOT, 'apps', 'web-dashboard');
@@ -51,8 +51,8 @@ function parseArgs(): CliOptions {
   };
 }
 
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
-import { run } from '../core/run-command';
+import { getEffectiveProcessTimeout } from '../core/timeout-config.js';
+import { run } from '../core/run-command.js';
 
 /** HTTP GET check until a server responds or timeout */
 async function waitForServer(url: string, maxAttempts = 20, delayMs = 1000): Promise<boolean> {
@@ -157,7 +157,6 @@ function openBrowser(vitePort: number): void {
     if (process.platform === 'win32') {
       spawn('cmd.exe', ['/d', '/c', 'start', '""', 'chrome.exe', '--new-window', url], {
         windowsHide: true,
-        detached: true,
         stdio: 'ignore',
       }).unref();
     } else if (process.platform === 'darwin') {

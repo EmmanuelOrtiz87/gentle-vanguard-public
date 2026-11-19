@@ -25,6 +25,11 @@ export interface TokenTransaction {
   createdAt: string;
 }
 
+export interface ReconciledUsage {
+  sessions: number;
+  updated: number;
+}
+
 export class TokenRepo {
   constructor(private db: Database.Database) {}
 
@@ -103,5 +108,57 @@ export class TokenRepo {
     });
     write();
     return { inserted, skipped };
+  }
+
+  /**
+   * Eleva cada agregado `token_usage` al mínimo real dictado por sus transacciones.
+   *
+   * Las fuentes incrementales (codex/zcode/minimax/claude) sobrescribían el
+   * agregado con la última ventana ingerida, dejando p.ej. 349k de 41.9M reales.
+   * La reconciliación es monotónica (MAX) para no destruir históricos cuyas
+   * transacciones solo cubren parte de la sesión, e idempotente por diseño.
+   * Sesiones de sondeo (`probe:`) quedan excluidas: no son uso real.
+   */
+  reconcileUsageFromTransactions(
+    tenantId: string,
+    excludedPrefixes: string[] = ['probe:'],
+  ): ReconciledUsage {
+    const rows = this.db
+      .prepare(
+        `SELECT u.id, u.prompt_tokens p, u.completion_tokens c, COALESCE(u.cost, 0) cost,
+                COALESCE(SUM(t.input_tokens), 0) input_total,
+                COALESCE(SUM(t.output_tokens), 0) output_total,
+                COALESCE(SUM(t.cost), 0) cost_total
+         FROM token_usage u
+         JOIN token_transactions t ON t.session_id = u.session_id AND t.tenant_id = u.tenant_id
+         WHERE u.tenant_id = ?
+           AND NOT (${excludedPrefixes.map(() => 'u.session_id LIKE ?').join(' OR ') || '0'})
+         GROUP BY u.id`,
+      )
+      .all(tenantId, ...excludedPrefixes.map((prefix) => `${prefix}%`)) as Array<{
+      id: number;
+      p: number;
+      c: number;
+      cost: number;
+      input_total: number;
+      output_total: number;
+      cost_total: number;
+    }>;
+    const update = this.db.prepare(
+      `UPDATE token_usage SET prompt_tokens = ?, completion_tokens = ?, cost = ? WHERE id = ?`,
+    );
+    const apply = this.db.transaction(() => {
+      let updated = 0;
+      for (const row of rows) {
+        const prompt = Math.max(row.p ?? 0, row.input_total);
+        const completion = Math.max(row.c ?? 0, row.output_total);
+        const cost = Math.max(row.cost, row.cost_total);
+        if (prompt === (row.p ?? 0) && completion === (row.c ?? 0) && cost === row.cost) continue;
+        update.run(prompt, completion, cost, row.id);
+        updated++;
+      }
+      return updated;
+    });
+    return { sessions: rows.length, updated: apply() };
   }
 }

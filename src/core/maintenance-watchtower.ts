@@ -11,16 +11,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import Database from 'better-sqlite3';
-import { runNpxTsx } from './run-command';
-import { runHygiene } from './process-hygiene';
+import { runNpxTsx } from './run-command.js';
+import { runHygiene } from './process-hygiene.js';
 import {
   sweepStaleSessions,
   resolveSweepDbPath,
-  DEFAULT_STALE_HOURS,
   DEFAULT_PROTECT_HOURS,
   DEFAULT_IDLE_WINDOW_DAYS,
-} from '../session/stale-session-sweeper';
-import { witr, ensureWitrInstalled } from '../web/witr-wrapper';
+} from '../session/stale-session-sweeper.js';
+import { resolveSessionExpiryHours } from '../session/session-expiry.js';
+import { readState as readCodegraphState } from '../ops/codegraph-toggle.js';
+import { witr, ensureWitrInstalled } from '../web/witr-wrapper.js';
 import {
   results,
   quiet,
@@ -29,25 +30,26 @@ import {
   addResult,
   ROOT,
   RUNTIME_DIR,
-} from './watchtower/context';
+} from './watchtower/context.js';
 import {
   fileExists,
   readJson,
   testPort,
   testHttp,
   isCodeGraphProcessRunning,
-} from './watchtower/helpers';
-import { killRecordedWsProcess, ensureWatchdog } from '../ops/dashboard-common';
-import { watchdogIsAlive, decidePortAction } from '../ops/dashboard-watchdog-policy';
-import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard';
-import { checkAppsRegistry, checkAppsAudit } from './watchtower/checks-apps';
-import { checkBgTasks } from './watchtower/checks-bg-tasks';
+} from './watchtower/helpers.js';
+import { killRecordedWsProcess, ensureWatchdog } from '../ops/dashboard-common.js';
+import { watchdogIsAlive, decidePortAction } from '../ops/dashboard-watchdog-policy.js';
+import { checkDashboardWs, checkGvAnalytics } from './watchtower/checks-dashboard.js';
+import { checkAppsRegistry, checkAppsAudit } from './watchtower/checks-apps.js';
+import { checkBgTasks } from './watchtower/checks-bg-tasks.js';
+import { checkLazySteps } from './watchtower/checks-autostart.js';
 import {
   checkDesignCanon,
   checkDesignSurfacesDrift,
   checkRepoOrganization,
   checkUndefinedClasses,
-} from './watchtower/checks-design-canon';
+} from './watchtower/checks-design-canon.js';
 import {
   checkCodeGraph,
   checkTimeoutDaemon,
@@ -58,14 +60,14 @@ import {
   checkMcp,
   checkLoopGuard,
   checkGuardrails,
-} from './watchtower/checks-infra';
+} from './watchtower/checks-infra.js';
 import {
   checkSessionPipeline,
   checkHooks,
   checkConfigs,
   checkToolConfigs,
   checkMissingScripts,
-} from './watchtower/checks-config';
+} from './watchtower/checks-config.js';
 import {
   checkSecurity,
   checkSecretScanner,
@@ -75,7 +77,7 @@ import {
   checkWebCrawler,
   checkAgentGovernance,
   checkGitHistorySecrets,
-} from './watchtower/checks-security';
+} from './watchtower/checks-security.js';
 import {
   checkTracing,
   checkStatePersistence,
@@ -84,8 +86,8 @@ import {
   checkAuditPipeline,
   checkGovernance,
   getWatchtowerComponentStatus,
-} from './watchtower/checks-data';
-import { rebuildMlEmbeddings, reindexEngramRag } from './watchtower/rebuild';
+} from './watchtower/checks-data.js';
+import { rebuildMlEmbeddings, reindexEngramRag } from './watchtower/rebuild.js';
 
 // ─── Auto-Heal ──────────────────────────────────────────────────────────────
 
@@ -152,7 +154,7 @@ async function autoHeal() {
       const sweepDb = new Database(sweepDbPath);
       try {
         const sweep = sweepStaleSessions(sweepDb, {
-          staleHours: DEFAULT_STALE_HOURS,
+          staleHours: resolveSessionExpiryHours(ROOT),
           protectHours: DEFAULT_PROTECT_HOURS,
           idleWindowDays: DEFAULT_IDLE_WINDOW_DAYS,
           apply: true,
@@ -405,7 +407,14 @@ async function autoHeal() {
 
   // CodeGraph server restart
   const cgFail = needsRestart.filter((r) => r.component === 'codegraph');
-  if (cgFail.length > 0) {
+  const cgState = readCodegraphState(ROOT);
+  if (cgFail.length > 0 && cgState.enabled === false) {
+    // Capacidad apagada por decision declarada: el autoheal NO la resucita.
+    // Re-animarla contradiria la decision y volveria a payer el indice.
+    const reason = cgState.reason ?? 'sin motivo declarado';
+    if (!quiet) console.log('  [Heal] CodeGraph omitido: capacidad apagada por politica');
+    addResult('codegraph', 'autoheal', 'SKIP', `apagado por politica - ${reason}`, 'ok');
+  } else if (cgFail.length > 0) {
     if (!quiet) console.log('  [Heal] Restarting CodeGraph serve...');
     try {
       // Delegate to the canonical daemon script (src/integrations/codegraph-mcp-server-start.ts).
@@ -568,6 +577,7 @@ async function runAllChecks() {
     checkAppsRegistry,
     checkAppsAudit,
     checkBgTasks,
+    checkLazySteps,
     checkDesignCanon,
     checkDesignSurfacesDrift,
     checkUndefinedClasses,

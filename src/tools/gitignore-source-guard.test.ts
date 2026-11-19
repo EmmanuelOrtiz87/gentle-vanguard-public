@@ -90,6 +90,23 @@ describe('gitignore-source-guard', () => {
     assert.equal(report.ok, false, 'el gate deberia fallar');
   });
 
+  it('acepta un entry point generado por build ausente en un checkout limpio', () => {
+    const root = makeRepo({
+      'package.json': JSON.stringify({
+        name: 'x',
+        main: 'dist/cli.js',
+        bin: { x: './dist/cli.js' },
+        scripts: { build: 'tsc', start: 'node dist/cli.js' },
+      }),
+      '.gitignore': 'dist/\n',
+    });
+    execFileSync('git', ['add', 'package.json', '.gitignore'], { cwd: root, windowsHide: true });
+
+    const report = checkIgnoredSource(root);
+    const missing = report.findings.filter((f) => f.rule === 'gitignore/missing-reference');
+    assert.equal(missing.length, 0, `falso positivo: ${JSON.stringify(missing, null, 2)}`);
+  });
+
   it('resuelve el archivo contra la raiz del runner (--root), no contra el package', () => {
     // Caso REAL del repo: `vitest run --root scripts lifecycle-lock.test.ts`.
     // El archivo vive en <pkg>/scripts/, no en <pkg>/. El gate lo reportaba

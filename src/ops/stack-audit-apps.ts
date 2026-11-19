@@ -24,10 +24,15 @@
  *   npx tsx src/ops/stack-audit-apps.ts --json            # salida JSON
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runSync } from '../core/run-command.js';
+import { assertKnownAppScope, inspectAppScope, readWorkingFile } from '../git/prepush-app-scope.js';
+import {
+  appAuditEnvironment,
+  appAuditFingerprint,
+  withAppAuditReceipt,
+} from '../git/app-audit-receipts.js';
 
 export type AppCheckKind = 'typecheck' | 'test' | 'lint' | 'build';
 
@@ -47,6 +52,7 @@ export interface AppAudit {
   omissions: Array<{ script: string; reason: string }>;
   totalDurationMs: number;
   fixCmd?: string;
+  evidence?: { reused: boolean };
 }
 
 const ROOT = resolve(process.cwd());
@@ -359,8 +365,11 @@ function readNamedTestScripts(app: string): string[] {
   try {
     const pkgPath = join(APPS_DIR, app, 'package.json');
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as PackageJsonScripts;
-    return Object.keys(pkg.scripts ?? {})
-      .filter((name) => name.startsWith('test:'))
+    const scripts = pkg.scripts ?? {};
+    const watch = scripts['test:watch'];
+    const duplicateWatch = watch === 'vitest' && scripts.test === 'vitest run';
+    return Object.keys(scripts)
+      .filter((name) => name.startsWith('test:') && !(name === 'test:watch' && duplicateWatch))
       .sort();
   } catch {
     return [];
@@ -369,8 +378,8 @@ function readNamedTestScripts(app: string): string[] {
 
 function deferredTestReason(script: string): string | undefined {
   const suffix = script.slice('test:'.length).toLowerCase();
-  if (/watch|coverage/.test(suffix))
-    return 'Watch/coverage mode is not a bounded deterministic suite';
+  if (/watch/.test(suffix)) return 'Interactive watch mode has no bounded exit';
+  if (/coverage/.test(suffix)) return 'Coverage run requires an explicit local test contract';
   if (/quality/.test(suffix))
     return 'Composite quality script duplicates typecheck/lint/test checks';
   if (/e2e|browser|gui|visual|autoplay|journey|bot-manager|smoke/.test(suffix)) {
@@ -569,29 +578,66 @@ export function buildAppAudit(
 
 /** Audita todas las apps con los kinds pedidos (default: typecheck + test + build). */
 export async function auditApps(
-  options: { only?: AppCheckKind[]; execute?: boolean; affected?: string | null } = {},
+  options: {
+    only?: AppCheckKind[];
+    execute?: boolean;
+    affected?: string | null;
+    includeWorktree?: boolean;
+    reuseEvidence?: boolean;
+    progress?: (message: string) => void;
+  } = {},
 ): Promise<AppAudit[]> {
   const only = options.only ?? ['typecheck', 'test', 'build'];
   const execute = options.execute ?? true;
   const allApps = discoverApps();
-  const apps = options.affected ? filterAffectedApps(allApps, options.affected) : allApps;
+  const apps = options.affected
+    ? filterAffectedApps(allApps, options.affected, options.includeWorktree)
+    : allApps;
   const plans = planAppAudits(apps, only);
   const audits: AppAudit[] = [];
   for (const { app, packageJsonExists, plan, omissions } of plans) {
     const totalStart = Date.now();
-    const results: AppCheck[] = [];
-    if (execute) {
-      for (const { kind, script } of plan) {
-        results.push(runAppCheck(app, kind, script));
+    const produce = (): AppAudit => {
+      const results: AppCheck[] = [];
+      if (execute) {
+        for (const { kind, script } of plan) {
+          options.progress?.(`[app-audit] ${app} · ${kind}: empezando`);
+          const result = runAppCheck(app, kind, script);
+          options.progress?.(
+            `[app-audit] ${app} · ${kind}: ${result.status} (${result.durationMs}ms)`,
+          );
+          results.push(result);
+        }
+      } else {
+        for (const { kind } of plan) {
+          results.push({
+            kind,
+            status: 'SKIP',
+            durationMs: 0,
+            message: 'execute=false (plan only)',
+          });
+        }
       }
-    } else {
-      for (const { kind } of plan) {
-        results.push({ kind, status: 'SKIP', durationMs: 0, message: 'execute=false (plan only)' });
-      }
-    }
-    const audit = buildAppAudit(app, packageJsonExists, plan, results, omissions);
-    audit.totalDurationMs = Date.now() - totalStart;
-    audits.push(audit);
+      const audit = buildAppAudit(app, packageJsonExists, plan, results, omissions);
+      audit.totalDurationMs = Date.now() - totalStart;
+      return audit;
+    };
+    if (execute && options.reuseEvidence) {
+      const result = withAppAuditReceipt(
+        ROOT,
+        app,
+        () => appAuditFingerprint(ROOT, app, { plan, omissions }, appAuditEnvironment()),
+        produce,
+      );
+      options.progress?.(
+        `[app-audit] ${app} · evidencia: ${result.reused ? 'reutilizada (insumos sin cambios)' : 'ejecución nueva'}`,
+      );
+      audits.push({
+        ...result.audit,
+        evidence: { reused: result.reused },
+        totalDurationMs: Date.now() - totalStart,
+      });
+    } else audits.push(produce());
   }
   return audits;
 }
@@ -599,34 +645,21 @@ export async function auditApps(
 /**
  * Filtra las apps a solo las que tienen cambios vs un git ref.
  *
- * affected apps/<app>/**  -> incluye <app>
- * affected shared/**     -> todas (no podemos saber que apps importan shared)
- *
- * Si git falla, devuelve la lista completa (fail-open).
+ * Usa el mismo selector que el pre-push. Un impacto desconocido detiene la ejecución.
  */
-export function filterAffectedApps(allApps: string[], ref: string): string[] {
-  try {
-    const out = execFileSync('git', ['diff', '--name-only', `${ref}...HEAD`], {
-      cwd: ROOT,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      windowsHide: true,
-    });
-    const changed = out.split('\n').filter(Boolean);
-    if (changed.length === 0) return []; // sin cambios -> audit vacio (cache hit)
-    const out2 = new Set<string>();
-    for (const file of changed) {
-      // shared/* afecta a todo (no podemos inferir)
-      if (file.startsWith('shared/') || file === 'package.json' || file === 'pnpm-lock.yaml') {
-        return allApps;
-      }
-      const m = /^apps\/([^/]+)(\/|$)/.exec(file);
-      if (m && allApps.includes(m[1])) out2.add(m[1]);
-    }
-    return Array.from(out2);
-  } catch {
-    return allApps;
-  }
+export function filterAffectedApps(
+  allApps: string[],
+  ref: string,
+  includeWorktree = false,
+): string[] {
+  const scope = inspectAppScope(
+    ref,
+    'HEAD',
+    undefined,
+    includeWorktree ? readWorkingFile : undefined,
+  );
+  assertKnownAppScope(scope);
+  return scope.mode === 'full' ? allApps : allApps.filter((app) => scope.apps.includes(app));
 }
 
 // ─── CLI ────────────────────────────────────────────────────────────────────
@@ -651,7 +684,14 @@ async function main(): Promise<void> {
   const execute = !args.includes('--plan');
   const listOnly = only.length === 0;
 
-  const audits = await auditApps({ only, execute, affected });
+  const audits = await auditApps({
+    only,
+    execute,
+    affected,
+    includeWorktree: args.includes('--include-worktree'),
+    reuseEvidence: args.includes('--reuse-evidence'),
+    progress: (message) => console.error(message),
+  });
   const passed = audits.filter((a) => a.status === 'PASS').length;
   const warned = audits.filter((a) => a.status === 'WARN').length;
   const failed = audits.filter((a) => a.status === 'FAIL').length;

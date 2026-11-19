@@ -11,6 +11,7 @@ import {
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runNpxTsxSync } from '../core/run-command.js';
+import { findOpenSpan } from '../monitor/span-files.js';
 import { SessionContextLog } from '../core/session-context-log.js';
 import { receivePendingCloses, closeAckCommand } from './session-close/close-ack.js';
 import { validateSession, registerResource } from './session-validator.js';
@@ -40,6 +41,23 @@ function getTimeout(key: string, fallback: number): number {
 const DEFAULT_TIMEOUT = getTimeout('process_execution.script_default_ms', 30000);
 const LONG_TIMEOUT = getTimeout('process_execution.script_long_running_ms', 120000);
 
+// Policy lives in config/session-autostart.config.json; the 8h window is only
+// the fallback for when the file is missing.
+function orphanMaxAgeHours(): number {
+  try {
+    const cfgPath = join(ROOT, 'config', 'session-autostart.config.json');
+    if (existsSync(cfgPath)) {
+      const cfg = JSON.parse(readFileSync(cfgPath, 'utf-8'));
+      const hours = cfg.orphanSessionCleanup?.maxAgeHours;
+      if (cfg.orphanSessionCleanup?.enabled === false) return Number.POSITIVE_INFINITY;
+      if (typeof hours === 'number' && hours > 0) return hours;
+    }
+  } catch {
+    /* fallback to default */
+  }
+  return 8;
+}
+
 function log(msg: string) {
   console.log(`[CLEANUP] ${msg}`);
 }
@@ -52,7 +70,9 @@ function warn(msg: string) {
 
 function removeStaleSessions(sessionDir: string): void {
   if (!existsSync(sessionDir)) return;
-  const cutoff = Date.now() - 8 * 3600000;
+  const maxAgeHours = orphanMaxAgeHours();
+  if (!Number.isFinite(maxAgeHours)) return; // orphanSessionCleanup.enabled=false
+  const cutoff = Date.now() - maxAgeHours * 3600000;
   const today = new Date().toISOString().slice(0, 10);
   for (const f of readdirSync(sessionDir).filter((f) => f.endsWith('.json'))) {
     // The live session state file must never be swept, even if its mtime
@@ -285,51 +305,34 @@ export async function runCleanup(
   if (!skipSessionInit) {
     log('Closing session tracing span...');
     const spanDir = join(repoRoot, '.telemetry', 'spans');
-    if (existsSync(spanDir)) {
-      const spans = readdirSync(spanDir)
-        .filter((f) => f.startsWith('spans-') && f.endsWith('.jsonl'))
-        .sort()
-        .reverse();
-      if (spans.length > 0) {
-        const content = readFileSync(join(spanDir, spans[0]), 'utf-8');
-        const lines = content.split('\n').filter((l) => l.trim());
-        for (const line of lines) {
-          try {
-            const span = JSON.parse(line);
-            if (span.name === 'session-start') {
-              const tracingScript = join(repoRoot, 'src/monitor/tracing-instrument.ts');
-              if (existsSync(tracingScript)) {
-                const result = runNpxTsxSync(
-                  tracingScript,
-                  [
-                    '-Action',
-                    'end',
-                    '-TraceId',
-                    span.traceId,
-                    '-SpanId',
-                    span.spanId,
-                    '-SpanName',
-                    'session-start',
-                    '-Attributes',
-                    JSON.stringify({ startTimeUnixNano: span.startTimeUnixNano }),
-                    '-Quiet',
-                  ],
-                  { cwd: repoRoot, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
-                );
-                if (result.status === 0) {
-                  ok('Tracing span closed');
-                } else {
-                  warn('Tracing span close failed (non-fatal)');
-                }
-              } else {
-                warn('Tracing script not found, span not closed');
-              }
-              break;
-            }
-          } catch {
-            /* skip */
-          }
+    const span = findOpenSpan(spanDir);
+    if (span) {
+      const tracingScript = join(repoRoot, 'src/monitor/tracing-instrument.ts');
+      if (existsSync(tracingScript)) {
+        const result = runNpxTsxSync(
+          tracingScript,
+          [
+            '-Action',
+            'end',
+            '-TraceId',
+            String(span.traceId),
+            '-SpanId',
+            String(span.spanId),
+            '-SpanName',
+            'session-start',
+            '-Attributes',
+            JSON.stringify({ startTimeUnixNano: span.startTimeUnixNano }),
+            '-Quiet',
+          ],
+          { cwd: repoRoot, stdio: 'pipe', timeout: DEFAULT_TIMEOUT },
+        );
+        if (result.status === 0) {
+          ok('Tracing span closed');
+        } else {
+          warn('Tracing span close failed (non-fatal)');
         }
+      } else {
+        warn('Tracing script not found, span not closed');
       }
     }
   }

@@ -47,7 +47,19 @@ const BLOCK_LEVELS: Record<AuditLevel, AuditLevel[]> = {
 //   forzar minimatch 11 bajo glob 7 rompe la API que archiver-utils/readdir-glob usan.
 //   Superficie: XLSX export local de alexandria/gv-analytics. Revisar cuando exceljs
 //   actualice archiver.
-const ALLOWLISTED_ADVISORIES = new Set<string>(['GHSA-vfj7-8cjw-p6xm', 'GHSA-g3hv-75wg-m249']);
+// - GHSA-fc5q-39xc-vjpf (picomatch, CVE-2026-112336/33672): sin versión parcheada
+//   publicada (latest 4.0.7, todos los majors en rango vulnerable, 2026-11-17). `pnpm why
+//   picomatch` verifica que TODAS las cadenas terminan en devDependencies (tailwindcss,
+//   secretlint, @typescript-eslint, @codegraph); `pnpm audit --prod` las reporta igual
+//   (limitación de pnpm en lock workspace), pero no hay superficie runtime: 0 imports del
+//   paquete en src/ ni en servidores de apps. Baseline aprobado por el owner 2026-11-17
+//   (mismas entradas en config/baselines/dependabot-alerts.json, alertas ABIERTAS en
+//   GitHub). Retirar al publicarse el fix upstream.
+const ALLOWLISTED_ADVISORIES = new Set<string>([
+  'GHSA-vfj7-8cjw-p6xm',
+  'GHSA-g3hv-75wg-m249',
+  'GHSA-fc5q-39xc-vjpf',
+]);
 
 function parseArgs(): { auditLevel: AuditLevel; verbose: boolean } {
   const args = process.argv.slice(2);
@@ -122,7 +134,9 @@ function main(): number {
       // JSON parse failure
     }
     if (!audit || !audit.metadata?.vulnerabilities) {
-      console.log(`[npm-audit] Invalid audit JSON for ${relativeRoot}; retrying with text output...`);
+      console.log(
+        `[npm-audit] Invalid audit JSON for ${relativeRoot}; retrying with text output...`,
+      );
       const textResult = runSync(pm, ['audit'], { cwd: auditRoot });
       console.log(textResult.stdout || textResult.stderr);
       if (textResult.status !== 0 && /vulnerabilities/i.test(textResult.stdout)) {

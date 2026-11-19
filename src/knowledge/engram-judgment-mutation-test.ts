@@ -12,7 +12,7 @@
  *   npx tsx src/engram-judgment-mutation-test.ts --validate-all
  */
 
-import { runNpxTsx } from '../core/run-command';
+import { runNpxTsx } from '../core/run-command.js';
 
 const MUTATIONS = [
   {

@@ -13,7 +13,7 @@
  *   npx tsx src/review/test-runner-optimized.ts [--all] [--quick] [--verbose] [--parallel 4]
  */
 
-import { run } from '../core/run-command';
+import { run } from '../core/run-command.js';
 import { existsSync, mkdtempSync, readdirSync, rmSync } from 'fs';
 import * as os from 'os';
 import { join } from 'path';

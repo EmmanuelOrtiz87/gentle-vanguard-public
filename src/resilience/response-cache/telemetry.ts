@@ -1,4 +1,4 @@
-import { getDb, resolveCacheTenantId } from './sqlite';
+import { getDb, resolveCacheTenantId } from './sqlite.js';
 
 // ─── Hourly Telemetry (N6) ───────────────────────────────────────────────────
 

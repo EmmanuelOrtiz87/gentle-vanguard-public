@@ -5,8 +5,8 @@
 
 import { readFileSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
-import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR } from './context';
-import { fileExists, readJson, payloadFileOk } from './helpers';
+import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR } from './context.js';
+import { fileExists, readJson, payloadFileOk } from './helpers.js';
 const logger = log('CORE-WATCHTOWER-CHECKS-SECURITY');
 import { log } from '../../utils/logger.js';
 

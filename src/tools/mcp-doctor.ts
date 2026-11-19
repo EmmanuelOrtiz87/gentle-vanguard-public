@@ -32,6 +32,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { run } from '../core/run-command.js';
+import { buildCensus } from './mcp-lifecycle.js';
 
 type Status = 'ok' | 'fail' | 'skip';
 
@@ -82,7 +83,15 @@ function readJson(path: string): Record<string, unknown> | undefined {
   }
 }
 
-/** Config del proyecto sobre config global, con el shape V2 (`mcp.servers`). */
+/**
+ * Config del proyecto sobre config global, con el shape V2 (`mcp.servers`).
+ *
+ * Ademas se lee el `.mcp.json` canonico del repo (shape `mcpServers`): es la
+ * superficie que cargan MiniMax Code y Claude Code. Antes el doctor solo
+ * miraba `opencode.json`, o sea que NUNCA verifico la superficie que el owner
+ * usa — el fallo tipico del stack: medir una superficie y declarar el
+ * sistema entero en verde.
+ */
 export function loadServers(cwd: string): Record<string, ServerConfig> {
   const global = readJson(join(homedir(), '.config', 'opencode', 'opencode.json'));
   const project = readJson(join(cwd, 'opencode.json'));
@@ -93,7 +102,9 @@ export function loadServers(cwd: string): Record<string, ServerConfig> {
     // se ignora a proposito para que el doctor no reporte como operativo lo que el cliente no carga.
     return servers;
   };
-  return { ...pick(global), ...pick(project) };
+  const repoMcp = readJson(join(cwd, '.mcp.json'));
+  const repoServers = (repoMcp?.mcpServers ?? {}) as Record<string, ServerConfig>;
+  return { ...pick(global), ...pick(project), ...repoServers };
 }
 
 /** Handshake real por stdio: initialize -> initialized -> tools/list. */
@@ -402,18 +413,31 @@ async function main(): Promise<void> {
   // Modo politica: no lanza procesos, compara las dos fuentes de verdad del stack.
   if (flag('policy')) {
     const drift = checkPolicy(process.cwd());
+    // Deriva MULTI-superficie: la politica se compara con TODAS las superficies
+    // (repo, cursor, cline, opencode, codex, kimi, claude), no solo con la
+    // config de OpenCode. Sin esto, `rea`Declared on-demand podia seguir
+    // levantandose en codex/kimi/claude sin que nadie lo viera.
+    const census = buildCensus(process.cwd(), homedir());
+    const multiSurface = census.drift.map(
+      (item) =>
+        `[deriva] ${item.surface}/${item.server}: ${item.problem} (esperado ${item.expected}, real ${item.actual})`,
+    );
+    const ok = drift.ok && multiSurface.length === 0;
     if (flag('json')) {
-      process.stdout.write(`${JSON.stringify(drift, null, 2)}\n`);
+      process.stdout.write(
+        `${JSON.stringify({ ...drift, ok, surfaces: census.surfaces, multiSurface }, null, 2)}\n`,
+      );
     } else {
       console.log(
-        `\nMCP policy — ${drift.policyServers} servers en la politica · ${drift.configServers.length} en la config\n`,
+        `\nMCP policy — ${drift.policyServers} servers en la politica · ${drift.configServers.length} en la config de opencode · ${census.surfaces.length} superficies\n`,
       );
       for (const p of drift.problems) console.log(`  ${p}`);
+      for (const p of multiSurface) console.log(`  ${p}`);
       console.log(
-        `\n${drift.ok ? 'OK — politica y config sin deriva' : 'ATENCION: hay deriva o schema invalido'}\n`,
+        `\n${ok ? 'OK — politica y superficies sin deriva' : 'ATENCION: hay deriva o schema invalido'}\n`,
       );
     }
-    if (!drift.ok) process.exit(1);
+    if (!ok) process.exit(1);
     return;
   }
 
