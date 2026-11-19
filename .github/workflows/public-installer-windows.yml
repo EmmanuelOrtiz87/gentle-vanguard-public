@@ -20,6 +20,12 @@ on:
       - src/release/installer-release-contract.ts
       - src/release/verify-published-installer.ts
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description:
+          'Published release to qualify (empty = latest stable; accepts a staged prerelease)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -34,13 +40,28 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          run_install: false
+      - name: Install verification dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Resolve latest published installer
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '[.assets[] | {name: .name, size: .size}]' > release-assets.json
+          release_endpoint="repos/${GITHUB_REPOSITORY}/releases/latest"
+          if [ -n "$RELEASE_TAG" ]; then
+            if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Expected a stable-form release tag (vX.Y.Z)."
+              exit 1
+            fi
+            release_endpoint="repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}"
+          fi
+          gh api "$release_endpoint" > release-metadata.json
+          node -e "const fs=require('fs');const r=require('./release-metadata.json');fs.writeFileSync('release-assets.json',JSON.stringify(r.assets.map(({name,size})=>({name,size}))));"
           name="$(node -e "const a=require('./release-assets.json');const re=/^Gentle-Vanguard-Setup-\\d+\\.\\d+\\.\\d+\\.exe$/;const hits=a.filter(x=>re.test(x.name));process.stdout.write(hits.map(h=>h.name).join('\\n'))")"
           if [ -z "$name" ]; then
             echo "::error::El release mas reciente no publica Gentle-Vanguard-Setup-<semver>.exe"
@@ -51,7 +72,12 @@ jobs:
             exit 1
           fi
           echo "INSTALLER_NAME=$name" >> "$GITHUB_ENV"
-          url="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.assets[] | select(.name == env.INSTALLER_NAME) | .browser_download_url')"
+          export INSTALLER_NAME="$name"
+          url="$(node -e "const r=require('./release-metadata.json');process.stdout.write(r.assets.find(a=>a.name===process.env.INSTALLER_NAME)?.browser_download_url || '')")"
+          if [ -z "$url" ]; then
+            echo "::error::The selected installer has no download URL."
+            exit 1
+          fi
           echo "INSTALLER_URL=$url" >> "$GITHUB_ENV"
       - name: Download installer and published checksum
         shell: bash
@@ -63,14 +89,14 @@ jobs:
       - name: Enforce single-product contract and published digest
         shell: bash
         run: |
-          node --experimental-strip-types src/release/verify-published-installer.ts \
+          node --import tsx src/release/verify-published-installer.ts \
             --assets release-assets.json \
             --exe "dist/$INSTALLER_NAME" \
             --sha "dist/$INSTALLER_NAME.sha256" \
             --json | tee installer-contract.json
       - name: Install, inspect registry and shortcuts, uninstall and verify cleanup
         shell: bash
-        run: node --experimental-strip-types src/cli/verify-installer.ts --json > installer-qualification.json
+        run: node --import tsx src/cli/verify-installer.ts --json > installer-qualification.json
       - name: Preserve qualification report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
