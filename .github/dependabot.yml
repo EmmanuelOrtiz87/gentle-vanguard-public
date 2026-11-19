@@ -1,12 +1,14 @@
+# Generated from the private source. Version updates are validated there.
+# Limit 0 pauses version PRs only; Dependabot security updates remain enabled.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0

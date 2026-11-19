@@ -2,6 +2,7 @@
 import { assertApprovedArtifact } from '../web-presence/approval.js';
 import { isExcludedPath, PUBLIC_DOC_DIRECTORIES } from '../installer/payload.js';
 import { removePrivatePublicSources } from './public-source-boundary.js';
+import { syncPublicDependabot } from './public-dependabot.js';
 /**
  * sync-to-public.ts — Sync changes from private repo to public repo.
  *
@@ -648,10 +649,7 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // del repo publico y se pierde la capacidad de re-calificar un release.
   const workflowSrcDir = path.join(privateRepo, '.github', 'workflows');
   const workflowDstDir = path.join(targetDir, '.github', 'workflows');
-  copyIf(
-    path.join(privateRepo, '.github', 'dependabot.yml'),
-    path.join(targetDir, '.github', 'dependabot.yml'),
-  );
+  syncPublicDependabot(privateRepo, targetDir);
   rmIf(workflowDstDir, { recurse: true });
   mkdirp(workflowDstDir);
   for (const wf of ['public-smoke.yml', 'public-installer-windows.yml']) {

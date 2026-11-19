@@ -45,10 +45,11 @@ installer doctor, and pushes public `main` only if all checks pass. `PAT_SYNC` m
 both repositories and permission to update workflows. Missing credentials or failed checks stop
 publication. GitHub Actions billing must also permit jobs to start.
 
-Dependabot configuration is exported from the private repository, keeping monthly version proposals
-in both repositories. An open update proposal does not require every feature PR to adopt the newest
-dependency. Review updates in the private source first and export their validated result; do not
-merge public lockfile changes that remove private workspace entries. Security alerts remain enabled.
+Dependabot version proposals run monthly in the private repository. The exporter preserves its
+ecosystems and options but sets `open-pull-requests-limit: 0` in the public copy. This pauses public
+version proposals only; security updates use a separate limit and remain enabled, along with alerts.
+Review updates in the private source first and export their validated result; do not merge public
+lockfile changes that remove private workspace entries. Homologation preserves this policy.
 
 ## Manual sync when GitHub Actions is blocked (billing)
 
