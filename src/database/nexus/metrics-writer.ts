@@ -86,7 +86,7 @@ export class MetricsWriter {
   /** Start the auto-write cycle (every 30s) */
   start(intervalMs = 30000): void {
     if (this.intervalId) return;
-    console.log('[MW] MetricsWriter started (every ' + intervalMs / 1000 + 's)');
+    console.error('[MW] MetricsWriter started (every ' + intervalMs / 1000 + 's)');
     // Write immediately on start
     this.writeSnapshot();
     // Then every interval
@@ -98,7 +98,7 @@ export class MetricsWriter {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('[MW] MetricsWriter stopped');
+      console.error('[MW] MetricsWriter stopped');
     }
   }
 
@@ -113,7 +113,7 @@ export class MetricsWriter {
       this.writeConsolidated(snapshot);
 
       if (this.writeCount % 20 === 0) {
-        console.log(`[MW] ${this.writeCount} snapshots written — housekeeping...`);
+        console.error(`[MW] ${this.writeCount} snapshots written — housekeeping...`);
         this.db.housekeeping();
       }
     } catch (err) {

@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Security, Audit &amp; Governance — GentleVanguard</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="assets/vendor/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de security-governance.html (complementan el design system) --- */
@@ -40,7 +34,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -60,13 +62,62 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -75,7 +126,9 @@
 
     <header class="hero" id="overview">
       <span class="hero-badge mb-3">✦ v4.0 — Governance Layer</span>
-      <h1 class="fw-bold z-1"><span class="glow"><span data-i18n="sec_h1">Security, Audit &amp; Governance</span></span></h1>
+      <h1 class="fw-bold z-1">
+        <span class="glow"><span data-i18n="sec_h1">Security, Audit &amp; Governance</span></span>
+      </h1>
       <p
         class="lead text-secondary z-1"
         style="max-width: 700px; font-size: clamp(1rem, 2vw, 1.3rem)"
@@ -170,7 +223,10 @@
       <div class="row g-4">
         <div class="col-lg-7">
           <div class="section-card">
-            <h3><i class="bi bi-journal-text text-info me-2"></i><span data-i18n="sec_h2_pipeline">Pipeline Commands</span></h3>
+            <h3>
+              <i class="bi bi-journal-text text-info me-2"></i
+              ><span data-i18n="sec_h2_pipeline">Pipeline Commands</span>
+            </h3>
             <table class="feature-table mt-2">
               <thead>
                 <tr>
@@ -271,7 +327,10 @@
         </div>
         <div class="col-lg-5">
           <div class="section-card">
-            <h3><i class="bi bi-hdd-stack text-success me-2"></i><span data-i18n="sec_h2_storage">Storage &amp; Integration</span></h3>
+            <h3>
+              <i class="bi bi-hdd-stack text-success me-2"></i
+              ><span data-i18n="sec_h2_storage">Storage &amp; Integration</span>
+            </h3>
             <div class="d-flex flex-column gap-3 mt-3">
               <div>
                 <div class="d-flex justify-content-between small mb-1">
@@ -310,7 +369,10 @@
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-robot text-info me-2"></i><span data-i18n="sec_h2_norms">AI Normatives</span></h3>
+            <h3>
+              <i class="bi bi-robot text-info me-2"></i
+              ><span data-i18n="sec_h2_norms">AI Normatives</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_18">
               Core AI behavior rules and ethical guidelines
             </p>
@@ -319,7 +381,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-diagram-3 text-info me-2"></i><span data-i18n="sec_h2_arch">Architecture</span></h3>
+            <h3>
+              <i class="bi bi-diagram-3 text-info me-2"></i
+              ><span data-i18n="sec_h2_arch">Architecture</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_19">
               System design constraints and architectural patterns
             </p>
@@ -328,7 +393,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-shield-check text-info me-2"></i><span data-i18n="sec_h2_security">Security &amp; Compliance</span></h3>
+            <h3>
+              <i class="bi bi-shield-check text-info me-2"></i
+              ><span data-i18n="sec_h2_security">Security &amp; Compliance</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_20">
               Security policies, compliance requirements, hardening
             </p>
@@ -337,7 +405,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-code-square text-info me-2"></i><span data-i18n="sec_h2_quality">Code Quality</span></h3>
+            <h3>
+              <i class="bi bi-code-square text-info me-2"></i
+              ><span data-i18n="sec_h2_quality">Code Quality</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_21">
               Code standards, review gates, quality thresholds
             </p>
@@ -346,7 +417,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-arrow-repeat text-info me-2"></i><span data-i18n="sec_h2_workflow">Workflow</span></h3>
+            <h3>
+              <i class="bi bi-arrow-repeat text-info me-2"></i
+              ><span data-i18n="sec_h2_workflow">Workflow</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_22">
               Process workflows and operational sequences
             </p>
@@ -355,7 +429,9 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-gear text-info me-2"></i><span data-i18n="sec_h2_devops">DevOps</span></h3>
+            <h3>
+              <i class="bi bi-gear text-info me-2"></i><span data-i18n="sec_h2_devops">DevOps</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_23">
               Deployment pipelines, CI/CD, infrastructure rules
             </p>
@@ -364,7 +440,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-stars text-info me-2"></i><span data-i18n="sec_h2_evolution">Autonomous Evolution</span></h3>
+            <h3>
+              <i class="bi bi-stars text-info me-2"></i
+              ><span data-i18n="sec_h2_evolution">Autonomous Evolution</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_24">
               Self-evolution policies, norm promotion thresholds
             </p>
@@ -373,7 +452,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-clipboard-check text-info me-2"></i><span data-i18n="sec_h3_eval">Eval Quality</span></h3>
+            <h3>
+              <i class="bi bi-clipboard-check text-info me-2"></i
+              ><span data-i18n="sec_h3_eval">Eval Quality</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_25">
               Evaluation quality gates and assessment standards
             </p>
@@ -382,7 +464,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-people text-info me-2"></i><span data-i18n="sec_h3_tenant">Multi-Tenant</span></h3>
+            <h3>
+              <i class="bi bi-people text-info me-2"></i
+              ><span data-i18n="sec_h3_tenant">Multi-Tenant</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_26">
               Isolation, resource limits, tenant policies
             </p>
@@ -391,7 +476,10 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <div class="section-card">
-            <h3><i class="bi bi-speedometer2 text-info me-2"></i><span data-i18n="sec_h3_perf">Performance</span></h3>
+            <h3>
+              <i class="bi bi-speedometer2 text-info me-2"></i
+              ><span data-i18n="sec_h3_perf">Performance</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_27">
               Performance budgets, SLAs, optimization standards
             </p>
@@ -428,7 +516,10 @@
       <div class="row g-3">
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-text text-info me-2"></i><span data-i18n="sec_h3_karpathy">Karpathy Guidelines</span></h3>
+            <h3>
+              <i class="bi bi-file-text text-info me-2"></i
+              ><span data-i18n="sec_h3_karpathy">Karpathy Guidelines</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_29">
               Code quality, documentation, and testing standards inspired by the Karpathy
               methodology — enforced at pipeline init
@@ -437,7 +528,10 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-cash-stack text-warning me-2"></i><span data-i18n="sec_h3_tokens">Token Budget Policy</span></h3>
+            <h3>
+              <i class="bi bi-cash-stack text-warning me-2"></i
+              ><span data-i18n="sec_h3_tokens">Token Budget Policy</span>
+            </h3>
             <div class="mt-2">
               <div class="d-flex justify-content-between small">
                 <span>Soft Limit (70%)</span><span class="text-wn">84K / 120K</span>
@@ -456,7 +550,10 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-shield text-success me-2"></i><span data-i18n="sec_h3_ci">CI Hardening</span></h3>
+            <h3>
+              <i class="bi bi-shield text-success me-2"></i
+              ><span data-i18n="sec_h3_ci">CI Hardening</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_30">
               Security scanning in CI pipeline: gitleaks, secretlint, trivy
             </p>
@@ -465,7 +562,10 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-eye text-info me-2"></i><span data-i18n="sec_h3_review">Code Review Standards</span></h3>
+            <h3>
+              <i class="bi bi-eye text-info me-2"></i
+              ><span data-i18n="sec_h3_review">Code Review Standards</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_31">
               Multi-axis quality review: correctness, readability, architecture, security,
               performance
@@ -475,7 +575,10 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-flask text-info me-2"></i><span data-i18n="sec_h3_testing">Testing Standards</span></h3>
+            <h3>
+              <i class="bi bi-flask text-info me-2"></i
+              ><span data-i18n="sec_h3_testing">Testing Standards</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_32">
               SDD-Strict-TDD enforcement: write failing test before implementation code
             </p>
@@ -484,7 +587,10 @@
         </div>
         <div class="col-md-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-earmark-check text-info me-2"></i><span data-i18n="sec_h3_sdd">SDD-Strict-TDD</span></h3>
+            <h3>
+              <i class="bi bi-file-earmark-check text-info me-2"></i
+              ><span data-i18n="sec_h3_sdd">SDD-Strict-TDD</span>
+            </h3>
             <p class="card-text mb-2" data-i18n="c_securitygovernance_33">
               Spec-driven development with strict test-first methodology — all features require spec
               before code
@@ -506,7 +612,10 @@
       <div class="row g-3">
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-book text-info me-2"></i><span data-i18n="sec_h3_readme">README-GOVERNANCE.md</span></h3>
+            <h3>
+              <i class="bi bi-book text-info me-2"></i
+              ><span data-i18n="sec_h3_readme">README-GOVERNANCE.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_35">
               Governance overview — roles, responsibilities, escalation paths
             </p>
@@ -514,7 +623,10 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-cpu text-info me-2"></i><span data-i18n="sec_h3_aimodel">AI-MODEL-SELECTION.md</span></h3>
+            <h3>
+              <i class="bi bi-cpu text-info me-2"></i
+              ><span data-i18n="sec_h3_aimodel">AI-MODEL-SELECTION.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_36">
               Model routing governance — selection criteria, fallback policies, cost optimization
             </p>
@@ -522,7 +634,10 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-person-check text-info me-2"></i><span data-i18n="sec_h3_hitl">HUMAN-IN-THE-LOOP.md</span></h3>
+            <h3>
+              <i class="bi bi-person-check text-info me-2"></i
+              ><span data-i18n="sec_h3_hitl">HUMAN-IN-THE-LOOP.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_37">
               Human oversight requirements, approval gates, escalation procedures
             </p>
@@ -531,7 +646,8 @@
         <div class="col-md-4">
           <div class="section-card">
             <h3>
-              <i class="bi bi-exclamation-triangle text-warning me-2"></i><span data-i18n="sec_h3_incident">INCIDENT-RESPONSE.md</span>
+              <i class="bi bi-exclamation-triangle text-warning me-2"></i
+              ><span data-i18n="sec_h3_incident">INCIDENT-RESPONSE.md</span>
             </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_38">
               Incident classification, response playbooks, post-mortem process
@@ -540,7 +656,10 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-key text-info me-2"></i><span data-i18n="sec_h3_secrets">SECRETS-MANAGEMENT.md</span></h3>
+            <h3>
+              <i class="bi bi-key text-info me-2"></i
+              ><span data-i18n="sec_h3_secrets">SECRETS-MANAGEMENT.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_39">
               Secrets handling, rotation policies, vault integration
             </p>
@@ -548,7 +667,10 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-currency-dollar text-info me-2"></i><span data-i18n="sec_h3_cost">COST-ATTRIBUTION.md</span></h3>
+            <h3>
+              <i class="bi bi-currency-dollar text-info me-2"></i
+              ><span data-i18n="sec_h3_cost">COST-ATTRIBUTION.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_40">
               Cost tracking per session, per agent, per operation
             </p>
@@ -556,7 +678,10 @@
         </div>
         <div class="col-md-4">
           <div class="section-card">
-            <h3><i class="bi bi-arrow-clockwise text-info me-2"></i><span data-i18n="sec_h3_recovery">RECOVERY-NORMATIVA.md</span></h3>
+            <h3>
+              <i class="bi bi-arrow-clockwise text-info me-2"></i
+              ><span data-i18n="sec_h3_recovery">RECOVERY-NORMATIVA.md</span>
+            </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_41">
               Disaster recovery, backup strategies, RPO/RTO definitions
             </p>
@@ -565,7 +690,8 @@
         <div class="col-md-8">
           <div class="section-card">
             <h3>
-              <i class="bi bi-shield-plus text-success me-2"></i><span data-i18n="sec_h3_rules">60 Rule Files in rules/ — All Active</span>
+              <i class="bi bi-shield-plus text-success me-2"></i
+              ><span data-i18n="sec_h3_rules">60 Rule Files in rules/ — All Active</span>
             </h3>
             <p class="card-text mb-0" data-i18n="c_securitygovernance_42">
               Every rule file is monitored, version-controlled, and enforced through the pipeline.
@@ -574,22 +700,23 @@
           </div>
         </div>
       </div>
-    
-        
-      
-        
-      </section>
+    </section>
 
     <section id="compliance" class="fade-in">
       <div class="section-title">
         <div class="display-4 mb-2">✅</div>
         <h2 data-i18n="sec_compliance">Compliance Checks</h2>
-        <p data-i18n="c_securitygovernance_43">35 watched components, each one checked every cycle</p>
+        <p data-i18n="c_securitygovernance_43">
+          35 watched components, each one checked every cycle
+        </p>
       </div>
       <div class="row g-3">
         <div class="col-lg-6">
           <div class="section-card">
-            <h3><i class="bi bi-heart-pulse text-success me-2"></i><span data-i18n="sec_h3_health">Health Check Summary</span></h3>
+            <h3>
+              <i class="bi bi-heart-pulse text-success me-2"></i
+              ><span data-i18n="sec_h3_health">Health Check Summary</span>
+            </h3>
             <div class="d-flex flex-wrap gap-2 mt-3 mb-3">
               <span class="badge bg-success fs-6 px-3 py-2">PASS</span>
               <span class="badge bg-secondary fs-6 px-3 py-2">0 WARN</span>
@@ -608,7 +735,10 @@
         </div>
         <div class="col-lg-6">
           <div class="section-card">
-            <h3><i class="bi bi-file-earmark-check text-info me-2"></i><span data-i18n="sec_h3_validation">Validation Coverage</span></h3>
+            <h3>
+              <i class="bi bi-file-earmark-check text-info me-2"></i
+              ><span data-i18n="sec_h3_validation">Validation Coverage</span>
+            </h3>
             <div class="d-flex flex-column gap-2 mt-2">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="small">JSON Config Validation</span
@@ -1155,8 +1285,9 @@
       </div>
     </section>
 
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
 
     <script src="assets/js/gv.js?v=2.1"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

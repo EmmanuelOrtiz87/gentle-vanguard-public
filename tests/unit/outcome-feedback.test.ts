@@ -3,7 +3,7 @@ import test from 'node:test';
 import Database from 'better-sqlite3';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 import {
   deriveOutcomeFeedback,
@@ -221,11 +221,16 @@ test('capture: idempotent — re-running close does not duplicate rows', () => {
 test('capture: token_transactions sum is used as token signal', () => {
   const db = makeDb();
   seedSession(db, 's-tx', 'completed');
+  // El presupuesto por sesion vive en config (se recalibra con el uso medido):
+  // el test usa el valor REAL + 1 para no depender de un 3M que ya no aplica.
+  const budget = readPerSessionTokenBudget(
+    resolve(import.meta.dirname, '..', '..', 'config', 'token-budget-guard.json'),
+  );
   db.prepare(
     `INSERT INTO token_transactions (message_id, session_id, input_tokens, output_tokens)
-     VALUES ('m1', 's-tx', 3_000_001, 0)`,
-  ).run();
-  const r = captureOutcomeFeedback(db, 's-tx'); // over 3M default budget → inconclusive
+     VALUES ('m1', 's-tx', ?, 0)`,
+  ).run(budget + 1);
+  const r = captureOutcomeFeedback(db, 's-tx'); // sobre el presupuesto por sesion → inconclusive
   assert.equal(r.written, false);
 });
 

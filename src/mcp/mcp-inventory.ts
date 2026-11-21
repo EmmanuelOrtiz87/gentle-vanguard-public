@@ -32,6 +32,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { join, resolve } from 'path';
+import { activationFor, loadPolicy, type Policy } from './mcp-policy.js';
 
 const ROOT = resolve(process.cwd());
 const OUT_DIR = join(ROOT, '.runtime', 'mcp-inventory');
@@ -103,8 +104,66 @@ function remoteHeaders(raw: unknown): Record<string, string> | undefined {
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+/**
+ * Un servidor diferido por la politica NO se espera en la captura.
+ *
+ * La ausencia de un server `on-demand` o `disabled-by-policy` no es drift: es
+ * la decision. Sin esta regla, el `--diff` reportaba 16 "servidor eliminado"
+ * falsos despues de mover la politica (medido 2026-11-18).
+ */
+export function isDeferredByPolicy(policy: Policy, name: string): boolean {
+  const activation = activationFor(policy, name, 'repo');
+  return activation === 'on-demand' || activation === 'disabled-by-policy';
+}
+
+/**
+ * Un server no se espera en la captura cuando:
+ *   - la POLITICA lo difiere (on-demand / disabled-by-policy), o
+ *   - su propia declaracion dice que no se levanta solo: `autoStart: false` en
+ *     el registro del stack, o `enabled: false` en la config del cliente.
+ *
+ * La segunda regla cubre los servidores que la politica todavia no declara
+ * (medido: `gv-design-system` y `context7` estaban en el registro con
+ * autoStart=false pero ausentes de la politica: su ausencia se reportaba como
+ * drift eliminado).
+ */
+export function isDeferredByDeclaration(
+  root: string,
+  policy: Policy,
+  name: string,
+  source: string,
+): boolean {
+  if (isDeferredByPolicy(policy, name)) return true;
+  if (source === 'mcp-registry') {
+    const regPath = join(root, 'config', 'mcp-registry.json');
+    if (!existsSync(regPath)) return false;
+    try {
+      const reg = JSON.parse(readFileSync(regPath, 'utf-8')) as {
+        servers: Array<{ name: string; autoStart?: boolean }>;
+      };
+      const entry = reg.servers.find((s) => s.name === name);
+      return entry ? entry.autoStart === false : false;
+    } catch {
+      return false;
+    }
+  }
+  const ocPath = join(root, 'opencode.json');
+  if (!existsSync(ocPath)) return false;
+  try {
+    const oc = JSON.parse(readFileSync(ocPath, 'utf-8')) as {
+      mcp?: Record<string, Record<string, unknown>>;
+    };
+    const servers = (oc.mcp?.servers ?? {}) as Record<string, Record<string, unknown>>;
+    const entry = servers[name];
+    return entry ? entry.enabled === false : false;
+  } catch {
+    return false;
+  }
+}
+
 export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec[] {
   const specs: ServerSpec[] = [];
+  const policy = loadPolicy(root);
   const regPath = join(root, 'config', 'mcp-registry.json');
   if (existsSync(regPath)) {
     const reg = JSON.parse(readFileSync(regPath, 'utf-8')) as {
@@ -112,6 +171,13 @@ export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec
     };
     for (const s of reg.servers) {
       if (!s.enabled || s.transport !== 'stdio') continue;
+      // La politica manda: un server declarado `on-demand` o
+      // `disabled-by-policy` NO se espera en la captura. El inventario CONECTA
+      // (y lanza) cada server, asi que capturar los heavyweight a demanda
+      // seria inventar una capacidad que la politica prohibe.
+      // Con --include-heavy si se incluyen.
+      if (isDeferredByPolicy(policy, String(s.name)) && !includeHeavy) continue;
+      if (s.autoStart === false && !includeHeavy) continue;
       specs.push({
         name: String(s.name),
         source: 'mcp-registry',
@@ -148,6 +214,8 @@ export function loadServerSpecs(root: string, includeHeavy: boolean): ServerSpec
       }
       const heavy = name === 'chrome-devtools';
       if (heavy && !includeHeavy) continue;
+      // Misma regla que el registro: lo que la politica difiere no se captura.
+      if (isDeferredByPolicy(policy, name) && !includeHeavy) continue;
       // opencode.json (formato 2026-11-13) puede declarar `command` como array
       // (["codegraph","serve","--mcp"]) o como string compuesto
       const cmdRaw: unknown = s.command;
@@ -387,6 +455,7 @@ async function main(argv: readonly string[]): Promise<number> {
   const flags = new Set<string>();
   for (const a of argv) if (a.indexOf('--') === 0) flags.add(a.slice(2));
   const includeHeavy = flags.has('include-heavy');
+  const policy = loadPolicy(ROOT);
   const specs = loadServerSpecs(ROOT, includeHeavy);
   console.error(`[mcp-inventory] ${specs.length} servers stdio a inventariar`);
 
@@ -460,6 +529,14 @@ async function main(argv: readonly string[]): Promise<number> {
     for (const old of base.servers) {
       if (old.name === 'chrome-devtools' && !includeHeavy) continue;
       if (!current.has(`${old.source}:${old.name}`)) {
+        // La ausencia de un server diferido por la politica es la DECISION, no
+        // un drift. Solo es drift si la politica lo exige y no esta.
+        if (isDeferredByDeclaration(ROOT, policy, old.name, old.source) && !includeHeavy) {
+          console.error(
+            `[mcp-inventory] diferido por politica: ${old.source}:${old.name} (no se espera en la captura)`,
+          );
+          continue;
+        }
         console.error(`[mcp-inventory] DRIFT servidor eliminado: ${old.source}:${old.name}`);
         code = 1;
       }

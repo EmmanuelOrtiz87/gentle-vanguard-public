@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { SessionRecord } from '../manager';
+import type { SessionRecord } from '../manager.js';
 
 export class SessionRepo {
   constructor(private db: Database.Database) {}

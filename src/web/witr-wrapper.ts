@@ -22,7 +22,7 @@
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { runNpxTsxSync, runSync } from '../core/run-command.js';
-import { ROOT } from '../core/repo-root';
+import { ROOT } from '../core/repo-root.js';
 import { WITR_INSTALL_TIMEOUT } from './witr-installer.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

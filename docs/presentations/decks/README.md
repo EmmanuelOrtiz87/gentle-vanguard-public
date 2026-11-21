@@ -135,7 +135,7 @@ Open the content file and edit the data. No layout knowledge required.
   title: 'No vendemos horas',     // slide title
   lead: 'Una linea de contexto.', // optional second line
   items: [
-    { value: '30', label: 'Apps propias', sub: 'Sistemas que hoy funcionan', accent: '06b6d4' },
+    { value: '31', label: 'Apps propias', sub: 'Sistemas que hoy funcionan', accent: '06b6d4' },
   ],
 }
 ```

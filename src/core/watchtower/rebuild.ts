@@ -2,10 +2,10 @@
 // Extracted verbatim from src/core/maintenance-watchtower.ts — no logic changes.
 
 import { join } from 'path';
-import { runSync } from '../run-command';
-import { getEffectiveProcessTimeout } from '../timeout-config';
-import { addResult, quiet, ROOT } from './context';
-import { fileExists } from './helpers';
+import { runSync } from '../run-command.js';
+import { getEffectiveProcessTimeout } from '../timeout-config.js';
+import { addResult, quiet, ROOT } from './context.js';
+import { fileExists } from './helpers.js';
 const logger = log('CORE-WATCHTOWER-REBUILD');
 import { log } from '../../utils/logger.js';
 

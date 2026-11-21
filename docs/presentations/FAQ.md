@@ -18,9 +18,9 @@ Complementos:
 
 ### ¿Qué es GentleVanguard?
 
-Una plataforma de agentes de IA para equipos de producto: un stack local-first que incluye 30 apps,
-257 skills indexadas, los agentes, la base operacional y los gates de calidad. Todo corre en la
-máquina del equipo; la promoción a servicios externos es opcional.
+Una plataforma de agentes de IA para equipos de producto: un stack local-first que incluye 28 apps,
+263 skills canónicas (265 indexadas), los agentes, la base operacional y los gates de calidad. Todo
+corre en la máquina del equipo; la promoción a servicios externos es opcional.
 
 ### ¿Es un framework o un producto?
 
@@ -102,7 +102,7 @@ cifra de ahorro antes de tener un cliente real sería inventada.
 
 ### ¿Tienen clientes / casos de éxito?
 
-Las ~30 apps del stack son **desarrollos internos propios**. No hay una cartera de clientes que
+Las 28 apps del stack son **desarrollos internos propios**. No hay una cartera de clientes que
 citar, y no se va a fabricar una. Cuando exista, se publica.
 
 ### ¿Pueden integrar con nuestro sistema?
@@ -161,7 +161,7 @@ la misma evidencia de que se usa.
 Quedan en la máquina, salvo promoción explícita. La base de conocimiento tiene control de acceso por
 principal y la promoción externa de skills es un paso consciente.
 
-### "¿Por qué 30 apps y no un monolito?"
+### "¿Por qué 28 apps y no un monolito?"
 
 Cada app es un dominio con su propio ciclo. El monolito se vuelve imposible de operar; el stack de
 apps sin fronteras se vuelve imposible de entender. El tamaño es la consecuencia de haber favorito

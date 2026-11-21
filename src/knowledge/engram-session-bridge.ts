@@ -32,7 +32,10 @@
  */
 
 import { runSync } from '../core/run-command.js';
-import { engramSessionEnd as engramMcpSessionEnd, engramSessionStart } from './engram-mcp-session.js';
+import {
+  engramSessionEnd as engramMcpSessionEnd,
+  engramSessionStart,
+} from './engram-mcp-session.js';
 import { pathToFileURL } from 'url';
 import * as http from 'http';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -87,18 +90,25 @@ export interface SessionEndResult {
   mcpSuccess: boolean;
   httpSuccess: boolean;
   localClosed: boolean;
+  hostOwned?: boolean;
   error?: string;
 }
 
-/**
- * Registers a LOCAL session identifier for stack tracking. Engram nativo no
- * tiene session-start (crea sesiones automáticamente), así que esto SOLO
- * persiste el estado local en .session/session-current.json — no pretende
- * crear una sesión en Engram.
- */
+export function usesHostOwnedEngramSession(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(env.CODEX_SESSION_ID || env.CODEX_THREAD_ID);
+}
+
+/** Persiste el seguimiento local. En Codex, el host registra la sesión de Engram. */
 export function sessionStart(sessionId?: string): SessionStartResult {
   const sid = sessionId || `session-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`;
   const persisted = updateLocalSessionState(sid, 'active');
+  if (!persisted) {
+    return { success: false, sessionId: sid, error: 'Could not persist local session tracking' };
+  }
+  if (usesHostOwnedEngramSession()) {
+    console.log('[ENGRAM] Local session tracking persisted; Codex owns runtime registration');
+    return { success: true, sessionId: sid };
+  }
   // Nuevo (2026-10-28): registra la sesión EN engram via MCP nativo (one-shot).
   // Best-effort (S4): un fallo no bloquea el start.
   let mcpNote = 'mcp: skipped';
@@ -108,8 +118,30 @@ export function sessionStart(sessionId?: string): SessionStartResult {
   } catch (e) {
     mcpNote = `mcp: ${e instanceof Error ? e.message : e}`;
   }
-  console.log(`[ENGRAM] Session started locally: ${sid} (tracking persisted: ${persisted}, ${mcpNote})`);
+  console.log(
+    `[ENGRAM] Session started locally: ${sid} (tracking persisted: ${persisted}, ${mcpNote})`,
+  );
   return { success: true, sessionId: sid };
+}
+
+/** `session-<ISO>`/UUID identifican UNA sesion; cualquier otra etiqueta se comparte. */
+const UNIQUE_SESSION_RE = /^(session[-_]\d{8}T|session[-_]\d{4}-|[0-9a-f]{8}-[0-9a-f]{4}-)/i;
+
+/**
+ * Topic key para el resumen. Engram upserta por topic (`--topic`): re-cerrar la
+ * misma sesion actualiza su resumen en vez de acumular uno nuevo. Cuando el id
+ * no identifica una sesion (p. ej. el nombre del proyecto) se usa un topic
+ * rodante para que la memoria guarde el ultimo estado y no 729 duplicados.
+ */
+export function sessionSummaryTopic(sessionId: string): string {
+  const slug = sessionId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+  return UNIQUE_SESSION_RE.test(sessionId)
+    ? `session/summary-${slug}`
+    : `session/latest-${slug || 'unknown'}`;
 }
 
 /**
@@ -124,8 +156,22 @@ export function sessionSummary(
   },
   sessionId: string,
 ): boolean {
+  if (usesHostOwnedEngramSession()) return false;
+  const substantive = Boolean(
+    content.goal ||
+    content.discoveries?.length ||
+    content.accomplished?.length ||
+    content.nextSteps?.length,
+  );
+  if (!substantive) {
+    console.log('[ENGRAM] Summary skipped: sin contenido durable (no es memoria)');
+    return true;
+  }
   try {
     const summary = [
+      `## Session`,
+      `${sessionId} — ${new Date().toISOString()}`,
+      ``,
       `## Goal`,
       content.goal || 'Session completed',
       ``,
@@ -151,6 +197,8 @@ export function sessionSummary(
         PROJECT,
         '--scope',
         'project',
+        '--topic',
+        sessionSummaryTopic(sessionId),
       ],
       { timeout: 10000 },
     );
@@ -174,6 +222,17 @@ export async function sessionEnd(
     nextSteps?: string[];
   },
 ): Promise<SessionEndResult> {
+  if (usesHostOwnedEngramSession()) {
+    const localClosed = updateLocalSessionState(sessionId, 'closed');
+    return {
+      success: localClosed,
+      sessionId,
+      mcpSuccess: false,
+      httpSuccess: false,
+      localClosed,
+      hostOwned: true,
+    };
+  }
   let mcpSuccess = false;
   let httpSuccess = false;
   let mcpNativeClose = false;
@@ -206,14 +265,15 @@ export async function sessionEnd(
     console.warn(`[ENGRAM] HTTP close warning:`, e);
   }
 
-  const success = mcpSuccess || httpSuccess || mcpNativeClose;
-
   // 3. Cierre NATIVO MCP (2026-10-28, GB-2026-10-28-engram-session-lifecycle):
   //    mem_session_end cierra la sesión runtime del stack en engram — sin esto
   //    quedan zombis activos y mem_save del MCP falla por "multiple active
   //    runtime sessions". Best-effort (S4).
   try {
-    const r = engramMcpSessionEnd(sessionId, summary ? 'Cerrada por session-close orchestrator' : undefined);
+    const r = engramMcpSessionEnd(
+      sessionId,
+      summary ? 'Cerrada por session-close orchestrator' : undefined,
+    );
     mcpNativeClose = r.ok;
     if (!r.ok) error += ` MCP-native-close: ${r.error ?? 'error'}`;
     else console.log(`[ENGRAM] Runtime session closed via MCP: ${sessionId}`);
@@ -224,6 +284,7 @@ export async function sessionEnd(
   // 4. SIEMPRE marcar el cierre local en .session/session-current.json para que
   //    ninguna sesión del stack quede colgada como "active" sin actividad real.
   const localClosed = updateLocalSessionState(sessionId, 'closed');
+  const success = mcpSuccess || httpSuccess || mcpNativeClose;
   if (localClosed) console.log(`[ENGRAM] Local session closed: ${sessionId}`);
 
   return {

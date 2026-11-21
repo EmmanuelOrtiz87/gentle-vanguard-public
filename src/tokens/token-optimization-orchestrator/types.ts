@@ -22,6 +22,12 @@ export interface PipelineInput {
   chatLevel?: ChatLevel;
   cacheEnabled?: boolean;
   ttlMinutes?: number;
+  /**
+   * The process stage of this orchestrator never calls a real LLM (it returns a
+   * simulated response), so pipeline runs default to `simulated: true` and their
+   * "savings" must never be reported as production token spend.
+   */
+  simulated?: boolean;
 }
 
 export interface PipelineOutput {
@@ -36,6 +42,8 @@ export interface PipelineResult {
   stages: PipelineStageResult[];
   metrics: OptimizationMetrics;
   durationMs: number;
+  /** All runs are simulated today; kept explicit so stats never mix both. */
+  simulated: boolean;
 }
 
 export interface PipelineStageResult {
@@ -84,7 +92,15 @@ export interface OrchestratorStats {
   cacheHits: number;
   cacheMisses: number;
   cacheHitRate: number;
+  /** Runs measured over the simulated process stage (the only kind today). */
+  simulatedRuns: number;
+  simulatedTokenSavings: number;
+  /** Runs where the caller supplied a real LLM response; 0 until one wires it. */
+  realRuns: number;
+  realTokenSavings: number;
+  /** Real savings only — simulated figures never land here. */
   totalTokenSavings: number;
+  /** Average real savings per real run (tokens). */
   avgSavingsPct: number;
   byStage: Record<
     PipelineStage,

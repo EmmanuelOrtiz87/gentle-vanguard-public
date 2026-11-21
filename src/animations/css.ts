@@ -3,8 +3,8 @@
  * animation shorthand values. Pure string builders, safe in Node and browsers.
  */
 
-import type { AnimationKeyframe, AnimationTiming } from './utils';
-import { resolveEasing, type AnimationPreset } from './presets';
+import type { AnimationKeyframe, AnimationTiming } from './utils.js';
+import { resolveEasing, type AnimationPreset } from './presets.js';
 
 export interface CSSAnimationOptions {
   duration?: number;

@@ -22,9 +22,17 @@
  *   npm run models:infer -- --json             # salida machine-readable
  *
  * Exit codes (contrato de la norma de verificaciones):
- *   0 = todos los objetivos respondieron OK
- *   1 = al menos un objetivo RESPONDIO con error (fallo comprobado)
- *   2 = INDETERMINADO (sin config/credencial, o fallo de transporte)
+ *   0 = AL MENOS UN objetivo respondio OK (si otros fallaron, el probe reporta
+ *       DEGRADED y deja cada fallo escrito en la evidencia por modelo; el
+ *       enforcer puede enrutar al que si responde)
+ *   1 = NINGUN objetivo respondio OK y al menos uno respondio con error
+ *       (corte comprobado: no queda ningun modelo cualificado)
+ *   2 = INDETERMINADO (sin config/credencial, o solo fallos de transporte)
+ *
+ * Por que asi (2026-11-18): con cuota remota agotada y el fallback local sano,
+ * el veredicto anterior (FAIL si CUALQUIER objetivo fallaba) reportaba un
+ * corte total inexistente en cada arranque. El step del autostart no debe
+ * fallar cuando el stack SI puede inferir.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -98,7 +106,8 @@ function activeModel(): { model: string; provider: string } | null {
     `${ROOT}/.runtime/model-active.json`,
   );
   if (!active?.model) return null;
-  const provider = active.provider || (active.model.includes('/') ? active.model.split('/')[0] : '');
+  const provider =
+    active.provider || (active.model.includes('/') ? active.model.split('/')[0] : '');
   return { model: active.model, provider };
 }
 
@@ -495,10 +504,21 @@ function writeEvidence(
   return path;
 }
 
-function verdictOf(outcomes: ProbeOutcome[]): 'PASS' | 'FAIL' | 'UNKNOWN' {
-  if (outcomes.some((o) => o.responded && o.status !== 'OK')) return 'FAIL';
-  if (outcomes.some((o) => o.status === 'OK')) return 'PASS';
-  return 'UNKNOWN';
+export function verdictOf(outcomes: Array<Pick<ProbeOutcome, 'status' | 'responded'>>): {
+  verdict: 'PASS' | 'FAIL' | 'UNKNOWN';
+  degraded: boolean;
+  okTargets: number;
+  failedTargets: number;
+} {
+  const ok = outcomes.filter((o) => o.status === 'OK');
+  const failed = outcomes.filter((o) => o.responded && o.status !== 'OK');
+  const verdict = ok.length > 0 ? 'PASS' : failed.length > 0 ? 'FAIL' : 'UNKNOWN';
+  return {
+    verdict,
+    degraded: ok.length > 0 && failed.length > 0,
+    okTargets: ok.length,
+    failedTargets: failed.length,
+  };
 }
 
 /**
@@ -527,10 +547,12 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       target: t.key,
       verdict: evaluateInferenceEntry(findInferenceEntry(file, t.key), file?.ttlSeconds),
     }));
-    const overall = entries.some((e) => e.verdict === 'FAIL')
-      ? 'FAIL'
-      : entries.some((e) => e.verdict === 'PASS')
-        ? 'PASS'
+    // Misma regla que la sonda: un modelo cualificado alcanza; los fallos por
+    // modelo siguen visibles en `entries`.
+    const overall = entries.some((e) => e.verdict === 'PASS')
+      ? 'PASS'
+      : entries.some((e) => e.verdict === 'FAIL')
+        ? 'FAIL'
         : 'UNKNOWN';
     if (args.json) {
       log(JSON.stringify({ mode: 'check', overall, entries, evidencePath: path }, null, 2));
@@ -574,7 +596,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     args.evidencePath ?? undefined,
   );
   const recorded = args.writeDb ? recordUsage(outcomes) : 0;
-  const overall = verdictOf(outcomes);
+  const { verdict: overall, degraded, okTargets, failedTargets } = verdictOf(outcomes);
 
   if (args.json) {
     log(
@@ -582,6 +604,9 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         {
           mode: 'probe',
           overall,
+          degraded,
+          okTargets,
+          failedTargets,
           ttlSeconds: args.ttl,
           evidencePath,
           usageRecorded: recorded > 0,
@@ -609,6 +634,12 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     }
     log(`[model-inference-probe] evidencia -> ${evidencePath} (TTL ${args.ttl}s)`);
     if (recorded > 0) log('[model-inference-probe] inferencia registrada en token_usage');
+    if (degraded) {
+      log(
+        `[model-inference-probe] DEGRADED: ${okTargets} objetivo(s) OK, ${failedTargets} con error` +
+          ' (cada fallo queda en la evidencia; el enforcer enruta a los que responden)',
+      );
+    }
   }
 
   if (overall === 'FAIL') return 1;

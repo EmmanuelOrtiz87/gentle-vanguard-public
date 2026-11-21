@@ -16,7 +16,7 @@
 import { spawnSync } from 'child_process';
 import { existsSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
-import { addResult, ROOT } from './context';
+import { addResult, ROOT } from './context.js';
 import { log } from '../../utils/logger.js';
 import { auditUndefinedClasses } from '../../design/audit-undefined-classes.js';
 

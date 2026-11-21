@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { existsSync, readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { basename, join } from 'path';
+import { zstdDecompressSync } from 'node:zlib';
 
 // Fuentes por herramienta (extensible). opencode es la principal (corre el stack).
 export function opencodeDbPath(): string | null {
@@ -109,25 +110,33 @@ export function classifyZcodeAgent(r: {
 export function parseCodexSessionMeta(line: string | undefined): {
   threadSource?: string;
   subagentName?: string;
+  sessionId?: string;
 } {
   if (!line || !line.includes('session_meta')) return {};
   try {
     const evt = JSON.parse(line) as {
-      payload?: { thread_source?: string; source?: { subagent?: { other?: string } } };
+      payload?: {
+        id?: string;
+        session_id?: string;
+        thread_source?: string;
+        source?: { subagent?: { other?: string } };
+      };
     };
+    const rawId = evt.payload?.id ?? evt.payload?.session_id;
     return {
       threadSource: evt.payload?.thread_source,
       subagentName: evt.payload?.source?.subagent?.other,
+      sessionId: typeof rawId === 'string' && rawId.length > 0 ? rawId : undefined,
     };
   } catch {
     return {};
   }
 }
 
-export function classifyCodexAgent(meta: {
-  threadSource?: string;
-  subagentName?: string;
-}): { agent: 'orchestrator' | 'subagent'; agentName?: string } {
+export function classifyCodexAgent(meta: { threadSource?: string; subagentName?: string }): {
+  agent: 'orchestrator' | 'subagent';
+  agentName?: string;
+} {
   if (!meta.threadSource || meta.threadSource === 'user') return { agent: 'orchestrator' };
   return { agent: 'subagent', agentName: meta.subagentName || `subagent:${meta.threadSource}` };
 }
@@ -205,7 +214,10 @@ export function readZcodeRollout(sinceCompletedMs = 0): {
       if (!Number.isFinite(completed) || completed < sinceCompletedMs) continue;
       const u = r.response?.usage;
       if (!u || ((u.inputTokens ?? 0) === 0 && (u.outputTokens ?? 0) === 0)) continue;
-      const sessionId = r.sessionId || file.replace(/^model-io-|\.jsonl$/g, '') || 'zcode-unknown';
+      // El id de sesión cae al nombre del archivo: usar la ruta completa metía
+      // una ruta de Windows como session_id (y como nombre de carpeta).
+      const sessionId =
+        r.sessionId || basename(file).replace(/^model-io-|\.jsonl$/g, '') || 'zcode-unknown';
       const model = r.model?.modelId || 'unknown';
       const { agent, agentName } = classifyZcodeAgent(r);
       txns.push({
@@ -248,20 +260,37 @@ export function readZcodeRollout(sinceCompletedMs = 0): {
   return { sessions: [...bySession.values()], txns };
 }
 
-// ─── Fuente Codex (~/.codex/sessions/**/rollout-*.jsonl) ──────────────────────
+// ─── Fuente Codex (~/.codex/sessions + archived_sessions, .jsonl/.jsonl.zst) ──
 
 export function codexSessionsDir(): string | null {
   const p = join(process.env.USERPROFILE || process.env.HOME || '', '.codex', 'sessions');
   return existsSync(p) ? p : null;
 }
 
-/** Walk recursivo simple para encontrar rollout-*.jsonl. */
+/**
+ * Codex archiva sesiones cerradas en `~/.codex/archived_sessions` y las comprime
+ * a `.jsonl.zst`. Medido 2026-11-17: la sesión activa se movió de `sessions/` a
+ * `archived_sessions/` y el ingest (que solo miraba `sessions/*.jsonl`) quedó
+ * ciego. Ambas raíces y ambos formatos son parte de la fuente real.
+ */
+export function codexSessionRoots(): string[] {
+  const home = process.env.USERPROFILE || process.env.HOME || '';
+  return [join(home, '.codex', 'sessions'), join(home, '.codex', 'archived_sessions')].filter(
+    (dir) => existsSync(dir),
+  );
+}
+
+/** Walk recursivo para rollouts, incluyendo archivos comprimidos zstd. */
 export function walkJsonl(dir: string, acc: string[] = []): string[] {
   try {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
       const p = join(dir, e.name);
       if (e.isDirectory()) walkJsonl(p, acc);
-      else if (e.isFile() && e.name.startsWith('rollout-') && e.name.endsWith('.jsonl'))
+      else if (
+        e.isFile() &&
+        e.name.startsWith('rollout-') &&
+        (e.name.endsWith('.jsonl') || e.name.endsWith('.jsonl.zst'))
+      )
         acc.push(p);
     }
   } catch {
@@ -270,28 +299,47 @@ export function walkJsonl(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
+/** Lee un rollout completo, descomprimiendo zstd cuando corresponde. */
+export function readRolloutText(file: string): string {
+  const raw = readFileSync(file);
+  if (file.endsWith('.zst')) return zstdDecompressSync(raw).toString('utf8');
+  return raw.toString('utf8');
+}
+
 /**
  * Codex persiste eventos `token_count` con usage ACUMULADO (`total_token_usage`) y
  * DELTA del turno (`last_token_usage`). Ingerimos los deltas como transacciones.
  */
-export function readCodexRollout(sinceMs = 0): {
+export function readCodexRollout(
+  sinceMs = 0,
+  roots = codexSessionRoots(),
+): {
   sessions: SessionUsage[];
   txns: TransactionUsage[];
 } {
-  const dir = codexSessionsDir();
-  if (!dir) return { sessions: [], txns: [] };
+  if (roots.length === 0) return { sessions: [], txns: [] };
   const bySession = new Map<string, SessionUsage>();
   const txns: TransactionUsage[] = [];
-  for (const file of walkJsonl(dir)) {
+  for (const file of roots.flatMap((root) => walkJsonl(root))) {
     let lines: string[];
     try {
-      lines = readFileSync(file, 'utf8').trim().split('\n');
+      lines = readRolloutText(file).trim().split('\n');
     } catch {
       continue;
     }
-    const sessionId = file.match(/rollout-[\dT-]*-([0-9a-f-]{36})\.jsonl$/)?.[1] ?? 'codex-unknown';
-    const fileBase = file.split(/[\/]/).pop() ?? file;
     const meta = parseCodexSessionMeta(lines.find((l) => l.includes('session_meta')));
+    // Continuaciones archivadas usan `rollout-...-<parent>_<child>.jsonl.zst`:
+    // el id del payload agrupa la conversación completa; el fallback toma el
+    // último uuid del nombre (nunca 'codex-unknown' si hay uuid).
+    const sessionId =
+      meta.sessionId ??
+      file.match(
+        /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl(?:\.zst)?$/i,
+      )?.[1] ??
+      'codex-unknown';
+    // `.zst` se elimina: al archivar/comprimir, el mismo archivo debe conservar
+    // sus message IDs (si no, se duplicarían todas sus transacciones).
+    const fileBase = (file.split(/[\\/]/).pop() ?? file).replace(/\.zst$/, '');
     const { agent, agentName } = classifyCodexAgent(meta);
     let evtIdx = 0;
     for (const line of lines) {
@@ -318,9 +366,11 @@ export function readCodexRollout(sinceMs = 0): {
       }
       const u = evt.payload?.info?.last_token_usage;
       if (!u || ((u.input_tokens ?? 0) === 0 && (u.output_tokens ?? 0) === 0)) continue;
+      // Ordinal por archivo ANTES del filtro incremental: el ID debe ser estable
+      // entre corridas (el índice relativo a la ventana duplicaba/omitía filas).
+      evtIdx++;
       const ts = evt.timestamp ? Date.parse(evt.timestamp) : 0;
       if (!Number.isFinite(ts) || ts < sinceMs) continue;
-      evtIdx++;
       txns.push({
         sessionId,
         messageId: codexMessageId(sessionId, fileBase, evtIdx),
@@ -597,6 +647,22 @@ export interface TransactionUsage {
   cacheWrite: number;
   cost: number;
   timeCreated: number;
+}
+
+/**
+ * OpenCode nombra a los subagentes en la sesión hija: la columna `agent`
+ * (cuando está poblada) o el sufijo `(@explore subagent)` del título. Las
+ * transacciones históricas se ingirieron sin nombre → este helper permite
+ * backfill sin inventar etiquetas.
+ */
+export function opencodeSubagentName(row: {
+  agent?: string | null;
+  title?: string | null;
+}): string | undefined {
+  const fromColumn = row.agent?.trim();
+  if (fromColumn) return fromColumn;
+  const m = row.title?.match(/\(@([A-Za-z0-9._-]+)\s+subagent\)/i);
+  return m ? m[1] : undefined;
 }
 
 /**

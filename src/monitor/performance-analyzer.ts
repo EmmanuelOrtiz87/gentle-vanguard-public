@@ -13,7 +13,7 @@
  *   - Generate performance report with recommendations
  */
 
-import { runNpxTsx } from '../core/run-command';
+import { runNpxTsx } from '../core/run-command.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

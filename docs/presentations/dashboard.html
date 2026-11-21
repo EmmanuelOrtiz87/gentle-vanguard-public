@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>📊 LLM Observability Dashboard — GentleVanguard</title>
-    <link
-      rel="stylesheet"
-      href="assets/vendor/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="assets/vendor/bootstrap-icons.min.css"
-    />
+    <link rel="stylesheet" href="assets/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Clases específicas de dashboard.html (no presentes en gv.css) --- */
@@ -100,7 +94,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -120,13 +122,62 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -135,7 +186,9 @@
     <header class="hero" id="overview">
       <div>
         <span class="hero-badge mb-3">✦ v4.0 — LLM Observability</span>
-        <h1><span class="glow"><span data-i18n="dash_h1">Observability Dashboard</span></span></h1>
+        <h1>
+          <span class="glow"><span data-i18n="dash_h1">Observability Dashboard</span></span>
+        </h1>
         <p
           class="lead text-secondary z-1"
           data-i18n="c_dashboard_2"
@@ -160,7 +213,10 @@
     </header>
     <section class="fade-in" id="command-center">
       <div class="section-card">
-        <h2><i class="bi bi-grid-3x3-gap me-2"></i><span data-i18n="dash_h2_cc">Command Center: control de apps</span></h2>
+        <h2>
+          <i class="bi bi-grid-3x3-gap me-2"></i
+          ><span data-i18n="dash_h2_cc">Command Center: control de apps</span>
+        </h2>
         <p class="mb-2">
           El dashboard se centra en observabilidad. El ciclo de vida de las apps se administra desde
           el Command Center standalone en <code>http://127.0.0.1:8090</code>.
@@ -272,7 +328,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--a)">
-            <i class="bi bi-diagram-3 me-2"></i><span data-i18n="dash_h2_arch">2. Architecture</span>
+            <i class="bi bi-diagram-3 me-2"></i
+            ><span data-i18n="dash_h2_arch">2. Architecture</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -318,7 +375,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-grid-3x3-gap me-2"></i><span data-i18n="dash_h2_sections">3. Dashboard Sections</span>
+            <i class="bi bi-grid-3x3-gap me-2"></i
+            ><span data-i18n="dash_h2_sections">3. Dashboard Sections</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -439,7 +497,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--pl)">
-            <i class="bi bi-arrow-left-right me-2"></i><span data-i18n="dash_h2_pipeline">4. Data Pipeline</span>
+            <i class="bi bi-arrow-left-right me-2"></i
+            ><span data-i18n="dash_h2_pipeline">4. Data Pipeline</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -636,7 +695,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--p)">
-            <i class="bi bi-folder-tree me-2"></i><span data-i18n="dash_h2_filestruct">8. File Structure</span>
+            <i class="bi bi-folder-tree me-2"></i
+            ><span data-i18n="dash_h2_filestruct">8. File Structure</span>
           </h2>
         </div>
         <div class="col-12">
@@ -711,7 +771,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--wn)">
-            <i class="bi bi-arrow-repeat me-2"></i><span data-i18n="dash_h2_lifecycle">9. Lifecycle Commands</span>
+            <i class="bi bi-arrow-repeat me-2"></i
+            ><span data-i18n="dash_h2_lifecycle">9. Lifecycle Commands</span>
           </h2>
         </div>
         <div class="col-md-4">
@@ -755,7 +816,8 @@
       <div class="row mb-5 fade-in">
         <div class="col-12">
           <h2 class="fw-bold mb-3" style="color: var(--ok)">
-            <i class="bi bi-heart-pulse me-2"></i><span data-i18n="dash_h2_health">10. Health API</span>
+            <i class="bi bi-heart-pulse me-2"></i
+            ><span data-i18n="dash_h2_health">10. Health API</span>
           </h2>
         </div>
         <div class="col-lg-8">
@@ -791,7 +853,8 @@
         </div>
       </div>
     </div>
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
     <script src="assets/js/gv.js?v=3.0"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

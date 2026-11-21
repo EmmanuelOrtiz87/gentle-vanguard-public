@@ -5,9 +5,9 @@
  * Ensures all security improvements are properly initialized
  */
 
-import { dependencySecurityEnforcer } from './dependency-security-enforcer';
-import { checkDependencySecurity } from './dependency-security-checker';
-import { generateReport } from './owasp/owasp-agentic-top10';
+import { dependencySecurityEnforcer } from './dependency-security-enforcer.js';
+import { checkDependencySecurity } from './dependency-security-checker.js';
+import { generateReport } from './owasp/owasp-agentic-top10.js';
 
 /**
  * Initialize security components

@@ -20,7 +20,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } fr
 import { pathToFileURL } from 'url';
 import { dispatchAlert } from '../monitor/alert-dispatcher.js';
 import { join, resolve } from 'path';
-import { run } from '../core/run-command';
+import { run } from '../core/run-command.js';
 
 const ROOT = resolve(process.cwd());
 const LOG_DIR = join(ROOT, '.runtime', 'token-guard-logs');

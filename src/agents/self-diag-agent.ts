@@ -118,7 +118,19 @@ function checkTypeScript(): string {
 }
 
 function checkESLint(): string {
-  return existsSync(join(process.cwd(), '.eslintrc*')) ? 'PASS' : 'CONFIG MISSING';
+  const cwd = process.cwd();
+  const configs = [
+    'eslint.config.js',
+    'eslint.config.mjs',
+    'eslint.config.cjs',
+    'eslint.config.ts',
+    '.eslintrc.json',
+    '.eslintrc.js',
+    '.eslintrc.cjs',
+    '.eslintrc.yml',
+    '.eslintrc.yaml',
+  ];
+  return configs.some((c) => existsSync(join(cwd, c))) ? 'PASS' : 'CONFIG MISSING';
 }
 
 function checkDeps(): string {
@@ -159,6 +171,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: true,
+          executionKind: 'deterministic-domain-analysis',
+          llmCalled: false,
           agent: AGENT_CONFIG.name,
           task,
           model,

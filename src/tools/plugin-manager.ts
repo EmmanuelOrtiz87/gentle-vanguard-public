@@ -37,7 +37,7 @@ import { homedir } from 'os';
 import { basename, dirname, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runNpxTsxSync, runSync, type RunSyncResult } from '../core/run-command.js';
-import { ROOT } from '../core/repo-root';
+import { ROOT } from '../core/repo-root.js';
 
 // ─── Paths y config ──────────────────────────────────────────────────────────
 

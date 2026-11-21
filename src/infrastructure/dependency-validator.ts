@@ -15,7 +15,7 @@
 
 import { runSync } from '../core/run-command.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -153,6 +153,11 @@ const C = {
 
 function getDependencies(): DependencySpec[] {
   const ROOT = resolve(process.cwd());
+  const gitHooksDirectory = run('git', ['rev-parse', '--git-path', 'hooks']);
+  const lefthookHooksPath =
+    gitHooksDirectory.status === 0 && gitHooksDirectory.stdout
+      ? relative(ROOT, resolve(ROOT, gitHooksDirectory.stdout, 'pre-commit'))
+      : '.git/hooks/pre-commit';
   const nodeVer = existsSync(join(ROOT, '.node-version'))
     ? readFileSync(join(ROOT, '.node-version'), 'utf-8').trim()
     : '>=20.0.0';
@@ -511,7 +516,7 @@ function getDependencies(): DependencySpec[] {
       name: 'Lefthook Hooks',
       binary: '',
       category: 'platform',
-      checkPath: '.git/hooks/pre-commit',
+      checkPath: lefthookHooksPath,
       isDir: false,
       required: false,
       description: 'Installed git hooks — pre-commit, pre-push, post-commit validation',

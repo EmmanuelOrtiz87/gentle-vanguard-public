@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GentleVanguard Video Studio - Generación Nativa</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="assets/vendor/bootstrap-icons.min.css"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons.min.css" />
     <style>
       :root {
         --bg0: #0a0e1a;
@@ -491,8 +485,37 @@
         gap: 0.375rem;
       }
 
-@media(max-width:768px){.main-container{flex-direction:column;min-width:0}.sidebar,.layers-panel,.templates-panel{width:100%;max-height:none}.canvas-area{width:100%;min-width:0;padding:16px}.canvas-container{min-height:360px;min-width:0}.toolbar,.playback-controls{flex-wrap:wrap;gap:8px}#mainCanvas{max-width:100%;height:auto}}
-</style>
+      @media (max-width: 768px) {
+        .main-container {
+          flex-direction: column;
+          min-width: 0;
+        }
+        .sidebar,
+        .layers-panel,
+        .templates-panel {
+          width: 100%;
+          max-height: none;
+        }
+        .canvas-area {
+          width: 100%;
+          min-width: 0;
+          padding: 16px;
+        }
+        .canvas-container {
+          min-height: 360px;
+          min-width: 0;
+        }
+        .toolbar,
+        .playback-controls {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        #mainCanvas {
+          max-width: 100%;
+          height: auto;
+        }
+      }
+    </style>
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
@@ -509,7 +532,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -529,13 +560,62 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -690,7 +770,11 @@
       <main class="canvas-area">
         <div class="canvas-container">
           <canvas id="mainCanvas"></canvas>
-          <span id="resolutionDisplay" style="position:absolute;top:12px;right:12px;color:var(--gv-text-secondary)" aria-live="polite"></span>
+          <span
+            id="resolutionDisplay"
+            style="position: absolute; top: 12px; right: 12px; color: var(--gv-text-secondary)"
+            aria-live="polite"
+          ></span>
           <div class="text-secondary" id="emptyState" style="position: absolute">
             <i class="bi bi-film" style="font-size: 4rem; opacity: 0.3"></i>
             <p class="mt-3">Configura los parámetros y presiona "Generar Video"</p>
@@ -759,7 +843,7 @@
       </aside>
     </div>
 
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
 
     <!-- Overlay de progreso -->
     <div class="progress-overlay" id="progressOverlay">
@@ -1596,5 +1680,6 @@
       loadVideoProjects();
     </script>
     <script src="assets/js/gv.js?v=2.1"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

@@ -12,8 +12,8 @@ import {
   type AnimationKeyframe,
   type AnimationSequence,
   type Rect,
-} from './utils';
-import { resolveTiming } from './presets';
+} from './utils.js';
+import { resolveTiming } from './presets.js';
 
 export interface MorphOptions {
   duration?: number;

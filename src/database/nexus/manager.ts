@@ -14,22 +14,22 @@ import { existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { getTimeout } from '../../core/timeout-config.js';
 
-import { MigrationRunner } from './repositories/MigrationRunner';
-import { MetricsRepo } from './repositories/MetricsRepo';
-import { SessionRepo } from './repositories/SessionRepo';
-import { TraceRepo } from './repositories/TraceRepo';
-import { EventRepo } from './repositories/EventRepo';
-import { CacheRepo } from './repositories/CacheRepo';
-import { SkillRepo, type SkillEvidenceKind } from './repositories/SkillRepo';
-import { ContractRepo } from './repositories/ContractRepo';
-import { ErrorMemoryRepo } from './repositories/ErrorMemoryRepo';
-import { HousekeepingRepo } from './repositories/HousekeepingRepo';
-import { BacklogRepo } from './repositories/BacklogRepo';
-import { AuthSessionRepo } from './repositories/AuthSessionRepo';
-import { TokenRepo } from './repositories/TokenRepo';
-import { PrincipalRepo } from './repositories/PrincipalRepo';
-import { SqliteContentOSRepo } from './repositories/ContentOSRepo';
-import { SqliteAcademyCRMRepo } from './repositories/AcademyCRMRepo';
+import { MigrationRunner } from './repositories/MigrationRunner.js';
+import { MetricsRepo } from './repositories/MetricsRepo.js';
+import { SessionRepo } from './repositories/SessionRepo.js';
+import { TraceRepo } from './repositories/TraceRepo.js';
+import { EventRepo } from './repositories/EventRepo.js';
+import { CacheRepo } from './repositories/CacheRepo.js';
+import { SkillRepo, type SkillEvidenceKind } from './repositories/SkillRepo.js';
+import { ContractRepo } from './repositories/ContractRepo.js';
+import { ErrorMemoryRepo } from './repositories/ErrorMemoryRepo.js';
+import { HousekeepingRepo } from './repositories/HousekeepingRepo.js';
+import { BacklogRepo } from './repositories/BacklogRepo.js';
+import { AuthSessionRepo } from './repositories/AuthSessionRepo.js';
+import { TokenRepo } from './repositories/TokenRepo.js';
+import { PrincipalRepo } from './repositories/PrincipalRepo.js';
+import { SqliteContentOSRepo } from './repositories/ContentOSRepo.js';
+import { SqliteAcademyCRMRepo } from './repositories/AcademyCRMRepo.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -503,6 +503,6 @@ export class DatabaseManager {
   /** Close the database connection */
   close(): void {
     this.db.close();
-    console.log('[DB] Connection closed');
+    console.error('[DB] Connection closed');
   }
 }

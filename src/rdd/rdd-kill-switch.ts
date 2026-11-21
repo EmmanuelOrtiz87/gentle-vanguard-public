@@ -43,7 +43,7 @@ function log(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'IN
     WARN: '\u001b[33m',
     ERROR: '\u001b[31m',
   };
-  console.log(`${colors[level]}[${timestamp}] [RDD-KILL-SWITCH] [${level}] ${message}\u001b[0m`);
+  console.error(`${colors[level]}[${timestamp}] [RDD-KILL-SWITCH] [${level}] ${message}\u001b[0m`);
 }
 
 // ─── Kill Switch Operations ─────────────────────────────────────────────────────

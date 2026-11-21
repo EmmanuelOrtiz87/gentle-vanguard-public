@@ -246,7 +246,7 @@ Slide 6: "Free and open source"
 
 ### TikTok/Reels Scripts (15-30 sec)
 Script 1: "Tell me you're an AI engineer without telling me..."
-[Show Gentle-Vanguard terminal running 21 agents]
+[Show Gentle-Vanguard terminal running 22 agents]
 
 Script 2: "POV: You deploy code at 3am and it just works"
 [Show auto-apply safe + rollback working]
@@ -384,7 +384,7 @@ documentation?"
 specialized agents working together." "Adaptive intelligence that scales with complexity."
 
 [20-40s] Features showcase "Upload documents, get insights in seconds." "Generate code, review it
-with 21 agents." "Deploy with circuit breakers and rollback protection." "All in one integrated
+with 22 agents." "Deploy with circuit breakers and rollback protection." "All in one integrated
 platform."
 
 [40-55s] Social proof "Used by developers at [companies]." "294 TypeScript files. 103 tests. 100%

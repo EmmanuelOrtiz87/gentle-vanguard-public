@@ -13,7 +13,7 @@ import {
   type AnimationKeyframe,
   type AnimationSequence,
   type SpringConfig,
-} from './utils';
+} from './utils.js';
 
 export const springPresets = {
   default: { stiffness: 170, damping: 26 },

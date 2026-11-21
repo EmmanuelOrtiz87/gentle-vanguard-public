@@ -14,7 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
-import { getLocalDayKey } from './local-day.js';
+import { getLocalDayKey, readDailyTokenTotal } from './local-day.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -137,13 +137,7 @@ function readDailyTokens(): number {
     if (fs.existsSync(NEXUS_DB_PATH)) {
       const db = new Database(NEXUS_DB_PATH, { readonly: true });
       try {
-        const row = db
-          .prepare(
-            `SELECT COALESCE(SUM(prompt_tokens + completion_tokens),0) as t
-             FROM token_usage WHERE date(timestamp) = ?`,
-          )
-          .get(getLocalDayKey()) as { t: number };
-        return row.t || 0;
+        return readDailyTokenTotal(db, getLocalDayKey());
       } finally {
         db.close();
       }

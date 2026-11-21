@@ -26,7 +26,11 @@ describe('routing learning loop', () => {
     assert.equal(rule.successRate, 100);
 
     assert.deepEqual(
-      recommend('run testing checks', '', 3, { tenantId: 'tenant-a', nexus: repo }),
+      recommend('run testing checks', '', 3, {
+        tenantId: 'tenant-a',
+        nexus: repo,
+        registeredAgents: new Set(['custom-test-agent']),
+      }),
       {
         domain: 'testing',
         recommended: 'custom-test-agent',
@@ -50,7 +54,11 @@ describe('routing learning loop', () => {
     assert.equal(repo.getEnabledRoutingRules('tenant-b')[0].target, 'other-security-agent');
     assert.equal(
       (
-        recommend('security audit', '', 3, { tenantId: 'tenant-a', nexus: repo }) as {
+        recommend('security audit', '', 3, {
+          tenantId: 'tenant-a',
+          nexus: repo,
+          registeredAgents: new Set(['security-agent', 'other-security-agent']),
+        }) as {
           recommended: string;
         }
       ).recommended,

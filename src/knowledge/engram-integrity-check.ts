@@ -25,6 +25,7 @@ import {
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { createHash } from 'crypto';
+import { resolveEngramDbPath } from './engram-paths.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -154,7 +155,12 @@ function verifyManifest(engramDir: string, manifestPath: string): boolean {
   }
   try {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
-    let valid = manifest.version === 1 && Array.isArray(manifest.chunks);
+    // BL-2026-11-16: engram evolucionó el manifest a versión 2 (chunks con
+    // created_by/created_at/sessions/memories/prompts). El checker exigía v1 y
+    // marcaba FAIL falso en cada backup. Ambas versiones comparten la forma
+    // { version, chunks[] } que este validador verifica.
+    let valid =
+      (manifest.version === 1 || manifest.version === 2) && Array.isArray(manifest.chunks);
     if (valid) {
       const chunksDir = join(engramDir, 'chunks');
       for (const chunk of manifest.chunks) {
@@ -277,8 +283,33 @@ function invokeIntegrityCheck(
       }
     });
     if (backupDirs.length > 0) {
-      const latestBackup = backupDirs.sort().reverse()[0];
+      // Dated SQLite snapshots newest-first; manual/legacy dirs only as fallback
+      // (sorting raw names put "manual-*" ahead of every dated backup).
+      const latestBackup =
+        backupDirs
+          .filter((d) => /^\d{8}$/.test(d))
+          .sort()
+          .reverse()[0] ?? backupDirs.sort().reverse()[0];
       const latestPath = join(backupDir, latestBackup);
+      const snapshotDb = join(latestPath, 'engram.db');
+      const manifestPath = join(latestPath, 'manifest.json');
+      if (existsSync(snapshotDb) && existsSync(manifestPath)) {
+        try {
+          const m = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
+            format?: string;
+            counts?: { observations?: number };
+          };
+          if (m.format === 'sqlite-online-v1') {
+            const sizeMB = Math.round(statSync(snapshotDb).size / 1024 / 1024);
+            writeResult(
+              `Latest backup (${latestBackup}, ${sizeMB}MB DB, ${m.counts?.observations ?? '?'} observaciones)`,
+              'PASS',
+            );
+          }
+        } catch {
+          /* fall through to chunk-based verification */
+        }
+      }
       // Support both old format (.db) and new format (.jsonl.gz chunks)
       // Check for chunks in root or chunks/ subdirectory (new format)
       const chunkFilesRoot = readdirSync(latestPath).filter((f) => f.endsWith('.jsonl.gz'));
@@ -287,7 +318,7 @@ function invokeIntegrityCheck(
         ? readdirSync(chunksSubDir).filter((f) => f.endsWith('.jsonl.gz'))
         : [];
       const chunkFiles = chunkFilesRoot.length > 0 ? chunkFilesRoot : chunkFilesSub;
-      if (chunkFiles.length > 0) {
+      if (chunkFiles.length > 0 && !existsSync(snapshotDb)) {
         const totalSize = chunkFiles.reduce(
           (sum, f) =>
             sum + statSync(join(chunkFilesSub.length > 0 ? chunksSubDir : latestPath, f)).size,
@@ -297,7 +328,7 @@ function invokeIntegrityCheck(
           `Latest backup (${latestBackup}, ${Math.round(totalSize / 1024)}KB, ${chunkFiles.length} chunks)`,
           'PASS',
         );
-      } else {
+      } else if (!existsSync(snapshotDb)) {
         const dbFiles = readdirSync(latestPath).filter((f) => f.endsWith('.db'));
         if (dbFiles.length > 0) {
           const totalSize = dbFiles.reduce((sum, f) => sum + statSync(join(latestPath, f)).size, 0);
@@ -409,7 +440,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   const engramDir = args['EngramDir'] || join(ROOT, '.engram');
   const backupDir = args['BackupDir'] || join(ROOT, '.backups', 'engram');
-  const dbPath = join(ROOT, '.engram-data', 'engram.db');
+  const dbPath = args['DbPath'] || resolveEngramDbPath();
   const checksumPath = join(engramDir, 'checksums.sha256');
   const manifestPath = join(engramDir, 'manifest.json');
 

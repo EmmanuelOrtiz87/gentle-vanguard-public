@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { MetricSnapshot } from '../manager';
+import type { MetricSnapshot } from '../manager.js';
 
 export class MetricsRepo {
   constructor(private db: Database.Database) {}

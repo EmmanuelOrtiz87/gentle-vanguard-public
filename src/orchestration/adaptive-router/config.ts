@@ -14,6 +14,10 @@ export const REFLECTIONS_DIR = join(SESSION_DIR, 'reflections');
 export const KNOWLEDGE_DIR = join(SESSION_DIR, 'knowledge');
 export const ROUTING_DIR = join(SESSION_DIR, 'routing');
 export const ROUTING_TABLE_FILE = join(ROUTING_DIR, 'routing-table.json');
+// Recibos de delegación escritos por route-and-delegate.ts (persistHit). Es la
+// fuente de outcomes MÁS FRESCA del ciclo de routing: la tabla se reconstruye en
+// session-close y sin esta fuente su rendimiento venía de registros de septiembre.
+export const ROUTING_HITS_FILE = join(ROUTING_DIR, 'hits.jsonl');
 export const ROUTING_CONFIG = join(ROOT, 'config', 'adaptive-router.json');
 
 export const DEFAULT_CONFIG = {

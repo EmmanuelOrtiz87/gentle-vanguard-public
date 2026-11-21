@@ -12,6 +12,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlink
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { run } from '../../adapters/command-runner.js';
+import { autoStartReason, loadPolicy, mayAutoStart } from './mcp-policy.js';
 
 const ROOT = resolve(process.cwd());
 const REGISTRY_PATH = join(ROOT, 'config', 'mcp-registry.json');
@@ -91,9 +92,23 @@ function getProcPath(name: string): { pid: number; proc: ReturnType<typeof proce
 
 function startServers() {
   const reg = readRegistry();
+  const policy = loadPolicy(ROOT);
   let count = 0;
   for (const s of reg.servers) {
     if (!s.enabled) continue;
+    // La politica manda: un server declarado `on-demand` o
+    // `disabled-by-policy` NO se auto-arranca por mucho que el registro lo
+    // tenga en `enabled: true`. Antes este gateway arrancaba los 11 servidores
+    // del registro (incluido `rea`, que pesa ~40k tokens de esquema).
+    if (!mayAutoStart(policy, s.name)) {
+      const reason = autoStartReason(policy, s.name) ?? 'politica';
+      log(`  \u2296 ${s.name} \u2014 no auto-arranca (${reason}); se activa a demanda`);
+      continue;
+    }
+    if (!s.autoStart) {
+      log(`  \u2296 ${s.name} \u2014 no auto-arranca (registro: autoStart=false)`);
+      continue;
+    }
     const existing = getProcPath(s.name);
     if (existing) {
       log(`  \u23e9 ${s.name} \u2014 already running (PID ${existing.pid})`);

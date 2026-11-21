@@ -145,6 +145,8 @@ function emitUsage(config: DomainAgentConfig, task: string, output: DomainOutput
       artifactCount: output.artifacts.length,
       checklistCount: output.checklist.length,
       flags: output.flags ?? [],
+      executionKind: 'deterministic-domain-analysis',
+      llmCalled: false,
     };
 
     let existing: unknown[] = [];
@@ -208,7 +210,7 @@ export async function runDomainAgent(config: DomainAgentConfig): Promise<void> {
     console.log('=================================================');
     console.log(`  Status: ✅ SUCCESS`);
     console.log(`  Duration: ${duration}ms`);
-    console.log(`  Model: ${model} | Temp: ${temperature}`);
+    console.log(`  Model (declarada, no invocada): ${model} | Temp: ${temperature}`);
     console.log('=================================================');
 
     console.log('\n=== JSON OUTPUT ===');
@@ -216,6 +218,8 @@ export async function runDomainAgent(config: DomainAgentConfig): Promise<void> {
       JSON.stringify(
         {
           success: true,
+          executionKind: 'deterministic-domain-analysis',
+          llmCalled: false,
           agent: config.name,
           domain: config.domain,
           task,

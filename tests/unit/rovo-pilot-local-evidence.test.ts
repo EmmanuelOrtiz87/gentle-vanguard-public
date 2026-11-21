@@ -19,6 +19,12 @@
  *   P4 · El consumo por participante no trae cifras inventadas.
  *
  * Control declarado en `config/declarations.json`: rovo:pilot-local-evidence
+ *
+ * P1 (golden cases) quedó SIN MEDIR: la app nativa (apps/alexandria) se
+ * deprecó y borró el 2026-11-20 y el evaluador de golden cases vivía en
+ * apps/alexandria/server/evaluation.ts. El corpus sigue en la historia git
+ * (`git show HEAD:apps/alexandria/server/evaluation.ts`); el test queda
+ * declarado como omitido, con motivo, en vez de fingir que pasó.
  */
 
 import test from 'node:test';
@@ -26,7 +32,24 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-import { evaluateGoldenCases } from '../../apps/alexandria/server/evaluation.ts';
+interface GoldenCase {
+  name: string;
+  category: string;
+  passed: boolean;
+  missingAreas: string[];
+}
+
+const EVALUATOR_PATH = '../../apps/alexandria/server/evaluation.ts';
+
+let evaluateGoldenCases: (() => GoldenCase[]) | null = null;
+try {
+  const mod = (await import(EVALUATOR_PATH)) as {
+    evaluateGoldenCases?: () => GoldenCase[];
+  };
+  evaluateGoldenCases = mod.evaluateGoldenCases ?? null;
+} catch {
+  evaluateGoldenCases = null;
+}
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const ACTA = join(ROOT, 'docs', 'atlassian', 'rovo-alexandria', '11-piloto-2026-11-10.md');
@@ -35,12 +58,21 @@ function acta(): string {
   return readFileSync(ACTA, 'utf8');
 }
 
-test('P1 · los golden cases del contrato pasan (calidad local medida)', () => {
-  const cases = evaluateGoldenCases();
-  const passed = cases.filter((c) => c.passed).length;
-  assert.equal(cases.length, 7, 'el corpus tiene 7 casos');
-  assert.equal(passed, 7, `pasan ${passed} de ${cases.length}`);
-});
+test(
+  'P1 · los golden cases del contrato pasan (calidad local medida)',
+  {
+    skip: evaluateGoldenCases
+      ? false
+      : 'evaluador de golden cases eliminado con apps/alexandria (2026-11-20): el corpus queda en la historia git',
+  },
+  () => {
+    assert.ok(evaluateGoldenCases);
+    const cases = evaluateGoldenCases!();
+    const passed = cases.filter((c) => c.passed).length;
+    assert.equal(cases.length, 7, 'el corpus tiene 7 casos');
+    assert.equal(passed, 7, `pasan ${passed} de ${cases.length}`);
+  },
+);
 
 test('P2 · la dependencia externa de la plataforma está declarada', () => {
   const text = acta();

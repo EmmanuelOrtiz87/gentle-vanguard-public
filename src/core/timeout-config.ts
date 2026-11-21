@@ -16,7 +16,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { ROOT } from './repo-root';
+import { ROOT } from './repo-root.js';
 
 // ---------------------------------------------------------------------------
 // Types

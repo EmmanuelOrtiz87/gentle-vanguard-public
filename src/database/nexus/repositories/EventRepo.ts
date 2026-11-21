@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { EventRecord, AlertRecord } from '../manager';
+import type { EventRecord, AlertRecord } from '../manager.js';
 
 export class EventRepo {
   constructor(private db: Database.Database) {}

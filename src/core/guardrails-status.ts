@@ -189,6 +189,27 @@ function runPerformanceChecks(): GuardrailCheck[] {
 }
 
 /**
+ * Config de ESLint real: flat config o legacy. Un check que solo mira
+ * `.eslintrc.json` reporta WARN perpetuo aunque el repo tenga lint cableado.
+ */
+function eslintConfigOf(root: string): string | null {
+  for (const name of [
+    'eslint.config.js',
+    'eslint.config.mjs',
+    'eslint.config.cjs',
+    'eslint.config.ts',
+    '.eslintrc.json',
+    '.eslintrc.js',
+    '.eslintrc.cjs',
+    '.eslintrc.yml',
+    '.eslintrc.yaml',
+  ]) {
+    if (existsSync(join(root, name))) return name;
+  }
+  return null;
+}
+
+/**
  * Quality Guards
  */
 function runQualityChecks(): GuardrailCheck[] {
@@ -205,13 +226,13 @@ function runQualityChecks(): GuardrailCheck[] {
     }),
   );
 
-  // Lint config
+  // Lint config (flat config O legacy: el repo usa eslint.config.js, no .eslintrc.json)
   checks.push(
     checkGuardrail('ESLint Config', 'quality', () => {
-      const path = join(ROOT, '.eslintrc.json');
+      const found = eslintConfigOf(ROOT);
       return {
-        status: existsSync(path) ? 'OK' : 'WARN',
-        message: existsSync(path) ? 'Config exists' : 'Using defaults',
+        status: found ? 'OK' : 'WARN',
+        message: found ? `Config: ${found}` : 'Sin config de eslint (usa defaults)',
       };
     }),
   );

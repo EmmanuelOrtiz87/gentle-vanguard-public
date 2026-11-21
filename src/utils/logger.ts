@@ -37,7 +37,7 @@ export interface Logger {
 // (see src/telemetry/correlation.ts), every log line is enriched with
 // sessionId/traceId and mirrored into the unified correlation JSONL timeline.
 // Imported lazily-free but defensively: a missing module must never break logging.
-import { getCorrelation, logEvent } from '../telemetry/correlation';
+import { getCorrelation, logEvent } from '../telemetry/correlation.js';
 
 function formatTimestamp(): string {
   return new Date().toISOString().slice(11, 23);

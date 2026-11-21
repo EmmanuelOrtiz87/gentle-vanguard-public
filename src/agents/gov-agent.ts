@@ -173,6 +173,8 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           success: true,
+          executionKind: 'deterministic-domain-analysis',
+          llmCalled: false,
           agent: AGENT_CONFIG.name,
           task,
           model,

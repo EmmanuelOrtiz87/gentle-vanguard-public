@@ -188,10 +188,12 @@ function checkModelCatalog(root: string): DoctorCheck {
     const totalProviders = summary.totalProviders ?? 0;
     const configured = summary.totalConfiguredModels ?? 0;
     const upstream = summary.totalUpstreamModels ?? 0;
+    const verified = totalProviders > 0 && reachable === totalProviders;
     return {
       id: 'model-catalog',
-      state: 'healthy',
+      state: verified ? 'healthy' : 'unverified',
       message: `${relativePath}: fresh (${reachable}/${totalProviders} providers reachable, ${configured}/${upstream} models cfg/up)`,
+      ...(verified ? {} : { action }),
     };
   } catch {
     return {
@@ -257,7 +259,14 @@ function defaultJsonRequester(url: string, method: 'GET' | 'POST', body?: unknow
 }
 
 function trustedProjectSource(source: string): boolean {
-  return ['config', 'git_remote', 'git_root', 'git_child', 'dir_basename', 'process_override'].includes(source);
+  return [
+    'config',
+    'git_remote',
+    'git_root',
+    'git_child',
+    'dir_basename',
+    'process_override',
+  ].includes(source);
 }
 
 function checkCurrentCodexEngramSession(
@@ -270,7 +279,10 @@ function checkCurrentCodexEngramSession(
   if (!id || !directory) return undefined;
 
   try {
-    const authority = requester(`${ENGRAM_HEALTH_URL.replace('/health', '')}/project/current?cwd=${encodeURIComponent(directory)}`, 'GET') as {
+    const authority = requester(
+      `${ENGRAM_HEALTH_URL.replace('/health', '')}/project/current?cwd=${encodeURIComponent(directory)}`,
+      'GET',
+    ) as {
       project?: string;
       project_source?: string;
       error_hint?: string;
@@ -285,11 +297,15 @@ function checkCurrentCodexEngramSession(
         action: 'check Engram project detection, then start a new Codex session',
       };
     }
-    const resolved = requester(`${ENGRAM_HEALTH_URL.replace('/health', '')}/runtime-sessions/resolve`, 'POST', {
-      id,
-      directory,
-      project,
-    }) as {
+    const resolved = requester(
+      `${ENGRAM_HEALTH_URL.replace('/health', '')}/runtime-sessions/resolve`,
+      'POST',
+      {
+        id,
+        directory,
+        project,
+      },
+    ) as {
       id?: string;
       status?: string;
       resumed_from?: string;
@@ -314,12 +330,16 @@ function checkCurrentCodexEngramSession(
       id: 'codex-engram-session',
       state: 'conflict',
       message: 'Current Codex session is not registered in Engram runtime',
-      action: 'start a new Codex session, or rerun the Engram SessionStart hook with the host-provided session identity',
+      action:
+        'start a new Codex session, or rerun the Engram SessionStart hook with the host-provided session identity',
     };
   }
 }
 
-function checkCodexEngramIntegration(configPath: string, options: StackDoctorOptions = {}): DoctorCheck {
+function checkCodexEngramIntegration(
+  configPath: string,
+  options: StackDoctorOptions = {},
+): DoctorCheck {
   const action = 'engram setup codex';
   if (!existsSync(configPath)) {
     return {
@@ -335,7 +355,11 @@ function checkCodexEngramIntegration(configPath: string, options: StackDoctorOpt
     const lines = text.replace(/\r\n/g, '\n').split('\n');
     const firstLine = lines[0] ?? '';
     const markerPath = firstLine.startsWith(ENGRAM_WINDOWS_HOOK_MARKER)
-      ? firstLine.slice(ENGRAM_WINDOWS_HOOK_MARKER.length).trim().replace(/^"|"$/g, '').replace(/\\\\/g, '\\')
+      ? firstLine
+          .slice(ENGRAM_WINDOWS_HOOK_MARKER.length)
+          .trim()
+          .replace(/^"|"$/g, '')
+          .replace(/\\\\/g, '\\')
       : undefined;
     const hasWindowsMarker =
       process.platform !== 'win32' || firstLine.startsWith(ENGRAM_WINDOWS_HOOK_MARKER);
@@ -434,7 +458,8 @@ function checkCodexEngramIntegration(configPath: string, options: StackDoctorOpt
           options.currentCodexSessionId ?? process.env.CODEX_SESSION_ID,
           options.currentCodexCwd ?? process.cwd(),
         );
-        if (currentSessionCheck && currentSessionCheck.state !== 'healthy') return currentSessionCheck;
+        if (currentSessionCheck && currentSessionCheck.state !== 'healthy')
+          return currentSessionCheck;
         return {
           id: 'codex-engram',
           state: 'healthy',
@@ -521,7 +546,12 @@ export function collectStackDoctorReport(
     generatedAt: new Date().toISOString(),
     readOnly: true,
     scope: 'local-fast',
-    status: blocking.length > 0 ? 'FAIL' : checks.some((check) => check.state === 'unverified') ? 'WARN' : 'PASS',
+    status:
+      blocking.length > 0
+        ? 'FAIL'
+        : checks.some((check) => check.state === 'unverified')
+          ? 'WARN'
+          : 'PASS',
     checks,
   };
 }

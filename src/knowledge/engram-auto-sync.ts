@@ -14,6 +14,7 @@
 import { existsSync, writeFileSync, mkdirSync, unlinkSync, statSync } from 'fs';
 import { join, resolve } from 'path';
 import { runNpxTsxSync } from '../core/run-command.js';
+import { resolveEngramDbPath } from './engram-paths.js';
 
 interface Args {
   Mode?: 'check' | 'sync' | 'monitor';
@@ -35,8 +36,11 @@ function parseArgs(argv: string[]): Args {
 
 const ROOT = resolve(process.env.GENTLE_VANGUARD_BASE_DIR || process.cwd());
 const integrityScriptTs = join(ROOT, 'src', 'knowledge', 'engram-integrity-check.ts');
-const engramDataDir = join(ROOT, '.engram-data');
-const dbPath = join(engramDataDir, 'engram.db');
+// The live store is ENGRAM_DATA_DIR/engram.db (~/.engram by default). The old
+// `<repo>/.engram-data` path never existed here, so every check logged
+// "Database not found, skipping" and reported OK without reading anything.
+const dbPath = resolveEngramDbPath();
+const exportManifestPath = join(ROOT, '.engram', 'manifest.json');
 const checksumPath = join(ROOT, '.engram', 'checksums.sha256');
 const lockFile = join(ROOT, '.runtime', 'engram-sync.lock');
 const lastCheckFile = join(ROOT, '.runtime', 'engram-last-sync.json');
@@ -54,9 +58,11 @@ function log(msg: string, level: 'INFO' | 'OK' | 'WARN' | 'ERR' = 'INFO') {
   console.log(`${colors[level] ?? ''}[ENGRAM-SYNC] [${level}] ${msg}\x1b[0m`);
 }
 
-function getDbLastModified(): Date | null {
-  if (!existsSync(dbPath)) return null;
-  return statSync(dbPath).mtime;
+// Checksums cover the exported chunks (.engram/), not the live DB, so the
+// freshness comparison uses the export manifest instead of the DB mtime.
+function getExportLastModified(): Date | null {
+  if (!existsSync(exportManifestPath)) return null;
+  return statSync(exportManifestPath).mtime;
 }
 
 function getChecksumLastModified(): Date | null {
@@ -83,21 +89,17 @@ function checkSynchronization(): boolean {
     return true;
   }
 
-  const dbTime = getDbLastModified();
+  const exportTime = getExportLastModified();
   const checksumTime = getChecksumLastModified();
 
   if (!checksumTime) {
     log('Checksums not found, regenerating...', 'WARN');
-    return false;
+    return syncChecksums();
   }
 
-  if (dbTime && checksumTime && dbTime > checksumTime) {
-    // The engram DB is written live on every mem_save, so it is ALWAYS newer
-    // than the checksums during an active session. Failing here made the sync
-    // useless exactly when it matters — regenerate instead (that is the tool's
-    // purpose), then fall through to verification.
-    const diffSec = Math.round((dbTime.getTime() - checksumTime.getTime()) / 1000);
-    log(`DB modified ${diffSec}s after checksums — regenerating`, 'WARN');
+  if (exportTime && exportTime > checksumTime) {
+    const diffSec = Math.round((exportTime.getTime() - checksumTime.getTime()) / 1000);
+    log(`Export modified ${diffSec}s after checksums — regenerating`, 'WARN');
     if (!syncChecksums()) return false;
   }
 
@@ -107,8 +109,32 @@ function checkSynchronization(): boolean {
     return false;
   }
 
+  writeMarker();
   log('Synchronization OK', 'OK');
   return true;
+}
+
+function writeMarker(): void {
+  try {
+    writeFileSync(
+      lastCheckFile,
+      JSON.stringify(
+        {
+          timestamp: new Date().toISOString(),
+          status: 'SUCCESS',
+          dbPath,
+          dbModified: existsSync(dbPath) ? statSync(dbPath).mtime.toISOString() : null,
+          exportModified: getExportLastModified()?.toISOString() ?? null,
+          checksumModified: getChecksumLastModified()?.toISOString() ?? null,
+        },
+        null,
+        2,
+      ),
+      'utf-8',
+    );
+  } catch {
+    /* telemetry only */
+  }
 }
 
 function syncChecksums(): boolean {
@@ -142,13 +168,7 @@ function syncChecksums(): boolean {
     const verifyExit = runIntegrityScript('check');
     if (verifyExit === 0) {
       log('Checksums synchronized', 'OK');
-      const syncData = {
-        timestamp: new Date().toISOString(),
-        status: 'SUCCESS',
-        dbModified: getDbLastModified()?.toISOString(),
-        checksumModified: getChecksumLastModified()?.toISOString(),
-      };
-      writeFileSync(lastCheckFile, JSON.stringify(syncData, null, 2), 'utf-8');
+      writeMarker();
       return true;
     } else {
       log('Verification after sync failed', 'ERR');

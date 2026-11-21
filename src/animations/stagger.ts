@@ -4,7 +4,7 @@
  * list entrances and dashboard card grids.
  */
 
-import type { AnimationSequence } from './utils';
+import type { AnimationSequence } from './utils.js';
 
 export type StaggerDirection = 'forward' | 'reverse' | 'center';
 

@@ -18,10 +18,25 @@ import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  CRITICAL_SKILLS,
   containsJsonComments,
   writeFileAtomic,
   buildZCodeHookConfig,
 } from '../../src/integrations/zcode-sync.js';
+
+test('canonical critical skill descriptions are visible to the ZCode native line loader', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  for (const skill of CRITICAL_SKILLS) {
+    const base = skill.root === 'stack' ? 'skills' : '.opencode/skills';
+    const raw = readFileSync(join(root, base, skill.dir, 'SKILL.md'), 'utf8');
+    const description = /^description:[ \t]*([^\r\n]*)/m.exec(raw)?.[1]?.trim();
+    // YAML permits implicit multiline scalars, but ZCode 0.17.1 rejects them.
+    assert.ok(
+      description && description !== 'triggers:',
+      `${skill.dir}: native loader cannot discover description`,
+    );
+  }
+});
 
 test('containsJsonComments: JSON limpio -> false', () => {
   assert.equal(containsJsonComments('{"a": 1, "hooks": {"enabled": true}}'), false);
@@ -50,7 +65,10 @@ test('writeFileAtomic: escribe contenido y no deja .tmp residuales', () => {
   const file = join(dir, 'config.json');
   writeFileAtomic(file, '{"v": 1}');
   assert.equal(readFileSync(file, 'utf8'), '{"v": 1}');
-  assert.deepEqual(readdirSync(dir).filter((f) => f.includes('.tmp-')), []);
+  assert.deepEqual(
+    readdirSync(dir).filter((f) => f.includes('.tmp-')),
+    [],
+  );
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -117,8 +135,9 @@ test('buildZCodeHookConfig: merge POR-HOOK preserva hooks de terceros (regresió
     },
   };
   const next = buildZCodeHookConfig(current as Record<string, unknown>, '/repo');
-  const post = ((next.hooks as { events: Record<string, unknown> }).events
-    .PostToolUse as Array<{ hooks?: Array<{ args?: string[] }> }>);
+  const post = (next.hooks as { events: Record<string, unknown> }).events.PostToolUse as Array<{
+    hooks?: Array<{ args?: string[] }>;
+  }>;
   const args = post.flatMap((e) => (e.hooks ?? []).flatMap((h) => h.args ?? []));
   assert.ok(
     args.some((a) => a.endsWith('post-tool-use-token-log.ts')),
@@ -128,8 +147,13 @@ test('buildZCodeHookConfig: merge POR-HOOK preserva hooks de terceros (regresió
     args.some((a) => a.endsWith('post-edit-graphify.ts')),
     'el hook gestionado (graphify) debe regenerarse',
   );
-  assert.equal(post.filter((e) => (e.hooks ?? []).some((h) => (h.args ?? []).some((a) => a.endsWith('post-edit-graphify.ts')))).length, 1,
-    'sin duplicados del hook gestionado tras re-corridas');
+  assert.equal(
+    post.filter((e) =>
+      (e.hooks ?? []).some((h) => (h.args ?? []).some((a) => a.endsWith('post-edit-graphify.ts'))),
+    ).length,
+    1,
+    'sin duplicados del hook gestionado tras re-corridas',
+  );
 });
 
 test('zcode-hooks: los paths que invocan los hooks existen (no drift por refactor)', () => {
@@ -149,7 +173,11 @@ test('zcode-hooks: los paths que invocan los hooks existen (no drift por refacto
   // Validar que los hooks NO apuntan a rutas que ya no existen (post-F2.2):
   // session-autostart-detached.ts en la RAIZ sería un drift silencioso.
   const wrongPath = join(repoRoot, 'src', 'session-autostart-detached.ts');
-  assert.equal(existsSync(wrongPath), false, `drift detectado: hook apunta a ${wrongPath} que ya no existe`);
+  assert.equal(
+    existsSync(wrongPath),
+    false,
+    `drift detectado: hook apunta a ${wrongPath} que ya no existe`,
+  );
 });
 
 test('zcode-hooks: el config vivo referencia scripts que existen (ZCode puede arrancarlos)', () => {

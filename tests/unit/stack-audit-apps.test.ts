@@ -65,10 +65,9 @@ test('planAppAudits: incluye solo kinds que tienen script definido', () => {
   const plans = planAppAudits(apps, ['typecheck', 'test', 'lint']);
   const wpp = plans.find((p) => p.app === 'wpp-bot');
   const design = plans.find((p) => p.app === 'design-hub');
-  // GB-2026-11-14 ola 4: test:autoplay de wpp-bot entró al contrato seguro → 4 checks.
   assert.ok(
-    wpp && wpp.plan.length === 4,
-    'wpp-bot debe planear 4 checks (typecheck/test/lint/test:autoplay)',
+    wpp && wpp.plan.length === 5,
+    'wpp-bot debe planear typecheck, lint, test, autoplay y cobertura',
   );
   assert.deepEqual(
     design?.plan.map((check) => check.kind),
@@ -88,11 +87,19 @@ test('planAppAudits: uses static:build as the app build contract when build is a
 
 test('planAppAudits: respeta filtro `only`', () => {
   const plans = planAppAudits(['wpp-bot'], ['test']);
-  // ola 4: test:autoplay (contrato seguro) se planifica junto al test genérico
   assert.deepEqual(
     plans[0].plan.map((check) => check.kind),
-    ['test', 'test:autoplay'],
+    ['test', 'test:autoplay', 'test:coverage'],
   );
+});
+
+test('planAppAudits: el alias watch de una suite cubierta no crea una omisión', () => {
+  const plans = planAppAudits(['web-dashboard', 'wpp-bot'], ['test']);
+  for (const plan of plans) {
+    assert.ok(plan.plan.some((check) => check.script === 'test'));
+    assert.ok(!plan.plan.some((check) => check.script === 'test:watch'));
+    assert.ok(!plan.omissions.some((item) => item.script === 'test:watch'));
+  }
 });
 
 test('planAppAudits: descubre suites test:* seguras y explica las suites diferidas de Vanguard Connect', () => {
@@ -128,9 +135,8 @@ test('planAppAudits: solo ejecuta suites E2E incluidas en contrato local aislado
   assert.ok(gvAgenda.plan.some((check) => check.script === 'test:journey'));
   assert.ok(kairos.plan.some((check) => check.script === 'test:journey'));
   assert.ok(sandbox.plan.some((check) => check.script === 'test:e2e'));
-  // test:gui quedó FUERA del contrato con medición: self-contained pero 6m40s
-  // (levanta teatro + 2 apps reales) > presupuesto de 240s/check del audit.
-  assert.ok(sandbox.omissions.some((item) => item.script === 'test:gui'));
+  assert.ok(sandbox.plan.some((check) => check.script === 'test:gui'));
+  assert.ok(!sandbox.omissions.some((item) => item.script === 'test:gui'));
   assert.ok(!gvAgenda.omissions.some((item) => item.script.startsWith('test:')));
 });
 

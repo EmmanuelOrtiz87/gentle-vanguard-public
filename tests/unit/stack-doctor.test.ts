@@ -80,30 +80,35 @@ test('stack doctor is read-only, fast scoped, and reports external catalogs as u
   assert.equal(report.checks.find((check) => check.id === 'model-catalog')?.state, 'unverified');
 });
 
-test('stack doctor trusts a fresh healthy model catalog probe cache', () => {
-  const root = fixture();
-  mkdirSync(join(root, 'reports', 'audits'), { recursive: true });
-  writeFileSync(
-    join(root, 'reports', 'audits', 'model-catalog-latest.json'),
-    JSON.stringify({
-      timestamp: new Date().toISOString(),
-      summary: {
-        totalProviders: 10,
-        providersWithAuth: 9,
-        providersReachable: 6,
-        totalConfiguredModels: 264,
-        totalUpstreamModels: 252,
-        missingInUpstream: 0,
-        brokenModelProbes: 0,
-      },
-    }),
-  );
-  const report = doctor(root);
-  const modelCatalog = report.checks.find((check) => check.id === 'model-catalog');
-  assert.equal(report.status, 'PASS');
-  assert.equal(modelCatalog?.state, 'healthy');
-  assert.match(modelCatalog?.message ?? '', /fresh/);
-});
+for (const [reachable, expectedState] of [
+  [10, 'healthy'],
+  [6, 'unverified'],
+] as const) {
+  test(`stack doctor reports ${reachable}/10 reachable providers as ${expectedState}`, () => {
+    const root = fixture();
+    mkdirSync(join(root, 'reports', 'audits'), { recursive: true });
+    writeFileSync(
+      join(root, 'reports', 'audits', 'model-catalog-latest.json'),
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        summary: {
+          totalProviders: 10,
+          providersWithAuth: 9,
+          providersReachable: reachable,
+          totalConfiguredModels: 264,
+          totalUpstreamModels: 252,
+          missingInUpstream: 0,
+          brokenModelProbes: 0,
+        },
+      }),
+    );
+    const report = doctor(root);
+    const modelCatalog = report.checks.find((check) => check.id === 'model-catalog');
+    assert.equal(report.status, expectedState === 'healthy' ? 'PASS' : 'WARN');
+    assert.equal(modelCatalog?.state, expectedState);
+    assert.match(modelCatalog?.message ?? '', /fresh/);
+  });
+}
 
 test('stack doctor fails on fresh model catalog evidence with stale configured models', () => {
   const root = fixture();
@@ -128,20 +133,28 @@ test('stack doctor fails on fresh model catalog evidence with stale configured m
   assert.equal(report.checks.find((check) => check.id === 'model-catalog')?.state, 'conflict');
 });
 
-test('stack doctor fails when Codex Engram hook marker is missing', { skip: process.platform !== 'win32' }, () => {
-  const root = fixture();
-  writeFileSync(
-    join(root, '.codex', 'config.toml'),
-    ['model = "gpt-5.5"', '[mcp_servers.engram]', 'command = "engram"', 'args = ["mcp", "--tools=agent"]', ''].join(
-      '\n',
-    ),
-  );
-  const report = doctor(root);
-  const check = report.checks.find((item) => item.id === 'codex-engram');
-  assert.equal(report.status, 'FAIL');
-  assert.equal(check?.state, 'conflict');
-  assert.match(check?.message ?? '', /missing Windows hook marker/);
-});
+test(
+  'stack doctor fails when Codex Engram hook marker is missing',
+  { skip: process.platform !== 'win32' },
+  () => {
+    const root = fixture();
+    writeFileSync(
+      join(root, '.codex', 'config.toml'),
+      [
+        'model = "gpt-5.5"',
+        '[mcp_servers.engram]',
+        'command = "engram"',
+        'args = ["mcp", "--tools=agent"]',
+        '',
+      ].join('\n'),
+    );
+    const report = doctor(root);
+    const check = report.checks.find((item) => item.id === 'codex-engram');
+    assert.equal(report.status, 'FAIL');
+    assert.equal(check?.state, 'conflict');
+    assert.match(check?.message ?? '', /missing Windows hook marker/);
+  },
+);
 
 test('stack doctor fails when Codex Engram config overrides the base prompt', () => {
   const root = fixture();

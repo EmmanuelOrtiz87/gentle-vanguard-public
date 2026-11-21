@@ -349,6 +349,36 @@ test('does not classify a daemon from another checkout as a repo process', () =>
   );
 });
 
+test('relative daemon paths are managed only by the current worktree pidfile owner', () => {
+  const localPid = 26774;
+  const foreignPid = 38294;
+  const pidFiles = new Map([[join('.runtime', 'spike-guard.pid'), String(localPid)]]);
+  const command = 'node --import tsx src/core/token-spike-guard-daemon.ts';
+  const output = [
+    `${localPid}\t1000\tnode.exe\t${new Date().toISOString()}\t${command}`,
+    `${foreignPid}\t2000\tnode.exe\t${new Date().toISOString()}\t${command}`,
+  ].join('\n');
+
+  const { repoProcesses, livePids } = parseWindowsProcessSnapshot(output, pidFiles);
+  const { findings, keptHealthy } = analyzeProcesses(
+    {
+      repoProcesses,
+      livePids,
+      portOwners: new Map(),
+      pidFiles,
+    },
+    OPTS,
+  );
+
+  assert.ok(livePids.has(foreignPid), 'foreign process remains visible for parent-liveness checks');
+  assert.ok(repoProcesses.some((process) => process.pid === localPid));
+  assert.ok(!repoProcesses.some((process) => process.pid === foreignPid));
+  assert.ok(!findings.some((finding) => finding.pid === foreignPid));
+  assert.ok(
+    keptHealthy.some((daemon) => daemon.classId === 'spike-guard-daemon' && daemon.pid === localPid),
+  );
+});
+
 test('static app servers (node serve-static) are protected classes, not hung one-shots', () => {
   // academy: start.sh shape (node serve-static, post-migración 2026-10) —
   // pidfile records the msys nohup wrapper pid (alive, but not a class
@@ -465,13 +495,15 @@ test('Gentle Music started via pnpm-exec shim path is still classified', () => {
 test('guardGitRepoConfig: repara core.bare=true en un repo bare y es idempotente', () => {
   const dir = mkdtempSync(join(tmpdir(), 'gv-bare-guard-'));
   const g = (args: string[]) => spawnSync('git', args, { cwd: dir, encoding: 'utf-8' });
+  const bareConfig = () =>
+    spawnSync('git', ['--git-dir', dir, 'config', 'core.bare'], { cwd: dir, encoding: 'utf-8' });
   try {
     g(['init', '--bare']);
-    assert.strictEqual(g(['config', 'core.bare']).stdout.trim(), 'true');
+    assert.strictEqual(bareConfig().stdout.trim(), 'true');
     const logs: string[] = [];
     const first = guardGitRepoConfig(dir, (m) => logs.push(m));
     assert.strictEqual(first.flipped, true, 'debe reparar un repo bare');
-    assert.strictEqual(g(['config', 'core.bare']).stdout.trim(), 'false');
+    assert.strictEqual(bareConfig().stdout.trim(), 'false');
     assert.ok(logs[0].includes('REPARADO'), 'registra el incidente');
     // idempotente: segunda pasada no flipsea
     const second = guardGitRepoConfig(dir, (m) => logs.push(m));

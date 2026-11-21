@@ -12,7 +12,7 @@
  * logging and the shared basename index.
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { join, relative, resolve } from 'path';
 
 export interface PipelineStepLike {
@@ -181,6 +181,15 @@ export function healStepScriptPaths(
         ) + '\n',
         'utf-8',
       );
+    } catch {
+      /* best-effort */
+    }
+  } else if (opts.reportPath && existsSync(opts.reportPath)) {
+    // Todo resuelto en esta corrida: limpiar el reporte de pendientes VIEJO.
+    // Sin esto, un reporte emitido antes de un heal exitoso queda para siempre
+    // y el watchtower WARNea eternamente sobre un problema ya reparado.
+    try {
+      unlinkSync(opts.reportPath);
     } catch {
       /* best-effort */
     }

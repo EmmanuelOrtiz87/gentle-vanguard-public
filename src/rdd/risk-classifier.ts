@@ -257,7 +257,7 @@ function log(message: string, level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' = 'IN
     ERROR: '\u001b[31m',
     SUCCESS: '\u001b[32m',
   };
-  console.log(`${colors[level]}[${timestamp}] [RISK-CLASSIFIER] [${level}] ${message}\u001b[0m`);
+  console.error(`${colors[level]}[${timestamp}] [RISK-CLASSIFIER] [${level}] ${message}\u001b[0m`);
 }
 
 // ─── Git Operations ───────────────────────────────────────────────────────────

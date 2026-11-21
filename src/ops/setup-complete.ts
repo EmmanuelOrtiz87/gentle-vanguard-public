@@ -244,7 +244,7 @@ function runTests(installPath: string, skipTests: boolean): void {
 
   const testDir = join(installPath, 'tests');
   if (existsSync(testDir)) {
-    const testResult = runCmd('npx', ['tsx', 'src/health-check.ts'], installPath);
+    const testResult = runCmd('npx', ['tsx', 'src/core/health-check.ts'], installPath);
     if (testResult.status === 0) {
       writeSuccess('All tests passed');
     } else {
@@ -264,7 +264,7 @@ function showCompletion(installPath: string, mode: SetupMode): void {
   console.log(`  Mode: ${mode}`);
   console.log('');
   console.log('  Next steps:');
-  console.log('  1. Run: npx tsx src/health-check.ts');
+  console.log('  1. Run: npx tsx src/core/health-check.ts');
   console.log('  2. Explore skills');
   console.log('');
   console.log(`  For ${mode} mode:`);

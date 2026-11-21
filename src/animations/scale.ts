@@ -3,8 +3,8 @@
  * `scalePop` overshoots past 1.0 (spring easing) for a playful "badge-pop" feel.
  */
 
-import { resolveTiming, type TimingInput } from './presets';
-import type { AnimationSequence } from './utils';
+import { resolveTiming, type TimingInput } from './presets.js';
+import type { AnimationSequence } from './utils.js';
 
 /** Scale in from a starting scale (default 0.9) to 1. */
 export function scaleIn(input?: TimingInput, from = 0.9): AnimationSequence {

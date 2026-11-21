@@ -67,12 +67,12 @@ export default {
         {
           icon: 'agent',
           heading: 'Un roster de agentes',
-          body: '20 agentes con modelo, permisos, pasos y presupuesto asignados.',
+          body: '22 agentes con modelo, permisos, pasos y presupuesto asignados.',
         },
         {
           icon: 'brain',
           heading: 'Capacidades',
-          body: '257 skills reutilizables que se invocan por contexto, no por código.',
+          body: '265 skills reutilizables que se invocan por contexto, no por código.',
         },
         {
           icon: 'eye',
@@ -119,7 +119,7 @@ export default {
         },
         {
           label: 'Capacidades',
-          body: '257 skills indexadas, con 28 críticas bajo contrato verificado en ejecución real.',
+          body: '265 skills indexadas, con 29 críticas bajo contrato verificado en ejecución real.',
           accent: 'c4b5fd',
         },
         {
@@ -144,7 +144,7 @@ export default {
         },
         {
           label: 'Aplicaciones',
-          body: '30 apps propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '28 apps propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '06b6d4',
         },
       ],
@@ -158,19 +158,19 @@ export default {
       cols: 4,
       items: [
         {
-          value: '800+',
+          value: '889+',
           label: 'Archivos TS en src/',
           sub: 'Código propio del stack, con módulos por área',
           accent: '06b6d4',
         },
         {
-          value: '552+',
+          value: '653',
           label: 'Archivos de test',
           sub: 'Unit, e2e, integración, seguridad y skills',
           accent: '8b5cf6',
         },
         {
-          value: '611+',
+          value: '673',
           label: 'Scripts npm',
           sub: 'Cada operación del stack es un comando auditable',
           accent: 'fbbf24',
@@ -248,8 +248,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '55 quality gates',
-          body: '19 en pre-commit, 2 en commit-msg, 2 en post-commit, 19 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 1 en runtime. 50 de 55 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
+          heading: '70 quality gates',
+          body: '24 en pre-commit, 2 en commit-msg, 2 en post-commit, 28 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 65 de 70 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
         },
         {
           icon: 'search',

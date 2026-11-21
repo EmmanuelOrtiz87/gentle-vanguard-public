@@ -5,7 +5,7 @@
  * Initializes and enforces dependency security policies
  */
 
-import { dependencySecurityEnforcer } from './dependency-security-enforcer';
+import { dependencySecurityEnforcer } from './dependency-security-enforcer.js';
 
 /**
  * Initialize dependency security policies

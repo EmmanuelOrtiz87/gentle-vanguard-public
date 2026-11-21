@@ -10,9 +10,9 @@
 
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { runNpxTsxSync } from '../run-command';
-import { RUNTIME_DIR, ROOT, addResult, quiet } from './context';
-import { fileExists, readJson } from './helpers';
+import { runNpxTsxSync } from '../run-command.js';
+import { RUNTIME_DIR, ROOT, addResult, quiet } from './context.js';
+import { fileExists, readJson } from './helpers.js';
 import { log } from '../../utils/logger.js';
 import { nativeApps, type AppRegistryEntry } from '../../ops/app-registry.js';
 

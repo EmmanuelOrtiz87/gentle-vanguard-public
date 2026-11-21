@@ -47,12 +47,9 @@ function runTsx(script: string, args: string[], cwd: string, dbDir?: string): { 
   return { status: res.status ?? -1, stdout: res.stdout || '' };
 }
 
-// recommend-agent puede emitir ruido de logs ([DB] ...) antes del JSON
+// stdout es un contrato: los logs de bootstrap de Nexus van a stderr (bitácora 2026-11-20)
 function parseJsonOutput(stdout: string): any {
-  const start = stdout.indexOf('{');
-  const end = stdout.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error(`No JSON found in output: ${stdout}`);
-  return JSON.parse(stdout.slice(start, end + 1));
+  return JSON.parse(stdout.trim());
 }
 
 function setupTempSession(): string {

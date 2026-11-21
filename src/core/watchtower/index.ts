@@ -2,14 +2,14 @@
 // Re-exports the per-component checks, rebuild actions and shared helpers so
 // the orchestrator (src/core/maintenance-watchtower.ts) imports from one place.
 
-export * from './context';
-export * from './helpers';
-export * from './checks-dashboard';
-export * from './checks-infra';
-export * from './checks-config';
-export * from './checks-security';
-export * from './checks-data';
-export * from './checks-apps';
-export * from './checks-bg-tasks';
-export * from './checks-design-canon';
-export * from './rebuild';
+export * from './context.js';
+export * from './helpers.js';
+export * from './checks-dashboard.js';
+export * from './checks-infra.js';
+export * from './checks-config.js';
+export * from './checks-security.js';
+export * from './checks-data.js';
+export * from './checks-apps.js';
+export * from './checks-bg-tasks.js';
+export * from './checks-design-canon.js';
+export * from './rebuild.js';

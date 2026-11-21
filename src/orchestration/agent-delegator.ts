@@ -11,20 +11,24 @@
  */
 
 import { createHash, randomUUID } from 'crypto';
-import { runNpxTsx, runSync } from '../core/run-command';
-import { estimateTokens as estimateBudgetTokens, getUsedTokensToday } from '../tokens/token-budget-guard.js';
+import { runNpxTsx, runSync } from '../core/run-command.js';
+import {
+  estimateTokens as estimateBudgetTokens,
+  getUsedTokensToday,
+} from '../tokens/token-budget-guard.js';
 import { dispatchAlert } from '../monitor/alert-dispatcher.js';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { writeFileSync } from 'fs';
 import { compressStructural, estimateTokens } from '../compression/structural-compression.js';
 import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus/manager.js';
-import { executeWithCircuit } from '../resilience/circuit-breaker-v2';
+import { executeWithCircuit } from '../resilience/circuit-breaker-v2.js';
 import { registerAttempt, detectLoop } from '../resilience/anti-loop-guard.js';
 import { evaluateFailure } from '../security/guardrail-orchestrator.js';
+import { PolicyEngine } from '../security/policy-engine/policy-engine.js';
 import { resolveBudgetAwareModel } from '../tokens/budget-aware-routing.js';
 import { log } from '../utils/logger.js';
-import { nativeResultFailure } from './native-result.js';
+import { nativeResultFailure, parseNativeResult } from './native-result.js';
 
 const logger = log('AGENT-DELEGATOR');
 
@@ -44,6 +48,13 @@ interface DelegationRequest {
   model?: string;
   /** M6: quality-tier override from domainTiering. Falls back to config default. */
   temperature?: number;
+  /**
+   * Override puntual del timeout de spawn (segundos). El default es
+   * config/auto-delegation.json → delegationTimeoutSeconds (600). La ruta
+   * editorial lo usa porque sus fases encadenadas (generación + revisión)
+   * exceden el presupuesto de una sola generación bajo el default.
+   */
+  timeoutSeconds?: number;
 }
 
 interface DelegationResult {
@@ -52,6 +63,10 @@ interface DelegationResult {
   error?: string;
   duration: number;
   model: string;
+  /** Envelope marker from the native helper (e.g. deterministic-domain-analysis). */
+  executionKind?: string;
+  /** true only when the helper proves it called a model; helpers do not. */
+  llmCalled?: boolean;
 }
 
 /**
@@ -92,7 +107,10 @@ function loadAutoDelegationLimits(): { globalMax: number; timeoutSeconds: number
       delegationTimeoutSeconds?: number;
       concurrencyLimits?: { globalMax?: number };
     };
-    if (typeof cfg.concurrencyLimits?.globalMax === 'number' && cfg.concurrencyLimits.globalMax > 0) {
+    if (
+      typeof cfg.concurrencyLimits?.globalMax === 'number' &&
+      cfg.concurrencyLimits.globalMax > 0
+    ) {
       globalMax = cfg.concurrencyLimits.globalMax;
     }
     if (typeof cfg.delegationTimeoutSeconds === 'number' && cfg.delegationTimeoutSeconds > 0) {
@@ -485,8 +503,18 @@ function loadAgents(): Record<string, AgentConfig> {
       const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
       agents = { ...agents, ...config.agents };
     } catch {
-      logger.warn('Failed to load config/agents.json, using defaults');
+      // GB-20261120 S7: el fallback hardcoded (DEFAULT_AGENTS, modelo
+      // opencode-zen-C/big-pickle del cold-start de octubre) puede divergir del
+      // canon vivo. Que se sepa: warn explícito con el modelo que viaja.
+      logger.warn(
+        'config/agents.json ilegible: delegando con DEFAULT_AGENTS hardcoded ' +
+          '(modelo ' +
+          DEFAULT_AGENTS['sdd-explore']?.model +
+          '). Puede divergir del canon vivo — ver docs/reference/MODELOS-SUPERFICIES-CANON.md',
+      );
     }
+  } else {
+    logger.warn('config/agents.json no existe: usando DEFAULT_AGENTS hardcoded');
   }
 
   // CRITICAL: Check for model override from environment (for fallback orchestrator)
@@ -510,11 +538,69 @@ function loadAgents(): Record<string, AgentConfig> {
 }
 
 /**
+ * GB-20261120 — ADR-0027 + HUMAN-IN-THE-LOW cableados en la ruta real.
+ * Evalúa la delegación contra el motor de política fail-closed
+ * (config/policies/gv-core-tool-safety.yaml, regla allow-agent-delegation como
+ * base). Devuelve null si la política permite; un mensaje de bloqueo honesto
+ * (deny o require_approval con aprobadores) si no. Motor inyectable para tests.
+ * Comportamiento declarado del motor: sin políticas cargadas → allow (compat);
+ * error de infraestructura del motor → deny (fail-closed).
+ */
+let delegationPolicyEngine: PolicyEngine | undefined;
+export function setDelegationPolicyEngine(engine: PolicyEngine | undefined): void {
+  delegationPolicyEngine = engine;
+}
+
+export function evaluateDelegationPolicy(request: DelegationRequest): string | null {
+  try {
+    delegationPolicyEngine ??= new PolicyEngine();
+    const result = delegationPolicyEngine.evaluate({
+      type: 'agent_delegation',
+      tool: request.agent,
+      target: request.agent,
+      params: { taskPreview: request.task.slice(0, 120) },
+    });
+    if (result.action === 'allow') return null;
+    if (result.action === 'require_approval') {
+      const approvers = result.approvers?.length ? result.approvers.join(', ') : 'owner';
+      return (
+        `[POLICY:require_approval] ${result.reason} (decisión ${result.decisionId}). ` +
+        `HITL: esta delegación requiere aprobación previa de: ${approvers}.`
+      );
+    }
+    return `[POLICY:deny] ${result.reason} (decisión ${result.decisionId})`;
+  } catch (error) {
+    return (
+      `[POLICY:deny] Fail-closed (ADR-0027): el motor de política no pudo evaluarse — ` +
+      `${error instanceof Error ? error.message.slice(0, 160) : String(error).slice(0, 160)}`
+    );
+  }
+}
+
+/**
  * Delegate task to an agent using npx tsx
  * This is the native approach that works with any tool
  */
 export async function delegate(request: DelegationRequest): Promise<DelegationResult> {
   const startTime = Date.now();
+  // ── Policy gate pre-acción (ADR-0027 + HUMAN-IN-THE-LOOP, cableado 2026-11-20):
+  // la delegación pasa por el motor de política fail-closed ANTES de ejecutarse.
+  // deny → bloqueo honesto; require_approval → bloqueo con aprobadores (HITL:
+  // el owner debe aprobar). Error de infraestructura del motor → deny
+  // (fail-closed, ADR-0027). La regla allow-agent-delegation del yaml es la base;
+  // cualquier regla deny/require_approval futura gana sin tocar este archivo.
+  const policy = evaluateDelegationPolicy(request);
+  if (policy) {
+    const blocked: DelegationResult = {
+      success: false,
+      error: policy,
+      duration: Date.now() - startTime,
+      model: 'unknown',
+    };
+    // C4: también el bloqueo por política deja recibo (observabilidad completa).
+    recordInterAgentCall(request, blocked);
+    return blocked;
+  }
   // ── Budget gate (antes declarativo, ahora enforceado): el config define
   // strict 95% -> block_new_tasks y emergency 100% -> critical_only. Cálculo
   // local silencioso (runGuard imprime a stdout y contaminaría la salida del
@@ -554,7 +640,12 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
           details: `Agente solicitado: ${request.agent}. Uso hoy: ${used} tokens de ${daily}.`,
           recommendation:
             'Reducir carga de subagentes o esperar el reset diario; el routing downgrade a modelo cheap ya está activo.',
-          metrics: { projectedPct: Number(pct.toFixed(2)), usedToday: used, dailyBudget: daily, agent: request.agent },
+          metrics: {
+            projectedPct: Number(pct.toFixed(2)),
+            usedToday: used,
+            dailyBudget: daily,
+            agent: request.agent,
+          },
           dedupeKey: 'daily-budget',
           dedupeTtlMs: 30 * 60_000,
         });
@@ -592,12 +683,13 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
     // Check if native agent implementation exists
     const agentScript = join(AGENTS_DIR, `${request.agent}.ts`);
 
+    let outcome: DelegationResult;
     if (existsSync(agentScript)) {
       // Use native implementation if available, guarded by a per-agent circuit
       // breaker (v2, file-state shared across processes). After repeated
       // failures the circuit opens and delegations fail fast with the last
       // error instead of burning the full spawn timeout every time.
-      return await executeWithCircuit(
+      outcome = await executeWithCircuit(
         `agent_delegation:${request.agent}`,
         () => runNativeAgent(agentScript, request, agentConfig, startTime, effectiveTemp),
         () => ({
@@ -607,9 +699,13 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
           model: agentConfig.model,
         }),
       );
+    } else {
+      // Fallback: Generate agent output directly
+      outcome = await generateAgentResponse(request, agentConfig, startTime);
     }
-    // Fallback: Generate agent output directly
-    return generateAgentResponse(request, agentConfig, startTime);
+    // C4 (GB-20261120): el recibo de la llamada queda en el log de inter-agentes.
+    recordInterAgentCall(request, outcome);
+    return outcome;
   } finally {
     releaseDelegationSlot();
   }
@@ -702,6 +798,45 @@ export async function delegateWithGuardrail(request: DelegationRequest): Promise
 }
 
 /**
+ * GB-20261120 S4 — regla C4 de rules/INTER-AGENT-COMMUNICATION.md, ahora
+ * operable: toda llamada orquestador→agente se registra en
+ * `.session/inter-agent-calls.jsonl` (append-only). El esquema sigue la norma
+ * (source, target, correlationId, task, result, metadata) con la descripción
+ * truncada a 300 caracteres. La observabilidad JAMÁS cambia el comportamiento
+ * de la delegación: cualquier error de escritura se ignora en silencio.
+ */
+export function recordInterAgentCall(
+  request: DelegationRequest,
+  result: DelegationResult,
+  filePath = join(process.cwd(), '.session', 'inter-agent-calls.jsonl'),
+): void {
+  try {
+    mkdirSync(dirname(filePath), { recursive: true });
+    const entry = {
+      timestamp: new Date().toISOString(),
+      source: 'orchestrator',
+      target: request.agent,
+      correlationId: randomUUID(),
+      task: {
+        type: request.agent,
+        description: request.task.slice(0, 300),
+        contextChars: request.context?.length ?? 0,
+      },
+      result: result.success ? 'ok' : 'fail',
+      error: result.success ? undefined : (result.error ?? '').slice(0, 300),
+      metadata: {
+        durationMs: result.duration,
+        model: result.model,
+        timeoutSeconds: request.timeoutSeconds ?? undefined,
+      },
+    };
+    appendFileSync(filePath, JSON.stringify(entry) + '\n');
+  } catch {
+    /* la observabilidad no bloquea la delegación */
+  }
+}
+
+/**
  * Run native agent TypeScript file.
  *
  * Uses runNpxTsx (`node --import tsx`): argv-array spawn, no shell, no `.cmd`
@@ -734,19 +869,43 @@ async function runNativeAgent(
     // cheap profile (free-tier fallback model). Opt-out: routingDowngrade
     // .enabled=false in config/token-budget-guard.json or GV_BUDGET_ROUTING=0.
     // The interactive/main session model is never touched by this hook.
+    if (request.agent === 'editorial-agent') {
+      model =
+        request.model ||
+        process.env.ORCHESTRATOR_MODEL ||
+        envModel ||
+        process.env.SESSION_MODEL ||
+        config.model;
+    }
     model = resolveBudgetAwareModel('subagent', model);
 
     // Lossless compression of task/context (defense in depth): the original
     // request stays intact for logging; only the spawned command uses the
     // compressed forms.
-    const boundedTask = boundDelegationInput(request.task, MAX_DELEGATION_TASK_CHARS, 'task');
+    const editorial = request.agent === 'editorial-agent';
+    if (editorial && request.task.length + (request.context?.length ?? 0) > 12_000) {
+      resolve({
+        success: false,
+        error:
+          'La entrada editorial supera 12.000 caracteres. Dividí el material conservando su orden y referencias.',
+        model,
+        duration: Date.now() - startTime,
+      });
+      return;
+    }
+    const boundedTask = editorial
+      ? request.task
+      : boundDelegationInput(request.task, MAX_DELEGATION_TASK_CHARS, 'task');
     const boundedContext = request.context
-      ? boundDelegationInput(request.context, MAX_DELEGATION_CONTEXT_CHARS, 'context')
+      ? editorial
+        ? request.context
+        : boundDelegationInput(request.context, MAX_DELEGATION_CONTEXT_CHARS, 'context')
       : undefined;
-    const taskCompressed = compressDelegationLossless(boundedTask);
-    const contextCompressed = boundedContext ? compressDelegationLossless(boundedContext) : null;
+    const taskCompressed = editorial ? null : compressDelegationLossless(boundedTask);
+    const contextCompressed =
+      !editorial && boundedContext ? compressDelegationLossless(boundedContext) : null;
 
-    if (taskCompressed.applied) {
+    if (taskCompressed?.applied) {
       logger.info(
         `[agent-delegator] compressed task: ${taskCompressed.originalChars} -> ${taskCompressed.compressedChars} chars (ratio ${taskCompressed.ratio.toFixed(3)})`,
       );
@@ -765,10 +924,10 @@ async function runNativeAgent(
       });
     }
 
-    const args = ['--task', taskCompressed.text, '--model', model];
+    const args = ['--task', taskCompressed?.text ?? boundedTask, '--model', model];
 
     if (boundedContext) {
-      args.push('--context', contextCompressed ? contextCompressed.text : boundedContext);
+      args.push('--context', contextCompressed?.text ?? boundedContext);
     }
 
     const child = runNpxTsx(scriptPath, args, {
@@ -785,7 +944,10 @@ async function runNativeAgent(
     // ── Timeout de delegación (antes sin límite: un subagente colgado
     // retenía el slot MAX_ACTIVE_DELEGATIONS indefinidamente). Al vencer:
     // kill del árbol + fallo 'timeout' + slot liberado por el finally.
-    const timeoutSeconds = loadAutoDelegationLimits().timeoutSeconds;
+    // GB-20261120: el request puede pedir un timeout propio (editorial lo hace
+    // para cubrir generación + revisión encadenadas); el default sigue siendo
+    // el global de config/auto-delegation.json.
+    const timeoutSeconds = request.timeoutSeconds ?? loadAutoDelegationLimits().timeoutSeconds;
     let timedOut = false;
     const timeoutTimer = setTimeout(() => {
       timedOut = true;
@@ -810,6 +972,7 @@ async function runNativeAgent(
       clearTimeout(timeoutTimer);
       const duration = Date.now() - startTime;
       const declaredFailure = nativeResultFailure(stdout);
+      const envelope = parseNativeResult(stdout).envelope;
 
       if (timedOut) {
         resolve({
@@ -825,6 +988,8 @@ async function runNativeAgent(
           output: stdout.trim(),
           duration,
           model,
+          executionKind: envelope?.executionKind,
+          llmCalled: envelope?.llmCalled,
         });
       } else {
         resolve({
@@ -983,6 +1148,9 @@ function main(): void {
         const result = await delegateWithGuardrail({ agent: agentName, task });
         console.log('\n=== Delegation Result ===\n');
         console.log(JSON.stringify(result, null, 2));
+        // Exit code must mirror the declared result: consumers that only look
+        // at the process status were seeing 0 for template/plan helpers.
+        if (!result.success) process.exitCode = 1;
       })();
       break;
 

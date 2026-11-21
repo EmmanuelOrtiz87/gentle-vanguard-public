@@ -9,6 +9,10 @@ import test from 'node:test';
 import { normalizeFallbackState } from '../../src/ml/model-fallback-orchestrator.js';
 import { evaluateCodeGraphAvailability } from '../../src/core/watchtower/checks-infra.js';
 import {
+  getOpenCodeMcpServerConfig,
+  hasOpenCodeStdioMcpServer,
+} from '../../src/core/watchtower/helpers.js';
+import {
   evaluateProviderAlertStatus,
   evaluateProviderEvidenceStatus,
   evaluateTrackedModelHealth,
@@ -45,14 +49,10 @@ import {
 } from '../../src/knowledge/engram-auto-update.js';
 import {
   compareSkillTrees,
-  copilotRuntimeReady,
-  copilotRuntimeVariant,
   evaluateToolAudit,
   hasMiniMaxEngramMcpRuntime,
   hasAgentCoverage,
-  isUsableLauncherFile,
   nativeSkillSurfaceReady,
-  parseOpenCodeRuntimeMajor,
   zcodeEngramMode,
 } from '../../src/integrations/tool-interoperability-audit.js';
 import { findBrokenRelativeImports } from '../../src/tools/ast-import-parser.js';
@@ -89,13 +89,9 @@ test('normalizes legacy fallback state without losing counters', () => {
   assert.equal(state.globalFallbackCount, 7);
 });
 
-test('interoperability accepts native MCP or CLI integrations per tool', () => {
-  assert.equal(zcodeEngramMode(true, false), 'mcp');
-  assert.equal(zcodeEngramMode(false, true), 'cli-fallback');
-  assert.equal(zcodeEngramMode(false, false), 'missing');
-  assert.equal(copilotRuntimeReady(true, false, false), true);
-  assert.equal(copilotRuntimeReady(false, true, true), true);
-  assert.equal(copilotRuntimeReady(false, true, false), false);
+test('interoperability requires the IDE native MCP configuration', () => {
+  assert.equal(zcodeEngramMode(true), 'mcp');
+  assert.equal(zcodeEngramMode(false), 'missing');
   assert.equal(hasAgentCoverage(21, 10), true);
   assert.equal(hasAgentCoverage(9, 10), false);
 });
@@ -124,6 +120,29 @@ test('accepts a configured stdio CodeGraph server without a persistent daemon', 
       action: 'ok',
     },
   );
+});
+
+test('reads only enabled MCP servers from OpenCode mcp.servers', () => {
+  const config = {
+    mcp: {
+      servers: {
+        codegraph: { command: ['node'], enabled: true },
+        'gv-analytics-atlassian': { command: ['node'], enabled: true },
+        disabled: { command: ['node'], enabled: false },
+      },
+      legacy: { command: ['node'] },
+    },
+  };
+
+  assert.deepEqual(getOpenCodeMcpServerConfig(config, 'codegraph'), {
+    command: ['node'],
+    enabled: true,
+  });
+  assert.equal(hasOpenCodeStdioMcpServer(config, 'codegraph'), true);
+  assert.equal(getOpenCodeMcpServerConfig(config, 'disabled'), undefined);
+  assert.equal(hasOpenCodeStdioMcpServer(config, 'disabled'), false);
+  assert.equal(getOpenCodeMcpServerConfig(config, 'legacy'), undefined);
+  assert.equal(hasOpenCodeStdioMcpServer({ mcp: { servers: { codegraph: {} } } }, 'codegraph'), false);
 });
 
 test('alerts only when the unhealthy provider is the active model', () => {
@@ -364,14 +383,6 @@ test('cross-tool skill freshness detects changed and unexpected assets', () => {
   assert.match(unexpected.differences.join('\n'), /unexpected\.txt/);
 });
 
-test('OpenCode runtime classification is version-aware and fails closed', () => {
-  assert.equal(parseOpenCodeRuntimeMajor('opencode 1.18.21'), 'v1');
-  assert.equal(parseOpenCodeRuntimeMajor('2.0.4'), 'v2');
-  assert.equal(parseOpenCodeRuntimeMajor('2.0.4-beta.1'), 'unsupported');
-  assert.equal(parseOpenCodeRuntimeMajor('nightly'), 'unsupported');
-  assert.equal(parseOpenCodeRuntimeMajor('3.0.0'), 'unsupported');
-});
-
 test('OpenCode native skill surface requires complete, fresh canonical skills', () => {
   assert.equal(nativeSkillSurfaceReady(0, 27, false), false);
   assert.equal(nativeSkillSurfaceReady(27, 27, false), false);
@@ -513,35 +524,17 @@ test('Engram updater selects the major-version Go module and validates doctor v2
   assert.doesNotMatch(source, /^\s*process\.exit\(/m);
 });
 
-test('tool audit rejects simulated launchers', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'gv-launcher-audit-'));
-  const demo = join(dir, 'opencode');
-  const real = join(dir, 'opencode.cmd');
-  writeFileSync(demo, '#!/bin/bash\necho "Code Review (Demo Mode)"\n');
-  writeFileSync(real, '@echo off\r\nopencode-real.exe %*\r\n');
-
-  assert.equal(isUsableLauncherFile(demo), false);
-  assert.equal(isUsableLauncherFile(real), true);
-});
-
-test('tool audit identifies Copilot CLI independently from VS Code Agent Mode', () => {
-  assert.equal(copilotRuntimeVariant(true, true), 'copilot-cli');
-  assert.equal(copilotRuntimeVariant(false, true), 'vscode-agent-mode');
-  assert.equal(copilotRuntimeVariant(false, false), 'configured-only');
-});
-
 test('tool audit gate requires all expected clients to pass', () => {
   const base = {
     profile: true,
-    runtime: true,
-    launcher: true,
+    hostConfig: true,
     agents: null,
     skills: 28,
     hooks: 'n/a' as const,
     engram: 'mcp' as const,
     instructions: true,
     assets: 'fresh' as const,
-    runtimeVariant: 'native',
+    hostType: 'desktop IDE',
     detail: 'ok',
   };
   const rows = [
@@ -557,7 +550,7 @@ test('tool audit gate requires all expected clients to pass', () => {
 
   assert.deepEqual(evaluateToolAudit(rows), {
     passed: true,
-    detail: '8/8 tool configuration surfaces PASS (not runtime task qualification)',
+    detail: '8/8 desktop IDE configuration surfaces PASS (not runtime task qualification)',
   });
 
   assert.deepEqual(evaluateToolAudit(rows.slice(0, 5)), {
@@ -567,12 +560,12 @@ test('tool audit gate requires all expected clients to pass', () => {
 
   assert.deepEqual(
     evaluateToolAudit([
-      { ...rows[0], status: 'WARN', detail: '--version excedió 10000 ms' },
+      { ...rows[0], status: 'WARN', detail: 'IDE configuration missing' },
       ...rows.slice(1),
     ]),
     {
       passed: false,
-      detail: 'non-PASS tools: OpenCode=WARN (--version excedió 10000 ms)',
+      detail: 'non-PASS tools: OpenCode=WARN (IDE configuration missing)',
     },
   );
 });

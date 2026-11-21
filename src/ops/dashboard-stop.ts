@@ -17,8 +17,8 @@ import {
   getProcessIdByPort,
   stopByPidFile,
   killProcess,
-} from './dashboard-common';
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
+} from './dashboard-common.js';
+import { getEffectiveProcessTimeout } from '../core/timeout-config.js';
 
 const ROOT = path.resolve(process.cwd());
 const RUNTIME_DIR = path.join(ROOT, '.runtime');

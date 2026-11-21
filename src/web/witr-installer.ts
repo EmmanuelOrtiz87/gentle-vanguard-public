@@ -13,7 +13,7 @@ import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { inflateRawSync } from 'node:zlib';
 import { runSync } from '../core/run-command.js';
-import { ROOT } from '../core/repo-root';
+import { ROOT } from '../core/repo-root.js';
 
 export const DEFAULT_WITR_VERSION = 'v0.3.3';
 export const WITR_INSTALL_TIMEOUT = 120_000;

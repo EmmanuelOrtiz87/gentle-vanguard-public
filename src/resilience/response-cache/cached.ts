@@ -19,8 +19,8 @@
  *   );
  */
 
-import { ResponseCache } from './cache';
-import { getDb, resolveCacheTenantId } from './sqlite';
+import { ResponseCache } from './cache.js';
+import { getDb, resolveCacheTenantId } from './sqlite.js';
 
 export interface CacheLike {
   get(input: string, context?: string): { response: string; tokensSaved: number } | null;

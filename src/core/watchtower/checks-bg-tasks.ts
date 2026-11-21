@@ -19,8 +19,8 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
-import { addResult, ROOT } from './context';
-import { listOsLeakCandidates } from '../bg-os-leaks';
+import { addResult, ROOT } from './context.js';
+import { listOsLeakCandidates } from '../bg-os-leaks.js';
 import { log } from '../../utils/logger.js';
 
 const logger = log('CORE-WATCHTOWER-CHECKS-BG-TASKS');

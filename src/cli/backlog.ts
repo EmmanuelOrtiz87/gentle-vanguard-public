@@ -18,9 +18,9 @@
  *   npx tsx src/cli/getBacklog().ts delete <id>
  */
 
-import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager';
+import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager.js';
 import { pathToFileURL } from 'url';
-import type { BacklogItem, BacklogRepo } from '../database/nexus//repositories/BacklogRepo';
+import type { BacklogItem, BacklogRepo } from '../database/nexus//repositories/BacklogRepo.js';
 
 // ─── Resolve (lazy: DatabaseManager is a heavy better-sqlite3 singleton;
 //      importing this module must stay side-effect free) ─────────────

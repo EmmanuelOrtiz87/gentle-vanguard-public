@@ -26,7 +26,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import {
   auditDeclarations,
@@ -36,6 +36,7 @@ import {
   stripYamlComments,
   type DeclarationLedger,
 } from '../../src/tools/declaration-audit.ts';
+import { SKILL_TARGETS } from '../../src/integrations/zcode-sync.ts';
 
 const roots: string[] = [];
 
@@ -328,4 +329,23 @@ test('el ledger real declara los tres tipos de superficie', () => {
   assert.ok(ledger.derivedArtifacts.length > 0, 'hay artefactos derivados/runtime declarados');
   assert.ok(ledger.gates.length > 0, 'hay gates declarados');
   assert.ok(ledger.controls.length > 0, 'hay controles declarados');
+});
+
+test('contrato: todo espejo de skills del workspace (SKILL_TARGETS) está cubierto por el ledger', () => {
+  // Clase raíz del incidente 2026-11-17: zcode-sync generaba .qoder/skills y
+  // .kimi-code/* y el ledger no los veía (raíces fuera de DERIVED_ROOTS). Un
+  // tool nuevo en la sync debe caer acá si nadie lo declara.
+  const ledger = loadLedger();
+  const cwd = process.cwd();
+  let workspaceTargets = 0;
+  for (const [tool, target] of Object.entries(SKILL_TARGETS)) {
+    const rel = relative(cwd, target).replace(/\\/g, '/');
+    if (rel.startsWith('..')) continue; // destino en el HOME del host (zcode/codex/minimax)
+    workspaceTargets++;
+    assert.ok(
+      covers(ledger.derivedArtifacts, rel),
+      `${tool}: ${rel} lo genera zcode-sync y no está declarado en config/declarations.json`,
+    );
+  }
+  assert.ok(workspaceTargets >= 5, 'los espejos de workspace tienen que estar en el contrato');
 });

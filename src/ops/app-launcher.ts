@@ -64,7 +64,6 @@ export function openBrowser(url: string): void {
     if (process.platform === 'win32') {
       spawn('cmd.exe', ['/d', '/c', 'start', '""', url], {
         windowsHide: true,
-        detached: true,
         stdio: 'ignore',
       }).unref();
     } else {

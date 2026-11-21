@@ -13,7 +13,7 @@
 
 // AUTO-ACTIVATE: Cache hook system - no requiere importación manual
 // Se ejecuta automáticamente al iniciar cualquier sesión
-import '../core/session-cache-auto';
+import '../core/session-cache-auto.js';
 
 // Delegate to the core implementation
-import '../core/session-autostart';
+import '../core/session-autostart.js';

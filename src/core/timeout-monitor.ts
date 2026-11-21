@@ -25,7 +25,7 @@
 import * as fs from 'fs';
 import { resolve } from 'path';
 import * as path from 'path';
-import { getTimeout, getMonitoringTimeouts, getActiveEnvironment } from './timeout-config';
+import { getTimeout, getMonitoringTimeouts, getActiveEnvironment } from './timeout-config.js';
 
 const ROOT = resolve(process.cwd());
 

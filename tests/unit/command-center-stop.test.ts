@@ -205,7 +205,6 @@ test('C5 — toda app con start/stop propio está en el registro del panel', { s
   const esperados = [
     'dashboard',
     'analytics',
-    'alexandria',
     'cms',
     'academy',
     'prompts',
@@ -218,7 +217,6 @@ test('C5 — toda app con start/stop propio está en el registro del panel', { s
     'gv-music',
     'gv-agenda',
     'gv-knowledge-ops',
-    'gv-wifikeys',
     'service-desk',
     'vanguard-connect',
     'gv-english-lab',

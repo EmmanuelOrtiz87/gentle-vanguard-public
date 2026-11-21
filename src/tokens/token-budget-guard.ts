@@ -4,6 +4,12 @@ import { dirname, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { runSync } from '../core/run-command.js';
 import { loadConfigFile } from '../core/config-loader.js';
+import {
+  hasRecentNexusData,
+  readDailyUsage,
+  readUsedTokensToday,
+  summarizeUsage,
+} from './token-budget-usage.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -43,6 +49,9 @@ export interface GuardResult {
   projected_pct: number;
   soft_threshold_pct: number;
   hard_threshold_pct: number;
+  usage_source: 'nexus' | 'csv' | 'none';
+  observed_max_14d: number;
+  budget_reflects_usage: boolean;
   engram_required: boolean;
   engram_available: boolean;
   alternatives: string[];
@@ -157,6 +166,10 @@ function ensureMetricsFile(): void {
 }
 
 export function getUsedTokensToday(): number {
+  // Nexus token_transactions es la fuente real del ingest multi-tool. El CSV
+  // legacy solo recibía estimaciones de arranque (~0) → PASS falso.
+  if (hasRecentNexusData()) return readUsedTokensToday();
+
   ensureMetricsFile();
   const today = new Date().toISOString().slice(0, 10);
   const content = readFileSync(USAGE_FILE, 'utf-8');
@@ -169,6 +182,20 @@ export function getUsedTokensToday(): number {
     }
   }
   return sum;
+}
+
+function usageSnapshot(): {
+  tokens: number;
+  source: 'nexus' | 'csv' | 'none';
+  observedMax14d: number;
+} {
+  const nexusActive = hasRecentNexusData();
+  const observedMax14d = summarizeUsage(readDailyUsage(14)).max;
+  if (nexusActive) {
+    return { tokens: readUsedTokensToday(), source: 'nexus', observedMax14d };
+  }
+  const csv = getUsedTokensToday();
+  return { tokens: csv, source: csv > 0 ? 'csv' : 'none', observedMax14d };
 }
 
 export function saveUsageRecord(opts: {
@@ -247,6 +274,9 @@ export function runGuard(opts: {
       projected_pct: 0,
       soft_threshold_pct: 0,
       hard_threshold_pct: 0,
+      usage_source: 'none',
+      observed_max_14d: 0,
+      budget_reflects_usage: true,
       engram_required: false,
       engram_available: false,
       alternatives: [],
@@ -254,10 +284,12 @@ export function runGuard(opts: {
   }
 
   const estimated = estimateTokens(opts.task, opts.risk, opts.chars);
-  const used = getUsedTokensToday();
+  const snapshot = usageSnapshot();
+  const used = snapshot.tokens;
   const projected = used + estimated;
   const budget = config.daily_budget_tokens;
   const pct = budget > 0 ? Math.round((projected / budget) * 10000) / 100 : 0;
+  const budgetReflectsUsage = budget <= 0 || snapshot.observedMax14d <= budget;
 
   // Determine status based on mode (soft vs adaptive)
   let status = 'PASS';
@@ -315,6 +347,9 @@ export function runGuard(opts: {
     projected_pct: pct,
     soft_threshold_pct: config.soft_threshold_pct,
     hard_threshold_pct: config.hard_threshold_pct,
+    usage_source: snapshot.source,
+    observed_max_14d: snapshot.observedMax14d,
+    budget_reflects_usage: budgetReflectsUsage,
     engram_required: config.require_engram,
     engram_available: engram.available,
     alternatives,
@@ -326,8 +361,13 @@ export function runGuard(opts: {
     console.log(`Token Budget Guard`);
     console.log(`Task: ${opts.task} | Risk: ${opts.risk} | Status: ${status}`);
     console.log(
-      `Estimated: ${estimated} tokens | Used today: ${used} | Projected: ${projected} / ${budget} (${pct}%)`,
+      `Estimated: ${estimated} tokens | Used today: ${used} (${snapshot.source}) | Projected: ${projected} / ${budget} (${pct}%)`,
     );
+    if (!budgetReflectsUsage) {
+      console.log(
+        `[WARN] El presupuesto diario (${budget}) está por debajo del uso observado en 14 días (${snapshot.observedMax14d}); recalibrar con: npm run token:calibrate`,
+      );
+    }
     if (status !== 'PASS') {
       console.log('[WARN] Token budget alert triggered.');
       if (status === 'HARD_LIMIT') console.log('[WARN] Hard threshold reached.');

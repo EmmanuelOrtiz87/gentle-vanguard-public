@@ -6,7 +6,7 @@
  * measurable score improvement. Executor logic mirrors config/agent-prompts/SIA.md.
  */
 
-import { runDomainAgent, type DomainAgentConfig, type DomainOutput } from './domain-agent-core';
+import { runDomainAgent, type DomainAgentConfig, type DomainOutput } from './domain-agent-core.js';
 
 const AGENT_CONFIG: DomainAgentConfig = {
   name: 'sia-agent',

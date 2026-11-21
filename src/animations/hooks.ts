@@ -20,11 +20,11 @@ import {
   type EasingFunction,
   type EasingName,
   type SpringConfig,
-} from './utils';
-import { fadeIn, fadeOut } from './fade';
-import { slideIn, slideUp } from './slide';
-import { scalePop } from './scale';
-import { type PresetName } from './presets';
+} from './utils.js';
+import { fadeIn, fadeOut } from './fade.js';
+import { slideIn, slideUp } from './slide.js';
+import { scalePop } from './scale.js';
+import { type PresetName } from './presets.js';
 
 export interface AnimateValueOptions {
   from: number;

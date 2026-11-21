@@ -32,7 +32,7 @@ durante la primera semana.
 **Preguntas esperadas:**
 
 - **P:** ¿Esto es un producto que se vende o un desarrollo interno? **R:** Es un stack propio: el
-  repositorio que está abierto acá. Las 30 aplicaciones de `apps/` son desarrollos internos
+  repositorio que está abierto acá. Las 28 aplicaciones de `apps/` son desarrollos internos
   nuestros, no casos de clientes.
 - **P:** ¿Cuál es la diferencia con el tooling que ya uso? **R:** El stack no reemplaza tu editor ni
   tu terminal: los envuelve con memoria entre sesiones, gates que corren solos y trazas. Si solo
@@ -85,7 +85,7 @@ durante la primera semana.
 
 > La separación entre carpetas no es estética: es lo que permite que las validaciones sean
 > automáticas, porque cada frontera tiene un dueño y un criterio. `src/` es el stack, `apps/` son
-> las 30 aplicaciones propias que operan sobre él y sirven de banco de pruebas de la arquitectura en
+> las 28 aplicaciones propias que operan sobre él y sirven de banco de pruebas de la arquitectura en
 > condiciones reales, `tests/` es la red de seguridad y `config/` es la fuente única de todo lo que
 > se puede cambiar. Si una carpeta empieza a hacer lo de otra, la validación automática deja de
 > poder referenciar una ruta estable.
@@ -143,13 +143,13 @@ es quién.
 
 ---
 
-## Slide 5 — 20 agentes, cada uno con su perímetro
+## Slide 5 — 22 agentes, cada uno con su perímetro
 
 **Layout:** cards · **Tiempo:** 1:20
 
 **Qué decir:**
 
-> El roster tiene 20 agentes y la idea no es que elijas uno cada vez, sino que cada agente declare
+> El roster tiene 22 agentes y la idea no es que elijas uno cada vez, sino que cada agente declare
 > su perímetro: modelo, permisos, límite de pasos, presupuesto y fallback. Eso permite delegar sin
 > perder el control, porque el delegador no puede delegar algo que el subagente no tiene permitido.
 > En la práctica la mayoría de las veces el enrutador elige el agente según la forma de la tarea;
@@ -192,7 +192,7 @@ es quién.
 **Preguntas esperadas:**
 
 - **P:** ¿Cuántas skills hay y cómo lo verifico? **R:** El conteo vigente está en
-  `docs/generated/STACK-FACTS.md` (253 indexadas, 28 críticas) y se regenera con
+  `docs/generated/STACK-FACTS.md` (253 indexadas, 29 críticas) y se regenera con
   `npm run stack:facts`. Si el número del slide difiere, es drift estructural y lo reporta
   `npm run stack:facts:check`.
 - **P:** ¿Qué pasa si una skill falla? **R:** Nexus separa los outcomes de producción, evaluación y

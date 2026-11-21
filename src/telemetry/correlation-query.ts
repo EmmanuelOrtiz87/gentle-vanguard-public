@@ -10,8 +10,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { CorrelationEvent } from './correlation';
-import { correlationDir } from './correlation';
+import type { CorrelationEvent } from './correlation.js';
+import { correlationDir } from './correlation.js';
 
 /** A token_transaction row from Nexus (mapped into the timeline). */
 export interface TokenTransactionEntry {

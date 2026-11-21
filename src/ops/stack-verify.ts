@@ -18,8 +18,9 @@
  */
 
 import { runSync } from '../core/run-command.js';
+import { isOnDemand } from '../core/app-keepalive-policy.js';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -151,7 +152,13 @@ async function checkDeps(results: CheckResult[], quick = false): Promise<void> {
 
 // ─── Layer 2: Platform Components ─────────────────────────────────────
 
-function checkPlatform(results: CheckResult[]): void {
+export function checkPlatform(results: CheckResult[]): void {
+  const gitHooksDirectory = run('git', ['rev-parse', '--git-path', 'hooks']);
+  const lefthookPath =
+    gitHooksDirectory.status === 0 && gitHooksDirectory.stdout
+      ? relative(ROOT, resolve(ROOT, gitHooksDirectory.stdout, 'pre-commit'))
+      : '.git/hooks/pre-commit';
+
   const checks: {
     name: string;
     path: string;
@@ -207,7 +214,7 @@ function checkPlatform(results: CheckResult[]): void {
     },
     {
       name: 'Lefthook Hooks',
-      path: '.git/hooks/pre-commit',
+      path: lefthookPath,
       detail: 'Git validation hooks',
       fix: 'npx lefthook install',
       optional: true,
@@ -292,16 +299,21 @@ function checkPlatform(results: CheckResult[]): void {
 
 // ─── Layer 3: Running Services ────────────────────────────────────────
 
-function checkServices(results: CheckResult[]): void {
+export function checkServices(results: CheckResult[]): void {
   // Dashboard WS Server (port 8080 typical)
   const wsPort = parseInt(process.env.WS_PORT ?? '8080', 10);
   const wsOk = pingPort(wsPort);
+  const wsOnDemand = isOnDemand('dashboard', ROOT);
   results.push({
     name: `WS Server (:${wsPort})`,
     layer: 'services',
-    status: wsOk ? 'PASS' : 'WARN',
-    message: wsOk ? `Responding on port ${wsPort}` : 'Not reachable (may not be started)',
-    fixCmd: 'npm run dashboard:server',
+    status: wsOk ? 'PASS' : wsOnDemand ? 'SKIP' : 'WARN',
+    message: wsOk
+      ? `Responding on port ${wsPort}`
+      : wsOnDemand
+        ? 'Not running (dashboard is on-demand)'
+        : 'Not reachable (may not be started)',
+    fixCmd: wsOnDemand ? undefined : 'npm run dashboard:server',
   });
 
   // Vite Dev Server (port 5173 typical)
@@ -754,7 +766,10 @@ async function main(): Promise<void> {
   const quick = args.includes('--quick') || args.includes('-q');
   const json = args.includes('--json') || args.includes('-j');
   const fix = args.includes('--fix') || args.includes('-f');
-  const skipApps = args.includes('--skip-apps');
+  // Quick is a bounded smoke check; the per-app typecheck/test/build audit is
+  // minutes-to-hours long and made `stack:verify --quick` time out. Opt back in
+  // with --apps.
+  const skipApps = args.includes('--skip-apps') || (quick && !args.includes('--apps'));
 
   const results: CheckResult[] = [];
 
@@ -774,9 +789,11 @@ async function main(): Promise<void> {
   // Layer 4: Integrity Checks
   await checkIntegrity(results, quick);
 
-  // Layer 5: Apps audit (skip con --skip-apps)
+  // Layer 5: Apps audit (skip con --skip-apps o en modo quick)
   if (!skipApps) {
     await checkApps(results);
+  } else {
+    console.log('  [SKIP] Apps audit (quick mode or --skip-apps; use --apps to force)');
   }
 
   // Report

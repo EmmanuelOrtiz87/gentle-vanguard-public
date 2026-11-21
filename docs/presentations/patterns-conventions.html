@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>📐 Patterns, Conventions & Best Practices — GentleVanguard</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="assets/vendor/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <style>
       /* --- Estilos específicos de patterns-conventions.html (complementan el design system) --- */
@@ -81,7 +75,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -101,13 +103,62 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -119,7 +170,9 @@
           class="display-1 fw-bold z-1"
           style="font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.02em; line-height: 1.05"
         >
-          <span class="glow"><span data-i18n="pat_h1">📐 Patterns, Conventions & Best Practices</span></span>
+          <span class="glow"
+            ><span data-i18n="pat_h1">📐 Patterns, Conventions & Best Practices</span></span
+          >
         </h1>
         <p
           class="lead text-secondary z-1"
@@ -279,7 +332,10 @@
       <div class="row">
         <div class="col-lg-6 fade-in">
           <div class="section-card">
-            <h2><i class="bi bi-code-square me-2"></i><span data-i18n="pat_h2_quality">Code Quality Standards</span></h2>
+            <h2>
+              <i class="bi bi-code-square me-2"></i
+              ><span data-i18n="pat_h2_quality">Code Quality Standards</span>
+            </h2>
             <p class="text-muted small" data-i18n="c_patternsconventions_4">
               Multi-layered quality enforcement through rule files, strict TypeScript, and
               pre-commit hooks.
@@ -467,7 +523,10 @@
       <div class="row">
         <div class="col-lg-6 fade-in">
           <div class="section-card">
-            <h2><i class="bi bi-arrow-right-square me-2"></i><span data-i18n="pat_h2_session">Session Patterns</span></h2>
+            <h2>
+              <i class="bi bi-arrow-right-square me-2"></i
+              ><span data-i18n="pat_h2_session">Session Patterns</span>
+            </h2>
             <p class="text-muted small" data-i18n="c_patternsconventions_8">
               Structured session lifecycle: START → WORK → END with dual-phase cleanup and lazy
               background execution.
@@ -490,7 +549,10 @@
         </div>
         <div class="col-lg-6 fade-in">
           <div class="section-card">
-            <h2><i class="bi bi-shield-lock me-2"></i><span data-i18n="pat_h2_gov">Governance Patterns</span></h2>
+            <h2>
+              <i class="bi bi-shield-lock me-2"></i
+              ><span data-i18n="pat_h2_gov">Governance Patterns</span>
+            </h2>
             <p class="text-muted small" data-i18n="c_patternsconventions_9">
               Delegation, human-in-the-loop, incident response, and self-healing CI enforcement.
             </p>
@@ -511,7 +573,10 @@
       <div class="row">
         <div class="col-lg-6 fade-in">
           <div class="section-card">
-            <h2><i class="bi bi-robot me-2"></i><span data-i18n="pat_h2_auto">Autonomous Patterns</span></h2>
+            <h2>
+              <i class="bi bi-robot me-2"></i
+              ><span data-i18n="pat_h2_auto">Autonomous Patterns</span>
+            </h2>
             <p class="text-muted small" data-i18n="c_patternsconventions_10">
               Self-evolution mechanisms with safety guarantees and escalation protocols.
             </p>
@@ -572,7 +637,10 @@
         </div>
         <div class="col-lg-6 fade-in">
           <div class="section-card">
-            <h2><i class="bi bi-file-check me-2"></i><span data-i18n="pat_h2_contracts">Contracts System</span></h2>
+            <h2>
+              <i class="bi bi-file-check me-2"></i
+              ><span data-i18n="pat_h2_contracts">Contracts System</span>
+            </h2>
             <p class="text-muted small" data-i18n="c_patternsconventions_11">
               SDD contract validation with persistence, DAO abstraction, and spec verification
               gates.
@@ -608,7 +676,9 @@
       </div>
       <div class="fade-in">
         <div class="section-card text-center">
-          <h2><i class="bi bi-book me-2"></i><span data-i18n="pat_h2_rules">Rule Files Index</span></h2>
+          <h2>
+            <i class="bi bi-book me-2"></i><span data-i18n="pat_h2_rules">Rule Files Index</span>
+          </h2>
           <p class="text-muted small mb-3">
             All 60 rule files organized by domain across the
             <code class="small">Rules/</code> directory.
@@ -635,11 +705,12 @@
         </div>
       </div>
     </div>
-<!-- GV-PRESENCE:START -->
+    <!-- GV-PRESENCE:START -->
 <section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-11-13</a></section>
 <!-- GV-PRESENCE:END -->
 
-<footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+<footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
     <script src="assets/js/gv.js?v=3.0"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

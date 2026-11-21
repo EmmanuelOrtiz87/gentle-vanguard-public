@@ -71,8 +71,8 @@ segundos con la frase de §8.
 
 ### Post 2 — Miércoles (nivel: arquitectura/build-log, formato evidencia §10)
 
-> Construimos un sistema multiagente para desarrollo de software. Los números finales: 21
-> agentes, 254 skills, 154 checks de salud automatizados.
+> Construimos un sistema multiagente para desarrollo de software. Los números finales: 22
+> agentes, 255 skills canónicas, más de 200 sub-checks de salud automatizados.
 >
 > Pero esa no es la historia interesante. Esta sí:
 >

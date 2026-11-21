@@ -23,6 +23,8 @@ import {
   scanUrl,
   shannonEntropy,
 } from '../../src/security/secret-scanner.ts';
+import { loadConfig } from '../../src/security/secret-scanner/config.ts';
+import { scanAddedContent } from '../../src/security/secret-scan-gate.ts';
 
 const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..', '..');
 
@@ -346,5 +348,33 @@ describe('Secret Scanner — CLI exit codes', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('Secret Scanner — excepciones declaradas en el gate de diff', () => {
+  it('omite los archivos de ignoreFiles y sigue midiendo el resto', () => {
+    const files = new Map([
+      ['apps/academy-web/data/shared/files.js', `docs embebidos con placeholder ${FAKE.awsKey}`],
+      ['src/leak.ts', `const k = '${FAKE.github}';`],
+      ['docs/clean.md', 'sin credenciales'],
+    ]);
+    const { findings, skipped } = scanAddedContent(files, [
+      'apps/academy-web/data/shared/files.js',
+    ]);
+    assert.deepStrictEqual(skipped, ['apps/academy-web/data/shared/files.js']);
+    assert.strictEqual(findings.length, 1, 'solo el archivo no exceptuado debe reportar');
+    assert.ok(findings[0].startsWith('- src/leak.ts:1'));
+  });
+
+  it('sin ignoreFiles reporta el placeholder (la excepcion no es implicita)', () => {
+    const files = new Map([['docs/runbook.md', `ejemplo ${FAKE.awsKey}`]]);
+    const { findings } = scanAddedContent(files, []);
+    assert.strictEqual(findings.length, 1);
+  });
+
+  it('la config declara ambos archivos con placeholders canonicos', () => {
+    const { ignoreFiles } = loadConfig();
+    assert.ok(ignoreFiles.includes('docs/guides/TROUBLESHOOTING-RUNBOOK.md'));
+    assert.ok(ignoreFiles.includes('apps/academy-web/data/shared/files.js'));
   });
 });

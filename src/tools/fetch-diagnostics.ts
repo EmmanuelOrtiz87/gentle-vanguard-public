@@ -10,7 +10,7 @@
  */
 
 import { pathToFileURL } from 'url';
-import { getExternalApiTimeouts } from '../core/timeout-config';
+import { getExternalApiTimeouts } from '../core/timeout-config.js';
 
 interface DiagnosticResult {
   test: string;

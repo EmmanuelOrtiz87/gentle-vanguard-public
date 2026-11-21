@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { join, resolve } from 'path';
 import { runSync } from '../core/run-command.js';
 import { pathToFileURL } from 'url';
-import { getEffectiveProcessTimeout } from '../core/timeout-config';
+import { getEffectiveProcessTimeout } from '../core/timeout-config.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 

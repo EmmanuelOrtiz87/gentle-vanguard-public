@@ -139,9 +139,9 @@ function checkDependencies(quiet: boolean): ResolutionResult {
 
 function checkHealth(quiet: boolean): ResolutionResult {
   log(`  → Running health check...`, quiet);
-  const scriptPath = join(ROOT, 'src', 'health-check.ts');
+  const scriptPath = join(ROOT, 'src', 'core', 'health-check.ts');
   if (!existsSync(scriptPath)) {
-    return { step: 'HealthCheck', ok: false, message: 'src/health-check.ts not found' };
+    return { step: 'HealthCheck', ok: false, message: 'src/core/health-check.ts not found' };
   }
   const result = runNpxTsxSync(scriptPath, ['--quiet'], {
     cwd: ROOT,

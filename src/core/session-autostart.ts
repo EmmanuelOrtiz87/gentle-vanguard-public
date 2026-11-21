@@ -9,11 +9,13 @@ import {
   writeFileSync,
   unlinkSync,
   statSync,
+  renameSync,
 } from 'fs';
 import { join, resolve } from 'path';
 import { spawn, type ChildProcess } from 'child_process';
 import { runSync, run, runNpxTsx, runNpxTsxSync, type RunOptions } from './run-command.js';
-import { getPipelineTimeouts } from './timeout-config';
+import { getPipelineTimeouts } from './timeout-config.js';
+import { parseStepArgs } from './step-args.js';
 import { log as createLogger } from '../utils/logger.js';
 import { printBanner } from '../cli/banner.js';
 import { newAuditEvent, saveAuditEvent } from '../infrastructure/audit-pipeline.js';
@@ -37,7 +39,19 @@ async function checkLoopGuardSoft(): Promise<void> {
     });
     const out = (r.stdout ?? '').toString();
     if (out.includes('intent-loop') || out.includes('"break": true')) {
-      LOG.info('[LOOP-GUARD] Soft check: intent-loop detection works (self-test PASS)');
+      // The self-test proves the detector works, not that the guard is in use.
+      // Report the service counters too so "all zero" is visible as passive.
+      let stats = 'n/a';
+      try {
+        const s = runNpxTsxSync('src/core/loop-guard-service.ts', ['stats'], {
+          timeout: 5000,
+          cwd: ROOT,
+        });
+        stats = (s.stdout ?? '').toString().trim().replace(/\s+/g, ' ') || 'sin salida';
+      } catch {
+        stats = 'stats no disponible';
+      }
+      LOG.info(`[LOOP-GUARD] Soft check: self-test PASS; stats=${stats} (0 = guard pasivo)`);
     } else {
       LOG.warn('[LOOP-GUARD] Soft check: unexpected self-test output — verify guard');
     }
@@ -189,6 +203,21 @@ function criticalServicesHealthy(): boolean {
   }
 }
 
+/** A crashed bootstrap keeps a fresh lock; recover once its progress goes stale. */
+function crashedBootstrap(pid: number): boolean {
+  if (!Number.isFinite(pid) || isLockOwnerAlive(pid)) return false;
+  try {
+    const progress = JSON.parse(
+      readFileSync(join(ROOT, '.runtime', 'autostart-progress.json'), 'utf-8'),
+    ) as { status?: string; updatedAt?: string; startedAt?: string };
+    if (progress.status !== 'running') return false;
+    const updated = Date.parse(progress.updatedAt ?? progress.startedAt ?? '') || 0;
+    return updated > 0 && Date.now() - updated > 5 * 60_000;
+  } catch {
+    return false;
+  }
+}
+
 function checkLock(): boolean {
   try {
     const force =
@@ -198,19 +227,20 @@ function checkLock(): boolean {
       // recent completed bootstrap instead of replaying 29 steps + 77 lazy
       // launches. Explicit --force remains available for recovery/maintenance.
       const ageMs = Date.now() - statSync(LOCK_FILE).mtimeMs;
+      const pid = parseInt(readFileSync(LOCK_FILE, 'utf-8').trim(), 10);
       const recoverIfUnhealthy = process.env.GENTLE_VANGUARD_RECOVER_IF_UNHEALTHY === '1';
       if (
         !force &&
         ageMs >= 0 &&
         ageMs < SESSION_REUSE_WINDOW_MS &&
-        (!recoverIfUnhealthy || criticalServicesHealthy())
+        (!recoverIfUnhealthy || criticalServicesHealthy()) &&
+        !crashedBootstrap(pid)
       ) {
         LOG.info(
           `[LOCK] Recent session bootstrap is active (${Math.floor(ageMs / 1000)}s old). Skipping duplicate.`,
         );
         return false;
       }
-      const pid = parseInt(readFileSync(LOCK_FILE, 'utf-8').trim(), 10);
       if (isLockOwnerAlive(pid)) {
         LOG.info(`[LOCK] Session-autostart already running (PID ${pid}). Skipping duplicate.`);
         return false;
@@ -240,6 +270,13 @@ interface PipelineStep {
   lazy?: boolean;
   enabled?: boolean;
   description?: string;
+  timeout?: number;
+  retries?: number;
+  retryDelay?: number;
+  /** El step es un daemon: se larga detached y NO se espera su salida. */
+  daemon?: boolean;
+  /** Codigos de salida validos (ademas de 0) que no cuentan como fallo. */
+  allowExitCodes?: number[];
 }
 
 interface PipelineConfig {
@@ -252,6 +289,24 @@ const ROOT = resolve(process.cwd());
 const CONFIG_PATH = join(ROOT, 'config', 'session-autostart.config.json');
 const LOG_DIR = join(ROOT, 'logs');
 const LAZY_LOG_PATH = join(LOG_DIR, 'session-autostart-lazy.log');
+/** Tope del append-log lazy: medido 2026-11-17 = 72 MB sin rotación. */
+const LAZY_LOG_MAX_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Rota el log lazy al inicio de la sesión (antes de abrir nuevos fds). Si el
+ * archivo está en uso por un hijo vivo (Windows no renombra abiertos), se
+ * reintenta la próxima sesión: nunca se pisa un log en escritura.
+ */
+export function rotateLazyLog(logPath = LAZY_LOG_PATH, maxBytes = LAZY_LOG_MAX_BYTES): boolean {
+  try {
+    if (!existsSync(logPath)) return false;
+    if (statSync(logPath).size <= maxBytes) return false;
+    renameSync(logPath, `${logPath}.1`);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Max concurrent lazy steps to prevent spawning 56 processes at once.
 // Lowered 5 -> 2 to avoid CPU saturation spikes (77 lazy steps in batches
@@ -285,18 +340,6 @@ function buildStepCommand(step: PipelineStep): string {
 }
 
 /** Preserve simple pipeline arguments without invoking a command shell. */
-function parseStepArgs(args?: string): string[] {
-  if (!args?.trim()) return [];
-  // Linear-time tokenizer (no nested quantifiers → no ReDoS): quoted
-  // segments stay together, unquoted tokens split on whitespace.
-  const out: string[] = [];
-  const re = /"([^"]*)"|(\S+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(args)) !== null) {
-    out.push(m[1] ?? m[2] ?? '');
-  }
-  return out;
-}
 
 function killProcessTree(child: ChildProcess): void {
   if (!child.pid) return;
@@ -368,6 +411,36 @@ function healStepScriptPaths(config: PipelineConfig): void {
   }
 }
 
+/** Timeout efectivo del step: el declarado gana sobre el global del pipeline. */
+export function stepTimeoutMs(
+  step: { timeout?: number; required?: boolean },
+  timeoutConfig: { required_step_ms?: number; session_autostart_step_ms: number },
+): number {
+  if (typeof step.timeout === 'number' && step.timeout > 0) return step.timeout;
+  return step.required === true
+    ? (timeoutConfig.required_step_ms ?? timeoutConfig.session_autostart_step_ms)
+    : timeoutConfig.session_autostart_step_ms;
+}
+
+/**
+ * Ejecuta con los `retries`/`retryDelay` declarados. Antes se declaraban 3
+ * retries que nadie leía: un step con fallo transitorio fallaba en la primera.
+ */
+async function executeStepWithRetries(
+  step: PipelineStep,
+  timeoutMs: number,
+): Promise<{ success: boolean; error?: string }> {
+  const attempts = Math.max(1, 1 + (step.retries ?? 0));
+  let result = await executeStep(step, timeoutMs);
+  for (let attempt = 2; attempt <= attempts && !result.success; attempt += 1) {
+    const delay = step.retryDelay ?? 1000;
+    LOG.info(`[RETRY] ${step.id}: intento ${attempt}/${attempts} tras ${delay}ms`);
+    await new Promise((r) => setTimeout(r, delay));
+    result = await executeStep(step, timeoutMs);
+  }
+  return result;
+}
+
 function executeStep(
   step: PipelineStep,
   timeoutMs: number,
@@ -379,9 +452,10 @@ function executeStep(
   }
 
   return new Promise((resolvePromise) => {
+    const capturePolicy = Boolean(AUTOSTART_LOG_FILE && step.id === 'engram-policy');
     const spawnOptions: RunOptions = {
       cwd: ROOT,
-      stdio: 'inherit', // show output in parent console
+      stdio: capturePolicy ? ['ignore', 'pipe', 'pipe'] : 'inherit',
       windowsHide: true, // ✅ CRITICAL: hide window on Windows
     };
     const args = parseStepArgs(step.args);
@@ -390,6 +464,10 @@ function executeStep(
       : scriptPath.endsWith('.ps1')
         ? run('pwsh', ['-NoProfile', '-File', scriptPath, ...args], spawnOptions)
         : run(scriptPath, args, spawnOptions);
+    if (capturePolicy) {
+      child.stdout?.on('data', (chunk: Buffer) => console.log(chunk.toString().trimEnd()));
+      child.stderr?.on('data', (chunk: Buffer) => console.warn(chunk.toString().trimEnd()));
+    }
     let settled = false;
     const timer = setTimeout(() => {
       if (settled) return;
@@ -398,11 +476,15 @@ function executeStep(
       resolvePromise({ success: false, error: `Timeout after ${timeoutMs}ms` });
     }, timeoutMs);
 
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolvePromise({ success: code === 0 });
+      resolvePromise(
+        code === 0
+          ? { success: true }
+          : { success: false, error: code === null ? `Signal ${signal}` : `Exit code ${code}` },
+      );
     });
     child.on('error', (err) => {
       if (settled) return;
@@ -512,26 +594,27 @@ function startLazyStep(step: PipelineStep): { success: boolean; error?: string }
   // línea "starting <id>". El fd se cierra en el padre tras el spawn (el hijo
   // recibió su propia copia en spawn-time).
   const lazyLogFd = openSync(LAZY_LOG_PATH, 'a');
-  const child = scriptPath.endsWith('.ts')
-    ? runNpxTsx(scriptPath, args, {
-        cwd: ROOT,
-        stdio: ['ignore', lazyLogFd, lazyLogFd],
-        windowsHide: true,
-        detached: true,
-      })
-    : scriptPath.endsWith('.ps1')
-      ? run('pwsh', ['-NoProfile', '-File', scriptPath, ...args], {
-          cwd: ROOT,
-          stdio: ['ignore', lazyLogFd, lazyLogFd],
-          windowsHide: true,
-          detached: true,
-        })
-      : run(scriptPath, args, {
-          cwd: ROOT,
-          stdio: ['ignore', lazyLogFd, lazyLogFd],
-          windowsHide: true,
-          detached: true,
-        });
+  // The parent exits after launching lazy steps, so a wrapper owned by the
+  // detached process is the only place that can observe the real exit code.
+  const runnerPath = join(ROOT, 'src/core/lazy-step-runner.ts');
+  const runnerArgs = [
+    '--id',
+    step.id,
+    '--script',
+    scriptPath,
+    '--timeout',
+    String(step.timeout ?? 10 * 60_000),
+    ...(step.daemon ? ['--daemon'] : []),
+    ...(step.allowExitCodes?.length ? ['--allow-exit-codes', step.allowExitCodes.join(',')] : []),
+    '--',
+    ...args,
+  ];
+  const child = runNpxTsx(runnerPath, runnerArgs, {
+    cwd: ROOT,
+    stdio: ['ignore', lazyLogFd, lazyLogFd],
+    windowsHide: true,
+    detached: true,
+  });
   // The lock will auto-release when the child process exits
   // We don't need to maintain our lock - the child will have its own
   lock.release();
@@ -689,6 +772,9 @@ async function main() {
   // attributed to ad-hoc sessions.
   process.env.SESSION_ID = sessionId;
   process.env.GENTLE_VANGUARD_SESSION_ID = sessionId;
+  // `session-claims` and its clients read GV_SESSION_ID; without it every
+  // claim falls back to `pid-<n>@host` and is invisible to this session.
+  process.env.GV_SESSION_ID = sessionId;
   mkdirSync(join(ROOT, '.session'), { recursive: true });
   // Single canonical session state file (plan P1: one authority). Merge with
   // any existing state so richer data from other pipeline steps survives.
@@ -713,7 +799,7 @@ async function main() {
   );
   const engramSession = sessionStart(sessionId);
   if (engramSession.success) {
-    LOG.info(`[ENGRAM] Session started explicitly: ${engramSession.sessionId}`);
+    LOG.info('[ENGRAM] Stack session tracking initialized');
   } else {
     LOG.warn(
       `[ENGRAM] Session start warning: ${engramSession.error || 'Unknown error'} (continuing without Engram)`,
@@ -793,10 +879,8 @@ async function main() {
           requiredFailed,
         });
         const isRequired = step.required === true;
-        const timeoutMs = isRequired
-          ? (timeoutConfig.required_step_ms ?? timeoutConfig.session_autostart_step_ms)
-          : timeoutConfig.session_autostart_step_ms;
-        const result = await executeStep(step, timeoutMs);
+        const timeoutMs = stepTimeoutMs(step, timeoutConfig);
+        const result = await executeStepWithRetries(step, timeoutMs);
         if (result.success) {
           LOG.info(`[${stepNum}/${totalSteps}] [OK] ${step.id} completed`);
         } else {
@@ -817,13 +901,7 @@ async function main() {
       }
 
       const results = await Promise.allSettled(
-        phaseSteps.map((step) => {
-          const timeoutMs =
-            step.required === true
-              ? (timeoutConfig.required_step_ms ?? timeoutConfig.session_autostart_step_ms)
-              : timeoutConfig.session_autostart_step_ms;
-          return executeStep(step, timeoutMs);
-        }),
+        phaseSteps.map((step) => executeStepWithRetries(step, stepTimeoutMs(step, timeoutConfig))),
       );
 
       for (let i = 0; i < phaseSteps.length; i++) {
@@ -848,11 +926,18 @@ async function main() {
   }
 
   if (lazySteps.length > 0) {
+    if (rotateLazyLog())
+      LOG.info('[ROTATE] lazy log > 8 MB: rotado a session-autostart-lazy.log.1');
+    // `phase` was decorative for lazy steps: they launched in config order in
+    // one batch. Sorting by phase makes it a real spawn order (phase 2
+    // governance no longer spawns alongside phase 1); completion is still
+    // asynchronous by design.
+    const orderedLazySteps = [...lazySteps].sort((a, b) => (a.phase ?? 1) - (b.phase ?? 1));
     LOG.info(`\n=== Starting Lazy Steps (batch=${MAX_LAZY_CONCURRENCY}) ===`);
     let launched = 0;
     let deduped = 0;
-    for (let i = 0; i < lazySteps.length; i += MAX_LAZY_CONCURRENCY) {
-      const batch = lazySteps.slice(i, i + MAX_LAZY_CONCURRENCY);
+    for (let i = 0; i < orderedLazySteps.length; i += MAX_LAZY_CONCURRENCY) {
+      const batch = orderedLazySteps.slice(i, i + MAX_LAZY_CONCURRENCY);
       for (const step of batch) {
         const result = startLazyStep(step);
         if (result.error === 'skipped-duplicate') {
@@ -877,13 +962,13 @@ async function main() {
         lazyLaunched: launched,
       });
       // Small delay between batches to avoid overwhelming the OS
-      if (i + MAX_LAZY_CONCURRENCY < lazySteps.length) {
+      if (i + MAX_LAZY_CONCURRENCY < orderedLazySteps.length) {
         await new Promise((r) => setTimeout(r, 150));
       }
     }
     LOG.info(`[INFO] Lazy step launch log: ${LAZY_LOG_PATH}`);
     LOG.info(
-      `[INFO] Launched ${launched}/${lazySteps.length} lazy steps in batches of ${MAX_LAZY_CONCURRENCY}` +
+      `[INFO] Launched ${launched}/${orderedLazySteps.length} lazy steps in batches of ${MAX_LAZY_CONCURRENCY}` +
         (deduped > 0 ? ` (${deduped} deduped, already running)` : ''),
     );
   }
@@ -907,6 +992,11 @@ async function main() {
   if (requiredFailed.length > 0) {
     LOG.error(`[ERROR] Required steps failed: ${requiredFailed.join(', ')}`);
     LOG.info(`[ACTION] Fix the issues above and re-run session autostart.`);
+    try {
+      unlinkSync(LOCK_FILE);
+    } catch {
+      /* lock already gone */
+    }
     process.exit(1);
   }
 

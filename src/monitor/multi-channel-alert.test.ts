@@ -22,11 +22,38 @@
  */
 
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { buildConfig, buildExternalChannels, sendAlert } from './multi-channel-alert.js';
+
+/**
+ * AISLAMIENTO DEL ESTADO (2026-11-18)
+ *
+ * El rate limit (`maxAlertsPerMinute`) es GLOBAL del sistema de alertas y su
+ * contador vive en `.runtime/alert-system/state.json`. Este test lo usaba:
+ * las corridas repetidas se auto-limitaban (fallos intermitentes: 3 de 18,
+ * luego 6 de 18) y ademas PODIAN silenciar avisos reales del stack.
+ *
+ * Con `MCAS_STATE_DIR` el test corre contra su propio estado: ni se limita ni
+ * toca el rate limit de produccion.
+ */
+const stateDir = mkdtempSync(join(tmpdir(), 'mcas-state-'));
+const previousStateDir = process.env.MCAS_STATE_DIR;
+process.env.MCAS_STATE_DIR = stateDir;
+
+before(() => {
+  process.env.MCAS_STATE_DIR = stateDir;
+});
+after(() => {
+  if (previousStateDir === undefined) delete process.env.MCAS_STATE_DIR;
+  else process.env.MCAS_STATE_DIR = previousStateDir;
+  rmSync(stateDir, { recursive: true, force: true });
+});
 
 interface Captured {
   path: string;
@@ -255,7 +282,10 @@ describe('mcas: emision real por telegram/whatsapp/sms (servidor HTTP local)', (
       );
       assert.ok(result.sent.includes('telegram'));
       assert.equal(captured.length, 1);
-      assert.ok(captured[0].path.includes('/botABC123/sendMessage'), `path real: ${captured[0].path}`);
+      assert.ok(
+        captured[0].path.includes('/botABC123/sendMessage'),
+        `path real: ${captured[0].path}`,
+      );
       const payload = JSON.parse(captured[0].body);
       assert.equal(payload.chat_id, '42');
       assert.ok(payload.text.includes('telegram probe'));

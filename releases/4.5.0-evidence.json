@@ -1,0 +1,32 @@
+{
+  "version": "4.5.0",
+  "verifiedAt": "2026-11-19",
+  "privateSourceCommit": "f0cfa2453",
+  "publicSourceCommit": "810a25eed755f72761d14b8a351aedc76842c35e",
+  "installer": {
+    "name": "Gentle-Vanguard-Setup-4.5.0.exe",
+    "bytes": 180812706,
+    "sha256": "8ba6acc00a04f6d1b92817ace063707a49e451eb64ced928a973c5a545152c87",
+    "signing": "unsigned",
+    "contract": {
+      "ok": true,
+      "contract": "ok",
+      "detail": "un instalador (Gentle-Vanguard-Setup-4.5.0.exe) con checksum publicado",
+      "setup": "Gentle-Vanguard-Setup-4.5.0.exe",
+      "launchers": [],
+      "computedSha256": "8ba6acc00a04f6d1b92817ace063707a49e451eb64ced928a973c5a545152c87",
+      "publishedSha256": "8ba6acc00a04f6d1b92817ace063707a49e451eb64ced928a973c5a545152c87",
+      "problems": []
+    },
+    "qualificationReport": "4.5.0-windows-qualification.json",
+    "qualificationRun": "https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/actions/runs/44526206134"
+  },
+  "checks": {
+    "publicCI": "PASS: frozen install, TypeScript, strict doctor; run 44526177568",
+    "privateCI": "Jobs blocked by GitHub Billing/spending; not a CI pass",
+    "localPrivate": "TypeScript, lint, pre-push composite checks and release delivery gate PASS",
+    "mutationScore": 80.63,
+    "distribution": "5 PASS, 0 FAIL, 1 SKIP (HEAD content-length unavailable); actual downloaded checksum validated by Windows qualification"
+  },
+  "scope": "Curated public export from private canonical source. No dependency major upgrades, history rewriting or unrelated local session files."
+}

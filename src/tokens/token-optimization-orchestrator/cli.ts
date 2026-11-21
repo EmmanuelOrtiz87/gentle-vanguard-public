@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { METRICS_PATH, STATS_PATH } from './config.js';
 import { loadStats, generateReport } from './metrics.js';
+import { getConfig } from './config.js';
 import { checkCache, optimizePrompt, optimizeResponse } from './optimize.js';
 import { runPipeline } from './pipeline.js';
 import type { PipelineInput, PipelineResult } from './types.js';
@@ -40,8 +41,9 @@ Options:
   --skip-post-process   Skip response compression
   --json                Output as JSON
   --quiet               Suppress extra output
-  --stats               Show statistics
+  --stats               Show statistics (real vs simulated)
   --report              Generate optimization report
+  --status              One-line/long status (honest: simulated runs never count as savings)
   --clear-metrics       Clear all stored metrics
 
 Examples:
@@ -122,6 +124,7 @@ export async function main(): Promise<void> {
   const cacheCheckFlag = args.includes('--cache-check');
   const statsFlag = args.includes('--stats');
   const reportFlag = args.includes('--report');
+  const statusFlag = args.includes('--status');
   const skipCacheFlag = args.includes('--skip-cache');
   const skipPreProcessFlag = args.includes('--skip-pre-process');
   const skipPostProcessFlag = args.includes('--skip-post-process');
@@ -147,6 +150,10 @@ export async function main(): Promise<void> {
               cacheHits: 0,
               cacheMisses: 0,
               cacheHitRate: 0,
+              simulatedRuns: 0,
+              simulatedTokenSavings: 0,
+              realRuns: 0,
+              realTokenSavings: 0,
               totalTokenSavings: 0,
               avgSavingsPct: 0,
               byStage: {},
@@ -163,6 +170,49 @@ export async function main(): Promise<void> {
     return;
   }
 
+  if (statusFlag) {
+    const stats = loadStats();
+    const config = getConfig();
+    const summary = {
+      enabled: config.enabled,
+      mode: config.mode,
+      simulatedProcessStage: true,
+      responseCache: { enabled: config.cacheEnabled, ttlMinutes: config.cacheTtlMinutes },
+      runs: stats.totalRuns,
+      simulatedRuns: stats.simulatedRuns,
+      realRuns: stats.realRuns,
+      realTokenSavings: stats.realTokenSavings,
+      simulatedTokenSavings: stats.simulatedTokenSavings,
+    };
+    if (jsonFlag) {
+      console.log(JSON.stringify(summary, null, 2));
+      return;
+    }
+    if (quietFlag) {
+      console.log(
+        `[token-optimize] runs=${stats.totalRuns} simulated=${stats.simulatedRuns} real=${stats.realRuns} realSavings=${stats.realTokenSavings}`,
+      );
+      return;
+    }
+    console.log('');
+    console.log('Token Optimization Orchestrator — status');
+    console.log(
+      `  Enabled: ${config.enabled} | mode: ${config.mode} | process stage: SIMULATED (never calls a real LLM)`,
+    );
+    console.log(
+      `  Response cache (experimental): enabled=${config.cacheEnabled}, ttl=${config.cacheTtlMinutes}m — hits come from repeated prompts inside the pipeline, not production traffic`,
+    );
+    console.log(
+      `  Runs: ${stats.totalRuns} (simulated ${stats.simulatedRuns}, real ${stats.realRuns})`,
+    );
+    console.log(`  Real savings: ${stats.realTokenSavings.toLocaleString()} tokens`);
+    console.log(
+      `  Simulated benchmark savings: ${stats.simulatedTokenSavings.toLocaleString()} tokens (not production spend)`,
+    );
+    console.log('');
+    return;
+  }
+
   if (statsFlag) {
     const stats = loadStats();
     if (jsonFlag) {
@@ -175,10 +225,16 @@ export async function main(): Promise<void> {
     console.log('╚══════════════════════════════════════╝');
     console.log('');
     console.log(`  Total Runs:           ${stats.totalRuns}`);
+    console.log(
+      `  Simulated / Real:     ${stats.simulatedRuns} / ${stats.realRuns}  (process stage is simulated by design)`,
+    );
     console.log(`  Successful:           ${stats.successfulRuns}`);
     console.log(`  Cache Hits:           ${stats.cacheHits} (${stats.cacheHitRate.toFixed(1)}%)`);
-    console.log(`  Total Token Savings:  ${stats.totalTokenSavings.toLocaleString()}`);
-    console.log(`  Avg Savings Per Run:  ${stats.avgSavingsPct.toFixed(0)} tokens`);
+    console.log(`  Real Token Savings:   ${stats.realTokenSavings.toLocaleString()}`);
+    console.log(
+      `  Simulated Savings:    ${stats.simulatedTokenSavings.toLocaleString()}  (benchmark only — not production spend)`,
+    );
+    console.log(`  Avg Savings (real):   ${stats.avgSavingsPct.toFixed(0)} tokens per real run`);
     console.log('');
     console.log('  By Stage:');
     for (const [stage, s] of Object.entries(stats.byStage)) {
@@ -202,8 +258,12 @@ export async function main(): Promise<void> {
     console.log('╚══════════════════════════════════════╝');
     console.log('');
     console.log(`  Total Runs:       ${report.stats.totalRuns}`);
+    console.log(`  Simulated / Real: ${report.stats.simulatedRuns} / ${report.stats.realRuns}`);
     console.log(`  Cache Hit Rate:   ${report.stats.cacheHitRate.toFixed(1)}%`);
-    console.log(`  Token Savings:    ${report.stats.totalTokenSavings.toLocaleString()}`);
+    console.log(`  Real Savings:     ${report.stats.realTokenSavings.toLocaleString()} tokens`);
+    console.log(
+      `  Simulated:        ${report.stats.simulatedTokenSavings.toLocaleString()} tokens (benchmark, not production)`,
+    );
     console.log('');
     console.log('  Recommendations:');
     if (report.recommendations.length === 0) {

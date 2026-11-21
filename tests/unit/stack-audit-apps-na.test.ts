@@ -3,8 +3,8 @@
  * Unit Tests: declaraciones N/A del contrato de apps (evidencia medida)
  *
  * Contratest del pendiente D-4 de GB-2026-11-14: las apps 100% JS/MJS
- * (censor, design-gallery, gv-agenda, gv-english-lab, gv-knowledge-ops,
- * gv-wifikeys) reportaban WARN de typecheck sin tener ni un archivo .ts.
+ * (censor, design-gallery, gv-agenda, gv-english-lab, gv-knowledge-ops)
+ * reportaban WARN de typecheck sin tener ni un archivo .ts.
  *
  * El mecanismo honra la declaración del contrato SOLO si la evidencia se
  * mide contra el disco: `readNaDeclarations` cuenta los .ts reales de la

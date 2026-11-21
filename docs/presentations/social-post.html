@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GentleVanguard Social Post Generator</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="assets/vendor/bootstrap-icons.min.css"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons.min.css" />
     <style>
       :root {
         --bg0: #0a0e1a;
@@ -588,8 +582,9 @@
     <div class="gv-glow-b"></div>
     <div class="alert alert-warning rounded-0 mb-0 text-center" role="status">
       <strong>Retirado:</strong> esta página describe el antiguo generador de publicaciones
-      sociales. Consulta <a href="../adr/ADR-0021-content-os-native-cms.md" class="alert-link">ADR-0021</a> y
-      Content Studio.
+      sociales. Consulta
+      <a href="../adr/ADR-0021-content-os-native-cms.md" class="alert-link">ADR-0021</a> y Content
+      Studio.
     </div>
     <header class="gv-topbar">
       <div class="gv-topbar-inner">
@@ -597,7 +592,15 @@
           <img class="gv-brand-logo" src="assets/canon/icon.svg" alt="GentleVanguard" />
           <span class="gv-brand-wordmark">Gentle<span>Vanguard</span></span>
         </a>
-        <button class="gv-shell-menu" id="shell-menu" type="button" aria-label="Menú" aria-expanded="false"><span></span></button>
+        <button
+          class="gv-shell-menu"
+          id="shell-menu"
+          type="button"
+          aria-label="Menú"
+          aria-expanded="false"
+        >
+          <span></span>
+        </button>
         <nav class="gv-view-tabs gv-collapsible" id="navMain" aria-label="Navegación">
           <a href="index.html" class="active"><span data-i18n="nav_home">Home</span></a>
           <a href="architecture.html"><span data-i18n="nav_arch">Arch</span></a>
@@ -617,19 +620,68 @@
         </nav>
         <div class="gv-shell-controls">
           <div class="lang-seg" role="group" aria-label="Idioma">
-            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">ES</button>
-            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">EN</button>
-            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">PT</button>
+            <button type="button" class="lang-seg-btn" data-lang="es" aria-label="Español">
+              ES
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="en" aria-label="English">
+              EN
+            </button>
+            <button type="button" class="lang-seg-btn" data-lang="pt-BR" aria-label="Português">
+              PT
+            </button>
           </div>
-          <button id="theme-toggle" class="gv-icon-btn gv-theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg class="theme-moon" hidden xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <button
+            id="theme-toggle"
+            class="gv-icon-btn gv-theme-toggle"
+            type="button"
+            aria-label="Cambiar tema"
+            title="Cambiar tema"
+          >
+            <svg
+              class="theme-sun"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg
+              class="theme-moon"
+              hidden
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3a6.5 6.5 0 1 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
           </button>
         </div>
       </div>
     </header>
 <!-- GV-EVIDENCE-NOTE:START --><aside class="gv-evidence-note" role="note" data-i18n="presentation_evidence_note">Las afirmaciones cuantificadas o de capacidad de esta página (conteos, porcentajes, resultados PASS) son históricas o ilustrativas; no verifican el estado actual. Consulta evidencia fechada y ejecuta el comando indicado antes de tratarlas como vigentes.</aside><!-- GV-EVIDENCE-NOTE:END -->
-<!-- GV-PRESENCE:START -->
+    <!-- GV-PRESENCE:START -->
 <section class="section-card" id="public-presence-update" lang="es" style="margin:24px auto;max-width:1180px;padding:24px"><h2 style="font-size:1.3rem">Estado vigente: web, marca y difusión</h2><p>Web corporativa publicada; campaña visual preparada para revisión. Consultá decisiones oficiales, evidencia, comandos y pendientes en la ficha de estado.</p><a href="public-presence.html">Ver estado verificado · 2026-11-13</a></section>
 <!-- GV-PRESENCE:END -->
 
@@ -857,7 +909,7 @@ Puedes usar:
       </aside>
     </div>
 
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
 
     <div class="toast" id="toast">
       <i class="bi bi-check-circle-fill" style="color: var(--a)"></i>
@@ -880,8 +932,8 @@ After 24 migration waves and 390+ scripts refactored from PowerShell to TypeScri
 • Dual web crawler (Firecrawl + Jina + DDG)
 
 💡 The Stack:
-• more than 800 TypeScript files
-• 257 skills across 9 categories
+• more than 889 TypeScript files
+• 265 skills across 9 categories
 • 53-step autonomous pipeline
 • WebSocket real-time dashboard
 
@@ -901,8 +953,8 @@ After 24 migration waves and 390+ scripts refactored from PowerShell to TypeScri
 • Dual web crawler (Firecrawl + Jina + DDG)
 
 💡 The Stack:
-• more than 800 TypeScript files
-• 257 skills across 9 categories
+• more than 889 TypeScript files
+• 265 skills across 9 categories
 • 53-step autonomous pipeline
 • WebSocket real-time dashboard
 
@@ -915,7 +967,7 @@ Open source. Free to use.
 Após 24 ondas de migração e 390+ scripts refatorados de PowerShell para TypeScript:
 
 ✨ Recursos:
-• 20 agentes de IA trabalhando com permissões delimitadas
+• 22 agentes de IA trabalhando com permissões delimitadas
 • Verificações de saúde automatizadas continuamente
 • 100% TypeScript nativo (sem PS1)
 • Rastreamento de tokens real (sem plugins)
@@ -1839,5 +1891,6 @@ Usa "Generar sugerencias IA" para automatizar hashtags basados en el contenido.
       }
     </script>
     <script src="assets/js/gv.js?v=2.1"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

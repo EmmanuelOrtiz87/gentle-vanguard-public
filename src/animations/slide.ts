@@ -3,8 +3,8 @@
  * exclusively so animations run on the compositor thread and never reflow.
  */
 
-import { resolveTiming, type TimingInput } from './presets';
-import type { AnimationSequence } from './utils';
+import { resolveTiming, type TimingInput } from './presets.js';
+import type { AnimationSequence } from './utils.js';
 
 export type SlideDirection = 'up' | 'down' | 'left' | 'right';
 

@@ -4,8 +4,8 @@
  * paint on the compositor thread.
  */
 
-import { resolveTiming, type TimingInput } from './presets';
-import type { AnimationSequence } from './utils';
+import { resolveTiming, type TimingInput } from './presets.js';
+import type { AnimationSequence } from './utils.js';
 
 /** Fade a component in from transparent to opaque. */
 export function fadeIn(input?: TimingInput): AnimationSequence {

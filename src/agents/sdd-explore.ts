@@ -177,6 +177,7 @@ async function main(): Promise<void> {
         {
           success: true,
           executionKind: 'deterministic-requirements-template',
+          llmCalled: false,
           phaseComplete: false,
           agent: AGENT_CONFIG.name,
           version: AGENT_CONFIG.version,

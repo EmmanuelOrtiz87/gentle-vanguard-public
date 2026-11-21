@@ -10,7 +10,7 @@
  */
 
 import * as fs from 'fs';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { resolve } from 'path';
 import * as path from 'path';
 import { log } from '../utils/logger.js';
@@ -23,21 +23,62 @@ const logger = log('REPO-ROOT');
  *
  * @returns {string} Ruta absoluta a la raíz del repositorio
  */
-function findRepoRoot(): string {
-  let current = resolve(process.cwd());
+/**
+ * Marcadores de raíz del repositorio, en orden de preferencia.
+ * `config/orchestrator.json` es el canónico del stack; `timeout-config.json`
+ * se mantiene como marcador legacy para installs parciales.
+ */
+const ROOT_MARKERS: ReadonlyArray<ReadonlyArray<string>> = [
+  ['config', 'orchestrator.json'],
+  ['config', 'timeout-config.json'],
+];
 
-  // Busca hacia arriba hasta encontrar config/timeout-config.json
-  while (current !== path.dirname(current)) {
-    const configPath = path.join(current, 'config', 'timeout-config.json');
-    if (fs.existsSync(configPath)) {
-      return current;
+/**
+ * Sube desde `startDir` hasta encontrar un marcador de raíz.
+ * @returns La ruta de la raíz, o null si no hay marcador hacia arriba.
+ */
+function walkUpForMarker(startDir: string): string | null {
+  let current = resolve(startDir);
+  while (true) {
+    for (const marker of ROOT_MARKERS) {
+      if (fs.existsSync(path.join(current, ...marker))) {
+        return current;
+      }
     }
-    current = path.dirname(current);
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
+/**
+ * Resuelve la raíz del repositorio.
+ *
+ * Orden de resolución:
+ * 1. `GENTLE_VANGUARD_BASE_DIR` — declaración explícita del operador (misma
+ *    variable que usa el resto del stack: launcher, Docker, web-crawler).
+ * 2. Desde el propio módulo (`__dirname`) — determinista e independiente del cwd.
+ *    Necesario para artefactos compilados: `dist/src/core/` sube a la raíz real
+ *    porque `dist/` no contiene `config/orchestrator.json`.
+ * 3. Desde `process.cwd()` — cubre el caso de un entrypoint externo al repo.
+ * 4. Fallback: cwd, con warning (no debería pasar en producción).
+ */
+function findRepoRoot(): string {
+  const declared = process.env.GENTLE_VANGUARD_BASE_DIR;
+  if (declared && fs.existsSync(resolve(declared))) {
+    return resolve(declared);
   }
 
-  // Fallback: usa cwd si no encontramos el repo (debería no pasar en producción)
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+
+  const fromModule = walkUpForMarker(moduleDir);
+  if (fromModule) return fromModule;
+
+  const fromCwd = walkUpForMarker(process.cwd());
+  if (fromCwd) return fromCwd;
+
   logger.warn(
-    '[REPO-ROOT] No se encontró marcador de raíz (config/timeout-config.json), usando cwd como fallback',
+    `[REPO-ROOT] No se encontró marcador de raíz (${ROOT_MARKERS[0].join('/')}), usando cwd como fallback`,
   );
   return resolve(process.cwd());
 }

@@ -4,6 +4,7 @@
   "private": true,
   "description": "Landing de GV Academy — estática servida directo (scripts/*.ts corren como suite nativa node-test vía config/app-validation-contracts.json).",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:smoke": "node --test tests/smoke.mjs"
   }
 }

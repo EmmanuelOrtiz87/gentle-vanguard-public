@@ -3,7 +3,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { get as httpGet, type IncomingMessage } from 'node:http';
 import { get as httpsGet } from 'node:https';
 import { extname, join } from 'node:path';
-import { loadConfig } from './config.js';
+import { loadConfig, isIgnoredFile } from './config.js';
 import { shannonEntropy } from './entropy.js';
 import { isFalsePositive, parseGitignore, isIgnored, type IgnoreRule } from './ignore.js';
 import { getPatterns, type SecretPattern } from './patterns.js';
@@ -253,13 +253,10 @@ export async function scanFiles(
   const files = await expandPaths(paths, skipDirs, skipDirPaths);
   const results: SecretMatch[] = [];
 
-  const ignoreFileSet = new Set(cfg.ignoreFiles.map((f) => f.replace(/\\/g, '/').toLowerCase()));
+  const ignoreFileSet = cfg.ignoreFiles;
 
   for (const file of files) {
-    const rel = file.replace(/\\/g, '/').toLowerCase();
-    if (ignoreFileSet.has(rel) || [...ignoreFileSet].some((ig) => rel.endsWith(`/${ig}`))) {
-      continue;
-    }
+    if (isIgnoredFile(file, ignoreFileSet)) continue;
     const ext = extname(file).toLowerCase();
     if (ignoreExt.has(ext)) continue;
     let st;

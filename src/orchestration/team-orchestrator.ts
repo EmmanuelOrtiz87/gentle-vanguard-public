@@ -217,6 +217,7 @@ function spawnWorker(
       JSON.stringify(
         {
           skill: skillName,
+          kind: 'skill-router-query',
           status: result.status,
           exitCode: result.exitCode,
           stdout,
@@ -257,6 +258,7 @@ function leaderSynthesize(allResults: WorkerResult[], subTasks: SubTask[], task:
     `**Task**: ${task}`,
     `**Date**: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`,
     `**Leader decomposition**: ${subTasks.length} sub-tasks into ${allResults.length} workers`,
+    `**Worker kind**: skill-router lookups (deterministic; no LLM execution)`,
     `**Results**: ${completedCount} completed, ${failedCount} failed`,
     `**Duration**: ${duration}`,
     '',
@@ -268,6 +270,7 @@ function leaderSynthesize(allResults: WorkerResult[], subTasks: SubTask[], task:
     const statusIcon = r.status === 'completed' ? '✅' : r.status === 'failed' ? '❌' : '⏳';
     lines.push(`### ${statusIcon} ${r.skill}`);
     lines.push(`- **Status**: ${r.status}`);
+    lines.push(`- **Kind**: skill-router query (deterministic)`);
     lines.push(`- **Exit Code**: ${r.exitCode ?? 'N/A'}`);
     lines.push(`- **Started**: ${r.started} | **Finished**: ${r.finished ?? 'N/A'}`);
     lines.push(`- **Worker Dir**: \`${r.workerDir}\``);
@@ -343,8 +346,10 @@ async function actionStart(opts: OrchestratorOptions): Promise<WorkerResult[]> {
           severity: 'warning',
           category: 'swarm-loop-guard',
           message: `Swarm abortado: ${consecutiveAllFailedBatches} batches consecutivos con 100% de fallos (skills: ${[...new Set(batch.map((r) => r.skill))].join(', ')})`,
-          details: 'Todos los workers del batch terminan en failed/timeout — cambiar estrategia o skills antes de reintentar.',
-          recommendation: 'Revisar error_memory de los skills involucrados; reintentar con task distinta o agentes alternativos.',
+          details:
+            'Todos los workers del batch terminan en failed/timeout — cambiar estrategia o skills antes de reintentar.',
+          recommendation:
+            'Revisar error_memory de los skills involucrados; reintentar con task distinta o agentes alternativos.',
           dedupeKey: `swarm-${swarmId}`,
           dedupeTtlMs: 15 * 60_000,
         });
@@ -558,7 +563,9 @@ function parseArgs(): OrchestratorOptions {
   // hardcoded 3 y la config declarativa no se leía.
   let configMaxParallel = 3;
   try {
-    const cfg = JSON.parse(readFileSync(join(process.cwd(), 'config', 'auto-delegation.json'), 'utf-8')) as {
+    const cfg = JSON.parse(
+      readFileSync(join(process.cwd(), 'config', 'auto-delegation.json'), 'utf-8'),
+    ) as {
       maxParallelAgents?: number;
     };
     if (typeof cfg.maxParallelAgents === 'number' && cfg.maxParallelAgents > 0) {

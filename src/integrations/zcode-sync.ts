@@ -18,7 +18,18 @@
  *
  * Nota ZCode: los cambios de agentes requieren una nueva sesión (no hot-reload).
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync, cpSync, renameSync, copyFileSync, unlinkSync, realpathSync } from 'node:fs';
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  existsSync,
+  cpSync,
+  renameSync,
+  copyFileSync,
+  unlinkSync,
+  realpathSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -79,26 +90,67 @@ export const CRITICAL_SKILLS: Array<{ dir: string; root: 'opencode' | 'stack' }>
   // Fase 7 (2026-10-03) — short-form video generation (gv-shorts-core + content-cms shorts/).
   { dir: 'gv-shorts-skill', root: 'stack' },
   { dir: 'gv-social-studio', root: 'stack' },
+  // Fase 8 (2026-11-18) — documentación comercial de clientes; vivía solo en
+  // mirrors de host, ahora es canónica en skills/ y se sincroniza.
+  { dir: 'documentacion-comercial-clientes', root: 'stack' },
 ];
 
 /**
  * Destinos de skills por herramienta. ZCode y Codex usan SKILL.md estándar en su
  * dir de usuario; MiniMax Code (framework pi-agent) usa skills por agente (mavis = orquestador).
- * Copilot y Antigravity consumen skills versionadas en el workspace.
+ * Copilot, Antigravity, Kimi y Qoder consumen skills versionadas en el workspace.
  */
-const SKILL_TARGETS: Record<string, string> = {
+export const SKILL_TARGETS: Record<string, string> = {
   opencode: join(process.cwd(), '.opencode', 'skills'),
   zcode: join(homedir(), '.zcode', 'skills'),
   codex: join(homedir(), '.codex', 'skills'),
   minimax: join(homedir(), '.minimax', 'agents', 'mavis', 'skills'),
   copilot: join(process.cwd(), '.github', 'skills'),
   antigravity: join(process.cwd(), '.antigravity', 'skills'),
+  kimi: join(process.cwd(), '.kimi-code', 'skills'),
+  qoder: join(process.cwd(), '.qoder', 'skills'),
 };
 
 export function copySkillTree(source: string, target: string): void {
   mkdirSync(target, { recursive: true });
   if (realpathSync(source) === realpathSync(target)) return;
   cpSync(source, target, { recursive: true, force: true });
+}
+
+/**
+ * Config MCP de proyecto para Kimi (BL-2026-11-16): el audit de interoperabilidad
+ * exige `.kimi-code/mcp.json` con el servidor engram declarado; el sync de skills
+ * no lo generaba y cada clon nuevo quedaba con Kimi en WARN. Determinística e
+ * idempotente: mismo objeto en cada corrida.
+ */
+export function buildKimiMcpConfig(): JsonObject {
+  return {
+    mcpServers: {
+      engram: {
+        command: 'engram',
+        args: ['mcp', '--tools=agent'],
+        enabled: true,
+      },
+    },
+  };
+}
+
+function syncToolMcpConfigs(dry: boolean, tools: string[]): boolean {
+  if (!tools.includes('kimi')) return true;
+  const target = join(process.cwd(), '.kimi-code', 'mcp.json');
+  if (dry) {
+    console.log(`(dry) MCP config Kimi → ${target}`);
+    return true;
+  }
+  try {
+    mkdirSync(join(process.cwd(), '.kimi-code'), { recursive: true });
+    writeFileAtomic(target, `${JSON.stringify(buildKimiMcpConfig(), null, 2)}\n`);
+    console.log(`✓ MCP config Kimi → ${target}`);
+  } catch (err) {
+    console.error(`  ✗ MCP config Kimi: ${err instanceof Error ? err.message : err}`);
+    return false;
+  }
+  return true;
 }
 
 function syncSkills(dry: boolean, tools: string[]): boolean {
@@ -148,9 +200,7 @@ function syncSkills(dry: boolean, tools: string[]): boolean {
         console.log(`  ✓ skill ${s.dir}`);
       } catch (err) {
         // Un skill lockeado (EPERM transitorio de Windows) no tumba el sync entero.
-        console.error(
-          `  ✗ skill ${s.dir} (${tool}): ${err instanceof Error ? err.message : err}`,
-        );
+        console.error(`  ✗ skill ${s.dir} (${tool}): ${err instanceof Error ? err.message : err}`);
         ok = false;
       }
     }
@@ -226,12 +276,25 @@ export function writeFileAtomic(path: string, data: string): void {
  * se conservan; sólo se regeneran las entradas cuyo script coincide con uno
  * gestionado. Un spread `{...current, hooks: {...}}` completo las pisaría.
  */
-const MANAGED_HOOKS: Record<string, Array<{ matcher: string; script: string; timeoutMs: number; statusMessage: string }>> = {
+const MANAGED_HOOKS: Record<
+  string,
+  Array<{ matcher: string; script: string; timeoutMs: number; statusMessage: string }>
+> = {
   SessionStart: [
-    { matcher: 'startup|resume', script: 'src/zcode-hooks/session-start.ts', timeoutMs: 30000, statusMessage: 'Gentle-Vanguard: session autostart' },
+    {
+      matcher: 'startup|resume',
+      script: 'src/zcode-hooks/session-start.ts',
+      timeoutMs: 30000,
+      statusMessage: 'Gentle-Vanguard: session autostart',
+    },
   ],
   PostToolUse: [
-    { matcher: 'Write|Edit', script: 'src/zcode-hooks/post-edit-graphify.ts', timeoutMs: 150000, statusMessage: 'Gentle-Vanguard: graphify update' },
+    {
+      matcher: 'Write|Edit',
+      script: 'src/zcode-hooks/post-edit-graphify.ts',
+      timeoutMs: 150000,
+      statusMessage: 'Gentle-Vanguard: graphify update',
+    },
   ],
 };
 
@@ -253,13 +316,15 @@ function entryHookScript(entry: HookEntry): string | undefined {
 export function buildZCodeHookConfig(current: JsonObject, repoRoot: string): JsonObject {
   const script = (relativePath: string) => join(repoRoot, relativePath).replace(/\\/g, '/');
   const node = process.execPath.replace(/\\/g, '/');
-  const existingEvents =
-    (((current.hooks as JsonObject | undefined)?.events as JsonObject) ?? {}) as Record<string, unknown>;
+  const existingEvents = (((current.hooks as JsonObject | undefined)?.events as JsonObject) ??
+    {}) as Record<string, unknown>;
   const currentHooks = (current.hooks as JsonObject | undefined) ?? {};
   const events: Record<string, unknown> = {};
 
   for (const [event, managed] of Object.entries(MANAGED_HOOKS)) {
-    const currentEntries = Array.isArray(existingEvents[event]) ? (existingEvents[event] as HookEntry[]) : [];
+    const currentEntries = Array.isArray(existingEvents[event])
+      ? (existingEvents[event] as HookEntry[])
+      : [];
     // Entradas ajenas al stack (scripts que no gestionamos) sobreviven intactas.
     const foreign = currentEntries.filter(
       (e) => !managed.some((m) => entryHookScript(e)?.endsWith(m.script)),
@@ -293,8 +358,12 @@ function syncZCodeHooks(dry: boolean): boolean {
   if (existsSync(ZCODE_CONFIG_PATH)) {
     const raw = readFileSync(ZCODE_CONFIG_PATH, 'utf8');
     if (containsJsonComments(raw)) {
-      console.error(`  ✗ ${ZCODE_CONFIG_PATH} contiene comentarios (JSONC) — NO se reescribe para no perderlos.`);
-      console.error('    Accion: mergea el bloque hooks a mano, o quitá los comentarios y re-corré --sync.');
+      console.error(
+        `  ✗ ${ZCODE_CONFIG_PATH} contiene comentarios (JSONC) — NO se reescribe para no perderlos.`,
+      );
+      console.error(
+        '    Accion: mergea el bloque hooks a mano, o quitá los comentarios y re-corré --sync.',
+      );
       return false;
     }
     try {
@@ -302,7 +371,9 @@ function syncZCodeHooks(dry: boolean): boolean {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`  ✗ ${ZCODE_CONFIG_PATH} es JSON inválido (${msg}). NO se sobreescribe.`);
-      console.error(`    Si tenés un backup en ${ZCODE_CONFIG_PATH}.bak, restauralo y revisá el archivo.`);
+      console.error(
+        `    Si tenés un backup en ${ZCODE_CONFIG_PATH}.bak, restauralo y revisá el archivo.`,
+      );
       return false;
     }
   }
@@ -446,6 +517,7 @@ function main(): void {
   }
   console.log(`Sincronizando skills críticas a: ${tools.join(', ')}`);
   if (!syncSkills(dry, tools)) failures++;
+  if (!syncToolMcpConfigs(dry, tools)) failures++;
   if (tools.includes('zcode') && !syncZCodeHooks(dry)) failures++;
   if (!dry) {
     console.log(

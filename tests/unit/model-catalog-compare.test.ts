@@ -22,7 +22,12 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { compareCatalog, normalizeModelId } from '../../src/tools/opencode-model-doctor.ts';
+import {
+  canProbeInference,
+  compareCatalog,
+  normalizeModelId,
+} from '../../src/tools/opencode-model-doctor.ts';
+import { syncProviderModels } from '../../src/tools/model-catalog-sync.ts';
 
 test('normaliza `:latest` (el caso real qwen3-14b-32k)', () => {
   assert.equal(normalizeModelId('qwen3-14b-32k:latest'), 'qwen3-14b-32k');
@@ -60,4 +65,42 @@ test('catalogo inaccesible => cero stale (unverified != stale)', () => {
 test('catalogo vacio pero accesible => todo lo configurado es stale', () => {
   const { missingInUpstream } = compareCatalog(['a', 'b'], [], true);
   assert.deepEqual(missingInUpstream, ['a', 'b']);
+});
+
+test('inference probe permits local unauthenticated servers and requires remote credentials', () => {
+  assert.equal(canProbeInference('http://127.0.0.1:11434/v1', false), true);
+  assert.equal(canProbeInference('http://localhost:1234/v1', false), true);
+  assert.equal(canProbeInference('http://[::1]:11434/v1', false), true);
+  assert.equal(canProbeInference('https://localhost.example.test/v1', false), false);
+  assert.equal(canProbeInference('https://provider.example.test/v1', true), true);
+});
+
+test('el sync NO poda un modelo local INSTALADO (misma regla que el doctor)', () => {
+  // El doctor ya normaliza `:latest`; el sync comparaba a pelo y por eso
+  // `models:sync --dry` proponia borrar `qwen3-14b-32k` (instalado, con
+  // `tools`, medido con tool-calling). El que ESCRIBE tiene la misma regla.
+  const provider = { models: { 'qwen3-14b-32k': { name: 'qwen3-14b-32k' } } };
+  const result = syncProviderModels(
+    provider,
+    { catalogOK: true, upstreamCatalog: ['qwen3-14b-32k:latest', 'qwen3-14b-16k:latest'] },
+    false,
+  );
+  assert.equal(result.removed, 0);
+  assert.deepEqual(Object.keys(provider.models), ['qwen3-14b-32k']);
+});
+
+test('el sync SI poda un id que no existe upstream', () => {
+  const provider = {
+    models: { 'modelo-fantasma': { name: 'modelo-fantasma' }, ok: { name: 'ok' } },
+  };
+  const result = syncProviderModels(provider, { catalogOK: true, upstreamCatalog: ['ok'] }, false);
+  assert.equal(result.removed, 1);
+  assert.deepEqual(Object.keys(provider.models), ['ok']);
+});
+
+test('el sync con catalogo inaccesible no toca nada (unverified != stale)', () => {
+  const provider = { models: { 'qwen3-14b-32k': { name: 'qwen3-14b-32k' } } };
+  const result = syncProviderModels(provider, { catalogOK: false, upstreamCatalog: [] }, false);
+  assert.equal(result.removed, 0);
+  assert.deepEqual(Object.keys(provider.models), ['qwen3-14b-32k']);
 });

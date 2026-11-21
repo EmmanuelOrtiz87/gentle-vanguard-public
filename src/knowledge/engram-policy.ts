@@ -7,7 +7,7 @@
 
 import { runSync } from '../core/run-command.js';
 import { pathToFileURL } from 'url';
-import { getExternalApiTimeouts } from '../core/timeout-config';
+import { getExternalApiTimeouts } from '../core/timeout-config.js';
 
 function log(msg: string): void {
   console.log(`[ENGRAM-POLICY] ${msg}`);

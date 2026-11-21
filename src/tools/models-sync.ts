@@ -18,7 +18,7 @@
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { runNpxTsxSync } from '../core/run-command.js';
-import {syncProviderModels} from './model-catalog-sync.js';
+import { syncProviderModels, normalizeModelId } from './model-catalog-sync.js';
 
 interface DoctorProvider {
   id: string;
@@ -64,17 +64,23 @@ function fail(msg: string): never {
 function main(): void {
   console.log('[models-sync] consultando el doctor de modelos…');
   const providerFilter = argValue('--provider');
-  const doctor = runNpxTsxSync('src/tools/opencode-model-doctor.ts', ['--json', ...(providerFilter ? ['--provider', providerFilter] : [])], {
-    timeout: 240_000,
-    ...(argValue('--config') ? {env: {OPENCODE_CONFIG: argValue('--config')!}} : {}),
-  });
+  const doctor = runNpxTsxSync(
+    'src/tools/opencode-model-doctor.ts',
+    ['--json', ...(providerFilter ? ['--provider', providerFilter] : [])],
+    {
+      timeout: 240_000,
+      ...(argValue('--config') ? { env: { OPENCODE_CONFIG: argValue('--config')! } } : {}),
+    },
+  );
   // El doctor sale con código 1 justamente cuando encuentra modelos stale en la
   // config (que es el caso a reparar): sólo es error si no hay JSON en stdout.
   let report: DoctorJson;
   try {
     report = JSON.parse(doctor.stdout) as DoctorJson;
   } catch {
-    fail(`el doctor no devolvió JSON (status ${doctor.status}): ${(doctor.stderr ?? doctor.stdout ?? '').slice(0, 300)}`);
+    fail(
+      `el doctor no devolvió JSON (status ${doctor.status}): ${(doctor.stderr ?? doctor.stdout ?? '').slice(0, 300)}`,
+    );
   }
 
   const configPath = argValue('--config') ?? report.configPath;
@@ -94,10 +100,14 @@ function main(): void {
       lines.push(`  · ${p.id}: catálogo upstream no disponible → sin cambios`);
       continue;
     }
-    const upstream = new Set(p.upstreamCatalog ?? []);
+    const upstream = new Set((p.upstreamCatalog ?? []).map(normalizeModelId));
     const configured = Object.keys(local.models ?? {});
-    const stale = configured.filter((m) => !upstream.has(m));
-    const missing = (p.upstreamCatalog ?? []).filter((m) => !configured.includes(m));
+    // Misma regla que el doctor (normaliza `:latest`): comparar a pelo hacia
+    // parecer stale un modelo local INSTALADO y podar una config que funciona.
+    const stale = configured.filter((m) => !upstream.has(normalizeModelId(m)));
+    const missing = (p.upstreamCatalog ?? []).filter(
+      (m) => !configured.some((c) => normalizeModelId(c) === normalizeModelId(m)),
+    );
 
     const changes = syncProviderModels(local, p, addMissing);
     removedTotal += changes.removed;
@@ -105,29 +115,45 @@ function main(): void {
     lines.push(
       `  · ${p.id}: ${configured.length} configurados → ${Object.keys(local.models ?? {}).length}` +
         ` (stale removidos: ${stale.length}${stale.length ? ' [' + stale.slice(0, 4).join(', ') + (stale.length > 4 ? '…' : '') + ']' : ''})` +
-        (addMissing ? ` | agregados: ${missing.length}` : ` | faltantes en config: ${missing.length} (usá --add-missing)`),
+        (addMissing
+          ? ` | agregados: ${missing.length}`
+          : ` | faltantes en config: ${missing.length} (usá --add-missing)`),
     );
   }
 
   // Modelo activo (¿existe upstream en su proveedor?)
   const active = cfg.model;
-  const activeProvider = active ? report.providers.find((p) => active.startsWith(p.id + '/')) : undefined;
-  const activeModel = active && activeProvider ? active.slice(activeProvider.id.length + 1) : undefined;
+  const activeProvider = active
+    ? report.providers.find((p) => active.startsWith(p.id + '/'))
+    : undefined;
+  const activeModel =
+    active && activeProvider ? active.slice(activeProvider.id.length + 1) : undefined;
   const activeIsStale = Boolean(
-    active && activeProvider?.catalogOK && activeModel && !(activeProvider.upstreamCatalog ?? []).includes(activeModel),
+    active &&
+    activeProvider?.catalogOK &&
+    activeModel &&
+    !(activeProvider.upstreamCatalog ?? []).some(
+      (m) => normalizeModelId(m) === normalizeModelId(activeModel),
+    ),
   );
 
   console.log('\n[models-sync] plan:');
   console.log(lines.join('\n') || '  (sin proveedores locales que sincronizar)');
   console.log(`\n[models-sync] config: ${configPath}`);
-  if (active) console.log(`[models-sync] model activo: ${active}${activeIsStale ? '  ← STALE' : activeProvider ? '  ✔' : '  (proveedor sin catálogo)'}`);
+  if (active)
+    console.log(
+      `[models-sync] model activo: ${active}${activeIsStale ? '  ← STALE' : activeProvider ? '  ✔' : '  (proveedor sin catálogo)'}`,
+    );
 
   if (activeIsStale) {
     if (fixActive) {
       cfg.model = CANONICAL;
       console.log(`[models-sync] model activo → ${CANONICAL}`);
     } else {
-      console.log('[models-sync] ⚠ el model activo es stale: usá --fix-active-model para pasarlo a ' + CANONICAL);
+      console.log(
+        '[models-sync] ⚠ el model activo es stale: usá --fix-active-model para pasarlo a ' +
+          CANONICAL,
+      );
     }
   }
 
@@ -137,7 +163,9 @@ function main(): void {
   }
 
   if (dry) {
-    console.log(`\n[models-sync] (dry-run) se habrían quitado ${removedTotal} y agregado ${addedTotal}`);
+    console.log(
+      `\n[models-sync] (dry-run) se habrían quitado ${removedTotal} y agregado ${addedTotal}`,
+    );
     return;
   }
 

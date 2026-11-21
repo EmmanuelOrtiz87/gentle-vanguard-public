@@ -23,7 +23,7 @@ const ROOT = process.cwd();
 /** Hechos sinteticos: el test no depende del estado real del repo. */
 const FACTS: DeckFacts = {
   qualityGates: { total: 36, enforced: 33, preCommit: 19 },
-  skills: { indexed: 253, critical: 28 },
+  skills: { canonical: 255, indexed: 257, critical: 28 },
   nexus: { tables: 38, migrations: 22 },
   agents: { definitions: 20, openCode: 10, roles: 29, bindings: 30 },
   scale: { tsFiles: 806, testFiles: 555, npmScripts: 611, apps: 28 },
@@ -127,6 +127,21 @@ test('no confunde skills de una disciplina con el total del indice', () => {
   );
   assert.equal(report.ok, true);
   assert.equal(report.claims, 0);
+});
+
+test('las skills canonicas se comparan contra el canon, no contra el indice', () => {
+  const report = checkDeckFacts(
+    [{ path: 'README.md', text: '255 skills canónicas (257 indexadas, 28 críticas).' }],
+    FACTS,
+  );
+  assert.equal(report.ok, true, report.findings.map((f) => f.message).join(' | '));
+  assert.equal(report.claims, 2);
+});
+
+test('una cifra canonica vieja produce un error facts/drift', () => {
+  const report = checkDeckFacts([{ path: 'README.md', text: '253 skills canónicas' }], FACTS);
+  assert.equal(report.ok, false);
+  assert.match(report.findings[0]?.message ?? '', /canonicas/);
 });
 
 test('solo compara cifras de horas cuando describen video de Academy', () => {

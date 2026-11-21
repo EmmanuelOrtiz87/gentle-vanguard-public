@@ -141,6 +141,14 @@ function parseArgs(): CliArgs {
     }
   }
 
+  // Acción por POSICIÓN (el uso documentado es `sia:run init ...`): el primer
+  // argumento que sea una acción válida gana sobre el default 'status'.
+  // Antes de este fix el posicional se IGNORABA silenciosamente y todo comando
+  // ejecutaba `status` — el CLI documentado nunca funcionó como documentado
+  // (cazado en vivo 2026-11-21). `--action/-a` explícito sigue teniendo prioridad.
+  const positional = args.find((a) => !a.startsWith('--') && VALID_ACTIONS.includes(a as Action));
+  if (positional && parsed.action === 'status') parsed.action = positional as Action;
+
   if (!VALID_ACTIONS.includes(parsed.action)) {
     console.error(`Invalid action: ${parsed.action}. Valid: ${VALID_ACTIONS.join(', ')}`);
     process.exit(1);
@@ -364,6 +372,9 @@ function cmdStatus(sid: string, scoreThreshold: number, outputDir: string, asJso
   const dir = sessionDir(sid, outputDir);
   if (!existsSync(dir)) {
     output({ error: `Session not found: ${sid}` }, asJson);
+    // Fail-closed honesto: una consulta sobre sesión inexistente es un error,
+    // no un éxito silencioso (meta-auditoría: skip/verde por ausencia).
+    process.exitCode = 1;
     return;
   }
   const statePath = join(dir, 'state.json');

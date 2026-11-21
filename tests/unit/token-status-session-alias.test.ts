@@ -26,8 +26,14 @@ describe('token status session aliases', () => {
     db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('codex-runtime-id', 100, 5);
     db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('minimax-runtime-id', 20, 3);
     db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('unrelated-session', 999, 999);
-    db.prepare('INSERT INTO session_id_aliases VALUES (?, ?)').run('workspace-session', 'codex-runtime-id');
-    db.prepare('INSERT INTO session_id_aliases VALUES (?, ?)').run('workspace-session', 'minimax-runtime-id');
+    db.prepare('INSERT INTO session_id_aliases VALUES (?, ?)').run(
+      'workspace-session',
+      'codex-runtime-id',
+    );
+    db.prepare('INSERT INTO session_id_aliases VALUES (?, ?)').run(
+      'workspace-session',
+      'minimax-runtime-id',
+    );
     try {
       assert.deepEqual(readSessionTokenTotals(db, 'workspace-session'), { input: 130, output: 10 });
     } finally {
@@ -49,13 +55,43 @@ describe('token status session aliases', () => {
 describe('local-day token accounting', () => {
   it('uses the machine local calendar day, not SQLite UTC date', () => {
     const date = new Date('2026-10-25T00:07:00Z');
-    const expected = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+    const expected = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
     assert.equal(getLocalDayKey(date), expected);
+  });
+
+  it('takes the larger of usage and transactions instead of double counting', () => {
+    const db = new Database(':memory:');
+    db.exec(`
+      CREATE TABLE token_usage (timestamp TEXT, prompt_tokens INTEGER, completion_tokens INTEGER);
+      CREATE TABLE token_transactions (created_at TEXT, input_tokens INTEGER, output_tokens INTEGER);
+    `);
+    db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('2026-10-24 10:00:00', 100, 20);
+    db.prepare('INSERT INTO token_transactions VALUES (?, ?, ?)').run(
+      '2026-10-24 11:00:00',
+      200,
+      50,
+    );
+    db.prepare('INSERT INTO token_transactions VALUES (?, ?, ?)').run(
+      '2026-10-23 11:00:00',
+      999,
+      1,
+    );
+    try {
+      assert.equal(readDailyTokenTotal(db, '2026-10-24'), 250);
+    } finally {
+      db.close();
+    }
   });
 
   it('sums only rows for the requested local date', () => {
     const db = new Database(':memory:');
-    db.exec(`CREATE TABLE token_usage (timestamp TEXT, prompt_tokens INTEGER, completion_tokens INTEGER);`);
+    db.exec(
+      `CREATE TABLE token_usage (timestamp TEXT, prompt_tokens INTEGER, completion_tokens INTEGER);`,
+    );
     db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('2026-10-24 21:06:54', 25_397, 3);
     db.prepare('INSERT INTO token_usage VALUES (?, ?, ?)').run('2026-10-23 23:59:59', 100, 20);
     try {

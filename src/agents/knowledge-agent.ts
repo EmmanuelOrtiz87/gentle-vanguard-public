@@ -6,7 +6,7 @@
  * note creation, vault sync. Executor logic mirrors config/agent-prompts/KNOWLEDGE.md.
  */
 
-import { runDomainAgent, type DomainAgentConfig, type DomainOutput } from './domain-agent-core';
+import { runDomainAgent, type DomainAgentConfig, type DomainOutput } from './domain-agent-core.js';
 
 const AGENT_CONFIG: DomainAgentConfig = {
   name: 'knowledge-agent',

@@ -19,10 +19,33 @@ import { pathToFileURL } from 'url';
 import { join, resolve } from 'path';
 
 const ROOT = resolve(process.cwd());
-const STATE_DIR = join(ROOT, '.runtime', 'alert-system');
-const LOG_FILE = join(STATE_DIR, 'alerts.log');
 
-mkdirSync(STATE_DIR, { recursive: true });
+/**
+ * DIRECTORIO DE ESTADO (rate-limit, cooldown, log).
+ *
+ * El estado de alertas es GLOBAL del proceso de alerting: el rate limit
+ * (`maxAlertsPerMinute`) cuenta los avisos reales. Por eso el directorio se
+ * puede redirigir con `MCAS_STATE_DIR`: un test de contrato debe correr
+ * contra su propio estado, no contra el de produccion.
+ *
+ * POR QUE (2026-11-18): el test `multi-channel-alert.test.ts` fallaba de forma
+ * intermitente (3 de 18, luego 6 de 18) porque las corridas repetidas
+ * compartian el contador de 20 avisos/min con el estado real -> el propio test
+ * se auto-limitaba y ademas podia SILENCIAR avisos reales del stack.
+ *
+ * Se resuelve en cada uso (no en el import) para que el env var se pueda
+ * cambiar despues de cargar el modulo.
+ */
+function stateDir(): string {
+  const override = process.env.MCAS_STATE_DIR;
+  return override ? resolve(override) : join(ROOT, '.runtime', 'alert-system');
+}
+
+function logFile(): string {
+  return join(stateDir(), 'alerts.log');
+}
+
+mkdirSync(stateDir(), { recursive: true });
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 interface AlertConfig {
@@ -209,7 +232,7 @@ function log(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'INFO'): void {
   const timestamp = new Date().toISOString();
   const line = `[${timestamp}] [${level}] ${message}`;
   console.log(line);
-  appendFileSync(LOG_FILE, line + '\n', 'utf-8');
+  appendFileSync(logFile(), line + '\n', 'utf-8');
 }
 
 // ─── State Management ─────────────────────────────────────────────────────────
@@ -221,7 +244,7 @@ interface AlertState {
 }
 
 function loadState(): AlertState {
-  const stateFile = join(STATE_DIR, 'state.json');
+  const stateFile = join(stateDir(), 'state.json');
   try {
     if (existsSync(stateFile)) {
       return JSON.parse(readFileSync(stateFile, 'utf-8'));
@@ -236,7 +259,7 @@ function loadState(): AlertState {
 }
 
 function saveState(state: AlertState): void {
-  writeFileSync(join(STATE_DIR, 'state.json'), JSON.stringify(state, null, 2), 'utf-8');
+  writeFileSync(join(stateDir(), 'state.json'), JSON.stringify(state, null, 2), 'utf-8');
 }
 
 // ─── Alert Interface ────────────────────────────────────────────────────────────
@@ -306,7 +329,7 @@ async function sendToFile(alert: AlertPayload): Promise<void> {
     ...alert,
     receivedAt: new Date().toISOString(),
   };
-  appendFileSync(join(STATE_DIR, 'alerts.jsonl'), JSON.stringify(entry) + '\n', 'utf-8');
+  appendFileSync(join(stateDir(), 'alerts.jsonl'), JSON.stringify(entry) + '\n', 'utf-8');
 }
 
 async function sendToDashboard(alert: AlertPayload): Promise<void> {
@@ -527,7 +550,7 @@ async function sendToTwilio(
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
+        Authorization: `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
@@ -772,9 +795,13 @@ async function testAllChannels(): Promise<void> {
       if (channel === 'telegram')
         console.log('  - Telegram: Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars');
       if (channel === 'whatsapp')
-        console.log('  - WhatsApp: Set WHATSAPP_ACCOUNT_SID + WHATSAPP_AUTH_TOKEN + WHATSAPP_FROM + WHATSAPP_TO env vars (Twilio)');
+        console.log(
+          '  - WhatsApp: Set WHATSAPP_ACCOUNT_SID + WHATSAPP_AUTH_TOKEN + WHATSAPP_FROM + WHATSAPP_TO env vars (Twilio)',
+        );
       if (channel === 'sms')
-        console.log('  - SMS: Set SMS_ACCOUNT_SID + SMS_AUTH_TOKEN + SMS_FROM + SMS_TO env vars (Twilio)');
+        console.log(
+          '  - SMS: Set SMS_ACCOUNT_SID + SMS_AUTH_TOKEN + SMS_FROM + SMS_TO env vars (Twilio)',
+        );
       if (channel === 'email')
         console.log('  - Email: Set SMTP_HOST + ALERT_EMAIL_TO (+ SMTP_USER/PASS/PORT) env vars');
     });

@@ -67,14 +67,9 @@ function main(): void {
     true,
   );
   if (duplicates) {
-    const ts = new Date().toISOString().slice(0, 19);
-    runEngram([
-      'save',
-      'Duplicate cleanup check',
-      `Duplicate check run at ${ts}. Found entries needing review.`,
-      '--project',
-      project,
-    ]);
+    console.log(
+      '[INFO] Duplicate candidates found; report above (no se persiste: es traza, no memoria)',
+    );
   }
 
   // 2. Run diagnostics
@@ -98,15 +93,6 @@ function main(): void {
   console.log('  3. Reference Engram IDs instead of full content');
   console.log('  4. Run this script regularly for maintenance');
   console.log("  5. Run 'engram conflicts scan --apply' for explicit conflict cleanup");
-
-  const ts = new Date().toISOString().slice(0, 19);
-  runEngram([
-    'save',
-    'Context efficiency optimization run',
-    `Optimization script executed at ${ts}. Project: ${project}.`,
-    '--project',
-    project,
-  ]);
 
   console.log('[OK] Engram usage optimization completed');
   process.exit(0);

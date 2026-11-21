@@ -10,7 +10,7 @@ import * as net from 'net';
 import { spawn, spawnSync } from 'child_process';
 import { runSync } from '../../adapters/command-runner.js';
 import { pathToFileURL } from 'url';
-import { watchdogIsAlive } from './dashboard-watchdog-policy';
+import { watchdogIsAlive } from './dashboard-watchdog-policy.js';
 
 const RUNTIME_DIR = path.resolve(process.cwd(), '.runtime');
 const PORTS_FILE = path.join(RUNTIME_DIR, 'dashboard-ports.json');

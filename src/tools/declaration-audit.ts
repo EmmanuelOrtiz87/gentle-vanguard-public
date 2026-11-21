@@ -149,6 +149,8 @@ const DERIVED_ROOTS = [
   '.opencode',
   '.codex',
   '.github/skills',
+  '.qoder',
+  '.kimi-code',
   'graphify-out',
 ];
 

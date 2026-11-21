@@ -11,6 +11,6 @@ describe('mcp-manager', () => {
   });
 
   it('src/integrations/mcp-bridge.ts exists', () => {
-    assert.ok(existsSync(resolve(ROOT, 'src', 'mcp', 'mcp-bridge.ts')));
+    assert.ok(existsSync(resolve(ROOT, 'src', 'integrations', 'mcp-bridge.ts')));
   });
 });

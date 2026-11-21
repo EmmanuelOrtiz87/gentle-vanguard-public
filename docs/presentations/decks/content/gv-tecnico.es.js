@@ -45,7 +45,7 @@ export default {
         },
         {
           heading: 'Agentes y skills',
-          body: 'Los 20 agentes del roster y cómo se invocan las capacidades.',
+          body: 'Los 22 agentes del roster y cómo se invocan las capacidades.',
         },
         { heading: 'Comandos', body: 'Los comandos que se usan todos los días y qué verifican.' },
         { heading: 'Nexus', body: 'La base operacional: 45 tablas, migraciones y respaldo.' },
@@ -67,17 +67,17 @@ export default {
       items: [
         {
           label: 'src/',
-          body: 'más de 800 archivos TypeScript. Código del stack por área: orquestación, seguridad, retrieval, datos, tools, quality y ops.',
+          body: 'más de 889 archivos TypeScript. Código del stack por área: orquestación, seguridad, retrieval, datos, tools, quality y ops.',
           accent: '06b6d4',
         },
         {
           label: 'apps/',
-          body: '30 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '28 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '8b5cf6',
         },
         {
           label: 'skills/',
-          body: '257 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.',
+          body: '265 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.',
           accent: 'fbbf24',
         },
         {
@@ -97,7 +97,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: 'más de 550 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
+          body: '653 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
           accent: 'f4bb4f',
         },
         {
@@ -150,7 +150,7 @@ export default {
     {
       layout: 'cards',
       eyebrow: 'Roster',
-      title: '20 agentes, cada uno con su perímetro',
+      title: '22 agentes, cada uno con su perímetro',
       lead: 'Un agente tiene modelo, permisos, límite de pasos, presupuesto y fallback declarados.',
       cols: 4,
       items: [
@@ -205,7 +205,7 @@ export default {
         {
           icon: 'lock',
           heading: 'Qué no se copia',
-          body: 'Solo 28 skills críticas se propagan a las cinco superficies externas. El resto no se copia para no degradar la metadata del host.',
+          body: 'Solo 29 skills críticas se propagan a las cinco superficies externas. El resto no se copia para no degradar la metadata del host.',
         },
         {
           icon: 'boxes',
@@ -307,13 +307,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '55',
+          value: '70',
           label: 'Quality gates',
-          sub: '50 de 55 aplicados de forma estricta',
+          sub: '65 de 70 aplicados de forma estricta',
           accent: '06b6d4',
         },
         {
-          value: '552+',
+          value: '653',
           label: 'Archivos de test',
           sub: 'Unit, e2e, integración, seguridad y skills',
           accent: '8b5cf6',
