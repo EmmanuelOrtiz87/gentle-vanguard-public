@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { ROOT } from './config.js';
 import type {
   AgentPerformance,
   DomainEntry,
@@ -26,6 +29,32 @@ import {
 } from './collect.js';
 
 // ─── Performance Analysis ─────────────────────────────────────────────
+
+/**
+ * Canon de agentes (config/agents.json) — GB-20261120, ADR-0034. Los nombres de
+ * skill y de agente viven en namespaces separados: un domainEntry cuyo bestAgent
+ * no es un agente registrado NO puede rutear nada (el delegador no lo resuelve),
+ * así que no se selecciona como best, no genera override y no se siembra como
+ * regla de Nexus. Sin canon en el entorno (fixtures de test) no se filtra — no
+ * se puede enforzar un canon que no existe.
+ */
+let registeredAgentsCache: Set<string> | null | undefined;
+function registeredAgents(): Set<string> | null {
+  if (registeredAgentsCache !== undefined) return registeredAgentsCache;
+  try {
+    const raw = readFileSync(join(ROOT, 'config', 'agents.json'), 'utf-8');
+    const config = JSON.parse(raw) as { agents?: Record<string, unknown> };
+    registeredAgentsCache = new Set(Object.keys(config.agents ?? {}));
+  } catch {
+    registeredAgentsCache = null;
+  }
+  return registeredAgentsCache;
+}
+
+function isRoutableAgent(agentId: string): boolean {
+  const canon = registeredAgents();
+  return canon === null || canon.has(agentId);
+}
 
 export function computeAgentPerformance(
   skillMetrics: SkillMetric[],
@@ -93,7 +122,7 @@ export function computeAgentPerformance(
       existing.domain = d.domain;
     }
 
-existing.totalDelegations++;
+    existing.totalDelegations++;
     // A delegation record is itself a recorded outcome: the metrics report states how
     // many succeeded and how many failed. Not counting it left every agent built from
     // metrics.agents with outcomeCount 0, which then reported successRate 0 regardless
@@ -131,7 +160,7 @@ existing.totalDelegations++;
     const total = agent.totalDelegations;
     if (total < config.minDataPoints) continue;
 
-// The rate must be computed over OUTCOMES. totalDelegations counts usage while
+    // The rate must be computed over OUTCOMES. totalDelegations counts usage while
     // successes counts recorded outcomes, so dividing one by the other produced rates
     // like 4.0. When no outcome was recorded the rate is unknown, reported as 0.
     agent.successRate = agent.outcomeCount > 0 ? agent.successes / agent.outcomeCount : 0;
@@ -165,7 +194,11 @@ existing.totalDelegations++;
   // Add general domain if no specific domains exist
   if (domainMap.size === 0) {
     domainMap.set('general', {
-      agents: agents.map((a) => ({ agentId: a.agentId, successRate: a.successRate })),
+      // Solo agentes rutables (registrados): un nombre de skill no puede ser
+      // el bestAgent del dominio general (GB-20261120, ADR-0034).
+      agents: agents
+        .filter((a) => isRoutableAgent(a.agentId))
+        .map((a) => ({ agentId: a.agentId, successRate: a.successRate })),
       totalAttempts: agents.reduce((s, a) => s + a.totalDelegations, 0),
     });
   }
@@ -173,8 +206,13 @@ existing.totalDelegations++;
   const domainEntries: DomainEntry[] = [];
   for (const [domain, info] of domainMap) {
     if (info.agents.length === 0) continue;
-    info.agents.sort((a, b) => b.successRate - a.successRate);
-    const best = info.agents[0];
+    // Solo agentes rutables compiten por el best del dominio (GB-20261120):
+    // un skill-name como bestAgent genera overrides y seeds que el delegador
+    // no puede resolver.
+    const routable = info.agents.filter((a) => isRoutableAgent(a.agentId));
+    if (routable.length === 0) continue;
+    routable.sort((a, b) => b.successRate - a.successRate);
+    const best = routable[0];
     const bestPerf = agents.find((a) => a.agentId === best.agentId);
     // Confidence must describe the evidence for the agent this domain will route
     // to. It previously used `0.3 + totalAttempts * 0.05`, which summed attempts
@@ -189,8 +227,7 @@ existing.totalDelegations++;
     const avgRate =
       totalAttempts > 0
         ? info.agents.reduce((sum, a) => {
-            const weight =
-              agents.find((p) => p.agentId === a.agentId)?.totalDelegations ?? 1;
+            const weight = agents.find((p) => p.agentId === a.agentId)?.totalDelegations ?? 1;
             return sum + a.successRate * weight;
           }, 0) / totalAttempts
         : 0;
@@ -198,7 +235,7 @@ existing.totalDelegations++;
     domainEntries.push({
       domain,
       bestAgent: best.agentId,
-      alternatives: info.agents.slice(1, 3),
+      alternatives: routable.slice(1, 3),
       totalAttempts,
       avgSuccessRate: avgRate,
       confidence,
@@ -236,7 +273,7 @@ export function buildOverrides(
   // (1 delegation, no recorded event) supports 0.54.
   const validExisting = overrides
     .filter((o) => !o.expiresAt || o.expiresAt > now_)
-.map((o) => {
+    .map((o) => {
       const target = agentPerformance.find((a) => a.agentId === o.targetAgent);
       if (!target) return o;
       const revised: RoutingOverride = { ...o };
@@ -278,7 +315,7 @@ export function buildOverrides(
     if (justified.length >= maxOverrides) break;
     if (entry.confidence < threshold) continue;
 
-// The target must itself have real, recorded outcomes. Volume of usage is not
+    // The target must itself have real, recorded outcomes. Volume of usage is not
     // evidence: a skill loaded three times with no result recorded is unknown, and
     // routing a domain to it on that basis is a guess presented as a measurement.
     const target = agentPerformance.find((a) => a.agentId === entry.bestAgent);
@@ -292,7 +329,7 @@ export function buildOverrides(
     );
     if (alreadyExists) continue;
 
-justified.push({
+    justified.push({
       domainPattern: entry.domain,
       targetAgent: entry.bestAgent,
       // Quote the target's OUTCOMES, not its usage volume. The previous wording said
@@ -346,7 +383,12 @@ export function buildRoutingTable(config: typeof DEFAULT_CONFIG, log: Logger): R
 
   // 3. Load existing overrides
   const existingTable = loadJson<RoutingTable>(ROUTING_TABLE_FILE, null as unknown as RoutingTable);
-  const existingOverrides = existingTable?.overrides || [];
+  // GB-20261120 (ADR-0034): podar overrides heredados cuyo target no es un
+  // agente registrado — un skill-name como target no es delegable y el override
+  // persistía indefinidamente entre builds (caso general→debugging, 14/11).
+  const existingOverrides = (existingTable?.overrides || []).filter((o) =>
+    isRoutableAgent(o.targetAgent),
+  );
 
   // 3b. Cold-start seed: if no learned domains/overrides yet, seed the baseline
   // so recommend-agent has confidence > 0.3 from day one.

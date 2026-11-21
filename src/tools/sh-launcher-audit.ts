@@ -17,7 +17,7 @@
  *     lo lanza desde Git Bash.
  *
  * La regla del stack es el proceso hijo DIRECTO (`nohup node … &`) con su
- * pidfile — el mismo patrón de archify/content-cms/alexandria. Builds y tests
+ * pidfile — el mismo patrón de archify/content-cms. Builds y tests
  * (`npm run build`, `pnpm build`) son sincrónicos en primer plano: permitidos.
  *
  * USO

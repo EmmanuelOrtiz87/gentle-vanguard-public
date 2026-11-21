@@ -42,7 +42,7 @@ export default {
         },
         {
           heading: 'Agents and skills',
-          body: 'The 20 agents in the roster and how capabilities get invoked.',
+          body: 'The 22 agents in the roster and how capabilities get invoked.',
         },
         { heading: 'Commands', body: 'The commands used daily and what each one verifies.' },
         { heading: 'Nexus', body: 'The operational database: 45 tables, migrations and backup.' },
@@ -69,7 +69,7 @@ export default {
         },
         {
           label: 'apps/',
-          body: '31 of our own applications running on the stack, validating the architecture in production.',
+          body: '28 of our own applications running on the stack, validating the architecture in production.',
           accent: '8b5cf6',
         },
         {
@@ -94,7 +94,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: '619 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
+          body: '653 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
           accent: 'f4bb4f',
         },
         {
@@ -147,7 +147,7 @@ export default {
     {
       layout: 'cards',
       eyebrow: 'Roster',
-      title: '20 agents, each with its own perimeter',
+      title: '22 agents, each with its own perimeter',
       lead: 'An agent has a model, permissions, a step limit, a budget and a declared fallback.',
       cols: 4,
       items: [
@@ -304,13 +304,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '68',
+          value: '70',
           label: 'Quality gates',
-          sub: '63 of 68 enforced strictly',
+          sub: '65 of 70 enforced strictly',
           accent: '06b6d4',
         },
         {
-          value: '619',
+          value: '653',
           label: 'Test files',
           sub: 'Unit, e2e, integration, security and skills',
           accent: '8b5cf6',

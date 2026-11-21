@@ -31,11 +31,7 @@ const argv = process.argv.slice(2);
 
 // ─── Briefs aprobados (tanda 12/13: fondo AI que la cuota generativa dé; el
 // texto es el copy aprobado y NO se regenera — lo texturiza sharp localmente) ──
-const MODELS = [
-  'gemini-2.5-flash-image',
-  'nano-banana-pro-preview',
-  'gemini-3-pro-image-preview',
-];
+const MODELS = ['gemini-2.5-flash-image', 'nano-banana-pro-preview', 'gemini-3-pro-image-preview'];
 const BRIEF = [
   'Abstract dark tech background, deep navy #0B1020 base, soft purple #8B5CF6 glow from top-left, cyan #06B6D4 glow from bottom-right, faint diagonal violet-to-cyan gradient sweep (#6E4DEB to #06B6D4), subtle fine grid lines, soft bokeh particles, calm and minimal, no text, no logos, no faces, generous dark empty space for typography.',
 ];
@@ -69,18 +65,18 @@ function overlaySvg({ w, h }: Canvas): string {
       <stop offset="0%" stop-color="#6E4DEB"/><stop offset="52%" stop-color="#7B63E8"/><stop offset="100%" stop-color="#06B6D4"/>
     </linearGradient>
   </defs>
-  <g transform="translate(${w * 0.06}, ${h * 0.10})">
+  <g transform="translate(${w * 0.06}, ${h * 0.1})">
     <rect x="0" y="0" rx="16" ry="16" width="${w * 0.52}" height="${h * 0.13}" fill="#151921" fill-opacity="0.88" stroke="#8B5CF6" stroke-width="2" stroke-dasharray="7 5"/>
     <text x="${w * 0.26}" y="${h * 0.117}" text-anchor="middle" fill="#e8eef4" font-family="${impact}" font-size="${Math.round(h * 0.075)}">EL REPO NI <tspan fill="#06B6D4">git status</tspan> PODÍA CORRER</text>
   </g>
-  <text x="${w * 0.06}" y="${h * 0.52}" fill="url(#gv)" font-family="${impact}" font-size="${Math.round(h * 0.30)}" letter-spacing="-2">6.4B</text>
-  <text x="${w * 0.06}" y="${h * 0.60}" fill="#e8eef4" font-family="${inter}" font-size="${Math.round(h * 0.052)}" font-weight="700">tokens reales medidos. No promesas. Contador.</text>
+  <text x="${w * 0.06}" y="${h * 0.52}" fill="url(#gv)" font-family="${impact}" font-size="${Math.round(h * 0.3)}" letter-spacing="-2">6.4B</text>
+  <text x="${w * 0.06}" y="${h * 0.6}" fill="#e8eef4" font-family="${inter}" font-size="${Math.round(h * 0.052)}" font-weight="700">tokens reales medidos. No promesas. Contador.</text>
   <g font-family="${inter}" font-weight="800" font-size="${Math.round(h * 0.062)}">
     <text x="${w * 0.06}" y="${h * 0.74}" fill="#06B6D4">3.417 commits</text>
     <text x="${w * 0.42}" y="${h * 0.74}" fill="#a78bfa">196 PRs</text>
     <text x="${w * 0.68}" y="${h * 0.74}" fill="#06B6D4">28 apps</text>
   </g>
-  <g font-family="${inter}" font-size="${Math.round(h * 0.040)}" fill="#d5dce6">
+  <g font-family="${inter}" font-size="${Math.round(h * 0.04)}" fill="#d5dce6">
     <text x="${w * 0.06}" y="${h * 0.82}">y el gate de typecheck agarró el bug que metió el propio dev. Nadie lo revisó.</text>
     <text x="${w * 0.06}" y="${h * 0.88}">Llegó a main. El sistema lo cazó igual. Esa es la diferencia.</text>
   </g>
@@ -94,26 +90,100 @@ interface GeminiPart {
   inlineData?: { mimeType: string; data: string };
 }
 
-async function tryModel(model: string, brief: string): Promise<{ bytes: Buffer } | { status: number; note: string }> {
-  const cfg = JSON.parse(readFileSync(KEY_FILE, 'utf-8')) as { key?: string; apiKey?: string; token?: string };
+async function tryModel(
+  model: string,
+  brief: string,
+): Promise<{ bytes: Buffer } | { status: number; note: string }> {
+  const cfg = JSON.parse(readFileSync(KEY_FILE, 'utf-8')) as {
+    key?: string;
+    apiKey?: string;
+    token?: string;
+  };
   const key = cfg.key || cfg.apiKey || cfg.token;
   if (!key) throw new Error('gemini-key.json sin key/apiKey/token');
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'x-goog-api-key': key, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: brief }] }],
-      generationConfig: { responseModalities: ['IMAGE'] },
-    }),
-  });
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'x-goog-api-key': key, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: brief }] }],
+        generationConfig: { responseModalities: ['IMAGE'] },
+      }),
+    },
+  );
   if (!r.ok) {
-    const err = (await r.json().catch(() => ({}))) as { error?: { status?: string; message?: string } };
+    const err = (await r.json().catch(() => ({}))) as {
+      error?: { status?: string; message?: string };
+    };
     return { status: r.status, note: err.error?.status || err.error?.message || String(r.status) };
   }
   const body = (await r.json()) as { candidates?: Array<{ content?: { parts?: GeminiPart[] } }> };
   const part = body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
   if (!part?.inlineData) return { status: 200, note: 'respuesta sin inlineData' };
   return { bytes: Buffer.from(part.inlineData.data, 'base64') };
+}
+
+/** Plan B declarado en BL-MW2RKO8W: la cuota Gemini free es la frontera, pero
+ *  la key OpenAI de .env.local sí puede generar el fondo con el MISMO brief
+ *  aprobado. Misma composición local (sharp + copy aprobado), mismo output. */
+async function tryOpenAI(
+  brief: string,
+): Promise<{ bytes: Buffer } | { status: number; note: string }> {
+  let key = '';
+  try {
+    const envLocal = readFileSync(join(ROOT, '.env.local'), 'utf-8');
+    key = envLocal.match(/^OPENAI_API_KEY=(.+)$/m)?.[1]?.trim() ?? '';
+  } catch {
+    return { status: 0, note: '.env.local no accesible' };
+  }
+  if (!key) return { status: 0, note: 'sin OPENAI_API_KEY en .env.local' };
+  let r: Response;
+  try {
+    r = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'gpt-image-1', prompt: brief, size: '1536x1024', n: 1 }),
+    });
+  } catch (e) {
+    return { status: 0, note: e instanceof Error ? e.message : String(e) };
+  }
+  if (!r.ok) {
+    const err = (await r.json().catch(() => ({}))) as { error?: { message?: string } };
+    return { status: r.status, note: err.error?.message || String(r.status) };
+  }
+  const body = (await r.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
+  const b64 = body.data?.[0]?.b64_json;
+  if (!b64) return { status: 200, note: 'respuesta sin b64_json' };
+  return { bytes: Buffer.from(b64, 'base64') };
+}
+
+async function composeAndFinish(bytes: Buffer, model: string, quiet: boolean): Promise<number> {
+  const { default: sharp } = await import('sharp');
+  const original = join(OUT_DIR, `ai-original-${model}.png`);
+  await sharp(bytes).png().toFile(original);
+  for (const canvas of CANVASES) {
+    const bg = await sharp(original)
+      .resize(canvas.w, canvas.h, { fit: 'cover', position: 'centre' })
+      .png()
+      .toBuffer();
+    await sharp(bg)
+      .composite([{ input: Buffer.from(overlaySvg(canvas)) }])
+      .png()
+      .toFile(join(OUT_DIR, canvas.name));
+  }
+  writeFileSync(
+    DONE_MARKER,
+    JSON.stringify({ model, at: new Date().toISOString() }, null, 2),
+    'utf-8',
+  );
+  console.log(
+    `[image-retry] OK con ${model}: originales + ${CANVASES.length} previews en ${OUT_DIR}`,
+  );
+  // Autoteardown: la única razón de la tarea era esta corrida.
+  if (quiet)
+    runSync('schtasks', ['/Delete', '/TN', TASK_NAME, '/F'], { timeout: 8000, stdio: 'ignore' });
+  return 0;
 }
 
 async function main(): Promise<number> {
@@ -130,28 +200,23 @@ async function main(): Promise<number> {
   }
   for (const model of MODELS) {
     const res = await tryModel(model, BRIEF[0]);
-    if ('bytes' in res) {
-      const { default: sharp } = await import('sharp');
-      const original = join(OUT_DIR, `ai-original-${model}.png`);
-      await sharp(res.bytes).png().toFile(original);
-      for (const canvas of CANVASES) {
-        const bg = await sharp(original).resize(canvas.w, canvas.h, { fit: 'cover', position: 'centre' }).png().toBuffer();
-        await sharp(bg).composite([{ input: Buffer.from(overlaySvg(canvas)) }]).png().toFile(join(OUT_DIR, canvas.name));
-      }
-      writeFileSync(DONE_MARKER, JSON.stringify({ model, at: new Date().toISOString() }, null, 2), 'utf-8');
-      console.log(`[image-retry] OK con ${model}: originales + ${CANVASES.length} previews en ${OUT_DIR}`);
-      // Autoteardown: la única razón de la tarea era esta corrida.
-      if (quiet) runSync('schtasks', ['/Delete', '/TN', TASK_NAME, '/F'], { timeout: 8000, stdio: 'ignore' });
-      return 0;
-    }
+    if ('bytes' in res) return composeAndFinish(res.bytes, model, quiet);
     if (res.status === 429) {
       const msg = `[${new Date().toISOString()}] ${model}: cuota agotada`;
-      try { appendFileSync(join(OUT_DIR, '.ai-retry.log'), msg + '\n', 'utf-8'); } catch { /* best-effort */ }
+      try {
+        appendFileSync(join(OUT_DIR, '.ai-retry.log'), msg + '\n', 'utf-8');
+      } catch {
+        /* best-effort */
+      }
       if (!quiet) console.log(`[image-retry] ${model}: cuota aún agotada (${res.note})`);
       continue;
     }
     if (!quiet) console.error(`[image-retry] ${model}: ${res.status} ${res.note}`);
   }
+  // Plan B (BL-MW2RKO8W): fondo AI via OpenAI con el mismo brief aprobado.
+  const oai = await tryOpenAI(BRIEF[0]);
+  if ('bytes' in oai) return composeAndFinish(oai.bytes, 'openai-gpt-image-1', quiet);
+  if (!quiet) console.log(`[image-retry] fallback OpenAI no disponible: ${oai.status} ${oai.note}`);
   return 3;
 }
 
@@ -165,13 +230,22 @@ function registerTask(): number {
   // silenciosamente por over-quoting (lección de esta tanda).
   const taskScript = join(ROOT, 'src/content-operations/gemini-image-retry.cli.ts');
   writeFileSync(vbsPath, createHiddenVbs(TASK_NAME, taskScript, ROOT), 'utf-8');
-  const created = runSync('schtasks', [
-    '/Create',
-    '/TN', TASK_NAME,
-    '/TR', `${quote('wscript.exe')} ${quote(vbsPath)}`,
-    '/SC', 'MINUTE', '/MO', '15',
-    '/F',
-  ], { timeout: 15000 });
+  const created = runSync(
+    'schtasks',
+    [
+      '/Create',
+      '/TN',
+      TASK_NAME,
+      '/TR',
+      `${quote('wscript.exe')} ${quote(vbsPath)}`,
+      '/SC',
+      'MINUTE',
+      '/MO',
+      '15',
+      '/F',
+    ],
+    { timeout: 15000 },
+  );
   if (created.status !== 0) {
     console.error('[image-retry] registro de tarea falló:', created.stderr);
     return 2;

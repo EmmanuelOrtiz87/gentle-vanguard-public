@@ -75,13 +75,18 @@ test('los reportes pasivos del incidente no seleccionan apps', () => {
 
 test('un alcance desconocido no llega al ejecutor, aunque exista una dependencia compartida', () => {
   let executions = 0;
-  // Una ruta sin clasificacion (no es app, ni stack, ni config conocida) sigue
-  // bloqueando: "no conozco el impacto" no es lo mismo que "el impacto es global".
+  // Una ruta sin clasificacion (no es app, ni stack, ni superficie declarada)
+  // sigue bloqueando: "no conozco el impacto" no es lo mismo que "el impacto es
+  // global". `assets/custom.json` NO vale para este caso: `assets/` quedo
+  // declarado como superficie compartida (SHARED_SURFACES) y clasifica `full`
+  // — por eso ese par antes rompia este test cuando el registro crecio.
   assert.throws(() => {
-    assertKnownAppScope(classifyAppScope(['pnpm-lock.yaml', 'assets/custom.json']));
+    assertKnownAppScope(classifyAppScope(['pnpm-lock.yaml', 'oracle/fixture.bin']));
     executions++;
   }, /Identificar consumidores/);
   assert.equal(executions, 0);
+  // La superficie declarada NO es desconocida (el fix que reactiva este test):
+  assert.equal(classifyAppScope(['assets/custom.json']).mode, 'full');
 });
 
 test('un contrato ilegible no concede autoridad para ejecutar todas las apps', () => {

@@ -89,6 +89,17 @@
         "description": "Higiene nativa de procesos (fase 1, ANTES de los lazy daemons): recicla daemons envejecidos (>24h adoptados de sesiones previas), mata duplicados (websocket-server/vite extra), one-shots colgados (padre muerto >15min) y limpia pidfiles stale. Clave: corre antes de los lazy steps, asi token-ingest y vite-watchdog reciclados se re-spawnean frescos."
       },
       {
+        "id": "opencode-canon-restore",
+        "enabled": true,
+        "script": "src/tools/opencode-canon-restore.ts",
+        "args": "",
+        "required": false,
+        "description": "NORM-OPENCODE-001: restaura opencode.json desde HEAD (con snapshot forense) ANTES de los steps que lo leen; un diff sin commit contra HEAD es deriva por definición (mutaciones en vivo ×4 el 2026-11-21)",
+        "phase": 0,
+        "skipOnFailure": true,
+        "timeout": 15000
+      },
+      {
         "id": "ollama-serve",
         "enabled": true,
         "lazy": false,
@@ -526,6 +537,7 @@
         "required": false,
         "description": "Verifica que el validador JSON esta operativo al inicio de sesion (TS)"
       },
+
       {
         "id": "opencode-drift-heal",
         "enabled": true,
@@ -760,11 +772,11 @@
         "enabled": true,
         "lazy": true,
         "script": "src/ops/engram-judge-semantic.ts",
-        "args": "--apply --limit 30 --concurrency 2",
+        "args": "--apply --limit 200 --concurrency 2",
         "required": false,
         "skipOnFailure": true,
-        "timeout": 900000,
-        "description": "Cierra relaciones `pending` de Engram con un JUICIO SEMANTICO de un modelo LOCAL (ollama qwen3-14b-32k), sin CLI de agente externo ni cuota remota. 2026-11-18: la via oficial (engram conflicts scan --semantic) exige ENGRAM_AGENT_CLI y con la cuota remota agotada no era una via. Lote acotado por sesion (30 pares) para que la deuda se drene sola; cada corrida deja recibo en .session/snapshots/engram-judge-semantic/."
+        "timeout": 2700000,
+        "description": "Cierra relaciones `pending` de Engram con un JUICIO SEMANTICO de un modelo LOCAL (ollama qwen3-14b-32k), sin CLI de agente externo ni cuota remota. 2026-11-18: la via oficial (engram conflicts scan --semantic) exige ENGRAM_AGENT_CLI y con la cuota remota agotada no era una via. Lote por sesion: 2026-11-18 se arranco con 30 pares; 2026-11-21 se sube a 200 para drenar TODA la deuda en una corrida (backlog medido: 70 pendientes; 25.3s/par a concurrencia 2 → ~45 min para 200, timeout 45 min). Lazy + skipOnFailure: un timeout no rompe la sesion. Cada corrida deja recibo en .session/snapshots/engram-judge-semantic/."
       },
       {
         "id": "engram-auto-update",
@@ -1274,6 +1286,18 @@
         "description": "BL-2026-11-16 (patron recurrente Copilot): clasifica worktrees no-primarios (homologado/candidato-pendiente/stale) y recuerda la norma — el candidato se homologa desde el worktree principal, nunca se publica desde el worktree de origen. Limpieza solo con --clean y worktree homologado."
       },
       {
+        "id": "uncommitted-actor-inventory",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/uncommitted-actor-inventory.ts",
+        "args": "",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 15000,
+        "description": "GB-2026-11-21 slice A3 (bitacora 2026-11-20, actor paralelo sin creditos x3): PASO DE APERTURA que clasifica cada entrada de git status — regenerables esperados vs archivos ajenos sin commit (posible obra de otra herramienta o trabajo previo sin cerrar). PASIVO: informa con el protocolo de recuperacion probado, NUNCA borra ni stash. Evidencia: .runtime/uncommitted-actor-inventory.json; on-demand: npm run actors:inventory."
+      },
+      {
         "id": "apps-health-report",
         "enabled": true,
         "lazy": true,
@@ -1320,6 +1344,18 @@
         "skipOnFailure": true,
         "timeout": 30000,
         "description": "Clase D de la normativa de verificaciones: audita config LOCAL reproducible de las 5 herramientas con palancas (Codex, Kimi CLI — INFO si no existe su config, MiniMax, ZCode, OpenCode) y reporta INFO honesto de las server-managed (Qoder, Copilot, Antigravity, Kimi desktop). Ademas mide EFECTIVIDAD: si la ultima sesion real de cada herramienta tiene evidencia local de workspace (session_meta.cwd incl. archived_sessions/.jsonl.zst, session.directory, local_runtime_sessions, tasks.workspace_path). Emite lineas [TOKEN-SAFETY] solo para WARN config-local y not-applied warn; exit 0 normal, 1 solo con --strict y WARN config-local, 2 si no puede determinar. Corre tambien en el composite pre-push. Gate registrado: token-safety-audit (runtime)."
+      },
+      {
+        "id": "agent-operability",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/agents/editorial-operability.ts",
+        "args": "",
+        "required": false,
+        "phase": 99,
+        "skipOnFailure": true,
+        "timeout": 540000,
+        "description": "Probe de operabilidad del agente editorial (eje operable): delegación mínima real por la cadena completa con verificación de envelope y marcador de enlace. Costo controlado: 1 llamada por 24 h. Lección 2026-11-19: la ruta editorial nació rota sin este E2E."
       }
     ],
     "onStepFailure": "continue",

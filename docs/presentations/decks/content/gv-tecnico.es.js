@@ -45,7 +45,7 @@ export default {
         },
         {
           heading: 'Agentes y skills',
-          body: 'Los 20 agentes del roster y cómo se invocan las capacidades.',
+          body: 'Los 22 agentes del roster y cómo se invocan las capacidades.',
         },
         { heading: 'Comandos', body: 'Los comandos que se usan todos los días y qué verifican.' },
         { heading: 'Nexus', body: 'La base operacional: 45 tablas, migraciones y respaldo.' },
@@ -72,12 +72,12 @@ export default {
         },
         {
           label: 'apps/',
-          body: '31 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '28 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '8b5cf6',
         },
         {
           label: 'skills/',
-          body: '258 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.',
+          body: '265 capacidades con contrato y frontmatter. Se invocan por descripción de tarea.',
           accent: 'fbbf24',
         },
         {
@@ -97,7 +97,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: '619 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
+          body: '653 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
           accent: 'f4bb4f',
         },
         {
@@ -150,7 +150,7 @@ export default {
     {
       layout: 'cards',
       eyebrow: 'Roster',
-      title: '20 agentes, cada uno con su perímetro',
+      title: '22 agentes, cada uno con su perímetro',
       lead: 'Un agente tiene modelo, permisos, límite de pasos, presupuesto y fallback declarados.',
       cols: 4,
       items: [
@@ -307,13 +307,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '68',
+          value: '70',
           label: 'Quality gates',
-          sub: '63 de 68 aplicados de forma estricta',
+          sub: '65 de 70 aplicados de forma estricta',
           accent: '06b6d4',
         },
         {
-          value: '619',
+          value: '653',
           label: 'Archivos de test',
           sub: 'Unit, e2e, integración, seguridad y skills',
           accent: '8b5cf6',

@@ -48,3 +48,7 @@ tests/fixtures/**
 policies/
 config/policies/
 apps/academy-landing/**
+docs/presentations/*.html
+docs/presentations/presentation-register.json
+docs/presentations/STACK-FACTS-BRIEF.md
+docs/presentations/public-presence.html

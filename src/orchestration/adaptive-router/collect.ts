@@ -9,6 +9,7 @@ import {
   REFLECTIONS_DIR,
   KNOWLEDGE_DIR,
   ROOT,
+  ROUTING_HITS_FILE,
   loadJson,
   loadJsonLines,
   now,
@@ -72,7 +73,8 @@ function collectFromNexus(log: Logger): SkillMetric[] {
       if (useCount <= 0) continue;
       const outcome = outcomes.get(String(row.skillId));
       const failureCount = outcome ? outcome.failures : 0;
-      const successRate = outcome && outcome.total > 0 ? (outcome.total - outcome.failures) / outcome.total : 0;
+      const successRate =
+        outcome && outcome.total > 0 ? (outcome.total - outcome.failures) / outcome.total : 0;
       metrics.push({
         skillName: String(row.skillId),
         useCount,
@@ -140,7 +142,10 @@ function collectFromNexus(log: Logger): SkillMetric[] {
         existing.outcomeCount = totalOutcomes;
         existing.successRate = (priorSuccesses + successes) / totalOutcomes;
         existing.useCount += attempts;
-        existing.failureCount = Math.max(0, totalOutcomes - Math.round(existing.successRate * totalOutcomes));
+        existing.failureCount = Math.max(
+          0,
+          totalOutcomes - Math.round(existing.successRate * totalOutcomes),
+        );
       }
       if (rules.length > 0) {
         log(`  Nexus routing_rules: ${rules.length} rule(s) with recorded delegation outcomes`);
@@ -257,7 +262,7 @@ export function collectSkillUsage(log: Logger): SkillMetric[] {
   return metrics;
 }
 
-export function collectDelegations(log: Logger): DelegationRecord[] {
+export function collectDelegations(log: Logger, hitsPath = ROUTING_HITS_FILE): DelegationRecord[] {
   const metrics = loadJson<Record<string, unknown>>(METRICS_FILE, {});
   const agents = (metrics.agents as Record<string, unknown>) || {};
   const delegations: DelegationRecord[] = [];
@@ -293,6 +298,32 @@ export function collectDelegations(log: Logger): DelegationRecord[] {
           timestamp: lastEvent || now(),
         });
       }
+    }
+  }
+
+  // Recibos frescos de delegación (GB-20261120): route-and-delegate persiste cada
+  // intento en .session/routing/hits.jsonl con dominio, agente, resultado y duración.
+  // Es la única fuente con datos posteriores a septiembre; sin ella la tabla aprende
+  // de un histórico congelado. Un registro sin agente/domain/success verificables no
+  // es evidencia y se descarta.
+  if (existsSync(hitsPath)) {
+    const hits = loadJsonLines(hitsPath);
+    let ingested = 0;
+    for (const hit of hits) {
+      const agent = hit.agent as string;
+      const success = hit.success as boolean;
+      if (!agent || typeof success !== 'boolean') continue;
+      delegations.push({
+        agent,
+        domain: (hit.domain as string) || 'general',
+        success,
+        duration: Number(hit.duration) || 0,
+        timestamp: (hit.timestamp as string) || now(),
+      });
+      ingested++;
+    }
+    if (ingested > 0) {
+      log(`  Routing hits (recibos frescos): ${ingested} delegación(es) de ${hitsPath}`);
     }
   }
 

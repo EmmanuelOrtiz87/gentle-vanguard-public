@@ -212,77 +212,131 @@ function processCsvFile(filePath: string): DocumentResult {
 
 // ─── PDF Processor (Basic) ───────────────────────────────────────────
 
-async function processPdfFile(filePath: string, _options: ProcessOptions): Promise<DocumentResult> {
-  const errors: string[] = [];
-
-  // Try pdftotext first (more reliable)
-  try {
-    // Array form: file paths may contain spaces — shell quoting is unreliable.
-    const r = runSync('pdftotext', ['-layout', filePath, '-'], {
-      maxBuffer: 50 * 1024 * 1024,
-      timeout: 30000,
-    });
-    if (!r.stdout && (r.error || r.status !== 0)) {
-      throw new Error(r.stderr || `pdftotext exited ${r.status}`);
-    }
-    const result = r.stdout;
-
-    const words = result.split(/\s+/).filter((w: string) => w.length > 0);
-
-    return {
-      source: filePath,
-      format: 'pdf',
-      success: true,
-      text: result,
-      metadata: {
-        wordCount: words.length,
-      },
-    };
-  } catch {
-    errors.push('pdftotext not available, trying fallback');
-  }
-
-  // Fallback: return informational message
+async function processPdfFile(filePath: string, options: ProcessOptions): Promise<DocumentResult> {
+  const extracted = extractWithPython(filePath, 'pdf', options);
+  if (extracted.success || options.ocr || options.pages) return extracted;
+  const fallback = runSync('pdftotext', ['-layout', filePath, '-'], {
+    timeout: 30_000,
+    maxBuffer: 50 * 1024 * 1024,
+  });
+  if (fallback.status !== 0 || !fallback.stdout.trim()) return extracted;
   return {
     source: filePath,
     format: 'pdf',
-    success: false,
-    text: '[PDF content extraction requires pdftotext or pdf-parse package]',
-    errors,
-    warnings: ['Install dependencies: npm install pdf-parse'],
+    success: true,
+    text: fallback.stdout,
+    metadata: { wordCount: fallback.stdout.trim().split(/\s+/).length },
+    warnings: [
+      'Extracción alternativa con pdftotext. Revisar páginas sin texto, tablas y orden de lectura.',
+      ...(options.ocr || options.pages ? ['OCR y selección de páginas no implementados.'] : []),
+    ],
   };
 }
 
-// ─── DOCX Processor ───────────────────────────────────────────────────
+async function processDocxFile(filePath: string): Promise<DocumentResult> {
+  return extractWithPython(filePath, 'docx');
+}
 
-async function processDocxFile(_filePath: string): Promise<DocumentResult> {
-  // For now, return informational message
+function extractWithPython(
+  filePath: string,
+  format: 'pdf' | 'docx',
+  options?: ProcessOptions,
+): DocumentResult {
+  const program =
+    format === 'pdf'
+      ? String.raw`
+import json, sys
+from pypdf import PdfReader
+reader = PdfReader(sys.argv[1])
+selection = json.loads(sys.argv[2])
+indices = selection if selection is not None else list(range(1, len(reader.pages) + 1))
+if not indices or any(i < 1 or i > len(reader.pages) for i in indices):
+    raise ValueError("Invalid PDF page selection")
+pages = [(i, reader.pages[i - 1].extract_text() or "") for i in indices]
+ocr_pages = []
+ocr_failed = False
+if sys.argv[3] == "true" and any(not p.strip() for _, p in pages):
+    try:
+        import fitz
+        from rapidocr import RapidOCR
+        engine = RapidOCR()
+        with fitz.open(sys.argv[1]) as document:
+            for index, (i, text) in enumerate(pages):
+                if not text.strip():
+                    image = document[i - 1].get_pixmap(dpi=180, alpha=False)
+                    result = engine(image.tobytes("png"))
+                    if result.txts:
+                        pages[index] = (i, "\n".join(result.txts))
+                        ocr_pages.append(i)
+    except Exception:
+        ocr_failed = True
+print(json.dumps({"text": "\n\n".join(f"[Página {i}]\n{p}" for i, p in pages),
+                  "missing": [i for i, p in pages if not p.strip()],
+                  "readable": any(p.strip() for _, p in pages), "ocrPages": ocr_pages, "ocrFailed": ocr_failed}))
+`
+      : String.raw`
+import json, sys
+from docx import Document
+document = Document(sys.argv[1])
+paragraphs = ["".join(p.xpath(".//w:t/text()")) for p in document.element.body.xpath(".//w:p")]
+print(json.dumps({"text": "\n".join(paragraphs), "readable": any(p.strip() for p in paragraphs)}))
+`;
+  const result = runSync(
+    'python',
+    ['-c', program, filePath, JSON.stringify(options?.pages ?? null), String(!!options?.ocr)],
+    {
+      timeout: options?.ocr ? 120_000 : 30_000,
+      maxBuffer: 50 * 1024 * 1024,
+    },
+  );
+  const base = { source: filePath, format };
+  if (result.status !== 0 || result.error) {
+    return {
+      ...base,
+      success: false,
+      errors: [
+        `No se pudo extraer ${format}. Requiere Python con ${format === 'pdf' ? 'pypdf' : 'python-docx'} y un archivo legible.`,
+      ],
+    };
+  }
+  const data = JSON.parse(result.stdout) as {
+    text: string;
+    readable: boolean;
+    missing?: number[];
+    ocrPages?: number[];
+    ocrFailed?: boolean;
+  };
+  const warnings =
+    format === 'docx'
+      ? [
+          'Extracción de texto del cuerpo. Revisar estructura de tablas, encabezados, notas e imágenes en el original.',
+        ]
+      : ['Extracción de capa textual. Revisar tablas, imágenes y orden de lectura en el original.'];
+  if (data.missing?.length)
+    warnings.push(`Páginas sin texto extraíble: ${data.missing.join(', ')}.`);
+  if (data.ocrPages?.length)
+    warnings.push(
+      `OCR en páginas ${data.ocrPages.join(', ')}. Cotejar texto y cifras con la imagen.`,
+    );
+  if (data.ocrFailed)
+    warnings.push('OCR falló. Verificá PyMuPDF, RapidOCR y las páginas pendientes.');
   return {
-    source: _filePath,
-    format: 'docx',
-    success: false,
-    text: '[DOCX content extraction requires docx package]',
-    warnings: ['Install: npm install docx'],
+    ...base,
+    success: data.readable,
+    text: data.readable ? data.text : undefined,
+    warnings,
+    errors: data.readable ? undefined : ['El archivo no contiene texto extraíble.'],
+    metadata: { wordCount: data.text.trim().split(/\s+/).filter(Boolean).length },
   };
 }
 
-// ─── Summary Generator ────────────────────────────────────────────────
+// ─── Extractive preview ─────────────────────────────────────────────────
 
 function generateSummary(text: string, maxLength: number = 500): string {
-  const sentences = text.split(/[.!?]+/).filter((s: string) => s.trim().length > 20);
-
-  // Simple extractive summary: first sentence + most informative
-  let summary = '';
-  let length = 0;
-
-  for (const sentence of sentences) {
-    const trimmed = sentence.trim();
-    if (length + trimmed.length > maxLength) break;
-    summary += trimmed + '. ';
-    length += trimmed.length + 2;
-  }
-
-  return summary.trim() || text.slice(0, maxLength) + (text.length > maxLength ? '...' : '');
+  if (text.length <= maxLength) return text;
+  if (maxLength <= 0) return '';
+  const excerpt = text.slice(0, maxLength - 1).trimEnd();
+  return excerpt + '…';
 }
 
 // ─── Commands ─────────────────────────────────────────────────────────
@@ -345,7 +399,7 @@ async function cmdExtract(filePath: string, options: ProcessOptions): Promise<Do
 }
 
 async function cmdSummarize(filePath: string, options: ProcessOptions): Promise<DocumentResult> {
-  const result = await cmdExtract(filePath, { ...options, format: 'txt' });
+  const result = await cmdExtract(filePath, options);
 
   if (!result.success || !result.text) {
     return result;
@@ -356,6 +410,10 @@ async function cmdSummarize(filePath: string, options: ProcessOptions): Promise<
   return {
     ...result,
     text: summary,
+    warnings: [
+      ...(result.warnings ?? []),
+      'Vista previa literal; puede omitir información del final.',
+    ],
     metadata: {
       ...result.metadata,
       originalWordCount: result.metadata?.wordCount,
@@ -475,7 +533,7 @@ Install for better handling:
 }
 
 // Run if called directly
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => {
     console.error('[DOCUMENT-PROCESSOR] Error:', e);
     process.exit(1);

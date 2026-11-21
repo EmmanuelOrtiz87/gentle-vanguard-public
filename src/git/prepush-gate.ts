@@ -62,13 +62,20 @@ interface GateCheck {
 
 /**
  * Base del escaneo de secretos: lo último que el remoto tiene de esta rama.
- * Si la rama no existe en el remoto (rama nueva) se usa HEAD~1: se escanea el
- * último commit, que es lo único que se puede saber.
+ * Si la rama no existe en el remoto (rama nueva): usar el FORK POINT con
+ * origin/main si existe — escanea TODOS los commits de la rama, no solo el
+ * último (GB-20261120: con HEAD~1, un secreto en el commit 2 de una hotfix de
+ * 5 commits se pusheaba completo con verde). Sin origin/main (repo sin remoto
+ * aún) queda HEAD~1, que es lo único que se puede saber.
  */
 function resolveSecretScanBase(): string {
   const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
   const remote = branch && !branch.startsWith('HEAD') ? `origin/${branch}` : '';
   if (remote && runGit(['rev-parse', '--verify', '--quiet', remote])) return remote;
+  if (runGit(['rev-parse', '--verify', '--quiet', 'origin/main'])) {
+    const forkPoint = runGit(['merge-base', 'origin/main', 'HEAD']);
+    if (forkPoint) return forkPoint;
+  }
   return 'HEAD~1';
 }
 
@@ -587,7 +594,9 @@ function saveCache(cache: GateCache): void {
 
 export interface CheckResult {
   name: string;
-  status: 'pass' | 'fail' | 'error';
+  /** `warn` = INDETERMINADO (exit 2): el check no pudo mirar, no pudo afirmar.
+   * Nunca bloquea (push offline válido) pero es visible — no verde silencioso. */
+  status: 'pass' | 'warn' | 'fail' | 'error';
   durationMs: number;
   tail: string;
 }
@@ -647,12 +656,19 @@ export function shouldRunAppAudit(
 /**
  * Veredicto del gate: los checks no bloqueantes (advisory) informan pero no
  * bloquean el push. Un FAIL bloqueante sigue bloqueando.
+ *
+ * `warn` (INDETERMINADO, exit 2) JAMÁS bloquea — ni siquiera estando fuera del
+ * set advisory: "no pude mirar" no es evidencia de fallo ni de éxito, y
+ * bloquear el push por falta de conectividad castiga el trabajo offline.
+ * Sí resta del allGreen: el verde solo significa "todo verificado".
  */
 export function evaluateGate(
   results: CheckResult[],
   nonBlocking: Set<string>,
 ): { allPass: boolean; blockingFailures: CheckResult[]; allGreen: boolean } {
-  const blockingFailures = results.filter((r) => r.status !== 'pass' && !nonBlocking.has(r.name));
+  const blockingFailures = results.filter(
+    (r) => (r.status === 'fail' || r.status === 'error') && !nonBlocking.has(r.name),
+  );
   return {
     allPass: blockingFailures.length === 0,
     blockingFailures,
@@ -730,7 +746,11 @@ export function runOne(
     });
     child.on('close', (code, signal) => {
       if (signal) stderr += `\n[signal] ${signal}\n`;
-      finish(code === 0 ? 'pass' : 'fail');
+      // Convención de códigos: 0 = OK, 1 = BLOQUEANTE, 2 = INDETERMINADO
+      // (el check corrió pero no pudo verificar; p.ej. models-alignment sin
+      // red). El 2 se reporta como `warn`, no como pass verde silencioso
+      // (meta-auditoría 2026-11-20: fail-open no es verde).
+      finish(code === 0 ? 'pass' : code === 2 ? 'warn' : 'fail');
     });
   });
 }
@@ -757,9 +777,14 @@ function printSummary(results: CheckResult[], totalMs: number, nonBlocking: Set<
     `\n=== Pre-push gate: ${passed}/${results.length} passed in ${(totalMs / 1000).toFixed(1)}s ===`,
   );
   for (const r of results) {
-    const icon = r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⚠️';
+    const icon =
+      r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : r.status === 'warn' ? '🟡' : '⚠️';
     const advisory =
-      nonBlocking.has(r.name) && r.status !== 'pass' ? ' (advisory: no bloquea)' : '';
+      r.status === 'warn'
+        ? ' (indeterminado: no bloquea)'
+        : nonBlocking.has(r.name) && r.status !== 'pass'
+          ? ' (advisory: no bloquea)'
+          : '';
     console.log(`${icon} ${r.name} (${(r.durationMs / 1000).toFixed(1)}s)${advisory}`);
     if (r.status !== 'pass' && r.tail) {
       console.log(`   └─ ${r.tail.split('\n').join('\n      ')}`);

@@ -6,14 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GentleVanguard Image Studio - Generación Nativa</title>
-    <link
-      href="assets/vendor/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="assets/vendor/bootstrap-icons.min.css"
-    />
+    <link href="assets/vendor/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons.min.css" />
     <style>
       :root {
         --bg0: #0a0e1a;
@@ -466,8 +460,37 @@
         transition: width 0.3s;
       }
 
-@media(max-width:768px){.main-container{flex-direction:column;min-width:0}.sidebar,.layers-panel,.templates-panel{width:100%;max-height:none}.canvas-area{width:100%;min-width:0;padding:16px}.canvas-container{min-height:360px;min-width:0}.toolbar,.playback-controls{flex-wrap:wrap;gap:8px}#mainCanvas{max-width:100%;height:auto}}
-</style>
+      @media (max-width: 768px) {
+        .main-container {
+          flex-direction: column;
+          min-width: 0;
+        }
+        .sidebar,
+        .layers-panel,
+        .templates-panel {
+          width: 100%;
+          max-height: none;
+        }
+        .canvas-area {
+          width: 100%;
+          min-width: 0;
+          padding: 16px;
+        }
+        .canvas-container {
+          min-height: 360px;
+          min-width: 0;
+        }
+        .toolbar,
+        .playback-controls {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        #mainCanvas {
+          max-width: 100%;
+          height: auto;
+        }
+      }
+    </style>
     <link rel="stylesheet" href="assets/css/gv.css?v=3.0" />
     <script src="assets/js/i18n-content.js?v=2.1"></script>
     <script src="assets/js/i18n-extra.js?v=2.1"></script>
@@ -759,7 +782,11 @@
         <div class="canvas-container" id="canvasContainer">
           <canvas id="mainCanvas"></canvas>
           <div class="size-indicator" id="sizeIndicator">1200 × 627 px</div>
-          <span id="canvasSize" style="position:absolute;top:12px;right:12px;color:var(--gv-text-secondary)" aria-live="polite"></span>
+          <span
+            id="canvasSize"
+            style="position: absolute; top: 12px; right: 12px; color: var(--gv-text-secondary)"
+            aria-live="polite"
+          ></span>
         </div>
       </main>
 
@@ -804,7 +831,7 @@
       </aside>
     </div>
 
-    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.4.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
+    <footer class="gv-document-footer"><p><strong>GentleVanguard</strong> · v4.5.0</p><nav aria-label="Documentación"><a href="index.html">Documentación</a><a href="resources-index.html">Recursos</a><a href="public-presence.html">Estado vigente</a></nav></footer>
 
     <!-- Overlay de generación -->
     <div class="generating-overlay" id="generatingOverlay">
@@ -1549,5 +1576,6 @@
       window.addEventListener('DOMContentLoaded', init);
     </script>
     <script src="assets/js/gv.js?v=2.1"></script>
-  <script src="assets/js/presentation-shell.js?v=1"></script></body>
+    <script src="assets/js/presentation-shell.js?v=1"></script>
+  </body>
 </html>

@@ -67,12 +67,12 @@ export default {
         {
           icon: 'agent',
           heading: 'Un roster de agentes',
-          body: '20 agentes con modelo, permisos, pasos y presupuesto asignados.',
+          body: '22 agentes con modelo, permisos, pasos y presupuesto asignados.',
         },
         {
           icon: 'brain',
           heading: 'Capacidades',
-          body: '258 skills reutilizables que se invocan por contexto, no por código.',
+          body: '265 skills reutilizables que se invocan por contexto, no por código.',
         },
         {
           icon: 'eye',
@@ -119,7 +119,7 @@ export default {
         },
         {
           label: 'Capacidades',
-          body: '258 skills indexadas, con 29 críticas bajo contrato verificado en ejecución real.',
+          body: '265 skills indexadas, con 29 críticas bajo contrato verificado en ejecución real.',
           accent: 'c4b5fd',
         },
         {
@@ -144,7 +144,7 @@ export default {
         },
         {
           label: 'Aplicaciones',
-          body: '31 apps propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '28 apps propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '06b6d4',
         },
       ],
@@ -248,8 +248,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '68 quality gates',
-          body: '22 en pre-commit, 2 en commit-msg, 2 en post-commit, 28 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 63 de 68 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
+          heading: '70 quality gates',
+          body: '24 en pre-commit, 2 en commit-msg, 2 en post-commit, 28 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 65 de 70 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
         },
         {
           icon: 'search',

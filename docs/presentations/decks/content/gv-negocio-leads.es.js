@@ -117,19 +117,19 @@ export default {
       cols: 4,
       items: [
         {
-          value: '31',
+          value: '28',
           label: 'Apps propias',
           sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento',
           accent: '06b6d4',
         },
         {
-          value: '20',
+          value: '22',
           label: 'Agentes de IA',
           sub: 'Roles con modelo, permisos y presupuesto asignados',
           accent: '8b5cf6',
         },
         {
-          value: '258',
+          value: '265',
           label: 'Skills',
           sub: 'Capacidades reutilizables que no se reescriben por proyecto',
           accent: 'fbbf24',
@@ -163,7 +163,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Gobernanza',
-          body: '68 quality gates, escaneo de secretos y políticas fail-closed.',
+          body: '70 quality gates, escaneo de secretos y políticas fail-closed.',
         },
         {
           icon: 'cloud',
@@ -341,7 +341,7 @@ export default {
     {
       layout: 'figure',
       eyebrow: 'Prueba de trabajo',
-      title: 'Esto ya está corriendo: 31 desarrollos propios',
+      title: 'Esto ya está corriendo: 28 desarrollos propios',
       lead: 'No son productos en catálogo ni casos de clientes. Son sistemas que construimos y que hoy funcionan.',
       textW: 3.5,
       image: 'stack-dashboard.png',

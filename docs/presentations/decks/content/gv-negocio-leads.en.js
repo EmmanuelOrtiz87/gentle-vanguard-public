@@ -113,19 +113,19 @@ export default {
       cols: 4,
       items: [
         {
-          value: '31',
+          value: '28',
           label: 'Own apps',
           sub: 'Systems we developed and that run today',
           accent: '06b6d4',
         },
         {
-          value: '20',
+          value: '22',
           label: 'AI agents',
           sub: 'Roles with model, permissions and budget assigned',
           accent: '8b5cf6',
         },
         {
-          value: '258',
+          value: '265',
           label: 'Skills',
           sub: 'Reusable capabilities that are not rewritten per project',
           accent: 'fbbf24',
@@ -159,7 +159,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Governance',
-          body: '68 quality gates, secret scanning and fail-closed policies.',
+          body: '70 quality gates, secret scanning and fail-closed policies.',
         },
         {
           icon: 'cloud',

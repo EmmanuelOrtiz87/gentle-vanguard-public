@@ -20,7 +20,7 @@ export class HousekeepingRepo {
          WHERE end_time IS NULL AND duration > 0 AND status IN ('completed', 'error')`,
       )
       .run();
-    if (res.changes > 0) console.log(`[DB] backfilled end_time on ${res.changes} traces`);
+    if (res.changes > 0) console.error(`[DB] backfilled end_time on ${res.changes} traces`);
     return res.changes;
   }
 
@@ -42,7 +42,7 @@ export class HousekeepingRepo {
       )
       .run(cutoff);
     if (res.changes > 0) {
-      console.log(`[DB] pruned ${res.changes} empty never-closed spans (>${retentionDays}d)`);
+      console.error(`[DB] pruned ${res.changes} empty never-closed spans (>${retentionDays}d)`);
     }
     return res.changes;
   }
@@ -60,9 +60,9 @@ export class HousekeepingRepo {
     const count = (this.db.prepare('SELECT COUNT(*) as c FROM metric_snapshots').get() as any).c;
     if (vacuum && count % 500 === 0 && count > 0) {
       this.db.exec('VACUUM');
-      console.log('[DB] Vacuum completed');
+      console.error('[DB] Vacuum completed');
     }
-    console.log('[DB] Housekeeping done');
+    console.error('[DB] Housekeeping done');
   }
 
   pruneAll(): { events: number; cache: number; tokenUsage: number; skillUsage: number } {
@@ -86,7 +86,7 @@ export class HousekeepingRepo {
         this.runHousekeeping(false);
       })();
       this.vacuumIfNeeded();
-      console.log(`[DB] PruneAll done: ${JSON.stringify(result)}`);
+      console.error(`[DB] PruneAll done: ${JSON.stringify(result)}`);
     } catch (err) {
       console.error('[DB] PruneAll error:', err);
     }
@@ -97,7 +97,7 @@ export class HousekeepingRepo {
     const count = (this.db.prepare('SELECT COUNT(*) as c FROM metric_snapshots').get() as any).c;
     if (count % 500 === 0 && count > 0) {
       this.db.exec('VACUUM');
-      console.log('[DB] Vacuum completed');
+      console.error('[DB] Vacuum completed');
     }
   }
 }

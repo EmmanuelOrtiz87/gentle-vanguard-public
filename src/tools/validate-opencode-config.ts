@@ -64,12 +64,25 @@ function validateAgents(agents: unknown): string[] {
       continue;
     }
 
-    // Required properties for each agent
-    const requiredProps = ['mode', 'model'];
+    // Required properties for each agent. `model` NO es requerido: sin pin el
+    // agente hereda el modelo de la sesión (canon 2026-11-21). Cuando el pin
+    // ESTÁ presente debe ser string — un pin `42`/`null` no es herencia, es un
+    // pin roto (finding interrogate 2026-11-21: era invisible para este
+    // validador Y para el guard a la vez). `""` se acepta: el guard lo clasifica
+    // como herencia y las dos herramientas deben coincidir.
+    const requiredProps = ['mode'];
     for (const prop of requiredProps) {
       if (!(prop in agentConfig)) {
         errors.push(`Agent ${agentName} missing required property: ${prop}`);
       }
+    }
+    if ('model' in agentConfig && typeof agentConfig.model !== 'string') {
+      errors.push(`Agent ${agentName}.model must be a string when present`);
+    }
+    if ('mode' in agentConfig && typeof agentConfig.mode !== 'string') {
+      // Simetría con el check del orchestrator (juez A, finding LOW): un mode
+      // no-string en cualquier agente no pasa en silencio.
+      errors.push(`Agent ${agentName}.mode must be a string when present`);
     }
 
     // Validate agent modes
@@ -119,26 +132,33 @@ function validateStackCritical(config: Record<string, unknown>): string[] {
     errors.push('INFO: Centralized compaction missing, using agent-level compaction');
   }
 
-  // 2. Ensure model is set somewhere
+  // 2. Modelo: con herencia (canon 2026-11-21) un config donde NINGÚN agente
+  // tiene pin es la forma PURA del canon — es válido, no una rotura (finding
+  // interrogate 2026-11-21: exigir "al menos un pin" rompía el canon que el
+  // propio commit declara). La resolución del modelo de sesión la hace OpenCode;
+  // que los targets de herencia tengan `tools` lo valida el guard.
+  // Tipo del modelo de sesión top-level: es el valor load-bearing que hereda
+  // toda la flota — una mutación corrupta ahí no puede pasar en silencio
+  // (juez A, finding MEDIUM).
+  if ('model' in config && typeof config.model !== 'string') {
+    errors.push('CRITICAL: model must be a string when present (session model)');
+  }
+  if ('small_model' in config && typeof config.small_model !== 'string') {
+    errors.push('CRITICAL: small_model must be a string when present');
+  }
   if (!('model' in config)) {
-    // Check if any agent has model configured
-    if (hasAgentConfig) {
-      const agents = config.agent as Record<string, unknown>;
-      let hasModel = false;
-      for (const agentConfig of Object.values(agents)) {
-        if (agentConfig && typeof agentConfig === 'object') {
-          const agent = agentConfig as Record<string, unknown>;
-          if ('model' in agent) {
-            hasModel = true;
-            break;
-          }
-        }
-      }
-      if (!hasModel) {
-        errors.push('CRITICAL: No model configured in any agent');
-      }
-    } else {
+    if (!hasAgentConfig) {
       errors.push('CRITICAL: model property missing - required for stack operation');
+    } else {
+      const agents = config.agent as Record<string, unknown>;
+      const anyPin = Object.values(agents).some(
+        (a) => a && typeof a === 'object' && 'model' in (a as Record<string, unknown>),
+      );
+      if (!anyPin) {
+        errors.push(
+          'INFO: sin pins y sin model top-level — herencia pura del modelo de sesión (canon válido)',
+        );
+      }
     }
   }
 
@@ -176,10 +196,11 @@ function validateStackCritical(config: Record<string, unknown>): string[] {
     } else {
       const orchestrator = agents.orchestrator as Record<string, unknown>;
 
-      // Check orchestrator has minimum required properties
-      if (!('model' in orchestrator)) {
-        errors.push('CRITICAL: orchestrator.model missing');
-      }
+      // Check orchestrator has minimum required properties. Sin `model` el
+      // orchestrator hereda el modelo de la sesión (canon 2026-11-21, commit
+      // f54ee2a07) — NO es un error; el TIPO del pin (cuando está presente) lo
+      // valida validateAgents para TODOS los agentes, así no hay asimetría
+      // orchestrator/subagentes (finding interrogate 2026-11-21).
       if (!('steps' in orchestrator) || typeof orchestrator.steps !== 'number') {
         errors.push('CRITICAL: orchestrator.steps missing or invalid');
       }
@@ -244,7 +265,11 @@ function validateMCP(mcp: unknown): string[] {
       if (typeof typeValue !== 'string' || !validTypes.includes(typeValue)) {
         errors.push(`MCP service ${name} has invalid type: ${typeValue}`);
       }
-      if (typeValue === 'remote' && typeof serviceConfig.url !== 'string') {
+      if (
+        typeValue === 'remote' &&
+        (typeof serviceConfig.url !== 'string' || !(serviceConfig.url as string).trim())
+      ) {
+        // url vacía pasa typeof-string pero deja el servicio roto (juez A, LOW)
         errors.push(`MCP service ${name} with type remote requires url`);
       }
       const { command } = serviceConfig;
@@ -387,7 +412,10 @@ export function validateOpencodeConfigObject(config: Record<string, unknown>): s
     const disabled = (config.disabled_providers as string[] | undefined) || [];
     errors.push(...validateProviders(providers, disabled).filter((e) => !e.startsWith('INFO:')));
   }
-  errors.push(...validateStackCritical(config));
+  // Mismo trato que main(): INFO dentro de stack-critical anota, no falla
+  // (divergencia juzgada 2026-11-21: stack-doctor consumía los INFO como
+  // errores y reportaba `conflict` para un canon de herencia pura válido).
+  errors.push(...validateStackCritical(config).filter((e) => !e.startsWith('INFO:')));
   return errors;
 }
 
@@ -494,8 +522,11 @@ function main(): void {
     }
   }
 
-  // Validate stack-critical configurations
-  const stackErrors = validateStackCritical(config);
+  // Validate stack-critical configurations. INFO dentro de stack-critical no
+  // bloquea (mismo trato que validateProviders): anota, no falla.
+  const stackErrorsRaw = validateStackCritical(config);
+  const stackErrors = stackErrorsRaw.filter((e) => !e.startsWith('INFO:'));
+  const stackInfos = stackErrorsRaw.filter((e) => e.startsWith('INFO:'));
   errors.push(...stackErrors);
   if (stackErrors.length > 0) {
     console.log('\n🚨 STACK-CRITICAL VALIDATION ERRORS 🚨');
@@ -504,6 +535,11 @@ function main(): void {
       console.log(`  - ${error}`);
     }
     console.log('\n⚠️  DO NOT commit these changes - they will break the stack!');
+  }
+  if (stackInfos.length > 0) {
+    for (const info of stackInfos) {
+      console.log(`[INFO] ${info}`);
+    }
   }
 
   if (errors.length > 0) {

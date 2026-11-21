@@ -1,9 +1,13 @@
 /**
  * check-models — check de alineación de ids de modelo para el prepush-gate.
  *
- * Falla (exit 1) SOLO si hay ids configurados que no existen upstream (la causa
- * del `Bad Request: {"model": "..."}`). Es fail-open: si no hay conectividad al
- * upstream (o auth), avisa y sale 0 para no bloquear pushes offline.
+ * Códigos de salida (meta-auditoría 2026-11-20, backlog #5 — antes era
+ * fail-open silencioso: sin red salía 0 y el gate lo contaba como PASS verde):
+ *   0 → OK: todos los ids configurados existen upstream.
+ *   1 → BLOQUEANTE: hay ids configurados que NO existen upstream.
+ *   2 → INDETERMINADO: no se pudo mirar (sin reporte del doctor, sin
+ *       conectividad/auth al upstream). NO bloquea el push offline, pero el
+ *       gate lo muestra como `warn` — nunca como verde silencioso.
  *
  * Uso: node --import tsx src/git/check-models.ts
  */
@@ -28,14 +32,14 @@ function main(): void {
   try {
     report = JSON.parse(doctor.stdout) as DoctorJson;
   } catch {
-    console.log('[models-alignment] ⚠ no pude leer el reporte del doctor — verificación omitida (fail-open)');
-    process.exit(0);
+    console.log('[models-alignment] ~ INDETERMINADO: no pude leer el reporte del doctor — ids NO verificados contra upstream (sin bloqueo offline)');
+    process.exit(2);
   }
 
   const providers = (report.providers ?? []).filter((p) => p.catalogOK);
   if (providers.length === 0) {
-    console.log('[models-alignment] ⚠ sin conectividad/auth contra el upstream — verificación omitida (fail-open)');
-    process.exit(0);
+    console.log('[models-alignment] ~ INDETERMINADO: sin conectividad/auth contra el upstream — ids NO verificados (sin bloqueo offline)');
+    process.exit(2);
   }
 
   const problemas: string[] = [];

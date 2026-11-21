@@ -922,11 +922,12 @@ export class MigrationRunner {
           }
           this.db.exec(migration.sql);
           this.db.prepare('INSERT INTO _migrations (id) VALUES (?)').run(migration.id);
-          console.log(`[DB] Migration applied: ${migration.id}`);
+          console.error(`[DB] Migration applied: ${migration.id}`);
         }
       }
     })();
-    console.log(
+    // stderr: stdout es un contrato — los CLIs que emiten JSON no deben recibir logs de bootstrap (bitácora 2026-11-20)
+    console.error(
       `[DB] ${this.db.pragma('page_count', { simple: true })} pages, ${MIGRATIONS.length} migrations`,
     );
   }

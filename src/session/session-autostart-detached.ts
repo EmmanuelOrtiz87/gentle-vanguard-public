@@ -47,9 +47,11 @@ const args = process.argv.slice(2);
 
 if (args.includes('--session-reminders')) {
   try {
-    for (const reminder of takeSessionReminders(ROOT)) console.log('[SESSION-REMINDER] ' + reminder);
+    for (const reminder of takeSessionReminders(ROOT))
+      console.log('[SESSION-REMINDER] ' + reminder);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') console.warn('[SESSION-REMINDER] No se pudieron leer los avisos de sesión.');
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
+      console.warn('[SESSION-REMINDER] No se pudieron leer los avisos de sesión.');
   }
 }
 
@@ -80,8 +82,12 @@ try {
 // daemons never inherit the caller's pipe either.
 const child = spawn(
   process.execPath,
-  ['--import', 'tsx', path.join(ROOT, 'src', 'session', 'session-autostart.ts'),
-    ...args.filter((arg) => arg !== '--session-reminders')],
+  [
+    '--import',
+    'tsx',
+    path.join(ROOT, 'src', 'session', 'session-autostart.ts'),
+    ...args.filter((arg) => arg !== '--session-reminders'),
+  ],
   {
     cwd: ROOT,
     stdio: 'ignore',
@@ -92,6 +98,29 @@ const child = spawn(
 );
 
 child.unref();
+
+// Observador pasivo de flashes de consola (procesos-ocultos, 2026-11-21): la
+// auditoría estática de la cadena es limpia, así que los cmd transitorios que
+// reporta el owner vienen de actores AMBIENTALES (medido: el helper de
+// Antigravity lanza `cmd.exe /c agy-node.cmd` cada ~2.5s). Este watcher captura
+// pid/padre/commandLine de cada consola que aparezca durante la ventana de
+// arranque en .runtime/console-flash-<ts>.jsonl — evidencia, no acción.
+try {
+  const watcher = spawn(
+    process.execPath,
+    [
+      '--import',
+      'tsx',
+      path.join(ROOT, 'src', 'ops', 'console-flash-watch.ts'),
+      '--duration',
+      '150',
+    ],
+    { cwd: ROOT, stdio: 'ignore', windowsHide: true, detached: true },
+  );
+  watcher.unref();
+} catch {
+  /* best-effort: sin watcher la sesión arranca igual */
+}
 
 // The caller receives due reminders without waiting for the pipeline. The pipeline log
 // for this run is at .runtime/autostart-detached-<timestamp>.log (the lazy step

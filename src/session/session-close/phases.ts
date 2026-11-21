@@ -1082,14 +1082,18 @@ export function phaseVerify(): PhaseResult[] {
     detail: existsSync(sessionFile) ? sessionFile : 'session-current.json not found',
   });
 
-  // 6.2 Verify Nexus DB health
+  // 6.2 Verify Nexus DB health — por EXIT CODE, no por sniffing de strings.
+  // El includes('healthy') anterior casaba cualquier línea informativa ([ OK ])
+  // y hasta la palabra "unhealthy": un db degradado podía reportar PASS.
+  // Contrato de db-health.ts: exit 0=healthy, 1=degraded, 2=missing.
   const dh = runScript('scripts/database/db-health.ts', [], 15000);
-  const healthy =
-    dh.stdout.includes('healthy') || dh.stdout.includes('HEALTHY') || dh.stdout.includes('[ OK ]');
+  const healthy = dh.status === 0;
   results.push({
     phase: 'nexus-health',
     status: healthy ? 'PASS' : 'FAIL',
-    detail: healthy ? 'Nexus DB healthy' : 'Nexus DB may have issues',
+    detail: healthy
+      ? 'Nexus DB healthy (exit 0)'
+      : `Nexus DB unhealthy/degraded (exit ${dh.status})`,
   });
 
   // 6.3 Verify checkpoint exists (ckpt-* are directories, not .json files)

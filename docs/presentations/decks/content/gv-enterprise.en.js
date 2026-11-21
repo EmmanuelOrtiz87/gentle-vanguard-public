@@ -62,7 +62,7 @@ export default {
         {
           icon: 'agent',
           heading: 'A roster of agents',
-          body: '20 agents with model, permissions, step limits and budget assigned.',
+          body: '22 agents with model, permissions, step limits and budget assigned.',
         },
         {
           icon: 'brain',
@@ -243,8 +243,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '68 quality gates',
-          body: '22 on pre-commit, 2 on commit-msg, 2 on post-commit, 28 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 4 runtime. 63 of 68 enforced strictly; the Dependabot alerts gate runs on every push.',
+          heading: '70 quality gates',
+          body: '24 on pre-commit, 2 on commit-msg, 2 on post-commit, 28 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 4 runtime. 65 of 70 enforced strictly; the Dependabot alerts gate runs on every push.',
         },
         {
           icon: 'search',

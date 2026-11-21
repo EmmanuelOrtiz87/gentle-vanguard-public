@@ -25,7 +25,10 @@ export const CODEGRAPH_PORT = parseInt(process.env.CODEGRAPH_PORT ?? '3000', 10)
 export interface CheckResult {
   component: string;
   check: string;
-  status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP';
+  /** `UNVERIFIED` (meta-auditoría 2026-11-20, backlog #6): el check corrió y
+   * SOLO pudo confirmar presencia (existsSync) o no tiene evidencia suficiente
+   * — NO es PASS. "El archivo existe" no certifica "el pipeline es sano". */
+  status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP' | 'UNVERIFIED';
   detail: string;
   action: string;
   timestamp: string;
@@ -60,7 +63,13 @@ export function addResult(
     timestamp: new Date().toISOString(),
   });
   if (!quiet || status !== 'PASS') {
-    const icons: Record<string, string> = { PASS: '  ', WARN: '  ', FAIL: '  ', SKIP: '  ' };
+    const icons: Record<string, string> = {
+      PASS: '  ',
+      WARN: '  ',
+      FAIL: '  ',
+      SKIP: '  ',
+      UNVERIFIED: '? ',
+    };
     logger.info(
       `${icons[status]}[${component}] ${check}: ${status}${detail ? ' - ' + detail : ''}`,
     );

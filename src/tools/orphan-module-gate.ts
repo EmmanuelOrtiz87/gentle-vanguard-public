@@ -14,8 +14,17 @@
  * Reglas de exclusión (entry points legítimos sin importers):
  *   - *.test.ts / *.d.ts
  *   - archivos src/cli/ y src/session/session-autostart*.ts (entry points)
- *   - basenames referenciados en package.json, config/*.json o docs/features
+ *   - basenames referenciados en package.json, config/*.json vivo, .lefthook.yml,
+ *     hosts de herramientas, CI y READMEs de src/ y apps/
  *   - los aceptados explícitamente en ORPHAN_ALLOWLIST (con razón declarada)
+ *
+ * Afinado 2026-11-20 (GB-20261120, aprobación owner): los CONFIGS DE REGISTRO
+ * HISTÓRICO (HISTORICAL_CONFIG_PATTERNS) dejan de contar como consumidores.
+ * Caso medido: 5 wrappers muertos de src/orchestration sobrevivieron meses porque
+ * el tracker ps1→TS (config/ps1-ts-migration.json) los nombraba en sus olas
+ * completadas — mencionar un módulo en un log de migración NO es consumirlo.
+ * docs/ NUNCA contó (el comentario de esta cabecera lo afirmaba y era falso);
+ * este comentario ahora dice la verdad del código.
  *
  * Es advisory por defecto: promoverlo a gate enforced es decisión del owner
  * (no se cambian guardrails sin aprobación explícita).
@@ -33,6 +42,15 @@ const ROOT = process.cwd();
  *  eliminación: 6 consumidores del base, todos one-shot de baja frecuencia —
  *  una capa de caché sin hit-rate medido es especulación, no capacidad.) */
 const ORPHAN_ALLOWLIST: ReadonlyArray<{ module: string; reason: string }> = [];
+
+/** Configs cuyo contenido es registro histórico: nombrar un módulo en un log de
+ *  olas completadas NO es consumirlo. Cada patrón lleva su razón. */
+const HISTORICAL_CONFIG_PATTERNS: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
+  {
+    pattern: /ps1-ts-migration\.json$/,
+    reason: 'tracker de olas ps1→TS (audit-ps1-refs lo lee para .ps1, no para módulos TS)',
+  },
+];
 
 function listTsFiles(current: string, out: string[] = []): string[] {
   return listTsFiltered(current, out, false);
@@ -67,6 +85,8 @@ function consumerIndex(root: string): string {
   const configFiles = existsSync(configDir)
     ? readdirSync(configDir)
         .filter((f) => f.endsWith('.json'))
+        // Los registros históricos no son consumidores (GB-20261120).
+        .filter((f) => !HISTORICAL_CONFIG_PATTERNS.some((h) => h.pattern.test(f)))
         .map((f) => join(configDir, f))
     : [];
   // Configs fuera de config/: hooks y hosts que invocan módulos por nombre.

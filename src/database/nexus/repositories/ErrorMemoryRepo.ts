@@ -26,7 +26,7 @@ export class ErrorMemoryRepo {
         data.severity ?? 'medium',
         data.sessionId ?? null,
       );
-    console.log(
+    console.error(
       `[DB] Error memory saved: "${data.bug.substring(0, 60)}..." (id=${result.lastInsertRowid})`,
     );
     return Number(result.lastInsertRowid);

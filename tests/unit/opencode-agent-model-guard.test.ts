@@ -15,6 +15,7 @@ import assert from 'node:assert';
 import {
   classifyAgentModels,
   validateFallbackChains,
+  validateInheritanceTargets,
   type Registry,
 } from '../../src/tools/opencode-agent-model-guard.ts';
 
@@ -50,10 +51,48 @@ test('modelo no registrado es FAIL (la verdad vive en el registry)', () => {
   assert.match(r.problems[0].reason, /no registrado/);
 });
 
-test('agente sin modelo declarado es FAIL', () => {
+test('agente sin modelo declarado HEREDA el modelo de la sesión y pasa (canon 2026-11-21)', () => {
   const r = classifyAgentModels({ ghost: {} }, registry);
+  assert.equal(r.ok, true);
+  assert.equal(r.inherited, 1);
+  assert.equal(r.checked, 0);
+  assert.deepEqual(r.problems, []);
+});
+
+test('flota mixta: heredados + pinneado con tools pasa y cuenta cada uno', () => {
+  const r = classifyAgentModels(
+    {
+      orchestrator: {},
+      'sdd-explore': {},
+      'local-code': { model: 'ollama/qwen3-14b-32k' },
+    },
+    registry,
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.inherited, 2);
+  assert.equal(r.checked, 1);
+});
+
+test('target de herencia sin tools es FAIL: toda la flota hereda un modelo sin tool calling', () => {
+  const r = validateInheritanceTargets(['ollama/qwen2.5-coder:14b'], registry);
   assert.equal(r.ok, false);
-  assert.match(r.problems[0].reason, /sin modelo declarado/);
+  assert.equal(r.problems.length, 1);
+  assert.match(r.problems[0].reason, /heredan pierden tool calling/);
+});
+
+test('target de herencia no registrado es FAIL', () => {
+  const r = validateInheritanceTargets(['modelo-fantasma'], registry);
+  assert.equal(r.ok, false);
+  assert.match(r.problems[0].reason, /no registrado/);
+});
+
+test('targets de herencia registrados con tools pasan', () => {
+  const r = validateInheritanceTargets(
+    ['ollama/qwen3-14b-32k', 'opencode-zen-C/big-pickle'],
+    registry,
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.checked, 2);
 });
 
 test('fallback sin tools es FAIL: el agente perderia tool calling al caer', () => {

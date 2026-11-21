@@ -503,6 +503,6 @@ export class DatabaseManager {
   /** Close the database connection */
   close(): void {
     this.db.close();
-    console.log('[DB] Connection closed');
+    console.error('[DB] Connection closed');
   }
 }

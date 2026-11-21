@@ -103,7 +103,16 @@ function run(): {
   results.push(...auditCapabilitySources({ root }));
   results.push(check('existing-gates', existsSync(join(root, 'config', 'quality-gates.json')), 'compone config/quality-gates.json sin duplicarlo'));
   results.push(check('checkpoint', existsSync(join(root, '.session', 'checkpoints')), 'checkpoint manager disponible', true));
-  results.push(check('nexus', existsSync(join(root, '.runtime', 'gentle-vanguard.db')), 'Nexus operacional disponible'));
+  // Nexus: operación real, no presencia (meta-auditoría 2026-11-20 — "el .db
+  // existe" no era conectividad). Abrir y ejecutar una consulta es la prueba.
+  try {
+    const nexusDb = openNexus(join(root, '.runtime', 'gentle-vanguard.db'));
+    nexusDb.prepare('SELECT 1').get();
+    nexusDb.close();
+    results.push(check('nexus', true, 'Nexus operacional: abre y responde consultas'));
+  } catch (error) {
+    results.push(check('nexus', false, `Nexus NO operacional: ${String(error)}`));
+  }
   results.push(check('memory', existsSync(join(root, 'knowledge-base')) || existsSync(join(root, '.session')), 'plano de memoria disponible'));
 
   // Live controls reuse the owning modules. They are intentionally bounded to

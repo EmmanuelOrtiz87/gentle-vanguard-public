@@ -495,16 +495,25 @@ function generateReport(outputPath?: string) {
   const warn = results.filter((r) => r.status === 'WARN').length;
   const fail = results.filter((r) => r.status === 'FAIL').length;
   const skip = results.filter((r) => r.status === 'SKIP').length;
+  // Presencia sin operación / evidencia insuficiente: cuenta aparte, no PASS
+  // (meta-auditoría 2026-11-20). No afecta el estado del componente.
+  const unverified = results.filter((r) => r.status === 'UNVERIFIED').length;
   const total = results.length;
 
   const byComponentMap = new Map<
     string,
-    { pass: number; warn: number; fail: number; skip: number }
+    { pass: number; warn: number; fail: number; skip: number; unverified: number }
   >();
   for (const r of results) {
     if (!byComponentMap.has(r.component))
-      byComponentMap.set(r.component, { pass: 0, warn: 0, fail: 0, skip: 0 });
-    const c = byComponentMap.get(r.component) ?? { pass: 0, warn: 0, fail: 0, skip: 0 };
+      byComponentMap.set(r.component, { pass: 0, warn: 0, fail: 0, skip: 0, unverified: 0 });
+    const c = byComponentMap.get(r.component) ?? {
+      pass: 0,
+      warn: 0,
+      fail: 0,
+      skip: 0,
+      unverified: 0,
+    };
     c[r.status.toLowerCase() as keyof typeof c]++;
   }
   const byComponent = Array.from(byComponentMap.entries()).map(([name, counts]) => ({
@@ -514,18 +523,21 @@ function generateReport(outputPath?: string) {
     pass: counts.pass,
     warn: counts.warn,
     skip: counts.skip,
+    unverified: counts.unverified,
   }));
 
   const report = {
     watchtowerVersion: '2.0.0',
     timestamp: new Date().toISOString(),
-    summary: { pass, warn, fail, skip, total },
+    summary: { pass, warn, fail, skip, unverified, total },
     byComponent,
     findings: results,
   };
 
   console.log(`\n=======================================`);
-  console.log(`  PASS: ${pass} | WARN: ${warn} | FAIL: ${fail} | SKIP: ${skip} | Total: ${total}`);
+  console.log(
+    `  PASS: ${pass} | WARN: ${warn} | FAIL: ${fail} | SKIP: ${skip} | UNVERIFIED: ${unverified} | Total: ${total}`,
+  );
 
   for (const c of byComponent) {
     const icon = c.status === 'OK' ? '  ' : c.status === 'WARN' ? '⚠ ' : '✘ ';

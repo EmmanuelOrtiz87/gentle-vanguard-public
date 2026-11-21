@@ -107,12 +107,12 @@ Those stages are executed by concrete pieces of the stack; the next slide shows 
 
 ---
 
-## Slide 5 — 20 agents, each with its own perimeter
+## Slide 5 — 22 agents, each with its own perimeter
 
 **Layout:** cards · **Time:** 1:20
 
 **Qué decir:** · **What to say:**
-> The roster has 20 agents, and the point is not that you pick one every time, it is that each agent declares its perimeter: model, permissions, step limit, budget and fallback. That is what lets you delegate without losing control, because the delegator cannot delegate something the sub-agent is not allowed to do. In practice the router picks the agent most of the time based on the shape of the task; you invoke a specific one when you need a specific perimeter.
+> The roster has 22 agents, and the point is not that you pick one every time, it is that each agent declares its perimeter: model, permissions, step limit, budget and fallback. That is what lets you delegate without losing control, because the delegator cannot delegate something the sub-agent is not allowed to do. In practice the router picks the agent most of the time based on the shape of the task; you invoke a specific one when you need a specific perimeter.
 
 **Transicion:** · **Transition:**
 Agents are the executors; the capabilities they can use are the skills.

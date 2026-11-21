@@ -50,6 +50,20 @@ describe('politica de stack-audit-apps', () => {
     assert.equal(advisory.blockingFailures.length, 0);
     assert.equal(advisory.allGreen, false);
   });
+
+  it('un WARN (indeterminado, exit 2) nunca bloquea — ni fuera del set advisory', () => {
+    // Meta-auditoría 2026-11-20 backlog #5: el fail-open de models-alignment
+    // no puede volver a ser verde silencioso; "no pude mirar" tampoco es un
+    // fallo que bloquee el push offline.
+    const results = [
+      { name: 'typecheck', status: 'pass' as const, durationMs: 1, tail: '' },
+      { name: 'models-alignment', status: 'warn' as const, durationMs: 1, tail: 'INDETERMINADO' },
+    ];
+    const verdict = evaluateGate(results, new Set());
+    assert.equal(verdict.allPass, true);
+    assert.equal(verdict.blockingFailures.length, 0);
+    assert.equal(verdict.allGreen, false);
+  });
 });
 
 describe('wrapper de cadencia', () => {

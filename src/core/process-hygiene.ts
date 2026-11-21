@@ -515,9 +515,10 @@ const DAEMON_CLASSES: DaemonClass[] = [
  * caian en `unclassified` y el barrido las marcaba como `hung-oneshot`: un
  * FAIL PERMANENTE del gate que no correspondia a un proceso colgado, sino a
  * servidores legitimos (API de la app, Vite dev server, servidor estatico).
- * Medido: 11 procesos marcados asi (alexandria, academy-portal,
- * gv-knowledge-ops, gv-wifikeys, service-desk, gv-english-lab,
- * design-gallery, corporate-web, voice-studio).
+ * Medido (2026-11-06): 11 procesos marcados asi (academy-portal,
+ * gv-knowledge-ops, service-desk, gv-english-lab,
+ * design-gallery, corporate-web, voice-studio). Desde el 2026-11-20 la lista
+ * no incluye alexandria ni gv-wifikeys: apps deprecadas y borradas.
  *
  * La FORMA del comando dice que es un servidor:
  *   apps/<app>/server/index.ts | server/server.ts | server/server.mjs

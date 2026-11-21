@@ -22,6 +22,9 @@ import { pathToFileURL } from 'url';
 import { runNpxTsxSync } from '../core/run-command.js';
 import { DatabaseManager, DEFAULT_TENANT_ID } from '../database/nexus//manager.js';
 import { classifyRisk } from '../rdd/risk-classifier.js';
+import { editorialIntent } from './editorial-intent.js';
+import { migrationIntent } from './migration-intent.js';
+import type { MigrationIntent } from './migration-intent.js';
 
 const ROOT = resolve(process.cwd());
 const ROUTING_TABLE = join(ROOT, '.session', 'routing', 'routing-table.json');
@@ -31,6 +34,8 @@ const STATIC_MAP: Record<string, string[]> = {
   requirements: ['sdd-explore', 'session-agent', 'knowledge-agent'],
   architecture: ['sdd-design', 'sdd-explore', 'premortem-agent'],
   testing: ['sdd-verify', 'sdd-apply', 'self-diag-agent'],
+  // E2E real (NORM-E2E-001): el helper nativo ejecuta el smoke con evidencia.
+  e2e: ['e2e-agent', 'sdd-verify', 'self-diag-agent'],
   docs: ['doc-agent', 'technical-writer', 'knowledge-agent'],
   ops: ['ops-agent', 'maintenance-agent', 'self-diag-agent'],
   security: ['gov-agent', 'legal-agent', 'premortem-agent'],
@@ -55,11 +60,13 @@ interface RoutingTable {
     bestAgent: string;
     alternatives?: Array<{ agentId: string; successRate: number }>;
     confidence: number;
+    lastRouted?: string | null;
   }>;
   overrides?: Array<{
     domainPattern: string;
     targetAgent: string;
     confidence: number;
+    appliedAt?: string;
   }>;
 }
 
@@ -71,6 +78,32 @@ export interface NexusRoutingSource {
     hitCount: number;
     successRate: number;
   }>;
+}
+
+/**
+ * Agentes que el delegador puede resolver de verdad (config/agents.json).
+ * ADR-0034: skill names y agent names viven en namespaces separados — una regla
+ * de Nexus cuyo target no es un agente registrado (p. ej. un nombre de skill
+ * sembrado por datos viejos) NO es un routing válido y se ignora. Caché de una
+ * lectura: el registro no cambia dentro de un proceso.
+ */
+let registeredAgentCache: Set<string> | null | undefined;
+/** null = sin canon en el entorno (fixtures/cwd temporal): no se filtra — no se
+ *  puede enforzar un canon que no existe. */
+function registeredAgents(): Set<string> | null {
+  if (registeredAgentCache !== undefined) return registeredAgentCache;
+  try {
+    const raw = readFileSync(join(process.cwd(), 'config', 'agents.json'), 'utf-8');
+    const config = JSON.parse(raw) as { agents?: Record<string, unknown> };
+    registeredAgentCache = new Set(Object.keys(config.agents ?? {}));
+  } catch {
+    registeredAgentCache = null;
+  }
+  return registeredAgentCache;
+}
+
+function isRoutableTarget(canon: Set<string> | null | undefined, target: string): boolean {
+  return canon === null || canon === undefined || canon.has(target);
 }
 
 function loadRoutingTable(): RoutingTable | null {
@@ -96,15 +129,26 @@ function escapeRegExp(s: string): string {
  * - Longer keywords match as substring OR whole word (covers stems like
  *   "analy" -> analyze/analysis and full words like "campaign").
  */
+/**
+ * Quita diacríticos (GB-20261120): el owner trabaja en español y las keywords
+ * del mapa son ASCII — "métricas" sin de-acento no contiene 'metric', y el
+ * routing caía a general. Se aplica a tareas Y keywords ('diseñ'→'disen'
+ * matchea 'disenar' de-acentuada).
+ */
+function deaccent(s: string): string {
+  return s.normalize('NFD').replace(/\p{M}/gu, '');
+}
+
 function taskHasKeyword(normalized: string, kw: string): boolean {
-  if (kw.length <= 3) {
-    return new RegExp(`\\b${escapeRegExp(kw)}\\b`).test(normalized);
+  const key = deaccent(kw.toLowerCase());
+  if (key.length <= 3) {
+    return new RegExp(`\\b${escapeRegExp(key)}\\b`).test(normalized);
   }
-  return normalized.includes(kw) || new RegExp(`\\b${escapeRegExp(kw)}\\b`).test(normalized);
+  return normalized.includes(key) || new RegExp(`\\b${escapeRegExp(key)}\\b`).test(normalized);
 }
 
 function matchDomain(task: string, domainHint: string): string {
-  const normalized = task.toLowerCase();
+  const normalized = deaccent(task.toLowerCase());
   // ORDER IS CRITICAL: business keywords come FIRST because they are more
   // specific than generic engineering verbs. Without this, "review this
   // contract" hits 'review'→code-review before 'contract'→legal, and
@@ -118,6 +162,11 @@ function matchDomain(task: string, domainHint: string): string {
     ['deployment pipeline', 'ops'],
     ['pipeline de despliegue', 'ops'],
     ['pipeline de ci', 'ops'],
+    // ES (GB-20261120): revisión de código es más específica que 'pull'/'merge'
+    // → gitflow; sin esto, "revisar el código de este pull request" caía en gitflow.
+    ['revisar el codigo', 'code-review'],
+    ['revision de codigo', 'code-review'],
+    ['revisar codigo', 'code-review'],
     // ── Business domains (native agents, highest specificity) ──────────────
     // marketing
     ['campaign', 'marketing'],
@@ -136,6 +185,8 @@ function matchDomain(task: string, domainHint: string): string {
     ['sales', 'sales'],
     ['deal', 'sales'],
     ['lead generation', 'sales'],
+    ['propuesta comercial', 'sales'],
+    ['cotizacion', 'sales'],
     // finance
     ['revenue', 'finance'],
     ['forecast', 'finance'],
@@ -151,6 +202,9 @@ function matchDomain(task: string, domainHint: string): string {
     ['gdpr', 'legal'],
     ['legal', 'legal'],
     ['contract', 'legal'],
+    ['contrato', 'legal'],
+    ['clausula', 'legal'],
+    ['firmar', 'legal'],
     ['liability', 'legal'],
     ['compliance', 'governance'],
     ['regulation', 'legal'],
@@ -162,8 +216,13 @@ function matchDomain(task: string, domainHint: string): string {
     ['interview', 'hr'],
     ['candidate', 'hr'],
     ['onboarding', 'hr'],
+    ['entrevista', 'hr'],
+    ['candidato', 'hr'],
+    ['contratacion', 'hr'],
     // business-telemetry
     ['metric', 'business-telemetry'],
+    ['metrica', 'business-telemetry'],
+    ['indicador', 'business-telemetry'],
     ['telemetry', 'business-telemetry'],
     ['analytics', 'business-telemetry'],
     ['kpi', 'business-telemetry'],
@@ -177,10 +236,12 @@ function matchDomain(task: string, domainHint: string): string {
     ['rebase', 'gitflow'],
     ['pr ', 'gitflow'],
     ['git', 'gitflow'],
+    ['ramas', 'gitflow'],
     // sia
     ['iteration', 'sia'],
     ['score', 'sia'],
     ['refine', 'sia'],
+    ['leccion', 'sia'],
     // ── Absorbed cybersecurity domains (ADR-010, high specificity) ───────────
     // Compliance & risk frameworks → governance
     ['nist', 'governance'],
@@ -235,6 +296,13 @@ function matchDomain(task: string, domainHint: string): string {
     ['arquitectur', 'architecture'],
     ['design', 'architecture'],
     ['diseñ', 'architecture'],
+    // ── E2E real (NORM-E2E-001): más específico que 'test' genérico — va antes
+    // para que "run e2e de gv-agenda" no caiga en testing/sdd-verify ──────────
+    ['e2e', 'e2e'],
+    ['end-to-end', 'e2e'],
+    ['smoke', 'e2e'],
+    ['validacion real', 'e2e'],
+    ['homologacion de app', 'e2e'],
     ['test', 'testing'],
     ['prueba', 'testing'],
     ['feature', 'code-apply'],
@@ -258,19 +326,68 @@ function matchDomain(task: string, domainHint: string): string {
   return 'general';
 }
 
+/**
+ * Resumen de la intent de migración que viaja en la recomendación.
+ * El orquestador lo usa para saber qué preguntar antes de delegar.
+ */
+function migrationSummary(intent: MigrationIntent): Record<string, unknown> {
+  return {
+    operation: intent.operation,
+    area: intent.area,
+    client: intent.client,
+    system: intent.system,
+    missing: intent.missing,
+    nextQuestion: intent.nextQuestion,
+  };
+}
+
 function recommend(
   task: string,
   domainHint: string,
   topN: number,
-  options: { tenantId?: string; nexus?: NexusRoutingSource } = {},
+  options: {
+    tenantId?: string;
+    nexus?: NexusRoutingSource;
+    /** Canon explícito de agentes (tests inyectan sus targets sintéticos; el
+     *  default lee config/agents.json — ADR-0034). */
+    registeredAgents?: Set<string>;
+  } = {},
 ): unknown {
-  const normalizedTask = task.toLowerCase();
+  const normalizedTask = deaccent(task.toLowerCase());
+  const editorial = editorialIntent(task);
+  const migration = migrationIntent(task);
+  // La migración documental ES una ruta editorial. Si el pedido además es una
+  // intención editorial (synthesis, draft, ...), gana la editorial: el routing
+  // actual no cambia. Solo cuando no hay intención editorial gana la
+  // migración, marcada como tal para que el orquestador pregunte lo que falte.
+  if (!domainHint && migration && !editorial) {
+    return {
+      domain: 'editorial',
+      recommended: 'editorial-agent',
+      confidence: 1,
+      alternatives: [],
+      source: 'migration-intent',
+      migration: migrationSummary(migration),
+    };
+  }
+  if (!domainHint && editorial) {
+    return {
+      domain: 'editorial',
+      recommended: 'editorial-agent',
+      confidence: 1,
+      alternatives: [],
+      source: 'editorial-intent',
+    };
+  }
   const domain = matchDomain(task, domainHint);
   const tenantId = options.tenantId ?? process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID;
   try {
     const nexus = options.nexus ?? DatabaseManager.getInstance();
     const rules = nexus
       .getEnabledRoutingRules(tenantId)
+      .filter((rule) =>
+        isRoutableTarget(options.registeredAgents ?? registeredAgents(), rule.target),
+      )
       .filter(
         (rule) =>
           taskHasKeyword(normalizedTask, rule.pattern.toLowerCase()) ||
@@ -295,12 +412,28 @@ function recommend(
   }
   const table = loadRoutingTable();
 
+  // Decay del aprendizaje (GB-20261120, evals de orquestación): una entrada
+  // aprendida SOLO aplica con evidencia fresca (<= decayDays). Medido: las
+  // entradas de skills de septiembre (60+ días, confianza 0.9 congelada)
+  // sobrescribían el mapa canónico en 9 de 22 casos del dataset de evals.
+  // El decay ya estaba declarado (adaptive-router config decayDays: 14); faltaba
+  // enforcearlo en el camino de consulta.
+  const DECAY_DAYS = 14;
+  const isFresh = (iso: string | null | undefined): boolean => {
+    if (!iso) return false;
+    const ts = Date.parse(iso);
+    return Number.isFinite(ts) && Date.now() - ts <= DECAY_DAYS * 86_400_000;
+  };
+
   // 1. Check overrides (highest priority — learned/high-priority routing).
   //    Overrides are matched against the FULL task text, not the derived
   //    domain, so "gdpr compliance audit" hits the gdpr→legal override even
   //    though matchDomain() would classify it as governance.
   if (table?.overrides) {
     for (const o of table.overrides) {
+      if (!isFresh(o.appliedAt)) continue; // decay: evidencia vencida no rutea
+      if (!isRoutableTarget(options.registeredAgents ?? registeredAgents(), o.targetAgent))
+        continue; // ADR-0034: skill-name no rutéa
       const pattern = o.domainPattern.toLowerCase();
       if (
         taskHasKeyword(normalizedTask, pattern) ||
@@ -317,9 +450,11 @@ function recommend(
     }
   }
 
-  // 2. Check domain entries (learned performance)
+  // 2. Check domain entries (learned performance) — solo con evidencia fresca.
   if (table?.domainEntries) {
-    const entry = table.domainEntries.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
+    const entry = table.domainEntries.find(
+      (d) => d.domain.toLowerCase() === domain.toLowerCase() && isFresh(d.lastRouted),
+    );
     if (entry && entry.bestAgent) {
       return {
         domain,

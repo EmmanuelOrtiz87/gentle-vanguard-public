@@ -51,3 +51,41 @@ test('un modulo importado y un entry point NO son huerfanos; el muerto SI', () =
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('un módulo nombrado SOLO en un config histórico SIGUE siendo huérfano (GB-20261120)', () => {
+  const root = buildFixture();
+  try {
+    // El tracker ps1→TS nombraba a 5 wrappers muertos y el gate los creía vivos
+    // durante meses. Ahora los configs de registro histórico no son consumidores.
+    mkdirSync(join(root, 'config'), { recursive: true });
+    writeFileSync(
+      join(root, 'config', 'ps1-ts-migration.json'),
+      JSON.stringify({ completedWave7: ['orphan-module'] }),
+    );
+    const orphans = findOrphans(root);
+    assert.ok(
+      orphans.some((o) => o.module.endsWith('orphan-module.ts')),
+      'el config histórico no debe salvar al muerto',
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('un config VIVO que referencia el módulo sigue siendo consumidor', () => {
+  const root = buildFixture();
+  try {
+    mkdirSync(join(root, 'config'), { recursive: true });
+    writeFileSync(
+      join(root, 'config', 'live-routing.json'),
+      JSON.stringify({ pattern: 'orphan-module', target: 'algo' }),
+    );
+    const orphans = findOrphans(root);
+    assert.ok(
+      !orphans.some((o) => o.module.endsWith('orphan-module.ts')),
+      'un config vivo que lo usa sigue siendo consumidor legítimo',
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

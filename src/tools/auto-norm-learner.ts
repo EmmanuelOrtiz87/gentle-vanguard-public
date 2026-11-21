@@ -100,16 +100,32 @@ function loadRecentSessions(days = 7): SessionData[] {
         const sessionId = raw.sessionId ?? raw.id;
         const startTime = raw.startTime ?? raw.timestamp;
         const started = typeof startTime === 'string' ? Date.parse(startTime) : NaN;
-        if (typeof sessionId !== 'string' || !sessionId || !Number.isFinite(started) ||
-          started < cutoff || started > Date.now()) continue;
+        if (
+          typeof sessionId !== 'string' ||
+          !sessionId ||
+          !Number.isFinite(started) ||
+          started < cutoff ||
+          started > Date.now()
+        )
+          continue;
         const count = (value: unknown): number =>
           typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : 0;
-        const messages = (value: unknown): string[] => Array.isArray(value)
-          ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0) : [];
+        const messages = (value: unknown): string[] =>
+          Array.isArray(value)
+            ? value.filter(
+                (item): item is string => typeof item === 'string' && item.trim().length > 0,
+              )
+            : [];
         const data: SessionData = {
-          sessionId, startTime, endTime: typeof raw.endTime === 'string' ? raw.endTime : undefined,
-          toolCalls: count(raw.toolCalls), filesRead: count(raw.filesRead), filesEdited: count(raw.filesEdited),
-          qualityScore: count(raw.qualityScore), errors: messages(raw.errors), warnings: messages(raw.warnings),
+          sessionId,
+          startTime,
+          endTime: typeof raw.endTime === 'string' ? raw.endTime : undefined,
+          toolCalls: count(raw.toolCalls),
+          filesRead: count(raw.filesRead),
+          filesEdited: count(raw.filesEdited),
+          qualityScore: count(raw.qualityScore),
+          errors: messages(raw.errors),
+          warnings: messages(raw.warnings),
         };
         const existing = sessions.get(sessionId);
         if (!existing || data.toolCalls >= existing.toolCalls) sessions.set(sessionId, data);
@@ -150,7 +166,11 @@ export function lessonStem(lesson: string): string {
   ).slice(0, 180);
 }
 
-export interface IngestResult { normsAdded: number; filesRead: number; filesSkipped: number }
+export interface IngestResult {
+  normsAdded: number;
+  filesRead: number;
+  filesSkipped: number;
+}
 
 /**
  * Ingesta las lecciones Learned del inbox engram (los mem_save diarios exportados a
@@ -197,7 +217,7 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
   try {
     files = readdirSync(INBOX_DIR)
       .filter((f) => /^engram-\d+-\w+\.md$/.test(f))
-      .sort((a, b) => (Number(b.match(/\d+/)?.[0] ?? 0)) - (Number(a.match(/\d+/)?.[0] ?? 0)))
+      .sort((a, b) => Number(b.match(/\d+/)?.[0] ?? 0) - Number(a.match(/\d+/)?.[0] ?? 0))
       .slice(0, MAX_INGEST_FILES);
   } catch {
     return { norms: out, result: { normsAdded, filesRead, filesSkipped } };
@@ -253,8 +273,11 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
           existing.confidence = Math.min(100, existing.confidence + 2);
         }
         const observedAt = dateFromInbox(preDate(content));
-        if (observedAt && (!Number.isFinite(Date.parse(existing.lastSeen)) ||
-          Date.parse(observedAt) > Date.parse(existing.lastSeen))) {
+        if (
+          observedAt &&
+          (!Number.isFinite(Date.parse(existing.lastSeen)) ||
+            Date.parse(observedAt) > Date.parse(existing.lastSeen))
+        ) {
           existing.lastSeen = observedAt;
         }
       } else {
@@ -460,8 +483,9 @@ function savePromotionQueue(norms: Norm[]): void {
     `Auto-mantenido por auto-norm-learner.ts — generado: ${new Date().toISOString()}`,
     `Criterio (clase-B, normativa v2.0): status=proposed ∧ occurrences ≥ ${ENTRADA_MIN}.`,
     `Acción siguiente del agente: aterrizar la normativa como skill/automation/helper nativo`,
-    `+ registrar su ID en PROMOTED-NORMS.json para marcarla active; el commit`,
-    `requerido es visible al owner. Empty queue = no recurrentes aún.`,
+    `+ promoverla CON EVIDENCIA: npm run norms:promote -- <norm-id> --artifact <path>`,
+    `(el CLI verifica que el artefacto exista — sin aterrizaje real no hay promoción).`,
+    `Empty queue = no recurrentes aún.`,
     ``,
     `## Candidates (${candidates.length})`,
     ``,
@@ -469,7 +493,9 @@ function savePromotionQueue(norms: Norm[]): void {
   const activeFirst = candidates.slice(0, 50);
   for (const c of activeFirst) {
     lines.push(`- **${c.id}** — ${c.description}`);
-    lines.push(`  - occ=${c.occurrences} · conf=${c.confidence}% · cat=${c.category} · último=${c.lastSeen}`);
+    lines.push(
+      `  - occ=${c.occurrences} · conf=${c.confidence}% · cat=${c.category} · último=${c.lastSeen}`,
+    );
   }
   if (!activeFirst.length) lines.push(`_Ninguna recurrence ≥ ${ENTRADA_MIN} pendiente._`);
   writeFileSync(PROMOTION_QUEUE_PATH, `${lines.join('\n')}\n`, 'utf-8');
@@ -622,9 +648,12 @@ function logToEngram(norms: Norm[], context: LearningContext, newNorms: number):
         JSON.stringify(summary),
         '--type',
         'learning',
-        '--project', 'gentle-vanguard',
-        '--scope', 'project',
-        '--topic', 'learning/auto-norm-learner',
+        '--project',
+        'gentle-vanguard',
+        '--scope',
+        'project',
+        '--topic',
+        'learning/auto-norm-learner',
       ],
       { stdio: 'pipe', cwd: ROOT, timeout: 10000 },
     );
@@ -665,7 +694,9 @@ async function main() {
 
   if (!quiet) {
     console.log(`[AUTO-NORM] Loaded ${norms.length} existing norms`);
-    console.log(`[AUTO-NORM] Ingested engram inbox: ${inbox.result.filesRead} read / ${inbox.result.filesSkipped} skipped (hash-unchanged), ${inbox.result.normsAdded} lessons`);
+    console.log(
+      `[AUTO-NORM] Ingested engram inbox: ${inbox.result.filesRead} read / ${inbox.result.filesSkipped} skipped (hash-unchanged), ${inbox.result.normsAdded} lessons`,
+    );
     console.log(`[AUTO-NORM] Analyzing ${sessions.length} recent sessions`);
     if (_metrics) {
       console.log(`[AUTO-NORM] Metrics loaded: quality=${_metrics.qualityScore}`);

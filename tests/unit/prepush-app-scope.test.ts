@@ -26,6 +26,13 @@ describe('clasificador de alcance de apps', () => {
   it('superficie compartida del stack: impacto global, no desconocido', () => {
     const scope = classifyAppScope(['config/codegraph.config.json'], sameContent);
     assert.equal(scope.mode, 'full');
+    // Semántica CONTRATADA (meta-auditoría 2026-11-20, exclusión levantada
+    // 2026-11-21): `full` significa "barrido GLOBAL" y `apps: []` es la
+    // representación correcta — NO significa "ninguna app". La lista `apps`
+    // solo se llena en modo 'apps'; un consumidor que itere scope.apps en
+    // modo 'full' está leyendo mal el contrato (por eso el gate NO corre la
+    // auditoría en 'full': la hace la cadencia, no el push).
+    assert.deepEqual(scope.apps, []);
   });
 
   it('el canon de MCP (.mcp.json) no aporta runtime de apps', () => {

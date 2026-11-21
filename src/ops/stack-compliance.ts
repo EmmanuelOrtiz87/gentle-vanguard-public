@@ -85,21 +85,31 @@ function checkOpenCodeSubagents(): void {
 
     // Check each subagent has valid structure
     const issues: string[] = [];
+    let inherited = 0;
     for (const [name, agent] of Object.entries(agents) as [string, any][]) {
       if (agent.mode === 'subagent') {
         // Validate description and steps exist
         if (!agent.description) issues.push(`${name}: missing description`);
         if (!agent.steps) issues.push(`${name}: missing steps`);
-        // Validate model field is present (injected by model:fix — prevents
-        // OpenCode's internal stale defaults like openrouter/moonshot/kimi-k2.6)
-        if (!agent.model) issues.push(`${name}: missing model (run npm run model:fix)`);
+        // Canon 2026-11-21: sin `model` el subagente HEREDA el modelo de la
+        // sesión — ya no es un defecto. El pin estático anulaba la herencia y
+        // ataba la flota a un proveedor. El guard valida que el target heredado
+        // declare `tools`.
+        if (agent.model) continue;
+        inherited++;
       }
     }
 
     if (issues.length > 0) {
       check('Subagent validation', false, issues.join('; '), 'WARN');
     } else {
-      check('Subagent validation', true, 'All subagents valid');
+      check(
+        'Subagent validation',
+        true,
+        inherited > 0
+          ? `All subagents valid (${inherited} inherit session model)`
+          : 'All subagents valid',
+      );
     }
   } catch (err) {
     check('opencode.json parse', false, `Invalid JSON: ${err}`, 'FAIL');

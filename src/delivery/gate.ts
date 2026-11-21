@@ -353,7 +353,12 @@ function runGate(gate: GateDef): GateCheckResult {
   const durationMs = Date.now() - start;
   const ok = r.status === 0;
   const status: CheckStatus = ok ? 'pass' : 'fail';
-  const detail = ok ? '' : (r.stderr || r.stdout || '').split('\n').slice(-5).join('\n');
+  // Ambos streams al detail (no stderr||stdout): los validadores imprimen los
+  // ERRORES por stdout (ej. rdd-gates: "Delivered tree differs...") y el log
+  // coloreado por stderr — descartar stdout deja el fallo sin diagnóstico
+  // (tests/unit/delivery-gate.test.ts:22 exige que el detail incluya el error).
+  const combined = [r.stderr, r.stdout].filter((s) => s && s.trim()).join('\n');
+  const detail = ok ? '' : combined.split('\n').slice(-8).join('\n');
   let degraded = false;
   if (!ok && gate.name === 'container-scan') {
     try {

@@ -1,7 +1,6 @@
 packages:
   # Active workspace members only.
   - 'apps/gv-analytics'
-  - 'apps/alexandria'
   - 'apps/web-dashboard'
   - 'apps/content-cms'
   - 'apps/gv-music'
@@ -66,7 +65,7 @@ overrides:
   esbuild: '0.25.12'
   '@typescript-eslint/typescript-estree>minimatch': '>=11.0.1'
   # GHSA minimatch <11.0.1 (ReDoS vía glob): acotado a la cadena de exceljs
-  # (apps/alexandria) para no subir minimatch global. glob se mantiene en
+  # (apps/gv-analytics) para no subir minimatch global. glob se mantiene en
   # major 7 bajo archiver/rimraf (API estable requerida); sólo se sube minimatch.
   'glob@7.2.3>minimatch': '>=11.0.1'
   'readdir-glob>minimatch': '>=11.0.1'
