@@ -300,8 +300,8 @@ interface OpenCodeAuthEntry {
   serverUrl?: string;
 }
 
-function loadOpenCodeAuth(serverName: string): OpenCodeAuthEntry | undefined {
-  const path = join(homedir(), '.local', 'share', 'opencode', 'mcp-auth.json');
+function loadOpenCodeAuth(serverName: string, home: string): OpenCodeAuthEntry | undefined {
+  const path = join(home, '.local', 'share', 'opencode', 'mcp-auth.json');
   if (!existsSync(path)) return undefined;
   try {
     const store = JSON.parse(readFileSync(path, 'utf-8')) as { [name: string]: OpenCodeAuthEntry };
@@ -318,9 +318,16 @@ function loadOpenCodeAuth(serverName: string): OpenCodeAuthEntry | undefined {
  * token_endpoint descubierto en /.well-known/oauth-authorization-server
  * (RFC 8414 / OAuth MCP). Devuelve undefined si no hay credencial utilizable —
  * el inventario reporta diferido, nunca fallo.
+ * Si el consumidor indica serverUrl, exige coincidencia exacta antes de usar
+ * el token o iniciar refresh. home permite fixtures sin leer la cuenta real.
  */
-export async function resolveRemoteOAuthToken(serverName: string): Promise<string | undefined> {
-  const entry = loadOpenCodeAuth(serverName);
+export async function resolveRemoteOAuthToken(
+  serverName: string,
+  options: { serverUrl?: string; home?: string } = {},
+): Promise<string | undefined> {
+  const home = options.home ?? homedir();
+  const entry = loadOpenCodeAuth(serverName, home);
+  if (options.serverUrl && entry?.serverUrl !== options.serverUrl) return undefined;
   const tokens = entry?.tokens;
   if (!tokens?.accessToken) return undefined;
   const expired = typeof tokens.expiresAt === 'number' && Date.now() / 1000 > tokens.expiresAt;
@@ -369,7 +376,7 @@ export async function resolveRemoteOAuthToken(serverName: string): Promise<strin
     // El refresh puede ROTAR el refresh_token: persistir el nuevo par en el
     // store de OpenCode (misma estructura) para no invalidar su próxima sesión.
     try {
-      const path = join(homedir(), '.local', 'share', 'opencode', 'mcp-auth.json');
+      const path = join(home, '.local', 'share', 'opencode', 'mcp-auth.json');
       const store = JSON.parse(readFileSync(path, 'utf-8')) as Record<string, OpenCodeAuthEntry>;
       const e = store[serverName];
       if (e?.tokens) {
@@ -398,7 +405,7 @@ async function listToolsFor(spec: ServerSpec): Promise<InventoryServer> {
   // Remote: con headers declarados (bearer) o con token OAuth de OpenCode se
   // inventaría vía HTTP streamable; sin credencial queda diferido (no es fallo).
   if (spec.url && !spec.headers) {
-    const oauthToken = await resolveRemoteOAuthToken(spec.name);
+    const oauthToken = await resolveRemoteOAuthToken(spec.name, { serverUrl: spec.url });
     if (!oauthToken)
       return { ...base, tools: [], error: 'remote-oauth (no inventoria automático)' };
     spec = { ...spec, headers: { Authorization: `Bearer ${oauthToken}` } };
