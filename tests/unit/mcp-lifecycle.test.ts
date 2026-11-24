@@ -49,6 +49,34 @@ function surface(id: string, entries: Record<string, Record<string, unknown>>): 
 }
 
 describe('censo de MCPs', () => {
+  it('validar política sin historial conserva toda la deriva y no afirma uso medido', () => {
+    const root = fixtureRoot({
+      engram: { activation: 'always-on' },
+      rea: { activation: 'on-demand' },
+    });
+    const logs = join(root, '.minimax', 'v2', 'sessions', 'fixture');
+    mkdirSync(logs, { recursive: true });
+    writeFileSync(
+      join(logs, 'messages.jsonl'),
+      JSON.stringify({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'toolCall', name: 'mcp__engram__mem_search', arguments: '{}' }],
+        },
+      }) + '\n',
+    );
+    const surfaces = [surface('kimi', { rea: { command: 'node', args: ['rea.mjs', 'mcp'] } })];
+    const full = buildCensus(root, root, 365, { surfaces });
+    const policyOnly = buildCensus(root, root, 365, { surfaces, includeUsage: false });
+    assert.deepEqual(policyOnly.drift, full.drift);
+    assert.ok(full.drift.some((item) => item.server === 'engram'));
+    assert.ok(full.drift.some((item) => item.server === 'rea'));
+    assert.ok(full.servers.some((item) => item.server === 'engram' && item.usage.invocations > 0));
+    assert.equal(policyOnly.usage.calibration, 'NOT-MEASURED');
+    assert.equal(policyOnly.usage.days, 0);
+    assert.equal(policyOnly.servers.find((item) => item.server === 'engram')?.usage.invocations, 0);
+    assert.notEqual(full.usage.calibration, 'NOT-MEASURED');
+  });
   it('normaliza la firma: el mismo binario con paths distintos es el mismo server', () => {
     assert.equal(
       signatureOf({ command: 'C:\\Users\\x\\bin\\engram.exe', args: ['mcp'] }),

@@ -684,19 +684,22 @@ export function buildCensus(
   root = resolve(process.cwd()),
   home = homedir(),
   days = 365,
-  options: { surfaces?: Surface[] } = {},
+  options: { surfaces?: Surface[]; includeUsage?: boolean } = {},
 ): Census {
   const policy = loadPolicy(root);
   const registry = loadRegistry(root);
   const surfaces = (options.surfaces ?? listSurfaces(root, home)).map((surface) =>
     readSurface(surface),
   );
-  const usage = auditMcpUsage(days, home, root);
+  // La deriva depende de configuración actual, no de leer todos los transcripts.
+  // El censo completo sigue midiendo uso por defecto; --policy opta por no medirlo.
+  const usage = options.includeUsage === false ? null : auditMcpUsage(days, home, root);
+  const observedServers = usage?.observedServers ?? [];
   const identities = buildIdentities(
     policy,
     registry,
     surfaces,
-    usage.observedServers.map((s) => s.server),
+    observedServers.map((s) => s.server),
   );
 
   // Uso por servidor OBSERVADO (declarado o no): medir solo lo declarado
@@ -705,7 +708,7 @@ export function buildCensus(
     string,
     { invocations: number; lastHitAt: string | null; hosts: string[] }
   >();
-  for (const server of usage.observedServers) {
+  for (const server of observedServers) {
     usageByServer.set(server.server, {
       invocations: server.hits,
       lastHitAt: server.lastHitAt,
@@ -826,11 +829,13 @@ export function buildCensus(
     }
 
     const declaredAnywhere = surfaceRows.some((row) => row.state !== 'absent');
-    const verdict = !declaredAnywhere
-      ? 'no declarado en ninguna superficie'
-      : invocations > 0
-        ? `en uso (${invocations} invocaciones en ${days} dias)`
-        : 'declarado pero sin invocaciones medidas';
+    const verdict = !usage
+      ? 'uso no medido (censo de configuración)'
+      : !declaredAnywhere
+        ? 'no declarado en ninguna superficie'
+        : invocations > 0
+          ? `en uso (${invocations} invocaciones en ${days} dias)`
+          : 'declarado pero sin invocaciones medidas';
 
     servers.push({
       server: identity.canonical,
@@ -885,9 +890,9 @@ export function buildCensus(
     servers,
     drift,
     usage: {
-      days,
-      calibration: usage.calibration.pass ? 'PASS' : 'FAIL',
-      hostsWithoutData: usage.hostsWithoutData,
+      days: usage ? days : 0,
+      calibration: usage ? (usage.calibration.pass ? 'PASS' : 'FAIL') : 'NOT-MEASURED',
+      hostsWithoutData: usage?.hostsWithoutData ?? [],
     },
     policySources: {
       policy: Object.keys(policy.servers).length,
