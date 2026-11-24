@@ -80,6 +80,8 @@ test('missing report surfaces as MISSING-REPORT, never auto-burned', () => {
   assert.equal(mine.action, 'surfaced');
   assert.equal(mine.overall, 'MISSING-REPORT');
   assert.equal(mine.reportFile, null);
+  // el outcome originalmente staged se conserva en la escalada (la unica traza)
+  assert.match(mine.detail, /staged PASS/);
   assert.ok(getPendingAck(closeAckResource('20260831-1220')));
 });
 

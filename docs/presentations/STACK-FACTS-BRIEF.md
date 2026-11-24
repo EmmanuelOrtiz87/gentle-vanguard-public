@@ -1,6 +1,6 @@
 # GentleVanguard · Stack facts de referencia
 
-Generados el 2026-11-21T19:41:06.194Z desde configuración, archivos y SQLite read-only. Fuente: [inventario JSON](../generated/stack-facts.json) y [Markdown](../generated/STACK-FACTS.md). Regenerar con npm run stack:facts y luego npm run docs:presentations:sync.
+Generados el 2026-11-23T21:45:14.728Z desde configuración, archivos y SQLite read-only. Fuente: [inventario JSON](../generated/stack-facts.json) y [Markdown](../generated/STACK-FACTS.md). Regenerar con npm run stack:facts y luego npm run docs:presentations:sync.
 
 - Versión: 4.5.0.
 - Skills: 263 canónicas (265 indexadas, 29 críticas).

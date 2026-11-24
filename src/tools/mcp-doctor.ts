@@ -417,7 +417,7 @@ async function main(): Promise<void> {
     // (repo, cursor, cline, opencode, codex, kimi, claude), no solo con la
     // config de OpenCode. Sin esto, `rea`Declared on-demand podia seguir
     // levantandose en codex/kimi/claude sin que nadie lo viera.
-    const census = buildCensus(process.cwd(), homedir());
+    const census = buildCensus(process.cwd(), homedir(), 365, { includeUsage: false });
     const multiSurface = census.drift.map(
       (item) =>
         `[deriva] ${item.surface}/${item.server}: ${item.problem} (esperado ${item.expected}, real ${item.actual})`,

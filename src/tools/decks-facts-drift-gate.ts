@@ -51,7 +51,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { collectStackFacts } from '../ops/stack-facts.js';
+import { collectStackFacts, countWatchtowerComponents } from '../ops/stack-facts.js';
 
 // ─── Hechos del repo ────────────────────────────────────────────────────────
 
@@ -127,32 +127,13 @@ function walkFiles(dir: string, out: string[] = []): string[] {
 
 let rootDir = '.';
 
-/** Cuenta los componentes del watchtower leidos de su propio codigo. */
-function countWatchtowerComponents(root: string): number {
-  const dir = join(root, 'src', 'core', 'watchtower');
-  const files: string[] = [];
-  try {
-    for (const name of readdirSync(dir)) {
-      if (name.endsWith('.ts')) files.push(join(dir, name));
-    }
-  } catch {
-    return 0;
-  }
-  const orchestrator = join(root, 'src', 'core', 'maintenance-watchtower.ts');
-  if (existsSync(orchestrator)) files.push(orchestrator);
-  const components = new Set<string>();
-  const re = /addResult\(\s*'([a-z0-9][a-z0-9-]*)'/g;
-  for (const file of files) {
-    const source = readFileSync(file, 'utf8');
-    let match: RegExpExecArray | null;
-    while ((match = re.exec(source)) !== null) {
-      // `system` es el componente de emergencia que se usa cuando un check
-      // tira excepcion: no es un componente vigilado, es un contenedor de error.
-      if (match[1] === 'system') continue;
-      components.add(match[1]);
-    }
-  }
-  return components.size;
+/**
+ * Cuenta los componentes del watchtower leidos de su propio codigo.
+ * La medicion vive en src/ops/stack-facts.ts (hecho compartido): el reconciler
+ * y este gate tienen que contar LO MISMO, o el deck y el gate discuten.
+ */
+function countWatchtowerComponentsLocal(root: string): number {
+  return countWatchtowerComponents(root);
 }
 
 /** Catalogo publico de Academy: es lo que el cliente puede comprar. */
@@ -284,7 +265,7 @@ export function measureFacts(root: string): { facts: DeckFacts; source: 'git' | 
       bindings,
     },
     scale: { tsFiles, testFiles, npmScripts, apps },
-    watchtower: { components: countWatchtowerComponents(root) },
+    watchtower: { components: countWatchtowerComponentsLocal(root) },
     academy: readAcademyCatalog(root),
     ci: { workflows },
   };

@@ -28,6 +28,8 @@ import { processPrivacyInput } from '../security/privacy-gateway.js';
 import { enforceChatLevel, ChatLevel } from '../orchestration/chat-level-enforcer.js';
 
 // Proactive Intelligence integration
+import { recall, formatRecall } from '../knowledge/engram-recall.js';
+
 interface ProactiveSuggestion {
   id: string;
   type: 'skill' | 'command' | 'context' | 'reminder' | 'action';
@@ -242,6 +244,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Stage 4: Proactive Intelligence - Get contextual suggestions
   const proactiveSuggestions = getProactiveSuggestions(workspaceRoot);
 
+  // Stage 5: Engram recall — las lecciones que el stack ya aprendió, devueltas
+  // al agente. Sin esto, Engram es un cementero (128 escrituras / 7 búsquedas):
+  // el conocimiento se acumulaba sin recuperarse nunca.
+  const recalled = recall(input, { workspaceRoot });
+
   const durationMs = Date.now() - startTime;
 
   if (json) {
@@ -255,6 +262,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         budgetOptimized: budgetCheck.shouldOptimize,
         proactiveSuggestions: proactiveSuggestions?.suggestions ?? 0,
         proactiveConfidence: proactiveSuggestions?.confidence ?? 0,
+        engramRecall: {
+          query: recalled.query,
+          lessons: recalled.lessons.length,
+          source: recalled.source,
+          reason: recalled.reason ?? null,
+        },
         durationMs,
         output,
       }),
@@ -271,6 +284,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       }
       console.error('');
     }
+    // Lecciones previas relevantes (Engram): el agente no depende de acordarse
+    // de buscar; el hook le devuelve lo que ya se aprendió.
+    for (const line of formatRecall(recalled)) console.error(line);
     console.log(output);
   }
 }

@@ -25,6 +25,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 
 import {
   auditRetention,
@@ -192,4 +194,98 @@ test('la política real del repo está versionada y tiene reglas', () => {
   assert.ok(policy.prune.length > 0, 'hay reglas de poda');
   assert.ok(policy.preserve.length > 0, 'hay reglas de conservación');
   assert.equal(policy.logs.maxAgeDays, 7);
+});
+
+test('la simulación lee cada directorio una sola vez sin perder tamaños, logs ni pidfiles', (t) => {
+  const root = makeRoot({
+    prune: [{ path: 'backups', maxAgeDays: 14, maxMb: 0 }],
+  });
+  touch(root, 'backups/viejo/data.bin', 40, 2 * 1024 * 1024);
+  touch(root, 'backups/nuevo/data.bin', 1, 3 * 1024 * 1024);
+  touch(root, 'unknown/viejo.log', 40);
+  touch(root, 'unknown/muerto.pid', 1);
+  writeFileSync(join(root, '.runtime', 'unknown', 'muerto.pid'), '99999999');
+  const reads = new Map<string, number>();
+  const original = fs.readdirSync;
+  const spy = t.mock.method(fs, 'readdirSync', (...args: Parameters<typeof fs.readdirSync>) => {
+    const path = String(args[0]);
+    if (path.startsWith(join(root, '.runtime'))) reads.set(path, (reads.get(path) ?? 0) + 1);
+    return Reflect.apply(original, fs, args);
+  });
+  syncBuiltinESMExports();
+  let report: ReturnType<typeof auditRetention>;
+  try {
+    report = auditRetention({ root });
+  } finally {
+    spy.mock.restore();
+    syncBuiltinESMExports();
+  }
+  assert.deepEqual(
+    report.pruned.map((p) => p.path),
+    ['backups/viejo'],
+  );
+  assert.equal(report.pruned[0].sizeMb, 2);
+  assert.equal(report.overCap.length, 1);
+  assert.equal(report.logsPruned, 1);
+  assert.equal(report.stalePidfiles.length, 1);
+  assert.equal(report.unclassified[0].path, 'unknown');
+  assert.ok(existsSync(join(root, '.runtime', 'backups', 'viejo', 'data.bin')));
+  assert.equal(reads.size, 5, 'se inspeccionó todo el árbol, no se omitió trabajo');
+  assert.ok(
+    [...reads.values()].every((count) => count === 1),
+    `lecturas repetidas: ${JSON.stringify([...reads])}`,
+  );
+});
+
+test('una nueva simulación vuelve a medir los archivos creados después de la anterior', () => {
+  const root = makeRoot();
+  touch(root, 'unknown/a.bin', 1, 1024 * 1024);
+  const first = auditRetention({ root });
+  touch(root, 'unknown/b.bin', 1, 2 * 1024 * 1024);
+  touch(root, 'unknown/old.log', 30, 1024 * 1024);
+  const second = auditRetention({ root });
+  assert.equal(first.totalMb, 1);
+  assert.equal(second.totalMb, 4);
+  assert.equal(second.unclassified[0].files, 3);
+  assert.equal(second.logsPruned, 1);
+});
+
+test('al aplicar se vuelve a medir después del borrado y se conserva el miembro más reciente', () => {
+  const root = makeRoot({
+    prune: [{ path: 'backups', maxAgeDays: 14, keepNewest: 1, maxMb: 4 }],
+  });
+  touch(root, 'backups/old/data.bin', 40, 2 * 1024 * 1024);
+  touch(root, 'backups/new/data.bin', 30, 3 * 1024 * 1024);
+  const report = auditRetention({ root, apply: true });
+  assert.equal(report.applied, true);
+  assert.equal(report.freedMb, 2);
+  assert.equal(report.overCap.length, 0, 'el tope usa el tamaño después de borrar');
+  assert.ok(!existsSync(join(root, '.runtime', 'backups', 'old')));
+  assert.ok(existsSync(join(root, '.runtime', 'backups', 'new', 'data.bin')));
+});
+
+test('un borrado fallido no descuenta bytes del tope ni reutiliza tamaños simulados', (t) => {
+  const root = makeRoot({
+    prune: [{ path: 'backups', maxAgeDays: 14, keepNewest: 1, maxMb: 4 }],
+  });
+  touch(root, 'backups/old/data.bin', 40, 2 * 1024 * 1024);
+  touch(root, 'backups/new/data.bin', 30, 3 * 1024 * 1024);
+  auditRetention({ root });
+  const original = fs.rmSync;
+  const spy = t.mock.method(fs, 'rmSync', (...args: Parameters<typeof fs.rmSync>) => {
+    if (String(args[0]) === join(root, '.runtime', 'backups', 'old'))
+      throw new Error('fixture: denied');
+    return Reflect.apply(original, fs, args);
+  });
+  syncBuiltinESMExports();
+  let report: ReturnType<typeof auditRetention>;
+  try {
+    report = auditRetention({ root, apply: true });
+  } finally {
+    spy.mock.restore();
+    syncBuiltinESMExports();
+  }
+  assert.ok(report.escalations.some((message) => message.includes('fixture: denied')));
+  assert.equal(report.overCap.length, 1, 'el archivo que no se pudo borrar sigue ocupando espacio');
+  assert.ok(existsSync(join(root, '.runtime', 'backups', 'old', 'data.bin')));
 });

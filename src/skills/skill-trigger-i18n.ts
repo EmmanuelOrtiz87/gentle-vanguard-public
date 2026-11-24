@@ -261,8 +261,15 @@ export function syncTriggers(
     // is a ReDoS shape (rejected by security/detect-unsafe-regex), and these
     // operations need exact key-line and item-line boundaries anyway.
     const lines = frontmatter.split('\n');
-    const topKeyIndex = lines.findIndex((line) => /^triggers:[ \t]/.test(line));
-    const nestedKeyIndex = lines.findIndex((line) => /^[ \t]+triggers:[ \t]/.test(line));
+    // Match both a bare `triggers:` line (what this file writes) and an inline
+    // `triggers: [a, b]`. Requiring a trailing space missed the bare form, so a
+    // second sync appended a duplicate key and YAML rejected the whole frontmatter.
+    // String checks instead of `triggers:(?:\s.*)?$`: the optional group is the
+    // ReDoS shape eslint rejects, and a prefix test is exactly what `^` meant here.
+    const topKeyIndex = lines.findIndex((line) => line.startsWith('triggers:'));
+    const nestedKeyIndex = lines.findIndex(
+      (line) => /^[ \t]/.test(line) && line.trimStart().startsWith('triggers:'),
+    );
 
     if (topKeyIndex !== -1) {
       const indent = (lines[topKeyIndex].match(/^[ \t]*/) ?? [''])[0];

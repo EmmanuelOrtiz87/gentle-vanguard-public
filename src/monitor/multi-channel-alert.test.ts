@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { describe, it, before, after } from 'node:test';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -203,6 +203,22 @@ describe('mcas: el emisor externo entrega de verdad', () => {
     } finally {
       server.close();
     }
+  });
+
+  it('AISLAMIENTO: el store del dashboard tambien se redirige con MCAS_STATE_DIR', async () => {
+    // Regresion 2026-11-24: sendToDashboard ignoraba el override y los probes
+    // de contrato quedaban en `.session/alerts/realtime.json`, el store real.
+    await sendAlert(
+      { severity: 'info', category: 'contract-test', message: 'MCAS dashboard redirect probe' },
+      buildConfig({}),
+    );
+    const redirected = join(stateDir, 'realtime.json');
+    assert.ok(existsSync(redirected), 'el store redirigido deberia existir');
+    const stored = JSON.parse(readFileSync(redirected, 'utf-8')) as Array<{ message?: string }>;
+    assert.ok(
+      stored.some((entry) => entry.message === 'MCAS dashboard redirect probe'),
+      'la alerta deberia quedar en el store temporal, no en el del dashboard',
+    );
   });
 });
 

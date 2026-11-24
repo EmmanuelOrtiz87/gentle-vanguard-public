@@ -13,6 +13,8 @@
     "academy:sync": "npx tsx src/ops/academy-auto-updater.ts sync",
     "academy:sync:check": "npx tsx src/ops/academy-auto-updater.ts check",
     "academy:validate": "npx tsx src/ops/academy-auto-updater.ts validate",
+    "academy:gates": "node apps/academy-web/scripts/verify-academy-gates.mjs",
+    "academy:artifacts": "node apps/academy-web/scripts/verify-generated-artifacts.mjs",
     "actors:inventory": "node --import tsx src/ops/uncommitted-actor-inventory.ts",
     "agenda:parity": "node --import tsx src/ops/agenda-parity.ts",
     "agenda:sync": "node --import tsx src/ops/agenda-parity.ts --apply",
@@ -156,6 +158,10 @@
     "decks:export:png": "pnpm --filter @gentle-vanguard/decks export:png",
     "decks:facts": "node --import tsx src/tools/decks-facts-drift-gate.ts",
     "decks:facts:show": "node --import tsx src/tools/decks-facts-drift-gate.ts --facts",
+    "docs:facts:check": "node --import tsx src/tools/docs-facts-drift-gate.ts",
+    "docs:facts:show": "node --import tsx src/tools/docs-facts-drift-gate.ts --facts",
+    "duplicates:check": "node --import tsx src/tools/duplicate-mechanism-gate.ts",
+    "duplicates:show": "node --import tsx src/tools/duplicate-mechanism-gate.ts --json",
     "decks:guion": "node --import tsx src/tools/decks-guion-coverage-gate.ts",
     "decks:hero": "pnpm --filter @gentle-vanguard/decks hero",
     "decks:hero:ai": "pnpm --filter @gentle-vanguard/decks hero:ai",
@@ -718,7 +724,10 @@
     "windows:flash-watch": "node --import tsx src/ops/console-flash-watch.ts",
     "agent:compat": "node --import tsx src/ops/agent-compat-audit.ts",
     "release:manual": "node --import tsx src/ops/release-manual.ts",
-    "publish:public": "node --import tsx src/infrastructure/sync-to-public.ts"
+    "publish:public": "node --import tsx src/infrastructure/sync-to-public.ts",
+    "academy:delivery": "node apps/academy-portal/scripts/verify-delivery-contract.mjs",
+    "owasp:top10:agentic": "npx tsx src/security/owasp/owasp-agentic-top10.ts report --agentic --strict",
+    "atlassian:report": "node --import tsx src/atlassian/reports/ott-confluence/cli.ts"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "0.8.0",

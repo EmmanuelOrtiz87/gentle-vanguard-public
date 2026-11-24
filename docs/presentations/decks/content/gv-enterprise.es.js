@@ -144,7 +144,7 @@ export default {
         },
         {
           label: 'Aplicaciones',
-          body: '28 apps propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '29 apps propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '06b6d4',
         },
       ],
@@ -164,7 +164,7 @@ export default {
           accent: '06b6d4',
         },
         {
-          value: '653',
+          value: '801',
           label: 'Archivos de test',
           sub: 'Unit, e2e, integración, seguridad y skills',
           accent: '8b5cf6',
@@ -248,8 +248,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '70 quality gates',
-          body: '24 en pre-commit, 2 en commit-msg, 2 en post-commit, 28 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 65 de 70 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
+          heading: '76 quality gates',
+          body: '26 en pre-commit, 2 en commit-msg, 2 en post-commit, 32 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 71 de 76 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
         },
         {
           icon: 'search',

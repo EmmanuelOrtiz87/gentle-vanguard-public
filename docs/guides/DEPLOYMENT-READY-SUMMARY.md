@@ -297,7 +297,7 @@ cd gentle-vanguard
 - **GitFlow Guide**: `docs/guides/GITFLOW-QUICK-REFERENCE.md`
 - **Standards**: `docs/guides/SCRIPT-NORMALIZATION-STANDARDS.md`
 - **Troubleshooting**: `docs/guides/GITHUB-ACTIONS-TROUBLESHOOTING.md`
-- **AI Tools**: `docs/guides/AI-TOOLS-COMPATIBILITY-MATRIX.md`
+- **AI Tools (histórico)**: `docs/guides/archive/AI-TOOLS-COMPATIBILITY-MATRIX.md`
 - **Optimization**: `docs/guides/DEPLOYMENT-OPTIMIZATION-GUIDE.md`
 
 ### Getting Help

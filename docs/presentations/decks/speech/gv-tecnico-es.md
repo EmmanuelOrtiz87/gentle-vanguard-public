@@ -32,7 +32,7 @@ durante la primera semana.
 **Preguntas esperadas:**
 
 - **P:** ¿Esto es un producto que se vende o un desarrollo interno? **R:** Es un stack propio: el
-  repositorio que está abierto acá. Las 28 aplicaciones de `apps/` son desarrollos internos
+  repositorio que está abierto acá. Las 29 aplicaciones de `apps/` son desarrollos internos
   nuestros, no casos de clientes.
 - **P:** ¿Cuál es la diferencia con el tooling que ya uso? **R:** El stack no reemplaza tu editor ni
   tu terminal: los envuelve con memoria entre sesiones, gates que corren solos y trazas. Si solo
@@ -85,7 +85,7 @@ durante la primera semana.
 
 > La separación entre carpetas no es estética: es lo que permite que las validaciones sean
 > automáticas, porque cada frontera tiene un dueño y un criterio. `src/` es el stack, `apps/` son
-> las 28 aplicaciones propias que operan sobre él y sirven de banco de pruebas de la arquitectura en
+> las 29 aplicaciones propias que operan sobre él y sirven de banco de pruebas de la arquitectura en
 > condiciones reales, `tests/` es la red de seguridad y `config/` es la fuente única de todo lo que
 > se puede cambiar. Si una carpeta empieza a hacer lo de otra, la validación automática deja de
 > poder referenciar una ruta estable.

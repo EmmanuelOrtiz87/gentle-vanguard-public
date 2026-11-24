@@ -311,7 +311,7 @@ for (const name of pages) {
     page: name,
     topic: entry[0],
     sources: entry[1],
-    reviewed: '2026-10-20',
+    reviewed: facts.generatedAt.slice(0, 10),
     scope:
       'Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.',
     historicalMarketingCollapsed: name === 'marketing.html',
@@ -343,7 +343,18 @@ save(
 // a "skills"/"capacidades" — "29 críticas" y otros números quedan intactos.
 const skillsIndexed: number = facts.skills.indexed,
   skillsCanonical: number = facts.skills.canonical;
-const countPatches: [RegExp, string | ((m: string) => string)][] = [
+const watchtowerChecks: number = facts.watchtower.checks;
+// COMPONENTES != CHECKS: 36 subsistemas vigilados vs 38 checks registrados.
+// Reescribir "N componentes" con el numero de checks hacia que los decks
+// anuncien "38 componentes" cuando hay 36: una afirmacion falsa en la sala.
+const watchtowerComponents: number = facts.watchtower.components;
+const ruleFiles: number = facts.governance.ruleFiles;
+const npmScripts: number = facts.tooling.npmScripts;
+const agentsOpencode: number = facts.agents.opencode;
+const typescriptFiles: number = facts.tooling.typescriptFiles;
+const pipelineSteps: number = facts.pipeline.autostartSteps;
+const pipelineStepsEnabled: number = facts.pipeline.autostartStepsEnabled;
+const countPatches: [RegExp, string | ((m: string, ...args: string[]) => string)][] = [
   [/\b\d{2,3} skills (reutilizables|indexadas|across)/g, `${skillsIndexed} skills $1`],
   [/\b\d{2,3} capacidades con contrato/g, `${skillsIndexed} capacidades con contrato`],
   [/\b\d{2,3} skills canónicas/g, `${skillsCanonical} skills canónicas`],
@@ -355,17 +366,105 @@ const countPatches: [RegExp, string | ((m: string) => string)][] = [
     /<div class="stat-n">\d{2,3}<\/div><div class="stat-l" data-i18n="presence_skills">/g,
     `<div class="stat-n">${skillsIndexed}</div><div class="stat-l" data-i18n="presence_skills">`,
   ],
+
+  // Watchtower: checks registrados. El subconjunto ejecutado depende del entorno.
+  [/\b\d{2} componentes vigilados\b/g, `${watchtowerComponents} componentes vigilados`],
+  [/\b\d{2} components watched\b/g, `${watchtowerComponents} components watched`],
+  [/\b\d{2} componentes monitoreados\b/g, `${watchtowerComponents} componentes monitoreados`],
+  [/\b\d{2} componentes vigiados\b/g, `${watchtowerComponents} componentes vigiados`],
+  [/\b\d{2} components are monitored\b/g, `${watchtowerComponents} components are monitored`],
+  [/\b\d{2} components are watched\b/g, `${watchtowerComponents} components are watched`],
+  [/(Watchtower — )\d{2} (componentes|components)/g, `$1${watchtowerComponents} $2`],
+  [/\bacross \d{2} components\b/g, `across ${watchtowerComponents} components`],
+  [/\ben los \d{2} componentes\b/g, `en los ${watchtowerComponents} componentes`],
+  [/\ben \d{2} componentes\b/g, `en ${watchtowerComponents} componentes`],
+  [/\bclasifica los \d{2} componentes\b/g, `clasifica los ${watchtowerComponents} componentes`],
+  // Portugués: "nos/em N componentes".
+  [/\bnos \d{2} componentes\b/g, `nos ${watchtowerComponents} componentes`],
+  [/\bem \d{2} componentes\b/g, `em ${watchtowerComponents} componentes`],
+  [/\b\d{2} componentes monitorados\b/g, `${watchtowerComponents} componentes monitorados`],
+
+  // Gobernanza: archivos de reglas en rules/.
+  [/\b\d{2} rule files\b/g, `${ruleFiles} rule files`],
+  [/\b\d{2} Rule Files\b/g, `${ruleFiles} Rule Files`],
+  [/\b\d{2}\+ normatives\b/g, `${ruleFiles}+ normatives`],
+  [/rule files spanning \d+ categories/g, `rule files in rules/`],
+
+  // Tooling.
+  [/\b\d{3} npm scripts\b/g, `${npmScripts} npm scripts`],
+  [/more than \d{3} TypeScript files/g, `more than ${typescriptFiles} TypeScript files`],
+  [/\b\d{3} arquivos TypeScript\b/g, `${typescriptFiles} arquivos TypeScript`],
+
+  // Agentes y skills en prosa y en contadores con data-count.
+  [/\b\d{1,2} Specialized Agents\b/g, `${agentsOpencode} Specialized Agents`],
+  [/\b\d{1,2} specialized subagents\b/g, `${agentsOpencode} specialized subagents`],
+  [/\b\d{1,2} specialized agents\b/g, `${agentsOpencode} specialized agents`],
+  [/\((\d+) Specialized\)/g, `(${agentsOpencode} Specialized)`],
+  [/\b\d{1,2} AI agents\b/g, `${agentsOpencode} AI agents`],
+  [/\b\d{3} habilidades em\b/g, `${skillsIndexed} habilidades em`],
+  [
+    /data-count="\d+">\d+<\/div>(\s*<div class="stat-l">Agents<\/div>)/g,
+    (_m: string, tail: string) => `data-count="${agentsOpencode}">${agentsOpencode}</div>${tail}`,
+  ],
+  [
+    /data-count="\d+">\d+<\/div>(\s*<div class="stat-l">\s*<span[^>]*>Monitored Components)/g,
+    (_m: string, tail: string) =>
+      `data-count="${watchtowerChecks}">${watchtowerChecks}</div>${tail}`,
+  ],
+  [
+    /data-count="\d+">\d+<\/div>(\s*<div class="stat-l">Pipeline Steps<\/div>)/g,
+    (_m: string, tail: string) => `data-count="${pipelineSteps}">${pipelineSteps}</div>${tail}`,
+  ],
+  [
+    /data-count="\d+">\d+<\/div>(\s*<div class="stat-l">Skills<\/div>)/g,
+    (_m: string, tail: string) => `data-count="${skillsIndexed}">${skillsIndexed}</div>${tail}`,
+  ],
+  [
+    /<div class="stat-n"><span data-count="\d+">\d+<\/span>\/\d+<\/div>/g,
+    () =>
+      `<div class="stat-n"><span data-count="${pipelineStepsEnabled}">${pipelineStepsEnabled}</span>/${pipelineSteps}</div>`,
+  ],
+
+  // Pipeline de sesión.
+  [/\b\d{2,3} Pipeline Steps\b/g, `${pipelineSteps} Pipeline Steps`],
+  [/\b\d{2,3} pipeline steps\b/g, `${pipelineSteps} pipeline steps`],
+  [/\(Phase 1: \d+\)/g, `(Phase 1: ${facts.pipeline.autostartStepsPhase1})`],
+
+  // Contexto de stack embebido en demos (resources-index).
+  [/(\bfiles: )\d{3}(,)/g, `$1${typescriptFiles}$2`],
+  [/(\btests: )\d{2,3}(,)/g, `$1${facts.tooling.testFiles}$2`],
+  [/(\bskills: )\d{2,3}(,)/g, `$1${skillsIndexed}$2`],
+  [/(\bagents: )\d{1,2}(,)/g, `$1${agentsOpencode}$2`],
+  [/(\bhealth: )\d{2,3}(,)/g, `$1${watchtowerChecks}$2`],
+
+  // Insignia de versión: la identidad de la página es la versión vigente.
+  // Dos patrones planos en vez de uno con grupo opcional: un cuantificador
+  // dentro de un grupo cuantificado es la forma que el gate de lint
+  // (`security/detect-unsafe-regex`) rechaza como ReDoS.
+  [/✦ v\d+\.\d+\.\d+ —/g, `✦ v${version} —`],
+  [/✦ v\d+\.\d+ —/g, `✦ v${version} —`],
+  [
+    // La fecha del badge es la FECHA DE LA EVIDENCIA citada (la del assessment
+    // que la página enlaza), no la fecha en que se regeneraron los hechos.
+    // Ponerle el reloj hacia que la página afirmara una medición que no se hizo
+    // ese día: por eso acá sólo se NORMALIZA el formato a DD-MM-YYYY y la fecha
+    // no se inventa. (Regresión 2026-11-23: el sync la sobrescribió con
+    // `generatedAt` y dejó de_assertar la evidencia del assessment.)
+    /Estado técnico observado · (\d{4})-(\d{2})-(\d{2})/g,
+    (_match, year: string, month: string, day: string) =>
+      `Estado técnico observado · ${day}-${month}-${year}`,
+  ],
 ];
 const countFiles = [
+  ...pages,
   'decks/content/gv-enterprise.es.js',
   'decks/content/gv-tecnico.es.js',
-  'agents-pipeline.html',
   'decks/content/gv-negocio-leads.en.js',
   'decks/content/gv-negocio-leads.es.js',
   'decks/build/manual.js',
+  'assets/js/i18n.js',
+  'assets/js/i18n-extra.js',
   'assets/js/i18n-content.js',
-  'social-post.html',
-  'index.html',
   'FAQ.md',
   'decks/speech/README.md',
 ];
@@ -373,7 +472,8 @@ for (const rel of countFiles) {
   const p = join(dir, rel);
   if (!existsSync(p)) continue;
   let text = readFileSync(p, 'utf8');
-  for (const [re, rep] of countPatches) text = text.replace(re, rep as string);
+  for (const [re, rep] of countPatches)
+    text = text.replace(re, rep as (m: string, ...args: string[]) => string);
   save(p, text);
 }
 if (drift) process.exitCode = 1;

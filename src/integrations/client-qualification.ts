@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { runSync, runNpxTsxSync } from '../core/run-command.js';
 import { auditTools } from './tool-interoperability-audit.js';
-import { freshProbe, inventoryCoverage, qualificationExit, bindingObservation, type ProbeRecord } from './client-runtime-evidence.js';
+import { freshProbe, inventoryCoverage, qualificationExit, bindingObservation, memoryTransportObservation, type ProbeRecord } from './client-runtime-evidence.js';
 import Database from 'better-sqlite3';
 import { EventRepo } from '../database/nexus/repositories/EventRepo.js';
 
@@ -96,9 +96,16 @@ function main(): void {
       fingerprint: configFingerprint, recordedAt: probeRecordedAt, result: probe,
     }, null, 2));
   }
-  const smoke = runNpxTsxSync(fileURLToPath(new URL('./engram-mcp-smoke.ts', import.meta.url)), [], { cwd: root, timeout: 10000 });
-  let memoryTransport: { status: string; toolCount?: number; listProjectsOk?: boolean } = { status: 'FAIL' };
-  try { const parsed = JSON.parse(smoke.stdout); if (smoke.status === 0 && parsed.status === 'PASS' && parsed.listProjectsOk === true) memoryTransport = { status: 'PASS', toolCount: parsed.toolCount, listProjectsOk: true }; } catch { /* non-JSON is not success */ }
+  const smokePath = fileURLToPath(new URL('./engram-mcp-smoke.ts', import.meta.url));
+  let smoke = runNpxTsxSync(smokePath, [], { cwd: root, timeout: 10000 });
+  let memoryProbeAttempts = 1;
+  if ((smoke.error as NodeJS.ErrnoException | null)?.code === 'ETIMEDOUT') {
+    // Una sola repetición de lectura, con margen para carga. Nunca un PASS sintético.
+    smoke = runNpxTsxSync(smokePath, [], { cwd: root, timeout: 30000 });
+    memoryProbeAttempts++;
+  }
+  const memoryTransport = { ...memoryTransportObservation(smoke.status, smoke.stdout,
+    (smoke.error as NodeJS.ErrnoException | null)?.code), attempts: memoryProbeAttempts };
   const report = { generatedAt: new Date().toISOString(), clients, codex: {
     ...bindingObservation(identityConfirmed),
     resolverExit: binding?.status ?? null,

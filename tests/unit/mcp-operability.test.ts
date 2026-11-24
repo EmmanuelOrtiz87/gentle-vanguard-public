@@ -26,6 +26,17 @@ import {
 import { checkDemandMap, loadDemandMap } from '../../src/tools/mcp-suggest.js';
 
 describe('probe de operabilidad MCP', () => {
+  it('una cuota mensual agotada no es operable aunque falte isError', () => {
+    const message =
+      'Monthly quota exceeded. Create a free API key at https://context7.com/dashboard for more requests.';
+    assert.equal(classify(undefined, message, false), 'requiere-config');
+    assert.equal(classify(undefined, [{ type: 'text', text: message }], false), 'requiere-config');
+    assert.equal(
+      classify(undefined, 'Documentation: handle Monthly quota exceeded responses.'),
+      'ok',
+    );
+    assert.equal(classify(undefined, { results: [{ text: message }] }), 'ok');
+  });
   it('un 401 con OAuth es "requiere-config", no un fallo del stack', () => {
     // Medido: `mercadopago` responde 401 porque el token vive en el cliente.
     const status = classify(

@@ -38,6 +38,16 @@ opencode.json
 config/model-health-registry.json
 rules/adaptive/
 apps/academy-web/data/shared/files.js
+# Hechos del stack: los escribe src/ops/stack-facts.ts (JSON.stringify + markdown
+# plano). Formatearlos a mano sería churn perpetuo — el próximo `npm run
+# stack:facts` los devuelve al formato del generador y el gate de formato
+# vuelve a fallar. Misma política que los generadores de arriba: el dueño del
+# formato es el generador.
+docs/generated/stack-facts.json
+docs/generated/STACK-FACTS.md
+# Informe Atlassian: lo escribe la plantilla de src/atlassian/reports/ott-confluence
+# (string heredado con estilos propios). El dueño del formato es el generador.
+docs/atlassian/*.html
 # Fixtures de test con formato intencionalmente roto:
 test-opcode-broken.json
 test-agent-broken2.json

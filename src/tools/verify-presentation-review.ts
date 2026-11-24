@@ -1,7 +1,12 @@
 /** Regression: translated documents must not resurrect obsolete hero metrics or carousels. */
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+// El inventario vigente se lee del hecho generado: un literal fijo envejece con cada release.
+const facts = JSON.parse(readFileSync('docs/generated/stack-facts.json', 'utf8')) as {
+  skills: { indexed: number };
+  packageVersion: string;
+};
 const browser=await chromium.launch();
 const out='.runtime/qa-presentations-review';mkdirSync(out,{recursive:true});
 const results=[];
@@ -12,7 +17,7 @@ try {
     await page.evaluate(()=>document.fonts.ready);
     const hero=await page.locator('#overview').innerText();
     assert.ok(!/96\s*\/\s*96|Health PASS|100%|92\s*Skills|v4\.0/i.test(hero),`${lang}: stale hero metrics`);
-    assert.ok(hero.includes('254')&&hero.includes('4.2.0'),`${lang}: current inventory`);
+    assert.ok(hero.includes(String(facts.skills.indexed))&&hero.includes(facts.packageVersion),`${lang}: current inventory`);
     const layout=await page.locator('#overview').evaluate(el=>({title:el.querySelector('h1')!.getBoundingClientRect().bottom,lead:el.querySelector('.lead')!.getBoundingClientRect().top}));
     assert.ok(layout.lead>=layout.title,`${lang}: hero reads vertically without squeezed columns`);
     const footer=await page.locator('footer').innerText();

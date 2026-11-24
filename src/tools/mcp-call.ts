@@ -45,6 +45,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { runSync } from '../core/run-command.js';
 import { activationFor, loadPolicy } from '../mcp/mcp-policy.js';
+import { resolveRemoteOAuthToken } from '../mcp/mcp-inventory.js';
 
 const ROOT = resolve(process.cwd());
 const CALL_LOG = join(ROOT, '.runtime', 'mcp-calls.jsonl');
@@ -290,14 +291,27 @@ export function recordCall(entry: Record<string, unknown>, logPath = CALL_LOG): 
 /** Conecta al server y ejecuta tools/list (y opcionalmente tools/call). */
 export async function callServer(
   spec: ServerSpec,
-  options: { tool?: string; args?: Record<string, unknown>; timeoutMs?: number },
+  options: {
+    tool?: string;
+    args?: Record<string, unknown>;
+    timeoutMs?: number;
+    oauthHome?: string;
+  },
 ): Promise<CallOutcome> {
   const started = Date.now();
+  const oauthToken =
+    spec.transport === 'http'
+      ? await resolveRemoteOAuthToken(spec.name, { serverUrl: spec.url, home: options.oauthHome })
+      : undefined;
   // Un MCP remoto (transport=http) se habla por HTTP: no se levanta proceso.
   // El SDK exige el mismo handshake (initialize -> tools/list -> tools/call).
   const transport =
     spec.transport === 'http'
-      ? new StreamableHTTPClientTransport(new URL(spec.url ?? ''))
+      ? new StreamableHTTPClientTransport(new URL(spec.url ?? ''), {
+          requestInit: oauthToken
+            ? { headers: { Authorization: `Bearer ${oauthToken}` } }
+            : undefined,
+        })
       : new StdioClientTransport({
           command: spec.command,
           args: spec.args,

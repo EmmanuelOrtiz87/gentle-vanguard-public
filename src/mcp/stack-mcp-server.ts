@@ -35,11 +35,11 @@ import { join, resolve } from 'node:path';
 import { runNpxTsxSync, runSync } from '../core/run-command.js';
 import { loadPlatformRegistry, validate } from '../content-operations/engine.js';
 import { buildShortQueueIntent, createJobFromShortRequest } from '../content-operations/shorts.js';
+import { readStackFacts, type StackFactsSnapshot } from './stack-facts-reader.js';
 
 const ROOT = resolve(process.cwd());
 const APPS_DIR = join(ROOT, 'apps');
 const OPENCODE_AGENTS_DIR = join(ROOT, '.opencode', 'agents');
-const STACK_FACTS_PATH = join(ROOT, 'config', 'stack-facts.json');
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -82,16 +82,8 @@ function discoverApps(): AppInfo[] {
     });
 }
 
-function getStackFacts(): Record<string, unknown> {
-  // config/stack-facts.json es el snapshot canonico del estado del stack.
-  const facts = readJsonSafe<Record<string, unknown>>(STACK_FACTS_PATH);
-  if (facts) return facts;
-  // fallback: datos sinteticos si el facts file no existe (run nuevo)
-  return {
-    note: 'stack-facts.json no encontrado; datos sinteticos',
-    version: 'unknown',
-    appsDetected: discoverApps().length,
-  };
+function getStackFacts(): StackFactsSnapshot {
+  return readStackFacts(ROOT);
 }
 
 function listAgents(): string[] {
@@ -599,7 +591,7 @@ server.tool(
       }
     }
     const summary = {
-      stackVersion: facts.version ?? 'unknown',
+      stackVersion: facts.packageVersion,
       appsDetected: apps.length,
       appsWithPackageJson: apps.filter((a) => a.hasPackageJson).length,
       appsWithoutAuditScripts: apps

@@ -16,8 +16,9 @@
  */
 
 import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'fs';
-import { join, resolve } from 'path';
+import { basename, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { getPendingAck } from '../core/continuation.js';
 
 const ROOT = resolve(process.cwd());
 
@@ -305,16 +306,34 @@ function pruneBackups(dryRun: boolean): { removed: number; kept: number } {
 }
 
 /**
- * Prune old close reports
+ * Prune old close reports — but never a report that still backs a staged
+ * (undelivered) close ack: without the report the ack can no longer be
+ * auto-filed NOR reviewed, and it would linger as permanent MISSING-REPORT
+ * noise until the 30d ack retention burns it (observed 2026-11-24: seven
+ * pending acks, every report already pruned by the count limit).
  */
-function pruneCloseReports(dryRun: boolean): { removed: number; kept: number } {
-  const reports = getCloseReports();
-  if (reports.length <= CONFIG.maxCloseReports) {
-    log(`Close reports (${reports.length}) within limit (${CONFIG.maxCloseReports})`);
-    return { removed: 0, kept: reports.length };
+export function pruneCloseReports(
+  dryRun: boolean,
+  reports: string[] = getCloseReports(),
+): { removed: number; kept: number; heldBack: number } {
+  const backed = (report: string): boolean =>
+    getPendingAck(
+      `session.close.${basename(report)
+        .replace(/^close-report-/, '')
+        .replace(/\.json$/, '')}`,
+    ) !== null;
+
+  const candidates = reports.filter((r) => !backed(r));
+  const heldBack = reports.length - candidates.length;
+  if (heldBack > 0) {
+    log(`Close reports held back for pending acks: ${heldBack}`);
+  }
+  if (candidates.length <= CONFIG.maxCloseReports) {
+    log(`Close reports (${candidates.length}) within limit (${CONFIG.maxCloseReports})`);
+    return { removed: 0, kept: reports.length, heldBack };
   }
 
-  const toRemove = reports.slice(CONFIG.maxCloseReports);
+  const toRemove = candidates.slice(CONFIG.maxCloseReports);
   let removed = 0;
 
   for (const report of toRemove) {
@@ -332,7 +351,7 @@ function pruneCloseReports(dryRun: boolean): { removed: number; kept: number } {
   }
 
   log(`Close report retention: ${removed} removed, ${reports.length - removed} kept`);
-  return { removed, kept: reports.length - removed };
+  return { removed, kept: reports.length - removed, heldBack };
 }
 
 /**
@@ -446,6 +465,9 @@ function runPrune(dryRun: boolean = false) {
   console.log(`Checkpoints: ${checkpointResult.removed} removed, ${checkpointResult.kept} kept`);
   console.log(`Backups: ${backupResult.removed} removed, ${backupResult.kept} kept`);
   console.log(`Close Reports: ${reportResult.removed} removed, ${reportResult.kept} kept`);
+  if (reportResult.heldBack > 0) {
+    console.log(`  (${reportResult.heldBack} held back: pending close ack needs the report)`);
+  }
   console.log(`Temp Files: ${tempResult.removed} removed, ${tempResult.kept} kept`);
 
   console.log('\n═══════════════════════════════════════════\n');

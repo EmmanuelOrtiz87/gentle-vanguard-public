@@ -20,6 +20,9 @@
  *   - el presupuesto always-on tiene tope
  *
  * Regla propia del stack:
+ *   - un SKILL.md anidado es el runbook de su skill, no una skill cargable
+ *     (el cargador solo descubre directorios inmediatos): se le validan las
+ *     referencias a scripts, no el nombre ni el indice
  *   - NORM-TS-001: nada de .ps1 en la superficie editable
  *   - tripwire anti-contaminacion: ninguna marca de veredicto de evaluador
  *
@@ -255,8 +258,7 @@ function scriptIndex(): Map<string, string[]> {
  * entrar en backtracking catastrofico sobre un documento grande.
  */
 function scriptRefs(body: string): string[] {
-  const commandRe =
-    /(?:^|[\s"'`(\[])(?:node|python3?|bash|sh|npx|tsx|deno)\s+([^\s"'`)]+)/g;
+  const commandRe = /(?:^|[\s"'`(\[])(?:node|python3?|bash|sh|npx|tsx|deno)\s+([^\s"'`)]+)/g;
   const out = new Set<string>();
   for (const m of body.matchAll(commandRe)) {
     const token = m[1] as string;
@@ -294,17 +296,19 @@ const SCRIPT_REF_RE = /\.(ts|mts|cts|js|mjs|cjs|py|sh)$/;
  *
  * Cubre las convenciones que conviven en el stack: repo-root
  * (`scripts/x.mjs`), app (`apps/x/scripts/x.mjs`), skill
- * (`skills/<n>/scripts/x.mjs`) y relativa a la skill (`scripts/x.mjs` dentro
- * de `skills/<n>/`).
+ * (`skills/<n>/scripts/x.mjs`) y relativa a la carpeta de la skill
+ * (`node engine/scripts/x.mjs` escrito en `skills/<n>/SKILL.md` resuelve a
+ * `skills/<n>/engine/scripts/x.mjs`).
+ *
+ * La resolucion relativa NO se limitaba a refs `scripts/`: un kit vendorizado
+ * invoca `engine/scripts/*.mjs` desde el wrapper, y sin este candidato el
+ * doctor reportaba ambiguedad contra el espejo de otra herramienta en vez del
+ * archivo real del repo.
  */
 function scriptCandidates(surface: HarnessSurface, skillDirName: string, ref: string): string[] {
-  const base = ref.split('/').pop() ?? '';
   const out = new Set<string>();
   out.add(ref);
-  if (ref.startsWith('scripts/')) {
-    out.add(join(surface.skillDir, skillDirName, ref));
-    out.add(join(surface.skillDir, skillDirName, 'scripts', base));
-  }
+  out.add(join(surface.skillDir, skillDirName, ref));
   return [...out];
 }
 
@@ -363,7 +367,7 @@ export function diagnose(surface: HarnessSurface, tree: HarnessTree): DoctorRepo
   const scope: DoctorReport['scope'] = {
     scanned: [
       ...surface.alwaysOn,
-      `${surface.skillDir}/ (estructura de SKILL.md)`,
+      `${surface.skillDir}/ (skills cargables; runbooks anidados: solo referencias a scripts)`,
       `${surface.ruleDir}/`,
       `${surface.scriptsDir}/`,
       surface.subagentDir ? `${surface.subagentDir}/` : '(sin subagentes)',
@@ -477,12 +481,51 @@ export function diagnose(surface: HarnessSurface, tree: HarnessTree): DoctorRepo
   }
 
   // --- V2..V4: skills -------------------------------------------------------
+  //
+  // El cargador (`discoverSkills` del embedder) NO es recursivo: una skill es
+  // un directorio inmediato con SKILL.md. Un SKILL.md anidado
+  // (`ui-taste/engine/SKILL.md` de un kit vendorizado) es el runbook de la
+  // skill padre, no una skill: las reglas de nombre/indexado no aplican (el
+  // router nunca lo ve), pero sus referencias a scripts si — un runbook que
+  // invoca un script inexistente guia a un paso que falla.
   const skillFiles = Object.keys(tree)
     .filter((r) => r.startsWith(`${surface.skillDir}/`) && r.endsWith('/SKILL.md'))
     .sort();
+  const skillDirDepth = surface.skillDir.split('/').length;
+  const relSkillDir = (file: string): string =>
+    file.slice(surface.skillDir.length + 1).replace(/\/SKILL\.md$/, '');
+  const loadableSkillFiles = skillFiles.filter((r) => r.split('/').length === skillDirDepth + 2);
+  const nestedRunbooks = skillFiles.filter((r) => r.split('/').length > skillDirDepth + 2);
 
-  for (const skillFile of skillFiles) {
-    const dirName = skillFile.split('/')[1];
+  const checkScriptRefs = (skillFile: string, dirName: string, body: string): void => {
+    for (const ref of scriptRefs(body)) {
+      const candidates = scriptCandidates(surface, dirName, ref);
+      if (candidates.some((c) => existsSync(join(ROOT, c)))) continue;
+
+      const base = ref.split('/').pop() ?? '';
+      const elsewhere = scripts.get(base) ?? [];
+      if (elsewhere.length > 0) {
+        findings.push({
+          rule: 'skill/script-ref-ambiguous',
+          severity: 'warn',
+          path: skillFile,
+          message: `invoca \`${ref}\` pero el archivo vive en ${elsewhere[0]} y no es resoluble desde la skill`,
+          fix: 'usar la ruta real o adjuntar el script a la skill; tal como esta escrita, la invocacion falla',
+        });
+      } else {
+        findings.push({
+          rule: 'skill/script-ref-unresolvable',
+          severity: 'error',
+          path: skillFile,
+          message: `invoca \`${ref}\` y ese archivo no existe en ninguna parte del repo`,
+          fix: 'adjuntar el script a la skill o quitar la invocacion',
+        });
+      }
+    }
+  };
+
+  for (const skillFile of loadableSkillFiles) {
+    const dirName = relSkillDir(skillFile);
     const body = tree[skillFile] ?? '';
     const fm = frontmatter(body);
 
@@ -533,30 +576,11 @@ export function diagnose(surface: HarnessSurface, tree: HarnessTree): DoctorRepo
       });
     }
 
-    for (const ref of scriptRefs(body)) {
-      const candidates = scriptCandidates(surface, dirName, ref);
-      if (candidates.some((c) => existsSync(join(ROOT, c)))) continue;
+    checkScriptRefs(skillFile, dirName, body);
+  }
 
-      const base = ref.split('/').pop() ?? '';
-      const elsewhere = scripts.get(base) ?? [];
-      if (elsewhere.length > 0) {
-        findings.push({
-          rule: 'skill/script-ref-ambiguous',
-          severity: 'warn',
-          path: skillFile,
-          message: `invoca \`${ref}\` pero el archivo vive en ${elsewhere[0]} y no es resoluble desde la skill`,
-          fix: 'usar la ruta real o adjuntar el script a la skill; tal como esta escrita, la invocacion falla',
-        });
-      } else {
-        findings.push({
-          rule: 'skill/script-ref-unresolvable',
-          severity: 'error',
-          path: skillFile,
-          message: `invoca \`${ref}\` y ese archivo no existe en ninguna parte del repo`,
-          fix: 'adjuntar el script a la skill o quitar la invocacion',
-        });
-      }
-    }
+  for (const runbook of nestedRunbooks) {
+    checkScriptRefs(runbook, relSkillDir(runbook), tree[runbook] ?? '');
   }
 
   // --- V5: NORM-TS-001 (nada de .ps1) --------------------------------------
@@ -603,7 +627,11 @@ export function diagnose(surface: HarnessSurface, tree: HarnessTree): DoctorRepo
   const ruleFiles = Object.keys(tree)
     .filter((r) => r.startsWith(`${surface.ruleDir}/`) && r.endsWith('.md'))
     .filter((r) => r !== surface.ruleIndex && !r.endsWith('/README.md'))
-    .filter((r) => !r.startsWith(`${surface.ruleDir}/adaptive/`) && !r.startsWith(`${surface.ruleDir}/custom/`))
+    .filter(
+      (r) =>
+        !r.startsWith(`${surface.ruleDir}/adaptive/`) &&
+        !r.startsWith(`${surface.ruleDir}/custom/`),
+    )
     .sort();
 
   for (const ruleFile of ruleFiles) {
@@ -629,9 +657,10 @@ export function diagnose(surface: HarnessSurface, tree: HarnessTree): DoctorRepo
     warnings,
     scope,
     census: {
-      skills: skillFiles.length + extraSkills.length,
+      skills: loadableSkillFiles.length + extraSkills.length,
       rules: ruleFiles.length,
-      scripts: Object.keys(tree).filter((r) => r.includes('/scripts/') || r.startsWith('scripts/')).length,
+      scripts: Object.keys(tree).filter((r) => r.includes('/scripts/') || r.startsWith('scripts/'))
+        .length,
       subagents: surface.subagentDir
         ? Object.keys(tree).filter((r) => r.startsWith(`${surface.subagentDir}/`)).length
         : 0,
@@ -650,21 +679,21 @@ function render(report: DoctorReport): string {
   const { census } = report;
   lines.push(`harness-doctor — ${GV_SURFACE.name}`);
   lines.push(
-    `  superficie: ${census.skills} skills, ${census.rules} reglas, ${census.scripts} scripts, ${census.subagents} subagents`
+    `  superficie: ${census.skills} skills, ${census.rules} reglas, ${census.scripts} scripts, ${census.subagents} subagents`,
   );
   lines.push(
-    `  always-on: ${census.alwaysOnChars.toLocaleString('es-AR')} / ${census.alwaysOnMax.toLocaleString('es-AR')} chars (${census.alwaysOnPct}%)`
+    `  always-on: ${census.alwaysOnChars.toLocaleString('es-AR')} / ${census.alwaysOnMax.toLocaleString('es-AR')} chars (${census.alwaysOnPct}%)`,
   );
   lines.push(`  resultado: ${report.errors} errores, ${report.warnings} warnings`);
   lines.push(`  alcance escaneado: ${report.scope.scanned.join(', ')}`);
   if (report.scope.gaps.length > 0) {
     lines.push(
-      `  SIN escanear en estructura (raices de skills cargables): ${report.scope.gaps.join(', ')}`
+      `  SIN escanear en estructura (raices de skills cargables): ${report.scope.gaps.join(', ')}`,
     );
   }
   if (report.allowlisted.length > 0) {
     lines.push(
-      `  exenciones: ${report.allowlisted.length} (${report.allowlisted.map((a) => a.path).join(', ')})`
+      `  exenciones: ${report.allowlisted.length} (${report.allowlisted.map((a) => a.path).join(', ')})`,
     );
   }
   lines.push('');

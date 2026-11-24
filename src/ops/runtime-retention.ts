@@ -30,7 +30,15 @@
  *   node --import tsx src/ops/runtime-retention.ts --json
  */
 
-import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+  type Dirent,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -110,21 +118,25 @@ export function matches(pattern: string, path: string): boolean {
   return path === pattern;
 }
 
-function dirSizeMb(dir: string): { mb: number; files: number } {
+type DirectorySize = { mb: number; files: number };
+
+function dirSizeMb(
+  dir: string,
+  readDirectory: (path: string) => Dirent[],
+  cache?: Map<string, DirectorySize>,
+): DirectorySize {
+  const cached = cache?.get(dir);
+  if (cached) return cached;
   let bytes = 0;
   let files = 0;
-  const walk = (d: string): void => {
-    let entries: ReturnType<typeof readdirSync>;
-    try {
-      entries = readdirSync(d, { withFileTypes: true }) as never;
-    } catch {
-      return;
-    }
-    for (const entry of entries as unknown as Array<{ name: string; isDirectory(): boolean }>) {
-      const full = join(d, entry.name);
+  try {
+    for (const entry of readDirectory(dir)) {
+      const full = join(dir, entry.name);
       try {
         if (entry.isDirectory()) {
-          walk(full);
+          const child = dirSizeMb(full, readDirectory, cache);
+          bytes += child.mb * 1024 * 1024;
+          files += child.files;
         } else {
           bytes += statSync(full).size;
           files += 1;
@@ -133,9 +145,12 @@ function dirSizeMb(dir: string): { mb: number; files: number } {
         /* best effort */
       }
     }
-  };
-  walk(dir);
-  return { mb: bytes / (1024 * 1024), files };
+  } catch {
+    /* best effort */
+  }
+  const result = { mb: bytes / (1024 * 1024), files };
+  cache?.set(dir, result);
+  return result;
 }
 
 function isAlive(pid: number): boolean {
@@ -160,6 +175,18 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
   const runtime = join(root, '.runtime');
   const policy = loadPolicy(root);
   const now = options.now ?? Date.now();
+  // Reutilizar sólo dentro de una simulación. Al borrar, cada lectura conserva
+  // su frescura; no hay caché persistente entre auditorías ni cambios de política.
+  const directories = options.apply === true ? undefined : new Map<string, Dirent[]>();
+  const sizes = options.apply === true ? undefined : new Map<string, DirectorySize>();
+  const readDirectory = (path: string): Dirent[] => {
+    const cached = directories?.get(path);
+    if (cached) return cached;
+    const entries = readdirSync(path, { withFileTypes: true });
+    directories?.set(path, entries);
+    return entries;
+  };
+  const measureDirectory = (path: string): DirectorySize => dirSizeMb(path, readDirectory, sizes);
 
   const report: RetentionReport = {
     ok: true,
@@ -182,7 +209,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
   // ── Top-level: clasificar cada directorio ────────────────────────────────
   let entries: string[] = [];
   try {
-    entries = readdirSync(runtime, { withFileTypes: true })
+    entries = readDirectory(runtime)
       .filter((e) => e.isDirectory())
       .map((e) => e.name);
   } catch {
@@ -194,7 +221,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
 
   for (const name of entries) {
     const abs = join(runtime, name);
-    const { mb, files } = dirSizeMb(abs);
+    const { mb, files } = measureDirectory(abs);
     report.totalMb += mb;
 
     const preserveRule = preservePaths.find((p) => matches(p, name));
@@ -211,12 +238,12 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
     // Miembros del directorio (para aplicar keepNewest sobre lo más reciente).
     let members: Array<{ name: string; mtime: number; sizeMb: number }> = [];
     try {
-      members = readdirSync(abs, { withFileTypes: true }).map((e) => {
+      members = readDirectory(abs).map((e) => {
         const full = join(abs, e.name);
         let sizeMb = 0;
         try {
           sizeMb = statSync(full).isDirectory()
-            ? dirSizeMb(full).mb
+            ? measureDirectory(full).mb
             : statSync(full).size / (1024 * 1024);
         } catch {
           sizeMb = 0;
@@ -264,7 +291,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
     // Tope por directorio: si después de podar sigue por encima, se escala.
     // En simulación se resta lo que se habría podado (si no, la escalada
     // sería siempre la misma y no informaría nada).
-    const measured = dirSizeMb(abs);
+    const measured = measureDirectory(abs);
     const freedHere = members
       .filter((m) => {
         if (keep.has(m.name)) return false;
@@ -273,7 +300,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
       })
       .reduce((acc, m) => acc + m.sizeMb, 0);
     const remainingMb =
-      options.apply === true ? dirSizeMb(abs).mb : Math.max(0, measured.mb - freedHere);
+      options.apply === true ? measureDirectory(abs).mb : Math.max(0, measured.mb - freedHere);
     if (rule.maxMb !== undefined && remainingMb > rule.maxMb) {
       // El owner confirmó los topes (2026-11-11): superarlos se INFORMA, no se
       // escala. Sólo escalan si la regla declara `onExceed: "ask"` (o la
@@ -294,7 +321,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
   const walkLogs = (dir: string): void => {
     let entries2: ReturnType<typeof readdirSync>;
     try {
-      entries2 = readdirSync(dir, { withFileTypes: true }) as never;
+      entries2 = readDirectory(dir) as never;
     } catch {
       return;
     }
@@ -329,7 +356,7 @@ export function auditRetention(options: AuditOptions = {}): RetentionReport {
     const walkPids = (dir: string): void => {
       let entries2: ReturnType<typeof readdirSync>;
       try {
-        entries2 = readdirSync(dir, { withFileTypes: true }) as never;
+        entries2 = readDirectory(dir) as never;
       } catch {
         return;
       }

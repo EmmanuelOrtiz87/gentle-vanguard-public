@@ -6,595 +6,1275 @@
       "tier": "course-base",
       "title": "Agentes de IA en tu día a día",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/agentes-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/agentes-ia"
+      }
     },
     "course-base:ai-engineering": {
       "slug": "ai-engineering",
       "tier": "course-base",
       "title": "AI Engineering — Sistemas de IA de producción",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ai-engineering",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ai-engineering"
+      }
     },
     "course-base:alfabetizacion-digital": {
       "slug": "alfabetizacion-digital",
       "tier": "course-base",
       "title": "Alfabetización Digital — De 0 a 100",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/alfabetizacion-digital",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/alfabetizacion-digital"
+      }
     },
     "course-base:ciberseguridad": {
       "slug": "ciberseguridad",
       "tier": "course-base",
       "title": "Ciberseguridad — De persona a empresa",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ciberseguridad",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ciberseguridad"
+      }
     },
     "course-base:community-manager-ia": {
       "slug": "community-manager-ia",
       "tier": "course-base",
       "title": "Community Manager con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/community-manager-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/community-manager-ia"
+      }
     },
     "course-base:copywriter-ia": {
       "slug": "copywriter-ia",
       "tier": "course-base",
       "title": "Copywriter con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/copywriter-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/copywriter-ia"
+      }
     },
     "course-base:creador-contenido-ia": {
       "slug": "creador-contenido-ia",
       "tier": "course-base",
       "title": "Creador de Contenido y Edición de Video con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/creador-contenido-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/creador-contenido-ia"
+      }
     },
     "course-base:diseno-grafico-ia": {
       "slug": "diseno-grafico-ia",
       "tier": "course-base",
       "title": "Diseño Gráfico y Digital con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/diseno-grafico-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/diseno-grafico-ia"
+      }
     },
     "course-base:gemini": {
       "slug": "gemini",
       "tier": "course-base",
       "title": "Gemini: IA gratis con tu cuenta de Google",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/gemini",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/gemini"
+      }
     },
     "course-base:gentle-vanguard": {
       "slug": "gentle-vanguard",
       "tier": "course-base",
       "title": "Gentle-Vanguard",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/gentle-vanguard",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/gentle-vanguard"
+      }
     },
     "course-base:git-github": {
       "slug": "git-github",
       "tier": "course-base",
       "title": "Git y GitHub — Control de Versiones Profesional",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/git-github",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/git-github"
+      }
     },
     "course-base:ia-avanzado": {
       "slug": "ia-avanzado",
       "tier": "course-base",
       "title": "IA — Nivel 3 (Avanzado e Investigación)",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ia-avanzado",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ia-avanzado"
+      }
     },
     "course-base:ia-ciberseguridad": {
       "slug": "ia-ciberseguridad",
       "tier": "course-base",
       "title": "IA aplicada a Ciberseguridad — Defender y operar con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ia-ciberseguridad",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ia-ciberseguridad"
+      }
     },
     "course-base:ia-fundamentos": {
       "slug": "ia-fundamentos",
       "tier": "course-base",
       "title": "IA — De 0 a 100 (Nivel 1)",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ia-fundamentos",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ia-fundamentos"
+      }
     },
     "course-base:ia-intermedio": {
       "slug": "ia-intermedio",
       "tier": "course-base",
       "title": "IA — Nivel 2 (Ingeniería y Producción)",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/ia-intermedio",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/ia-intermedio"
+      }
     },
     "course-base:linux-intro": {
       "slug": "linux-intro",
       "tier": "course-base",
       "title": "Introducción a Linux",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/linux-intro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/linux-intro"
+      }
     },
     "course-base:marketing-ia": {
       "slug": "marketing-ia",
       "tier": "course-base",
       "title": "Marketing con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/marketing-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/marketing-ia"
+      }
     },
     "course-base:patrones-diseno": {
       "slug": "patrones-diseno",
       "tier": "course-base",
       "title": "Patrones de Diseño y Arquitectura — Código que Escala",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/patrones-diseno",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/patrones-diseno"
+      }
     },
     "course-base:pl-sql": {
       "slug": "pl-sql",
       "tier": "course-base",
       "title": "PL/SQL — Programación en Oracle",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/pl-sql",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/pl-sql"
+      }
     },
     "course-base:poo-ia": {
       "slug": "poo-ia",
       "tier": "course-base",
       "title": "Programación Orientada a Objetos con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/poo-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/poo-ia"
+      }
     },
     "course-base:python-avanzado": {
       "slug": "python-avanzado",
       "tier": "course-base",
       "title": "Python Avanzado — Arquitectura, Concurrencia y Producción",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/python-avanzado",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/python-avanzado"
+      }
     },
     "course-base:python-inicial": {
       "slug": "python-inicial",
       "tier": "course-base",
       "title": "Python Inicial — Tu Primer Lenguaje de Programación",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/python-inicial",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/python-inicial"
+      }
     },
     "course-base:python-intermedio": {
       "slug": "python-intermedio",
       "tier": "course-base",
       "title": "Python Intermedio — Código Profesional y Reutilizable",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/python-intermedio",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/python-intermedio"
+      }
     },
     "course-base:social-media-ia": {
       "slug": "social-media-ia",
       "tier": "course-base",
       "title": "Social Media Manager con IA",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/social-media-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/social-media-ia"
+      }
     },
     "course-base:sql": {
       "slug": "sql",
       "tier": "course-base",
       "title": "SQL — Domina las Bases de Datos Relacionales",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/sql",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/sql"
+      }
     },
     "course-base:web-avanzado": {
       "slug": "web-avanzado",
       "tier": "course-base",
       "title": "Páginas Web Avanzado — Arquitectura, Rendimiento y Seguridad",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/web-avanzado",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/web-avanzado"
+      }
     },
     "course-base:web-inicial": {
       "slug": "web-inicial",
       "tier": "course-base",
       "title": "Páginas Web Inicial — HTML, CSS y tus Primeras Páginas",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/web-inicial",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/web-inicial"
+      }
     },
     "course-base:web-intermedio": {
       "slug": "web-intermedio",
       "tier": "course-base",
       "title": "Páginas Web Intermedio — Interfaces Responsivas e Interactivas",
       "price": 50,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "course",
+        "path": "data/courses/web-intermedio",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/course/web-intermedio"
+      }
     },
     "ebook-micro:50-prompts-emprendedores": {
       "slug": "50-prompts-emprendedores",
       "tier": "ebook-micro",
       "title": "50 Prompts para Emprendedores",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/50-prompts-emprendedores",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/50-prompts-emprendedores"
+      }
     },
     "ebook-premium:ai-engineering": {
       "slug": "ai-engineering",
       "tier": "ebook-premium",
       "title": "AI Engineering — Patrones de producción",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ai-engineering",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ai-engineering"
+      }
     },
     "ebook-micro:chatgpt-docentes": {
       "slug": "chatgpt-docentes",
       "tier": "ebook-micro",
       "title": "ChatGPT para Docentes",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/chatgpt-docentes",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/chatgpt-docentes"
+      }
     },
     "ebook-micro:excel-ia": {
       "slug": "excel-ia",
       "tier": "ebook-micro",
       "title": "Excel + IA",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/excel-ia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/excel-ia"
+      }
     },
     "ebook-micro:ia-administracion": {
       "slug": "ia-administracion",
       "tier": "ebook-micro",
       "title": "IA para Administración",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-administracion",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-administracion"
+      }
     },
     "ebook-micro:ia-community-manager": {
       "slug": "ia-community-manager",
       "tier": "ebook-micro",
       "title": "IA para Community Managers",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-community-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-community-manager"
+      }
     },
     "ebook-micro:ia-copywriter": {
       "slug": "ia-copywriter",
       "tier": "ebook-micro",
       "title": "IA para Copywriters",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-copywriter",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-copywriter"
+      }
     },
     "ebook-micro:ia-creador-contenido": {
       "slug": "ia-creador-contenido",
       "tier": "ebook-micro",
       "title": "IA para Creadores de Contenido",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-creador-contenido",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-creador-contenido"
+      }
     },
     "ebook-micro:ia-diseno-grafico": {
       "slug": "ia-diseno-grafico",
       "tier": "ebook-micro",
       "title": "IA para Diseñadores Gráficos",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-diseno-grafico",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-diseno-grafico"
+      }
     },
     "ebook-micro:ia-estudiantes": {
       "slug": "ia-estudiantes",
       "tier": "ebook-micro",
       "title": "IA para Estudiantes",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-estudiantes",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-estudiantes"
+      }
     },
     "ebook-micro:ia-finanzas": {
       "slug": "ia-finanzas",
       "tier": "ebook-micro",
       "title": "IA para Finanzas",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-finanzas",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-finanzas"
+      }
     },
     "ebook-micro:ia-marketing": {
       "slug": "ia-marketing",
       "tier": "ebook-micro",
       "title": "IA para Marketing",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-marketing",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-marketing"
+      }
     },
     "ebook-micro:ia-rrhh": {
       "slug": "ia-rrhh",
       "tier": "ebook-micro",
       "title": "IA para RRHH",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-rrhh",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-rrhh"
+      }
     },
     "ebook-micro:ia-social-media-manager": {
       "slug": "ia-social-media-manager",
       "tier": "ebook-micro",
       "title": "IA para Social Media Managers",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-social-media-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-social-media-manager"
+      }
     },
     "ebook-micro:ia-ventas": {
       "slug": "ia-ventas",
       "tier": "ebook-micro",
       "title": "IA para Ventas",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/ia-ventas",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/ia-ventas"
+      }
     },
     "ebook-premium:manual-ciberseguridad": {
       "slug": "manual-ciberseguridad",
       "tier": "ebook-premium",
       "title": "Manual Práctico de Ciberseguridad — De persona a empresa",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ciberseguridad",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ciberseguridad"
+      }
     },
     "ebook-premium:manual-ia-administracion": {
       "slug": "manual-ia-administracion",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Administración",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-administracion",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-administracion"
+      }
     },
     "ebook-premium:manual-ia-ciberseguridad": {
       "slug": "manual-ia-ciberseguridad",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA aplicada a Ciberseguridad — Defender y operar con IA",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-ciberseguridad",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-ciberseguridad"
+      }
     },
     "ebook-premium:manual-ia-community-manager": {
       "slug": "manual-ia-community-manager",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Community Managers",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-community-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-community-manager"
+      }
     },
     "ebook-premium:manual-ia-copywriter": {
       "slug": "manual-ia-copywriter",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Copywriters",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-copywriter",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-copywriter"
+      }
     },
     "ebook-premium:manual-ia-creador-contenido": {
       "slug": "manual-ia-creador-contenido",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Creadores de Contenido",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-creador-contenido",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-creador-contenido"
+      }
     },
     "ebook-premium:manual-ia-diseno-grafico": {
       "slug": "manual-ia-diseno-grafico",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Diseñadores Gráficos",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-diseno-grafico",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-diseno-grafico"
+      }
     },
     "ebook-premium:manual-ia-docentes": {
       "slug": "manual-ia-docentes",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Docentes",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-docentes",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-docentes"
+      }
     },
     "ebook-premium:manual-ia-emprendedores": {
       "slug": "manual-ia-emprendedores",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Emprendedores",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-emprendedores",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-emprendedores"
+      }
     },
     "ebook-premium:manual-ia-estudiantes": {
       "slug": "manual-ia-estudiantes",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Estudiantes",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-estudiantes",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-estudiantes"
+      }
     },
     "ebook-premium:manual-ia-finanzas": {
       "slug": "manual-ia-finanzas",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Finanzas",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-finanzas",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-finanzas"
+      }
     },
     "ebook-premium:manual-ia-legal": {
       "slug": "manual-ia-legal",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Legal",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-legal",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-legal"
+      }
     },
     "ebook-premium:manual-ia-marketing": {
       "slug": "manual-ia-marketing",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Marketing",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-marketing",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-marketing"
+      }
     },
     "ebook-premium:manual-ia-profesionales": {
       "slug": "manual-ia-profesionales",
       "tier": "ebook-premium",
       "title": "Manual Práctico de Inteligencia Artificial para Profesionales",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-profesionales",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-profesionales"
+      }
     },
     "ebook-premium:manual-ia-rrhh": {
       "slug": "manual-ia-rrhh",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para RRHH",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-rrhh",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-rrhh"
+      }
     },
     "ebook-premium:manual-ia-social-media-manager": {
       "slug": "manual-ia-social-media-manager",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Social Media Managers",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-social-media-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-social-media-manager"
+      }
     },
     "ebook-premium:manual-ia-ventas": {
       "slug": "manual-ia-ventas",
       "tier": "ebook-premium",
       "title": "Manual Práctico de IA para Ventas",
       "price": 40,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/manual-ia-ventas",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/manual-ia-ventas"
+      }
     },
     "ebook-micro:notebooklm-guia": {
       "slug": "notebooklm-guia",
       "tier": "ebook-micro",
       "title": "Guía Práctica de NotebookLM",
       "price": 20,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "ebook",
+        "path": "data/ebooks/notebooklm-guia",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/ebook/notebooklm-guia"
+      }
     },
     "toolkit:ai-engineering-toolkit": {
       "slug": "ai-engineering-toolkit",
       "tier": "toolkit",
       "title": "AI Engineering Toolkit",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ai-engineering-toolkit",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ai-engineering-toolkit"
+      }
     },
     "toolkit:ciberseguridad-toolkit": {
       "slug": "ciberseguridad-toolkit",
       "tier": "toolkit",
       "title": "Toolkit de Ciberseguridad",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ciberseguridad-toolkit",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ciberseguridad-toolkit"
+      }
     },
     "toolkit:ia-administracion-pro": {
       "slug": "ia-administracion-pro",
       "tier": "toolkit",
       "title": "IA para Administración Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-administracion-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-administracion-pro"
+      }
     },
     "toolkit:ia-ciberseguridad-toolkit": {
       "slug": "ia-ciberseguridad-toolkit",
       "tier": "toolkit",
       "title": "Toolkit de IA aplicada a Ciberseguridad",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-ciberseguridad-toolkit",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-ciberseguridad-toolkit"
+      }
     },
     "toolkit:ia-community-manager": {
       "slug": "ia-community-manager",
       "tier": "toolkit",
       "title": "IA para Community Managers",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-community-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-community-manager"
+      }
     },
     "toolkit:ia-community-manager-pro": {
       "slug": "ia-community-manager-pro",
       "tier": "toolkit",
       "title": "IA para Community Managers Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-community-manager-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-community-manager-pro"
+      }
     },
     "toolkit:ia-copywriter": {
       "slug": "ia-copywriter",
       "tier": "toolkit",
       "title": "IA para Copywriters",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-copywriter",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-copywriter"
+      }
     },
     "toolkit:ia-copywriter-pro": {
       "slug": "ia-copywriter-pro",
       "tier": "toolkit",
       "title": "IA para Copywriters Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-copywriter-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-copywriter-pro"
+      }
     },
     "toolkit:ia-creador-contenido": {
       "slug": "ia-creador-contenido",
       "tier": "toolkit",
       "title": "IA para Creadores de Contenido",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-creador-contenido",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-creador-contenido"
+      }
     },
     "toolkit:ia-creador-contenido-pro": {
       "slug": "ia-creador-contenido-pro",
       "tier": "toolkit",
       "title": "IA para Creadores de Contenido Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-creador-contenido-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-creador-contenido-pro"
+      }
     },
     "toolkit:ia-diseno-grafico": {
       "slug": "ia-diseno-grafico",
       "tier": "toolkit",
       "title": "IA para Diseñadores Gráficos",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-diseno-grafico",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-diseno-grafico"
+      }
     },
     "toolkit:ia-diseno-grafico-pro": {
       "slug": "ia-diseno-grafico-pro",
       "tier": "toolkit",
       "title": "IA para Diseñadores Gráficos Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-diseno-grafico-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-diseno-grafico-pro"
+      }
     },
     "toolkit:ia-docentes-pro": {
       "slug": "ia-docentes-pro",
       "tier": "toolkit",
       "title": "IA para Docentes Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-docentes-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-docentes-pro"
+      }
     },
     "toolkit:ia-emprendedores-pro": {
       "slug": "ia-emprendedores-pro",
       "tier": "toolkit",
       "title": "IA para Emprendedores Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-emprendedores-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-emprendedores-pro"
+      }
     },
     "toolkit:ia-estudiantes": {
       "slug": "ia-estudiantes",
       "tier": "toolkit",
       "title": "IA para Estudiantes",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-estudiantes",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-estudiantes"
+      }
     },
     "toolkit:ia-estudiantes-pro": {
       "slug": "ia-estudiantes-pro",
       "tier": "toolkit",
       "title": "IA para Estudiantes Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-estudiantes-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-estudiantes-pro"
+      }
     },
     "toolkit:ia-finanzas-pro": {
       "slug": "ia-finanzas-pro",
       "tier": "toolkit",
       "title": "IA para Finanzas Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-finanzas-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-finanzas-pro"
+      }
     },
     "toolkit:ia-legal-pro": {
       "slug": "ia-legal-pro",
       "tier": "toolkit",
       "title": "IA para Legal Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-legal-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-legal-pro"
+      }
     },
     "toolkit:ia-marketing-pro": {
       "slug": "ia-marketing-pro",
       "tier": "toolkit",
       "title": "IA para Marketing Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-marketing-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-marketing-pro"
+      }
     },
     "toolkit:ia-profesionales": {
       "slug": "ia-profesionales",
       "tier": "toolkit",
       "title": "IA para Profesionales",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-profesionales",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-profesionales"
+      }
     },
     "toolkit:ia-rrhh-pro": {
       "slug": "ia-rrhh-pro",
       "tier": "toolkit",
       "title": "IA para RRHH Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-rrhh-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-rrhh-pro"
+      }
     },
     "toolkit:ia-social-media-manager": {
       "slug": "ia-social-media-manager",
       "tier": "toolkit",
       "title": "IA para Social Media Managers",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-social-media-manager",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-social-media-manager"
+      }
     },
     "toolkit:ia-social-media-manager-pro": {
       "slug": "ia-social-media-manager-pro",
       "tier": "toolkit",
       "title": "IA para Social Media Managers Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-social-media-manager-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-social-media-manager-pro"
+      }
     },
     "toolkit:ia-ventas-pro": {
       "slug": "ia-ventas-pro",
       "tier": "toolkit",
       "title": "IA para Ventas Pro",
       "price": 80,
-      "currency": "USD"
+      "currency": "USD",
+      "delivery": {
+        "kind": "portal-api",
+        "contentKind": "toolkit",
+        "path": "data/toolkits/ia-ventas-pro",
+        "requiresEntitlement": true,
+        "format": "bundle",
+        "manifest": "/api/portal/content/toolkit/ia-ventas-pro"
+      }
     }
   }
 }

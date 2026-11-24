@@ -1,9 +1,35 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { evaluateGate, isAppAuditBlocking, shouldRunAppAudit } from '../../src/git/prepush-gate.ts';
+import {
+  evaluateGate,
+  isAppAuditBlocking,
+  shouldRunAppAudit,
+  treeFence,
+} from '../../src/git/prepush-gate.ts';
 import { summarize } from '../../src/ops/stack-apps-audit-scheduled.ts';
 
 describe('politica de stack-audit-apps', () => {
+  it('el fence detecta rutas nuevas y contenido cambiado de rutas ya sucias', () => {
+    assert.deepEqual(treeFence('', ' M src/new.ts', 'before', 'after'), [' M src/new.ts']);
+    const dirty = ' M src/existing.ts';
+    assert.deepEqual(treeFence(dirty, dirty, 'same', 'same'), []);
+    const fence = treeFence(dirty, dirty, 'before', 'after');
+    assert.equal(fence.length, 1);
+    assert.match(fence[0], /Contenido del árbol cambiado/);
+    assert.equal(evaluateGate([], new Set(), fence).allPass, false);
+  });
+  it('un tree-fence bloquea incluso con todos los checks verdes', () => {
+    const results = [{ name: 'typecheck', status: 'pass' as const, durationMs: 1, tail: '' }];
+    const verdict = evaluateGate(results, new Set(), [' M src/changed.ts']);
+    assert.equal(verdict.allPass, false);
+    assert.equal(verdict.allGreen, false);
+    assert.equal(verdict.blockingFailures.length, 0);
+    assert.deepEqual(evaluateGate(results, new Set(), []), {
+      allPass: true,
+      allGreen: true,
+      blockingFailures: [],
+    });
+  });
   it('diff acotado a apps: corre y BLOQUEA', () => {
     const scope = { mode: 'apps' as const };
     assert.equal(shouldRunAppAudit(scope, { auditApps: false }), true);

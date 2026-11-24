@@ -111,6 +111,7 @@ async function main(): Promise<number> {
     console.log(`  ${ok ? 'OK  ' : 'FAIL'} ${smoke.app} (${elapsedSec}s) -> ${smoke.script}`);
     if (!ok) {
       failures.push(smoke.app);
+      console.error(JSON.stringify({ status: result.status, signal: result.signal, error: result.error?.message ?? null }));
       const tail = `${result.stderr}\n${result.stdout}`.trim().split('\n').slice(-15).join('\n');
       console.error(tail);
     }

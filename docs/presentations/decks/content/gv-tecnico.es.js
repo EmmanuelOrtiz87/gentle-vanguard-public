@@ -72,7 +72,7 @@ export default {
         },
         {
           label: 'apps/',
-          body: '28 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
+          body: '29 aplicaciones propias que operan sobre el stack y validan la arquitectura en producción.',
           accent: '8b5cf6',
         },
         {
@@ -97,7 +97,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: '653 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
+          body: '801 archivos de test: unit, e2e, integración, seguridad, skills, workflows, eval y performance.',
           accent: 'f4bb4f',
         },
         {
@@ -307,13 +307,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '70',
+          value: '76',
           label: 'Quality gates',
-          sub: '65 de 70 aplicados de forma estricta',
+          sub: '71 de 76 aplicados de forma estricta',
           accent: '06b6d4',
         },
         {
-          value: '653',
+          value: '801',
           label: 'Archivos de test',
           sub: 'Unit, e2e, integración, seguridad y skills',
           accent: '8b5cf6',

@@ -126,6 +126,9 @@ export function classify(
 ): OperabilityStatus {
   const text =
     `${error ?? ''} ${typeof content === 'string' ? content : JSON.stringify(content ?? '')}`.toLowerCase();
+  // Context7 devuelve este rechazo sin isError: transportar texto no prueba
+  // que el proveedor pueda servir documentación. No buscarlo en datos anidados.
+  if (/^\s*monthly quota exceeded\b/i.test(evidenceOf(content))) return 'requiere-config';
   if (error || isError) {
     if (DEPENDENCY_SIGNALS.some((signal) => text.includes(signal))) return 'dependencia-caida';
     if (CONFIG_SIGNALS.some((signal) => text.includes(signal))) return 'requiere-config';
@@ -273,7 +276,9 @@ export async function probeIntent(intent: DemandIntent, root = ROOT): Promise<Pr
   const firstStatus = classify(outcome.error, outcome.content, outcome.isError === true);
   const firstError =
     outcome.error ??
-    (outcome.isError ? evidenceOf(outcome.content) || 'la tool devolvio isError' : undefined);
+    (outcome.isError || firstStatus === 'requiere-config'
+      ? evidenceOf(outcome.content) || 'la tool requiere configuracion'
+      : undefined);
 
   // CONFIRMACION: un fallo unico no bloquea. Se reintenta una vez la misma
   // sonda y solo un fallo REPRODUCIBLE se declara `roto`.
