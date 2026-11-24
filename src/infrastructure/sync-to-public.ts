@@ -816,6 +816,17 @@ function pushToAllBranches(opts: SyncOptions): string[] {
       }
     })();
 
+    // Un mirror sucio por ruido de fin de linea (CRLF en Windows) bloquea el
+    // `checkout` del SIGUIENTE branch: el reset duro viene despues y lo
+    // descartaria igual, pero nunca se llega. Descartar antes de cambiar de
+    // branch convierte el fallo en un no-evento (no se pierde nada nuevo: el
+    // `reset --hard origin/<branch>` de abajo ya descarta todo lo local).
+    try {
+      git(['reset', '--hard']);
+    } catch (err) {
+      console.log(`[WARN] Could not reset local changes before checkout: ${String(err)}`);
+    }
+
     try {
       if (localBranch.trim().length === 0) {
         git(['checkout', '-B', branch, `origin/${branch}`]);
