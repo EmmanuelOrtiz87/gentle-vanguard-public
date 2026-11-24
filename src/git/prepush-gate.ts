@@ -582,11 +582,15 @@ export function checksSignature(checks: GateCheck[]): string {
 // todos de solo-lectura sobre el árbol fuente, así que cualquier cambio nuevo
 // proviene de un agente concurrente (otra sesión/editor) — se reporta con la
 // hora para poder correlacionar contra token-ingest (zcode/codex/minimax).
-// Advisory: no bloquea el push.
+// Bloqueante: los checks dejan de acreditar el árbol actual si este cambia.
 
-function treeFence(before: string): string[] {
+export function treeFence(
+  before: string,
+  after: string,
+  beforeHash: string,
+  afterHash: string,
+): string[] {
   const beforeFiles = new Set(before.split('\n').filter(Boolean));
-  const after = runGit(['status', '--porcelain']);
   const newMutations = after
     .split('\n')
     .filter(Boolean)
@@ -596,6 +600,11 @@ function treeFence(before: string): string[] {
         !beforeFiles.has(line) && !beforeFiles.has(` M ${path}`) && !beforeFiles.has(`?? ${path}`)
       );
     });
+  if (beforeHash !== afterHash && newMutations.length === 0) {
+    newMutations.push(
+      'Contenido del árbol cambiado sin nuevas rutas en git status (archivo ya modificado o HEAD/entorno alterado)',
+    );
+  }
   return newMutations;
 }
 
@@ -603,6 +612,9 @@ function printFence(mutations: string[]): void {
   if (mutations.length === 0) return;
   console.log('');
   console.log('🚧 TREE-FENCE: el árbol se modificó DURANTE el gate (fuera de banda):');
+  console.log(
+    '   PUSH BLOQUEADO: repetir los checks sobre el árbol estable. No se guarda cache verde.',
+  );
   for (const m of mutations.slice(0, 10)) console.log(`   ${m}`);
   console.log(
     `   Los checks del gate no editan código fuente — un agente concurrente` +
@@ -714,14 +726,15 @@ export function shouldRunAppAudit(
 export function evaluateGate(
   results: CheckResult[],
   nonBlocking: Set<string>,
+  fence: string[] = [],
 ): { allPass: boolean; blockingFailures: CheckResult[]; allGreen: boolean } {
   const blockingFailures = results.filter(
     (r) => (r.status === 'fail' || r.status === 'error') && !nonBlocking.has(r.name),
   );
   return {
-    allPass: blockingFailures.length === 0,
+    allPass: blockingFailures.length === 0 && fence.length === 0,
     blockingFailures,
-    allGreen: results.every((r) => r.status === 'pass'),
+    allGreen: fence.length === 0 && results.every((r) => r.status === 'pass'),
   };
 }
 
@@ -1004,15 +1017,16 @@ async function main(): Promise<void> {
     results.push(await runOne(appAudit, appAuditArgs, progress));
   }
   const totalMs = Date.now() - start;
-  const { allPass, allGreen } = evaluateGate(results, nonBlocking);
-  const fence = treeFence(before);
+  const afterTreeHash = computeTreeHash();
+  const fence = treeFence(before, runGit(['status', '--porcelain']), treeHash, afterTreeHash);
+  const { allPass, allGreen } = evaluateGate(results, nonBlocking, fence);
 
   if (
     allGreen &&
     !skipApps &&
     appScope.mode === 'none' &&
     fence.length === 0 &&
-    computeTreeHash() === treeHash
+    afterTreeHash === treeHash
   ) {
     const cache = loadCache();
     cache.entries[treeHash] = {

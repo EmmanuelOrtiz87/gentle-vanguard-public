@@ -40,8 +40,8 @@ import {
 
 type RegistryEntry = { capabilities?: string[] };
 type Registry = Record<string, RegistryEntry>;
-type AgentConfig = { model?: string };
-type OpencodeConfig = { agent?: Record<string, AgentConfig> };
+type AgentConfig = { model?: string; provider?: string };
+type OpencodeConfig = { model?: string; agent?: Record<string, AgentConfig> };
 
 export type FleetStatus =
   | { kind: 'clean'; checked: number }
@@ -86,12 +86,37 @@ export function sessionConfigPath(root: string): string {
   return resolve(root, '.runtime', 'opencode', 'session-opencode.json');
 }
 
-/** Crea/renueva la copia de sesión desde el canon. Devuelve el path. */
+/** Canon + selección operativa validada, exclusivamente en la copia de sesión. */
 export function writeSessionConfig(root: string): string {
   const canonical = readFileSync(resolve(root, 'opencode.json'), 'utf8');
+  let session = canonical;
+  try {
+    const active = JSON.parse(
+      readFileSync(resolve(root, '.runtime', 'model-active.json'), 'utf8'),
+    ) as { model?: unknown; provider?: unknown };
+    const registry = loadRegistry(root);
+    if (
+      typeof active.model === 'string' &&
+      typeof active.provider === 'string' &&
+      active.provider.trim() &&
+      registry?.[active.model]?.capabilities?.includes('tools')
+    ) {
+      const config = JSON.parse(canonical) as OpencodeConfig;
+      config.model = active.model;
+      for (const agent of Object.values(config.agent ?? {})) {
+        if (agent.model) {
+          agent.model = active.model;
+          if (agent.provider) agent.provider = active.provider;
+        }
+      }
+      session = JSON.stringify(config, null, 2) + '\n';
+    }
+  } catch {
+    // Runtime ausente/ilegible: conservar el canon, nunca repararlo desde aquí.
+  }
   const target = sessionConfigPath(root);
   mkdirSync(resolve(root, '.runtime', 'opencode'), { recursive: true });
-  writeFileSync(target, canonical);
+  writeFileSync(target, session);
   return target;
 }
 

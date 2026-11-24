@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'node:url';
+import { writeSessionConfig } from '../tools/opencode-session-scope.js';
 import {
   inferenceEvidencePath,
   inferenceVerdictFor,
@@ -23,7 +24,6 @@ const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, 'config', 'model-health-registry.json');
 const ACTIVE_MODEL_PATH = join(ROOT, '.runtime', 'model-active.json');
 const PREFERENCE_PATH = join(ROOT, 'config', 'model-preference.json');
-const OPENCODE_CONFIG_PATH = join(ROOT, 'opencode.json');
 
 const FREE_MODEL = 'opencode-zen-C/big-pickle';
 const FREE_PROVIDER = 'opencode';
@@ -352,25 +352,6 @@ function enforceFreeModel(): void {
   // 2. Actualizar registry para que el modelo preferido sea el primario;
   // solo cae al modelo gratuito si el preferido no está disponible.
 
-  // Keep the native OpenCode agent definitions aligned with routing. Otherwise
-  // the registry can select the subscription model while static subagents
-  // silently continue using the old free-model override.
-  try {
-    const opencode = JSON.parse(readFileSync(OPENCODE_CONFIG_PATH, 'utf-8')) as {
-      agent?: Record<string, { model?: string; provider?: string }>;
-    };
-    for (const agent of Object.values(opencode.agent ?? {})) {
-      if (agent.model) agent.model = target.model;
-      if (agent.provider) agent.provider = target.provider;
-    }
-    writeFileSync(OPENCODE_CONFIG_PATH, JSON.stringify(opencode, null, 2) + '\n', 'utf-8');
-    log(`OpenCode agent models aligned to ${target.model}`);
-  } catch (error) {
-    log(
-      `WARN: could not align opencode.json: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-
   if (registry.routingRules.orchestrator.primary !== target.model) {
     const previous = registry.routingRules.orchestrator.primary;
     log(`Cambiando primary: ${previous} → ${target.model}`);
@@ -411,6 +392,14 @@ function enforceFreeModel(): void {
 
   writeFileSync(ACTIVE_MODEL_PATH, JSON.stringify(activeModel, null, 2), 'utf-8');
   log('✅ Modelo activo guardado');
+  try {
+    const sessionPath = writeSessionConfig(ROOT);
+    log(`OpenCode session model aligned to ${target.model}: ${sessionPath}`);
+  } catch (error) {
+    log(
+      `WARN: could not prepare OpenCode session: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   // 5. Exportar para el shell
   console.log('\n=== VARIABLES DE ENTORNO ===');

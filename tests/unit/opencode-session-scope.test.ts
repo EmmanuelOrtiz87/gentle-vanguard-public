@@ -75,6 +75,41 @@ test('writeSessionConfig crea copia idéntica al canon en .runtime/opencode/', (
   assert.equal(readFileSync(target, 'utf8'), canonical);
 });
 
+test('el modelo activo se aplica solo a la copia y respeta agentes que heredan', () => {
+  const raw = JSON.stringify({
+    agent: {
+      pinned: { model: 'opencode-zen-C/big-pickle', provider: 'old' },
+      inherited: { description: 'keep' },
+    },
+  });
+  const root = fixture(raw);
+  mkdirSync(join(root, '.runtime'), { recursive: true });
+  writeFileSync(
+    join(root, '.runtime', 'model-active.json'),
+    JSON.stringify({ model: 'ollama/qwen3-14b-32k', provider: 'ollama' }),
+  );
+  const copy = JSON.parse(readFileSync(writeSessionConfig(root), 'utf8'));
+  assert.equal(copy.model, 'ollama/qwen3-14b-32k');
+  assert.equal(copy.agent.pinned.model, copy.model);
+  assert.equal(copy.agent.pinned.provider, 'ollama');
+  assert.deepEqual(copy.agent.inherited, { description: 'keep' });
+  assert.equal(readFileSync(join(root, 'opencode.json'), 'utf8'), raw);
+});
+
+test('una selección runtime inválida no entra en la copia de sesión', () => {
+  for (const selected of [
+    '{broken',
+    JSON.stringify({ model: 'unknown', provider: 'x' }),
+    JSON.stringify({ model: 'ollama/qwen2.5-coder:14b', provider: 'ollama' }),
+  ]) {
+    const root = fixture(canonical);
+    mkdirSync(join(root, '.runtime'), { recursive: true });
+    writeFileSync(join(root, '.runtime', 'model-active.json'), selected);
+    assert.equal(readFileSync(writeSessionConfig(root), 'utf8'), canonical);
+    assert.equal(readFileSync(join(root, 'opencode.json'), 'utf8'), canonical);
+  }
+});
+
 test('heal NO toca drift legítimo (modelos registrados con tools)', () => {
   const legit = JSON.stringify({
     agent: { orchestrator: { model: 'ollama/qwen3-14b-32k' } },

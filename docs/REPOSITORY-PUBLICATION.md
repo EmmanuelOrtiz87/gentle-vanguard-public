@@ -39,6 +39,13 @@ The workflow publishes `build/`, example configuration, selected `docs/`, demos,
 license, changelog, bootstrap/setup files and `README-PUBLIC.md`. The sync script is the source of
 truth for the exact allowlist; update it when adding a new public component.
 
+The source snapshot includes `packages/shared` and exactly four editorial dependencies under
+`packages/gv-shorts-core/src`: `providers/whisper-api.ts`, `providers/subtitles.ts`, `types.ts`, and
+`types/whisper-node.d.ts`. The owner approved this source closure on 2026-11-24 so that
+`src/orchestration/editorial-audio.ts` compiles in the distribution. No other part of that package,
+its manifest, or native transcription binary is exported. The exporter rejects missing canonical
+inputs; the public TypeScript check verifies the complete exported source tree.
+
 The private `main` branch is authoritative for the public product. Its dedicated workflow exports
 the curated tree, installs the public lockfile without changes, runs TypeScript and the strict
 installer doctor, and pushes public `main` only if all checks pass. `PAT_SYNC` must grant access to
@@ -201,9 +208,9 @@ That gives two workable options:
 ### Operating notes
 
 - The sync is driven by `src/infrastructure/sync-to-public.ts`. The public distribution repository
-  publishes `src/` and `packages/shared` on purpose ("public distribution is executable source"),
-  plus `pnpm-lock.yaml` and `pnpm-workspace.yaml`, so dependency overrides stay consistent between
-  the private and the public lockfiles.
+  publishes `src/`, `packages/shared`, and the approved four-file editorial closure above on purpose
+  ("public distribution is executable source"), plus `pnpm-lock.yaml` and `pnpm-workspace.yaml`, so
+  dependency overrides stay consistent between the private and the public lockfiles.
 - The sync refuses to run without a current installer: build it with `npm run gv:installer` (NSIS at
   `C:\Program Files (x86)\NSIS\makensis.exe`) and place both the `.exe` and its `.sha256` in the
   `dist/` of the sync worktree.
@@ -233,6 +240,11 @@ Two rules that look like details and are not:
    end-of-line changes. Create both with `core.autocrlf=false` and `core.eol=lf`, and keep
    `.gitattributes` covering every text extension the repo publishes (`*.txt`, `*.csv`, `*.go`,
    `*.mod`, `*.psd1` were missing and caused exactly that noise on 2026-11-23).
+
+   The distribution sync generates its public `.gitattributes` from the private canon, retaining EOL
+   and binary rules while removing `filter=lfs`, `diff=lfs` and `merge=lfs`. Public clones therefore
+   normalize the same text extensions without requiring private LFS objects. The brand-site export
+   keeps its separate boundary.
 
 ### Manual sync of the distribution repository (Actions blocked by billing)
 
