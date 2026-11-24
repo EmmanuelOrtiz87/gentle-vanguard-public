@@ -275,22 +275,23 @@ export async function runCleanup(
 
   // Receive the previous session's close (ack-before-burn): PASS closes are
   // acknowledged on receipt and filed; failed/warned closes stay pending and
-  // are surfaced here — the staged ack is the escalation trace.
-  if (!opts.quiet) {
-    try {
-      const received = receivePendingCloses();
-      for (const r of received) {
-        if (r.action === 'filed') {
-          ok(`Previous close received: ${r.detail}`);
-        } else {
-          warn(`${r.detail}`);
-          if (r.reportFile) warn(`  report: ${r.reportFile}`);
-          warn(`  after review: ${closeAckCommand(r.resource)} --token=<from-report-step>`);
-        }
+  // are surfaced here — the staged ack is the escalation trace. `quiet` only
+  // mutes the filed line: the contract must run under every autostart step
+  // (2026-11-24: gating receive on --quiet meant the lazy cleanup step and
+  // any quiet host never received, so pending acks accumulated unseen).
+  try {
+    const received = receivePendingCloses();
+    for (const r of received) {
+      if (r.action === 'filed') {
+        if (!opts.quiet) ok(`Previous close received: ${r.detail}`);
+      } else {
+        warn(`${r.detail}`);
+        if (r.reportFile) warn(`  report: ${r.reportFile}`);
+        warn(`  after review: ${closeAckCommand(r.resource)} --token=<from-report-step>`);
       }
-    } catch {
-      /* close-ack unavailable (exotic contexts) — never block session start */
     }
+  } catch {
+    /* close-ack unavailable (exotic contexts) — never block session start */
   }
 
   if (!skipSessionInit && !opts.skipCacheFlush && sessionData) {
@@ -400,35 +401,47 @@ export async function runCleanup(
   return true;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const args = process.argv.slice(2);
+/**
+ * Parse cleanup flags. Two notations are live in config/session-autostart.config.json
+ * (`--quiet --skip-cache-flush` in phase 0, `-Quiet -SkipSessionInit` in the lazy
+ * step) and the old switch only matched PowerShell-style names — the kebab flags
+ * were silently ignored, so phase 0 flushed token caches the config told it to
+ * skip. Normalize both notations to one token before matching.
+ */
+export function parseCleanupArgs(args: string[]): Parameters<typeof runCleanup>[0] {
   const opts: Parameters<typeof runCleanup>[0] = {};
   for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
-      case '-WorkspaceRoot':
+    const flag = args[i].replace(/^--?/, '').replace(/[-_]/g, '').toLowerCase();
+    switch (flag) {
+      case 'workspaceroot':
         opts.workspaceRoot = args[++i];
         break;
-      case '-SkipOrphanCleanup':
+      case 'skiporphancleanup':
         opts.skipOrphanCleanup = true;
         break;
-      case '-SkipCacheFlush':
+      case 'skipcacheflush':
         opts.skipCacheFlush = true;
         break;
-      case '-SkipSessionInit':
+      case 'skipsessioninit':
         opts.skipSessionInit = true;
         break;
-      case '-SkipCompression':
+      case 'skipcompression':
         opts.skipCompression = true;
         break;
-      case '-Quiet':
+      case 'quiet':
         opts.quiet = true;
         break;
-      case '-CaptureIntent':
+      case 'captureintent':
         // Capture the rest of the args as the user prompt
         opts.captureIntent = args.slice(i + 1).join(' ');
         break;
     }
   }
+  return opts;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const opts = parseCleanupArgs(process.argv.slice(2));
   runCleanup(opts).catch((e) => {
     console.error('Cleanup failed:', e);
     process.exit(1);

@@ -726,7 +726,8 @@
     "release:manual": "node --import tsx src/ops/release-manual.ts",
     "publish:public": "node --import tsx src/infrastructure/sync-to-public.ts",
     "academy:delivery": "node apps/academy-portal/scripts/verify-delivery-contract.mjs",
-    "owasp:top10:agentic": "npx tsx src/security/owasp/owasp-agentic-top10.ts report --agentic --strict"
+    "owasp:top10:agentic": "npx tsx src/security/owasp/owasp-agentic-top10.ts report --agentic --strict",
+    "atlassian:report": "node --import tsx src/atlassian/reports/ott-confluence/cli.ts"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "0.8.0",

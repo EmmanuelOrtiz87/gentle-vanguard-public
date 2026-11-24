@@ -45,6 +45,9 @@ apps/academy-web/data/shared/files.js
 # formato es el generador.
 docs/generated/stack-facts.json
 docs/generated/STACK-FACTS.md
+# Informe Atlassian: lo escribe la plantilla de src/atlassian/reports/ott-confluence
+# (string heredado con estilos propios). El dueño del formato es el generador.
+docs/atlassian/*.html
 # Fixtures de test con formato intencionalmente roto:
 test-opcode-broken.json
 test-agent-broken2.json

@@ -40,3 +40,21 @@ export function qualificationExit(input: { complete: boolean; observe: boolean; 
   if (!input.collected) return 1;
   return input.complete || input.observe ? 0 : 2;
 }
+
+/** A probe timeout says nothing conclusive about the memory server itself. */
+export function memoryTransportObservation(status: number | null, stdout: string, errorCode?: string): {
+  status: 'PASS' | 'FAIL' | 'INCONCLUSIVE'; reason?: string; toolCount?: number; listProjectsOk?: boolean;
+} {
+  if (errorCode === 'ETIMEDOUT') return { status: 'INCONCLUSIVE', reason: 'Memory probe timed out' };
+  if (errorCode) return { status: 'FAIL', reason: `Memory probe could not start (${errorCode})` };
+  if (status !== 0) return { status: 'FAIL', reason: `Memory probe exited without success (${status})` };
+  try {
+    const parsed = JSON.parse(stdout);
+    if (parsed?.status === 'PASS' && parsed.listProjectsOk === true) {
+      return { status: 'PASS', toolCount: parsed.toolCount, listProjectsOk: true };
+    }
+    return { status: 'FAIL', reason: 'Memory probe response did not confirm the read-only operation' };
+  } catch {
+    return { status: 'FAIL', reason: 'Memory probe returned invalid JSON' };
+  }
+}

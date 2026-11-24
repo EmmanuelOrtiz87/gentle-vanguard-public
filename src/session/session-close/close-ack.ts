@@ -128,7 +128,7 @@ export function receivePendingCloses(reportDir: string = SESSION_DIR): ReceivedC
         reportFile: intact ? reportFile : null,
         detail: intact
           ? `previous close ${overall} — review the report, then run the ack command`
-          : 'close report not found for staged ack — review manually',
+          : `close report not found for staged ack (staged ${overall}) — review manually`,
       });
     }
   }

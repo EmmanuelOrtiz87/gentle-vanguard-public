@@ -6,7 +6,7 @@
  * Tres destinos:
  *   - stack   (no sync): cambios internos al stack privado (src/, .lefthook.yml, etc.)
  *   - landing (sync -> gentlevanguard): cambios en apps/academy-landing/**
- *   - public-mirror (sync -> emmanuel-public legacy): cambios en docs/, LICENSE, etc.
+ *   - public-mirror (producto publico curado): cambios en docs/, LICENSE, etc.
  *   - apps-violation (warning ADR-0017): cambios en apps/<otro>/** (deberian quedarse en privado)
  *
  * Uso:
@@ -88,12 +88,12 @@ function route(files: string[]): RoutingResult {
     };
   }
 
-  // Public mirror paths → sync legacy
+  // Rutas candidatas al producto público; la allowlist decide qué se exporta.
   if (hasPublicMirrorPath && !hasLanding) {
     return {
       route: 'public-mirror',
       changedFiles: files,
-      suggestion: 'SYNC PUBLIC (legacy): workflow sync-public.yml se dispara automaticamente (si los paths matchean).',
+      suggestion: 'PUBLIC PRODUCT: publicación manual con npm run publish:public; Actions bloqueado por billing. La allowlist decide qué se exporta (docs/REPOSITORY-PUBLICATION.md).',
     };
   }
 
@@ -102,7 +102,7 @@ function route(files: string[]): RoutingResult {
     return {
       route: 'mixed',
       changedFiles: files,
-      suggestion: 'SYNC BOTH: landing -> gentlevanguard, public-mirror -> emmanuel-public (legacy).',
+      suggestion: 'SYNC BOTH (manual): producto con npm run publish:public; sitio con node --import tsx src/ops/sync-landing-gentlevanguard.ts. Revisar docs/REPOSITORY-PUBLICATION.md y la allowlist de cada destino.',
     };
   }
 

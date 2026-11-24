@@ -1,5 +1,15 @@
 # Artifact Retention Policy
 
+> **Histórico, no usar como procedimiento vigente (revisado 2026-11-24).** El script
+> `rotate-artifacts.ps1` fue retirado. La configuración vigente está en
+> [`config/artifacts-retention.json`](../../config/artifacts-retention.json): auditorías = 3, modo
+> predeterminado = `dry-run`, aplicación autorizada solamente durante el cierre automático. La
+> implementación actual es
+> [`src/session/artifact-retention.ts`](../../src/session/artifact-retention.ts). Para inspeccionar
+> temporales sin borrarlos: `npm run runtime:retention`; su política independiente es
+> [`config/runtime-retention.json`](../../config/runtime-retention.json), con `autoApply=false`. El
+> contenido que sigue documenta el diseño anterior, incluidos sus comandos retirados.
+
 ## Overview
 
 Gentle-Vanguard automatically manages artifact retention to balance **historical context** with

@@ -16,7 +16,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'fs';
 import { pathToFileURL } from 'url';
-import { join, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
 
 const ROOT = resolve(process.cwd());
 
@@ -332,14 +332,27 @@ async function sendToFile(alert: AlertPayload): Promise<void> {
   appendFileSync(join(stateDir(), 'alerts.jsonl'), JSON.stringify(entry) + '\n', 'utf-8');
 }
 
+/**
+ * Dashboard store path. Honors the same `MCAS_STATE_DIR` override as stateDir():
+ * a contract test that sends alerts must not append synthetic entries to the
+ * store the real dashboard reads (observed 2026-11-24: `MCAS contract probe`
+ * alerts with sessionId `unknown` landed in `.session/alerts/realtime.json`).
+ */
+function dashboardPath(): string {
+  const override = process.env.MCAS_STATE_DIR;
+  return override
+    ? join(stateDir(), 'realtime.json')
+    : join(ROOT, '.session', 'alerts', 'realtime.json');
+}
+
 async function sendToDashboard(alert: AlertPayload): Promise<void> {
-  const dashboardPath = join(ROOT, '.session', 'alerts', 'realtime.json');
-  mkdirSync(join(ROOT, '.session', 'alerts'), { recursive: true });
+  const target = dashboardPath();
+  mkdirSync(dirname(target), { recursive: true });
 
   let alerts: AlertPayload[] = [];
   try {
-    if (existsSync(dashboardPath)) {
-      alerts = JSON.parse(readFileSync(dashboardPath, 'utf-8'));
+    if (existsSync(target)) {
+      alerts = JSON.parse(readFileSync(target, 'utf-8'));
     }
   } catch {}
 
@@ -347,7 +360,7 @@ async function sendToDashboard(alert: AlertPayload): Promise<void> {
   // Keep last 100 alerts
   if (alerts.length > 100) alerts = alerts.slice(-100);
 
-  writeFileSync(dashboardPath, JSON.stringify(alerts, null, 2), 'utf-8');
+  writeFileSync(target, JSON.stringify(alerts, null, 2), 'utf-8');
 }
 
 async function sendToWebhook(alert: AlertPayload, config: AlertConfig): Promise<boolean> {

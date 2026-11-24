@@ -1,0 +1,575 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-negocio-leads-es",
+  "title": "GentleVanguard - Software a medida, automatización e IA aplicada",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/content",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "cover",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Software a medida - Automatización - IA aplicada",
+          "editable": true
+        },
+        {
+          "elementId": "cover-title",
+          "role": "title",
+          "type": "string",
+          "text": "Tu negocio crece.\nTus sistemas también.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleSize",
+          "role": "titleSize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleH",
+          "role": "titleH",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-subtitle",
+          "role": "subtitle",
+          "type": "string",
+          "text": "Diseñamos apps, sistemas empresariales y automatizaciones alrededor de cómo trabaja tu equipo. Diagnóstico sin cargo, propuesta por etapas y precios cerrados por hito.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-meta",
+          "role": "meta",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "cover-versión",
+          "role": "versión",
+          "type": "string",
+          "text": "Stack v4.3.0 - Noviembre 2026",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "statement",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "statement-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Quiénes somos",
+          "editable": true
+        },
+        {
+          "elementId": "statement-title",
+          "role": "title",
+          "type": "string",
+          "text": "Un estudio de software que escucha antes de construir",
+          "editable": true
+        },
+        {
+          "elementId": "statement-body",
+          "role": "body",
+          "type": "string",
+          "text": "GentleVanguard diseña y construye apps a medida y sistemas empresariales para pymes y empresas que necesitan ordenar procesos, automatizar operaciones y crecer con software confiable. Trabajamos por proyecto, con contratación independiente, desde San Juan, Argentina.",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodyW",
+          "role": "bodyW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodySize",
+          "role": "bodySize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-stats",
+          "role": "stats",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "cards",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "cards-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Qué hacemos",
+          "editable": true
+        },
+        {
+          "elementId": "cards-title",
+          "role": "title",
+          "type": "string",
+          "text": "Tres formas de ordenar una operación",
+          "editable": true
+        },
+        {
+          "elementId": "cards-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cada proyecto arranca del proceso real, no de una herramienta.",
+          "editable": true
+        },
+        {
+          "elementId": "cards-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cards-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "principle",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "principle-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Cómo trabajamos",
+          "editable": true
+        },
+        {
+          "elementId": "principle-title",
+          "role": "title",
+          "type": "string",
+          "text": "Un método corto, con criterios acordados antes de empezar",
+          "editable": true
+        },
+        {
+          "elementId": "principle-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "principle-closing",
+          "role": "closing",
+          "type": "string",
+          "text": "Un proyecto no arranca con una propuesta: arranca con un diagnóstico que termina en un mapa de procesos, dolores principales, oportunidades de automatización y un roadmap por etapas.",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "La diferencia",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "No vendemos horas: operamos sobre una plataforma ya construida",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "GentleVanguard es un estudio con un stack propio. Esa plataforma es la que sostiene los tiempos, la calidad y la trazabilidad de cada proyecto.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "figureLayers",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "figureLayers-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "La plataforma",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-title",
+          "role": "title",
+          "type": "string",
+          "text": "Un stack con capas, no un proyecto suelto",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Cada capa resuelve una capa de problemas y deja registro de lo que hizo.",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-textW",
+          "role": "textW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "figureLayers-layers",
+          "role": "layers",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "layout": "timeline",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "timeline-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "El recorrido",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-title",
+          "role": "title",
+          "type": "string",
+          "text": "De la primera conversación a la operación",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Etapas con entregables verificables, no fases indefinidas.",
+          "editable": true
+        },
+        {
+          "elementId": "timeline-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Alcance",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Qué se puede contratar, y en qué orden",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Catálogo de referencia en dólares, netos de impuestos. Se refresca antes de cada presupuesto.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-colW",
+          "role": "colW",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "layout": "compare",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "compare-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Por qué nosotros",
+          "editable": true
+        },
+        {
+          "elementId": "compare-title",
+          "role": "title",
+          "type": "string",
+          "text": "Un estudio con stack propio, frente a un desarrollo aislado",
+          "editable": true
+        },
+        {
+          "elementId": "compare-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Dos caminos que suelen parecer equivalentes y no lo son.",
+          "editable": true
+        },
+        {
+          "elementId": "compare-left",
+          "role": "left",
+          "type": "object",
+          "editable": true
+        },
+        {
+          "elementId": "compare-right",
+          "role": "right",
+          "type": "object",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "layout": "metrics",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "metrics-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Además del proyecto",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-title",
+          "role": "title",
+          "type": "string",
+          "text": "GV Academy: el conocimiento queda en tu equipo",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Catálogo abierto y en funcionamiento: 89 productos sobre IA aplicada, software y negocio.",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "metrics-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "layout": "figure",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "figure-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Prueba de trabajo",
+          "editable": true
+        },
+        {
+          "elementId": "figure-title",
+          "role": "title",
+          "type": "string",
+          "text": "Esto ya está corriendo: 28 desarrollos propios",
+          "editable": true
+        },
+        {
+          "elementId": "figure-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "No son productos en catálogo ni casos de clientes. Son sistemas que construimos y que hoy funcionan.",
+          "editable": true
+        },
+        {
+          "elementId": "figure-textW",
+          "role": "textW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "figure-image",
+          "role": "image",
+          "type": "string",
+          "text": "stack-dashboard.png",
+          "editable": true
+        },
+        {
+          "elementId": "figure-imageAlt",
+          "role": "imageAlt",
+          "type": "string",
+          "text": "Arquitectura del dashboard de observabilidad del stack",
+          "editable": true
+        },
+        {
+          "elementId": "figure-caption",
+          "role": "caption",
+          "type": "string",
+          "text": "Dashboard de observabilidad del stack, alimentado con trazas reales",
+          "editable": true
+        },
+        {
+          "elementId": "figure-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "layout": "statement",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "statement-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "El primer paso",
+          "editable": true
+        },
+        {
+          "elementId": "statement-title",
+          "role": "title",
+          "type": "string",
+          "text": "La primera consulta es sin cargo",
+          "editable": true
+        },
+        {
+          "elementId": "statement-body",
+          "role": "body",
+          "type": "string",
+          "text": "Nos juntamos, entendemos tu operación y te llevás un análisis claro con una propuesta por etapas y precios cerrados por hito. Después decidís si avanzamos. Si no avanzamos, igual te queda el diagnóstico.",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodyW",
+          "role": "bodyW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodySize",
+          "role": "bodySize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-stats",
+          "role": "stats",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "layout": "closing",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-title",
+          "role": "title",
+          "type": "string",
+          "text": "Empecemos por entender tu operación",
+          "editable": true
+        },
+        {
+          "elementId": "closing-body",
+          "role": "body",
+          "type": "string",
+          "text": "Una conversación de diagnóstico alcanza para saber si hay un proyecto acá, y cuánto vale. Sin compromiso.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-ctas",
+          "role": "ctas",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-contacts",
+          "role": "contacts",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-note",
+          "role": "note",
+          "type": "string",
+          "text": "La presentación institucional y el catálogo de Academy están publicados en gentlevanguard.github.io",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}
