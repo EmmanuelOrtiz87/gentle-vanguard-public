@@ -1,6 +1,6 @@
 # Presentations
 
-Material de presentación del stack GentleVanguard. Versión vigente: package.json (4.3.0 al 2026-10-20). Versiones antiguas quedan fuera de
+Material de presentación del stack GentleVanguard. Versión vigente: package.json (4.5.0 al 2026-11-21). Versiones antiguas quedan fuera de
 la documentación viva.
 
 > **Nota de alcance**: este material es la documentación de presentación del stack. La ruta canónica
@@ -11,7 +11,7 @@ la documentación viva.
 
 ## Estado vigente
 
-Actualización editorial del 20-10: navegación de diagramas centralizada en esta galería, con 10 SVG accesibles y secciones de galería repetidas retiradas de las páginas temáticas. Se conservan sólo gráficos contextuales que explican su contenido. `docs:presentations:check` detecta drift del registro y del shell; no certifica por sí solo hechos históricos, todas las traducciones ni la funcionalidad de las herramientas.
+Actualización editorial del 21-11: navegación de diagramas centralizada en esta galería, con 10 SVG accesibles y secciones de galería repetidas retiradas de las páginas temáticas. Se conservan sólo gráficos contextuales que explican su contenido. `docs:presentations:check` detecta drift del registro y del shell; no certifica por sí solo hechos históricos, todas las traducciones ni la funcionalidad de las herramientas.
 
 El registro mantiene **26 páginas** (incluida esta galería). `docs:presentations:sync` actualiza clasificación, fuentes y resúmenes desde Stack Facts; `docs:presentations:check` detecta drift. Marketing conserva hipótesis previas en un disclosure histórico cerrado; no son resultados ni servicios aprobados.
 

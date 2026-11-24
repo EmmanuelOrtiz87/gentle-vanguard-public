@@ -13,7 +13,8 @@
  *   3. Generates a compliance report with per-category coverage and evidence.
  *   4. Supports a `--strict` mode that fails CI when coverage is insufficient.
  *
- * The 10 categories (OWASP Agentic AI Top 10, 2025):
+ * The 10 categories of the LLM/GenAI list (OWASP Top 10 for LLM Applications,
+ * 2025 edition) — the platform-level risks:
  *   LLM01:2025  Prompt Injection
  *   LLM02:2025  Sensitive Information Disclosure
  *   LLM03:2025  Supply Chain
@@ -25,9 +26,16 @@
  *   LLM09:2025  Misinformation
  *   LLM10:2025  Unbounded Consumption
  *
+ * AND the 10 categories of the agentic list (OWASP Top 10 for Agentic
+ * Applications, 2026 edition, published 2025-12-09) — the risks that only
+ * exist when the system acts autonomously: ASI01..ASI10 (see
+ * `buildAgenticMapping`). Both are current canons; `--agentic` selects the
+ * second one.
+ *
  * Usage (CLI):
  *   npx tsx src/security/owasp/owasp-agentic-top10.ts report
  *   npx tsx src/security/owasp/owasp-agentic-top10.ts report --strict
+ *   npx tsx src/security/owasp/owasp-agentic-top10.ts report --agentic --strict
  *   npx tsx src/security/owasp/owasp-agentic-top10.ts verify --evidence ./owasp-evidence.json
  */
 
@@ -238,6 +246,249 @@ export function buildOwaspMapping(): OwaspCategory[] {
 }
 
 // ---------------------------------------------------------------------------
+// OWASP Top 10 for Agentic Applications 2026 (ASI01..ASI10)
+// ---------------------------------------------------------------------------
+//
+// POR QUE EXISTE (2026-11-23, absorcion del canon externo)
+//
+// El modulo se llama "owasp-agentic-top10" pero hasta ahora cubria la lista
+// LLM01..LLM10 (OWASP Top 10 for LLM/GenAI, edicion 2025). El canon vigente
+// para sistemas AGENTICOS es otro: **OWASP Top 10 for Agentic Applications
+// 2026** (publicado el 9 de diciembre de 2025 por el OWASP GenAI Security
+// Project, con mas de 100 expertos), con identificadores ASI.
+//
+// Covers: ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation,
+// ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain
+// Vulnerabilities, ASI05 Unexpected Code Execution (RCE), ASI06 Memory &
+// Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08
+// Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue
+// Agents. Fuente: https://genai.owasp.org/top-10-for-agentic-applications-2026/
+//
+// Las DOS listas son vigentes y se cubren: la de LLM (plataforma) y la de
+// agentic (sistemas autonomos). Lo que NO se hace es renombrar controles que
+// no existen: cada `controls` de abajo es un archivo real del repo, verificado
+// contra disco.
+
+/**
+ * Mapeo de las 10 categorias agentic (2026) a los controles del stack.
+ * `coverage` describe el control REAL del stack, no una aspiracion.
+ */
+export function buildAgenticMapping(): OwaspCategory[] {
+  return [
+    {
+      id: 'ASI01:2026',
+      title: 'Agent Goal Hijack',
+      description:
+        'El objetivo del agente es desviado por un atacante: la instruccion original queda anulada y el agente persigue el objetivo del atacante.',
+      controls: [
+        'src/security/prompt-injection-guard.ts',
+        'src/security/guardrails/input-moderation.ts',
+        'src/security/policy-engine/policy-engine.ts',
+        'src/security/system-prompt-redaction.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'prompt-injection-guard.ts — deteccion heuristica + patrones de inyeccion',
+        'input-moderation.ts — rail de jailbreak (fail-closed)',
+        'policy-engine.ts — gating deterministico de herramientas',
+        'system-prompt-redaction.ts — el prompt de sistema no sale hacia fuera',
+      ],
+    },
+    {
+      id: 'ASI02:2026',
+      title: 'Tool Misuse and Exploitation',
+      description:
+        'El agente usa herramientas legitimas fuera de su proposito: un permiso concedido se convierte en capacidad indiscriminada.',
+      controls: [
+        'src/security/policy-engine/policy-engine.ts',
+        'src/security/guardrail-orchestrator.ts',
+        'src/security/workload-guard.ts',
+        'src/mcp/security-gateway/mcp-security-gateway.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'policy-engine.ts — allowlist de herramientas por politica, fail-closed',
+        'guardrail-orchestrator.ts — rails por llamada (F3.x)',
+        'workload-guard.ts — techo de trabajo antes de ejecutar',
+        'mcp-security-gateway.ts — escaneo de instrucciones ocultas en tools',
+      ],
+    },
+    {
+      id: 'ASI03:2026',
+      title: 'Identity and Privilege Abuse',
+      description:
+        'La confianza dinamica y la delegacion se explotan: un agenteActing con la identidad o el privilegio de otro.',
+      controls: [
+        'src/security/auth-session.ts',
+        'src/security/agent-governance-integration.ts',
+        'src/ops/agent-reachability.ts',
+        'src/security/policy-engine/policy-engine.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'auth-session.ts — sesiones y verificacion de identidad',
+        'agent-governance-integration.ts — gobernanza de identidad de agente',
+        'agent-reachability.ts — todo agente del roster es alcanzable y verificable',
+        'policy-engine.ts — la delegacion noAmplia privilegios por defecto',
+      ],
+    },
+    {
+      id: 'ASI04:2026',
+      title: 'Agentic Supply Chain Vulnerabilities',
+      description:
+        'El riesgo llega por la cadena de suministro: skills, prompts, plugins, MCP servers y dependencias del agente.',
+      controls: [
+        'src/security/dependency-security-checker.ts',
+        'src/security/generate-sbom.ts',
+        'src/security/slsa-provenance.ts',
+        'src/tools/script-policy-gate.ts',
+        'src/security/gateguard-mcp.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'dependency-security-checker.ts — vulnerabilidades y licencias',
+        'generate-sbom.ts — SBOM CycloneDX',
+        'slsa-provenance.ts — procedencia SLSA',
+        'script-policy-gate.ts — politica de scripts antes de ejecutarse',
+        'gateguard-mcp.ts — los servidores MCP declaran y se validan',
+      ],
+    },
+    {
+      id: 'ASI05:2026',
+      title: 'Unexpected Code Execution (RCE)',
+      description:
+        'El agente ejecuta codigo no previsto (spawns ocultos, shell sin cotizar, generacion de codigo ejecutable).',
+      controls: [
+        'src/tools/check-shell-quoting.ts',
+        'src/tools/sh-launcher-audit.ts',
+        'src/tools/check-process-launchers.ts',
+        'src/security/self-mutation-guard.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'check-shell-quoting.ts — argumentos de shell cotizados y verificados',
+        'sh-launcher-audit.ts — audit de lanzadores .sh',
+        'check-process-launchers.ts — un solo launcher por proceso',
+        'self-mutation-guard.ts — el stack no se reescribe a si mismo sin control',
+      ],
+    },
+    {
+      id: 'ASI06:2026',
+      title: 'Memory & Context Poisoning',
+      description:
+        'La informacion almacenada o recuperada (memoria, RAG, notas) queda envenenada y contamina decisiones futuras.',
+      controls: [
+        'src/security/rag-source-integrity.ts',
+        'src/retrieval/retrieval-grader.ts',
+        'src/security/embedding-guard.ts',
+        'src/security/fact-checker.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'rag-source-integrity.ts — integridad de las fuentes RAG',
+        'retrieval-grader.ts — graduacion de lo recuperado antes de usarlo',
+        'embedding-guard.ts — guard sobre embeddings',
+        'fact-checker.ts — verificacion de afirmaciones contra evidencia',
+      ],
+    },
+    {
+      id: 'ASI07:2026',
+      title: 'Insecure Inter-Agent Communication',
+      description:
+        'Los agentes se comunican por canales que no autentican ni cifran: spoofing, A2A, paso de credenciales.',
+      controls: [
+        'src/mcp/security-gateway/mcp-security-gateway.ts',
+        'src/orchestration/agent-message-bus.ts',
+        'src/security/gateguard-mcp.ts',
+      ],
+      coverage: 'partial',
+      evidence: [
+        'mcp-security-gateway.ts — validacion de las llamadas MCP',
+        'agent-message-bus.ts — bus de mensajes entre agentes con trazabilidad',
+        'gateguard-mcp.ts — registro y preflight de servidores MCP',
+      ],
+    },
+    {
+      id: 'ASI08:2026',
+      title: 'Cascading Failures',
+      description:
+        'Un fallo puntual (alucinacion, agente caido, tool rota) se propaga en cascada por el sistema agentico.',
+      controls: [
+        'src/resilience/circuit-breaker-v2.ts',
+        'src/resilience/anti-loop-guard.ts',
+        'src/core/loop-guard-middleware.ts',
+        'src/core/maintenance-watchtower.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'circuit-breaker-v2.ts — corte de circuito con recuperacion',
+        'anti-loop-guard.ts — deteccion de ciclos',
+        'loop-guard-middleware.ts — limite de vueltas del orquestador',
+        'maintenance-watchtower.ts — 38 checks registrados y autoheal',
+      ],
+    },
+    {
+      id: 'ASI09:2026',
+      title: 'Human-Agent Trust Exploitation',
+      description:
+        'Se explota la confianza del humano en el agente: salidas que parecen correctas, acciones autonomas no revisadas.',
+      controls: [
+        'src/security/guardrails/output-moderation.ts',
+        'src/security/agent-governance-integration.ts',
+        'src/orchestration/chat-level-enforcer.ts',
+        'src/web-presence/approval.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'output-moderation.ts — rail sobre lo que el agente afirma',
+        'agent-governance-integration.ts — niveles de autonomia y escalado al humano',
+        'chat-level-enforcer.ts — el nivel de conversacion fija la autonomia',
+        'approval.ts — aprobacion explicita antes de publicar',
+      ],
+    },
+    {
+      id: 'ASI10:2026',
+      title: 'Rogue Agents',
+      description:
+        'Un agente comprometido o malicioso se desvía de su objetivo y ejecuta acciones fuera de mandato.',
+      controls: [
+        'src/security/self-mutation-guard.ts',
+        'src/security/agent-governance-integration.ts',
+        'src/orchestration/auto-escalation.ts',
+        'src/ops/agent-reachability.ts',
+      ],
+      coverage: 'full',
+      evidence: [
+        'self-mutation-guard.ts — el agente no se reconfigura solo',
+        'agent-governance-integration.ts — mandato y limites por rol',
+        'auto-escalation.ts — escalado automatico ante desviacion',
+        'agent-reachability.ts — el roster es auditable (nadie oculto)',
+      ],
+    },
+  ];
+}
+
+/** Reporte de cobertura de la lista agentic (ASI01..ASI10). */
+export function generateAgenticReport(strict: boolean): OwaspReport {
+  const categories = buildAgenticMapping();
+  const full = categories.filter((c) => c.coverage === 'full').length;
+  const partial = categories.filter((c) => c.coverage === 'partial').length;
+  const none = categories.filter((c) => c.coverage === 'none').length;
+  const overall = Math.round(((full * 1 + partial * 0.5 + none * 0) / categories.length) * 100);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    totalCategories: categories.length,
+    fullCoverage: full,
+    partialCoverage: partial,
+    noneCoverage: none,
+    overallCoverage: overall,
+    categories,
+    strictPass: strict ? overall >= 80 && none === 0 : true,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Report generation
 // ---------------------------------------------------------------------------
 
@@ -288,11 +539,19 @@ function main(): void {
 
   if (cmd === 'report') {
     const strict = args.strict === 'true' || args.strict === '1';
-    const report = generateReport(strict);
+    const agentic = args.agentic === 'true' || args.agentic === '1';
+    const report = agentic ? generateAgenticReport(strict) : generateReport(strict);
     const outputPath =
-      args.output ?? join(resolve(process.cwd()), '.runtime', 'owasp-agentic-top10.json');
+      args.output ??
+      join(
+        resolve(process.cwd()),
+        '.runtime',
+        agentic ? 'owasp-agentic-top10-agentic.json' : 'owasp-agentic-top10.json',
+      );
     writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf-8');
-    console.log(`OWASP Agentic AI Top 10 report written to ${outputPath}`);
+    console.log(
+      `OWASP ${agentic ? 'Top 10 for Agentic Applications 2026' : 'Top 10 for LLM Applications 2025'} report written to ${outputPath}`,
+    );
     console.log(
       `  Coverage: ${report.overallCoverage}% (${report.fullCoverage} full / ${report.partialCoverage} partial / ${report.noneCoverage} none)`,
     );
@@ -306,12 +565,13 @@ function main(): void {
   if (cmd === 'verify') {
     const evidencePath = args.evidence;
     if (!evidencePath || !existsSync(evidencePath)) {
-      console.error('Usage: owasp-agentic-top10.ts verify --evidence <path>');
+      console.error('Usage: owasp-agentic-top10.ts verify --evidence <path> [--agentic]');
       process.exit(1);
     }
     const evidence = JSON.parse(readFileSync(evidencePath, 'utf-8'));
+    const agentic = args.agentic === 'true' || args.agentic === '1';
     // Verify each category has evidence
-    const report = generateReport(false);
+    const report = agentic ? generateAgenticReport(false) : generateReport(false);
     const missing = report.categories.filter((c) => !evidence[c.id]);
     if (missing.length > 0) {
       console.error(`Missing evidence for: ${missing.map((m) => m.id).join(', ')}`);

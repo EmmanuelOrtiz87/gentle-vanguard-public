@@ -244,6 +244,17 @@ const CHECKS: GateCheck[] = [
       'Modulos sin consumidores: src/ sin muertos (owner 2026-11-19: promovido a enforced)',
   },
   {
+    // El gate OWASP agentic estaba en el catalogo como "enforced" sin ninguna
+    // ejecucion real: era aspiracional. Corre DE VERDAD en el composite, asi
+    // que el catalogo y lo que se ejecuta dicen lo mismo.
+    name: 'owasp-agentic',
+    command: 'npm',
+    args: ['run', 'owasp:top10:agentic'],
+    timeoutMs: 60_000,
+    description:
+      'OWASP Top 10 for Agentic Applications 2026 (ASI01..ASI10): cada control declarado tiene que existir en disco',
+  },
+  {
     name: 'script-policy',
     command: 'node',
     args: ['--import', 'tsx', 'src/tools/script-policy-gate.ts', '--check'],

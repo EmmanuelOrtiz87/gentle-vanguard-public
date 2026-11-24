@@ -82,7 +82,7 @@ window.__GV_CONTENT = window.__GV_CONTENT || {};
       /* index.html — book cards */
       c_index_118: '💻 Commands & CLI',
       c_index_119:
-        '673 npm scripts cataloged in 12 categories — session, tokens, security, research and more, searchable and copyable',
+        '718 npm scripts cataloged in 12 categories — session, tokens, security, research and more, searchable and copyable',
       c_index_120: '🔤 Glossary & Index',
       c_index_121:
         '280 alphabetical stack terms with A-Z navigation — acronyms, concepts, tools, standards and nomenclatures',

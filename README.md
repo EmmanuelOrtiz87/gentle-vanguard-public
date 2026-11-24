@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Versi%C3%B3n-4.4.0-06B6D4?style=flat-square&labelColor=0B1020" alt="Versión">
+  <img src="https://img.shields.io/badge/Versi%C3%B3n-4.5.0-06B6D4?style=flat-square&labelColor=0B1020" alt="Versión">
   <img src="https://img.shields.io/badge/Licencia-MIT-06B6D4?style=flat-square&labelColor=0B1020" alt="Licencia">
   <img src="https://img.shields.io/badge/Plataforma-Windows%20%7C%20macOS%20%7C%20Linux-06B6D4?style=flat-square&labelColor=0B1020" alt="Plataforma">
 </p>
@@ -13,7 +13,7 @@
 <p align="center"><strong>Capa local-first de orquestación, memoria y verificación para equipos que desarrollan con asistentes de IA.</strong></p>
 
 <p align="center">
-  <strong>Versión 4.4.0</strong> (Licencia MIT) · <a href="https://gentlevanguard.github.io/">Sitio institucional</a> · <a href="https://gentlevanguard.github.io/academy/">Academia técnica</a> · <a href="demos/README.md">Guías prácticas</a>
+  <strong>Versión 4.5.0</strong> (Licencia MIT) · <a href="https://gentlevanguard.github.io/">Sitio institucional</a> · <a href="https://gentlevanguard.github.io/academy/">Academia técnica</a> · <a href="demos/README.md">Guías prácticas</a>
 </p>
 
 ---
@@ -43,8 +43,35 @@ independientes y observabilidad en tiempo real, operando de forma 100% local en 
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Orquestación de tareas**        | Cada requerimiento se asigna a un agente especialista (análisis, arquitectura, desarrollo, calidad, operaciones o gobernanza). El trabajo directo en línea (inline-first) es la vía habitual; las especificaciones formales (SDD) se activan a demanda en cambios estructurales. |
 | **Memoria técnica persistente**   | Decisiones, contexto del proyecto e historial técnico persisten entre sesiones y herramientas. Una sesión nueva retoma con precisión donde cerró la anterior.                                                                                                                    |
-| **Gobernanza y verificación**     | 154 controles automáticos de salud, puertas independientes de revisión, auditoría de dependencias y contratos explícitos entre fases. La calidad se verifica con evidencia, no se presupone.                                                                                     |
+| **Gobernanza y verificación**     | Puertas de calidad independientes, auditoría de dependencias y contratos explícitos entre fases. El monitor de salud registra 38 checks; el conjunto que se ejecuta depende del entorno. La calidad se verifica con evidencia, no se presupone.                                  |
 | **Observabilidad en tiempo real** | Sesiones, consumo de tokens, tiempos de respuesta, costos estimados y tasas de éxito se registran en una base local como datos medibles.                                                                                                                                         |
+
+---
+
+## Inventario y novedades de la versión 4.5.0
+
+El inventario del stack se genera desde la configuración viva, no desde cifras escritas a mano
+(`npm run stack:facts`, snapshot del 2026-11-21):
+
+| Elemento              | Valor vigente                     |
+| --------------------- | --------------------------------- |
+| Versión del paquete   | 4.5.0                             |
+| Agentes OpenCode      | 22                                |
+| Habilidades canónicas | 263 (265 indexadas · 29 críticas) |
+| Nexus (SQLite local)  | 45 tablas · 24 migraciones        |
+| Comandos npm          | 712                               |
+
+Novedades incorporadas en 4.5.0:
+
+- **Puente MCP a demanda** — los servidores MCP se invocan por necesidad en lugar de precargarse en
+  cada turno (`npm run mcp:on-demand`, `npm run mcp:suggest`, `npm run mcp:probe`).
+- **Cuarto eje de verificación MCP** — preflight declarativo y sonda real que separa _declarado /
+  alcanzable / descubrible / operable_ (`config/mcp-registry.json`, `config/mcp-demand-map.json`).
+- **Gate de módulos huérfanos** — verificación de que cada módulo del workspace tiene consumidor
+  (`npm run orphans:check`).
+- **Gate de mutación en pre-release** — umbral de mutation score exigido antes de publicar
+  (`npm run safety:mutation-scorer`).
+- **Watcher de ventanas fantasma** — captura forense de procesos persistidos sin consumidor.
 
 ---
 
@@ -102,8 +129,8 @@ Linux.
 
 ### Instalador para Windows
 
-Descargue **Gentle-Vanguard-Setup-4.4.0.exe** y su archivo de comprobación `.sha256` desde el
-[Release oficial v4.4.0](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/tag/v4.4.0).
+Descargue **Gentle-Vanguard-Setup-4.5.0.exe** y su archivo de comprobación `.sha256` desde el
+[Release oficial v4.5.0](https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/tag/v4.5.0).
 
 El instalador es un preparador de entorno (bootstrapper) de código abierto; no incluye binarios
 firmados comercialmente, por lo que Windows SmartScreen puede solicitar confirmación al ejecutar.
@@ -111,8 +138,8 @@ firmados comercialmente, por lo que Windows SmartScreen puede solicitar confirma
 Para verificar la integridad del archivo antes de instalar:
 
 ```powershell
-Get-FileHash .\Gentle-Vanguard-Setup-4.4.0.exe -Algorithm SHA256
-# Suma esperada: 7e8eb0b1cbb61839350858bed8a51b2474f0917112d4175273b4771a9c00444c
+Get-FileHash .\Gentle-Vanguard-Setup-4.5.0.exe -Algorithm SHA256
+# Suma esperada: 8ba6acc00a04f6d1b92817ace063707a49e451eb64ced928a973c5a545152c87
 ```
 
 ### Instalación desde el código fuente
@@ -139,7 +166,7 @@ npx tsx src/quickstart/quickstart.ts --accept-plan <id-plan>  # Aplica únicamen
 
 ```sh
 npm run session:autostart:detached   # Inicia la sesión de trabajo y los procesos de fondo
-npm run watchtower:health -- --full  # Ejecuta los 154 controles de salud del entorno
+npm run watchtower:health -- --full  # Ejecuta los checks de salud del entorno
 ```
 
 ---
@@ -167,7 +194,7 @@ y servidores MCP configurados. Para conocer el detalle por plataforma, consulte 
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Engram**                              | Sistema de memoria persistente para ingeniería: observaciones, decisiones y contexto operativo almacenados localmente que sobreviven entre sesiones y herramientas. |
 | **Nexus**                               | Base de datos operacional local (SQLite) para métricas de consumo, trazas de ejecución, eventos y alertas del sistema.                                              |
-| **Watchtower**                          | Monitor de salud continuo: conjunto de 154 controles automatizados que verifican la integridad funcional del stack.                                                 |
+| **Watchtower**                          | Monitor de salud continuo: 38 checks automatizados registrados que verifican la integridad funcional del stack. El subconjunto ejecutado depende del entorno.       |
 | **Autostart de sesión**                 | Comando único que inicializa el entorno operativo: asignación de ID de sesión, memoria, verificadores y servicios en segundo plano.                                 |
 | **Puertas de revisión (RDD)**           | Evaluación independiente que audita la evidencia técnica y el nivel de riesgo antes de dar por completado un cambio.                                                |
 | **SDD (Desarrollo por especificación)** | Flujo formal optativo (requisitos → diseño → construcción → verificación) para cambios de alto impacto; las tareas habituales operan en modo directo.               |

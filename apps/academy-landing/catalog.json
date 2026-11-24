@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-21T20:23:53.508Z",
+  "generated": "2026-11-23T22:36:05.000Z",
   "counts": {
     "courses": 30,
     "ebooks": 33,
@@ -65,7 +65,7 @@
         "id": "ai-engineering",
         "title": "AI Engineering — Sistemas de IA de producción",
         "level": "developer",
-        "hours": 11,
+        "hours": 14,
         "categories": [
           "ia-aplicada",
           "infraestructura-redes-ciberseguridad"
@@ -155,7 +155,7 @@
         "id": "gentle-vanguard",
         "title": "GentleVanguard",
         "level": "intermedio",
-        "hours": 12,
+        "hours": 19,
         "categories": [
           "software-programacion",
           "ia-aplicada"
@@ -646,7 +646,7 @@
         "id": "ai-engineering-toolkit",
         "title": "AI Engineering Toolkit",
         "resourceCounts": {},
-        "description": "Kit premium que reune todo: curso AI Engineering (9 modulos · 22 lecciones · 11h) + ebook de patrones de produccion (~90 pags) + checklists de madurez y operacion + plantillas de prompts con contrato + biblioteca de prompts semilla + casos practicos de implementacion. Todo lo necesario para llevar un sistema de IA a produccion siguiendo el patron stack de mechanical de GentleVanguard.",
+        "description": "Kit premium que reune todo: curso AI Engineering (10 modulos · 42 lecciones · 14h) + ebook de patrones de produccion (~90 pags) + checklists de madurez y operacion + plantillas de prompts con contrato + biblioteca de prompts semilla + casos practicos de implementacion. Todo lo necesario para llevar un sistema de IA a produccion siguiendo el patron stack de mechanical de GentleVanguard.",
         "includes": [
           "curso",
           "ebook",

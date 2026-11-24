@@ -11,7 +11,13 @@ function submit(hostname:string,enabled:boolean){
 }
 describe('public contact boundary',()=>{
  it('disables remote metrics by default and permits an explicitly empty payment bridge',()=>{
-  const setting=(name:string,env:Record<string,string>)=>runInNewContext(source.match(new RegExp('const '+name+' = ([^;]+);'))![1],{process:{env}});
+  // El regex tolera el salto de linea de Prettier (p.ej. "const MP_BRIDGE_URL =\n  process.env..."),
+  // pero sigue exigiendo que la declaracion exista y se evalue como codigo real.
+  const setting=(name:string,env:Record<string,string>)=>{
+   const match=source.match(new RegExp('const\\s+'+name+'\\s*=\\s*([^;]+);'));
+   if(!match)throw new Error('No se encontro la declaracion const '+name+' en build-landing.mjs');
+   return runInNewContext(match[1],{process:{env}});
+  };
   expect(setting('TRACK_URL',{})).toBe('');
   expect(setting('MP_BRIDGE_URL',{MP_BRIDGE_URL:''})).toBe('');
  });

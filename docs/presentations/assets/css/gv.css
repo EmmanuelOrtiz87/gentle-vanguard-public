@@ -1961,3 +1961,16 @@ section {
 .gv-subgroup-title:first-child {
   margin-top: 0;
 }
+
+/* Encabezado accesible: visible para lectores de pantalla, fuera del flujo visual. */
+.gv-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

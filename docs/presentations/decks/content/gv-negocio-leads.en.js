@@ -113,7 +113,7 @@ export default {
       cols: 4,
       items: [
         {
-          value: '28',
+          value: '29',
           label: 'Own apps',
           sub: 'Systems we developed and that run today',
           accent: '06b6d4',
@@ -159,7 +159,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Governance',
-          body: '70 quality gates, secret scanning and fail-closed policies.',
+          body: '75 quality gates, secret scanning and fail-closed policies.',
         },
         {
           icon: 'cloud',
@@ -290,7 +290,7 @@ export default {
       lead: 'A live, open catalogue: 89 products across applied AI, software and business practice.',
       cols: 4,
       items: [
-        { value: '30', label: 'Courses', sub: 'With 429 hours of video content', accent: '06b6d4' },
+        { value: '30', label: 'Courses', sub: 'With 439 hours of video content', accent: '06b6d4' },
         {
           value: '33',
           label: 'Ebooks',
@@ -315,7 +315,7 @@ export default {
     {
       layout: 'figure',
       eyebrow: 'Proof of work',
-      title: 'This is already running: 28 of our own developments',
+      title: 'This is already running: 29 of our own developments',
       lead: 'These are not catalogue products or client case studies. They are systems we built and that run today.',
       textW: 3.5,
       image: 'stack-dashboard.png',

@@ -1,6 +1,6 @@
 {
   "packageVersion": "4.5.0",
-  "factsGeneratedAt": "2026-11-21T19:41:06.194Z",
+  "factsGeneratedAt": "2026-11-23T21:45:14.728Z",
   "pages": [
     {
       "page": "agents-pipeline.html",
@@ -9,7 +9,7 @@
         ".opencode/agents",
         "config/subagent-mapping.json"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -20,7 +20,7 @@
         "docs/stack-manual-modules.md",
         "docs/stack-manual-full.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -31,7 +31,7 @@
         "docs/architecture/universal-quality-gate.md",
         "config/universal-quality-gate.json"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -41,7 +41,7 @@
       "sources": [
         "docs/status/PRESENCIA-PUBLICA-Y-DISENO.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -52,7 +52,7 @@
         "package.json",
         "src/cli/gv.ts"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -63,7 +63,7 @@
         "config/sdd-framework-mapping.json",
         "src/sdd/check-sdd-gate.ts"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -74,7 +74,7 @@
         "apps/web-dashboard/README.md",
         "docs/dashboard/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -86,7 +86,7 @@
         "docs/stack-manual-modules.md",
         "src/planning/planning-estimator.ts"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -96,7 +96,7 @@
       "sources": [
         "docs/stack-manual-modules.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -107,7 +107,7 @@
         "docs/stack-manual-modules.md",
         "package.json"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -117,7 +117,7 @@
       "sources": [
         "apps/content-cms/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -128,7 +128,7 @@
         "README.md",
         "docs/status/CANONICAL-STATUS.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -138,7 +138,7 @@
       "sources": [
         "docs/stack-manual-modules.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -149,7 +149,7 @@
         ".agents/product-marketing.md",
         "docs/marketing/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": true
     },
@@ -159,7 +159,7 @@
       "sources": [
         "docs/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -170,7 +170,7 @@
         "skills/engram-memory/SKILL.md",
         "docs/generated/STACK-FACTS.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -181,7 +181,7 @@
         "docs/status/CANONICAL-STATUS.md",
         "docs/OPERATIONS.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -192,7 +192,7 @@
         "docs/brand/BRAND-KIT.md",
         "docs/design/07-motion-ux-standard.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -202,7 +202,7 @@
       "sources": [
         "docs/status/PRESENCIA-PUBLICA-Y-DISENO.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -213,7 +213,7 @@
         "GETTING-STARTED.md",
         "package.json"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -223,7 +223,7 @@
       "sources": [
         "apps/content-cms/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -234,7 +234,7 @@
         "docs/status/CANONICAL-STATUS.md",
         "docs/architecture/universal-quality-gate.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -245,7 +245,7 @@
         "apps/content-cms/README.md",
         "docs/operations/CONTENT-OPERATIONS-ENGINE.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -256,7 +256,7 @@
         "docs/README.md",
         "package.json"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -267,7 +267,7 @@
         "docs/status/CANONICAL-STATUS.md",
         "docs/stack-manual-modules.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     },
@@ -278,7 +278,7 @@
         "apps/content-cms/README.md",
         "apps/content-cms/server/shorts/README.md"
       ],
-      "reviewed": "2026-10-20",
+      "reviewed": "2026-11-23",
       "scope": "Architecture shell, canonical aliases/fonts, current-source register and centralized diagram navigation; selected historical quantified claims are qualified, not full historical-content, translation or studio-function certification.",
       "historicalMarketingCollapsed": false
     }

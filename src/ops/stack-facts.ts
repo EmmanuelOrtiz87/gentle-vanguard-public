@@ -20,7 +20,78 @@ interface StackFacts {
   };
   agents: { opencode: number };
   skills: { canonical: number; indexed: number; mirrors: string[]; critical: number };
+  watchtower: { checks: number; components: number };
+  governance: { ruleFiles: number };
+  tooling: { npmScripts: number; typescriptFiles: number; testFiles: number };
+  pipeline: {
+    autostartSteps: number;
+    autostartStepsEnabled: number;
+    autostartStepsPhase1: number;
+  };
   tools: string[];
+}
+
+/** Count entries in the `const checks = [...]` array of the maintenance watchtower. */
+function countWatchtowerChecks(root: string): number {
+  const file = join(root, 'src/core/maintenance-watchtower.ts');
+  if (!existsSync(file)) return 0;
+  const source = readFileSync(file, 'utf8');
+  const start = source.indexOf('const checks = [');
+  if (start < 0) return 0;
+  const end = source.indexOf('];', start);
+  if (end < 0) return 0;
+  return (source.slice(start, end).match(/^\s*check[A-Z]\w*\s*,?\s*$/gm) || []).length;
+}
+
+/**
+ * Count the watchtower COMPONENTS (the subsystems the watchtower watches).
+ *
+ * POR QUE ESTE HECHO EXISTE SEPARADO DEL DE CHECKS
+ * Son dos numeros distintos y confundirlos produce una afirmacion falsa:
+ * - `checks` = funciones de check registradas (38). Es el total del array.
+ * - `components` = subsistemas vigilados (36). Es lo que el watchtower mira.
+ *
+ * El reconciler de presentaciones reescribia "N componentes vigilados" con el
+ * numero de CHECKS, asi que los decks anunciaban "38 componentes" cuando hay
+ * 36. El numero de componentes se cuenta en los `addResult('componente')`:
+ * los componentes que el watchtower nombra al reportar.
+ */
+export function countWatchtowerComponents(root: string): number {
+  const dir = join(root, 'src', 'core', 'watchtower');
+  const files: string[] = [];
+  try {
+    for (const name of readdirSync(dir)) {
+      if (name.endsWith('.ts')) files.push(join(dir, name));
+    }
+  } catch {
+    return 0;
+  }
+  const orchestrator = join(root, 'src', 'core', 'maintenance-watchtower.ts');
+  if (existsSync(orchestrator)) files.push(orchestrator);
+  const components = new Set<string>();
+  const re = /addResult\(\s*'([a-z0-9][a-z0-9-]*)'/g;
+  for (const file of files) {
+    const source = readFileSync(file, 'utf8');
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(source)) !== null) {
+      // `system` es el contenedor de error, no un componente vigilado.
+      if (match[1] === 'system') continue;
+      components.add(match[1]);
+    }
+  }
+  return components.size;
+}
+
+/** Recursively count files with the given extension under a directory. */
+function countFiles(dir: string, extension: string): number {
+  if (!existsSync(dir)) return 0;
+  let total = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) total += countFiles(full, extension);
+    else if (entry.name.endsWith(extension)) total += 1;
+  }
+  return total;
 }
 
 function readJson<T>(path: string): T {
@@ -29,9 +100,11 @@ function readJson<T>(path: string): T {
 
 export function collectStackFacts(root = process.cwd()): StackFacts {
   const resolved = resolve(root);
-  const pkg = readJson<{ version: string; packageManager?: string }>(
-    join(resolved, 'package.json'),
-  );
+  const pkg = readJson<{
+    version: string;
+    packageManager?: string;
+    scripts?: Record<string, string>;
+  }>(join(resolved, 'package.json'));
   const budget = readJson<{
     tokenBudget: { limits: StackFacts['budgets'] };
   }>(join(resolved, 'config', 'token-budget-guard.json'));
@@ -91,6 +164,36 @@ export function collectStackFacts(root = process.cwd()): StackFacts {
         mirrors: mirrorSkills,
         critical: CRITICAL_SKILLS.length,
       },
+      watchtower: {
+        checks: countWatchtowerChecks(resolved),
+        components: countWatchtowerComponents(resolved),
+      },
+      governance: {
+        ruleFiles: readdirSync(join(resolved, 'rules')).filter(
+          (name) => name.endsWith('.md') && !name.startsWith('README'),
+        ).length,
+      },
+      tooling: {
+        npmScripts: Object.keys(pkg.scripts ?? {}).length,
+        typescriptFiles: countFiles(join(resolved, 'src'), '.ts'),
+        testFiles: countFiles(join(resolved, 'tests'), '.test.ts'),
+      },
+      pipeline: (() => {
+        const file = join(resolved, 'config/session-autostart.config.json');
+        if (!existsSync(file))
+          return { autostartSteps: 0, autostartStepsEnabled: 0, autostartStepsPhase1: 0 };
+        const steps =
+          (
+            JSON.parse(readFileSync(file, 'utf8')) as {
+              pipeline?: { steps?: Array<{ enabled?: boolean; phase?: number }> };
+            }
+          ).pipeline?.steps ?? [];
+        return {
+          autostartSteps: steps.length,
+          autostartStepsEnabled: steps.filter((step) => step.enabled !== false).length,
+          autostartStepsPhase1: steps.filter((step) => step.phase === 1).length,
+        };
+      })(),
       tools,
     };
   } finally {
@@ -110,6 +213,10 @@ function stableFacts(facts: StackFacts): unknown {
     budgets: facts.budgets,
     agents: facts.agents,
     skills: facts.skills,
+    watchtower: facts.watchtower,
+    governance: facts.governance,
+    tooling: facts.tooling,
+    pipeline: facts.pipeline,
     tools: facts.tools,
   };
 }
@@ -126,6 +233,10 @@ function renderMarkdown(facts: StackFacts): string {
 - Token budgets: daily \`${facts.budgets.daily}\`, session \`${facts.budgets.perSession}\`, agent \`${facts.budgets.perAgent}\`
 - OpenCode agents: \`${facts.agents.opencode}\`
 - Skills: \`${facts.skills.canonical}\` canonical, \`${facts.skills.indexed}\` indexed, \`${facts.skills.critical}\` critical${facts.skills.mirrors.length > 0 ? ` (indexed-only: ${facts.skills.mirrors.map((mirror) => `\`${mirror}\``).join(', ')})` : ''}
+- Watchtower: \`${facts.watchtower.checks}\` registered checks (the subset executed depends on the environment)
+- Governance: \`${facts.governance.ruleFiles}\` rule files in \`rules/\`
+- Tooling: \`${facts.tooling.npmScripts}\` npm scripts, \`${facts.tooling.typescriptFiles}\` TypeScript files under \`src/\`, \`${facts.tooling.testFiles}\` test files under \`tests/\`
+- Session pipeline: \`${facts.pipeline.autostartSteps}\` steps in \`config/session-autostart.config.json\` (\`${facts.pipeline.autostartStepsEnabled}\` enabled)
 - Tool profiles: ${facts.tools.map((tool) => `\`${tool}\``).join(', ')}
 `;
 }

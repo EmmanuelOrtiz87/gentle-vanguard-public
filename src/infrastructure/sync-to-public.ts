@@ -647,18 +647,28 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
   // el que qualify el instalador en un runner Windows y produce
   // `releases/*-qualification.json`. Si falta en la lista, el sync lo borra
   // del repo publico y se pierde la capacidad de re-calificar un release.
+  //
+  // DOCTRINA SIN- ACTIONS (owner 2026-11-21): la LANDING no lleva workflows —
+  // (a) su repo es de la org y el token OAuth sin scope `workflow` rechaza el
+  // push entero por un solo yml; (b) sin billing los Actions de la org tampoco
+  // corren, asi que el yml alli es peso muerto. La capacidad de calificacion
+  // vive en el repo privado y vuelve a las landing cuando haya scope/billing.
   const workflowSrcDir = path.join(privateRepo, '.github', 'workflows');
   const workflowDstDir = path.join(targetDir, '.github', 'workflows');
-  syncPublicDependabot(privateRepo, targetDir);
-  rmIf(workflowDstDir, { recurse: true });
-  mkdirp(workflowDstDir);
-  for (const wf of ['public-smoke.yml', 'public-installer-windows.yml']) {
-    const src = path.join(workflowSrcDir, wf);
-    if (!fs.existsSync(src)) continue;
-    let content = fs.readFileSync(src, 'utf-8');
-    content = content.replace(/branches:\s*\[\s*develop\s*\]/g, 'branches: [main]');
-    content = content.replace(/branches:\s*\[(.*?develop.*?)\]/g, 'branches: [main]');
-    fs.writeFileSync(path.join(workflowDstDir, wf), content, 'utf-8');
+  if (opts.landing) {
+    rmIf(workflowDstDir, { recurse: true });
+  } else {
+    syncPublicDependabot(privateRepo, targetDir);
+    rmIf(workflowDstDir, { recurse: true });
+    mkdirp(workflowDstDir);
+    for (const wf of ['public-smoke.yml', 'public-installer-windows.yml']) {
+      const src = path.join(workflowSrcDir, wf);
+      if (!fs.existsSync(src)) continue;
+      let content = fs.readFileSync(src, 'utf-8');
+      content = content.replace(/branches:\s*\[\s*develop\s*\]/g, 'branches: [main]');
+      content = content.replace(/branches:\s*\[(.*?develop.*?)\]/g, 'branches: [main]');
+      fs.writeFileSync(path.join(workflowDstDir, wf), content, 'utf-8');
+    }
   }
 }
 

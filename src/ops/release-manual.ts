@@ -110,12 +110,12 @@ function main(): number {
   if (exists) {
     console.log(`[release-manual] la release ${tag} ya existe — se actualizan notas.`);
     sh(`gh release edit ${tag} --notes-file "${notesFile}"`);
-    console.log(`[release-manual] ✅ notas de ${tag} actualizadas.`);
+    console.log(`[release-manual] notas de ${tag} actualizadas.`);
     return 0;
   }
   sh(`gh release create ${tag} --verify-tag --title "${tag}" --notes-file "${notesFile}"`);
   console.log(
-    `[release-manual] ✅ GitHub Release ${tag} creada (sin .exe: NSIS local ausente — gap declarado).`,
+    `[release-manual] GitHub Release ${tag} creada (sin .exe: NSIS local ausente — gap declarado).`,
   );
   return 0;
 }
