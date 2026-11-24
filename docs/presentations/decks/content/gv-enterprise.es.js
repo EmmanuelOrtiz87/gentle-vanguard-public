@@ -248,8 +248,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '75 quality gates',
-          body: '25 en pre-commit, 2 en commit-msg, 2 en post-commit, 28 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 70 de 75 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
+          heading: '76 quality gates',
+          body: '26 en pre-commit, 2 en commit-msg, 2 en post-commit, 32 registrados en pre-push, 8 en CI, 1 de gobernanza, 1 de despliegue y 4 en runtime. 71 de 76 aplicados de forma estricta; el gate de alertas Dependabot corre en cada push.',
         },
         {
           icon: 'search',

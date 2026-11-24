@@ -8,7 +8,7 @@ import { registryPath, verifyIndex } from '../plugins/skill-registry.js';
 import { auditCapabilitySources, listContracts } from '../core/capabilities.js';
 import { auditTools, evaluateToolAudit } from '../integrations/tool-interoperability-audit.js';
 
-type Result = { id: string; status: 'pass' | 'warn' | 'fail'; detail: string };
+type Result = { id: string; status: 'pass' | 'warn' | 'fail' | 'unverified'; detail: string };
 type RiskProfile = ReturnType<typeof classifyDiff> & {
   changedPaths: number;
   autonomyTier: 'low' | 'medium' | 'high' | 'critical';
@@ -19,6 +19,16 @@ const runtimeDir = join(root, '.runtime', 'universal-quality-gate');
 
 function check(id: string, ok: boolean, detail: string, warn = false): Result {
   return { id, status: ok ? 'pass' : warn ? 'warn' : 'fail', detail };
+}
+
+/**
+ * UNVERIFIED (meta-auditoría 2026-11-20, backlog #6): el check corrió y SOLO
+ * pudo confirmar PRESENCIA (existsSync) — no hay evidencia de operación.
+ * No es PASS ("el archivo existe" no certifica "el pipeline es sano") ni FAIL
+ * (no se comprobó que esté roto). Se cuenta aparte y se declara en el reporte.
+ */
+function unverified(id: string, detail: string): Result {
+  return { id, status: 'unverified', detail };
 }
 
 function classifyWorkingTree(): RiskProfile {
@@ -35,51 +45,133 @@ function classifyWorkingTree(): RiskProfile {
   return { ...classification, changedPaths: paths.length, autonomyTier };
 }
 
-function run(): {
+/**
+ * El catálogo de gates: no alcanza con que el ARCHIVO exista — se lo PARSEA y
+ * se cuentan los gates declarados. "Existe config/quality-gates.json" era
+ * presencia, no operación (meta-auditoría 2026-11-20, backlog #6).
+ */
+function gatesCatalogHealthy(): boolean {
+  try {
+    const raw = JSON.parse(readFileSync(join(root, 'config', 'quality-gates.json'), 'utf8')) as {
+      gates?: unknown[];
+    };
+    return Array.isArray(raw.gates) && raw.gates.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function gatesCatalogDetail(): string {
+  try {
+    const raw = JSON.parse(readFileSync(join(root, 'config', 'quality-gates.json'), 'utf8')) as {
+      gates?: unknown[];
+    };
+    const count = Array.isArray(raw.gates) ? raw.gates.length : 0;
+    return `catálogo de gates PARSEADO: ${count} gates declarados`;
+  } catch (error) {
+    return `catálogo de gates ilegible: ${String(error)}`;
+  }
+}
+
+export function run(): {
   status: 'pass' | 'warn' | 'fail';
   results: Result[];
   timestamp: string;
-  summary: { total: number; passed: number; warned: number; failed: number };
+  summary: { total: number; passed: number; warned: number; failed: number; unverified: number };
   risk: RiskProfile;
 } {
   const timestamp = new Date().toISOString();
   const results: Result[] = [];
   let config: any;
   const risk = classifyWorkingTree();
-  try { config = JSON.parse(readFileSync(configPath, 'utf8')); results.push(check('config', true, 'universal-quality-gate.json válido')); }
-  catch (error) {
+  try {
+    config = JSON.parse(readFileSync(configPath, 'utf8'));
+    results.push(check('config', true, 'universal-quality-gate.json válido'));
+  } catch (error) {
     results.push(check('config', false, `configuración inválida: ${String(error)}`));
     return {
       status: 'fail',
       results,
       timestamp,
-      summary: { total: results.length, passed: 0, warned: 0, failed: 1 },
+      summary: { total: results.length, passed: 0, warned: 0, failed: 1, unverified: 0 },
       risk,
     };
   }
 
   const lifecycle = Array.isArray(config.lifecycle) ? config.lifecycle : [];
-  const expectedStages = ['intake', 'plan', 'design', 'build', 'verify', 'release', 'operate', 'learn'];
-  results.push(check('lifecycle', expectedStages.every((id) => lifecycle.some((stage: any) => stage.id === id)), '8 etapas transversales declaradas'));
-  results.push(check('surfaces', Array.isArray(config.surfaces) && config.surfaces.length >= 12, `${config.surfaces?.length ?? 0} superficies declaradas`));
-  results.push(check('disciplines', Array.isArray(config.disciplines) && config.disciplines.length >= 20, `${config.disciplines?.length ?? 0} disciplinas declaradas`));
-  results.push(check('capabilities', Array.isArray(config.capabilities) && config.capabilities.length >= 30, `${config.capabilities?.length ?? 0} capacidades declaradas`));
+  const expectedStages = [
+    'intake',
+    'plan',
+    'design',
+    'build',
+    'verify',
+    'release',
+    'operate',
+    'learn',
+  ];
+  results.push(
+    check(
+      'lifecycle',
+      expectedStages.every((id) => lifecycle.some((stage: any) => stage.id === id)),
+      '8 etapas transversales declaradas',
+    ),
+  );
+  results.push(
+    check(
+      'surfaces',
+      Array.isArray(config.surfaces) && config.surfaces.length >= 12,
+      `${config.surfaces?.length ?? 0} superficies declaradas`,
+    ),
+  );
+  results.push(
+    check(
+      'disciplines',
+      Array.isArray(config.disciplines) && config.disciplines.length >= 20,
+      `${config.disciplines?.length ?? 0} disciplinas declaradas`,
+    ),
+  );
+  results.push(
+    check(
+      'capabilities',
+      Array.isArray(config.capabilities) && config.capabilities.length >= 30,
+      `${config.capabilities?.length ?? 0} capacidades declaradas`,
+    ),
+  );
 
   const sourceChecks = Object.entries(config.controlSources ?? {}).map(([id, paths]) => {
-    const missing = (paths as string[]).filter((path) => path !== 'engram' && path !== 'Nexus' && !existsSync(join(root, path)));
-    return check(`source:${id}`, missing.length === 0, missing.length ? `faltan: ${missing.join(', ')}` : 'fuentes disponibles');
+    const missing = (paths as string[]).filter(
+      (path) => path !== 'engram' && path !== 'Nexus' && !existsSync(join(root, path)),
+    );
+    return check(
+      `source:${id}`,
+      missing.length === 0,
+      missing.length ? `faltan: ${missing.join(', ')}` : 'fuentes disponibles',
+    );
   });
   results.push(...sourceChecks);
-  const governancePath = join(root, config.governanceContract ?? 'config/stack-governance-contract.json');
+  const governancePath = join(
+    root,
+    config.governanceContract ?? 'config/stack-governance-contract.json',
+  );
   try {
     const governance = JSON.parse(readFileSync(governancePath, 'utf8')) as {
       categories?: Record<string, { artifacts?: string[]; mode?: string }>;
       requiredEvidence?: string[];
     };
-    const artifacts = Object.values(governance.categories ?? {}).flatMap((category) => category.artifacts ?? []);
+    const artifacts = Object.values(governance.categories ?? {}).flatMap(
+      (category) => category.artifacts ?? [],
+    );
     const missingArtifacts = artifacts.filter((artifact) => !existsSync(join(root, artifact)));
     const evidenceOk = (governance.requiredEvidence ?? []).length >= 9;
-    results.push(check('governance-contract', missingArtifacts.length === 0 && evidenceOk, missingArtifacts.length ? `faltan artefactos: ${missingArtifacts.join(', ')}` : 'contrato de gobernanza íntegro'));
+    results.push(
+      check(
+        'governance-contract',
+        missingArtifacts.length === 0 && evidenceOk,
+        missingArtifacts.length
+          ? `faltan artefactos: ${missingArtifacts.join(', ')}`
+          : 'contrato de gobernanza íntegro',
+      ),
+    );
   } catch (error) {
     results.push(check('governance-contract', false, `contrato no disponible: ${String(error)}`));
   }
@@ -87,10 +179,30 @@ function run(): {
   const capabilityStages = config.coverage?.capabilityStages ?? {};
   const sourceIds = new Set(Object.keys(config.controlSources ?? {}));
   const stageIds = new Set(lifecycle.map((stage: { id: string }) => stage.id));
-  const uncoveredDisciplines = (config.disciplines ?? []).filter((discipline: string) => !sourceIds.has(disciplineSources[discipline]));
-  const unmappedCapabilities = (config.capabilities ?? []).filter((capability: string) => !stageIds.has(capabilityStages[capability]));
-  results.push(check('coverage:disciplines', uncoveredDisciplines.length === 0, uncoveredDisciplines.length ? `sin fuente: ${uncoveredDisciplines.join(', ')}` : 'todas las disciplinas tienen fuente'));
-  results.push(check('coverage:capabilities', unmappedCapabilities.length === 0, unmappedCapabilities.length ? `sin etapa: ${unmappedCapabilities.join(', ')}` : 'todas las capacidades tienen etapa'));
+  const uncoveredDisciplines = (config.disciplines ?? []).filter(
+    (discipline: string) => !sourceIds.has(disciplineSources[discipline]),
+  );
+  const unmappedCapabilities = (config.capabilities ?? []).filter(
+    (capability: string) => !stageIds.has(capabilityStages[capability]),
+  );
+  results.push(
+    check(
+      'coverage:disciplines',
+      uncoveredDisciplines.length === 0,
+      uncoveredDisciplines.length
+        ? `sin fuente: ${uncoveredDisciplines.join(', ')}`
+        : 'todas las disciplinas tienen fuente',
+    ),
+  );
+  results.push(
+    check(
+      'coverage:capabilities',
+      unmappedCapabilities.length === 0,
+      unmappedCapabilities.length
+        ? `sin etapa: ${unmappedCapabilities.join(', ')}`
+        : 'todas las capacidades tienen etapa',
+    ),
+  );
   const registeredContracts = new Set(listContracts().map((contract) => contract.contract));
   const requiredContracts = [
     'gentle-vanguard.agent/v1',
@@ -98,11 +210,28 @@ function run(): {
     'gentle-vanguard.app-lifecycle/v1',
     'gentle-vanguard.external-capability/v1',
   ];
-  const missingContracts = requiredContracts.filter((contract) => !registeredContracts.has(contract));
-  results.push(check('coverage:versioned-contracts', missingContracts.length === 0, missingContracts.length ? `faltan contratos: ${missingContracts.join(', ')}` : 'contratos versionados base registrados'));
+  const missingContracts = requiredContracts.filter(
+    (contract) => !registeredContracts.has(contract),
+  );
+  results.push(
+    check(
+      'coverage:versioned-contracts',
+      missingContracts.length === 0,
+      missingContracts.length
+        ? `faltan contratos: ${missingContracts.join(', ')}`
+        : 'contratos versionados base registrados',
+    ),
+  );
   results.push(...auditCapabilitySources({ root }));
-  results.push(check('existing-gates', existsSync(join(root, 'config', 'quality-gates.json')), 'compone config/quality-gates.json sin duplicarlo'));
-  results.push(check('checkpoint', existsSync(join(root, '.session', 'checkpoints')), 'checkpoint manager disponible', true));
+  results.push(check('existing-gates', gatesCatalogHealthy(), gatesCatalogDetail()));
+  results.push(
+    check(
+      'checkpoint',
+      existsSync(join(root, '.session', 'checkpoints')),
+      'checkpoint manager disponible',
+      true,
+    ),
+  );
   // Nexus: operación real, no presencia (meta-auditoría 2026-11-20 — "el .db
   // existe" no era conectividad). Abrir y ejecutar una consulta es la prueba.
   try {
@@ -113,37 +242,70 @@ function run(): {
   } catch (error) {
     results.push(check('nexus', false, `Nexus NO operacional: ${String(error)}`));
   }
-  results.push(check('memory', existsSync(join(root, 'knowledge-base')) || existsSync(join(root, '.session')), 'plano de memoria disponible'));
+  results.push(
+    unverified(
+      'memory',
+      existsSync(join(root, 'knowledge-base')) || existsSync(join(root, '.session'))
+        ? 'plano de memoria presente (PRESENCIA; la operación no se verifica en este check)'
+        : 'plano de memoria ausente',
+    ),
+  );
 
   // Live controls reuse the owning modules. They are intentionally bounded to
   // deterministic, local checks and leave the detailed gate logic in place.
   const liveControls = Array.isArray(config.liveControls) ? config.liveControls : [];
-  results.push(check('live-controls', liveControls.length >= 2, `${liveControls.length} controles vivos declarados`));
+  results.push(
+    check(
+      'live-controls',
+      liveControls.length >= 2,
+      `${liveControls.length} controles vivos declarados`,
+    ),
+  );
   try {
     const db = openNexus(join(root, '.runtime', 'gentle-vanguard.db'));
     const evaluation = runContinuousEval(db, { gate: true });
     db.close();
     results.push(check('live:continuous-eval', evaluation.gate.passed, evaluation.gate.reason));
   } catch (error) {
-    results.push(check('live:continuous-eval', false, `evaluación no disponible: ${String(error)}`));
+    results.push(
+      check('live:continuous-eval', false, `evaluación no disponible: ${String(error)}`),
+    );
   }
 
   if (existsSync(registryPath({ root }))) {
     const integrity = verifyIndex({ root });
-    results.push(check('live:plugin-integrity', integrity.ok, integrity.ok ? 'registro íntegro' : 'integridad del registro no coincide'));
+    results.push(
+      check(
+        'live:plugin-integrity',
+        integrity.ok,
+        integrity.ok ? 'registro íntegro' : 'integridad del registro no coincide',
+      ),
+    );
   } else {
-    results.push(check('live:plugin-integrity', true, 'sin plugins instalados; control preparado'));
+    results.push(
+      unverified(
+        'live:plugin-integrity',
+        'sin índice de plugins: no se pudo verificar la integridad',
+      ),
+    );
   }
 
   try {
     const audit = evaluateToolAudit(auditTools(root));
     results.push(check('live:tool-interoperability', audit.passed, audit.detail));
   } catch (error) {
-    results.push(check('live:tool-interoperability', false, `auditoría multi-tool no disponible: ${String(error)}`));
+    results.push(
+      check(
+        'live:tool-interoperability',
+        false,
+        `auditoría multi-tool no disponible: ${String(error)}`,
+      ),
+    );
   }
 
   const failed = results.filter((result) => result.status === 'fail').length;
   const warned = results.filter((result) => result.status === 'warn').length;
+  const unverifiedCount = results.filter((result) => result.status === 'unverified').length;
   return {
     status: failed ? 'fail' : warned ? 'warn' : 'pass',
     results,
@@ -153,9 +315,22 @@ function run(): {
       passed: results.filter((result) => result.status === 'pass').length,
       warned,
       failed,
+      unverified: unverifiedCount,
     },
     risk,
   };
+}
+
+/**
+ * Declaration honesta: cuántos checks se verificaron SOLO por presencia.
+ * El gate no falla por esto (no se comprobó que estén rotos) pero tampoco
+ * lo esconde: el que lee el reporte tiene que poder distinguir "verificado"
+ * de "mirado".
+ */
+export function unverifiedDeclaration(count: number): string {
+  return count > 0
+    ? `⚠️ ${count} check(s) verificados SOLO por PRESENCIA (no operación): no es un "todo verificado"`
+    : 'todos los checks con evidencia de operación';
 }
 
 function recordNexus(report: ReturnType<typeof run>): void {
@@ -164,14 +339,31 @@ function recordNexus(report: ReturnType<typeof run>): void {
   try {
     const db = new Database(dbPath);
     db.prepare('INSERT INTO events (type, payload, tenant_id) VALUES (?, ?, ?)').run(
-      'quality.universal_gate', JSON.stringify({ status: report.status, results: report.results }), 'gentle-vanguard');
+      'quality.universal_gate',
+      JSON.stringify({ status: report.status, results: report.results }),
+      'gentle-vanguard',
+    );
     db.close();
-  } catch (error) { console.warn(`[universal-quality-gate] Nexus no disponible: ${String(error)}`); }
+  } catch (error) {
+    console.warn(`[universal-quality-gate] Nexus no disponible: ${String(error)}`);
+  }
 }
 
-const report = run();
-mkdirSync(runtimeDir, { recursive: true });
-writeFileSync(join(runtimeDir, 'latest.json'), JSON.stringify(report, null, 2) + '\n');
-recordNexus(report);
-console.log(JSON.stringify(report, null, 2));
-if (report.status === 'fail') process.exitCode = 1;
+/**
+ * El módulo se puede importar (tests, consumidores) sin ejecutar el CLI:
+ * sólo corre como programa cuando es el entrypoint invocado.
+ */
+function isDirectInvocation(): boolean {
+  const entry = process.argv[1] ?? '';
+  return entry.replace(/\\/g, '/').endsWith('universal-quality-gate.ts');
+}
+
+if (isDirectInvocation()) {
+  const report = run();
+  mkdirSync(runtimeDir, { recursive: true });
+  writeFileSync(join(runtimeDir, 'latest.json'), JSON.stringify(report, null, 2) + '\n');
+  recordNexus(report);
+  console.log(JSON.stringify(report, null, 2));
+  console.log(`[universal-quality-gate] ${unverifiedDeclaration(report.summary.unverified)}`);
+  if (report.status === 'fail') process.exitCode = 1;
+}

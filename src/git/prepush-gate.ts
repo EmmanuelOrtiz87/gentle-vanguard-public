@@ -45,10 +45,11 @@ import {
   type AppScope,
 } from './prepush-app-scope.js';
 import { appAuditEnvironment } from './app-audit-receipts.js';
+import { resolveSecretScanRange } from './secret-scan-base.js';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const CACHE_FILE = join(ROOT, '.runtime', 'prepush-cache.json');
-const GATE_VERSION = 13; // scope unknown blocks; per-app evidence is checked separately
+const GATE_VERSION = 14; // 14 = la firma de los checks entra en la clave del cache
 
 // ─── Check definitions (mirrors .lefthook.yml pre-push) ─────────────────────
 
@@ -67,16 +68,22 @@ interface GateCheck {
  * último (GB-20261120: con HEAD~1, un secreto en el commit 2 de una hotfix de
  * 5 commits se pusheaba completo con verde). Sin origin/main (repo sin remoto
  * aún) queda HEAD~1, que es lo único que se puede saber.
+ *
+ * La decisión vive en `secret-scan-base.ts` (función pura + contrato en
+ * `secret-scan-base.test.ts`): acá solo se conecta al gate y se DECLARA
+ * qué rango se cubrió (un escaneo sin rango declarado es un escaneo que
+ * no se puede auditar).
  */
+function secretScanRange(): { base: string; reason: string; commits: number } {
+  return resolveSecretScanRange((args) => {
+    const result = spawnSync('git', args, { cwd: ROOT, encoding: 'utf-8', windowsHide: true });
+    if (result.status !== 0) return null;
+    return (result.stdout ?? '').toString().trim();
+  });
+}
+
 function resolveSecretScanBase(): string {
-  const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
-  const remote = branch && !branch.startsWith('HEAD') ? `origin/${branch}` : '';
-  if (remote && runGit(['rev-parse', '--verify', '--quiet', remote])) return remote;
-  if (runGit(['rev-parse', '--verify', '--quiet', 'origin/main'])) {
-    const forkPoint = runGit(['merge-base', 'origin/main', 'HEAD']);
-    if (forkPoint) return forkPoint;
-  }
-  return 'HEAD~1';
+  return secretScanRange().base;
 }
 
 const CHECKS: GateCheck[] = [
@@ -529,13 +536,44 @@ function computeTreeHash(): string {
     };
   });
   const workingTreeChanges = hashWorkingTreeChanges(trackedDiff, untrackedFiles);
+  return (
+    createHash('sha256')
+      .update(`${head}\n${status}\n${pkg}\n${lock}\n${workingTreeChanges}`)
+      // El entorno (node, SO, host, TODAS las env vars) ya entraba en la clave:
+      // un cache verde de un entorno roto no se reutiliza. Lo que faltaba era
+      // la DEFINICIÓN de los checks: agregar o cambiar un check no toca el
+      // árbol, así que el cache podía re-servir un verde que nunca corrió ese
+      // check. Ahora la firma de los checks (y el hook que los invoca) entran
+      // en la clave.
+      .update(checksSignature(CHECKS))
+      .update(fileHash(join(ROOT, '.lefthook.yml')))
+      .update(fileHash(join(ROOT, 'config', 'quality-gates.json')))
+      .update(appAuditEnvironment())
+      .update(fileHash(join(ROOT, 'node_modules', '.package-lock.json')))
+      .update(fileHash(join(ROOT, 'node_modules', '.modules.yaml')))
+      .digest('hex')
+      .slice(0, 16)
+  );
+}
+
+/**
+ * Firma de la DEFINICIÓN de los checks (nombre + comando + args + timeout).
+ * Es parte de la clave del cache: cambiar un check invalida el verde cacheado.
+ * Exportada para poder probar el invariante sin tocar el repo.
+ */
+export function checksSignature(checks: GateCheck[]): string {
   return createHash('sha256')
-    .update(`${head}\n${status}\n${pkg}\n${lock}\n${workingTreeChanges}`)
-    .update(appAuditEnvironment())
-    .update(fileHash(join(ROOT, 'node_modules', '.package-lock.json')))
-    .update(fileHash(join(ROOT, 'node_modules', '.modules.yaml')))
-    .digest('hex')
-    .slice(0, 16);
+    .update(
+      JSON.stringify(
+        checks.map((c) => ({
+          name: c.name,
+          command: c.command,
+          args: c.args,
+          timeoutMs: c.timeoutMs,
+        })),
+      ),
+    )
+    .digest('hex');
 }
 
 // ─── Tree fence (2026-09-16) ─────────────────────────────────────────────────
@@ -711,7 +749,15 @@ export function runOne(
       finished = true;
       clearTimeout(timer);
       const output = stdout + stderr;
-      const tail = output.split('\n').filter(Boolean).slice(-6).join('\n');
+      // El tail de 6 líneas perdía la CABEZA del error, que es donde está el
+      // mensaje (el stack va al final): el push del 2026-11-23 mostró solo el
+      // stack de pnpm y el diagnóstico real ("qué loCause") quedó afuera.
+      // Ahora: primeras 4 líneas (mensaje) + últimas 6 (stack/contexto).
+      const lines = output.split('\n').filter(Boolean);
+      const tail =
+        lines.length <= 10
+          ? lines.join('\n')
+          : [...lines.slice(0, 4), '…', ...lines.slice(-6)].join('\n');
       // Un check que falla deja su output COMPLETO en disco: el tail de 6
       // líneas no diagnosticó el flake de universal-quality (2026-11-12) y
       // obligó a re-correr el gate entero a ciegas tres veces.
@@ -782,10 +828,55 @@ async function runChecks(checks: GateCheck[], concurrency = 4): Promise<CheckRes
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
+/**
+ * Etiqueta del verde cacheado. El push tiene que poder distinguir
+ * "44 checks pasaron" de "no se corrió ninguno": el cacheado es un verde
+ * heredado, no una verificación. Exportada para poder probar el rótulo.
+ */
+export function cacheHitBanner(checksCount: number, timestamp: string): string[] {
+  return [
+    `[prepush-gate] ⚠️ VERDE CACHEADO — los ${checksCount} checks NO se ejecutaron ` +
+      `(árbol, entorno y definición de checks sin cambios desde el verde de ${timestamp}).`,
+    `[prepush-gate]   Esto NO es una verificación nueva: es la reutilización de un verde anterior. ` +
+      `Para verificar de verdad: node --import tsx src/git/prepush-gate.ts --force`,
+  ];
+}
+
+/**
+ * Aviso honesto de checks verificados SOLO por presencia. El gate de calidad
+ * universal los reporta como `unverified` (no PASS): el push tiene que poder
+ * leer esa diferencia en su propio log, no tener que ir a buscar el artefacto.
+ */
+export function unverifiedNoticeFromReport(report: unknown): string | null {
+  const summary = (report as { summary?: { unverified?: number } } | null)?.summary;
+  const count = summary?.unverified;
+  if (typeof count !== 'number' || count <= 0) return null;
+  return `⚠️ ${count} check(s) verificados SOLO por PRESENCIA (no operación) — el verde no es un "todo verificado"`;
+}
+
+function printUnverifiedNotice(): void {
+  try {
+    const path = join(ROOT, '.runtime', 'universal-quality-gate', 'latest.json');
+    if (!existsSync(path)) return;
+    const notice = unverifiedNoticeFromReport(JSON.parse(readFileSync(path, 'utf-8')));
+    if (notice) console.log(`[pre-push] ${notice}`);
+  } catch {
+    /* el aviso es informativo: nunca puede romper el gate */
+  }
+}
+
 function printSummary(results: CheckResult[], totalMs: number, nonBlocking: Set<string>): void {
   const passed = results.filter((r) => r.status === 'pass').length;
+  // Un check INDETERMINADO (exit 2) no es un pass: el encabezado tiene que
+  // decirlo en la línea que el owner lee primero ("43/44 passed" sin más
+  // contexto se lee como "todo bien" cuando en realidad no se pudo mirar).
+  const indeterminate = results.filter((r) => r.status === 'warn').length;
+  const verdict =
+    indeterminate > 0
+      ? ` · ${indeterminate} INDETERMINADO(S): no se pudo verificar (no bloquea)`
+      : '';
   console.log(
-    `\n=== Pre-push gate: ${passed}/${results.length} passed in ${(totalMs / 1000).toFixed(1)}s ===`,
+    `\n=== Pre-push gate: ${passed}/${results.length} passed in ${(totalMs / 1000).toFixed(1)}s${verdict} ===`,
   );
   for (const r of results) {
     const icon =
@@ -851,6 +942,13 @@ async function main(): Promise<void> {
           'programada). Exigible con --audit-apps.',
       );
     }
+    // El escaneo de secretos DECLARA el rango que cubre: un escaneo sin rango
+    // declarado no es auditable ("¿qué se escaneó?" tiene que tener respuesta
+    // en el log, no en la cabeza de quien lo escribió).
+    const scanRange = secretScanRange();
+    console.log(
+      `[pre-push] Escaneo de secretos: ${scanRange.base}..HEAD · ${scanRange.commits} commit(s) · ${scanRange.reason}`,
+    );
   }
   const treeHash = computeTreeHash();
 
@@ -867,6 +965,11 @@ async function main(): Promise<void> {
         console.log(
           JSON.stringify({
             warmCache: true,
+            // Un verde cacheado NO es una verificación: el push tiene que poder
+            // distinguir "44 checks pasaron" de "no se corrió ninguno".
+            verdict: 'CACHED',
+            cachedAt: hit.timestamp,
+            checksSkipped: checks.length,
             treeHash,
             elapsedSec: elapsed,
             checks: hit.checks,
@@ -874,9 +977,9 @@ async function main(): Promise<void> {
           }),
         );
       } else {
-        console.log(
-          `[prepush-gate] Warm cache hit (${elapsed}s) — tree unchanged since green run at ${hit.timestamp}. Skipping ${checks.length} checks.`,
-        );
+        const [banner, hint] = cacheHitBanner(checks.length, hit.timestamp);
+        console.log(`${banner} (${elapsed}s)`);
+        console.log(hint);
       }
       process.exit(0);
     }
@@ -937,6 +1040,7 @@ async function main(): Promise<void> {
     );
   } else {
     printSummary(results, totalMs, nonBlocking);
+    printUnverifiedNotice();
     printFence(fence);
   }
 

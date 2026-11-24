@@ -159,7 +159,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Governance',
-          body: '75 quality gates, secret scanning and fail-closed policies.',
+          body: '76 quality gates, secret scanning and fail-closed policies.',
         },
         {
           icon: 'cloud',

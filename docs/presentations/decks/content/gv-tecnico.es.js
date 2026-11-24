@@ -307,9 +307,9 @@ export default {
       cols: 4,
       items: [
         {
-          value: '75',
+          value: '76',
           label: 'Quality gates',
-          sub: '70 de 75 aplicados de forma estricta',
+          sub: '71 de 76 aplicados de forma estricta',
           accent: '06b6d4',
         },
         {

@@ -163,7 +163,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Gobernanza',
-          body: '75 quality gates, escaneo de secretos y políticas fail-closed.',
+          body: '76 quality gates, escaneo de secretos y políticas fail-closed.',
         },
         {
           icon: 'cloud',

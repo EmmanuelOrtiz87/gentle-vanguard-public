@@ -160,6 +160,8 @@
     "decks:facts:show": "node --import tsx src/tools/decks-facts-drift-gate.ts --facts",
     "docs:facts:check": "node --import tsx src/tools/docs-facts-drift-gate.ts",
     "docs:facts:show": "node --import tsx src/tools/docs-facts-drift-gate.ts --facts",
+    "duplicates:check": "node --import tsx src/tools/duplicate-mechanism-gate.ts",
+    "duplicates:show": "node --import tsx src/tools/duplicate-mechanism-gate.ts --json",
     "decks:guion": "node --import tsx src/tools/decks-guion-coverage-gate.ts",
     "decks:hero": "pnpm --filter @gentle-vanguard/decks hero",
     "decks:hero:ai": "pnpm --filter @gentle-vanguard/decks hero:ai",

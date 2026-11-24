@@ -24,6 +24,10 @@ interface Norm {
   lastSeen: string;
   status: 'proposed' | 'active' | 'deprecated';
   source: string;
+  /** Tokens de contenido (semántica) — permiten detectar recurrencia redactada distinto. */
+  tokens?: string[];
+  /** Cómo se detectó esta recurrencia: literal (mismo texto) o semántica (mismo hecho). */
+  matchMode?: 'literal' | 'semantic';
 }
 
 interface LearningContext {
@@ -166,10 +170,168 @@ export function lessonStem(lesson: string): string {
   ).slice(0, 180);
 }
 
+// ─── Recurrencia SEMÁNTICA (2026-11-24) ─────────────────────────────────────
+//
+// POR QUÉ (el bug que pidió corregir el owner):
+// El agrupamiento era 100% literal: dos lecciones que dicen lo MISMO con
+// palabras distintas ("el gate del push tiene que correr" / "el gate de push
+// debe ejecutarse") eran dos normas distintas con occurrences=1 cada una. La
+// cola de promoción se armaba con `occurrences >= 2` → la cola quedaba VACÍA
+// y el archivo declaraba "no recurrentes aún". Eso es un VERDE FALSO: la
+// recurrencia existía, el detector no la veía.
+//
+// LA REGLA: la identidad EXACTA (stem literal) se mantiene como base y para la
+// idempotencia; ADEMÁS se busca una equivalencia SEMÁNTICA por tokens de
+// contenido. Solo se fusiona si la similitud es alta (Jaccard >= umbral) Y
+// comparten suficientes tokens (>= MIN_SHARED_TOKENS): dos lecciones que sólo
+// comparten vocabulario genérico NO se funden.
+//
+// El modo de detección queda REGISTRADO en la norma (`matchMode`), para que la
+// cola pueda declarar si una recurrencia fue literal o semántica.
+
+/** Palabras vacías (ES/EN) que no aportan señal de significado. */
+const STOPWORDS = new Set([
+  'the',
+  'and',
+  'for',
+  'with',
+  'that',
+  'this',
+  'from',
+  'you',
+  'not',
+  'but',
+  'are',
+  'was',
+  'has',
+  'have',
+  'when',
+  'then',
+  'than',
+  'its',
+  'into',
+  'out',
+  'about',
+  'como',
+  'cuando',
+  'porque',
+  'para',
+  'con',
+  'por',
+  'del',
+  'una',
+  'uno',
+  'unos',
+  'unas',
+  'los',
+  'las',
+  'que',
+  'debe',
+  'deben',
+  'deberia',
+  'tiene',
+  'tienen',
+  'hay',
+  'ser',
+  'esta',
+  'este',
+  'esto',
+  'todo',
+  'todos',
+  'toda',
+  'todas',
+  'cada',
+  'segun',
+  'entre',
+  'sobre',
+  'desde',
+  'sin',
+  'sus',
+  'mas',
+  'muy',
+  'asi',
+  'donde',
+  'mientras',
+  'puede',
+  'pueden',
+  'hace',
+  'ya',
+  'aun',
+]);
+
+/** Tokens de contenido de una lección: sin acentos, sin stopwords, sin números. */
+export function semanticTokens(lesson: string): string[] {
+  return [
+    ...new Set(
+      lesson
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9ñ ]+/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 4 && !STOPWORDS.has(w) && !/^\d+$/.test(w)),
+    ),
+  ];
+}
+
+/** Jaccard entre dos conjuntos de tokens (0 = nada en común, 1 = idénticos). */
+export function tokenSimilarity(a: string[], b: string[]): number {
+  if (!a.length || !b.length) return 0;
+  const setA = new Set(a);
+  const setB = new Set(b);
+  let shared = 0;
+  for (const token of setA) if (setB.has(token)) shared++;
+  return shared / (setA.size + setB.size - shared);
+}
+
+/** Tokens compartidos entre dos conjuntos. */
+export function sharedTokens(a: string[], b: string[]): number {
+  const setB = new Set(b);
+  let shared = 0;
+  for (const token of new Set(a)) if (setB.has(token)) shared++;
+  return shared;
+}
+
+/** Umbral de similitud para considerar que dos lecciones son la misma. */
+export const SEMANTIC_THRESHOLD = 0.5;
+/** Mínimo de tokens compartidos: evita fusiones por vocabulario genérico. */
+export const MIN_SHARED_TOKENS = 4;
+
+export interface SemanticMatch {
+  id: string;
+  similarity: number;
+  shared: number;
+}
+
+/**
+ * Busca en las normas existentes la que dice lo mismo que `tokens`.
+ * Sólo devuelve match si la similitud supera el umbral Y hay tokens
+ * compartidos suficientes (regla anti-fusión espuria).
+ */
+export function findSemanticMatch(
+  norms: Array<{ id: string; tokens?: string[] }>,
+  tokens: string[],
+  threshold: number = SEMANTIC_THRESHOLD,
+  minShared: number = MIN_SHARED_TOKENS,
+): SemanticMatch | null {
+  let best: SemanticMatch | null = null;
+  for (const norm of norms) {
+    if (!norm.tokens?.length) continue;
+    const similarity = tokenSimilarity(norm.tokens, tokens);
+    if (similarity < threshold) continue;
+    const shared = sharedTokens(norm.tokens, tokens);
+    if (shared < minShared) continue;
+    if (!best || similarity > best.similarity) best = { id: norm.id, similarity, shared };
+  }
+  return best;
+}
+
 export interface IngestResult {
   normsAdded: number;
   filesRead: number;
   filesSkipped: number;
+  /** Lecciones que se fusionaron con una norma existente por equivalencia semántica. */
+  semanticMerges: number;
 }
 
 /**
@@ -213,6 +375,7 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
   let filesRead = 0;
   let normsAdded = 0;
   let filesSkipped = 0;
+  let semanticMerges = 0;
   let files: string[];
   try {
     files = readdirSync(INBOX_DIR)
@@ -220,7 +383,7 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
       .sort((a, b) => Number(b.match(/\d+/)?.[0] ?? 0) - Number(a.match(/\d+/)?.[0] ?? 0))
       .slice(0, MAX_INGEST_FILES);
   } catch {
-    return { norms: out, result: { normsAdded, filesRead, filesSkipped } };
+    return { norms: out, result: { normsAdded, filesRead, filesSkipped, semanticMerges } };
   }
   const dbWasEmpty = norms.length === 0;
   const prevState = loadIngestState();
@@ -260,17 +423,31 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
       const stem = lessonStem(lesson);
       if (stem.length < 15) continue;
       const id = `inbox:${stem.slice(0, 80)}`;
-      const existing = byStem.get(id);
+      const tokens = semanticTokens(lesson);
+      let existing = byStem.get(id);
+      let matchMode: 'literal' | 'semantic' | null = existing ? 'literal' : null;
+      if (!existing) {
+        // Sin coincidencia literal: ¿es la MISMA lección redactada distinto?
+        // (la cola de promoción se armaba con occurrences>=2 y nunca veía la
+        // recurrencia real: falso verde).
+        const semantic = findSemanticMatch([...byStem.values()], tokens);
+        if (semantic) {
+          existing = byStem.get(semantic.id) ?? undefined;
+          matchMode = 'semantic';
+        }
+      }
       if (existing) {
         // recurrencia GENUINA = la misma lección vive en un archivo DIFERENTE
         // (otra sesión/otro exports). Re-lecturas del mismo archivo no suman nada
         // (hash skip) y tampoco inflan occ ni confidence.
-        const contributors = state.stems[id] ?? [];
+        const contributors = state.stems[existing.id] ?? [];
         if (!contributors.includes(file)) {
           contributors.push(file);
-          state.stems[id] = contributors;
+          state.stems[existing.id] = contributors;
           existing.occurrences++;
           existing.confidence = Math.min(100, existing.confidence + 2);
+          existing.matchMode = matchMode ?? existing.matchMode;
+          semanticMerges++;
         }
         const observedAt = dateFromInbox(preDate(content));
         if (
@@ -293,6 +470,8 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
           lastSeen: dateFromInbox(preDate(content)) || new Date().toISOString(),
           status: 'proposed',
           source: `engram-inbox:${engramId}`,
+          tokens,
+          matchMode: 'literal',
         };
         byStem.set(id, norm);
         out.push(norm);
@@ -301,7 +480,7 @@ export function ingestInboxLessons(norms: Norm[]): { norms: Norm[]; result: Inge
     }
   }
   saveIngestState(state);
-  return { norms: out, result: { normsAdded, filesRead, filesSkipped } };
+  return { norms: out, result: { normsAdded, filesRead, filesSkipped, semanticMerges } };
 }
 
 function preDate(content: string): string {
@@ -482,10 +661,12 @@ function savePromotionQueue(norms: Norm[]): void {
     ``,
     `Auto-mantenido por auto-norm-learner.ts — generado: ${new Date().toISOString()}`,
     `Criterio (clase-B, normativa v2.0): status=proposed ∧ occurrences ≥ ${ENTRADA_MIN}.`,
+    `Detección de recurrencia: LITERAL (mismo texto) + SEMÁNTICA (mismo hecho, redacción distinta;`,
+    `Jaccard ≥ ${SEMANTIC_THRESHOLD} sobre tokens de contenido ∧ ≥ ${MIN_SHARED_TOKENS} tokens compartidos).`,
     `Acción siguiente del agente: aterrizar la normativa como skill/automation/helper nativo`,
     `+ promoverla CON EVIDENCIA: npm run norms:promote -- <norm-id> --artifact <path>`,
     `(el CLI verifica que el artefacto exista — sin aterrizaje real no hay promoción).`,
-    `Empty queue = no recurrentes aún.`,
+    `Empty queue = ninguna recurrencia detectada (literal ni semánticamente).`,
     ``,
     `## Candidates (${candidates.length})`,
     ``,
@@ -494,7 +675,7 @@ function savePromotionQueue(norms: Norm[]): void {
   for (const c of activeFirst) {
     lines.push(`- **${c.id}** — ${c.description}`);
     lines.push(
-      `  - occ=${c.occurrences} · conf=${c.confidence}% · cat=${c.category} · último=${c.lastSeen}`,
+      `  - occ=${c.occurrences} · conf=${c.confidence}% · cat=${c.category} · último=${c.lastSeen} · recurrencia=${c.matchMode ?? 'literal'}`,
     );
   }
   if (!activeFirst.length) lines.push(`_Ninguna recurrence ≥ ${ENTRADA_MIN} pendiente._`);
