@@ -35,13 +35,23 @@ function parseArgs(argv: string[]): Args {
     if (!a.startsWith('--')) continue;
     const key = a.slice(2);
     const next = argv[i + 1];
-    if (next !== undefined && !next.startsWith('--')) { flags[key] = next; i++; }
-    else flags[key] = 'true';
+    if (next !== undefined && !next.startsWith('--')) {
+      flags[key] = next;
+      i++;
+    } else flags[key] = 'true';
   }
   return { command, flags };
 }
 
-const TYPE_ALLOW = ['bugfix', 'decision', 'architecture', 'discovery', 'pattern', 'config', 'preference'] as const;
+const TYPE_ALLOW = [
+  'bugfix',
+  'decision',
+  'architecture',
+  'discovery',
+  'pattern',
+  'config',
+  'preference',
+] as const;
 
 const USAGE = `mem-cli — Engram desde la línea de comandos (nativo del stack)
 
@@ -65,7 +75,9 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<st
     await client.connect(transport);
     const res = await client.callTool({ name, arguments: args });
     const text = Array.isArray(res?.content)
-      ? res.content.map((c: { type: string; text?: string }) => (c.type === 'text' ? c.text : '')).join('\n')
+      ? res.content
+          .map((c: { type: string; text?: string }) => (c.type === 'text' ? c.text : ''))
+          .join('\n')
       : '';
     if (res?.isError) throw new Error(text || `tool ${name} falló`);
     return text || JSON.stringify(res);
@@ -78,14 +90,25 @@ async function main(): Promise<void> {
   const { command, flags } = parseArgs(process.argv.slice(2));
   const out = (s: string) => process.stdout.write(`${s}\n`);
 
-  if (command === 'help' || !command) { out(USAGE); return; }
+  if (command === 'help' || !command) {
+    out(USAGE);
+    return;
+  }
 
   if (command === 'save') {
     const title = flags.title;
     const type = (flags.type || 'discovery') as (typeof TYPE_ALLOW)[number];
     const content = flags.content ?? (flags.file ? readFileSync(flags.file, 'utf8') : '');
-    if (!title || !content) { process.stderr.write('Faltan --title y --content|--file\n'); process.exitCode = 1; return; }
-    if (!TYPE_ALLOW.includes(type)) { process.stderr.write(`--type inválido. Usar: ${TYPE_ALLOW.join(', ')}\n`); process.exitCode = 1; return; }
+    if (!title || !content) {
+      process.stderr.write('Faltan --title y --content|--file\n');
+      process.exitCode = 1;
+      return;
+    }
+    if (!TYPE_ALLOW.includes(type)) {
+      process.stderr.write(`--type inválido. Usar: ${TYPE_ALLOW.join(', ')}\n`);
+      process.exitCode = 1;
+      return;
+    }
     const args: Record<string, unknown> = { title, type, content, scope: flags.scope || 'project' };
     if (flags['topic-key']) args.topic_key = flags['topic-key'];
     out(await callTool('mem_save', args));
@@ -94,14 +117,35 @@ async function main(): Promise<void> {
 
   if (command === 'summary') {
     const content = flags.content ?? (flags.file ? readFileSync(flags.file, 'utf8') : '');
-    if (!content) { process.stderr.write('Faltan --content o --file\n'); process.exitCode = 1; return; }
+    if (!content) {
+      process.stderr.write('Faltan --content o --file\n');
+      process.exitCode = 1;
+      return;
+    }
     out(await callTool('mem_session_summary', { content }));
     return;
   }
 
   if (command === 'search' || command === 'context') {
-    const q = process.argv.slice(3).filter((a) => !a.startsWith('--')).join(' ') || flags.q || '';
-    out(await callTool(command === 'search' ? 'mem_search' : 'mem_context', command === 'search' ? { query: q } : {}));
+    const q =
+      process.argv
+        .slice(3)
+        .filter((a) => !a.startsWith('--'))
+        .join(' ') ||
+      flags.q ||
+      '';
+    // --match-mode / --limit / --project: el recall del hook necesita buscar en
+    // modo "any" (AND con muchos términos deja cero resultados) y acotar.
+    const args: Record<string, unknown> = { query: q };
+    if (flags['match-mode']) args.match_mode = flags['match-mode'];
+    if (flags.limit) args.limit = Number(flags.limit);
+    if (flags.project) args.project = flags.project;
+    out(
+      await callTool(
+        command === 'search' ? 'mem_search' : 'mem_context',
+        command === 'search' ? args : {},
+      ),
+    );
     return;
   }
 
