@@ -121,16 +121,17 @@ behind.
 Los dos workflows de la distribución (`public-smoke.yml`, `public-installer-windows.yml`) sólo se
 publican si la credencial **que usa git en el push** puede tocar `.github/workflows`.
 `gh auth status` es orientativo y puede leer otra cuenta: `GH_TOKEN`/`GITHUB_TOKEN` del entorno
-tapan la sesión de keyring, y el push usa el credential helper (`manager`), no esa variable.
+tapan la sesión de keyring, y el credential helper del host (`manager`) puede tener un token sin
+`workflow`.
 
-Por eso el sync intenta el push y, si GitHub responde `GH013` (refusing to allow … workflow), se
-queda con la evidencia: descarta sólo `.github/workflows`, reescribe el commit del mirror y
-reintenta una vez; el resto se publica y el drift queda reportado con el comando de arreglo. Desde
-un shell que defina tokens de entorno sin `workflow`, la vía completa es:
+El push del mirror ya no depende de eso: fija la helper de `gh`
+(`credential.https://github.com.helper=!gh auth git-credential`, que usa la sesión de keyring) y
+corre sin `GH_TOKEN`/`GITHUB_TOKEN`; si `gh` no tiene sesión, vuelve a la cadena de helpers del
+host. Publicar no requiere preparar el entorno.
 
-```bash
-env -u GH_TOKEN -u GITHUB_TOKEN npm run publish:public
-```
+Si el push igual recibe `GH013` (refusing to allow … workflow), el sync se queda con la evidencia:
+descarta sólo `.github/workflows`, reescribe el commit del mirror y reintenta una vez; el resto se
+publica y el drift queda reportado con el comando de arreglo (`gh auth refresh -s workflow`).
 
 ## Release and Installer Distribution
 
