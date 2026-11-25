@@ -710,7 +710,10 @@ export function parseWorkflowScope(statusOutput: string): 'granted' | 'missing' 
 
 function detectWorkflowScope(): 'granted' | 'missing' | 'unknown' {
   try {
-    const r = runSync('gh', ['auth', 'status'], { timeout: 15000 });
+    // Sin `GH_TOKEN`/`GITHUB_TOKEN`: `gh` debe describir la sesion del keyring,
+    // que es la que el push fija (GH_PUSH_CREDENTIAL_ARGS), no un token del
+    // entorno con otros scopes.
+    const r = runSync('gh', ['auth', 'status'], { timeout: 15000, env: ENV_WITHOUT_GIT_TOKENS });
     return parseWorkflowScope(`${r.stdout ?? ''}${r.stderr ?? ''}`);
   } catch {
     return 'unknown';
@@ -728,6 +731,40 @@ export function isWorkflowScopeRejection(output: string): boolean {
   const out = output.toLowerCase();
   if (!out.includes('workflow')) return false;
   return out.includes('gh013') || out.includes('refusing to allow');
+}
+
+/**
+ * El push fija la credencial de `gh` (sesion de keyring, con scope `workflow`)
+ * por encima de la cadena generica del host, y corre sin `GH_TOKEN`/
+ * `GITHUB_TOKEN`: las dos son la causa medida de que git empuje con un token
+ * sin scope mientras `gh` reporta otro. Solo aplica al push del mirror.
+ */
+const GH_PUSH_CREDENTIAL_ARGS = [
+  '-c',
+  'credential.https://github.com.helper=',
+  '-c',
+  'credential.https://github.com.helper=!gh auth git-credential',
+];
+const ENV_WITHOUT_GIT_TOKENS = { GH_TOKEN: undefined, GITHUB_TOKEN: undefined };
+
+interface PushOutcome {
+  status: number;
+  output: string;
+}
+
+function pushBranch(publicRepo: string, remote: string, branch: string): PushOutcome {
+  const viaGh = runSync('git', ['push', ...GH_PUSH_CREDENTIAL_ARGS, remote, branch], {
+    cwd: publicRepo,
+    timeout: 180000,
+    env: ENV_WITHOUT_GIT_TOKENS,
+  });
+  const output = `${viaGh.stdout ?? ''}${viaGh.stderr ?? ''}`;
+  if (viaGh.status === 0) return { status: 0, output };
+  if (isWorkflowScopeRejection(output)) return { status: viaGh.status ?? 1, output };
+  // `gh` sin sesion (o ausente): la cadena de helpers de la maquina sigue
+  // siendo valida y es lo que el sync usaba antes de fijar la credencial.
+  const plain = runSync('git', ['push', remote, branch], { cwd: publicRepo, timeout: 180000 });
+  return { status: plain.status ?? 1, output: `${plain.stdout ?? ''}${plain.stderr ?? ''}` };
 }
 
 /**
@@ -912,13 +949,10 @@ function pushToAllBranches(opts: SyncOptions): string[] {
       failed.push(branch);
       continue;
     }
-    const pushResult = runSync('git', ['push', remote, branch], {
-      cwd: publicRepo,
-      timeout: 180000,
-    });
+    const pushResult = pushBranch(publicRepo, remote, branch);
     if (pushResult.status === 0) {
       console.log(`[OK] Pushed to ${publicRepoSlug} (${branch}) via ${remote}`);
-    } else if (isWorkflowScopeRejection(`${pushResult.stdout ?? ''}${pushResult.stderr ?? ''}`)) {
+    } else if (isWorkflowScopeRejection(pushResult.output)) {
       // La credencial que usa git no puede tocar workflows aunque `gh` diga lo
       // contrario (GH_TOKEN del entorno con otros scopes, token fine-grained).
       // El rechazo es la evidencia: se descartan SOLO los workflows bajo
@@ -932,10 +966,7 @@ function pushToAllBranches(opts: SyncOptions): string[] {
         timeout: 30000,
       });
       runSync('git', ['commit', '--amend', '--no-edit'], { cwd: publicRepo, timeout: 60000 });
-      const retry = runSync('git', ['push', remote, branch], {
-        cwd: publicRepo,
-        timeout: 180000,
-      });
+      const retry = pushBranch(publicRepo, remote, branch);
       if (retry.status === 0) {
         console.log(`[OK] Pushed to ${publicRepoSlug} (${branch}) sin workflows`);
         console.log(
@@ -944,13 +975,13 @@ function pushToAllBranches(opts: SyncOptions): string[] {
         );
       } else {
         console.log(
-          `[FAIL] Push to ${branch} (retry sin workflows) → exit ${retry.status}: ${(retry.stderr || retry.stdout).slice(0, 300)}`,
+          `[FAIL] Push to ${branch} (retry sin workflows) → exit ${retry.status}: ${retry.output.slice(0, 300)}`,
         );
         failed.push(branch);
       }
     } else {
       console.log(
-        `[FAIL] Push to ${branch} → exit ${pushResult.status}: ${(pushResult.stderr || pushResult.stdout).slice(0, 300)}`,
+        `[FAIL] Push to ${branch} → exit ${pushResult.status}: ${pushResult.output.slice(0, 300)}`,
       );
       failed.push(branch);
     }
