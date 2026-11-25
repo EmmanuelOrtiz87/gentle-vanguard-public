@@ -718,6 +718,19 @@ function detectWorkflowScope(): 'granted' | 'missing' | 'unknown' {
 }
 
 /**
+ * Un rechazo GH013 es la evidencia definitiva de que la credencial del push no
+ * puede tocar `.github/workflows`: `gh` puede reportar scopes de otra cuenta
+ * (GH_TOKEN del entorno) o del keyring, mientras git empuja con una tercera
+ * (fine-grained / app). Por eso el sync intenta el push y solo degrada cuando
+ * GitHub lo rechaza, en vez de confiar en la deteccion previa.
+ */
+export function isWorkflowScopeRejection(output: string): boolean {
+  const out = output.toLowerCase();
+  if (!out.includes('workflow')) return false;
+  return out.includes('gh013') || out.includes('refusing to allow');
+}
+
+/**
  * neutralizeWorkflowsWithoutScope — arreglo definitivo del fallo recurrente
  * `refusing to allow an OAuth App to create or update workflow ... without
  * workflow scope`. En vez de fallar el push entero (y dejar el mirror
@@ -745,7 +758,10 @@ function neutralizeWorkflowsWithoutScope(publicRepo: string, branch: string): vo
       `${scope === 'unknown' ? ', indeterminable' : ''}) — el resto publica normal.`,
   );
   console.log('[WARN] Drift de workflows pendiente. Arreglo permanente (interactivo, 1 vez):');
-  console.log('         gh auth refresh -s workflow');
+  console.log(
+    '         gh auth refresh -s workflow   (o correr con `env -u GH_TOKEN -u GITHUB_TOKEN` si',
+  );
+  console.log('         el entorno define un token sin scope que tapa la sesion de keyring)');
   console.log('       Luego re-ejecutar el sync: publicará los workflows pendientes.');
 }
 
@@ -902,6 +918,36 @@ function pushToAllBranches(opts: SyncOptions): string[] {
     });
     if (pushResult.status === 0) {
       console.log(`[OK] Pushed to ${publicRepoSlug} (${branch}) via ${remote}`);
+    } else if (isWorkflowScopeRejection(`${pushResult.stdout ?? ''}${pushResult.stderr ?? ''}`)) {
+      // La credencial que usa git no puede tocar workflows aunque `gh` diga lo
+      // contrario (GH_TOKEN del entorno con otros scopes, token fine-grained).
+      // El rechazo es la evidencia: se descartan SOLO los workflows bajo
+      // .github/workflows, se reescribe el commit del mirror y se reintenta una
+      // vez. El resto del contenido publica igual.
+      console.log(
+        '[WARN] GitHub rechazo el push por el scope `workflow` (GH013): se descartan los workflows y se reintenta.',
+      );
+      runSync('git', ['checkout', `origin/${branch}`, '--', '.github/workflows'], {
+        cwd: publicRepo,
+        timeout: 30000,
+      });
+      runSync('git', ['commit', '--amend', '--no-edit'], { cwd: publicRepo, timeout: 60000 });
+      const retry = runSync('git', ['push', remote, branch], {
+        cwd: publicRepo,
+        timeout: 180000,
+      });
+      if (retry.status === 0) {
+        console.log(`[OK] Pushed to ${publicRepoSlug} (${branch}) sin workflows`);
+        console.log(
+          '[WARN] Drift de workflows pendiente: credencial sin scope `workflow`. ' +
+            'Correr con `env -u GH_TOKEN -u GITHUB_TOKEN` o refrescar el scope.',
+        );
+      } else {
+        console.log(
+          `[FAIL] Push to ${branch} (retry sin workflows) → exit ${retry.status}: ${(retry.stderr || retry.stdout).slice(0, 300)}`,
+        );
+        failed.push(branch);
+      }
     } else {
       console.log(
         `[FAIL] Push to ${branch} → exit ${pushResult.status}: ${(pushResult.stderr || pushResult.stdout).slice(0, 300)}`,

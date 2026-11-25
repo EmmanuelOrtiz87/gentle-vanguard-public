@@ -18,7 +18,7 @@ import assert from 'node:assert';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { collectLazyStatus } from '../../src/core/lazy-status.ts';
+import { collectLazyStatus, problemSteps } from '../../src/core/lazy-status.ts';
 
 function makeRoot(files: Record<string, unknown>): string {
   const root = mkdtempSync(join(tmpdir(), 'gv-lazy-status-'));
@@ -62,5 +62,30 @@ describe('lazy-status — el resumen cuenta los daemons', () => {
     const status = collectLazyStatus(root);
     assert.strictEqual(status.failed, 1);
     assert.strictEqual(status.ok, 0);
+  });
+});
+
+describe('problemSteps — el lector no se juzga a si mismo', () => {
+  it('excluye el step del watchtower y conserva los demas problemas', () => {
+    const results = [
+      { id: 'maintenance-watchtower', status: 'failed' as const },
+      { id: 'agent-operability', status: 'failed' as const },
+      { id: 'token-safety-audit', status: 'timeout' as const },
+      { id: 'ok-step', status: 'ok' as const },
+      { id: 'daemon-step', status: 'daemon' as const },
+    ];
+    const problems = problemSteps(results, ['maintenance-watchtower']);
+    assert.deepStrictEqual(
+      problems.map((r) => `${r.id}:${r.status}`),
+      ['agent-operability:failed', 'token-safety-audit:timeout'],
+    );
+  });
+
+  it('sin exclusion reporta todos los problemas (incluido el propio)', () => {
+    const results = [
+      { id: 'maintenance-watchtower', status: 'failed' as const },
+      { id: 'agent-operability', status: 'stale' as const },
+    ];
+    assert.strictEqual(problemSteps(results).length, 2);
   });
 });

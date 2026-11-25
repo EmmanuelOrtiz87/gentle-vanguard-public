@@ -59,7 +59,16 @@ export interface LoopVerdict {
 
 export interface LoopStatus {
   activeLoops: number;
-  goals: Record<string, { attempts: number; inLoop: boolean; lastOutcome: string }>;
+  goals: Record<
+    string,
+    {
+      attempts: number;
+      inLoop: boolean;
+      lastOutcome: string;
+      /** Días desde el último intento; null si el timestamp es ilegible. */
+      ageDays: number | null;
+    }
+  >;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────
@@ -286,10 +295,12 @@ export function getLoopStatus(): LoopStatus {
   const goals: LoopStatus['goals'] = {};
   let activeLoops = 0;
   for (const [key, g] of Object.entries(state.goals)) {
+    const t = new Date(g.lastTimestamp).getTime();
     goals[key] = {
       attempts: g.attempts,
       inLoop: g.attempts >= DEFAULT_MAX_ATTEMPTS,
       lastOutcome: g.lastOutcome,
+      ageDays: Number.isFinite(t) ? Math.floor((Date.now() - t) / 86_400_000) : null,
     };
     if (g.attempts >= DEFAULT_MAX_ATTEMPTS) activeLoops++;
   }

@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { compareGovernance, type GovernanceBaseline } from './governance-ratchet.js';
+import { parseSkillDocument } from './skill-registry-builder.js';
 
 type SkillRecord = {
   directory: string;
@@ -57,18 +58,20 @@ function parseSkill(file: string, directory: string): SkillRecord {
     const match = frontmatter.match(new RegExp(`^\\s*${key}:[ \\t]*(.+)$`, 'm'));
     return match?.[1].trim().replace(/^['"]|['"]$/g, '') ?? null;
   };
-  const triggers = [...frontmatter.matchAll(/^\s*-\s+(.+)$/gm)]
-    .map((match) => match[1].trim().replace(/^['"]|['"]$/g, ''))
-    .filter((value) => value.length >= 2 && !value.startsWith('http'));
+  // name/description/triggers salen del lector canónico (js-yaml, el mismo del
+  // registry): el regex local no veía block scalars (`description:\n  texto`) y
+  // contaba como triggers cualquier `- item` del frontmatter (aliases incluidos).
+  // Medido 2026-11-25: reportaba 46 skills sin description que sí la tienen.
+  const doc = parseSkillDocument(text, directory);
   const references = [...text.matchAll(/\]\(([^)]+)\)/g)]
     .map((match) => match[1].split('#')[0])
     .filter((value) => value.startsWith('./') || value.startsWith('../') || value.startsWith('reference/'));
   return {
     directory,
     file,
-    name: lineValue('name'),
-    description: lineValue('description'),
-    triggers,
+    name: doc.name,
+    description: doc.description,
+    triggers: doc.triggers,
     source: lineValue('source'),
     upstream: lineValue('upstream'),
     references,

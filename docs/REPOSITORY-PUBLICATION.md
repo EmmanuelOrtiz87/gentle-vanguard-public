@@ -116,6 +116,22 @@ Verified 2026-10-28: the sync was a no-op except `academy/catalog.json`'s `gener
 the expected result when the site content was already current and only the scheduled sync was
 behind.
 
+## Qué credencial puede publicar workflows
+
+Los dos workflows de la distribución (`public-smoke.yml`, `public-installer-windows.yml`) sólo se
+publican si la credencial **que usa git en el push** puede tocar `.github/workflows`.
+`gh auth status` es orientativo y puede leer otra cuenta: `GH_TOKEN`/`GITHUB_TOKEN` del entorno
+tapan la sesión de keyring, y el push usa el credential helper (`manager`), no esa variable.
+
+Por eso el sync intenta el push y, si GitHub responde `GH013` (refusing to allow … workflow), se
+queda con la evidencia: descarta sólo `.github/workflows`, reescribe el commit del mirror y
+reintenta una vez; el resto se publica y el drift queda reportado con el comando de arreglo. Desde
+un shell que defina tokens de entorno sin `workflow`, la vía completa es:
+
+```bash
+env -u GH_TOKEN -u GITHUB_TOKEN npm run publish:public
+```
+
 ## Release and Installer Distribution
 
 When a new version is released:

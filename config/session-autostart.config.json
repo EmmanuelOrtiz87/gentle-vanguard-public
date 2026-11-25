@@ -1342,7 +1342,7 @@
         "required": false,
         "phase": 2,
         "skipOnFailure": true,
-        "timeout": 30000,
+        "timeout": 120000,
         "description": "Clase D de la normativa de verificaciones: audita config LOCAL reproducible de las 5 herramientas con palancas (Codex, Kimi CLI — INFO si no existe su config, MiniMax, ZCode, OpenCode) y reporta INFO honesto de las server-managed (Qoder, Copilot, Antigravity, Kimi desktop). Ademas mide EFECTIVIDAD: si la ultima sesion real de cada herramienta tiene evidencia local de workspace (session_meta.cwd incl. archived_sessions/.jsonl.zst, session.directory, local_runtime_sessions, tasks.workspace_path). Emite lineas [TOKEN-SAFETY] solo para WARN config-local y not-applied warn; exit 0 normal, 1 solo con --strict y WARN config-local, 2 si no puede determinar. Corre tambien en el composite pre-push. Gate registrado: token-safety-audit (runtime)."
       },
       {

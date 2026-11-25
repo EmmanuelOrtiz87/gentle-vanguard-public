@@ -11,7 +11,10 @@ import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const mod = await import(pathToFileURL(resolve(ROOT, 'src/infrastructure/sync-to-public.ts')).href);
-const { parseWorkflowScope } = mod as { parseWorkflowScope: (out: string) => string };
+const { parseWorkflowScope, isWorkflowScopeRejection } = mod as {
+  parseWorkflowScope: (out: string) => string;
+  isWorkflowScopeRejection: (out: string) => boolean;
+};
 
 describe('parseWorkflowScope (gh auth status)', () => {
   it('granted cuando el scope workflow está presente', () => {
@@ -63,5 +66,30 @@ describe('parseWorkflowScope (gh auth status)', () => {
   it('no confunde substrings: "workflows" o "xworkflow" no cuentan como scope', () => {
     const tricky = '  - Token scopes: repo, workflows-x, myworkflow';
     assert.strictEqual(parseWorkflowScope(tricky), 'missing');
+  });
+});
+
+describe('isWorkflowScopeRejection (rechazo GH013 del push)', () => {
+  it('reconoce el mensaje real de GitHub', () => {
+    const out = [
+      'remote: error: GH013: Repository rule violations found for refs/heads/main.',
+      '! [remote rejected] main -> main (refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope)',
+    ].join('\n');
+    assert.strictEqual(isWorkflowScopeRejection(out), true);
+  });
+
+  it('reconoce el rechazo por OAuth App aunque no venga el codigo GH013', () => {
+    const out =
+      'refusing to allow an OAuth App to create or update workflow `.github/workflows/x.yml` without `workflow` scope';
+    assert.strictEqual(isWorkflowScopeRejection(out), true);
+  });
+
+  it('no confunde un rechazo comun (non-fast-forward)', () => {
+    const out = '! [rejected] main -> main (non-fast-forward)\nerror: failed to push some refs';
+    assert.strictEqual(isWorkflowScopeRejection(out), false);
+  });
+
+  it('no confunde la palabra workflow en un mensaje informativo', () => {
+    assert.strictEqual(isWorkflowScopeRejection('updated workflows on 2 branches'), false);
   });
 });

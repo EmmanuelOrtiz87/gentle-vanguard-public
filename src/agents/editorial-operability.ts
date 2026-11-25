@@ -14,11 +14,11 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { cachedVerdict } from './editorial-probe-cache.js';
 
 const REPO = process.cwd();
 const RUNTIME = join(REPO, '.runtime', 'agent-probe');
 const LAST = join(RUNTIME, 'editorial.last.json');
-const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function report(state: string, detail: Record<string, unknown>, exitCode: number): never {
   mkdirSync(RUNTIME, { recursive: true });
@@ -27,17 +27,17 @@ function report(state: string, detail: Record<string, unknown>, exitCode: number
   process.exit(exitCode);
 }
 
-// 1. Frecuencia: si hay sonda fresca (<24 h), reportar sin gastar cuota
+// 1. Frecuencia: si hay sonda fresca (<24 h), reportar sin gastar cuota.
+//    NO se reescribe el registro: el resumen reportado pisaba el veredicto y el
+//    step quedaba fallando en cada arranque (bug 2026-11-24, ver editorial-probe-cache).
 if (existsSync(LAST)) {
   try {
-    const last = JSON.parse(readFileSync(LAST, 'utf8'));
-    const age = Date.now() - new Date(last.at).getTime();
-    if (age < MAX_AGE_MS) {
-      report(
-        'recent',
-        { hoursAgo: +(age / 3600000).toFixed(1), lastState: last.state, lastModel: last.model },
-        last.state === 'operable' ? 0 : 1,
+    const verdict = cachedVerdict(JSON.parse(readFileSync(LAST, 'utf8')), Date.now());
+    if (verdict) {
+      console.log(
+        JSON.stringify({ state: verdict.state, hoursAgo: verdict.hoursAgo, cached: true }),
       );
+      process.exit(verdict.state === 'operable' ? 0 : 1);
     }
   } catch {
     /* timestamp ilegible: re-probar */
@@ -69,7 +69,13 @@ function delegateOnce(): ReturnType<typeof spawnSync> {
       timeout: 240_000,
       windowsHide: true,
       maxBuffer: 32 * 1024 * 1024,
-      env: { ...process.env, AGENT_MODEL: 'gpt-5.6-sol', ORCHESTRATOR_REASONING_EFFORT: 'low' },
+      // Sin AGENT_MODEL fijo: la sonda mide la resolucion canonica del stack
+      // (env -> registryModel(operacion) -> fallback). El pin `gpt-5.6-sol` quedo
+      // fuera del model-health-registry y el CLI de Codex colgaba 240 s por
+      // intento (medido 2026-11-24).
+      // GV_DELEGATION_PROBE: la sonda es observabilidad determinista — no debe
+      // consumir el anti-loop (3 fallos la dejaban auto-bloqueada para siempre).
+      env: { ...process.env, ORCHESTRATOR_REASONING_EFFORT: 'low', GV_DELEGATION_PROBE: '1' },
     },
   );
 }

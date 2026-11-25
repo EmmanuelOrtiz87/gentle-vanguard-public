@@ -380,6 +380,7 @@ async function main(): Promise<void> {
           : delegatedTask,
     context: extractedContext ?? (contextC?.applied ? contextC.text : context),
     temperature: tier.temperature,
+    probe: process.env.GV_DELEGATION_PROBE === '1',
     ...(isEditorial
       ? { timeoutSeconds: editorialDelegationTimeoutSeconds(operation ?? 'draft') }
       : {}),
