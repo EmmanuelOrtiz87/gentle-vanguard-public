@@ -701,7 +701,11 @@ function syncFilesToBranch(opts: SyncOptions, targetDir: string): void {
 export function parseWorkflowScope(statusOutput: string): 'granted' | 'missing' | 'unknown' {
   const out = statusOutput.toLowerCase();
   if (!/token scopes|scopes:/i.test(out)) return 'unknown';
-  return /(^|[\s,])workflow([\s,]|$)/m.test(out) ? 'granted' : 'missing';
+  // gh imprime cada scope entre comillas (`'repo', 'workflow'`) desde que
+  // soporta dos cuentas en la misma salida: sin las comillas en el borde, el
+  // parseo decia 'missing' aunque el scope estuviera concedido y el sync
+  // excluia los workflows para siempre.
+  return /(^|[\s,'"])workflow([\s,'"]|$)/m.test(out) ? 'granted' : 'missing';
 }
 
 function detectWorkflowScope(): 'granted' | 'missing' | 'unknown' {
