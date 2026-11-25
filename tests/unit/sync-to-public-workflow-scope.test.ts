@@ -26,6 +26,20 @@ describe('parseWorkflowScope (gh auth status)', () => {
     assert.strictEqual(parseWorkflowScope(ghOut), 'granted');
   });
 
+  it('granted con scopes entre comillas (formato de gh con dos cuentas)', () => {
+    const ghOut = [
+      'github.com',
+      '  ✓ Logged in to github.com account EmmanuelOrtiz87 (keyring)',
+      "  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'",
+    ].join('\n');
+    assert.strictEqual(parseWorkflowScope(ghOut), 'granted');
+  });
+
+  it('missing con scopes entre comillas y sin workflow', () => {
+    const ghOut = "  - Token scopes: 'gist', 'read:org', 'repo'";
+    assert.strictEqual(parseWorkflowScope(ghOut), 'missing');
+  });
+
   it('missing cuando hay scopes pero workflow no está (el caso GH013)', () => {
     const ghOut = [
       'github.com',
