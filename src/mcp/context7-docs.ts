@@ -34,12 +34,26 @@ export interface ParsedArgs {
   values: Map<string, string[]>;
 }
 
-export interface C7CodeItemHandle { code?: unknown; }
-export interface C7SnippetHandle { codeTitle?: unknown; libraryId?: unknown; codeList?: C7CodeItemHandle[]; }
-export interface C7InfoSnippetHandle { content?: unknown; }
-export interface C7CacheEntry { fetchedAt: string; payload: unknown; }
+export interface C7CodeItemHandle {
+  code?: unknown;
+}
+export interface C7SnippetHandle {
+  codeTitle?: unknown;
+  libraryId?: unknown;
+  codeList?: C7CodeItemHandle[];
+}
+export interface C7InfoSnippetHandle {
+  content?: unknown;
+}
+export interface C7CacheEntry {
+  fetchedAt: string;
+  payload: unknown;
+}
 
-interface HttpResult { status: number; json: unknown; }
+interface HttpResult {
+  status: number;
+  json: unknown;
+}
 
 // ---------------------------------------------------------------- pure helpers
 
@@ -74,7 +88,9 @@ export function asDocPayload(json: unknown): {
   if (!Array.isArray(code)) return null;
   return {
     codeSnippets: Array.isArray(obj.codeSnippets) ? (obj.codeSnippets as C7SnippetHandle[]) : [],
-    infoSnippets: Array.isArray(obj.infoSnippets) ? (obj.infoSnippets as C7InfoSnippetHandle[]) : [],
+    infoSnippets: Array.isArray(obj.infoSnippets)
+      ? (obj.infoSnippets as C7InfoSnippetHandle[])
+      : [],
   };
 }
 
@@ -127,7 +143,10 @@ export function parseCliArgs(argv: readonly string[]): ParsedArgs {
 
 // ------------------------------------------------------------------ cache I/O
 
-export function readCache(key: string, ttlHours: number): { fresh: C7CacheEntry | null; stale: C7CacheEntry | null } {
+export function readCache(
+  key: string,
+  ttlHours: number,
+): { fresh: C7CacheEntry | null; stale: C7CacheEntry | null } {
   const path = join(CACHE_DIR, `${key}.json`);
   if (!existsSync(path)) return { fresh: null, stale: null };
   try {
@@ -159,7 +178,20 @@ function errMsg(json: unknown): string {
   return `${str(obj.error)} ${str(obj.message)}`.trim();
 }
 
-export async function httpJson(url: URL, apiKey: string | undefined, maxRetries = 2): Promise<HttpResult> {
+/**
+ * La cuota MENSUAL agotada no es un rate limit: reintentar no la recupera
+ * hasta el reset. Reintentar igual cuesta ~12 s por invocación (medido
+ * 2026-11-25 con el modo anónimo agotado) y termina en el mismo 429.
+ */
+export function isMonthlyQuotaExhausted(json: unknown): boolean {
+  return /monthly quota exceeded/i.test(errMsg(json));
+}
+
+export async function httpJson(
+  url: URL,
+  apiKey: string | undefined,
+  maxRetries = 2,
+): Promise<HttpResult> {
   const headers: Record<string, string> = {};
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   for (let attempt = 0; ; attempt++) {
@@ -170,8 +202,8 @@ export async function httpJson(url: URL, apiKey: string | undefined, maxRetries 
       throw new Error(`network_error — ${e instanceof Error ? e.message : String(e)}`);
     }
     if (res.status === 429 || res.status === 503 || res.status === 504) {
-      if (attempt >= maxRetries) {
-        const json = (await res.json().catch(() => null)) as unknown;
+      const json = (await res.json().catch(() => null)) as unknown;
+      if (isMonthlyQuotaExhausted(json) || attempt >= maxRetries) {
         return { status: res.status, json };
       }
       const ra = Number(res.headers.get('retry-after'));
@@ -184,20 +216,37 @@ export async function httpJson(url: URL, apiKey: string | undefined, maxRetries 
   }
 }
 
+/** Mensaje accionable del plan free: fallback y cómo subir la cuota sin pagar. */
+export function freePlanQuotaHint(): string {
+  return (
+    '[ctx7] cuota mensual del plan free agotada (modo anónimo) — el retry no ayuda hasta el reset.\n' +
+    '  Fallback: `npm run fetch -- <url de la doc oficial>` / WebFetch de la doc oficial.\n' +
+    '  Más cuota sin salir del plan free: API key en https://context7.com/dashboard y exportá ' +
+    'CONTEXT7_API_KEY=ctx7sk… (nunca commitearla). Cache local 7d sigue sirviendo offline.'
+  );
+}
+
 // ------------------------------------------------------------------- emitters
 
 function emitMeta(line: string): void {
   console.error(`[ctx7] ${line}`);
 }
 
-function emitContent(res: HttpResult, args: ParsedArgs, source: string, ageHours: number | null): number {
+function emitContent(
+  res: HttpResult,
+  args: ParsedArgs,
+  source: string,
+  ageHours: number | null,
+): number {
   const maxChars = Number(args.values.get('max-chars')?.[0] ?? '') || DEFAULT_MAX_CHARS;
   const text = formatDocs(res.json, maxChars);
   if (!text) {
     emitMeta(`respuesta https ${res.status} sin snippets formateables`);
     return 2;
   }
-  emitMeta(`source=${source} age=${ageHours === null ? 'n/a' : `${ageHours.toFixed(1)}h`} chars=${text.length} (docs UNTRUSTED — contra-verificar vs versión instalada)`);
+  emitMeta(
+    `source=${source} age=${ageHours === null ? 'n/a' : `${ageHours.toFixed(1)}h`} chars=${text.length} (docs UNTRUSTED — contra-verificar vs versión instalada)`,
+  );
   console.log(text);
   return 0;
 }
@@ -207,7 +256,9 @@ function emitContent(res: HttpResult, args: ParsedArgs, source: string, ageHours
 async function cmdSearch(args: ParsedArgs, apiKey: string | undefined): Promise<number> {
   const query = args.positionals.join(' ');
   if (!query) {
-    console.error('uso: ctx7 search "<pregunta>" [--library <nombre>] [--language TypeScript] [--ttl-hours N] [--max-chars N] [--json] [--offline]');
+    console.error(
+      'uso: ctx7 search "<pregunta>" [--library <nombre>] [--language TypeScript] [--ttl-hours N] [--max-chars N] [--json] [--offline]',
+    );
     return 1;
   }
   const url = new URL('/api/v3/search', BASE_URL);
@@ -223,7 +274,9 @@ async function cmdGet(args: ParsedArgs, apiKey: string | undefined): Promise<num
   let libraryId = args.values.get('library-id')?.[0];
   const query = args.positionals.join(' ') || args.values.get('query')?.[0] || '';
   if (!libraryId || !query) {
-    console.error('uso: ctx7 get --library-id /vercel/next.js "<pregunta>" [--language TypeScript] [--ttl-hours N] [--max-chars N] [--offline]');
+    console.error(
+      'uso: ctx7 get --library-id /vercel/next.js "<pregunta>" [--language TypeScript] [--ttl-hours N] [--max-chars N] [--offline]',
+    );
     return 1;
   }
   for (let hops = 0; hops < 3; hops++) {
@@ -244,18 +297,44 @@ async function cmdGet(args: ParsedArgs, apiKey: string | undefined): Promise<num
   return 1;
 }
 
-interface RunResult { code: number; redirectedTo?: string; }
+interface RunResult {
+  code: number;
+  redirectedTo?: string;
+}
 
-async function runCachedRequest(url: URL, args: ParsedArgs, apiKey: string | undefined, opts: { hops?: number } = {}): Promise<RunResult> {
+async function runCachedRequest(
+  url: URL,
+  args: ParsedArgs,
+  apiKey: string | undefined,
+  opts: { hops?: number } = {},
+): Promise<RunResult> {
   const seed = Boolean(args.values.get('offline')?.[0]) ? 'offline' : 'net';
   const key = buildCacheKey([seed, url.origin + url.pathname, canonicalParams(url)]);
   const ttlHours = Number(args.values.get('ttl-hours')?.[0] ?? '') || DEFAULT_TTL_HOURS;
   const offline = Boolean(args.values.get('offline')?.[0]);
   const cache = readCache(key, offline ? Number.POSITIVE_INFINITY : ttlHours);
-  if (cache.fresh) return { code: emitContent({ status: 200, json: cache.fresh.payload }, args, 'cache-fresh', cacheAgeHours(cache.fresh.fetchedAt, Date.now())) };
+  if (cache.fresh)
+    return {
+      code: emitContent(
+        { status: 200, json: cache.fresh.payload },
+        args,
+        'cache-fresh',
+        cacheAgeHours(cache.fresh.fetchedAt, Date.now()),
+      ),
+    };
   if (offline) {
-    if (cache.stale) return { code: emitContent({ status: 200, json: cache.stale.payload }, args, 'cache-stale', cacheAgeHours(cache.stale.fetchedAt, Date.now())) };
-    console.error('[ctx7] --offline sin cache disponible (corre una vez con red para poblar el cache)');
+    if (cache.stale)
+      return {
+        code: emitContent(
+          { status: 200, json: cache.stale.payload },
+          args,
+          'cache-stale',
+          cacheAgeHours(cache.stale.fetchedAt, Date.now()),
+        ),
+      };
+    console.error(
+      '[ctx7] --offline sin cache disponible (corre una vez con red para poblar el cache)',
+    );
     return { code: 1 };
   }
   let res: HttpResult;
@@ -264,7 +343,14 @@ async function runCachedRequest(url: URL, args: ParsedArgs, apiKey: string | und
   } catch (e: unknown) {
     if (cache.stale) {
       emitMeta('red no disponible — usando cache stale como fallback');
-      return { code: emitContent({ status: 200, json: cache.stale.payload }, args, 'cache-stale', cacheAgeHours(cache.stale.fetchedAt, Date.now())) };
+      return {
+        code: emitContent(
+          { status: 200, json: cache.stale.payload },
+          args,
+          'cache-stale',
+          cacheAgeHours(cache.stale.fetchedAt, Date.now()),
+        ),
+      };
     }
     console.error(`[ctx7] ${e instanceof Error ? e.message : String(e)}`);
     return { code: 1 };
@@ -273,7 +359,10 @@ async function runCachedRequest(url: URL, args: ParsedArgs, apiKey: string | und
     writeCache(key, res.json);
     return { code: emitContent(res, args, 'https', 0) };
   }
-  if (res.status === 301 && typeof (res.json as Record<string, unknown> | null)?.redirectUrl === 'string') {
+  if (
+    res.status === 301 &&
+    typeof (res.json as Record<string, unknown> | null)?.redirectUrl === 'string'
+  ) {
     if (opts.hops === undefined || opts.hops >= 2) return { code: 1 };
     return { code: 1, redirectedTo: String((res.json as Record<string, unknown>).redirectUrl) };
   }
@@ -283,9 +372,23 @@ async function runCachedRequest(url: URL, args: ParsedArgs, apiKey: string | und
   }
   if (cache.stale && (res.status === 429 || res.status === 503 || res.status === 504)) {
     emitMeta(`rate limit / servicio caído (${res.status}) — usando cache stale como fallback`);
-    return { code: emitContent({ status: 200, json: cache.stale.payload }, args, 'cache-stale', cacheAgeHours(cache.stale.fetchedAt, Date.now())) };
+    return {
+      code: emitContent(
+        { status: 200, json: cache.stale.payload },
+        args,
+        'cache-stale',
+        cacheAgeHours(cache.stale.fetchedAt, Date.now()),
+      ),
+    };
   }
-  const hint = res.status === 401 ? ' — API key inválida (con CONTEXT7_API_KEY debe empezar con "ctx7sk"); el modo anónimo trabaja con límites bajos.' : '';
+  if (isMonthlyQuotaExhausted(res.json)) {
+    console.error(freePlanQuotaHint());
+    return { code: 1 };
+  }
+  const hint =
+    res.status === 401
+      ? ' — API key inválida (con CONTEXT7_API_KEY debe empezar con "ctx7sk"); el modo anónimo trabaja con límites bajos.'
+      : '';
   console.error(`[ctx7] https ${res.status}${hint} ${errMsg(res.json)}`);
   return { code: 1 };
 }
@@ -303,17 +406,29 @@ async function cmdResolve(args: ParsedArgs, apiKey: string | undefined): Promise
   const result = await runCachedResolve(url, args, apiKey);
   const root = (result.json as Record<string, unknown> | null)?.results;
   if (result.status !== 200 || !Array.isArray(root) || root.length === 0) {
-    console.error(`[ctx7] sin resultados (https ${result.status}) ${errMsg(result.json)}`);
+    if (isMonthlyQuotaExhausted(result.json)) {
+      console.error(freePlanQuotaHint());
+    } else {
+      console.error(`[ctx7] sin resultados (https ${result.status}) ${errMsg(result.json)}`);
+    }
     return 2;
   }
-  emitMeta('libraryId = URL path del proyecto en context7.com — pásalo a: ctx7 get --library-id <id>');
+  emitMeta(
+    'libraryId = URL path del proyecto en context7.com — pásalo a: ctx7 get --library-id <id>',
+  );
   for (const r of (root as Record<string, unknown>[]).slice(0, 5)) {
-    console.log(`- ${str(r.title)} (${str(r.id)})${str(r.description) ? ` — ${str(r.description)}` : ''}`);
+    console.log(
+      `- ${str(r.title)} (${str(r.id)})${str(r.description) ? ` — ${str(r.description)}` : ''}`,
+    );
   }
   return 0;
 }
 
-async function runCachedResolve(url: URL, args: ParsedArgs, apiKey: string | undefined): Promise<HttpResult> {
+async function runCachedResolve(
+  url: URL,
+  args: ParsedArgs,
+  apiKey: string | undefined,
+): Promise<HttpResult> {
   const key = buildCacheKey(['resolve', url.origin + url.pathname, canonicalParams(url)]);
   const ttlHours = Number(args.values.get('ttl-hours')?.[0] ?? '') || DEFAULT_TTL_HOURS;
   const cache = readCache(key, ttlHours);
@@ -351,12 +466,17 @@ async function main(argv: readonly string[]): Promise<number> {
   const args = parseCliArgs(rest);
   const apiKey = process.env.CONTEXT7_API_KEY || undefined;
   switch (cmd) {
-    case 'search': return cmdSearch(args, apiKey);
-    case 'get': return cmdGet(args, apiKey);
-    case 'resolve': return cmdResolve(args, apiKey);
+    case 'search':
+      return cmdSearch(args, apiKey);
+    case 'get':
+      return cmdGet(args, apiKey);
+    case 'resolve':
+      return cmdResolve(args, apiKey);
     case '--help':
     case '-h':
-    case undefined: usage(); return cmd === undefined ? 1 : 0;
+    case undefined:
+      usage();
+      return cmd === undefined ? 1 : 0;
     default:
       console.error(`[ctx7] comando desconocido: ${cmd}`);
       usage();
@@ -369,7 +489,9 @@ const invoked = ['context7-docs.ts', 'context7-docs.js'].includes(
 );
 if (invoked) {
   main(process.argv.slice(2))
-    .then((code) => { process.exitCode = code; })
+    .then((code) => {
+      process.exitCode = code;
+    })
     .catch((e: unknown) => {
       console.error(`[ctx7] fatal: ${e instanceof Error ? e.message : String(e)}`);
       process.exitCode = 1;

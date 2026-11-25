@@ -205,7 +205,11 @@ function diffCommand(positional: string[], max: number, json: boolean, staged: b
   let files = positional;
   if (files.length === 0) {
     const gitArgs = staged ? ['diff', '--cached', '--name-only'] : ['diff', '--name-only', 'HEAD'];
-    const out = execFileSync('git', gitArgs, { encoding: 'utf-8', cwd: ROOT });
+    const out = execFileSync('git', gitArgs, {
+      encoding: 'utf-8',
+      cwd: ROOT,
+      windowsHide: true,
+    });
     files = out
       .split(/\r?\n/)
       .map((file) => file.trim())

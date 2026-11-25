@@ -24,12 +24,21 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { codegraphMcpEntry } from '../integrations/codegraph-paths.js';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const CONFIG_PATH = join(ROOT, 'config', 'codegraph.config.json');
 const MCP_PATH = join(ROOT, '.mcp.json');
 const INDEX_DIR = join(ROOT, '.codegraph');
+
+const SERVER = {
+  command: 'codegraph',
+  // --path explícito: los hosts MCP no siempre reportan el workspace root y sin
+  // él el server no encuentra .codegraph/ (medido 2026-11-18: "No CodeGraph
+  // project is loaded for this session" con el proyecto a medio indexar).
+  args: ['serve', '--mcp', '--path', ROOT],
+  type: 'stdio',
+  description: 'CodeGraph: indexed code intelligence and knowledge graph',
+};
 
 export interface CodegraphState {
   enabled: boolean;
@@ -55,13 +64,7 @@ export function writeState(state: CodegraphState, root = ROOT): void {
   );
 }
 
-/**
- * Agrega o saca el servidor `codegraph` del `.mcp.json` (canon del repo).
- *
- * Presente = el entry EXACTO del canon (`node <codegraph.js>`, sin shim .cmd).
- * Si el entry existe pero difiere (p.ej. quedó el `command: 'codegraph'` viejo
- * que hace que cada host abra un cmd.exe), se reescribe y devuelve true.
- */
+/** Agrega o saca el servidor `codegraph` del `.mcp.json` (canon del repo). */
 export function setMcpServer(present: boolean, root = ROOT): boolean {
   const path = join(root, '.mcp.json');
   if (!existsSync(path)) return false;
@@ -70,14 +73,9 @@ export function setMcpServer(present: boolean, root = ROOT): boolean {
   };
   const servers = parsed.mcpServers ?? (parsed.mcpServers = {});
   const had = Object.hasOwn(servers, 'codegraph');
-  if (present) {
-    const next = codegraphMcpEntry(root);
-    if (had && JSON.stringify(servers.codegraph) === JSON.stringify(next)) return false;
-    servers.codegraph = next;
-  } else {
-    if (!had) return false;
-    delete servers.codegraph;
-  }
+  if (present) servers.codegraph = { ...SERVER };
+  else delete servers.codegraph;
+  if (had === present) return false; // ya estaba como se pedia
   writeFileSync(path, `${JSON.stringify(parsed, null, 2)}\n`, 'utf-8');
   return true;
 }

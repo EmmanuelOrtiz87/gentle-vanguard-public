@@ -36,10 +36,6 @@ export interface FlashEvent {
   ppid: number | null;
   parentName: string | null;
   commandLine: string | null;
-  /** Título de ventana reportado por `tasklist /v` ("N/D" = consola oculta). */
-  windowTitle: string | null;
-  /** true solo si hay ventana de consola con título: lo que el owner VE. */
-  visible: boolean;
 }
 
 /** Parsea la salida CSV de tasklist → lista de pids por imagen. (Puro.) */
@@ -50,40 +46,6 @@ export function parseTasklist(csv: string): number[] {
     if (cells.length >= 2 && /^\d+$/.test(cells[1])) pids.push(Number(cells[1]));
   }
   return pids;
-}
-
-/**
- * Parsea `tasklist /v /fo csv` → imagen, pid y título de ventana. (Puro.)
- *
- * POR QUE (2026-11-24): la corrida anterior registraba TODO conhost/cmd del
- * sistema (114 eventos en 150s) y no distinguía una ventana visible de una
- * consola oculta (CREATE_NO_WINDOW / conhost headless). El owner ve flashes,
- * no procesos: la columna "Título de ventana" de tasklist /v marca "N/D"
- * (N/A en inglés) para consolas sin ventana y el título real para las visibles.
- */
-export interface TasklistRow {
-  image: string;
-  pid: number;
-  windowTitle: string | null;
-  visible: boolean;
-}
-
-const NO_WINDOW_TITLES = new Set(['n/d', 'n/a', '']);
-
-export function parseTasklistVerbose(csv: string): TasklistRow[] {
-  const rows: TasklistRow[] = [];
-  for (const line of csv.split('\n')) {
-    const cells = line.split('","').map((c) => c.replace(/^"|"$/g, ''));
-    if (cells.length < 9 || !/^\d+$/.test(cells[1])) continue;
-    const title = cells[8]?.trim() ?? '';
-    rows.push({
-      image: cells[0]?.toLowerCase() ?? '',
-      pid: Number(cells[1]),
-      windowTitle: title || null,
-      visible: !NO_WINDOW_TITLES.has(title.toLowerCase()),
-    });
-  }
-  return rows;
 }
 
 /** El pid que se auto-excluye: este watcher y su cadena no son flash. */
@@ -107,14 +69,17 @@ export function selfPidTree(): Set<number> {
   return tree;
 }
 
-function listFlashWindows(): TasklistRow[] {
-  const r = spawnSync('tasklist', ['/v', '/fo', 'csv'], {
-    encoding: 'utf8',
-    windowsHide: true,
-    timeout: 20_000,
-  });
-  const flash = new Set(FLASH_IMAGES.map((i) => i.toLowerCase()));
-  return parseTasklistVerbose(r.stdout ?? '').filter((row) => flash.has(row.image));
+function listFlashPids(): Map<string, number[]> {
+  const out = new Map<string, number[]>();
+  for (const image of FLASH_IMAGES) {
+    const r = spawnSync('tasklist', ['/fo', 'csv', '/fi', `IMAGENAME eq ${image}`], {
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 8_000,
+    });
+    out.set(image.toLowerCase(), parseTasklist(r.stdout ?? ''));
+  }
+  return out;
 }
 
 function probeDetails(pid: number): {
@@ -169,22 +134,22 @@ export function runWatcher(
   const events: FlashEvent[] = [];
   const deadline = Date.now() + durationSec * 1_000;
   while (Date.now() < deadline) {
-    for (const row of listFlashWindows()) {
-      if (seen.has(row.pid)) continue;
-      seen.add(row.pid);
-      const d = probeDetails(row.pid);
-      const ev: FlashEvent = {
-        ts: new Date().toISOString(),
-        image: row.image,
-        pid: row.pid,
-        ppid: d.ppid,
-        parentName: d.parentName,
-        commandLine: d.commandLine,
-        windowTitle: row.windowTitle,
-        visible: row.visible,
-      };
-      events.push(ev);
-      appendFileSync(file, JSON.stringify(ev) + '\n', 'utf8');
+    for (const [image, pids] of listFlashPids()) {
+      for (const pid of pids) {
+        if (seen.has(pid)) continue;
+        seen.add(pid);
+        const d = probeDetails(pid);
+        const ev: FlashEvent = {
+          ts: new Date().toISOString(),
+          image,
+          pid,
+          ppid: d.ppid,
+          parentName: d.parentName,
+          commandLine: d.commandLine,
+        };
+        events.push(ev);
+        appendFileSync(file, JSON.stringify(ev) + '\n', 'utf8');
+      }
     }
     const wait = Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
     if (wait === 'timed-out') continue;
@@ -196,19 +161,15 @@ export function runWatcher(
 function main(argv: string[]): number {
   const idx = argv.indexOf('--duration');
   const duration = idx >= 0 ? Number(argv[idx + 1]) || 150 : 150;
-  const includeHidden = argv.includes('--all');
   const { file, events } = runWatcher(duration);
-  const visible = events.filter((e) => e.visible);
-  const hidden = events.length - visible.length;
-  const shown = includeHidden ? events : visible;
   process.stdout.write(
-    `console-flash-watch: ${visible.length} ventana(s) VISIBLE(S) + ${hidden} consola(s) oculta(s) en ${duration}s → ${file}\n` +
-      (visible.length === 0
-        ? 'sin flashes visibles: la ventana de observación pasó limpia (consolas ocultas llevan --all)\n'
-        : shown
+    `console-flash-watch: ${events.length} aparicion(es) registradas en ${duration}s → ${file}\n` +
+      (events.length === 0
+        ? 'sin flashes: la ventana de observación pasó limpia\n'
+        : events
             .map(
               (e) =>
-                `  ${e.ts} ${e.image} pid=${e.pid} padre=${e.parentName ?? '?'}(${e.ppid ?? '?'}) titulo="${e.windowTitle ?? ''}" cmd=${(e.commandLine ?? '').slice(0, 90)}`,
+                `  ${e.ts} ${e.image} pid=${e.pid} padre=${e.parentName ?? '?'}(${e.ppid ?? '?'}) cmd=${(e.commandLine ?? '').slice(0, 90)}`,
             )
             .join('\n') + '\n'),
   );

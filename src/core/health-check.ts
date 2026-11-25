@@ -352,7 +352,13 @@ function checkMlEmbeddings(log: CheckLog) {
   if (fs.existsSync(primaryPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(primaryPath, 'utf-8'));
-      const cnt = Object.keys(data).length;
+      // The embeddings file nests entries under `skills`; counting top-level keys
+      // reported the 6 metadata keys as "6 skills indexed".
+      const cnt = Array.isArray(data.skills)
+        ? data.skills.length
+        : Array.isArray(data.entries)
+          ? data.entries.length
+          : Object.keys(data).length;
       writeCheck(log, 'embeddings parseable', true, `${cnt} skills indexed`);
     } catch {
       writeCheck(log, 'embeddings parseable', false);

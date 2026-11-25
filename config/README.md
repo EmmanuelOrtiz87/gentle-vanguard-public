@@ -1,373 +1,57 @@
 # Configuration Directory
 
-## Descripción
-
-Directorio centralizado para toda la configuración del proyecto gentle-vanguard.
-
-**Versión**: 2.0.0 **última actualización**: 2026-04-21 **Estado**: PRODUCCIÓN
-
----
-
-## Estructura de Directorios
-
-```
-config/
- README.md                          # Este archivo
- testing.config.json                # Configuración de testing
- engram-memory.json                 # Configuración de Engram Memory
- orchestrator.json                  # Configuración del Orquestador
- ai-tool-detector.json              # Configuración de detección de herramientas
- dynamic-optimization.json          # Configuración de optimización dinmica
- tool-configs-template.json         # Template de configuración de herramientas
- security-policy.json               # Polticas de seguridad
- tls-config.json                    # Configuración TLS/SSL
- cline-dify-optimized.config.json   # Configuración optimizada Cline-Dify
-```
-
----
-
-## Archivos de Configuración
-
-### testing.config.json
-
-**Propósito**: Configuración de la suite de testing
-
-**Secciones principales**:
-
-```json
-{
-  "version": "1.0.0",
-  "testFramework": "pester",
-  "testCoverage": {
-    "minimumThreshold": 0.80,
-    "targetThreshold": 0.90
-  },
-  "testTypes": {
-    "unit": { ... },
-    "integration": { ... },
-    "performance": { ... },
-    "security": { ... }
-  },
-  "cicd": {
-    "runOnCommit": true,
-    "runOnPR": true,
-    "failOnCoverageLow": true
-  }
-}
-```
-
-**Uso**:
-
-```powershell
-$config = Get-Content .\config\testing.config.json | ConvertFrom-Json
-Write-Host "Coverage mínimo: $($config.testCoverage.minimumThreshold)"
-```
-
-**Nota**:
-
-- `config/testing.config.json` define la politica general de testing.
-- `tests/coverage-config.json` define los targets declarados de cobertura real usados por
-  `scripts/utilities/verify-coverage.ps1`.
-- Los workflows de sesion actualmente declarados son `session-manager.ps1` y
-  `post-session-learning.ps1`.
-
----
-
-### engram-memory.json
-
-**Propósito**: Configuración del Engram Memory System
-
-**Secciones principales**:
-
-```json
-{
-  "version": "2.0.0",
-  "phases": {
-    "phase1": {
-      "threshold": 250,
-      "description": "Pack creation"
-    },
-    "phase2": {
-      "description": "Trigger system"
-    },
-    "phase3": {
-      "description": "Advanced optimization"
-    }
-  },
-  "consolidation": {
-    "triggerThreshold": 5,
-    "compressionRatio": 0.65
-  }
-}
-```
-
-**Parámetros clave**:
-
-- `threshold`: Lmite de tokens (250)
-- `triggerThreshold`: Nmero de packs para consolidar (5)
-- `compressionRatio`: Ratio de compresión (0.65 = 65%)
-- `qualityScore`: Puntuacin mnima de calidad (0.91)
-
----
-
-### orchestrator.json
-
-**Propósito**: Configuración del Orquestador Universal
-
-**Secciones principales**:
-
-```json
-{
-  "orchestration": {
-    "aiToolDetection": {
-      "enabled": true,
-      "autoDetect": true
-    }
-  },
-  "tools": {
-    "cline": { ... },
-    "continue": { ... },
-    "cursor": { ... }
-  },
-  "rules": { ... }
-}
-```
-
-**herramientas soportadas**:
-
-- Cline (200,000 tokens)
-- Continue (100,000 tokens)
-- Cursor (150,000 tokens)
-- Copilot (100,000 tokens)
-
----
-
-### ai-tool-detector.json
-
-**Propósito**: Configuración de detección automática de herramientas
-
-**Caractersticas**:
-
-- Detección automática de herramientas IA
-- Configuración por herramienta
-- Parámetros especficos
-- Fallback automático
-
----
-
-### dynamic-optimization.json
-
-**Propósito**: Configuración de optimización dinámica
-
-**Métricas monitoreadas**:
-
-- CPU usage
-- Memory usage
-- Token usage
-- Cache hit rate
-- Compression ratio
-- Quality score
-- Processing time
-- Error rate
-
-**Estrategias de optimización**:
-
-1. Ajuste de threshold
-2. Cambio de ratio de compresión
-3. Modificacin de consolidacin
-4. Ajuste de cach
-5. Rebalanceo de carga
-
----
-
-### security-policy.json
-
-**Propósito**: Configuración de políticas de seguridad
-
-**Secciones**:
-
-```json
-{
-  "encryption": {
-    "algorithm": "AES-256",
-    "keyLength": 256,
-    "mode": "CBC"
-  },
-  "validation": {
-    "maxStringLength": 10000,
-    "maxIntegerValue": 10000
-  },
-  "secrets": {
-    "rotationInterval": 90,
-    "requiredSecrets": ["API_KEY", "ENCRYPTION_KEY"]
-  },
-  "logging": {
-    "enabled": true,
-    "retentionDays": 90,
-    "auditTrail": true
-  }
-}
-```
-
----
-
-### tls-config.json
-
-**Propsito**: Configuración TLS/SSL
-
-**Parámetros**:
-
-- Certificados
-- Cipher suites
-- Validación de certificados
-- HSTS headers
-- Versión mínima de TLS
-
----
-
-## Cmo Usar configuraciónes
-
-### Cargar configuración
-
-```powershell
-$config = Get-Content .\config\testing.config.json | ConvertFrom-Json
-```
-
-### Modificar configuración
-
-```powershell
-$config.testCoverage.minimumThreshold = 0.85
-$config | ConvertTo-Json | Set-Content .\config\testing.config.json
-```
-
-### Validar configuración
-
-```powershell
-$schema = Get-Content .\config\schema.json | ConvertFrom-Json
-# Validar contra schema
-```
-
----
-
-## Valores por Defecto
-
-### Engram Memory
-
-- Threshold: 250 tokens
-- Consolidation trigger: 5 packs
-- Compression ratio: 0.65 (65%)
-- Quality score: 0.91
-- Cache hit rate: 70-80%
-
-### Testing
-
-- Coverage mínimo: 80%
-- Coverage target: 90%
-- Timeout unit tests: 30s
-- Timeout integration: 60s
-- Timeout performance: 120s
-
-### Seguridad
-
-- Algoritmo: AES-256
-- Key length: 256 bits
-- Mode: CBC
-- Padding: PKCS7
-- Rotation interval: 90 das
-
----
-
-## Configuración Inicial
-
-### 1. Copiar templates
-
-```bash
-cp config/tool-configs-template.json config/tool-configs.json
-```
-
-### 2. Personalizar valores
-
-```powershell
-$config = Get-Content .\config\engram-memory.json | ConvertFrom-Json
-$config.phases.phase1.threshold = 300  # Aumentar threshold
-$config | ConvertTo-Json | Set-Content .\config\engram-memory.json
-```
-
-### 3. Validar configuración
-
-```powershell
-.\scripts\testing\run-tests.ps1 -TestType all
-```
-
----
-
-## Checklist de Configuración
-
-- [ ] Revisar `testing.config.json`
-- [ ] Revisar `engram-memory.json`
-- [ ] Revisar `orchestrator.json`
-- [ ] Configurar `security-policy.json`
-- [ ] Configurar secretos
-- [ ] Ejecutar tests
-- [ ] Validar configuración
-
----
-
-## Seguridad
-
-### Archivos Sensibles
-
-- `.secrets` - NO incluir en git
-- `*.key` - NO incluir en git
-- `credentials.json` - NO incluir en git
-
-### Proteccin
-
-```bash
-# Agregar a .gitignore
-echo ".secrets" >> .gitignore
-echo "*.key" >> .gitignore
-echo "credentials.json" >> .gitignore
-```
-
----
-
-## Documentacin Relacionada
-
-- `docs/guides/SECURITY-HARDENING.md` - Seguridad
-- `docs/guides/TESTING-GUIDE.md` - Testing
-- `scripts/README.md` - Scripts
-- `docs/supplementary/IMPLEMENTATION-COMPLETE.md` - Implementación
-
----
-
-## Troubleshooting
-
-### Problema: Configuración inválida
-
-**Solucin**: Validar JSON
-
-```powershell
-$config = Get-Content .\config\testing.config.json | ConvertFrom-Json
-```
-
-### Problema: Valores por defecto no funcionan
-
-**Solucin**: Revisar `engram-memory.json`
-
-```powershell
-$config = Get-Content .\config\engram-memory.json | ConvertFrom-Json
-$config | ConvertTo-Json -Depth 10
-```
-
----
-
-## Conclusin
-
-Todos los archivos de configuración estn centralizados, documentados y listos para usar.
-
-**Estado**: PRODUCCIÓN
-
----
-
-**última actualización**: 2026-04-21 **Versión**: 2.0.0
+Índice del canon de configuración del stack (218 archivos, 175 en la raíz; 10 schemas
+`*.schema.json`).
+
+> Regla de oro: un archivo de `config/` solo es canon si algún consumidor lo lee o un gate lo
+> valida. Si nadie lo lee, es deuda declarada — no una fuente de verdad. Hoy **no** existe un
+> escáner automático de huérfanos de `config/` (solo de módulos TS: `npm run orphans:check`); los
+> candidatos de abajo están medidos a mano. Schemas:
+> `node --import tsx src/core/config-loader.ts --validate-all` (corre en el composite pre-push).
+
+## Configuraciones enforced (tienen consumidor y gate)
+
+| Archivo                                                                    | Consumidor / gate                                                   |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `session-autostart.config.json`                                            | `src/session/session-autostart.ts` (143 steps)                      |
+| `quality-gates.json` + `declarations.json`                                 | `gates:verify`, `gates:stats:check`, `declaration-audit` (pre-push) |
+| `apps.registry.json` + `apps.registry-exclusions.json`                     | `app-registry-coverage`, `stack-audit-apps`                         |
+| `app-validation-contracts.json` + `app-design-baseline.json`               | `src/git/prepush-app-scope.ts`, design canon gate                   |
+| `mcp-registry.json` + `mcp-lifecycle-policy.json` + `mcp-demand-map.json`  | `mcp:probe`, `mcp:doctor`, puente `mcp:call`                        |
+| `guardrails.json` + `policies/gv-core-tool-safety.yaml`                    | PolicyEngine de `src/security/agent-delegator.ts`                   |
+| `runtime-retention.json` + `artifacts-retention.json`                      | `src/ops/runtime-retention.ts` (barrido diario)                     |
+| `model-router.json` + `model-health-registry.json` + `model-fallback.json` | router de agentes, `npm run models:check`                           |
+| `token-budget-guard.json`                                                  | `npm run token:safety`, guard de presupuesto                        |
+| `brand.json` + `design-tokens.json`                                        | brand canon / gate de conformidad                                   |
+| `codegraph.config.json`                                                    | decisión y medición de CodeGraph (re-medición 2026-12-18)           |
+| `process-launcher-baseline.json`                                           | `audit:process-launchers --ratchet` (pre-push)                      |
+| `baselines/`                                                               | docs-facts-drift, duplicate-mechanism, dependabot                   |
+| `content-operations/`, `tool-profiles/`, `agent-prompts/`                  | posting, perfiles de herramientas, prompts                          |
+
+## Subdirectorios
+
+- `baselines/` — líneas base de gates (drift, duplicados, dependabot).
+- `policies/` — reglas del PolicyEngine (`gv-core-tool-safety.yaml`).
+- `tool-profiles/` — perfiles por herramienta desktop.
+- `k8s/`, `azure/`, `opentelemetry/` — material de despliegue (hoy sin pipeline activo).
+- `prometheus/` — sobrante: `docker-compose.yml` monta `config/prometheus.yml`.
+
+## Deuda conocida (declarada, no silenciosa)
+
+- ~30 archivos sin ningún consumidor (ej. `evaluation/eval-gates.json`, `federation-config.json`,
+  `mq-config.json`). No se borran sin medición: candidatos a archivo en `.archive/` cuando exista un
+  escáner de huérfanos de `config/` (hoy solo hay uno de módulos TS, `npm run orphans:check`).
+- `token-budget-limits.json` es un tombstone (`deprecated: true`) que apunta a
+  `token-budget-guard.json`; se conserva solo como registro de la migración de 2026-07-24.
+- Duplicados de política de modelos: `model-router.json`, `model-fallback.json`, `model-health.json`
+  y `model-health-registry.json` declaran cadenas de fallback que no se validan entre sí. Fuente
+  propuesta: `model-router.json`; el resto derivado.
+- `adaptive-config.json` → `preCompactHook` apunta a `src/pre-compact-hook.ts`, que no existe (clave
+  muerta).
+- `mcp-config.sd.json` es un subconjunto histórico del registry; no es fuente de verdad.
+- Los schemas se validan solo por `validate-all` (pre-push). `$schema` con ruta mal escrita en
+  `token-budget-guard.json` y `timeout-config.json` es inerte hoy.
+- `.session/` (~5 GB, con snapshots ~3.7 GB) queda **fuera** de `runtime-retention.json`: podarlo es
+  decisión del owner, no del barrido automático.
+
+Última revisión de este índice: 2026-11-25 (barrido integral L0–L10).

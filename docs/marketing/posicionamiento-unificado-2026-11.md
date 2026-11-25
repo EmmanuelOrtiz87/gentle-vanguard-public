@@ -1,9 +1,9 @@
 # Posicionamiento Unificado — Narrativa única, perfiles y rutas
 
 > **Fecha:** 2026-11-06 · **Fuente:** validación de feedback externo de marca (asesoría
-> fundador) + reconciliación con `docs/marketing/rumbo-comercial-redes-leads-2026-10.md` y
-> `docs/analysis/POSITIONING-2026-10.md`. Este doc es la superficie operativa de marca vigente;
-> los dos anteriores quedan como antecedentes de decisión.
+> fundador) + reconciliación con `docs/marketing/rumbo-comercial-redes-leads-2026-10.md`.
+> Es la superficie operativa de marca vigente; los artefactos anteriores quedan como
+> antecedentes de decisión.
 
 ## 1. Validación del feedback (qué adoptamos, qué corregimos)
 

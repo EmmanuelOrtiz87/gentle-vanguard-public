@@ -338,7 +338,7 @@ cuesta.
 
 ---
 
-## Slide 11 — Esto ya está corriendo: 29 desarrollos propios
+## Slide 11 — Esto ya está corriendo: 28 desarrollos propios
 
 **Layout:** figure · **Tiempo:** 1:15
 

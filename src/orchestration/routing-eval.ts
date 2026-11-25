@@ -17,7 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { recommend } from './recommend-agent.js';
+import { recommend, registeredAgents } from './recommend-agent.js';
 
 export interface RoutingHit {
   timestamp?: string;
@@ -38,11 +38,23 @@ export interface EvalReport {
   fail: number;
   byAgent: Array<{ agent: string; total: number; ok: number; rate: number; avgDurationMs: number }>;
   byDomain: Record<string, number>;
+  /** Recibos cuyo target no es un agente registrado (dato histórico inválido). */
+  nonAgentTargets: Array<{ agent: string; total: number }>;
+  /** Fallos agrupados por causa, desde `error` del recibo (nuevos recibos). */
+  failureClasses: Array<{ klass: string; count: number }>;
   replay: {
     replayable: number;
     agreed: number;
     disagreement: Array<{ task: string; expected: string; got: string }>;
   };
+}
+
+function classifyError(error: string): string {
+  return error
+    .replace(/[0-9a-f]{8,}/gi, '<id>')
+    .replace(/\d+/g, '<n>')
+    .slice(0, 90)
+    .trim();
 }
 
 function loadHits(path: string): RoutingHit[] {
@@ -63,10 +75,16 @@ function loadHits(path: string): RoutingHit[] {
 export function evaluateHits(hits: RoutingHit[]): EvalReport {
   const byAgent = new Map<string, { total: number; ok: number; durationSum: number }>();
   const byDomain: Record<string, number> = {};
+  const canon = registeredAgents();
+  const nonAgentTargets = new Map<string, number>();
+  const failureClasses = new Map<string, number>();
   let ok = 0;
   let fail = 0;
   for (const hit of hits) {
     const agent = hit.agent ?? 'unknown';
+    if (canon && !canon.has(agent)) {
+      nonAgentTargets.set(agent, (nonAgentTargets.get(agent) ?? 0) + 1);
+    }
     const entry = byAgent.get(agent) ?? { total: 0, ok: 0, durationSum: 0 };
     entry.total++;
     if (hit.success) {
@@ -74,6 +92,11 @@ export function evaluateHits(hits: RoutingHit[]): EvalReport {
       ok++;
     } else {
       fail++;
+      const error = typeof hit.error === 'string' ? hit.error.trim() : '';
+      if (error) {
+        const klass = classifyError(error);
+        failureClasses.set(klass, (failureClasses.get(klass) ?? 0) + 1);
+      }
     }
     entry.durationSum += Number(hit.duration) || 0;
     byAgent.set(agent, entry);
@@ -81,8 +104,15 @@ export function evaluateHits(hits: RoutingHit[]): EvalReport {
     byDomain[domain] = (byDomain[domain] ?? 0) + 1;
   }
 
-  // Replay solo de recibos con texto de tarea (los editoriales lo omiten a propósito).
-  const replayable = hits.filter((h) => typeof h.task === 'string' && h.task.trim().length > 0);
+  // Replay solo de recibos con texto de tarea (los editoriales lo omiten a
+  // propósito) y cuyo target es un agente registrado: comparar contra un
+  // nombre de skill histórico no mide el routing, mide un dato inválido.
+  const replayable = hits.filter(
+    (h) =>
+      typeof h.task === 'string' &&
+      h.task.trim().length > 0 &&
+      (!canon || canon.has(String(h.agent))),
+  );
   const disagreement: EvalReport['replay']['disagreement'] = [];
   let agreed = 0;
   for (const hit of replayable) {
@@ -112,6 +142,13 @@ export function evaluateHits(hits: RoutingHit[]): EvalReport {
       }))
       .sort((a, b) => b.total - a.total),
     byDomain,
+    nonAgentTargets: [...nonAgentTargets.entries()]
+      .map(([agent, total]) => ({ agent, total }))
+      .sort((a, b) => b.total - a.total),
+    failureClasses: [...failureClasses.entries()]
+      .map(([klass, count]) => ({ klass, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10),
     replay: { replayable: replayable.length, agreed, disagreement },
   };
 }
@@ -128,6 +165,17 @@ function formatReport(report: EvalReport): string {
     );
   }
   lines.push(`  dominios: ${JSON.stringify(report.byDomain)}`);
+  if (report.nonAgentTargets.length) {
+    lines.push(
+      `  targets no-agente (dato inválido, excluido del replay): ${report.nonAgentTargets
+        .map((t) => `${t.agent}×${t.total}`)
+        .join(', ')}`,
+    );
+  }
+  if (report.failureClasses.length) {
+    lines.push('  fallos por causa (recibos con error):');
+    for (const f of report.failureClasses) lines.push(`    ${f.count}× ${f.klass}`);
+  }
   lines.push(
     `  replay del recomendador: ${report.replay.agreed}/${report.replay.replayable} concordantes` +
       ` (los recibos editoriales omiten la tarea: no se re-ejecutan, no se inventa)`,

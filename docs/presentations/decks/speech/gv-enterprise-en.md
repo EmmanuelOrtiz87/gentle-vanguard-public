@@ -95,7 +95,7 @@
 
 **Expected questions:** (**Preguntas esperadas:**)
 - **P:** What does it cost to maintain this?
-  **R:** It is a real cost and I will say so: there are more than 889 files of our own code, 801 test files and more than 660 operational scripts. What you buy in exchange is a base that can be updated layer by layer, with versioned migrations and gates that verify the state.
+  **R:** It is a real cost and I will say so: there are more than 889 files of our own code, 696 test files and more than 660 operational scripts. What you buy in exchange is a base that can be updated layer by layer, with versioned migrations and gates that verify the state.
 - **P:** What if the project ends or priorities change?
   **R:** The knowledge lives in the repository and in the local database (Nexus), with 22 versioned migrations: that can be archived, handed over or reviewed by a new team.
 - **P:** Can each layer be swapped for an external provider?

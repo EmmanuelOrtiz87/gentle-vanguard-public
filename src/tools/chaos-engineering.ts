@@ -18,7 +18,7 @@
  *   npx tsx src/tools/chaos-engineering.ts report
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync } from 'fs';
 import { resolve, join } from 'path';
 import { spawnSync } from 'child_process';
 import { runSync } from '../core/run-command.js';
@@ -66,6 +66,10 @@ function backupFile(filePath: string): (() => void) | null {
   return () => {
     try {
       copyFileSync(backupPath, filePath);
+      // A restore that leaves the .chaos-bak behind makes the next run (and
+      // `git status`) look like a crashed experiment. Restore + delete is the
+      // complete contract; only a killed process may leave residue.
+      unlinkSync(backupPath);
     } catch {
       /* restore best-effort */
     }

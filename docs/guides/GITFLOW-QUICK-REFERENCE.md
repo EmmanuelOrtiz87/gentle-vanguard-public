@@ -352,6 +352,5 @@ If any validation fails, the push will be blocked. Read the error message to kno
 
 For more information, see:
 
-- `docs/guides/GITFLOW-ENFORCEMENT-ANALYSIS.md` - Detailed analysis
 - `docs/guides/DEVELOPER-COMMUNICATION-POLICY.md` - Development policies
 - `src/review/validate-gitflow.ts` - GitFlow validator

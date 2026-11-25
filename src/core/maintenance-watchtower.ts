@@ -12,6 +12,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import Database from 'better-sqlite3';
 import { runNpxTsx } from './run-command.js';
+import { healCommandCenter } from '../ops/heal-command-center.js';
 import { runHygiene } from './process-hygiene.js';
 import {
   sweepStaleSessions,
@@ -481,6 +482,34 @@ async function autoHeal() {
         failed++;
       }
     } catch {
+      failed++;
+    }
+  }
+
+  // Command Center (apps-registry): sin CC el check no puede afirmar nada sobre
+  // el registro de apps nativas. Medido 2026-11-25: CC murió durante la noche,
+  // el check lo reportó con action 'restart' y el autoheal NO hizo nada (solo
+  // dashboard-ws y codegraph tenían handler) — el gate quedaba rojo hasta que
+  // alguien lo levantara a mano. Se usa el launcher canónico (idempotente,
+  // --no-browser) y se revalida por /api/health, no por exit code.
+  const ccFail = needsRestart.filter((r) => r.component === 'apps-registry');
+  if (ccFail.length > 0) {
+    if (!quiet) console.log('  [Heal] Starting Command Center...');
+    const heal = await healCommandCenter();
+    if (heal.up) {
+      addResult('apps-registry', 'autoheal', 'PASS', 'Command Center restarted', 'ok');
+      healed++;
+    } else {
+      addResult(
+        'apps-registry',
+        'autoheal',
+        'FAIL',
+        heal.launcherError
+          ? `launcher falló: ${heal.launcherError}`
+          : `Command Center no respondió tras 15s en :${heal.ports.join(', :')}`,
+        'manual',
+        true,
+      );
       failed++;
     }
   }

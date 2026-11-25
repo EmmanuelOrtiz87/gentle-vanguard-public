@@ -699,7 +699,6 @@ gentle-vanguard/
  docs/                             # Documentation
     installation.md
     project-types.md
-    ai-models.md
     tools.md
     VISUAL-GUIDE.md             # Diagrams & charts
     ARCHITECTURE.md              # This file

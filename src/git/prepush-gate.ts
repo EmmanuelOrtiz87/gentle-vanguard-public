@@ -167,6 +167,30 @@ const CHECKS: GateCheck[] = [
       'Calidad de gates: cada gate declarado "enforced" en config/quality-gates.json tiene ejecucion real (hook o workflow)',
   },
   {
+    name: 'gates-stats',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/tools/quality-gates-stats.ts', '--check'],
+    timeoutMs: 60_000,
+    description:
+      'El bloque stats de config/quality-gates.json coincide con el array real (existia el comando pero no corria en ningun lado)',
+  },
+  {
+    name: 'config-schemas',
+    command: 'node',
+    args: ['--import', 'tsx', 'src/core/config-loader.ts', '--validate-all'],
+    timeoutMs: 60_000,
+    description:
+      'Todo config/*.schema.json valida los configs reales (validate-all solo se invocaba a mano)',
+  },
+  {
+    name: 'process-launchers',
+    command: 'node',
+    args: ['--experimental-strip-types', 'src/tools/check-process-launchers.ts', '--ratchet'],
+    timeoutMs: 120_000,
+    description:
+      'Ningun spawn nuevo sin windowsHide respecto del baseline (el gate existia solo en CI, caido por billing)',
+  },
+  {
     name: 'token-safety-audit',
     command: 'node',
     args: ['--import', 'tsx', 'src/tokens/token-safety.ts', '--strict'],
@@ -430,7 +454,7 @@ const CHECKS: GateCheck[] = [
     args: ['--import', 'tsx', 'src/ops/runtime-retention-notify.ts'],
     timeoutMs: 300_000,
     description:
-      'Retencion de .runtime (3 s, 3,9 GB / 53k archivos). Audita, ESCALA lo que no entra en la politica (la decision es del owner, no del gate) y AVISA al owner por MCAS solo cuando el conjunto de escalaciones cambia',
+      'Retencion de .runtime (~13 GB / ~190k archivos; 3 s con disco libre y 4,5 min bajo contencion, reusa un escaneo de <=24 h si no cambio el conjunto de directorios). Audita, ESCALA lo que no entra en la politica (la decision es del owner, no del gate) y AVISA al owner por MCAS solo cuando el conjunto de escalaciones cambia',
   },
   {
     name: 'app-registry',

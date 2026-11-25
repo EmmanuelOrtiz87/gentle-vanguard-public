@@ -143,6 +143,7 @@ function defaultRun({
     encoding: 'utf8',
     timeout: timeoutMs ?? migrationTimeoutMs(),
     env: process.env,
+    windowsHide: true,
   });
   return {
     code: result.status ?? 1,

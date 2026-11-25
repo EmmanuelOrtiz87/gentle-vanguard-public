@@ -493,7 +493,15 @@ async function checkIntegrity(results: CheckResult[], quick = false): Promise<vo
       };
       let gate: UniversalGateReport | null = null;
       try {
-        gate = r.stdout ? (JSON.parse(r.stdout) as UniversalGateReport) : null;
+        // Tolerate trailing text after the JSON object (older gate builds wrote
+        // a human summary to stdout); stdout is the report, always.
+        const raw = r.stdout ?? '';
+        const start = raw.indexOf('{');
+        const end = raw.lastIndexOf('}');
+        gate =
+          start >= 0 && end > start
+            ? (JSON.parse(raw.slice(start, end + 1)) as UniversalGateReport)
+            : null;
       } catch {
         gate = null;
       }

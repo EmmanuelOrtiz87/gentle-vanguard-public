@@ -4,7 +4,6 @@ import { buildReport, classifyPath } from '../../src/ops/worktree-consolidation-
 
 test('classifies GV Knowledge Ops paths as one feature block', () => {
   assert.equal(classifyPath('apps/gv-knowledge-ops/server/db.mjs').id, 'gv-knowledge-ops');
-  assert.equal(classifyPath('docs/apps/GV-KNOWLEDGE-OPS-PLAN-2026-10.md').id, 'gv-knowledge-ops');
   assert.equal(classifyPath('src/ops/gv-knowledge-refresh-scheduled.ts').id, 'gv-knowledge-ops');
 });
 

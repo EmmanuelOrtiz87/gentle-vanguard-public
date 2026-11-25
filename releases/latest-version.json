@@ -1,8 +1,8 @@
 {
-  "version": "4.5.0",
-  "download_url": "https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/download/v4.5.0/Gentle-Vanguard-Setup-4.5.0.exe",
-  "sha256": "8ba6acc00a04f6d1b92817ace063707a49e451eb64ced928a973c5a545152c87",
-  "release_date": "2026-11-19",
+  "version": "4.7.0",
+  "download_url": "https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/releases/download/v4.7.0/Gentle-Vanguard-Setup-4.7.0.exe",
+  "sha256": "646c7a0251a27134a9b173d5d3a9fc4fe5b968eaadecee772634cd0b7e920ac3",
+  "release_date": "2026-11-25",
   "minimum_version": "3.0.0",
   "changelog_url": "https://github.com/EmmanuelOrtiz87/gentle-vanguard-public/blob/main/CHANGELOG.md"
 }

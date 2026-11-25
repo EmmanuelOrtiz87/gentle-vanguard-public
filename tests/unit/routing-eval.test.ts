@@ -90,6 +90,56 @@ test('replay vía CLI: recibos con tarea se re-ejecutan y comparan (subproceso)'
   assert.equal(report.replay.disagreement.length, 0);
 });
 
+test('recibos con target no-agente se reportan y quedan fuera del replay (ADR-0034)', () => {
+  const hits: RoutingHit[] = [
+    // Dato histórico: el target es un nombre de skill, no un agente delegable.
+    {
+      agent: 'api-and-interface-design',
+      domain: 'general',
+      success: false,
+      task: 'list available agents',
+    },
+    { agent: 'e2e-agent', domain: 'e2e', success: true, task: 'run e2e smoke de gv-agenda' },
+  ];
+  const r = evaluateHits(hits);
+  assert.deepEqual(r.nonAgentTargets, [{ agent: 'api-and-interface-design', total: 1 }]);
+  assert.equal(r.replay.replayable, 1, 'solo el recibo con agente registrado entra al replay');
+});
+
+test('fallos se agrupan por causa cuando el recibo trae error', () => {
+  const hits: RoutingHit[] = [
+    {
+      agent: 'editorial-agent',
+      domain: 'editorial',
+      success: false,
+      duration: 0,
+      error: 'circuit open for agent editorial-agent — failing fast',
+    },
+    {
+      agent: 'editorial-agent',
+      domain: 'editorial',
+      success: false,
+      duration: 0,
+      error: 'circuit open for agent editorial-agent — failing fast',
+    },
+    {
+      agent: 'editorial-agent',
+      domain: 'editorial',
+      success: false,
+      duration: 0,
+      error: 'provider timeout after 120000ms',
+    },
+    // Recibos viejos sin error no inventan clase.
+    { agent: 'editorial-agent', domain: 'editorial', success: false, duration: 0 },
+  ];
+  const r = evaluateHits(hits);
+  assert.equal(r.failureClasses.length, 2);
+  assert.equal(r.failureClasses[0].count, 2);
+  assert.match(r.failureClasses[0].klass, /circuit open/);
+  assert.match(r.failureClasses[1].klass, /timeout/);
+  assert.doesNotMatch(r.failureClasses[1].klass, /120000/, 'números normalizados a <n>');
+});
+
 test('contrato repo-level: el dataset canónico entero enruta bien (detección de regresión de keywords)', () => {
   // Subproceso (idioma del repo): el router abre Nexus y el test no debe
   // heredar handles. Si este test falla, alguien rompió el mapa de keywords,

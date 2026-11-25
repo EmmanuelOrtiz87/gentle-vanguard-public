@@ -364,6 +364,8 @@ if (isDirectInvocation()) {
   writeFileSync(join(runtimeDir, 'latest.json'), JSON.stringify(report, null, 2) + '\n');
   recordNexus(report);
   console.log(JSON.stringify(report, null, 2));
-  console.log(`[universal-quality-gate] ${unverifiedDeclaration(report.summary.unverified)}`);
+  // The note goes to stderr: stdout stays parseable JSON for machine consumers
+  // (stack-verify parses it as the gate report).
+  console.error(`[universal-quality-gate] ${unverifiedDeclaration(report.summary.unverified)}`);
   if (report.status === 'fail') process.exitCode = 1;
 }

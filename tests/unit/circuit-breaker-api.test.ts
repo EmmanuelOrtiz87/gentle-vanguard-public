@@ -1,31 +1,32 @@
-import { describe, it, after } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
-import { existsSync, unlinkSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const SRC = (name: string) => pathToFileURL(resolve(ROOT, 'src', name)).href;
-const CIRCUITS_FILE = resolve(ROOT, '.runtime', 'circuit-breakers.json');
 
 // Unique test namespace to avoid cross-test contamination
 const NS = `__test_${Date.now()}__`;
 
 describe('circuit-breaker-api', () => {
-  // Cleanup after all tests
+  // The module derives its state file from process.cwd() at import time, so the
+  // suite runs in a temp dir: the 672 `__test_*` keys left in the production
+  // .runtime/circuit-breakers.json came from this test writing to the real file
+  // and its cleanup using `require` inside ESM (always threw, silently caught).
+  let tempDir: string;
+  let previousCwd: string;
+  before(() => {
+    tempDir = mkdtempSync(resolve(tmpdir(), 'gv-circuit-api-'));
+    previousCwd = process.cwd();
+    process.chdir(tempDir);
+  });
+
   after(() => {
-    try {
-      if (existsSync(CIRCUITS_FILE)) {
-        const data = JSON.parse(require('fs').readFileSync(CIRCUITS_FILE, 'utf-8'));
-        // Remove test entries
-        for (const key of Object.keys(data)) {
-          if (key.startsWith('__test_')) delete data[key];
-        }
-        require('fs').writeFileSync(CIRCUITS_FILE, JSON.stringify(data, null, 2), 'utf-8');
-      }
-    } catch {
-      /* non-fatal */
-    }
+    process.chdir(previousCwd);
+    rmSync(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it('source file exists', () => {
@@ -57,5 +58,9 @@ describe('circuit-breaker-api', () => {
     assert.ok(state);
     assert.strictEqual(state.failureCount, 0);
     assert.strictEqual(state.state, 'CLOSED');
+  });
+
+  it('state is confined to the temp dir, never .runtime of the repo', () => {
+    assert.ok(existsSync(resolve(tempDir, '.runtime', 'circuit-breakers.json')));
   });
 });

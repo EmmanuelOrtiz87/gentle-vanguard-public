@@ -98,7 +98,6 @@ async function testCoreFiles(): Promise<boolean> {
     'src/security/policy-engine/policy-engine.ts',
     'policies/shell-commands.yaml',
     'docs/compliance/OWASP-AGENTIC-TOP10.md',
-    'docs/status/IMPLEMENTATION-UPDATE-2026-09-03.md',
   ];
 
   const missing = requiredFiles.filter((f) => !existsSync(join(ROOT, f)));

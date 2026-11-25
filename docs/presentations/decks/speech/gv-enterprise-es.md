@@ -89,7 +89,7 @@
 
 **Preguntas esperadas:**
 - **P:** ¿Qué tan grande es el costo de mantener esto?
-  **R:** Es un costo real y hay que decirlo: hay más de 889 archivos de código propio, 801 archivos de test y más de 660 scripts de operación. A cambio se compra una base que se puede actualizar por capas, con migraciones versionadas y gates que verifican el estado.
+  **R:** Es un costo real y hay que decirlo: hay más de 889 archivos de código propio, 696 archivos de test y más de 660 scripts de operación. A cambio se compra una base que se puede actualizar por capas, con migraciones versionadas y gates que verifican el estado.
 - **P:** ¿Y si el proyecto termina o cambia de dirección?
   **R:** El conocimiento vive en el repositorio y en la base local (Nexus), con 24 migraciones versionadas: eso se puede archivar, traspasar o revisar con un equipo nuevo.
 - **P:** ¿Cada capa se puede reemplazar por un proveedor externo?

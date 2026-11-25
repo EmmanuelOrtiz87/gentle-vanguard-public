@@ -113,7 +113,7 @@ export default {
       cols: 4,
       items: [
         {
-          value: '29',
+          value: '28',
           label: 'Own apps',
           sub: 'Systems we developed and that run today',
           accent: '06b6d4',
@@ -159,7 +159,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Governance',
-          body: '76 quality gates, secret scanning and fail-closed policies.',
+          body: '79 quality gates, secret scanning and fail-closed policies.',
         },
         {
           icon: 'cloud',

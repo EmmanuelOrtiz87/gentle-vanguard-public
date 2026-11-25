@@ -78,7 +78,7 @@ informacion este, no como se rotule.
 Estas reglas no son preferencias. Son la linea que separa una presentacion sostenible de una que no
 se puede sostener:
 
-1. **No se inventan clientes, casos, testimonios ni resultados.** Las 29 apps del stack son
+1. **No se inventan clientes, casos, testimonios ni resultados.** Las 28 apps del stack son
    desarrollos internos propios. Si no hay un dato medido, no se da el dato.
 2. **No hay certificaciones ni estandares de terceros** que el stack no tenga.
 3. **No hay precios** si no hay una tarifa oficial publicada. Se habla de modelo de trabajo, no de

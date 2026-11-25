@@ -191,13 +191,24 @@ function readSessionFileTotals(preferredId: string): {
       const output = Number(data.totalOutputTokens ?? data.outputTokens ?? 0) || 0;
       if (input + output === 0) continue;
       const id = String(data.sessionId ?? data.id ?? '').trim();
+      // The token-ingest file carries the TOOL session id plus the stack session
+      // it belongs to (`stackSessionId`); that link is the ownership proof.
+      const stackId = String(data.stackSessionId ?? data.stack_session_id ?? '').trim();
       // A file for another stack session is not this session's measurement.
-      if (preferredId && id && id !== preferredId && !String(id).startsWith('session-')) continue;
+      if (
+        preferredId &&
+        id &&
+        id !== preferredId &&
+        stackId !== preferredId &&
+        !String(id).startsWith('session-')
+      )
+        continue;
       return {
         input,
         output,
         activeToolSession:
-          String(data.activeToolSessionId ?? data.active_tool_session ?? '').trim() || null,
+          String(data.activeToolSessionId ?? data.active_tool_session ?? '').trim() ||
+          (stackId && id && id !== stackId ? id : null),
         measuredAt:
           String(data.updatedAt ?? data.timestamp ?? data.startTime ?? data.startedAt ?? '') ||
           null,

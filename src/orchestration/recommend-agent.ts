@@ -86,11 +86,14 @@ export interface NexusRoutingSource {
  * de Nexus cuyo target no es un agente registrado (p. ej. un nombre de skill
  * sembrado por datos viejos) NO es un routing válido y se ignora. Caché de una
  * lectura: el registro no cambia dentro de un proceso.
+ *
+ * Se exporta para que los evaluadores midan con el MISMO canon (routing-eval
+ * descartaba como discordancia un recibo histórico cuyo target era un skill).
+ * null = sin canon en el entorno (fixtures/cwd temporal): no se filtra — no se
+ * puede enforzar un canon que no existe.
  */
 let registeredAgentCache: Set<string> | null | undefined;
-/** null = sin canon en el entorno (fixtures/cwd temporal): no se filtra — no se
- *  puede enforzar un canon que no existe. */
-function registeredAgents(): Set<string> | null {
+export function registeredAgents(): Set<string> | null {
   if (registeredAgentCache !== undefined) return registeredAgentCache;
   try {
     const raw = readFileSync(join(process.cwd(), 'config', 'agents.json'), 'utf-8');

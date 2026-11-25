@@ -824,11 +824,7 @@ export async function checkModelHealth() {
           lastSuccessAt: latestSuccess(activeModel),
         });
     const inference = ensureActiveModelInference(activeModel);
-    const resolved = resolveActiveModelStatus(
-      activeModel,
-      providerStatus,
-      inference,
-    );
+    const resolved = resolveActiveModelStatus(activeModel, providerStatus, inference);
     addResult(
       'model-provider-health',
       'active model',
@@ -868,13 +864,40 @@ export async function checkModelHealth() {
           const ageHours = Number.isFinite(checkedAt)
             ? (Date.now() - checkedAt) / 3_600_000
             : Number.NaN;
+          // Inferencia real fresca del modelo activo sobre el mismo proveedor:
+          // es evidencia MÁS fuerte que un probe por proveedor viejo. Sin esto,
+          // una sesión larga (probe del arranque > 6 h) dejaba WARN permanente
+          // con el stack respondiendo — ruido que entrena a ignorar WARNs
+          // (medido 2026-11-25: probe de 9.8 h, inferencia real OK).
+          const sameProvider = activeModel.split('/')[0] === candidates[0];
+          let freshInference = false;
+          if (sameProvider) {
+            try {
+              const file = loadInferenceEvidence(
+                join(RUNTIME_DIR, 'model-inference-evidence.json'),
+              );
+              freshInference =
+                evaluateInferenceEntry(findInferenceEntry(file, activeModel), file?.ttlSeconds) ===
+                'PASS';
+            } catch {
+              /* sin evidencia: se mantiene el veredicto del probe */
+            }
+          }
           if (evidence.reachable) {
             addResult(
               'model-provider-health',
               'provider probe',
-              ageHours <= 6 ? 'PASS' : 'WARN',
-              `proveedor ${candidates[0]} ALCANZABLE (${evidence.models ?? 0} modelos, probe de hace ${Number.isFinite(ageHours) ? `${ageHours.toFixed(1)}h` : '?'})`,
-              ageHours <= 6 ? 'ok' : 'verify-provider',
+              ageHours <= 6 || freshInference ? 'PASS' : 'WARN',
+              `proveedor ${candidates[0]} ALCANZABLE (${evidence.models ?? 0} modelos, probe de hace ${Number.isFinite(ageHours) ? `${ageHours.toFixed(1)}h` : '?'}${freshInference && ageHours > 6 ? '; modelo activo respondió en inferencia real' : ''})`,
+              ageHours <= 6 || freshInference ? 'ok' : 'verify-provider',
+            );
+          } else if (ageHours > 6 && freshInference) {
+            addResult(
+              'model-provider-health',
+              'provider probe',
+              'PASS',
+              `proveedor ${candidates[0]}: probe viejo INALCANZABLE (${evidence.error ?? 'sin detalle'}) pero el modelo activo respondió en inferencia real`,
+              'ok',
             );
           } else {
             addResult(
