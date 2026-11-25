@@ -7,10 +7,11 @@
 
 import { spawn } from 'child_process';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import { runSync } from '../core/run-command.js';
+import { resolveCodeGraphJs } from './codegraph-paths.js';
 
 const require = createRequire(import.meta.url);
 const PID_FILE = join(process.cwd(), '.runtime', 'codegraph-mcp-server.pid');
@@ -124,35 +125,6 @@ function isCodeGraphProcessAlive(): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Resolve the real JS entry point for codegraph (dist/bin/codegraph.js).
- * Spawning `node <entry> serve --mcp` directly avoids the `.cmd` shim layer,
- * which on Windows creates an intermediate cmd.exe process whose PID is
- * written to the PID file but dies shortly after, leaving a stale PID.
- */
-function resolveCodeGraphJs(): string {
-  try {
-    const pkgJson = require.resolve('@colbymchenry/codegraph/package.json');
-    const pkg = JSON.parse(readFileSync(pkgJson, 'utf-8')) as {
-      bin?: string | Record<string, string>;
-    };
-    const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.codegraph;
-    if (bin) return join(dirname(pkgJson), bin);
-  } catch {
-    // fall through to PATH-based resolution
-  }
-  // Fallback: locate the global npm install of the codegraph package
-  // (npm root -g on Windows = %APPDATA%\npm\node_modules — computed directly
-  // to avoid spawning npm.cmd which spawnSync cannot run without a shell).
-  const globalRoot =
-    process.platform === 'win32'
-      ? join(process.env.APPDATA || '', 'npm', 'node_modules')
-      : '/usr/local/lib/node_modules';
-  const candidate = join(globalRoot, '@colbymchenry', 'codegraph', 'dist', 'bin', 'codegraph.js');
-  if (existsSync(candidate)) return candidate;
-  return '';
 }
 
 function startCodeGraphServer(): Promise<void> {
