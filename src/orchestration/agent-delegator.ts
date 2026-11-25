@@ -55,6 +55,15 @@ interface DelegationRequest {
    * exceden el presupuesto de una sola generación bajo el default.
    */
   timeoutSeconds?: number;
+  /**
+   * Health probe (autostart `agent-operability`): una delegación determinista de
+   * observabilidad, no un intento de un agente. Queda fuera del anti-loop: 3
+   * fallos del proveedor convertirían la sonda en un loop permanente que se
+   * auto-bloquea (medido 2026-11-25: la sonda seguía `broken` cuando la cadena
+   * ya funcionaba). El guardrail orchestrator sí clasifica el fallo como
+   * cualquier otro.
+   */
+  probe?: boolean;
 }
 
 interface DelegationResult {
@@ -726,6 +735,9 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
  *          when the guard blocks the delegation.
  */
 export async function delegateWithAntiLoop(request: DelegationRequest): Promise<DelegationResult> {
+  // Los health probes no acumulan ni consumen estado de anti-loop (ver `probe`).
+  if (request.probe) return delegate(request);
+
   const strategy = `${request.agent}::${request.task}`;
 
   // Check for an existing loop BEFORE delegating.

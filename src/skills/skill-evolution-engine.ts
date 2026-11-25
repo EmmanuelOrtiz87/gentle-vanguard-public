@@ -17,6 +17,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import Database from 'better-sqlite3';
 import { parseSkillRegistry } from './skill-registry-parser.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -162,6 +163,47 @@ function now(): string {
 
 // ─── Data Collection ──────────────────────────────────────────────────
 
+/**
+ * Evidencia de uso real. El recorder canónico (skill-loader y MCP skill-server
+ * `get_skill`/`execute_skill`) escribe en Nexus `skill_usage`; los JSON de
+ * `.session/skill-usage/` los actualiza un tracker que no corre en sesiones
+ * normales. Sin este merge el motor reportaba 278/278 "unobserved" con la tabla
+ * poblada (medido 2026-11-25). Lectura read-only y best-effort: nunca rompe el
+ * análisis si la DB no existe o está bloqueada.
+ */
+export function loadNexusUsage(
+  dbDir = resolve(process.env.GENTLE_VANGUARD_DB_DIR ?? join(ROOT, '.runtime')),
+  dbFile = process.env.GENTLE_VANGUARD_DB_FILE ?? 'gentle-vanguard.db',
+): Map<string, { count: number; lastUsed: string | null }> {
+  const out = new Map<string, { count: number; lastUsed: string | null }>();
+  const dbPath = join(dbDir, dbFile);
+  if (!existsSync(dbPath)) return out;
+  let db: import('better-sqlite3').Database | null = null;
+  try {
+    db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const rows = db
+      .prepare(
+        `SELECT skill_id, SUM(count) AS c, MAX(last_used) AS lu
+         FROM skill_usage GROUP BY skill_id`,
+      )
+      .all() as Array<{ skill_id: string; c: number; lu: string | null }>;
+    for (const r of rows) {
+      if (!r.skill_id) continue;
+      const iso = r.lu ? new Date(r.lu.replace(' ', 'T') + 'Z').toISOString() : null;
+      out.set(r.skill_id, { count: Number(r.c) || 0, lastUsed: iso });
+    }
+  } catch {
+    /* DB ausente/bloqueada: el análisis sigue con la evidencia local */
+  } finally {
+    try {
+      db?.close();
+    } catch {
+      /* noop */
+    }
+  }
+  return out;
+}
+
 function loadSkillMetrics(log: LogFn): SkillInfo[] {
   if (!existsSync(SKILL_USAGE_DIR)) {
     log('  Skill usage dir not found');
@@ -178,6 +220,7 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
     lastCall?: string | null;
   }>(join(ROOT, '.atl', 'skill-stats.json'), {});
   const historicalCalls = stats.callsBySkill ?? {};
+  const nexusUsage = loadNexusUsage();
   const skills: SkillInfo[] = [];
   const now_ = Date.now();
 
@@ -189,13 +232,22 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
       const name = (data.skillName as string) || f.replace(/\.json$/, '');
       if (!/^[a-z][a-z0-9_-]+$/.test(name)) continue;
       const localUseCount = (data.useCount as number) || (data.totalCalls as number) || 0;
-      const useCount = Math.max(localUseCount, Number(historicalCalls[name] ?? 0));
+      const nexus = nexusUsage.get(name);
+      const useCount = Math.max(
+        localUseCount,
+        Number(historicalCalls[name] ?? 0),
+        nexus?.count ?? 0,
+      );
       const failCount = (data.failureCount as number) || 0;
       const successRate =
         (data.successRate as number) ?? (useCount > 0 ? (useCount - failCount) / useCount : 1);
+      // Precedencia por skill: fecha local → fecha Nexus por skill → proxy global
+      // SOLO si no hay fecha propia (el lastCall global es de hoy y volvería
+      // "activa" cualquier skill con evidencia vieja — medido 2026-11-25).
       const lastUsed =
         (data.lastUsedAt as string) ||
         (data.lastUsed as string) ||
+        nexus?.lastUsed ||
         (useCount > 0 ? stats.lastCall ?? null : null);
       const lastOutcome = (data.lastOutcome as string) || null;
       const avgTokens = (data.avgTokensUsed as number) || 0;
@@ -225,7 +277,7 @@ function loadSkillMetrics(log: LogFn): SkillInfo[] {
   }
 
   skills.sort((a, b) => b.useCount - a.useCount);
-  log(`  Skill metrics loaded: ${skills.length}`);
+  log(`  Skill metrics loaded: ${skills.length} (nexus usage evidence: ${nexusUsage.size})`);
   return skills;
 }
 

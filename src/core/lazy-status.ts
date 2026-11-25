@@ -90,6 +90,23 @@ export function collectLazyStatus(
   };
 }
 
+/**
+ * Resultados que reportan un problema, opcionalmente sin contar IDs excluidos.
+ * El watchtower excluye su PROPIO step: su registro es el del run anterior y el
+ * lector no puede juzgarse a si mismo — si no hay exclusion, un unico fallo se
+ * realimenta (watchtower falla -> session FAIL -> watchtower sale 1 -> ...).
+ */
+export function problemSteps(
+  results: LazyStepResult[],
+  excludeIds: string[] = [],
+): LazyStepResult[] {
+  return results.filter(
+    (r) =>
+      !excludeIds.includes(r.id) &&
+      (r.status === 'failed' || r.status === 'timeout' || r.status === 'stale'),
+  );
+}
+
 export function writeLazyStatus(root = process.cwd()): LazyStatus {
   const status = collectLazyStatus(root, { prune: true });
   try {

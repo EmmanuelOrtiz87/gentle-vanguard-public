@@ -167,3 +167,24 @@ test('delegateWithAntiLoop: escalates when task is in an escalate loop', async (
     assert.match(result.error || '', /ANTI-LOOP.*Escalating/i);
   });
 });
+
+test('delegateWithAntiLoop: un health probe no consume ni consulta el anti-loop', async () => {
+  await withTempDir(async () => {
+    const goal = 'probe editorial operability';
+    const strategy = 'editorial-agent::probe editorial operability';
+    for (let i = 0; i < ESCALATE_AFTER; i++) {
+      registerAttempt(goal, strategy, 'failed');
+    }
+    const { delegateWithAntiLoop } = await import('../../src/orchestration/agent-delegator.ts');
+    // Aun en loop, un probe debe intentar la delegación real (el agente inexistente
+    // falla, pero NO con el veredicto de anti-loop).
+    const result = await delegateWithAntiLoop({
+      agent: 'nonexistent-agent',
+      task: goal,
+      probe: true,
+    });
+    assert.doesNotMatch(result.error || '', /ANTI-LOOP/i);
+    // Y no altera el estado del loop que pertenece a intentos reales.
+    assert.strictEqual(detectLoop(goal).attempts, ESCALATE_AFTER);
+  });
+});
