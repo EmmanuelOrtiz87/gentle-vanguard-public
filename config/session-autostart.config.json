@@ -258,9 +258,9 @@
         "enabled": true,
         "lazy": true,
         "script": "src/ops/backup-engram.ts",
-        "args": "--mode backup --quiet",
+        "args": "--mode backup --quiet --prune --keep 7",
         "required": false,
-        "description": "Backup online de la DB real de Engram (SQLite WAL-safe) + integrity_check + export de chunks + SHA256"
+        "description": "Backup online de la DB real de Engram (SQLite WAL-safe) + integrity_check + export de chunks + SHA256; --prune mantiene 7 (sin el flag la rotacion nunca corre y los backups crecen sin limite)"
       },
       {
         "id": "cross-workspace-validation",
@@ -480,6 +480,17 @@
         "description": "Recomienda skills relevantes basado en el contexto actual del workspace (git branch, archivos modificados, commits recientes)"
       },
       {
+        "id": "skill-registry-sync",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/skills/skill-registry-sync.ts",
+        "args": "",
+        "required": false,
+        "skipOnFailure": true,
+        "timeout": 120000,
+        "description": "2026-11-25: registro automatico de skills. Sincroniza .atl/skill-registry.md contra el catalogo real (alta/baja/triggers + mapeo skill-agente en config/auto-delegation.json) usando el fingerprint estampado. Antes solo se reparaba la AUSENCIA del registro (ensureSkillRegistry): una skill nueva o cambiada dejaba el indice y sus ~12 consumidores desalineados en silencio. Corre antes del scan de metricas; los embedders tambien sincronizan."
+      },
+      {
         "id": "skill-usage-scan",
         "enabled": true,
         "script": "src/skills/skill-usage-tracker.ts",
@@ -537,7 +548,6 @@
         "required": false,
         "description": "Verifica que el validador JSON esta operativo al inicio de sesion (TS)"
       },
-
       {
         "id": "opencode-drift-heal",
         "enabled": true,
@@ -1320,6 +1330,18 @@
         "skipOnFailure": true,
         "timeout": 10000,
         "description": "2026-11-18: reporta .runtime/*.pid cuyo proceso ya no existe (stale/corrupt). PASIVO: no elimina nada en autostart; la limpieza es explicita con npm run apps:pidfiles:apply (live nunca se toca)."
+      },
+      {
+        "id": "runtime-retention-sweep",
+        "enabled": true,
+        "lazy": true,
+        "script": "src/ops/runtime-retention-notify.ts",
+        "args": "--if-due",
+        "required": false,
+        "phase": 2,
+        "skipOnFailure": true,
+        "timeout": 600000,
+        "description": "2026-11-25: hace REAL el barrido diario de retencion que config/declarations.json ya declaraba (runtime-retention:notify solo corria desde el push gate: sin push no habia aviso al owner). --if-due se salta la corrida si ya hubo una en 24 h; audita .runtime (~13 GB / ~190k archivos; medido 3 s con el disco libre y 4,5 min bajo contencion), avisa por MCAS solo si el conjunto de escalaciones cambio, y deja el escaneo persistido (24 h) para que el gate del pre-push no repita el recorrido."
       },
       {
         "id": "upstream-drift-triage",

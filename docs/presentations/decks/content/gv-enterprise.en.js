@@ -159,7 +159,7 @@ export default {
           accent: '06b6d4',
         },
         {
-          value: '801',
+          value: '696',
           label: 'Test files',
           sub: 'Unit, e2e, integration, security and skills',
           accent: '8b5cf6',
@@ -243,8 +243,8 @@ export default {
       items: [
         {
           icon: 'shield',
-          heading: '76 quality gates',
-          body: '26 on pre-commit, 2 on commit-msg, 2 on post-commit, 32 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 4 runtime. 71 of 76 enforced strictly; the Dependabot alerts gate runs on every push.',
+          heading: '79 quality gates',
+          body: '26 on pre-commit, 2 on commit-msg, 2 on post-commit, 35 registered on pre-push, 8 in CI, 1 governance, 1 deploy and 4 runtime. 74 of 79 enforced strictly; the Dependabot alerts gate runs on every push.',
         },
         {
           icon: 'search',

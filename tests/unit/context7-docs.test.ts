@@ -5,6 +5,9 @@ import {
   cacheAgeHours,
   canonicalParams,
   formatDocs,
+  freePlanQuotaHint,
+  httpJson,
+  isMonthlyQuotaExhausted,
   parseCliArgs,
   readCache,
   writeCache,
@@ -44,7 +47,17 @@ describe('canonicalParams', () => {
 
 describe('parseCliArgs', () => {
   it('separa positionals, flags con valor, repetidos y booleanos', () => {
-    const p = parseCliArgs(['stream', 'answer', '--library', 'Next.js', '--library', 'OpenAI', '--offline', '--max-chars', '500']);
+    const p = parseCliArgs([
+      'stream',
+      'answer',
+      '--library',
+      'Next.js',
+      '--library',
+      'OpenAI',
+      '--offline',
+      '--max-chars',
+      '500',
+    ]);
     assert.deepEqual(p.positionals, ['stream', 'answer']);
     assert.deepEqual(p.values.get('library'), ['Next.js', 'OpenAI']);
     assert.deepEqual(p.values.get('offline'), ['true']);
@@ -55,7 +68,11 @@ describe('parseCliArgs', () => {
 describe('formatDocs', () => {
   const payload = {
     codeSnippets: [
-      { libraryId: '/vercel/next.js', codeTitle: 'Streaming response', codeList: [{ code: 'export function GET() { ... }' }] },
+      {
+        libraryId: '/vercel/next.js',
+        codeTitle: 'Streaming response',
+        codeList: [{ code: 'export function GET() { ... }' }],
+      },
     ],
     infoSnippets: [{ content: 'Use streaming in route handlers.\nMore info here.' }],
   };
@@ -103,3 +120,67 @@ function disposableDir(p: string): number {
   }
   return Date.now();
 }
+
+describe('plan free — cuota mensual agotada', () => {
+  it('detecta el 429 de cuota mensual (no es un rate limit reintentable)', () => {
+    assert.equal(
+      isMonthlyQuotaExhausted({
+        error: 'quota_exceeded',
+        message: 'Monthly quota exceeded. Create a free API key',
+      }),
+      true,
+    );
+    assert.equal(
+      isMonthlyQuotaExhausted({ error: 'rate_limited', message: 'Too many requests' }),
+      false,
+    );
+    assert.equal(isMonthlyQuotaExhausted(null), false);
+  });
+
+  it('el hint nombra fallback y la API key free sin exponer secretos', () => {
+    const hint = freePlanQuotaHint();
+    assert.match(hint, /npm run fetch/);
+    assert.match(hint, /CONTEXT7_API_KEY=ctx7sk/);
+    assert.match(hint, /context7\.com\/dashboard/);
+  });
+
+  it('httpJson NO reintenta cuando la cuota mensual esta agotada', async () => {
+    const realFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls++;
+      return {
+        status: 429,
+        headers: new Headers(),
+        json: async () => ({ error: 'quota_exceeded', message: 'Monthly quota exceeded.' }),
+      } as unknown as Response;
+    }) as typeof fetch;
+    try {
+      const res = await httpJson(new URL('https://context7.com/api/v3/search'), undefined, 2);
+      assert.equal(res.status, 429);
+      assert.equal(calls, 1, 'reintentar no recupera una cuota mensual: 1 sola llamada');
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
+  it('httpJson SI reintenta un 503 transitorio hasta maxRetries', async () => {
+    const realFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls++;
+      return {
+        status: 503,
+        headers: new Headers({ 'retry-after': '0' }),
+        json: async () => ({ error: 'search_failed', message: 'temporary' }),
+      } as unknown as Response;
+    }) as typeof fetch;
+    try {
+      const res = await httpJson(new URL('https://context7.com/api/v3/search'), undefined, 1);
+      assert.equal(res.status, 503);
+      assert.equal(calls, 2, '1 intento + 1 reintento');
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+});

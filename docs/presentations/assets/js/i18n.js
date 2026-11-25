@@ -454,7 +454,7 @@
         'Checkpoints, snapshots and rollback with dry-run validation. Auto-create at session start.',
       tip_fm_87:
         'Append-only event store + saga orchestrator with compensation steps for consistency.',
-      tip_fm_88: '801 test files covering units, configs, workflows and CI/CD.',
+      tip_fm_88: '696 test files covering units, configs, workflows and CI/CD.',
       tip_fm_89: '36 components are monitored; check totals and pass counts vary by runtime.',
       tip_fm_90:
         'Multi-axis code review: correctness, readability, architecture, security and performance.',
@@ -1255,7 +1255,7 @@
         'Checkpoints, snapshots y rollback con validación dry-run. Auto-creación al inicio de sesión.',
       tip_fm_87:
         'Event store append-only + saga orchestrator con pasos de compensación para consistencia.',
-      tip_fm_88: '801 archivos de test que cubren units, configs, workflows y CI/CD.',
+      tip_fm_88: '696 archivos de test que cubren units, configs, workflows y CI/CD.',
       tip_fm_89:
         '36 componentes vigilados; el total y los estados de los checks dependen de la ejecución.',
       tip_fm_90:

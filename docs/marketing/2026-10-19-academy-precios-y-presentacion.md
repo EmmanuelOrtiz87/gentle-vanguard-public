@@ -4,7 +4,7 @@ Fecha: 2026-10-19. Se mejora la presentación; no se modifican tarifas ni condic
 
 ## Por qué aparecían tres ofertas con presupuesto
 
-La historia de `apps/academy-web/data/store/pricing.json` conserva curso con cinco sesiones a USD 100, mentoría de una hora a USD 20 y programa personalizado a USD 250. La revisión del 17-10 retiró estos importes de la venta fija por falta de validación de costo, preparación, duración y alcance. La condición vigente está en ese store (`salesMode: quote`, `price: null`) y en [la revisión comercial](../research/2026-10-17-academy-transparencia-servicio-educativo.md).
+La historia de `apps/academy-web/data/store/pricing.json` conserva curso con cinco sesiones a USD 100, mentoría de una hora a USD 20 y programa personalizado a USD 250. La revisión del 17-10 retiró estos importes de la venta fija por falta de validación de costo, preparación, duración y alcance. La condición vigente está en ese store (`salesMode: quote`, `price: null`).
 
 El precio histórico no equivale a una tarifa vigente. Restaurarlo requiere acordar las prestaciones y validar costos; no corresponde cambiar sólo la cifra del HTML ni reutilizar importes del catálogo corporativo por hora para otro servicio.
 

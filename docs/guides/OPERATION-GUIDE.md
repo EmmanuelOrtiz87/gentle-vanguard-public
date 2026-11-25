@@ -345,7 +345,6 @@ gentle-vanguard/
 - **Documentación:** `docs/guides/`
 - **Issues:** GitHub Issues
 - **Roadmap:** `docs/product/ROADMAP.md`
-- **Status:** `docs/status/STACK-STATUS-REPORT.md`
 
 ---
 

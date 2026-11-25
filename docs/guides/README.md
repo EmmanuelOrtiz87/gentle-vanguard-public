@@ -32,6 +32,7 @@ New to Gentle-Vanguard? Start here:
 | **[TOKEN-CONTEXT-STANDARDS.md](TOKEN-CONTEXT-STANDARDS.md)**               | Token budgets and efficiency modes                              |
 | **[TOKEN-AUTOPILOT-OPERATIONS.md](TOKEN-AUTOPILOT-OPERATIONS.md)**         | Hard/balanced token autopilot operations and quick commands     |
 | **[DASHBOARD-EXECUTIVE-GUIDE.md](DASHBOARD-EXECUTIVE-GUIDE.md)**           | Dashboard interpretation, ROI reading, and automation lifecycle |
+| **[configuration.md](configuration.md)**                                   | `config/workspace.config.json` schema used by bootstrap         |
 
 ### Architecture
 
@@ -43,13 +44,13 @@ New to Gentle-Vanguard? Start here:
 
 ## 🔧 Troubleshooting
 
-| Guide                                                                      | Purpose                     |
-| -------------------------------------------------------------------------- | --------------------------- |
-| **[AI-CONFIGURATION.md](AI-CONFIGURATION.md)**                             | AI tool configuration       |
-| **[DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md)**                     | Development workflow issues |
-| **[GITHUB-RUNNER-SETUP.md](GITHUB-RUNNER-SETUP.md)**                       | Optional self-hosted runner |
-| **[REPO-RENAME-MIGRATION.md](REPO-RENAME-MIGRATION.md)**                   | Rename migration workflow   |
-| **[GITHUB-ACTIONS-TROUBLESHOOTING.md](GITHUB-ACTIONS-TROUBLESHOOTING.md)** | CI/CD troubleshooting       |
+| Guide                                                          | Purpose                                       |
+| -------------------------------------------------------------- | --------------------------------------------- |
+| **[AI-CONFIGURATION.md](AI-CONFIGURATION.md)**                 | AI tool configuration                         |
+| **[DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md)**         | Development workflow issues                   |
+| **[GITHUB-RUNNER-SETUP.md](GITHUB-RUNNER-SETUP.md)**           | Optional self-hosted runner                   |
+| **[REPO-RENAME-MIGRATION.md](REPO-RENAME-MIGRATION.md)**       | Rename migration workflow                     |
+| **[WORKSPACE-RECONCILIATION.md](WORKSPACE-RECONCILIATION.md)** | Reconcile local changes after a release lands |
 
 ---
 
@@ -57,7 +58,6 @@ New to Gentle-Vanguard? Start here:
 
 | Guide                                                                                                         | Purpose                                          |
 | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| **[DEPLOYMENT-READY-SUMMARY.md](DEPLOYMENT-READY-SUMMARY.md)**                                                | Deployment overview                              |
 | **[DOCUMENTATION-STANDARDS.md](../../skills/documentation-governance/references/documentation-standards.md)** | How to write docs                                |
 | **[VISUAL-GUIDE.md](VISUAL-GUIDE.md)**                                                                        | Visual design standards (emojis, badges, tables) |
 
@@ -76,7 +76,6 @@ New to Gentle-Vanguard? Start here:
 ### For DevOps
 
 1. [ARCHITECTURE.md](../architecture/ARCHITECTURE.md)
-2. [DEPLOYMENT-READY-SUMMARY.md](DEPLOYMENT-READY-SUMMARY.md)
 
 ### For Architects
 
@@ -88,56 +87,49 @@ New to Gentle-Vanguard? Start here:
 
 ## 📚 All Guides
 
-| Guide                                     | Purpose                            |
-| ----------------------------------------- | ---------------------------------- |
-| SESSION-GUIDE.md                          | Session management                 |
-| GITFLOW-QUICK-REFERENCE.md                | GitFlow workflow                   |
-| SCRIPT-NORMALIZATION-STANDARDS.md         | Code quality                       |
-| COMPATIBILITY-MATRIX.md                   | Tool integration                   |
-| TOKEN-CONTEXT-STANDARDS.md                | Token optimization                 |
-| TOKEN-AUTOPILOT-OPERATIONS.md             | Token autopilot operations         |
-| DASHBOARD-EXECUTIVE-GUIDE.md              | Dashboard interpretation and ROI   |
-| ARCHITECTURE.md                           | Architecture                       |
-| DEVELOPMENT-WORKFLOW.md                   | Development workflow               |
-| AI-CONFIGURATION.md                       | AI configuration                   |
-| GITHUB-RUNNER-SETUP.md                    | Optional self-hosted runner setup  |
-| REPO-RENAME-MIGRATION.md                  | Repository rename migration        |
-| GITHUB-ACTIONS-TROUBLESHOOTING.md         | CI/CD troubleshooting              |
-| DEPLOYMENT-READY-SUMMARY.md               | Deployment overview                |
-| VISUAL-GUIDE.md                           | Visual design standards            |
-| CUSTOM-RULES.md                           | Custom rules                       |
-| CLOUD-AGENT-CONNECTOR.md                  | Cloud agent connector              |
-| DAY-END-CLOSURE.md                        | Day-end closure                    |
-| TECHNICAL-ONBOARDING.md                   | Technical onboarding               |
-| LOCAL-FIRST-POLICY.md                     | Local-first policy                 |
-| MANAGEMENT-REPORTING.md                   | Management reporting               |
-| MULTI-TOOL-USAGE.md                       | Multi-tool usage                   |
-| PRE-DEPLOYMENT-CHECKLIST.md               | Pre-deployment checklist           |
-| RELEASE-STRATEGY.md                       | Release strategy                   |
-| SCRIPT-NORMALIZATION-COMPLETION-REPORT.md | Script normalization completion    |
-| TOOL-ACTIVATION.md                        | Tool activation system             |
-| JUDGMENT-GUIDE.md                         | Judgment day guide                 |
-| JUDGMENT-DAY-AUTOMATION.md                | Judgment day automation            |
-| GITFLOW-ENFORCEMENT-ANALYSIS.md           | GitFlow enforcement                |
-| Gentle-Vanguard-SYNC.md                   | Gentle-Vanguard sync               |
-| ARTIFACT-RETENTION.md                     | Artifact retention                 |
-| COMPATIBILITY-MATRIX.md                   | Compatibility matrix               |
-| DEPLOYMENT-OPTIMIZATION-GUIDE.md          | Deployment optimization            |
-| SECURITY-API-KEY-ROTATION.md              | Security API key rotation          |
-| SECURITY-AUTH-SECRETS.md                  | Security auth secrets              |
-| SECURITY-HARDENING.md                     | Security hardening                 |
-| CLEANUP-GUIDE.md                          | Cleanup guide                      |
-| ../getting-started/README.md              | Getting started                    |
-| INTEGRATION-EXISTING-PROJECTS.md          | Integration with existing projects |
-| PRETOOL-FORMAT-HOOK.md                    | Pre-tool format hook               |
-| QUICK-FIX-GUIDE.md                        | Quick fix guide                    |
-| RELEASE-CHECKLIST.md                      | Release checklist                  |
-| runtime-state.md                          | Runtime state                      |
-| STACK-ON-DEMAND.md                        | Stack on-demand                    |
-| TECHNOLOGY-SUPPORT-MATRIX.md              | Technology support matrix          |
-| TELEMETRY.md                              | Telemetry                          |
-| TESTING-GUIDE.md                          | Testing guide                      |
-| TESTING-STRATEGY.md                       | Testing strategy                   |
+| Guide                             | Purpose                            |
+| --------------------------------- | ---------------------------------- |
+| SESSION-GUIDE.md                  | Session management                 |
+| GITFLOW-QUICK-REFERENCE.md        | GitFlow workflow                   |
+| SCRIPT-NORMALIZATION-STANDARDS.md | Code quality                       |
+| COMPATIBILITY-MATRIX.md           | Tool integration                   |
+| TOKEN-CONTEXT-STANDARDS.md        | Token optimization                 |
+| TOKEN-AUTOPILOT-OPERATIONS.md     | Token autopilot operations         |
+| DASHBOARD-EXECUTIVE-GUIDE.md      | Dashboard interpretation and ROI   |
+| ARCHITECTURE.md                   | Architecture                       |
+| DEVELOPMENT-WORKFLOW.md           | Development workflow               |
+| AI-CONFIGURATION.md               | AI configuration                   |
+| GITHUB-RUNNER-SETUP.md            | Optional self-hosted runner setup  |
+| REPO-RENAME-MIGRATION.md          | Repository rename migration        |
+| VISUAL-GUIDE.md                   | Visual design standards            |
+| CUSTOM-RULES.md                   | Custom rules                       |
+| CLOUD-AGENT-CONNECTOR.md          | Cloud agent connector              |
+| DAY-END-CLOSURE.md                | Day-end closure                    |
+| TECHNICAL-ONBOARDING.md           | Technical onboarding               |
+| LOCAL-FIRST-POLICY.md             | Local-first policy                 |
+| MANAGEMENT-REPORTING.md           | Management reporting               |
+| MULTI-TOOL-USAGE.md               | Multi-tool usage                   |
+| RELEASE-STRATEGY.md               | Release strategy                   |
+| TOOL-ACTIVATION.md                | Tool activation system             |
+| JUDGMENT-GUIDE.md                 | Judgment day guide                 |
+| JUDGMENT-DAY-AUTOMATION.md        | Judgment day automation            |
+| Gentle-Vanguard-SYNC.md           | Gentle-Vanguard sync               |
+| ARTIFACT-RETENTION.md             | Artifact retention                 |
+| COMPATIBILITY-MATRIX.md           | Compatibility matrix               |
+| SECURITY-API-KEY-ROTATION.md      | Security API key rotation          |
+| SECURITY-AUTH-SECRETS.md          | Security auth secrets              |
+| SECURITY-HARDENING.md             | Security hardening                 |
+| CLEANUP-GUIDE.md                  | Cleanup guide                      |
+| ../getting-started/README.md      | Getting started                    |
+| INTEGRATION-EXISTING-PROJECTS.md  | Integration with existing projects |
+| PRETOOL-FORMAT-HOOK.md            | Pre-tool format hook               |
+| RELEASE-CHECKLIST.md              | Release checklist                  |
+| runtime-state.md                  | Runtime state                      |
+| STACK-ON-DEMAND.md                | Stack on-demand                    |
+| TECHNOLOGY-SUPPORT-MATRIX.md      | Technology support matrix          |
+| TELEMETRY.md                      | Telemetry                          |
+| TESTING-GUIDE.md                  | Testing guide                      |
+| TESTING-STRATEGY.md               | Testing strategy                   |
 
 ---
 

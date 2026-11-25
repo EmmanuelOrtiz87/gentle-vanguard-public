@@ -62,9 +62,6 @@ const RULES: BlockRule[] = [
     ],
     match: (path) =>
       path.startsWith('apps/gv-knowledge-ops/') ||
-      path.startsWith('docs/apps/GV-KNOWLEDGE-OPS') ||
-      path.startsWith('docs/changelog/2026-10-13-gv-knowledge-ops') ||
-      path.startsWith('docs/changelog/2026-10-14-gv-knowledge-ops') ||
       path.startsWith('reports/audits/gv-knowledge-ops-visual-') ||
       path === 'src/ops/gv-knowledge-refresh-scheduled.ts',
   },

@@ -470,6 +470,9 @@ async function main(): Promise<void> {
     source: rec.source,
     success: result.success,
     duration: result.duration,
+    // Sin el error, un recibo fallido no se puede clasificar después (routing-eval
+    // midió 21 fallos editoriales como 'sin_dato' por recibos sin causa).
+    error: result.success ? undefined : (result.error ?? 'sin detalle').slice(0, 300),
     evidenceKind,
     editorial: isEditorial
       ? {

@@ -30,10 +30,12 @@
  *   node --import tsx src/ops/runtime-retention-notify.ts            # simula y avisa
  *   node --import tsx src/ops/runtime-retention-notify.ts --json
  *   node --import tsx src/ops/runtime-retention-notify.ts --apply    # aplica la política
+ *   node --import tsx src/ops/runtime-retention-notify.ts --if-due   # barrido diario (autostart)
+ *   node --import tsx src/ops/runtime-retention-notify.ts --fresh    # ignora el escaneo persistido
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { dispatchAlert, type DispatchAlertOptions } from '../monitor/alert-dispatcher.js';
@@ -65,6 +67,10 @@ export interface RetentionNotifyOptions {
   dispatch?: (opts: DispatchAlertOptions) => void;
   /** Inyectable para tests: dónde vive el estado. */
   statePath?: string;
+  /** Inyectable para tests: desactiva el reuso del escaneo persistido. */
+  useCache?: boolean;
+  /** Edad máxima del escaneo reusado (por defecto SCAN_TTL_MS). */
+  scanTtlMs?: number;
 }
 
 export interface RetentionNotifyResult {
@@ -74,6 +80,8 @@ export interface RetentionNotifyResult {
   escalations: string[];
   applied: boolean;
   statePath: string;
+  /** El informe sale del escaneo persistido, no de un recorrido nuevo. */
+  cacheHit: boolean;
   report: RetentionReport;
 }
 
@@ -153,6 +161,126 @@ export function writeState(path: string, state: EscalationState): void {
   }
 }
 
+/**
+ * Reuso del escaneo (2026-11-25).
+ *
+ * La auditoría recorre todo `.runtime` (medido 2026-11-25: ~190k archivos; 3 s
+ * con el disco libre y 4,5 min bajo contención — user CPU 0,4 s, todo espera de
+ * I/O). Corría completa en CADA push y bajo la carga concurrente del pre-push
+ * superó su timeout de 300 s — un gate bloqueó el push por una medición que no
+ * cambió. El escaneo se persiste y se reusa mientras (a) el conjunto de
+ * directorios top-level de `.runtime` no cambió — agregar o quitar un
+ * directorio invalida al instante — y (b) el informe tiene menos de
+ * SCAN_TTL_MS. El TTL (24 h) coincide con el barrido diario del autostart, que
+ * es quien refresca: la decisión que importa (escalaciones por nombre) sólo
+ * cambia con el conjunto de directorios o la política, y la política entra en
+ * el fingerprint. `--apply` NUNCA reusa: borra sobre medición fresca.
+ */
+const SCAN_TTL_MS = 86_400_000;
+
+interface ScanCache {
+  version: 1;
+  createdAt: number;
+  fingerprint: string;
+  report: RetentionReport;
+}
+
+export function scanCachePathFor(root: string): string {
+  return join(root, '.runtime', 'retention-scan-cache.json');
+}
+
+/** Cambia cuando aparece/desaparece un directorio de `.runtime` o cambia la política. */
+export function runtimeFingerprint(root: string): string {
+  const runtime = join(root, '.runtime');
+  let dirs: string[] = [];
+  try {
+    dirs = readdirSync(runtime, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort();
+  } catch {
+    return 'no-runtime';
+  }
+  let policy = '';
+  try {
+    policy = readFileSync(join(root, 'config', 'runtime-retention.json'), 'utf8');
+  } catch {
+    /* sin política: loadPolicy ya falla aparte */
+  }
+  return createHash('sha256').update(dirs.join('\n')).update(policy).digest('hex').slice(0, 16);
+}
+
+export function readScanCache(
+  path: string,
+  fingerprint: string,
+  now: number,
+  ttlMs: number,
+): RetentionReport | null {
+  if (!existsSync(path)) return null;
+  try {
+    const cached = JSON.parse(readFileSync(path, 'utf8')) as ScanCache;
+    if (cached?.version !== 1 || cached.fingerprint !== fingerprint) return null;
+    if (!Number.isFinite(cached.createdAt)) return null;
+    const age = now - cached.createdAt;
+    if (age < 0 || age > ttlMs) return null;
+    if (!cached.report || !Array.isArray(cached.report.escalations)) return null;
+    return { ...cached.report, applied: false };
+  } catch {
+    return null;
+  }
+}
+
+export function writeScanCache(
+  path: string,
+  fingerprint: string,
+  report: RetentionReport,
+  now: number,
+): void {
+  try {
+    writeFileSync(
+      path,
+      JSON.stringify(
+        { version: 1, createdAt: now, fingerprint, report } satisfies ScanCache,
+        null,
+        2,
+      ),
+      'utf8',
+    );
+  } catch {
+    /* best effort: el próximo ciclo vuelve a escanear */
+  }
+}
+
+const SWEEP_MARKER = 'retention-last-sweep.json';
+
+export function sweepMarkerPathFor(root: string): string {
+  return join(root, '.runtime', SWEEP_MARKER);
+}
+
+/** `--if-due`: el barrido diario declarado se salta si ya corrió en las últimas 24 h. */
+export function isSweepDue(markerPath: string, now: number, intervalMs = 86_400_000): boolean {
+  if (!existsSync(markerPath)) return true;
+  try {
+    const marker = JSON.parse(readFileSync(markerPath, 'utf8')) as { ranAt?: string };
+    const ts = Date.parse(marker.ranAt ?? '');
+    return !Number.isFinite(ts) || now - ts >= intervalMs;
+  } catch {
+    return true;
+  }
+}
+
+function writeSweepMarker(markerPath: string, now: number): void {
+  try {
+    writeFileSync(
+      markerPath,
+      JSON.stringify({ ranAt: new Date(now).toISOString() }, null, 2),
+      'utf8',
+    );
+  } catch {
+    /* best effort */
+  }
+}
+
 function buildMessage(
   decision: EscalationDecision,
   report: RetentionReport,
@@ -187,7 +315,25 @@ export function runRetentionNotification(
   const root = options.root ?? resolve(import.meta.dirname, '..', '..');
   const policy = loadPolicy(root);
   const apply = options.apply ?? policy.autoApply === true;
-  const report = auditRetention({ root, apply, now: options.now });
+  const now = options.now ?? Date.now();
+  // Solo la simulación reusa el escaneo: con reloj inyectado (tests) el
+  // resultado tiene que corresponder a ESE instante, no a uno anterior.
+  const useCache = !apply && options.now === undefined && options.useCache !== false;
+  const cachePath = scanCachePathFor(root);
+  let cacheHit = false;
+  let report: RetentionReport | null = null;
+  if (useCache) {
+    const fingerprint = runtimeFingerprint(root);
+    report = readScanCache(cachePath, fingerprint, now, options.scanTtlMs ?? SCAN_TTL_MS);
+    if (report) {
+      cacheHit = true;
+    } else {
+      report = auditRetention({ root, apply, now: options.now });
+      writeScanCache(cachePath, fingerprint, report, now);
+    }
+  } else {
+    report = auditRetention({ root, apply, now: options.now });
+  }
   const statePath = options.statePath ?? statePathFor(root);
   const previous = readState(statePath);
   const decision = decideNotification(previous, report.escalations);
@@ -231,6 +377,7 @@ export function runRetentionNotification(
     escalations: report.escalations,
     applied: apply,
     statePath,
+    cacheHit,
     report,
   };
 }
@@ -239,14 +386,23 @@ function main(): void {
   const argv = process.argv.slice(2);
   const apply = argv.includes('--apply');
   const asJson = argv.includes('--json');
-  const result = runRetentionNotification({ apply });
+  const root = resolve(import.meta.dirname, '..', '..');
+  const markerPath = sweepMarkerPathFor(root);
+  if (argv.includes('--if-due') && !isSweepDue(markerPath, Date.now())) {
+    if (asJson) console.log(JSON.stringify({ skipped: true, reason: 'ran within 24h' }));
+    else console.log('[runtime-retention-notify] barrido omitido: ya corrió en las últimas 24 h');
+    return;
+  }
+  const result = runRetentionNotification({ apply, useCache: !argv.includes('--fresh') });
+  writeSweepMarker(markerPath, Date.now());
   if (asJson) {
     console.log(JSON.stringify(result, null, 2));
     return;
   }
   console.log(
     `[runtime-retention-notify] ${result.applied ? 'APLICADO' : 'SIMULACIÓN'} · ` +
-      `escalaciones: ${result.escalations.length} · aviso: ${result.notified ? result.reason : 'no (sin cambios)'}`,
+      `escalaciones: ${result.escalations.length} · aviso: ${result.notified ? result.reason : 'no (sin cambios)'}` +
+      `${result.cacheHit ? ' · escaneo reusado' : ''}`,
   );
   for (const e of result.escalations.slice(0, 10)) console.log(`  ESCALACIÓN: ${e}`);
   if (result.escalations.length > 10) {

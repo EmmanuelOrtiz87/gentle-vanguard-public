@@ -49,13 +49,9 @@ Use `checkPath` when a tool is better validated by an existing directory than by
 ## Runtime State
 
 - `dataRoot` is the base used by launchers to create isolated state.
-- `scripts/run-engram.ps1` and `scripts/run-engram.sh` derive `ENGRAM_DATA_DIR` from `dataRoot` and
-
-<!-- REF-OBSOLETA: scripts/run-engram.ps1 no tiene equivalente TS (migración PS1→TS) -->
-
-create a dedicated Engram subdirectory.
-
-- Changing `dataRoot` also changes where the launcher stores the local database.
+- The Engram store does not follow `dataRoot`: `src/knowledge/engram-paths.ts` resolves
+  `ENGRAM_DATA_DIR` or `~/.engram`, and `.engram/` in the repo is only the export directory for
+  chunks.
 
 ## Scaffolding Defaults
 

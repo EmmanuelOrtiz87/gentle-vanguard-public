@@ -376,13 +376,13 @@ function readNamedTestScripts(app: string): string[] {
   }
 }
 
-function deferredTestReason(script: string): string | undefined {
+export function deferredTestReason(script: string): string | undefined {
   const suffix = script.slice('test:'.length).toLowerCase();
   if (/watch/.test(suffix)) return 'Interactive watch mode has no bounded exit';
   if (/coverage/.test(suffix)) return 'Coverage run requires an explicit local test contract';
   if (/quality/.test(suffix))
     return 'Composite quality script duplicates typecheck/lint/test checks';
-  if (/e2e|browser|gui|visual|autoplay|journey|bot-manager|smoke/.test(suffix)) {
+  if (/e2e|browser|gui|visual|autoplay|journey|bot-manager|smoke|real/.test(suffix)) {
     return 'Dedicated integration/browser/service run; requires an explicit environment contract';
   }
   return undefined;

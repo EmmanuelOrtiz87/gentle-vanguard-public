@@ -21,7 +21,17 @@ type Finding = {
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const BASELINE_FILE = join(ROOT, 'config', 'process-launcher-baseline.json');
 const SCAN_DIRS = ['src', 'apps', 'scripts'];
-const EXCLUDED = new Set(['node_modules', '.git', '.runtime', '.session', 'dist', 'build']);
+const EXCLUDED = new Set([
+  'node_modules',
+  '.git',
+  '.runtime',
+  '.session',
+  'dist',
+  'build',
+  '.next',
+  '.turbo',
+  'coverage',
+]);
 const CALL_RE = /\b(?:spawn|spawnSync|execFile|execFileSync|fork)\s*\(/g;
 
 function* files(dir: string): Generator<string> {

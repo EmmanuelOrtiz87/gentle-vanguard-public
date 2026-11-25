@@ -31,7 +31,9 @@ import { join } from 'node:path';
 import {
   decideNotification,
   escalationFingerprint,
+  isSweepDue,
   runRetentionNotification,
+  sweepMarkerPathFor,
   type EscalationState,
 } from '../../src/ops/runtime-retention-notify.ts';
 import type { RetentionPolicy } from '../../src/ops/runtime-retention.ts';
@@ -69,6 +71,13 @@ function seedOverCap(root: string): void {
  */
 function seedUnclassified(root: string): void {
   const dir = join(root, '.runtime', 'research');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'data.bin'), Buffer.alloc(21 * 1024 * 1024, 1));
+}
+
+/** Segundo directorio sin política: prueba que su aparición invalida el escaneo. */
+function seedUnclassified2(root: string): void {
+  const dir = join(root, '.runtime', 'research2');
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'data.bin'), Buffer.alloc(21 * 1024 * 1024, 1));
 }
@@ -200,5 +209,55 @@ test('N9 · un tamaño que se movió NO vuelve a avisar (el aviso no es ruido)',
     escalationFingerprint([antes]),
     escalationFingerprint([otro]),
     'un directorio nuevo SÍ es una escalación nueva',
+  );
+});
+
+test('N10 · el escaneo se reusa dentro del TTL y un directorio nuevo lo invalida', () => {
+  const root = makeRoot();
+  seedUnclassified(root);
+  const first = runRetentionNotification({ root, dispatch: () => {} });
+  assert.equal(first.cacheHit, false, 'sin escaneo previo, recorre');
+
+  // Cambio DENTRO de un directorio existente: el informe reusado no lo ve
+  // (el TTL acota esa deriva), pero el conjunto de escalaciones no cambia.
+  writeFileSync(join(root, '.runtime', 'research', 'extra.bin'), Buffer.alloc(1024, 1));
+  const second = runRetentionNotification({ root, dispatch: () => {} });
+  assert.equal(second.cacheHit, true, 'dentro del TTL y sin cambio estructural: reusa');
+  assert.deepEqual(second.escalations, first.escalations);
+
+  // Un directorio nuevo cambia el conjunto: el fingerprint invalida al instante.
+  seedUnclassified2(root);
+  const third = runRetentionNotification({ root, dispatch: () => {} });
+  assert.equal(third.cacheHit, false, 'directorio nuevo ⇒ escaneo fresco');
+  assert.ok(third.escalations.some((e) => e.startsWith('research2')));
+});
+
+test('N11 · --apply nunca reusa el escaneo y el reloj inyectado tampoco', () => {
+  const root = makeRoot();
+  seedUnclassified(root);
+  runRetentionNotification({ root, dispatch: () => {} });
+
+  const withApply = makeRoot({ autoApply: true });
+  seedUnclassified(withApply);
+  runRetentionNotification({ root: withApply, dispatch: () => {} });
+  const applied = runRetentionNotification({ root: withApply, dispatch: () => {} });
+  assert.equal(applied.cacheHit, false, 'borrar exige medición fresca');
+
+  const clocked = runRetentionNotification({ root, now: Date.now(), dispatch: () => {} });
+  assert.equal(clocked.cacheHit, false, 'con now inyectado el resultado debe ser de ESE instante');
+});
+
+test('N12 · --if-due: el barrido diario se salta si ya corrió en 24 h', () => {
+  const root = makeRoot();
+  const marker = sweepMarkerPathFor(root);
+  assert.equal(isSweepDue(marker, Date.now()), true, 'sin marca: due');
+  writeFileSync(marker, JSON.stringify({ ranAt: new Date().toISOString() }));
+  assert.equal(isSweepDue(marker, Date.now()), false, 'corrió recién: no due');
+  assert.equal(isSweepDue(marker, Date.now() + 86_400_001), true, '24 h después: due otra vez');
+  writeFileSync(marker, 'no-json');
+  assert.equal(
+    isSweepDue(marker, Date.now()),
+    true,
+    'marca corrupta: due (no se pierde el barrido)',
   );
 });

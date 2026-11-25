@@ -117,7 +117,7 @@ export default {
       cols: 4,
       items: [
         {
-          value: '29',
+          value: '28',
           label: 'Apps propias',
           sub: 'Sistemas desarrollados por nosotros y hoy en funcionamiento',
           accent: '06b6d4',
@@ -163,7 +163,7 @@ export default {
         {
           icon: 'shield',
           heading: 'Gobernanza',
-          body: '76 quality gates, escaneo de secretos y políticas fail-closed.',
+          body: '79 quality gates, escaneo de secretos y políticas fail-closed.',
         },
         {
           icon: 'cloud',
@@ -341,7 +341,7 @@ export default {
     {
       layout: 'figure',
       eyebrow: 'Prueba de trabajo',
-      title: 'Esto ya está corriendo: 29 desarrollos propios',
+      title: 'Esto ya está corriendo: 28 desarrollos propios',
       lead: 'No son productos en catálogo ni casos de clientes. Son sistemas que construimos y que hoy funcionan.',
       textW: 3.5,
       image: 'stack-dashboard.png',

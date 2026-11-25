@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "4.5.0",
+  "version": "4.7.0",
   "packageManager": "pnpm@11.15.1",
   "engines": {
     "pnpm": ">=11.0.0",
@@ -599,6 +599,7 @@
     "skills:quality:gate": "node --import tsx src/skills/skill-quality-audit.ts --gate",
     "skills:refs": "node --import tsx src/tools/check-skill-references.ts",
     "skills:refs:baseline": "node --import tsx src/tools/check-skill-references.ts --update-baseline",
+    "skills:registry:sync": "node --import tsx src/skills/skill-registry-sync.ts",
     "skills:registry:rebuild": "node --import tsx scripts/recovery/rebuild-skill-registry.ts",
     "skills:size": "node --import tsx src/tools/check-skill-sizes.ts",
     "skills:size:baseline": "node --import tsx src/tools/check-skill-sizes.ts --update-baseline",

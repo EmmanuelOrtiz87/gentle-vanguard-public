@@ -17,7 +17,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { runAppCheck } from './stack-audit-apps.js';
+import { deferredTestReason, runAppCheck } from './stack-audit-apps.js';
 
 describe('stack-audit-apps: reintento ante fallo ambiental', () => {
   it('reintenta cuando la salida muestra la firma de worker muerto y el reintento pasa', () => {
@@ -58,6 +58,18 @@ describe('stack-audit-apps: reintento ante fallo ambiental', () => {
 
     assert.equal(result.status, 'FAIL');
     assert.equal(calls, 2, 'un solo reintento, no un bucle');
+  });
+});
+
+describe('stack-audit-apps: clasificacion de scripts test:*', () => {
+  it('test:real exige contrato de entorno (WARN, no FAIL): voice-studio fallaba por falta de GV_VOICE_STUDIO_REAL_SAMPLE_ID', () => {
+    const reason = deferredTestReason('test:real');
+    assert.ok(reason, 'test:real debe diferirse a WARN');
+    assert.match(reason, /environment contract/);
+  });
+
+  it('un test unitario normal no se difiere', () => {
+    assert.equal(deferredTestReason('test:contract'), undefined);
   });
 });
 

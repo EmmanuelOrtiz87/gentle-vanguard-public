@@ -224,7 +224,11 @@ async function cmdOpen(): Promise<void> {
                process.platform === 'darwin' ? 'open' : 'xdg-open';
   for (const u of urls) {
     try {
-      spawnSync(cmd, [u], { stdio: 'ignore', shell: process.platform === 'win32' });
+      spawnSync(cmd, [u], {
+        stdio: 'ignore',
+        shell: process.platform === 'win32',
+        windowsHide: true,
+      });
       process.stdout.write(c(C.green, `  ✓ ${u}\n`));
     } catch {
       process.stdout.write(c(C.red, `  ✗ ${u}\n`));

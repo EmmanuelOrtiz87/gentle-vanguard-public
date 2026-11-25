@@ -26,6 +26,7 @@
  * que alguien lo note.
  */
 
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { load as loadYaml } from 'js-yaml';
@@ -155,12 +156,42 @@ export function collectRegistryRows(options: SkillRegistryOptions): Array<{
     .map(([skill, info]) => ({ skill, agent: info.agent, triggers: info.triggers }));
 }
 
+/**
+ * Identidad del registro: skills + agente + triggers, canónico y ordenado.
+ *
+ * Se estampa DENTRO del registro generado (`<!-- skills-fingerprint: … -->`)
+ * para que `skill-registry-sync` detecte drift comparando catálogo real vs
+ * registro en disco. Sin esto, un registro que existe pero quedó viejo era
+ * indistinguible de uno fresco: `ensureSkillRegistry` sólo reparaba la
+ * ausencia, nunca la desactualización (2026-11-25).
+ */
+export function registryFingerprint(
+  rows: Array<{ skill: string; agent: string; triggers: string[] }>,
+): string {
+  const canonical = [...rows]
+    .sort((a, b) => a.skill.localeCompare(b.skill))
+    .map((row) => `${row.agent}|${row.skill}|${[...row.triggers].sort().join(',')}`)
+    .join('\n');
+  return createHash('sha256').update(canonical).digest('hex').slice(0, 16);
+}
+
+/** Fingerprint estampado en un registro, o `null` si falta/es ilegible. */
+function readRegistryFingerprint(registryPath: string): string | null {
+  try {
+    return readFileSync(registryPath, 'utf8').match(/skills-fingerprint:\s*([0-9a-f]{16})/)?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Renderiza el registro en el markdown que parsea `parseSkillRegistry`. */
 function renderSkillRegistry(rows: Array<{ skill: string; agent: string; triggers: string[] }>): string {
   const table = rows
     .map((row) => `| ${row.agent} | ${row.skill} | ${row.triggers.join(', ')} |`)
     .join('\n');
   return `# Skill Registry (DERIVADO — artefacto local, gitignored)
+
+<!-- skills-fingerprint: ${registryFingerprint(rows)} -->
 
 Generado por \`src/skills/skill-registry-builder.ts\` desde el catálogo real de
 skills (\`skills/\`, \`.agents/skills/\`, \`.opencode/skills/\`) y el mapeo
@@ -191,8 +222,7 @@ export function buildSkillRegistry(options: SkillRegistryOptions): SkillRegistry
     options.registryPath ?? join(options.projectRoot, '.atl', 'skill-registry.md');
   const rows = collectRegistryRows(options);
   if (options.write === false) return { registryPath, skills: rows.length, wrote: false, rows };
-  mkdirSync(join(options.projectRoot, '.atl'), { recursive: true });
-  writeFileSync(registryPath, renderSkillRegistry(rows), 'utf8');
+  writeRegistry(rows, registryPath);
   return { registryPath, skills: rows.length, wrote: true, rows };
 }
 
@@ -207,4 +237,67 @@ export function ensureSkillRegistry(options: SkillRegistryOptions): SkillRegistr
     return { registryPath, skills: 0, wrote: false, rows: [] };
   }
   return buildSkillRegistry({ ...options, registryPath, write: true });
+}
+
+type RegistrySyncReason = 'missing' | 'stale' | 'up-to-date';
+
+export interface RegistrySyncResult {
+  /** En modo escritura: ¿se rescribió el registro? En modo `write:false`: ¿está desactualizado? */
+  changed: boolean;
+  reason: RegistrySyncReason;
+  skills: number;
+  added: string[];
+  removed: string[];
+  fingerprint: string;
+  registryPath: string;
+}
+
+export interface RegistrySyncOptions extends SkillRegistryOptions {
+  /** `false` = sólo detecta (no escribe). */
+  write?: boolean;
+}
+
+/**
+ * Sincroniza el registro con el catálogo real: lo reconstruye cuando falta,
+ * cuando cambió una skill (alta/baja/triggers) o cuando cambió su mapeo a
+ * agente (`config/auto-delegation.json`). La detección es por fingerprint
+ * estampado, así un registro que existe pero quedó viejo también se detecta.
+ */
+export function syncSkillRegistry(options: RegistrySyncOptions): RegistrySyncResult {
+  const registryPath =
+    options.registryPath ?? join(options.projectRoot, '.atl', 'skill-registry.md');
+  const rows = collectRegistryRows(options);
+  const fingerprint = registryFingerprint(rows);
+  const present = existsSync(registryPath);
+  const names = rows.map((row) => row.skill);
+  const previous = present
+    ? readFileSync(registryPath, 'utf8')
+        .split(/\r?\n/)
+        .filter((line) => line.startsWith('|'))
+        .map((line) => line.split('|').map((cell) => cell.trim())[2] ?? '')
+    : [];
+  const added = names.filter((name) => !previous.includes(name));
+  const removed = previous.filter((name) => !names.includes(name) && /^[a-z][a-z0-9_-]+$/.test(name));
+  if (present && readRegistryFingerprint(registryPath) === fingerprint) {
+    return { changed: false, reason: 'up-to-date', skills: rows.length, added: [], removed: [], fingerprint, registryPath };
+  }
+  const result: RegistrySyncResult = {
+    changed: true,
+    reason: present ? 'stale' : 'missing',
+    skills: rows.length,
+    added,
+    removed,
+    fingerprint,
+    registryPath,
+  };
+  if (options.write !== false) writeRegistry(rows, registryPath);
+  return result;
+}
+
+function writeRegistry(
+  rows: Array<{ skill: string; agent: string; triggers: string[] }>,
+  registryPath: string,
+): void {
+  mkdirSync(join(registryPath, '..'), { recursive: true });
+  writeFileSync(registryPath, renderSkillRegistry(rows), 'utf8');
 }

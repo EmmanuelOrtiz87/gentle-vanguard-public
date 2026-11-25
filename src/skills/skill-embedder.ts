@@ -16,7 +16,7 @@ import {
   skillRoots,
   type SkillEntry,
 } from './skill-registry-builder.js';
-import { ensureSkillRegistry } from './skill-registry-builder.js';
+import { syncSkillRegistry } from './skill-registry-builder.js';
 
 // El parser del registro y las raíces canónicas viven en el builder (que sabe
 // REGENERAR el registro). Se re-exportan acá para no romper los importadores
@@ -673,18 +673,21 @@ function main(): void {
 
   console.log('=== Skill Embedding Generator ===');
 
-  // El registro es un artefacto DERIVADO: si falta (alguien limpió .atl/) se
-  // reconstruye desde el catálogo real en vez de abortar. Antes esto abortaba
-  // con "Registry not found" y dejaba el índice semántico sin construir en
-  // silencio (el paso del autostart es lazy y no bloquea).
-  if (!existsSync(args.registryPath)) {
-    const rebuilt = ensureSkillRegistry({
-      projectRoot: findRepoRoot(__dirname),
-      delegationConfigPath: args.delegationConfigPath,
-      registryPath: args.registryPath,
-      write: true,
-    });
-    console.log(`Registro de skills ausente: reconstruido (${rebuilt.skills} skills) en ${rebuilt.registryPath}`);
+  // El registro es un artefacto DERIVADO: se sincroniza contra el catálogo
+  // real (no sólo cuando falta). Antes esto abortaba con "Registry not found"
+  // y dejaba el índice semántico sin construir en silencio (el paso del
+  // autostart es lazy y no bloquea); después reparaba la ausencia pero no la
+  // desactualización.
+  const synced = syncSkillRegistry({
+    projectRoot: findRepoRoot(__dirname),
+    delegationConfigPath: args.delegationConfigPath,
+    registryPath: args.registryPath,
+  });
+  if (synced.changed) {
+    console.log(
+      `Registro de skills ${synced.reason === 'missing' ? 'ausente: reconstruido' : 'desactualizado: resincronizado'} ` +
+        `(${synced.skills} skills) en ${synced.registryPath}`,
+    );
   }
 
   console.log(`Building skill catalog from registry, config, and SKILL.md roots...`);

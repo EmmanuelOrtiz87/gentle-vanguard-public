@@ -121,7 +121,9 @@ function readConfig(path = DEFAULT_CONFIG_PATH): DesignTokens | null {
 function buildConfigFromArgs(args: CliArgs): TokenConfig {
   return {
     name: 'design-system',
-    primary: args.primary ?? '#00BFFF',
+    // Must match config/brand.json (`--gv-cyan` in BRAND-KIT); a bare generate
+    // with the old #00BFFF reverted the brand identity on every run.
+    primary: args.primary ?? '#06B6D4',
     neutral: args.neutral ?? 'slate',
     semantic: args.semantic,
     baseFontSize: args.base ?? 16,

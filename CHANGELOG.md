@@ -1,5 +1,65 @@
 # Changelog
 
+## [4.7.0] - 2026-11-25
+
+### Highlights
+
+- chore(repo): purga de documentos cerrados (planes completados, zondeos, auditorias puntuales,
+  snapshots de estado e informes de validacion) en `docs/`, `reports/` y raices sueltas; los
+  documentos que siguen se indexan en sus hubs, y `config/documentation-governance.json` se elimina
+  por ser configuracion huerfana sin lector ni gate.
+- chore(apps): TubeMaster eliminado por decision del owner (app, runtime, registro de apps, MCP,
+  adaptador del Command Center y feature doc); no queda referencia operativa.
+- chore(docs): Alexandria se conserva completa y versionada como trabajo en curso para Khorall.
+- feat(gates): SDD gate bloqueante en CI con `--enforce` y tres gates locales cableados pre-push
+  (`gates:stats:check`, `validate-all` de schemas, ratchet de launchers).
+- fix(processes): `windowsHide` en los spawns que faltaban (censor, graphify, gv-mp,
+  migration-runner, chaos, escaner de launchers) y `.next/.turbo/coverage` sin falsos positivos.
+- fix(telemetry): `token-status` vuelve a atribuir la sesion de la herramienta; health-check cuenta
+  las skills indexadas sin descartar por id.
+- feat(ops): politica de retencion declarada para los cinco directorios `.runtime` sin regla y
+  barrido diario reutilizando el escaneo; backups de Nexus podados tambien por bytes.
+- fix(publish): el mirror usa la credencial de `gh` sin tokens de entorno y usa el rechazo GH013
+  como evidencia del scope.
+- fix(resilience): el cache semantico registra sus hits y respeta `tenant_id`.
+- feat(skills): auto-sync del registry derivado ante cambios de canon; el motor de evolucion lee la
+  evidencia real de uso (Nexus `skill_usage`).
+- fix(watchtower): heal del Command Center, confianza en inferencia fresca, lector de steps lazy sin
+  autojuicio y health probes que ya no consumen el anti-loop.
+- chore(canon): indice ADR regenerado (39), indice real de `config/` (enforced vs deuda) y tokens de
+  diseno alineados a `#06B6D4` del brand canon.
+
+### Changes
+
+- 121 commits desde v4.6.0 (2026-11-21). Lista completa: `git log v4.6.0..v4.7.0 --oneline`.
+
+## [4.6.0] - 2026-11-21
+
+### Highlights
+
+- feat(canon): herencia de modelo como contrato en ambas direcciones, con enforcement en tres
+  cadencias (canon-restore fase 0 en autostart, watchtower detect-only a mitad de sesion, guard
+  restaurado desde HEAD) y subagentes OpenCode pineados a un modelo `tools`-capable porque 2.3.0 no
+  hereda el del orquestador (NORM-OPENCODE-001).
+- feat(mcp): server `stack` registrado en el canon (registry, politica por superficie y demand map)
+  con la politica alineada al uso medido por superficie.
+- feat(gates): `decks-facts-drift` en pre-commit, NORMATIVA-BACKUPS-DOCUMENTOS operable, orphan gate
+  promovido, evals de orquestacion (22 casos) con ADR-0034 routing en espanol y evidencia fresca, y
+  `models-alignment` con estado INDETERMINADO distinguible.
+- feat(smokes): campana P3 completa — las 28 apps declaran su smoke con linea de base honesta.
+- feat(installer): plan firmado en el bootstrap (`--dry-run` serializa plan+hash, `--accept-plan`
+  niega planes stale).
+- feat(ops): observador pasivo de flashes de consola y step `uncommitted-actor-inventory` que
+  clasifica obra ajena sin commit antes de operar.
+- feat(security): ADR-0027 + HITL cableados a la ruta real de delegacion (policy gate fail-closed).
+- feat(censor): rubrica 4.7 con la firma medida de la plantilla viva.
+- fix(sia): el CLI documentado ahora ejecuta su accion posicional y falla cerrado en `status`.
+- fix(test): tres fallos reales de la suite resueltos; `run-unit-node-tests` 1739/1739.
+
+### Changes
+
+- 104 commits desde v4.5.0 (2026-11-19). Lista completa: `git log v4.5.0..v4.6.0 --oneline`.
+
 ## [4.5.0] - 2026-11-19
 
 ### Changes

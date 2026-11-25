@@ -112,14 +112,17 @@ export function sqliteGet(key: string, input?: string): CacheEntry | null {
       /* column doesn't exist yet */
     }
 
+    const tenantScoped = hasTenantColumn(db);
+    const tenantId = tenantScoped ? resolveCacheTenantId() : null;
     const row = db
       .getDb()
       .prepare(
         `SELECT key, response, created_at, hit_count, expires_at, ${tokensCol} as tokens_saved
          FROM response_cache WHERE key = ?
+         ${tenantScoped ? 'AND tenant_id = ?' : ''}
          AND (expires_at IS NULL OR expires_at > datetime('now'))`,
       )
-      .get(key) as
+      .get(...(tenantScoped ? [key, tenantId] : [key])) as
       | {
           key: string;
           response: string;
@@ -133,8 +136,11 @@ export function sqliteGet(key: string, input?: string): CacheEntry | null {
     if (row) {
       // Exact hit — increment hit count
       db.getDb()
-        .prepare('UPDATE response_cache SET hit_count = hit_count + 1 WHERE key = ?')
-        .run(key);
+        .prepare(
+          `UPDATE response_cache SET hit_count = hit_count + 1, last_access = datetime('now')
+           WHERE key = ? ${tenantScoped ? 'AND tenant_id = ?' : ''}`,
+        )
+        .run(...(tenantScoped ? [key, tenantId] : [key]));
 
       return {
         key: row.key,
@@ -151,6 +157,18 @@ export function sqliteGet(key: string, input?: string): CacheEntry | null {
     if (input) {
       const semantic = semanticCacheLookup(input);
       if (semantic) {
+        // A semantic hit is a hit: without this the cache looks unused
+        // (hit_count stays at 0 forever and telemetry reads zero savings).
+        try {
+          db.getDb()
+            .prepare(
+              `UPDATE response_cache SET hit_count = hit_count + 1, last_access = datetime('now')
+               WHERE key = ? ${tenantScoped ? 'AND tenant_id = ?' : ''}`,
+            )
+            .run(...(tenantScoped ? [semantic.key, tenantId] : [semantic.key]));
+        } catch {
+          /* telemetry must never break the hit path */
+        }
         logger.info(
           `[response-cache] Semantic cache HIT: "${input.substring(0, 60)}..." → "${semantic.key.substring(0, 16)}" (sim: ${(semantic.similarity * 100).toFixed(0)}%)`,
         );

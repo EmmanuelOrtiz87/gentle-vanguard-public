@@ -1,8 +1,7 @@
 // Command Center apps registry check (apps-registry component).
 // Vigila las apps NATIVAS del stack a través de CC: presencia en el registro,
 // contratos de ciclo de vida (start.sh/stop.sh) y coherencia de estado
-// (proceso vivo sin pid = proceso adoptado/zombie — ver
-// docs/apps/APPS-INDEPENDENCE-AUDIT-2026-09-12.md).
+// (proceso vivo sin pid = proceso adoptado/zombie).
 //
 // 2026-11-11: la lista de apps sale del registro UNICO
 // (config/apps.registry.json, scope `native`). Las apps de cliente

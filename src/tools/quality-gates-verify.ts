@@ -141,14 +141,31 @@ function main(): void {
     let skipNext = false;
     // Only the FIRST positional token identifies the tool. The rest are
     // arguments: `trufflehog filesystem --no-verification` was certified by the
-    // word "filesystem" appearing in an unrelated CI file, so a gate that was
-    // deleted months ago still looked enforced.
+    // word "filesystem" appearing in an unrelated CI file, so a gate that had
+    // been deleted months ago still looked enforced.
     let primaryTaken = false;
+    // Only flags that TAKE a value consume the next token. Treating every
+    // `--flag` as value-taking swallowed the script path of
+    // `node --experimental-strip-types src/tools/check-process-launchers.ts`,
+    // leaving the gate with no lookup key at all.
+    const FLAGS_WITH_VALUE = new Set([
+      '-e',
+      '--eval',
+      '-p',
+      '--print',
+      '-r',
+      '--require',
+      '--loader',
+      '--import',
+      '--config',
+      '-c',
+      '--conditions',
+    ]);
     for (const token of tokens) {
       const clean = token.replace(/[{},"']/g, '');
       const lower = clean.toLowerCase();
       if (lower.startsWith('-')) {
-        skipNext = true;
+        if (FLAGS_WITH_VALUE.has(lower)) skipNext = true;
         continue;
       }
       if (skipNext) {

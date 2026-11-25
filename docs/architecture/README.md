@@ -1,8 +1,12 @@
 # 🏗️ Architecture Documentation
 
-Public web release: [mandatory artifact QA, publication and operational limits](public-web-release-gate.md).
+Public web release:
+[mandatory artifact QA, publication and operational limits](public-web-release-gate.md).
 
-Current public-presence/design work: [status and evidence](../status/PRESENCIA-PUBLICA-Y-DISENO.md), [app adoption plan](visual-homologation-plan.md), [canonical brand](../brand/BRAND-KIT.md) and [interaction standard](../design/07-motion-ux-standard.md). Corporate web and campaign rendering reuse the stack; public exports do not include internal apps or operational data.
+Current public-presence/design work: [status and evidence](../status/PRESENCIA-PUBLICA-Y-DISENO.md),
+[app adoption plan](visual-homologation-plan.md), [canonical brand](../brand/BRAND-KIT.md) and
+[interaction standard](../design/07-motion-ux-standard.md). Corporate web and campaign rendering
+reuse the stack; public exports do not include internal apps or operational data.
 
 <p align="center">
   <b>Understanding the 5-layer topology that makes Gentle-Vanguard agnostic</b>
@@ -53,11 +57,11 @@ docs/architecture/
 ┌─────────────────────────────────────────────────────┐
 │  🤖 Layer 1: AGENTS (BA, DEV, QA, OPS, GOV, DOC, SAD)    │
 ├─────────────────────────────────────────────────────┤
-│  ⚡ Layer 2: COMMANDS (src/cli/gv.ts, pre-process-input.ps1)    │
+│  ⚡ Layer 2: COMMANDS (src/cli/gv.ts, src/tools/pre-process-input.ts)    │
 ├─────────────────────────────────────────────────────┤
 │  🔌 Layer 3: MCP SERVERS (Model Context Protocol)         │
 ├─────────────────────────────────────────────────────┤
-│  🧩 Layer 4: SKILLS (125+ specialized skills)              │
+│  🧩 Layer 4: SKILLS (263 skills, canon en registry)              │
 ├─────────────────────────────────────────────────────┤
 │  🧠 Layer 5: MEMORY (Engram - persistent cross-session)    │
 └─────────────────────────────────────────────────────┘
@@ -120,6 +124,29 @@ docs/architecture/
 | **Token Tracking**  | AI token monitoring guide               | [../reference/REAL-TOKEN-TRACKING.md](../reference/REAL-TOKEN-TRACKING.md)     |
 
 ---
+
+## Corpus de arquitectura
+
+| Documento                                                                            | Qué resuelve                                               |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| [MCP-REGISTRY.md](MCP-REGISTRY.md)                                                   | Censo, política y ciclo de vida de los servidores MCP      |
+| [MODEL-IDS-CANONICOS.md](MODEL-IDS-CANONICOS.md)                                     | Ids de modelo canónicos que consumen los hosts             |
+| [MULTI-TOOL-SHARED-VS-ENCAPSULATED.md](MULTI-TOOL-SHARED-VS-ENCAPSULATED.md)         | Qué se comparte entre herramientas y qué queda encapsulado |
+| [STACK-GOVERNANCE-MATRIX.md](STACK-GOVERNANCE-MATRIX.md)                             | Dónde vive cada regla y cómo se enforcea                   |
+| [STACK-HYGIENE-POLICY.md](STACK-HYGIENE-POLICY.md)                                   | Higiene de artefactos, regenerables y limpieza             |
+| [ai-reliability-and-performance.md](ai-reliability-and-performance.md)               | Baseline de confiabilidad y performance de IA              |
+| [asset-format-policy.md](asset-format-policy.md)                                     | Formatos de assets aceptados por el stack                  |
+| [codex-engram-runtime-binding.md](codex-engram-runtime-binding.md)                   | Binding de Codex con Engram                                |
+| [public-web-presence.md](public-web-presence.md)                                     | Sitio público unificado y su alcance                       |
+| [public-web-release-gate.md](public-web-release-gate.md)                             | Gate de publicación del sitio público                      |
+| [replicated-apps-policy.md](replicated-apps-policy.md)                               | Política de apps replicadas                                |
+| [skills-governance-and-conflict-policy.md](skills-governance-and-conflict-policy.md) | Gobierno de skills y resolución de conflictos              |
+| [stack-latency-operating-model.md](stack-latency-operating-model.md)                 | Modelo operativo de latencia                               |
+| [universal-quality-gate.md](universal-quality-gate.md)                               | Gate universal de calidad y sus controles                  |
+| [stack-assessment-2026-10.md](stack-assessment-2026-10.md)                           | Evaluación integral de octubre 2026 (evidencia vigente)    |
+| [visual-homologation-plan.md](visual-homologation-plan.md)                           | Plan de homologación visual de apps                        |
+| [adr-0022-orchestrator-loop-guard.md](adr-0022-orchestrator-loop-guard.md)           | ADR: anti-loop nativo del orquestador                      |
+| [adr-0023-guardrails-defense-in-depth.md](adr-0023-guardrails-defense-in-depth.md)   | ADR: guardrails defense-in-depth                           |
 
 <p align="center">
   <b>🏗️ Understand the architecture. Master the stack.</b><br>

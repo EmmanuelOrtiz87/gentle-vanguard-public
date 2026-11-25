@@ -69,7 +69,7 @@ export default {
         },
         {
           label: 'apps/',
-          body: '29 of our own applications running on the stack, validating the architecture in production.',
+          body: '28 of our own applications running on the stack, validating the architecture in production.',
           accent: '8b5cf6',
         },
         {
@@ -94,7 +94,7 @@ export default {
         },
         {
           label: 'tests/',
-          body: '801 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
+          body: '696 test files: unit, e2e, integration, security, skills, workflows, eval and performance.',
           accent: 'f4bb4f',
         },
         {
@@ -304,13 +304,13 @@ export default {
       cols: 4,
       items: [
         {
-          value: '76',
+          value: '79',
           label: 'Quality gates',
-          sub: '71 of 76 enforced strictly',
+          sub: '74 of 79 enforced strictly',
           accent: '06b6d4',
         },
         {
-          value: '801',
+          value: '696',
           label: 'Test files',
           sub: 'Unit, e2e, integration, security and skills',
           accent: '8b5cf6',
