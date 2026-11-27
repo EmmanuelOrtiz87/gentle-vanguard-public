@@ -193,8 +193,11 @@ export interface EvalCase {
   expectedDomain?: string;
 }
 
-/** Evalúa el dataset curado (config/routing-eval-cases.json) contra el router vivo. */
-export function evaluateCases(cases: EvalCase[]): {
+/** Evaluate canonical rules reproducibly; live mode also includes this machine's learned rules. */
+export function evaluateCases(
+  cases: EvalCase[],
+  options: { live?: boolean } = {},
+): {
   total: number;
   pass: number;
   failures: Array<{ id: string; task: string; expected: string; got: string; domain: string }>;
@@ -208,7 +211,10 @@ export function evaluateCases(cases: EvalCase[]): {
   }> = [];
   let pass = 0;
   for (const c of cases) {
-    const rec = recommend(c.task, '', 1) as { recommended?: string; domain?: string };
+    const rec = recommend(c.task, '', 1, { useLearnedRouting: options.live === true }) as {
+      recommended?: string;
+      domain?: string;
+    };
     if (rec.recommended === c.expectedAgent) {
       pass++;
     } else {
@@ -234,7 +240,7 @@ function main(): void {
   const casesArg = args.indexOf('--cases');
   if (casesArg !== -1 && args[casesArg + 1]) {
     const cases = loadCases(resolve(args[casesArg + 1]));
-    const report = evaluateCases(cases);
+    const report = evaluateCases(cases, { live: args.includes('--live') });
     console.log(
       `[routing-eval] dataset: ${report.pass}/${report.total} casos enrutan al agente canónico`,
     );

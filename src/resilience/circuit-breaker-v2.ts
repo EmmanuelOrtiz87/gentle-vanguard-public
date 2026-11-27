@@ -63,6 +63,14 @@ interface CircuitState_v2 {
 
 interface ExecuteOptions {
   signal?: AbortSignal;
+  /**
+   * Timeout propio de la llamada. Gana sobre el del circuit cuando es mayor
+   * (nunca lo acorta): el circuit `agent_delegation` corta a los 120 s y una
+   * delegación editorial larga tiene presupuesto de hasta 390 s — sin esto,
+   * toda corrida válida se leía como timeout y el circuit abría
+   * (medido 2026-11-26: probe editorial broken desde las 13:47Z).
+   */
+  timeoutMs?: number;
 }
 
 const circuitLocks = new Map<string, Promise<void>>();
@@ -364,6 +372,7 @@ async function executeWithCircuit<T>(
   }
   let timer: ReturnType<typeof setTimeout> | undefined;
   let timedOut = false;
+  const callTimeoutMs = Math.max(circuit.config.timeout, options.timeoutMs ?? 0);
 
   try {
     const result = await new Promise<T>((resolve, reject) => {
@@ -373,7 +382,7 @@ async function executeWithCircuit<T>(
         timedOut = true;
         controller.abort(new Error(`${name} timeout`));
         reject(new Error(`${name} timeout`));
-      }, circuit.config.timeout);
+      }, callTimeoutMs);
       Promise.resolve()
         .then(() => fn(controller.signal))
         .then(resolve, reject)

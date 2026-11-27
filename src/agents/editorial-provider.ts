@@ -68,7 +68,9 @@ export async function complete(
       task,
     });
     if (!result.ok || !result.completed || !result.delivered)
-      throw new Error('Proveedor sin entrega completa.');
+      throw new Error(
+        'Proveedor sin entrega completa.' + (result.error ? ` (${result.error})` : ''),
+      );
     return result.render;
   }
   const response = await fetch('http://127.0.0.1:11434/api/chat', {

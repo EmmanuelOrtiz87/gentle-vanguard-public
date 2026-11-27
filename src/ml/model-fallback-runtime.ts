@@ -77,12 +77,23 @@ function getNextAvailableModel(currentModel: string): string | null {
 
   const fallbackChain = registry.models[currentModel].fallbackChain || [];
 
-  // Buscar el primer modelo disponible en la cadena
-  for (const model of fallbackChain) {
-    if (registry.models[model] && registry.models[model].health.status === 'available') {
-      return model;
-    }
-  }
+  // Canon 2026-11-26: los barridos automáticos priorizan la nube; un local
+  // (Ollama/LM Studio) ni siquiera está siempre activo, así que solo entra si
+  // no queda ningún candidato nube con salud declarada (caso excepcional).
+  const isLocal = (model: string) => {
+    const provider = registry.models[model]?.provider ?? model.split('/')[0];
+    return (
+      ['ollama', 'lm-studio', 'lm-studio2'].includes(provider) ||
+      model.startsWith('ollama/') ||
+      model.startsWith('lm-studio')
+    );
+  };
+  const available = fallbackChain.filter(
+    (model) => registry.models[model] && registry.models[model].health.status === 'available',
+  );
+  const cloud = available.filter((model) => !isLocal(model));
+  if (cloud.length) return cloud[0];
+  if (available.length) return available[0];
 
   // Si no hay en la cadena específica, usar fallback universal
   return registry.routingRules.subagents.default || null;

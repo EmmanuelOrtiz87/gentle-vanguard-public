@@ -351,6 +351,8 @@ function recommend(
   options: {
     tenantId?: string;
     nexus?: NexusRoutingSource;
+    /** Canonical evaluation excludes mutable local learning; production defaults to true. */
+    useLearnedRouting?: boolean;
     /** Canon explícito de agentes (tests inyectan sus targets sintéticos; el
      *  default lee config/agents.json — ADR-0034). */
     registeredAgents?: Set<string>;
@@ -384,36 +386,38 @@ function recommend(
   }
   const domain = matchDomain(task, domainHint);
   const tenantId = options.tenantId ?? process.env.GENTLE_VANGUARD_TENANT_ID ?? DEFAULT_TENANT_ID;
-  try {
-    const nexus = options.nexus ?? DatabaseManager.getInstance();
-    const rules = nexus
-      .getEnabledRoutingRules(tenantId)
-      .filter((rule) =>
-        isRoutableTarget(options.registeredAgents ?? registeredAgents(), rule.target),
-      )
-      .filter(
-        (rule) =>
-          taskHasKeyword(normalizedTask, rule.pattern.toLowerCase()) ||
-          taskHasKeyword(domain.toLowerCase(), rule.pattern.toLowerCase()),
-      )
-      .sort(
-        (a, b) =>
-          b.priority - a.priority || b.successRate - a.successRate || b.hitCount - a.hitCount,
-      );
-    const rule = rules[0];
-    if (rule) {
-      return {
-        domain,
-        recommended: rule.target,
-        confidence: Math.max(0.3, Math.min(1, rule.successRate / 100)),
-        alternatives: rules.slice(1, topN).map((candidate) => candidate.target),
-        source: 'nexus',
-      };
+  if (options.useLearnedRouting !== false) {
+    try {
+      const nexus = options.nexus ?? DatabaseManager.getInstance();
+      const rules = nexus
+        .getEnabledRoutingRules(tenantId)
+        .filter((rule) =>
+          isRoutableTarget(options.registeredAgents ?? registeredAgents(), rule.target),
+        )
+        .filter(
+          (rule) =>
+            taskHasKeyword(normalizedTask, rule.pattern.toLowerCase()) ||
+            taskHasKeyword(domain.toLowerCase(), rule.pattern.toLowerCase()),
+        )
+        .sort(
+          (a, b) =>
+            b.priority - a.priority || b.successRate - a.successRate || b.hitCount - a.hitCount,
+        );
+      const rule = rules[0];
+      if (rule) {
+        return {
+          domain,
+          recommended: rule.target,
+          confidence: Math.max(0.3, Math.min(1, rule.successRate / 100)),
+          alternatives: rules.slice(1, topN).map((candidate) => candidate.target),
+          source: 'nexus',
+        };
+      }
+    } catch {
+      // Nexus is an optional runtime source; preserve the legacy fallbacks.
     }
-  } catch {
-    // Nexus is an optional runtime source; preserve the legacy fallbacks.
   }
-  const table = loadRoutingTable();
+  const table = options.useLearnedRouting === false ? null : loadRoutingTable();
 
   // Decay del aprendizaje (GB-20261120, evals de orquestación): una entrada
   // aprendida SOLO aplica con evidencia fresca (<= decayDays). Medido: las

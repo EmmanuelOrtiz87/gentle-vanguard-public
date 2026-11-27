@@ -1,0 +1,225 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-template-oficial",
+  "title": "GentleVanguard - Template oficial de presentaciones",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/build/template.js",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "cover",
+      "master": "GV_PORTADA",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-kicker",
+          "role": "kicker",
+          "type": "string",
+          "text": "SOFTWARE A MEDIDA - AUTOMATIZACIÓN - IA APLICADA",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Título de portada",
+          "editable": true
+        },
+        {
+          "elementId": "cover-bajada",
+          "role": "bajada",
+          "type": "string",
+          "text": "Bajada de una línea: qué es esto y para quién es.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-pie",
+          "role": "pie",
+          "type": "string",
+          "text": "Ciudad, país - año",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "cover",
+      "master": "GV_PORTADA_ART",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-kicker",
+          "role": "kicker",
+          "type": "string",
+          "text": "SOFTWARE A MEDIDA - AUTOMATIZACIÓN - IA APLICADA",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Portada con arte oficial",
+          "editable": true
+        },
+        {
+          "elementId": "cover-bajada",
+          "role": "bajada",
+          "type": "string",
+          "text": "La misma portada, con la ilustración oficial de GentleVanguard y su velo navy.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-pie",
+          "role": "pie",
+          "type": "string",
+          "text": "Ciudad, país - año",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "content",
+      "master": "GV_CONTENIDO",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "content-kicker",
+          "role": "kicker",
+          "type": "string",
+          "text": "SECCIÓN",
+          "editable": true
+        },
+        {
+          "elementId": "content-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Título de contenido",
+          "editable": true
+        },
+        {
+          "elementId": "content-contenido",
+          "role": "contenido",
+          "type": "string",
+          "text": "Zona de contenido. Usá tarjetas, tablas o diagramas según el tipo de página.\n\nRegla: una idea por diapositiva.",
+          "editable": true
+        },
+        {
+          "elementId": "content-firma",
+          "role": "firma",
+          "type": "string",
+          "text": "GentleVanguard",
+          "editable": true
+        },
+        {
+          "elementId": "content-pagina",
+          "role": "pagina",
+          "type": "string",
+          "text": "1",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "content",
+      "master": "GV_CONTENIDO_OSCURO",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "content-kicker",
+          "role": "kicker",
+          "type": "string",
+          "text": "SECCIÓN",
+          "editable": true
+        },
+        {
+          "elementId": "content-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Título de contenido (superficie oscura)",
+          "editable": true
+        },
+        {
+          "elementId": "content-contenido",
+          "role": "contenido",
+          "type": "string",
+          "text": "Zona de contenido sobre el canon midnight navy. Útil para slides de impacto o demos en pantalla.",
+          "editable": true
+        },
+        {
+          "elementId": "content-firma",
+          "role": "firma",
+          "type": "string",
+          "text": "GentleVanguard",
+          "editable": true
+        },
+        {
+          "elementId": "content-pagina",
+          "role": "pagina",
+          "type": "string",
+          "text": "2",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "section",
+      "master": "GV_SEPARADOR",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "section-numero",
+          "role": "numero",
+          "type": "string",
+          "text": "01",
+          "editable": true
+        },
+        {
+          "elementId": "section-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Nombre de la sección",
+          "editable": true
+        },
+        {
+          "elementId": "section-bajada",
+          "role": "bajada",
+          "type": "string",
+          "text": "Una línea que explica qué viene en esta sección.",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "closing",
+      "master": "GV_CIERRE",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-titulo",
+          "role": "titulo",
+          "type": "string",
+          "text": "Cierre y llamada a la acción",
+          "editable": true
+        },
+        {
+          "elementId": "closing-bajada",
+          "role": "bajada",
+          "type": "string",
+          "text": "Lo que querés que la persona haga después de ver esta presentación.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-contacto",
+          "role": "contacto",
+          "type": "string",
+          "text": "WhatsApp: +54 9 264 545-2221\nCorreo: gentlevanguard@gmail.com",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

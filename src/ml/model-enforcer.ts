@@ -32,6 +32,8 @@ interface ModelPreference {
   preferredModel?: string;
   preferredProvider?: string;
   fallbackModel?: string;
+  /** Substrate cloud de suscripción: se usa cuando ningún modelo gratuito sirve. */
+  substrateModel?: string;
 }
 
 function readPreference(): ModelPreference {
@@ -58,10 +60,10 @@ function getPreferredModel(): { model: string; provider: string } {
  * constant that was NEVER validated against the healthy list: when the preferred
  * model was down, the enforcer happily enforced the very model it had just
  * classified as unhealthy. Order of resolution, every candidate validated:
- *   1. preferred model        — only if healthy
- *   2. configured fallback    — only if healthy
- *   3. first healthy free model in the registry
- * A model listed as unhealthy/unknown is never enforced.
+ *   1. preferred model        — unless there is current negative evidence
+ *   2. configured fallback    — unless there is current negative evidence
+ *   3. first healthy cloud model with "tools" (local only as last resort)
+ * A model with a failed inference or an unreachable provider is never enforced.
  *
  * Adicion (2026-11-06): la evidencia de INFERENCIA REAL manda sobre la
  * alcanzabilidad. Un modelo con inferencia probada y FALLIDA (cuota, sin
@@ -70,8 +72,27 @@ function getPreferredModel(): { model: string; provider: string } {
  * esta calificado, NO se cambia el routing (no hay un routing mejor: cambiarlo
  * solo genera churn) — el FAIL queda reportado por el watchtower.
  */
+/** Proveedores locales: existen en la máquina del owner y pueden estar apagados. */
+const LOCAL_PROVIDERS = new Set(['ollama', 'lm-studio', 'lm-studio2']);
+
+/** ¿El candidato corre en la máquina local? (prefijo del id o provider del registry) */
+function isLocalModel(registry: ModelRegistry, modelId: string): boolean {
+  const provider = registry.models[modelId]?.provider ?? modelId.split('/')[0];
+  return (
+    LOCAL_PROVIDERS.has(provider) ||
+    modelId.startsWith('ollama/') ||
+    modelId.startsWith('lm-studio')
+  );
+}
+
 export function resolveTargetModel(
-  status: { healthy: string[]; unhealthy: string[]; qualified: string[] },
+  status: {
+    healthy: string[];
+    unhealthy: string[];
+    qualified: string[];
+    disqualified?: string[];
+    unreachable?: string[];
+  },
   preferred: { model: string; provider: string },
   registry: ModelRegistry,
 ): { target: { model: string; provider: string } | null; reason: string } {
@@ -83,44 +104,103 @@ export function resolveTargetModel(
   // routing de agentes si declara la capacidad que los agentes necesitan.
   const usable = (model: string) => declaresTools(registry, model);
 
-  if (status.healthy.includes(preferred.model) && usable(preferred.model)) {
+  // El modelo PREFERIDO (model-preference.json) es la ruta declarada: solo una
+  // evidencia negativa VIGENTE (inferencia fallida, cuota o proveedor medido
+  // inalcanzable) lo saca. Exigir `healthy` lo degradaba por su `health.status`
+  // estático en `unknown` y el barrido terminaba en Ollama (drift medido
+  // 2026-11-26: primario del orquestador reescrito a local en cada arranque).
+  // `unreachable` es distinto de `unhealthy`: este ultimo tambien lista
+  // modelos pagos o de estado estatico desconocido, que no son evidencia
+  // negativa vigente.
+  const unreachable = status.unreachable ?? [];
+  if (
+    usable(preferred.model) &&
+    !(status.disqualified ?? []).includes(preferred.model) &&
+    !unreachable.includes(preferred.model)
+  ) {
     const qualified = status.qualified.includes(preferred.model);
     return {
       target: preferred,
       reason: qualified
         ? 'Preferred model available (calificado por inferencia real)'
-        : 'Preferred subscription model available',
+        : 'Preferred model kept: sin evidencia negativa vigente',
     };
   }
 
   const configuredFallback = readPreference().fallbackModel;
   if (
     configuredFallback &&
-    status.healthy.includes(configuredFallback) &&
-    usable(configuredFallback)
+    usable(configuredFallback) &&
+    !(status.disqualified ?? []).includes(configuredFallback) &&
+    !unreachable.includes(configuredFallback)
   ) {
     return {
-      target: { model: configuredFallback, provider: configuredFallback.split('/')[0] },
+      target: {
+        model: configuredFallback,
+        provider: registry.models[configuredFallback]?.provider ?? configuredFallback.split('/')[0],
+      },
       reason: 'Fallback: preferred model unavailable, configured fallback healthy',
     };
   }
 
-  const firstQualified = status.healthy.find(
-    (model) => status.qualified.includes(model) && usable(model),
-  );
+  // Canon 2026-11-26: el local es el caso EXCEPCIONAL, nunca la ruta. Antes el
+  // primer candidato calificado podía ser Ollama (una inferencia local no
+  // distingue "el servicio está prendido" de "es la ruta correcta") y el
+  // enforcer escribía ollama como primario del orquestador en cada arranque.
+  // Los barridos automáticos priorizan la nube; el local solo entra si no queda
+  // ningún candidato nube sano (Ollama ni siquiera está siempre activo).
+  const candidates = status.healthy.filter(usable);
+  const cloudCandidates = candidates.filter((model) => !isLocalModel(registry, model));
+
+  const firstQualified =
+    cloudCandidates.find((model) => status.qualified.includes(model)) ?? cloudCandidates[0];
   if (firstQualified) {
     return {
-      target: { model: firstQualified, provider: firstQualified.split('/')[0] },
-      reason: 'Fallback: first model qualified by real inference (with tools)',
+      target: {
+        model: firstQualified,
+        provider: registry.models[firstQualified]?.provider ?? firstQualified.split('/')[0],
+      },
+      reason: status.qualified.includes(firstQualified)
+        ? 'Fallback: first model qualified by real inference (with tools)'
+        : 'Fallback: preferred and configured fallback unavailable, first healthy cloud model with tools',
     };
   }
 
-  const firstHealthy = status.healthy.find(usable);
-  if (firstHealthy) {
+  // Ningún free cloud utilizable: la siguiente ruta es el substrate cloud de
+  // suscripción declarado (el que sostiene al orquestador), NUNCA el local.
+  // El local es el último recurso: puede ni estar activo (canon 2026-11-26).
+  const isPaidCloud = (id: string) => {
+    const entry = registry.models[id];
+    if (!entry || isLocalModel(registry, id) || !usable(id)) return false;
+    if ((status.disqualified ?? []).includes(id)) return false;
+    const cost = (entry.costPer1kTokens?.input ?? 0) + (entry.costPer1kTokens?.output ?? 0);
+    return entry.tier === 'subscription' || cost > 0;
+  };
+  const substrate = readPreference().substrateModel;
+  const paidPick =
+    (substrate && isPaidCloud(substrate) ? substrate : undefined) ??
+    Object.keys(registry.models).find(isPaidCloud);
+  if (paidPick) {
     return {
-      target: { model: firstHealthy, provider: firstHealthy.split('/')[0] },
+      target: {
+        model: paidPick,
+        provider: registry.models[paidPick]?.provider ?? paidPick.split('/')[0],
+      },
+      reason: 'Fallback: sin modelos gratuitos utilizables, substrate cloud de suscripción',
+    };
+  }
+
+  // Último recurso: un modelo local sano con tools (el owner puede tenerlo
+  // prendido; si no, no hay routing mejor y el FAIL lo reporta el watchtower).
+  const firstLocal = candidates[0];
+  if (firstLocal) {
+    return {
+      target: {
+        model: firstLocal,
+        provider: registry.models[firstLocal]?.provider ?? firstLocal.split('/')[0],
+      },
       reason:
-        'Fallback: preferred and configured fallback unavailable, first healthy free model with tools',
+        'Fallback: sin modelos nube utilizables, último recurso local calificado (with tools)',
     };
   }
 
@@ -130,7 +210,8 @@ export function resolveTargetModel(
 interface ModelEntry {
   provider: string;
   health: { status: string };
-  costPer1kTokens: { input: number; output: number };
+  tier?: string;
+  costPer1kTokens?: { input: number; output: number };
   capabilities?: string[];
   fallbackChain?: string[];
 }
@@ -228,6 +309,7 @@ function checkModelHealth(): {
   evidenceAgeHours: number | null;
   qualified: string[];
   disqualified: string[];
+  unreachable: string[];
 } {
   const registry: ModelRegistry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'));
   const evidence = loadProviderEvidence();
@@ -245,11 +327,13 @@ function checkModelHealth(): {
   const free: string[] = [];
   const qualified: string[] = [];
   const disqualified: string[] = [];
+  const unreachable: string[] = [];
   let evidenceAgeHours: number | null = null;
 
   for (const [id, model] of Object.entries(registry.models)) {
     const isHealthy = model.health.status === 'available';
-    const isFree = model.costPer1kTokens.input === 0 && model.costPer1kTokens.output === 0;
+    const cost = model.costPer1kTokens;
+    const isFree = !cost || (cost.input === 0 && cost.output === 0);
 
     // La INFERENCIA REAL manda sobre la alcanzabilidad del catalogo.
     // Antes el orden era el inverso: una evidencia de proveedor vieja (por
@@ -289,6 +373,7 @@ function checkModelHealth(): {
       if (fresh && !providerEvidence.reachable) {
         if (isFree) free.push(id);
         unhealthy.push(id);
+        unreachable.push(id);
         continue;
       }
     }
@@ -301,7 +386,7 @@ function checkModelHealth(): {
     }
   }
 
-  return { healthy, unhealthy, free, evidenceAgeHours, qualified, disqualified };
+  return { healthy, unhealthy, free, evidenceAgeHours, qualified, disqualified, unreachable };
 }
 
 function enforceFreeModel(): void {
@@ -422,7 +507,8 @@ function checkCurrentStatus(): void {
   console.log('Modelos en registro:');
   for (const [id, model] of Object.entries(registry.models)) {
     const isHealthy = model.health.status === 'available';
-    const isFree = model.costPer1kTokens.input === 0 && model.costPer1kTokens.output === 0;
+    const cost = model.costPer1kTokens;
+    const isFree = !cost || (cost.input === 0 && cost.output === 0);
     const icon = isHealthy && isFree ? '✅' : '⚠️';
     const verdict = inferenceVerdictFor(inference, id, now);
     const inferenceLabel =
@@ -434,7 +520,7 @@ function checkCurrentStatus(): void {
     console.log(`  ${icon} ${id}`);
     console.log(`     Estado: ${model.health.status}`);
     console.log(
-      `     Costo: $${model.costPer1kTokens.input}/$${model.costPer1kTokens.output} per 1k`,
+      `     Costo: $${model.costPer1kTokens?.input ?? 0}/$${model.costPer1kTokens?.output ?? 0} per 1k`,
     );
     console.log(`     Gratis: ${isFree ? 'SÍ ✓' : 'NO'}`);
     console.log(`     Inferencia real: ${inferenceLabel}`);

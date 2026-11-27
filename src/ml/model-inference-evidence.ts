@@ -140,8 +140,13 @@ export function findInferenceEntry(
       }
       continue;
     }
-    // El pedido no trae provider: el id bare es la unica ancla.
-    if (!provider && fresh >= fallbackAt) {
+    // El pedido no trae provider: el id bare es la unica ancla. Solo vale una
+    // entrada TAMBIEN bare: dos providers distintos pueden servir un modelo con
+    // el mismo ultimo segmento y ser cosas distintas (medido 2026-11-26: la
+    // evidencia `SUBSCRIPTION_REQUIRED` de `opencode-go-A/gpt-5.6-luna` — HTTP,
+    // requiere suscripcion Go — descalificaba el `gpt-5.6-luna` del registry,
+    // que es el substrate Codex CLI y entrega por suscripcion).
+    if (!provider && !candidate.provider && fresh >= fallbackAt) {
       fallback = entry;
       fallbackAt = fresh;
     }

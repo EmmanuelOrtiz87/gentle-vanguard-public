@@ -15,6 +15,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { cachedVerdict } from './editorial-probe-cache.js';
+import { editorialDelegationTimeoutSeconds } from '../orchestration/route-and-delegate.js';
 
 const REPO = process.cwd();
 const RUNTIME = join(REPO, '.runtime', 'agent-probe');
@@ -66,7 +67,11 @@ function delegateOnce(): ReturnType<typeof spawnSync> {
     {
       cwd: REPO,
       encoding: 'utf8',
-      timeout: 240_000,
+      // El cap del spawn cubre el presupuesto REAL de la ruta (generación +
+      // revisión) más margen; un cap menor mataba corridas válidas y el
+      // veredicto `broken` medía el cap, no la ruta (misma clase que el bug
+      // del circuit, 2026-11-26).
+      timeout: (editorialDelegationTimeoutSeconds('rewrite') + 60) * 1000,
       windowsHide: true,
       maxBuffer: 32 * 1024 * 1024,
       // Sin AGENT_MODEL fijo: la sonda mide la resolucion canonica del stack

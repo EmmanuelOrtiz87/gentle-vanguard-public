@@ -11,6 +11,34 @@ import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { evaluateHits, type RoutingHit } from '../../src/orchestration/routing-eval.js';
+import { recommend } from '../../src/orchestration/recommend-agent.js';
+
+test('canonical routing excludes local learned rules while production retains them', () => {
+  let reads = 0;
+  const nexus = {
+    getEnabledRoutingRules: () => {
+      reads++;
+      return [
+        {
+          pattern: 'forecast',
+          target: 'editorial-agent',
+          priority: 100,
+          hitCount: 1,
+          successRate: 100,
+        },
+      ];
+    },
+  };
+  const task = 'preparar el forecast de ingresos del próximo trimestre';
+  const canonical = recommend(task, '', 1, { nexus, useLearnedRouting: false }) as {
+    recommended: string;
+  };
+  assert.equal(canonical.recommended, 'finance-agent');
+  assert.equal(reads, 0);
+  const live = recommend(task, '', 1, { nexus }) as { recommended: string };
+  assert.equal(live.recommended, 'editorial-agent');
+  assert.equal(reads, 1);
+});
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 const TSX_LOADER = pathToFileURL(join(repoRoot, 'node_modules', 'tsx', 'dist', 'loader.mjs')).href;

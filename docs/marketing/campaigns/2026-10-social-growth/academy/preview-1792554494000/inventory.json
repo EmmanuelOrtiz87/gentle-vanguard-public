@@ -1,0 +1,67 @@
+{
+  "campaign": "academy_fundamentos_14d",
+  "status": "REVIEW",
+  "publications": 0,
+  "assets": [
+    {
+      "path": "a01-feed.png",
+      "sha256": "498351875db5956db3f537545987239d4cc3020894e0714fcecad5504756e2af",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "a01-story.png",
+      "sha256": "677785af1605aeba1b21dcd8ac5a29053368055085fcedc50fa7f272efcb4ce6",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "a02-feed.png",
+      "sha256": "05732a9e644be92127f45168291fee342f2cf8bc3491eb17a5c1c09dd95f833c",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "a02-story.png",
+      "sha256": "e7dc62ab8a74fdcb5036f6e700845043c07290afd34872b6c6bd49449dae5335",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "a03-feed.png",
+      "sha256": "4ac02238d33fc6520bf79be5ca8b6d52fb420b49986f29bb67548003daa182b0",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "a03-story.png",
+      "sha256": "1939dbdc60702ae493e38536093f018f9c8b8066915b97894737fc0ac46f57ac",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "a04-feed.png",
+      "sha256": "d60959f57cce2bafb37812a70878f0ea6595099f89819d2d021e844b43cc9197",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "a04-story.png",
+      "sha256": "fb6e56f05ffcf41b84f028dcc5bb7aec802f6ba60606e457ba232bfa96b103ce",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "a05-feed.png",
+      "sha256": "f0469f628e40465baa9585561e2f33a6ff983fb4bf0ecfe1a4dd3972e0df1bf1",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "a05-story.png",
+      "sha256": "ff6aeff42d306ca3eca16407951af3ac5e1ac333cda22ca753e08e499f22d7dd",
+      "width": 1080,
+      "height": 1920
+    }
+  ]
+}

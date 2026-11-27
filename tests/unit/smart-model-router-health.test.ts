@@ -1,7 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { checkModelHealth, detectErrorType, getFallbackModel } from '../../src/ml/smart-model-router.js';
+import {
+  checkModelHealth,
+  detectErrorType,
+  getFallbackModel,
+} from '../../src/ml/smart-model-router.js';
 import { ModelBroker } from '../../src/ml/model-broker.js';
 import { readFileSync } from 'node:fs';
 
@@ -33,47 +37,68 @@ describe('smart model router local health checks', () => {
     // ollama local). Fijar el provider aca convertia el test en un tripwire
     // de un reroute legitimo. Lo que NO puede cambiar:
     //   1) el primary es direccionable (tiene entrada), y
-    //   2) nunca se enruta a un tier de pago.
+    //   2) no se introduce costo API por token; las suscripciones ya contratadas
+    //      son un tier declarado distinto de free y no son un cargo API adicional.
     assert.ok(
       typeof registry.models[primary].provider === 'string' &&
         registry.models[primary].provider.length > 0,
       'el primary declara su provider',
     );
     assert.ok(
-      ['free', 'local'].includes(registry.models[primary].tier),
-      `el primary debe ser free|local (hoy ${registry.models[primary].tier})`,
+      ['free', 'local', 'subscription'].includes(registry.models[primary].tier),
+      `el primary debe ser free|local|subscription (hoy ${registry.models[primary].tier})`,
     );
+    assert.deepEqual(registry.models[primary].costPer1kTokens, { input: 0, output: 0 });
   });
 
   it('classifies HTTP 429 rate-limit responses as quota errors', () => {
     const registry = JSON.parse(readFileSync('config/model-health-registry.json', 'utf8'));
-    assert.equal(detectErrorType('HTTP 429 Too Many Requests', registry.errorPatterns), 'quotaExceeded');
+    assert.equal(
+      detectErrorType('HTTP 429 Too Many Requests', registry.errorPatterns),
+      'quotaExceeded',
+    );
   });
 
   it('does not report unknown or stale broker models as available', async () => {
     const status = await new ModelBroker().getStatus();
-    assert.ok(Object.values(status).some((entry) => entry.health === 'unknown' && !entry.available));
+    assert.ok(
+      Object.values(status).some((entry) => entry.health === 'unknown' && !entry.available),
+    );
   });
 
   it('does not report a simulated broker result as a successful delegation', async () => {
-    const result = await new ModelBroker().delegate({ agentName: 'sdd-apply', task: 'Return READY' });
+    const result = await new ModelBroker().delegate({
+      agentName: 'sdd-apply',
+      task: 'Return READY',
+    });
     assert.equal(result.success, false);
     assert.match(result.error ?? '', /not implemented|not execute/i);
   });
 
   it('can be imported without running the CLI entrypoint', () => {
     const moduleUrl = new URL('../../src/ml/smart-model-router.ts', import.meta.url).href;
-    const result = spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', `await import(${JSON.stringify(moduleUrl)})`], {
-      cwd: process.cwd(),
-      encoding: 'utf8',
-      windowsHide: true,
-    });
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--import',
+        'tsx',
+        '--input-type=module',
+        '-e',
+        `await import(${JSON.stringify(moduleUrl)})`,
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        windowsHide: true,
+      },
+    );
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, '');
   });
 
   it('confirms the requested local model is in the Ollama catalog', async () => {
-    const checkFetch: typeof fetch = async () => Response.json({ models: [{ name: 'qwen2.5-coder:14b' }] });
+    const checkFetch: typeof fetch = async () =>
+      Response.json({ models: [{ name: 'qwen2.5-coder:14b' }] });
     const health = await checkModelHealth('ollama/qwen2.5-coder:14b', localEntry, checkFetch);
     assert.equal(health.status, 'available');
     assert.equal(health.consecutiveErrors, 0);
@@ -81,7 +106,8 @@ describe('smart model router local health checks', () => {
   });
 
   it('marks a missing local model unavailable instead of treating a healthy server as ready', async () => {
-    const checkFetch: typeof fetch = async () => Response.json({ models: [{ name: 'qwen2.5-coder:7b' }] });
+    const checkFetch: typeof fetch = async () =>
+      Response.json({ models: [{ name: 'qwen2.5-coder:7b' }] });
     const health = await checkModelHealth('ollama/qwen2.5-coder:14b', localEntry, checkFetch);
     assert.equal(health.status, 'unavailable');
     assert.match(health.lastError ?? '', /not installed/i);
@@ -100,47 +126,98 @@ describe('smart model router local health checks', () => {
       requested = true;
       throw new Error('should not call fetch');
     };
-    const health = await checkModelHealth('zen/model', { ...localEntry, requiresLocal: false }, checkFetch);
+    const health = await checkModelHealth(
+      'zen/model',
+      { ...localEntry, requiresLocal: false },
+      checkFetch,
+    );
     assert.equal(health.status, 'unknown');
     assert.equal(requested, false);
   });
 
   it('retains a remote health result only while its cache is fresh', async () => {
-    const checkFetch: typeof fetch = async () => { throw new Error('remote probe not allowed'); };
-    const health = await checkModelHealth('zen/model', {
-      ...localEntry,
-      requiresLocal: false,
-      health: { ...localEntry.health, lastChecked: new Date().toISOString() },
-    }, checkFetch);
+    const checkFetch: typeof fetch = async () => {
+      throw new Error('remote probe not allowed');
+    };
+    const health = await checkModelHealth(
+      'zen/model',
+      {
+        ...localEntry,
+        requiresLocal: false,
+        health: { ...localEntry.health, lastChecked: new Date().toISOString() },
+      },
+      checkFetch,
+    );
     assert.equal(health.status, 'available');
   });
 
   it('does not route to an unknown or stale fallback model', () => {
     const now = {
-      provider: 'primary', tier: 'premium' as const, costPer1kTokens: { input: 0, output: 0 },
-      health: { status: 'unavailable' as const, lastChecked: new Date().toISOString(), consecutiveErrors: 1, avgLatencyMs: null },
-      fallbackChain: ['fallback'], capabilities: ['code'], maxTokens: 32000,
+      provider: 'primary',
+      tier: 'premium' as const,
+      costPer1kTokens: { input: 0, output: 0 },
+      health: {
+        status: 'unavailable' as const,
+        lastChecked: new Date().toISOString(),
+        consecutiveErrors: 1,
+        avgLatencyMs: null,
+      },
+      fallbackChain: ['fallback'],
+      capabilities: ['code'],
+      maxTokens: 32000,
     };
     const staleFallback = {
-      provider: 'remote', tier: 'free' as const, costPer1kTokens: { input: 0, output: 0 },
-      health: { status: 'available' as const, lastChecked: '2026-08-08T12:00:00Z', consecutiveErrors: 0, avgLatencyMs: 1000 },
-      fallbackChain: [], capabilities: ['code'], maxTokens: 32000,
+      provider: 'remote',
+      tier: 'free' as const,
+      costPer1kTokens: { input: 0, output: 0 },
+      health: {
+        status: 'available' as const,
+        lastChecked: '2026-08-08T12:00:00Z',
+        consecutiveErrors: 0,
+        avgLatencyMs: 1000,
+      },
+      fallbackChain: [],
+      capabilities: ['code'],
+      maxTokens: 32000,
     };
-    const result = getFallbackModel('primary', { models: { primary: now, fallback: staleFallback } });
+    const result = getFallbackModel('primary', {
+      models: { primary: now, fallback: staleFallback },
+    });
     assert.equal(result, null);
   });
 
   it('routes to a recently verified available fallback model', () => {
     const current = {
-      provider: 'primary', tier: 'premium' as const, costPer1kTokens: { input: 0, output: 0 },
-      health: { status: 'unavailable' as const, lastChecked: new Date().toISOString(), consecutiveErrors: 1, avgLatencyMs: null },
-      fallbackChain: ['fallback'], capabilities: ['code'], maxTokens: 32000,
+      provider: 'primary',
+      tier: 'premium' as const,
+      costPer1kTokens: { input: 0, output: 0 },
+      health: {
+        status: 'unavailable' as const,
+        lastChecked: new Date().toISOString(),
+        consecutiveErrors: 1,
+        avgLatencyMs: null,
+      },
+      fallbackChain: ['fallback'],
+      capabilities: ['code'],
+      maxTokens: 32000,
     };
     const fallback = {
-      provider: 'local', tier: 'local' as const, costPer1kTokens: { input: 0, output: 0 },
-      health: { status: 'available' as const, lastChecked: new Date().toISOString(), consecutiveErrors: 0, avgLatencyMs: 40 },
-      fallbackChain: [], capabilities: ['code'], maxTokens: 32000,
+      provider: 'local',
+      tier: 'local' as const,
+      costPer1kTokens: { input: 0, output: 0 },
+      health: {
+        status: 'available' as const,
+        lastChecked: new Date().toISOString(),
+        consecutiveErrors: 0,
+        avgLatencyMs: 40,
+      },
+      fallbackChain: [],
+      capabilities: ['code'],
+      maxTokens: 32000,
     };
-    assert.equal(getFallbackModel('primary', { models: { primary: current, fallback } })?.model, 'fallback');
+    assert.equal(
+      getFallbackModel('primary', { models: { primary: current, fallback } })?.model,
+      'fallback',
+    );
   });
 });

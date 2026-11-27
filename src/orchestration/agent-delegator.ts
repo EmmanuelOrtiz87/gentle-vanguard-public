@@ -707,6 +707,12 @@ export async function delegate(request: DelegationRequest): Promise<DelegationRe
           duration: Date.now() - startTime,
           model: agentConfig.model,
         }),
+        // El circuit no puede cortar antes que el spawn: el presupuesto del
+        // request (editorial draft/síntesis local: hasta 390 s) es el real, y
+        // el spawn ya mata su árbol al vencer.
+        {
+          timeoutMs: request.timeoutSeconds ? request.timeoutSeconds * 1000 + 15_000 : undefined,
+        },
       );
     } else {
       // Fallback: Generate agent output directly

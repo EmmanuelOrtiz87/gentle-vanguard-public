@@ -69,6 +69,26 @@ test('setMcpServer(true): agrega codegraph con --path y preserva los demás serv
   assert.ok(parsed.mcpServers.codegraph.args.includes('--path'), 'args lleva --path explícito');
 });
 
+test('setMcpServer(true): el entry NO declara el shim codegraph (.cmd ⇒ cmd.exe del host)', () => {
+  const root = fixtureRoot({ withMcp: true });
+  setMcpServer(true, root);
+  const parsed = JSON.parse(readFileSync(join(root, '.mcp.json'), 'utf-8'));
+  const entry = parsed.mcpServers.codegraph;
+  assert.match(String(entry.command), /node(\.exe)?$/i, 'command debe ser node');
+  assert.match(String(entry.args[0]), /codegraph\.js$/i, 'el primer arg es el entry JS');
+});
+
+test('setMcpServer(true): reescribe un entry viejo con shim (drift) y devuelve true', () => {
+  const root = fixtureRoot({ withMcp: true });
+  const path = join(root, '.mcp.json');
+  const parsed = JSON.parse(readFileSync(path, 'utf-8'));
+  parsed.mcpServers.codegraph = { command: 'codegraph', args: ['serve', '--mcp'] };
+  writeFileSync(path, JSON.stringify(parsed, null, 2));
+  assert.equal(setMcpServer(true, root), true);
+  const next = JSON.parse(readFileSync(path, 'utf-8'));
+  assert.notEqual(next.mcpServers.codegraph.command, 'codegraph');
+});
+
 test('setMcpServer(true): idempotente (ya presente => false, sin duplicar)', () => {
   const root = fixtureRoot({ withMcp: true });
   setMcpServer(true, root);

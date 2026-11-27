@@ -47,6 +47,7 @@ public class WinProc {
 '@
 Add-Type -TypeDefinition $sig -ErrorAction SilentlyContinue
 $prev = @{}
+$first = $true
 while ($true) {
   try {
     $procs = Get-Process | Where-Object { $_.MainWindowTitle -ne '' -and $_.Id -ne 0 } |
@@ -59,12 +60,26 @@ while ($true) {
         "$($_.Id)|$($_.ProcessName)|$($_.MainWindowTitle)|$cmd|$parent"
       }
     $current = @{}
+    $new = @()
     foreach ($p in $procs) {
-      $pid = $p.Split('|')[0]
-      $current[$pid] = $p
-      if (-not $prev.ContainsKey($pid)) { Write-Output $p }
+      # OJO: $pid es automatico y de solo lectura en PowerShell — usarlo como
+      # variable de loop lanzaba excepcion en la primera iteracion y el catch
+      # vacio dejaba el sampler mudo desde 2026-11-18.
+      $procId = $p.Split('|')[0]
+      $current[$procId] = $p
+      if (-not $prev.ContainsKey($procId)) { $new += $p }
     }
     $prev = $current
+    # El primer sample es baseline: las ventanas ya abiertas (Codex, navegador,
+    # apps del owner) no son fantasmas y no deben ensuciar la evidencia.
+    if (-not $first) {
+      # PowerShell block-buffers stdout when piped: sin flush el consumidor no ve
+      # nada hasta llenar 4 KB y el buffer se pierde al matar el sampler.
+      foreach ($p in $new) { [Console]::Out.WriteLine($p) }
+      [Console]::Out.Flush()
+    }
+    $first = $false
+    [Console]::Error.WriteLine("hb $([DateTime]::UtcNow.ToString('o')) sampled=$($procs.Count) new=$($new.Count)")
   } catch { }
   Start-Sleep -Milliseconds ${SAMPLE_MS}
 }
@@ -101,8 +116,12 @@ function main(): void {
   const ps = spawn(
     'powershell.exe',
     ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', PS_SCRIPT],
-    { cwd: ROOT, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] },
+    { cwd: ROOT, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] },
   );
+  ps.stderr?.on('data', (chunk: Buffer) => {
+    const line = chunk.toString().trim();
+    if (line) console.error(`[ghost-watcher] ps: ${line.slice(0, 200)}`);
+  });
   let buffer = '';
   ps.stdout?.on('data', (chunk: Buffer) => {
     buffer += chunk.toString();

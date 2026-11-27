@@ -99,28 +99,14 @@ const child = spawn(
 
 child.unref();
 
-// Observador pasivo de flashes de consola (procesos-ocultos, 2026-11-21): la
-// auditoría estática de la cadena es limpia, así que los cmd transitorios que
-// reporta el owner vienen de actores AMBIENTALES (medido: el helper de
-// Antigravity lanza `cmd.exe /c agy-node.cmd` cada ~2.5s). Este watcher captura
-// pid/padre/commandLine de cada consola que aparezca durante la ventana de
-// arranque en .runtime/console-flash-<ts>.jsonl — evidencia, no acción.
-try {
-  const watcher = spawn(
-    process.execPath,
-    [
-      '--import',
-      'tsx',
-      path.join(ROOT, 'src', 'ops', 'console-flash-watch.ts'),
-      '--duration',
-      '150',
-    ],
-    { cwd: ROOT, stdio: 'ignore', windowsHide: true, detached: true },
-  );
-  watcher.unref();
-} catch {
-  /* best-effort: sin watcher la sesión arranca igual */
-}
+// El observador de flashes NO se lanza acá. Medido el 2026-11-26
+// (.runtime/cap-events-a.jsonl, sampler de 60 ms sobre un arranque completo):
+// las 150 s de `console-flash-watch` producían 233 PowerShell ocultos + 1035
+// conhost y se auto-alimentaban (cada sonda crea la consola que la próxima
+// pasada reportaba como nueva). Un observador que genera el ruido que estudia
+// ensucia la atribución y agrega consolas en cada arranque. El diagnóstico de
+// ventanas fantasma es a pedido: `npm run windows:flash-watch` (ya sin el lazo
+// de retroalimentación) o `npm run ghosts:watch`.
 
 // The caller receives due reminders without waiting for the pipeline. The pipeline log
 // for this run is at .runtime/autostart-detached-<timestamp>.log (the lazy step
