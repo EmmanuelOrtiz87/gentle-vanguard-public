@@ -17,12 +17,33 @@
  * Uso: npm run release:manual -- v4.6.0 [--dry-run]
  */
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runSync } from '../core/run-command';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const sh = (cmd: string): string => execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
+
+/**
+ * Mismas rutas que create-installer: PATH + instalaciones estándar de Windows.
+ * El PATH a solas produce falsos negativos — medido 2026-11-26 con v4.7.1:
+ * makensis existía en C:\Program Files (x86)\NSIS y release-manual lo declaró
+ * ausente, publicando sin el .exe que el manifiesto prometía.
+ */
+function findMakensis(): string | null {
+  const candidates = [
+    'makensis.exe',
+    'C:\\Program Files (x86)\\NSIS\\makensis.exe',
+    'C:\\Program Files\\NSIS\\makensis.exe',
+  ];
+  for (const candidate of candidates) {
+    const probe = runSync(candidate, ['/VERSION'], { timeout: 10_000 });
+    if (probe.status === 0) return candidate;
+  }
+  return null;
+}
 
 function main(): number {
   const args = process.argv.slice(2);
@@ -86,21 +107,48 @@ function main(): number {
     ...commits,
   ].join('\n');
 
-  // 3. Installer: solo con NSIS local; sin él, gap declarado.
-  let nsis = false;
-  try {
-    sh('makensis -VERSION');
-    nsis = true;
-  } catch {
-    /* no NSIS */
-  }
+  // 3. Installer: SOLO con NSIS local; sin él, gap declarado. La construcción
+  // corre post-dry-run y su fallo no frena la release (se publica sin .exe).
+  const makensis = findMakensis();
+  const pkgVersion = (
+    JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) as { version: string }
+  ).version;
+  const exePath = resolve(ROOT, 'dist', `Gentle-Vanguard-Setup-${pkgVersion}.exe`);
+  const shaPath = `${exePath}.sha256`;
+  let releaseAssets: string[] = [];
+  const canBuild = !!makensis && `v${pkgVersion}` === tag;
   console.log(
-    `[release-manual] NSIS local: ${nsis ? 'disponible' : 'AUSENTE — release sin .exe (gap declarado)'}`,
+    `[release-manual] NSIS local: ${
+      !makensis
+        ? 'AUSENTE — release sin .exe (gap declarado)'
+        : canBuild
+          ? `${makensis} — instalador se construye al publicar`
+          : `disponible pero package.json=${pkgVersion} ≠ ${tag} — release sin .exe (correr version-sync)`
+    }`,
   );
 
   if (dry) {
     console.log('[dry-run] notas que se publicarían:\n' + notes);
     return 0;
+  }
+
+  if (canBuild) {
+    console.log(`[release-manual] construyendo instalador ${pkgVersion}...`);
+    const build = runSync(
+      process.execPath,
+      ['--import', 'tsx', resolve(ROOT, 'src', 'cli', 'create-installer.ts')],
+      { cwd: ROOT, timeout: 900_000, maxBuffer: 8 * 1024 * 1024 },
+    );
+    if (build.status === 0 && existsSync(exePath)) {
+      const hash = createHash('sha256').update(readFileSync(exePath)).digest('hex');
+      writeFileSync(shaPath, `${hash}  *Gentle-Vanguard-Setup-${pkgVersion}.exe\n`, 'utf8');
+      releaseAssets = [exePath, shaPath];
+      console.log(`[release-manual] instalador listo (sha256 ${hash.slice(0, 12)}…)`);
+    } else {
+      console.log(
+        `[release-manual] build NSIS falló (status=${build.status}) — release sin .exe (gap declarado)`,
+      );
+    }
   }
 
   // 4. Crear la release (API de gh — gratis, sin Actions).
@@ -113,9 +161,12 @@ function main(): number {
     console.log(`[release-manual] notas de ${tag} actualizadas.`);
     return 0;
   }
-  sh(`gh release create ${tag} --verify-tag --title "${tag}" --notes-file "${notesFile}"`);
+  const assets = releaseAssets.map((a) => ` "${a}"`).join('');
+  sh(`gh release create ${tag} --verify-tag --title "${tag}" --notes-file "${notesFile}"${assets}`);
   console.log(
-    `[release-manual] GitHub Release ${tag} creada (sin .exe: NSIS local ausente — gap declarado).`,
+    `[release-manual] GitHub Release ${tag} creada${
+      releaseAssets.length ? ' con instalador adjunto' : ' (sin .exe: gap declarado)'
+    }.`,
   );
   return 0;
 }

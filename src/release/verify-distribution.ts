@@ -22,7 +22,9 @@
  * --------
  * Para la version del manifiesto:
  *  1. El `download_url` NO apunta a un repo privado.
- *  2. La URL responde 200 SIN autenticacion (HEAD con redirect).
+ *  2. La URL responde 200/206 SIN autenticacion (GET con Range de 1 byte:
+ *     GitHub responde 404 a HEAD en las URLs de descarga de releases, aunque
+ *     el asset sea publico — medido 2026-11-26 con v4.7.1).
  *  3. El tamano publicado coincide con lo que el manifiesto espera, si esta.
  *  4. El `sha256` tiene forma de SHA-256 (64 hex) y no es el de otra version.
  *  5. El `.sha256` del repo, si existe, declara el mismo hash.
@@ -105,22 +107,31 @@ if (offline) {
     const timer = setTimeout(() => controller.abort(), 30_000);
     let res: Response;
     try {
-      // HEAD: no descarga el binario. redirect:'manual' para NO seguir al CDN,
-      // porque es el CDN el que responde 404 a veces y eso no es del repo.
-      res = await fetch(url, { method: 'HEAD', redirect: 'manual', signal: controller.signal });
+      // GET con Range 0-0: 1 byte, sigue al CDN. NO usar HEAD — GitHub
+      // responde 404 a HEAD en las URLs de descarga de releases aunque el
+      // asset sea publico (medido 2026-11-26: HEAD 404, GET real 200).
+      res = await fetch(url, {
+        headers: { range: 'bytes=0-0' },
+        redirect: 'follow',
+        signal: controller.signal,
+      });
     } finally {
       clearTimeout(timer);
     }
+    await res.body?.cancel();
     const status = res.status;
-    // 200 o 3xx: aceptable (GitHub redirige al CDN con signed URL).
+    // 200 o 206: aceptable (200 si el CDN ignora Range, 206 si lo respeta).
     const reachable = status >= 200 && status < 400;
     checks.push({
       name: 'url-public-reachable',
       ok: reachable,
-      detail: `HEAD sin sesion → ${status}${reachable ? '' : '  (el publico no puede descargar)'}`,
+      detail: `GET (Range 1B) sin sesion → ${status}${reachable ? '' : '  (el publico no puede descargar)'}`,
     });
 
-    const size = Number(res.headers.get('content-length') ?? '0');
+    const rangeHeader = res.headers.get('content-range') ?? '';
+    const totalFromRange = Number(/\/(\d+)\s*$/.exec(rangeHeader)?.[1] ?? '0');
+    const contentLength = Number(res.headers.get('content-length') ?? '0');
+    const size = totalFromRange || (contentLength > 1 ? contentLength : 0);
     checks.push({
       name: 'asset-published',
       ok: size > 1_000_000,
@@ -147,7 +158,10 @@ if (offline) {
       let res: Response;
       try {
         res = await fetch(api, {
-          headers: { accept: 'application/vnd.github+json', 'user-agent': 'gv-verify-distribution' },
+          headers: {
+            accept: 'application/vnd.github+json',
+            'user-agent': 'gv-verify-distribution',
+          },
           signal: controller.signal,
         });
       } finally {
