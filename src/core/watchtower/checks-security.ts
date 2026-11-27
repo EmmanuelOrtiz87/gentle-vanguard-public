@@ -3,7 +3,7 @@
 // Extracted verbatim from src/core/maintenance-watchtower.ts — no logic changes
 // (except the hidden-spawns self-skip now covers the whole watchtower/ dir).
 
-import { readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, relative } from 'path';
 import { addResult, quiet, ROOT, RUNTIME_DIR, SESSION_DIR } from './context.js';
 import { fileExists, readJson, payloadFileOk } from './helpers.js';
@@ -145,6 +145,167 @@ export async function checkCliGuard() {
 
 // ─── Component: Hidden Spawns (invisible execution guard) ────────────────────
 
+/**
+ * Configs MCP que los HOSTS leen al iniciar sesión. Un `command` bare que
+ * resuelve por PATHEXT a `.cmd`/`.bat` obliga al host a lanzar un cmd.exe que
+ * él no oculta: la ventana fantasma aparece en TODAS las herramientas a la vez
+ * aunque el stack no la spawnee (medido 2026-11-24: `.mcp.json` declaraba
+ * `codegraph`, el shim del npm global, y Qoder abría cmd.exe en cada conexión).
+ */
+const MCP_HOST_CONFIGS = [
+  '.mcp.json',
+  'config/mcp-registry.json',
+  '.zcode/config.json',
+  'opencode.json',
+  '.opencode/mcp.json',
+  '.kimi-code/mcp.json',
+  '.cursor/config.json',
+  '.cline/config.json',
+  '.antigravity/config.json',
+];
+
+interface DeclaredServer {
+  name: string;
+  command: string;
+  shimWaiver?: string;
+}
+
+/** Colecta {server, command} de las shapes conocidas (mcpServers / mcp.servers / servers[]). */
+export function collectDeclaredServers(root = ROOT): DeclaredServer[] {
+  const out: DeclaredServer[] = [];
+  for (const rel of MCP_HOST_CONFIGS) {
+    const full = join(root, rel);
+    if (!existsSync(full)) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(readFileSync(full, 'utf8'));
+    } catch {
+      continue;
+    }
+    const obj = parsed as Record<string, unknown>;
+    const buckets: Array<Record<string, unknown> | undefined> = [
+      obj.mcpServers as Record<string, unknown> | undefined,
+      (obj.mcp as Record<string, unknown> | undefined)?.servers as
+        Record<string, unknown> | undefined,
+      obj.servers as Record<string, unknown> | undefined,
+    ];
+    for (const bucket of buckets) {
+      if (!bucket || Array.isArray(bucket)) continue;
+      for (const [name, raw] of Object.entries(bucket)) {
+        const entry = raw as { command?: unknown; shimWaiver?: unknown };
+        const command = Array.isArray(entry?.command) ? entry.command[0] : entry?.command;
+        if (typeof command === 'string' && command) {
+          out.push({
+            name: `${rel}:${name}`,
+            command,
+            shimWaiver: typeof entry?.shimWaiver === 'string' ? entry.shimWaiver : undefined,
+          });
+        }
+      }
+    }
+    const list = Array.isArray(obj.servers) ? (obj.servers as DeclaredServer[]) : [];
+    for (const entry of list) {
+      if (typeof entry?.command === 'string' && entry.name) {
+        out.push({
+          name: `${rel}:${entry.name}`,
+          command: entry.command,
+          shimWaiver: entry.shimWaiver,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/** Ruta `.cmd`/`.bat` a la que resuelve un comando bare por PATH+PATHEXT, o null. */
+export function resolvesToShim(command: string): string | null {
+  if (/[\\/]/.test(command)) return null; // ruta explícita
+  if (/\.(exe|com|js|mjs|cjs|mts|ps1)$/i.test(command)) return null;
+  const pathext = (process.env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean);
+  const sep = process.platform === 'win32' ? ';' : ':';
+  for (const dir of (process.env.PATH ?? '').split(sep).filter(Boolean)) {
+    for (const ext of pathext) {
+      const candidate = join(dir, command + ext);
+      if (!existsSync(candidate)) continue;
+      return /\.(cmd|bat)$/i.test(ext) ? candidate : null; // primer match gana
+    }
+  }
+  return null;
+}
+
+/**
+ * Escanea un script Windows versionado (.ps1/.cmd/.bat) buscando consolas
+ * propias. Clase medida 2026-11-26: un agente validaba visibilidad con
+ * `Start-Process powershell` y las ventanas resultantes se atribuían al stack.
+ * (Puro: no toca disco.)
+ */
+export function scanWindowsScript(content: string): Array<{ line: number; issue: string }> {
+  const out: Array<{ line: number; issue: string }> = [];
+  const lines = content.split(/\r?\n/);
+  lines.forEach((raw, idx) => {
+    const line = raw.replace(/^\s*(#|::|REM\b).*/i, '');
+    if (!line.trim()) return;
+    if (
+      /\bStart-Process\b/i.test(line) &&
+      !/-WindowStyle\s+Hidden/i.test(line) &&
+      !/-NoNewWindow/i.test(line)
+    ) {
+      out.push({ line: idx + 1, issue: 'Start-Process sin -WindowStyle Hidden' });
+    }
+    if (/(^|[&|(]\s*)start\s+(?!\/b\b)(?!.*https?:\/\/)/i.test(line)) {
+      out.push({ line: idx + 1, issue: "'start' sin /B (abre ventana de consola)" });
+    }
+  });
+  return out;
+}
+
+const SCRIPT_SCAN_DIRS = ['tools', 'scripts', 'apps', 'docs'];
+const SCRIPT_SKIP_DIRS = new Set([
+  'node_modules',
+  'dist',
+  'coverage',
+  '.git',
+  '.archive',
+  'archive',
+  '.runtime',
+  '.session',
+  '.engram-data',
+]);
+
+/** Scripts Windows versionados alcanzables (root + dirs del stack; .archive y outputs fuera). */
+export function collectWindowsScripts(root = ROOT): string[] {
+  const out: string[] = [];
+  const isScript = (n: string) => /\.(ps1|cmd|bat)$/i.test(n);
+  try {
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      if (entry.isFile() && isScript(entry.name)) out.push(join(root, entry.name));
+    }
+  } catch {
+    return out;
+  }
+  const walk = (dir: string) => {
+    let entries: import('fs').Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        // build/ solo es output en la raíz; docs/presentations/decks/build
+        // son herramientas fuente y sí se auditan.
+        if (entry.name === 'build' && dir === root) continue;
+        if (SCRIPT_SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
+        walk(join(dir, entry.name));
+      } else if (isScript(entry.name)) {
+        out.push(join(dir, entry.name));
+      }
+    }
+  };
+  for (const dir of SCRIPT_SCAN_DIRS) walk(join(root, dir));
+  return out;
+}
+
 export async function checkHiddenSpawns() {
   if (!quiet) console.log('  [Hidden Spawns] Checking invisible-execution invariants...');
 
@@ -154,6 +315,7 @@ export async function checkHiddenSpawns() {
   // 2. spawn directo de 'npx.cmd'/'npm' sin shell → EINVAL en Node moderno.
   // 3. Launchers 'cmd /k' → ventanas persistentes.
   // 4. exec/execSync con comando string (cmd.exe visible) sin windowsHide cercano.
+  // 5. `command` MCP declarado que resuelve a shim .cmd/.bat (lo lanza el HOST).
   const issues: string[] = [];
   const scanDirs = [
     join(ROOT, 'src'),
@@ -222,6 +384,33 @@ export async function checkHiddenSpawns() {
           issues.push(`${rel}:${line} ${m[2]}() con comando shell sin windowsHide`);
         }
       }
+    }
+  }
+
+  // 5. Comandos MCP declarados que resuelven a un shim .cmd/.bat: el HOST abre
+  //    cmd.exe aunque el stack no spawnee nada (ventana fantasma cross-tool).
+  for (const server of collectDeclaredServers()) {
+    if (server.shimWaiver) continue;
+    const shim = resolvesToShim(server.command);
+    if (shim) {
+      issues.push(
+        `${server.name}: command '${server.command}' resuelve al shim ${shim} — declarar node + entry real (ver codegraph-paths.ts)`,
+      );
+    }
+  }
+
+  // 6. Scripts Windows versionados con consolas propias (Start-Process visible,
+  //    `start` sin /B): la ventana la abre un archivo del repo, no un agente.
+  for (const file of collectWindowsScripts()) {
+    let content: string;
+    try {
+      content = readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+    const rel = relative(ROOT, file);
+    for (const hit of scanWindowsScript(content)) {
+      issues.push(`${rel}:${hit.line} ${hit.issue}`);
     }
   }
 

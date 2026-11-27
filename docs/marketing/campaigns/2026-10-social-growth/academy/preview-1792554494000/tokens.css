@@ -1,0 +1,171 @@
+/*
+ * Gentle-Vanguard Design System v2.1.0 — Tokens (CSS)
+ * GENERATED from src/tokens/tokens.json by src/cli/build-tokens.ts — do not edit by hand.
+ * Regenerate: npx tsx packages/gv-design-system/src/cli/build-tokens.ts
+ *
+ * v2 Premium canon (official since 2026-09-02):
+ *   - Canon:    docs/brand/TOKENS-v2.json (v2.1.0)
+ *   - Decision: docs/brand/BRAND-DECISION-2026-09-01.md
+ *
+ * Consolidated from 4 divergent legacy sets (see ADR-0026):
+ *   - assets/gv-design-system.css (legacy canonical)
+ *   - docs/brand/BRAND-GUIDELINES.md + config/brand.json
+ *   - docs/brand/UI-STANDARD-ECOSYSTEM.md v1.0.0
+ *   - apps/gv-analytics/src/styles.css (custom)
+ *
+ * Source of truth: src/tokens/tokens.json
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* === PRIMARY === */
+  --gv-purple: #8B5CF6;
+  --gv-purple-deep: #7c3aed;
+  --gv-purple-soft: #c4b5fd;
+  --gv-cyan: #06B6D4;
+  --gv-cyan-deep: #0891b2;
+  --gv-cyan-soft: #67e8f9;
+  --gv-gold: #fbbf24;
+
+  /* === SURFACE === */
+  --gv-bg: #0B1020;
+  --gv-bg-elevated: #151921;
+  --gv-bg-deep: #090c11;
+  --gv-surface: #1a1f2a;
+  --gv-surface-raised: #252b38;
+  --gv-surface-overlay: rgba(26, 31, 42, 0.72);
+  --gv-glass: rgba(26, 31, 42, 0.72);
+  --gv-glass-border: rgba(167, 139, 250, 0.24);
+
+  /* === TEXT === */
+  --gv-text: #e8eef4;
+  --gv-text-secondary: #c4cdd8;
+  --gv-muted: #8b95a8;
+  --gv-text-disabled: #5a6370;
+  --gv-text-inverse: #090c11;
+
+  /* === FEEDBACK === */
+  --gv-amber: #f4bb4f;
+  --gv-red: #ee6d75;
+  --gv-green: #4ade80;
+  --gv-info: #22d3ee;
+
+  /* === BORDER === */
+  --gv-border: rgba(139, 149, 168, 0.25);
+  --gv-border-accent: rgba(167, 139, 250, 0.24);
+  --gv-border-accent-strong: rgba(34, 211, 238, 0.5);
+
+  /* === GLOW === */
+  --gv-glow-purple: rgba(167, 139, 250, 0.16);
+  --gv-glow-cyan: rgba(34, 211, 238, 0.13);
+
+  /* === GRADIENT === */
+  --gv-gradient: linear-gradient(135deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%);
+  --gv-gradient-subtle: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(34,211,238,0.18));
+  --gv-gradient-text: linear-gradient(135deg, #6E4DEB 0%, #7B63E8 52%, #06B6D4 100%);
+
+  /* === TYPOGRAPHY === */
+  --gv-font-display: 'Poppins', 'Inter', system-ui, sans-serif;
+  --gv-font-body: 'Inter', 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --gv-font-mono: 'JetBrains Mono NL', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  --gv-font-mono-accent: 'Space Mono', monospace;
+
+  /* === SPACING === */
+  --gv-space-1: 0.25rem;
+  --gv-space-2: 0.5rem;
+  --gv-space-3: 0.75rem;
+  --gv-space-4: 1rem;
+  --gv-space-5: 1.25rem;
+  --gv-space-6: 1.5rem;
+  --gv-space-8: 2rem;
+  --gv-space-10: 2.5rem;
+  --gv-space-12: 3rem;
+  --gv-space-16: 4rem;
+  --gv-space-20: 5rem;
+  --gv-space-24: 6rem;
+
+  /* === RADIUS === */
+  --gv-radius-sm: 6px;
+  --gv-radius-md: 10px;
+  --gv-radius-lg: 14px;
+  --gv-radius-xl: 20px;
+  --gv-radius-2xl: 28px;
+  --gv-radius-pill: 999px;
+
+  /* === ELEVATION === */
+  --gv-elev-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --gv-elev-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --gv-elev-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --gv-elev-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --gv-elev-glow: 0 0 0 1px rgba(34, 211, 238, 0.15) inset, 0 8px 32px rgba(34, 211, 238, 0.35);
+
+  /* === MOTION === */
+  --gv-duration-instant: 100ms;
+  --gv-duration-fast: 180ms;
+  --gv-duration-base: 280ms;
+  --gv-duration-slow: 400ms;
+  --gv-duration-epic: 800ms;
+  --gv-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --gv-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --gv-ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --gv-ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  /* Note: bounce/elastic easing is BANNED (per impeccable + DESIGN.md §7.2). Never define it. */
+
+  /* === BREAKPOINTS (used in @media) === */
+  --gv-breakpoint-sm: 640px;
+  --gv-breakpoint-md: 768px;
+  --gv-breakpoint-lg: 1024px;
+  --gv-breakpoint-xl: 1280px;
+  --gv-breakpoint-2xl: 1536px;
+
+  /* === Z-INDEX === */
+  --gv-z-base: 0;
+  --gv-z-raised: 10;
+  --gv-z-sticky: 50;
+  --gv-z-overlay: 100;
+  --gv-z-modal: 200;
+  --gv-z-toast: 300;
+  --gv-z-max: 9999;
+
+  /* === LAYOUT === */
+  --gv-header-height: 62px;
+  --gv-content-max-width: 1180px;
+}
+
+/* === LIGHT THEME OVERRIDES (preserved from v1, opt-in) === */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --gv-bg: #f5f7fb;
+  --gv-bg-elevated: #e5e7eb;
+  --gv-bg-deep: #e5e7eb;
+  --gv-surface: #ffffff;
+  --gv-surface-raised: #f9fafb;
+  --gv-surface-overlay: rgba(255, 255, 255, 0.7);
+  --gv-glass: rgba(255, 255, 255, 0.7);
+  --gv-glass-border: rgba(15, 23, 42, 0.1);
+  --gv-text: #0f172a;
+  --gv-text-secondary: #334155;
+  --gv-muted: #475569;
+  --gv-text-disabled: #94a3b8;
+  --gv-text-inverse: #ffffff;
+  --gv-border: rgba(15, 23, 42, 0.1);
+  --gv-border-accent: rgba(167, 139, 250, 0.25);
+  --gv-elev-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --gv-elev-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --gv-elev-xl: 0 20px 60px rgba(15, 23, 42, 0.18);
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --gv-duration-base: 0ms;
+    --gv-duration-fast: 0ms;
+    --gv-duration-slow: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

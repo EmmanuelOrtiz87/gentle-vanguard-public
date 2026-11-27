@@ -86,7 +86,7 @@ const AGENT_MODEL_PREFERENCES: Record<string, string[]> = {
   SAD: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   DEV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   QA: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
-  OPS: ['opencode-zen-C/big-pickle', 'ollama/qwen3-14b-32k'],
+  OPS: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   GOV: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
   DOC: ['opencode-zen-C/big-pickle', 'opencode-zen-C/mimo-v2.6-flash-free'],
 };

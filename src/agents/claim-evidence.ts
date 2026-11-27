@@ -277,10 +277,7 @@ async function run() {
     : [];
   const sentences = splitSentences(text);
   const model =
-    values.model ??
-    process.env.AGENT_MODEL ??
-    process.env.ORCHESTRATOR_MODEL ??
-    'ollama/qwen3-14b-32k';
+    values.model ?? process.env.AGENT_MODEL ?? process.env.ORCHESTRATOR_MODEL ?? 'gpt-5.6-luna';
   const report = await classifyClaims(sentences, sources, {
     model,
     effort: process.env.ORCHESTRATOR_REASONING_EFFORT,

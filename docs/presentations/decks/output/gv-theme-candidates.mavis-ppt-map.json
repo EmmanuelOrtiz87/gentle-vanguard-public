@@ -1,0 +1,303 @@
+{
+  "$schema": "mavis.ppt_element_map.v1",
+  "deck": "gv-theme-candidates",
+  "title": "Direcciones visuales del canon: registro de la decisión",
+  "theme": "hybrid",
+  "source": "docs/presentations/decks/content",
+  "slides": [
+    {
+      "index": 1,
+      "layout": "statement",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "statement-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Registro de decisión",
+          "editable": true
+        },
+        {
+          "elementId": "statement-title",
+          "role": "title",
+          "type": "string",
+          "text": "La dirección visual ya está decidida: canon oscuro, superficie por layout",
+          "editable": true
+        },
+        {
+          "elementId": "statement-body",
+          "role": "body",
+          "type": "string",
+          "text": "Este deck comparó tres direcciones visuales antes de construir los decks reales. La comparación se hizo y el resultado no fue un ganador único: el canon oscuro se adoptó como base, la regla de superficie por layout se quedó y el deck enteramente claro quedó descartado. Los tres decks de producción se construyen con esa combinación.",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodyW",
+          "role": "bodyW",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-bodySize",
+          "role": "bodySize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "statement-stats",
+          "role": "stats",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "layout": "table",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "table-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Qué se comparó",
+          "editable": true
+        },
+        {
+          "elementId": "table-title",
+          "role": "title",
+          "type": "string",
+          "text": "Los criterios que decidían la dirección",
+          "editable": true
+        },
+        {
+          "elementId": "table-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Propiedades de diseño, no contadores del repositorio: los números envejecen, estas propiedades no.",
+          "editable": true
+        },
+        {
+          "elementId": "table-headers",
+          "role": "headers",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "table-rows",
+          "role": "rows",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "layout": "section",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "section-number",
+          "role": "number",
+          "type": "string",
+          "text": "01",
+          "editable": true
+        },
+        {
+          "elementId": "section-title",
+          "role": "title",
+          "type": "string",
+          "text": "La dirección vigente",
+          "editable": true
+        },
+        {
+          "elementId": "section-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Portada oscura con arte generado y columna de texto angosta: el texto nunca corre sobre la parte brillante del arte.",
+          "editable": true
+        },
+        {
+          "elementId": "section-points",
+          "role": "points",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "layout": "cover",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "cover-hero",
+          "role": "hero",
+          "type": "string",
+          "text": "technical",
+          "editable": true
+        },
+        {
+          "elementId": "cover-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Dirección vigente · canon oscuro",
+          "editable": true
+        },
+        {
+          "elementId": "cover-title",
+          "role": "title",
+          "type": "string",
+          "text": "El stack de\nGentleVanguard",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleSize",
+          "role": "titleSize",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-titleH",
+          "role": "titleH",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "cover-subtitle",
+          "role": "subtitle",
+          "type": "string",
+          "text": "Capa de orquestación local-first para trabajar con asistentes de IA: auditable, medible y portable.",
+          "editable": true
+        },
+        {
+          "elementId": "cover-meta",
+          "role": "meta",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "cover-versión",
+          "role": "versión",
+          "type": "string",
+          "text": "Canon vigente · 2026-11",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Por qué el canon oscuro ganó",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "Cuatro razones que el claro corporativo no resolvía",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "El color de marca tiene que funcionar como texto, no solo como superficie.",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "layout": "bullets",
+      "surface": "light",
+      "elements": [
+        {
+          "elementId": "bullets-eyebrow",
+          "role": "eyebrow",
+          "type": "string",
+          "text": "Qué exige hoy un slide del canon",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-title",
+          "role": "title",
+          "type": "string",
+          "text": "Las reglas que un deck nuevo tiene que cumplir",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-lead",
+          "role": "lead",
+          "type": "string",
+          "text": "Son las mismas que aplican los gates del stack.",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-cols",
+          "role": "cols",
+          "type": "number",
+          "editable": true
+        },
+        {
+          "elementId": "bullets-items",
+          "role": "items",
+          "type": "list",
+          "editable": true
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "layout": "closing",
+      "surface": "dark",
+      "elements": [
+        {
+          "elementId": "closing-title",
+          "role": "title",
+          "type": "string",
+          "text": "Una base, una regla, un juego de layouts",
+          "editable": true
+        },
+        {
+          "elementId": "closing-body",
+          "role": "body",
+          "type": "string",
+          "text": "Todo deck nuevo sale del mismo canon: los mismos tokens, la misma regla de superficie y los mismos gates. Si el canon cambia, se cambia una vez y todos los decks lo siguen.",
+          "editable": true
+        },
+        {
+          "elementId": "closing-ctas",
+          "role": "ctas",
+          "type": "list",
+          "editable": true
+        },
+        {
+          "elementId": "closing-note",
+          "role": "note",
+          "type": "string",
+          "text": "Este deck es un registro interno de decisión de diseño, no material de venta.",
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

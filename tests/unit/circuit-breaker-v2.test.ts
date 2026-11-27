@@ -122,6 +122,36 @@ describe('circuit-breaker-v2 reliability', () => {
     assert.equal(await first, 'first');
   });
 
+  it('timeoutMs propio extiende el cap del circuit cuando es mayor', async () => {
+    const name = `${namespace}override`;
+    writeCircuit(name); // timeout: 50 — menor que la llamada real
+    const { executeWithCircuit } = await modulePromise;
+    const result = await executeWithCircuit(
+      name,
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        return 'late-ok';
+      },
+      undefined,
+      { timeoutMs: 500 },
+    );
+    assert.equal(result, 'late-ok');
+    assert.equal(readCircuit(name).metrics.failureCount, 0);
+  });
+
+  it('sin timeoutMs propio el cap del circuit sigue cortando', async () => {
+    const name = `${namespace}cap`;
+    writeCircuit(name);
+    const { executeWithCircuit } = await modulePromise;
+    await assert.rejects(
+      executeWithCircuit(name, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        return 'late';
+      }),
+      /timeout/,
+    );
+  });
+
   it('health check resolves when a socket does not respond', async () => {
     const { checkServiceHealth } = await modulePromise;
     const result = await checkServiceHealth('dashboard_ws');

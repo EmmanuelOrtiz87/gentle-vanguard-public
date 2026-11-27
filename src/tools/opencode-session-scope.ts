@@ -38,7 +38,7 @@ import {
   type AgentModelClassification,
 } from './opencode-agent-model-guard.js';
 
-type RegistryEntry = { capabilities?: string[] };
+type RegistryEntry = { capabilities?: string[]; provider?: string };
 type Registry = Record<string, RegistryEntry>;
 type AgentConfig = { model?: string; provider?: string };
 type OpencodeConfig = { model?: string; agent?: Record<string, AgentConfig> };
@@ -95,11 +95,21 @@ export function writeSessionConfig(root: string): string {
       readFileSync(resolve(root, '.runtime', 'model-active.json'), 'utf8'),
     ) as { model?: unknown; provider?: unknown };
     const registry = loadRegistry(root);
+    const entry = typeof active.model === 'string' ? registry?.[active.model] : undefined;
+    // Solo se alinea un modelo que OpenCode puede servir: el substrate Codex
+    // (`gpt-*` por suscripción CLI) es cloud válido para delegar, pero OpenCode
+    // no lo resuelve como provider; escribirlo en la sesión la rompería
+    // (medido 2026-11-26).
+    const providerHint =
+      (typeof entry?.provider === 'string' && entry.provider.trim()) ||
+      (typeof active.model === 'string' ? active.model.split('/')[0] : '');
+    const servable = /^(opencode|ollama|lm-studio)/.test(providerHint);
     if (
       typeof active.model === 'string' &&
       typeof active.provider === 'string' &&
       active.provider.trim() &&
-      registry?.[active.model]?.capabilities?.includes('tools')
+      servable &&
+      entry?.capabilities?.includes('tools')
     ) {
       const config = JSON.parse(canonical) as OpencodeConfig;
       config.model = active.model;

@@ -37,8 +37,9 @@ const hash = (text: string) => createHash('sha256').update(text).digest('hex');
  * modelo del registro sin poder apartarse de él.
  *
  * El registro admite `models: { <operación>: <modelo> }` para apartar una
- * operación concreta (la reescritura es larga y el 14B local no la sostiene),
- * con el modelo del agente como default y el env por encima de todo.
+ * operación concreta, con el modelo del agente como default y el env por encima
+ * de todo. Hoy no hay override activo: la ruta usa el modelo cloud del
+ * orquestador para todas las operaciones (canon 2026-11-26).
  */
 export function registryModel(operation: string): string | undefined {
   try {
@@ -53,6 +54,33 @@ export function registryModel(operation: string): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * Fallbacks declarados en el registro (`fallbackModels`). Canon 2026-11-26: el
+ * editorial usa la familia Codex (`gpt-*`, subscription) — es el substrate que
+ * entrega en esta ruta; los modelos free de opencode por CLI se cuelgan sin
+ * salida (medido: 120 s por candidato, `Proveedor sin entrega completa`). El
+ * local queda solo como último recurso explícito del registro.
+ */
+export function registryFallbacks(): string[] {
+  try {
+    const raw = readFileSync(new URL('../../config/agents.json', import.meta.url), 'utf8');
+    const config = JSON.parse(raw) as {
+      agents?: Record<string, { fallbackModels?: unknown }>;
+    };
+    const list = config.agents?.['editorial-agent']?.fallbackModels;
+    return Array.isArray(list) ? list.filter((m): m is string => typeof m === 'string' && !!m) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Cadena de modelos: preferido primero, fallbacks del registro después (sin duplicados). */
+export function buildEditorialModelChain(preferred: string, fallbacks: string[]): string[] {
+  return [...new Set([preferred, ...fallbacks].filter(Boolean))];
+}
+
+const DEFAULT_EDITORIAL_MODEL = 'gpt-5.6-luna';
 
 /** Contrato del resultado editorial que exige el agente a su proveedor. */
 interface EditorialDraft {
@@ -121,7 +149,7 @@ async function run() {
     process.env.ORCHESTRATOR_MODEL ??
     process.env.SESSION_MODEL ??
     registryModel(operation) ??
-    'ollama/qwen3-14b-32k';
+    DEFAULT_EDITORIAL_MODEL;
   const effort = process.env.ORCHESTRATOR_REASONING_EFFORT;
   const temperature = Number(values.temperature ?? process.env.AGENT_TEMPERATURE ?? 0.4);
   const prompt = [
@@ -138,10 +166,15 @@ async function run() {
       : []),
   ].join('\n\n');
   const input = JSON.stringify({ operation, task, source: sources ?? source });
-  // La cadena es: el modelo preferido → el modelo del registro. Con el mismo
-  // modelo no hay fallback (medido: el 14B local es el único que levanta
-  // tool_calls, pero no sostiene una reescritura larga).
-  const models = [...new Set([preferred, registryModel('default') ?? 'ollama/qwen3-14b-32k'])];
+  // La cadena es: modelo preferido (env/operación) → modelo base del registro →
+  // fallbacks declarados del registro. El local solo entra si el registro lo
+  // declara como fallback explícito (nunca como default implícito: un Ollama
+  // apagado no es un fallback, es un fallo que se disfraza de ruta).
+  const defaultModel = registryModel('default');
+  const models = buildEditorialModelChain(preferred, [
+    ...(defaultModel ? [defaultModel] : []),
+    ...registryFallbacks(),
+  ]);
   const failures: { model: string; reason: string; detail?: string }[] = [];
   let completion: { model: string; output: ReturnType<typeof parseDraft> } | undefined;
   let generationTimeoutMs = 0;

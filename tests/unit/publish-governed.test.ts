@@ -18,6 +18,34 @@ import type {
 
 const IMAGE = '<ac:image><ri:attachment ri:filename="referencia-att4749492226.png"/></ac:image>';
 
+test('una raíz con plataforma declarada exige su prefijo también al traducir o actualizar', () => {
+  for (const platform of ['OTT', 'SKY', 'DTV']) {
+    const root = {
+      id: '123',
+      platform,
+      title: `[${platform}] - Buyflow — Digital`,
+      body: '<p>English</p>',
+    };
+    assert.equal(parsePlan({ pages: [root] }).pages[0].platform, platform);
+    for (const title of ['Buyflow — Digital', '[OTHER] - Buyflow', `[${platform}] - `]) {
+      assert.throws(() => parsePlan({ pages: [{ ...root, title }] }), /prefijo/);
+    }
+    assert.throws(() => parsePlan({ pages: [{ ...root, title: undefined }] }), /prefijo/);
+  }
+  assert.throws(
+    () => parsePlan({ pages: [{ id: '123', platform: 'OTHER', body: 'x' }] }),
+    /plataforma/,
+  );
+});
+
+test('la biblioteca compartida y las áreas no requieren prefijo de plataforma', () => {
+  assert.equal(
+    parsePlan({ pages: [{ id: '123', title: 'Magento — Buyflow Digital', body: 'x' }] }).pages[0]
+      .platform,
+    undefined,
+  );
+});
+
 /** Cliente falso: la página existe con el cuerpo dado y los adjuntos indicados. */
 function fakeClient(options: {
   body: string;

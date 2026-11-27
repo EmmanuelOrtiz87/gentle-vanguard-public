@@ -1,5 +1,40 @@
 # Changelog
 
+## [4.7.1] - 2026-11-26
+
+### Highlights
+
+- fix(mcp): los hosts MCP entran a codegraph con `node <entry>` en vez del shim `.cmd` (Qoder,
+  MiniMax y ZCode ya no abren un `cmd.exe` por conexion) y `hidden-spawns` audita tambien las
+  configs MCP declaradas.
+- fix(session): el observador de flashes deja de fabricar el ruido que investiga — sondas por lote,
+  `conhost` contado como ruido, filtro de hijos propios y el autostart ya no lo lanza (diagnostico a
+  pedido: `windows:flash-watch` / `ghosts:watch`).
+- feat(gates): `NORM-WINDOWS-001` (diagnostico sin ventanas) y `hidden-spawns` audita scripts
+  Windows versionados: `Start-Process` sin `-WindowStyle Hidden` y `start` sin `/B` fallan el gate.
+- fix(resilience): el circuit `agent_delegation` respeta el presupuesto del request (hasta 390 s en
+  editorial) en vez de cortar a 120 s; la ruta editorial local vuelve a poder completar y el probe
+  de operabilidad deja de reportar `broken`.
+- fix(routing): ningun default de ruta es local. El editorial y `claim-evidence` usan la familia
+  Codex (`gpt-5.6-luna`; medido: el substrate opencode no entrega con modelos free por CLI) con el
+  local solo como ultimo recurso explicito, y `routingRules` del health registry deja de declarar
+  Ollama como primario; el error del substrate ahora viaja en el recibo. Causa raiz del drift:
+  `model-enforcer` y `model-fallback-runtime` elegian "el primer candidato" sin distinguir nube de
+  local y reescribian Ollama como primario en cada arranque; ahora los barridos automaticos solo
+  eligen local si no queda ningun candidato nube sano, conservan el preferido salvo evidencia
+  negativa vigente y, con la cuota gratuita agotada, pasan al `substrateModel` cloud declarado
+  (`gpt-5.6-luna`) antes que al local. La evidencia de inferencia deja de cruzarse entre providers
+  para ids bare (la de `opencode-go/gpt-5.6-luna` descalificaba al `gpt-5.6-luna` de Codex CLI), y
+  la copia de sesion de OpenCode solo se alinea a modelos que OpenCode puede servir.
+- chore(session): artefactos generados y resumenes de sesion.
+- chore(kairos): se homologa la rama `resume-agent-work` — puente nativo de adjuntos Android (APK
+  debug 1.2.1), workflow de calidad Android y verificacion de release en docs; queda un solo
+  worktree y `main`/`develop`/origins en el mismo SHA.
+
+### Changes
+
+- Detalle completo: `git log v4.7.0..v4.7.1 --oneline` (el tag v4.7.1 se crea con esta publicacion).
+
 ## [4.7.0] - 2026-11-25
 
 ### Highlights
